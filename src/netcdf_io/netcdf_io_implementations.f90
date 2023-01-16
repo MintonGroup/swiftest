@@ -47,7 +47,7 @@ contains
    end subroutine netcdf_io_close
 
 
-   module subroutine netcdf_io_find_tslot(self, t)
+   module subroutine netcdf_io_find_tslot(self, t, tslot)
       !! author: David A. Minton
       !! 
       !! Given an open NetCDF file and a value of time t, finds the index of the time value (aka the time slot) to place a new set of data.
@@ -56,12 +56,13 @@ contains
       ! Arguments
       class(netcdf_parameters), intent(inout) :: self  !! Parameters used to identify a particular NetCDF dataset
       real(DP),                 intent(in)    :: t     !! The value of time to search for
+      integer(I4B),             intent(out)   :: tslot !! The index of the time slot where this data belongs
       ! Internals
       real(DP), dimension(:), allocatable :: tvals
 
-      self%tslot = 0
 
       if (.not.self%lfile_is_open) return
+      tslot = 0
 
       call netcdf_io_check( nf90_inquire_dimension(self%id, self%time_dimid, self%time_dimname, len=self%max_tslot), "netcdf_io_find_tslot nf90_inquire_dimension max_tslot"  )
       if (self%max_tslot > 0) then
@@ -72,19 +73,54 @@ contains
          tvals(1) = -huge(1.0_DP)
       end if
 
-      self%tslot = findloc(tvals, t, dim=1)
-      if (self%tslot == 0) self%tslot = self%max_tslot + 1
-      self%max_tslot = max(self%max_tslot, self%tslot)
+      tslot = findloc(tvals, t, dim=1)
+      if (tslot == 0) tslot = self%max_tslot + 1
+      self%max_tslot = max(self%max_tslot, tslot)
+      self%tslot = tslot
 
       return
    end subroutine netcdf_io_find_tslot
 
 
-   module subroutine netcdf_io_get_idvals(self)
+   module subroutine netcdf_io_find_idslot(self, id, idslot)
       !! author: David A. Minton
       !! 
       !! Given an open NetCDF file and a value of id, finds the index of the id value (aka the id slot) to place a new set of data.
-      !! The returned value of idslot will correspond to the first index value where the value of id is equal to a saved id value. If none are found, it is the next available index.
+      !! The returned value of idslot will correspond to the first index value where the value of id is greater than or equal to the saved id value.
+      implicit none
+      ! Arguments
+      class(netcdf_parameters), intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
+      integer(I4B),             intent(in)    :: id     !! The value of id to search for
+      integer(I4B),             intent(out)   :: idslot !! The index of the id slot where this data belongs
+      ! Internals
+      integer(I4B), dimension(:), allocatable :: idvals
+
+      if (.not.self%lfile_is_open) return
+
+      if (.not.allocated(self%idvals)) call self%get_idvals()
+      self%max_idslot = size(self%idvals)
+      idslot = findloc(self%idvals, id, dim=1)
+      if (idslot == 0) then
+         self%max_idslot = self%max_idslot + 1
+         idslot = self%max_idslot
+
+         ! Update the idvals array
+         allocate(idvals(idslot))
+         idvals(1:idslot-1) = self%idvals(1:idslot-1)
+         idvals(idslot) = id
+         call move_alloc(idvals, self%idvals) 
+      end if
+
+      self%idslot = idslot
+
+      return
+   end subroutine netcdf_io_find_idslot
+
+
+   module subroutine netcdf_io_get_idvals(self)
+      !! author: David A. Minton
+      !! 
+      !! Gets a full list of id values 
       implicit none
       ! Arguments
       class(netcdf_parameters),                            intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
@@ -99,7 +135,7 @@ contains
          call netcdf_io_check( nf90_get_var(self%id, self%id_varid, self%idvals(:), start=[1]), "netcdf_io_find_idslot get_var"  )
       else
          allocate(self%idvals(1))
-         self%idvals(1) = -huge(1)
+         self%idvals(1) = 0
       end if
 
       return

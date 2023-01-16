@@ -27,6 +27,7 @@ module netcdf_io
       integer(I4B)       :: tslot                   = 1                 !! The current time slot that gets passed to the NetCDF reader/writer
       integer(I4B)       :: max_tslot               = 0                 !! Records the last index value of time in the NetCDF file
       integer(I4B), dimension(:), allocatable :: idvals                 !! Array of id values in this NetCDF file
+      integer(I4B)       :: idslot                  = 1                 !! The current id slot that gets passed to the NetCDF reader/writer
       integer(I4B)       :: max_idslot              = 0                 !! Records the last index value of id in the NetCDF file
 
       ! Dimension ids and variable names
@@ -142,10 +143,11 @@ module netcdf_io
       integer(I4B)       :: discard_body_id_varid                       !! ID for the id of the other body involved in the discard
       logical            :: lpseudo_vel_exists = .false.                !! Logical flag to indicate whether or not the pseudovelocity vectors were present in an old file.
    contains
-      procedure :: close      => netcdf_io_close       !! Closes an open NetCDF file
-      procedure :: find_tslot => netcdf_io_find_tslot  !! Finds the time dimension index for a given value of t
-      procedure :: get_idvals => netcdf_io_get_idvals  !! Gets the valid id numbers currently stored in this dataset
-      procedure :: sync       => netcdf_io_sync        !! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
+      procedure :: close       => netcdf_io_close       !! Closes an open NetCDF file
+      procedure :: find_tslot  => netcdf_io_find_tslot  !! Finds the time dimension index for a given value of t
+      procedure :: find_idslot => netcdf_io_find_idslot !! Finds the id dimension index for a given value of id
+      procedure :: get_idvals  => netcdf_io_get_idvals  !! Gets the valid id numbers currently stored in this dataset
+      procedure :: sync        => netcdf_io_sync        !! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
    end type netcdf_parameters
 
    interface
@@ -165,11 +167,19 @@ module netcdf_io
          class(netcdf_parameters),                            intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
       end subroutine netcdf_io_get_idvals
 
-      module subroutine netcdf_io_find_tslot(self, t)
+      module subroutine netcdf_io_find_tslot(self, t, tslot)
          implicit none
          class(netcdf_parameters), intent(inout) :: self  !! Parameters used to identify a particular NetCDF dataset
          real(DP),                 intent(in)    :: t     !! The value of time to search for
+         integer(I4B),             intent(out)   :: tslot !! The index of the time slot where this data belongs
       end subroutine netcdf_io_find_tslot
+
+      module subroutine netcdf_io_find_idslot(self, id, idslot)
+         implicit none
+         class(netcdf_parameters), intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
+         integer(I4B),             intent(in)    :: id     !! The value of id to search for
+         integer(I4B),             intent(out)   :: idslot !! The index of the id slot where this data belongs
+      end subroutine netcdf_io_find_idslot
    
       module subroutine netcdf_io_sync(self)
          implicit none

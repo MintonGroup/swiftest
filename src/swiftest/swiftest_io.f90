@@ -580,8 +580,7 @@ contains
 
       associate (nc => self%system_history%nc, cb => self%cb)
          call nc%open(param, readonly=.true.)
-         call nc%find_tslot(param%t0)
-         tslot = nc%tslot
+         call nc%find_tslot(param%t0, tslot)
          call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%time_dimid, len=itmax), "netcdf_io_get_t0_values_system time_dimid" )
          call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%name_dimid, len=idmax), "netcdf_io_get_t0_values_system name_dimid" )
          allocate(vals(idmax))
@@ -627,8 +626,7 @@ contains
             end if
 
             ! Retrieve the current bookkeeping variables
-            call nc%find_tslot(self%t)
-            tslot = nc%tslot
+            call nc%find_tslot(self%t, tslot)
             call netcdf_io_check( nf90_get_var(nc%id, nc%L_escape_varid, self%L_escape(:),  start=[1,tslot], count=[NDIM,1]), "netcdf_io_get_t0_values_system L_escape_varid" )
             call netcdf_io_check( nf90_get_var(nc%id, nc%GMescape_varid,    self%GMescape,    start=[tslot]), "netcdf_io_get_t0_values_system GMescape_varid" )
             call netcdf_io_check( nf90_get_var(nc%id, nc%E_collisions_varid, self%E_collisions, start=[tslot]), "netcdf_io_get_t0_values_system E_collisions_varid" )
@@ -962,7 +960,7 @@ contains
       ! Return
       integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
       ! Internals
-      integer(I4B)                              :: i, idmax, npl_check, ntp_check, str_max, status, npl, ntp
+      integer(I4B)                              :: i, idmax, npl_check, ntp_check, str_max, status, npl, ntp, tslot
       real(DP), dimension(:), allocatable       :: rtemp
       real(DP), dimension(:,:), allocatable     :: vectemp
       integer(I4B), dimension(:), allocatable   :: itemp
@@ -970,10 +968,10 @@ contains
 
 
       call nc%open(param, readonly=.true.)
-      call nc%find_tslot(self%t)
+      call nc%find_tslot(self%t, tslot)
       call self%read_hdr(nc, param)
 
-      associate(cb => self%cb, pl => self%pl, tp => self%tp,tslot => nc%tslot)
+      associate(cb => self%cb, pl => self%pl, tp => self%tp)
          ! Save these values as variables as they get reset by the setup method
          npl = pl%nbody
          ntp = tp%nbody
@@ -1513,7 +1511,7 @@ contains
       class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       ! Internals
-      integer(I4B)                              :: i, j,idslot, old_mode
+      integer(I4B)                              :: i, j, idslot, old_mode
       integer(I4B), dimension(:), allocatable   :: ind
       real(DP), dimension(NDIM)                 :: vh !! Temporary variable to store heliocentric velocity values when converting from pseudovelocity in GR-enabled runs
       real(DP)                                  :: a, e, inc, omega, capom, capm, varpi, lam, f, cape, capf
@@ -1533,8 +1531,7 @@ contains
 
             do i = 1, n
                j = ind(i)
-               idslot = self%id(j) + 1
-
+               call nc%find_idslot(self%id(j), idslot) 
                !! Convert from pseudovelocity to heliocentric without replacing the current value of pseudovelocity 
                if (param%lgr) call swiftest_gr_pseudovel2vel(param, self%mu(j), self%rh(:, j), self%vh(:, j), vh(:))
 
@@ -1620,7 +1617,7 @@ contains
 
          call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "netcdf_io_write_frame_cb nf90_set_fill"  )
 
-         idslot = self%id + 1
+         call nc%find_idslot(self%id, idslot) 
          call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id, start=[idslot]), "netcdf_io_write_frame_cb nf90_put_var cb id_varid"  )
          call netcdf_io_check( nf90_put_var(nc%id, nc%status_varid, ACTIVE, start=[idslot, tslot]), "netcdf_io_write_frame_cb nf90_put_var cb id_varid"  )
 
@@ -1650,7 +1647,6 @@ contains
       class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
 
-      call nc%find_tslot(self%t)
       call self%write_hdr(nc, param)
       call self%cb%write_frame(nc, param)
       call self%pl%write_frame(nc, param)
@@ -1671,29 +1667,29 @@ contains
       class(swiftest_nbody_system),      intent(in)    :: self  !! Swiftest nbody system object
       class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
+      ! Internals
+      integer(I4B) :: tslot
 
-      associate(tslot => nc%tslot)
+      call nc%find_tslot(self%t, tslot)
+      call netcdf_io_check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var time_varid"  )
+      call netcdf_io_check( nf90_put_var(nc%id, nc%npl_varid, self%pl%nbody, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var npl_varid"  )
+      call netcdf_io_check( nf90_put_var(nc%id, nc%ntp_varid, self%tp%nbody, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var ntp_varid"  )
+      if (param%lmtiny_pl) call netcdf_io_check( nf90_put_var(nc%id, nc%nplm_varid, self%pl%nplm, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var nplm_varid"  )
 
-         call netcdf_io_check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var time_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%npl_varid, self%pl%nbody, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var npl_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%ntp_varid, self%tp%nbody, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var ntp_varid"  )
-         if (param%lmtiny_pl) call netcdf_io_check( nf90_put_var(nc%id, nc%nplm_varid, self%pl%nplm, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var nplm_varid"  )
+      if (param%lenergy) then
+         call netcdf_io_check( nf90_put_var(nc%id, nc%KE_orb_varid, self%ke_orbit, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var KE_orb_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%KE_spin_varid, self%ke_spin, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var KE_spin_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%PE_varid, self%pe, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var PE_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%BE_varid, self%be, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var BE_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%TE_varid, self%te, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var TE_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%L_orbit_varid, self%L_orbit(:), start=[1,tslot], count=[NDIM,1]), "netcdf_io_write_hdr_system nf90_put_var L_orbit_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%L_spin_varid, self%L_spin(:), start=[1,tslot], count=[NDIM,1]), "netcdf_io_write_hdr_system nf90_put_var L_spin_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%L_escape_varid, self%L_escape(:), start=[1,tslot], count=[NDIM,1]), "netcdf_io_write_hdr_system nf90_put_var L_escape_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%E_collisions_varid, self%E_collisions, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var E_collisions_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%E_untracked_varid, self%E_untracked, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var E_untracked_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%GMescape_varid, self%GMescape, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var GMescape_varid"  )
+      end if
 
-         if (param%lenergy) then
-            call netcdf_io_check( nf90_put_var(nc%id, nc%KE_orb_varid, self%ke_orbit, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var KE_orb_varid"  )
-            call netcdf_io_check( nf90_put_var(nc%id, nc%KE_spin_varid, self%ke_spin, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var KE_spin_varid"  )
-            call netcdf_io_check( nf90_put_var(nc%id, nc%PE_varid, self%pe, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var PE_varid"  )
-            call netcdf_io_check( nf90_put_var(nc%id, nc%BE_varid, self%be, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var BE_varid"  )
-            call netcdf_io_check( nf90_put_var(nc%id, nc%TE_varid, self%te, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var TE_varid"  )
-            call netcdf_io_check( nf90_put_var(nc%id, nc%L_orbit_varid, self%L_orbit(:), start=[1,tslot], count=[NDIM,1]), "netcdf_io_write_hdr_system nf90_put_var L_orbit_varid"  )
-            call netcdf_io_check( nf90_put_var(nc%id, nc%L_spin_varid, self%L_spin(:), start=[1,tslot], count=[NDIM,1]), "netcdf_io_write_hdr_system nf90_put_var L_spin_varid"  )
-            call netcdf_io_check( nf90_put_var(nc%id, nc%L_escape_varid, self%L_escape(:), start=[1,tslot], count=[NDIM,1]), "netcdf_io_write_hdr_system nf90_put_var L_escape_varid"  )
-            call netcdf_io_check( nf90_put_var(nc%id, nc%E_collisions_varid, self%E_collisions, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var E_collisions_varid"  )
-            call netcdf_io_check( nf90_put_var(nc%id, nc%E_untracked_varid, self%E_untracked, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var E_untracked_varid"  )
-            call netcdf_io_check( nf90_put_var(nc%id, nc%GMescape_varid, self%GMescape, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var GMescape_varid"  )
-         end if
-
-      end associate
 
       return
    end subroutine swiftest_io_netcdf_write_hdr_system
@@ -1725,11 +1721,7 @@ contains
 
             do i = 1, n
                j = ind(i)
-               idslot = findloc(nc%idvals, self%id(j), dim=1)
-               if (idslot == 0) then
-                  nc%max_idslot = nc%max_idslot + 1
-                  idslot = nc%max_idslot
-               end if
+               call nc%find_idslot(self%id(j), idslot) 
                call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id(j), start=[idslot]), "netcdf_io_write_info_body nf90_put_var id_varid"  )
                call netcdf_io_check( nf90_put_var(nc%id, nc%status_varid, self%status(j), start=[idslot,tslot]), "netcdf_io_write_info_body nf90_put_var status_varid"  )
 
@@ -1776,7 +1768,8 @@ contains
       ! This string of spaces of length NAMELEN is used to clear out any old data left behind inside the string variables
       call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "netcdf_io_write_info_cb nf90_set_fill NF90_NOFILL"  )
 
-      idslot = self%id + 1
+      call nc%find_idslot(self%id, idslot) 
+
       call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id, start=[idslot]), "netcdf_io_write_info_cb nf90_put_var id_varid"  )
 
       charstring = trim(adjustl(self%info%name))

@@ -248,8 +248,10 @@ contains
             call netcdf_io_check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var time_varid"  )
 
             npl = pl%nbody
+            ! This ensures that there first idslot will have the first body in it, not id 0 which is the default for a new idvals array
+            if (.not.allocated(nc%idvals)) allocate(nc%idvals, source=pl%id)
             do i = 1, npl
-               idslot = findloc(history%idvals,pl%id(i),dim=1)
+               call nc%find_idslot(pl%id(i), idslot) 
                call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, pl%id(i),   start=[idslot]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl id_varid"  )
                call netcdf_io_check( nf90_put_var(nc%id, nc%rh_varid, pl%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl rh_varid"  )
                call netcdf_io_check( nf90_put_var(nc%id, nc%vh_varid, pl%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl vh_varid"  )
@@ -269,8 +271,9 @@ contains
             end do
 
             ntp = tp%nbody
+            if (.not.allocated(nc%idvals)) allocate(nc%idvals, source=tp%id)
             do i = 1, ntp
-               idslot = findloc(history%idvals,tp%id(i),dim=1)
+               call nc%find_idslot(tp%id(i), idslot) 
                call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, tp%id(i), start=[idslot]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp id_varid"  )
                call netcdf_io_check( nf90_put_var(nc%id, nc%rh_varid, tp%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp rh_varid"  )
                call netcdf_io_check( nf90_put_var(nc%id, nc%vh_varid, tp%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp vh_varid"  )
