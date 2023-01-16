@@ -129,7 +129,7 @@ def encounter_combiner(sim):
     """
 
     # Only keep a minimal subset of necessary data from the simulation and encounter datasets
-    keep_vars = ['rh','vh','Gmass','radius']
+    keep_vars = ['name','rh','vh','Gmass','radius']
     data = sim.data[keep_vars]
     enc = sim.encounters[keep_vars].load()
 
@@ -141,6 +141,18 @@ def encounter_combiner(sim):
 
     # The following will combine the two datasets along the time dimension, sort the time dimension, and then fill in any time gaps with interpolation
     ds = xr.combine_nested([data,enc],concat_dim='time').sortby("time").interpolate_na(dim="time")
+    
+    # Rename the merged Target body so that their data can be combined
+    tname=[n for n in ds['name'].data if "Target" in n]
+    nottname=[n for n in ds['name'].data if "Target" not in n]
+    dslist = []
+    for n in tname:
+        dsnew = ds.sel(name=n)
+        dsnew['name'] = "Target"
+        dslist.append(dsnew)
+
+    newds = xr.merge(dslist,compat="no_conflicts") 
+    ds = xr.combine_nested([ds.sel(name=nottname),newds],concat_dim="name")
    
     # Interpolate in time to make a smooth, constant time step dataset 
     # Add a bit of padding to the time, otherwise there are some issues with the interpolation in the last few frames.
