@@ -468,18 +468,19 @@ contains
       class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       logical,                      intent(out)   :: lfailure     !! Did the velocity computation fail?
       ! Internals
-      integer(I4B) :: i, j, loop, try, istart, nfrag, nlast, nsteps
+      integer(I4B) :: i, j, loop, try, istart, nfrag, nsteps
       logical :: lhitandrun, lsupercat
       real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, L_residual
-      real(DP) :: vmag, vesc, dE, E_residual, ke_min, ke_avail, ke_remove, dE_best, E_residual_best, fscale, f_spin, f_orbit, dE_metric
+      real(DP) :: vmag, vesc, dE, E_residual, ke_min, ke_avail, ke_remove, dE_best, E_residual_best, fscale, f_spin, f_orbit, dE_metric, dM
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
-      real(DP), dimension(collider%fragments%nbody) :: vscale, ke_rot_remove
+      real(DP), dimension(collider%fragments%nbody) :: vscale, ke_rot_remove, volume
       ! For the initial "guess" of fragment velocities, this is the minimum and maximum velocity relative to escape velocity that the fragments will have
-      real(DP)                :: vmin_guess = 1.1_DP 
-      real(DP)                :: vmax_guess = 10.0_DP
-      real(DP)                :: delta_v, volume
-      integer(I4B), parameter :: MAXLOOP = 200
-      integer(I4B), parameter :: MAXTRY = 1000
+      real(DP)                :: vmin_guess = 1.01_DP 
+      real(DP)                :: vmax_guess = 8.0_DP
+      real(DP)                :: delta_v, GC
+      integer(I4B), parameter :: MAXLOOP = 100
+      integer(I4B), parameter :: MAXTRY = 20
+      real(DP), parameter     :: mass_reduction_ratio = 0.1_DP ! Ratio of difference between first and second fragment mass to remove from the largest fragment in case of a failure
       real(DP), parameter :: SUCCESS_METRIC = 1.0e-2_DP
       class(collision_fraggle), allocatable :: collider_local
       character(len=STRMAX) :: message
@@ -489,8 +490,13 @@ contains
          lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
          lsupercat = (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) 
 
+         GC = impactors%Gmass(1) / impactors%mass(1)
+
          allocate(collider_local, source=collider)
          associate(fragments => collider_local%fragments)
+
+            volume(:) = 4.0_DP / 3.0_DP * PI * (fragments%radius(:))**3
+            fragments%density(:) = fragments%mass(:) / volume(:)
 
             ! The fragments will be divided into two "clouds" based on identified origin body. 
             ! These clouds will collectively travel like two impactors bouncing off of each other. 
@@ -517,8 +523,9 @@ contains
             E_residual_best = huge(1.0_DP)
             lfailure = .false.
             dE_metric = huge(1.0_DP)
+            dE_best = huge(1.0_DP)
 
-            outer: do try = 1, nfrag
+            outer: do try = 1, MAXTRY
                ! Scale the magnitude of the velocity by the distance from the impact point
                ! This will reduce the chances of fragments colliding with each other immediately, and is more physically correct  
                do concurrent(i = 1:nfrag)
@@ -582,7 +589,7 @@ contains
                   dE = collider_local%te(2) - collider_local%te(1) 
                   E_residual = dE + impactors%Qloss
 
-                  if ((abs(E_residual) < abs(E_residual_best)) .or. ((dE < 0.0_DP) .and. (E_residual_best >= 0.0_DP))) then ! This is our best case so far. Save it for posterity
+                  if ((abs(E_residual) < abs(E_residual_best)) .or. ((dE < 0.0_DP) .and. (dE_best >= 0.0_DP))) then ! This is our best case so far. Save it for posterity
                      E_residual_best = E_residual
                      dE_best = dE
 
@@ -620,24 +627,23 @@ contains
                   call fragments%set_coordinate_system()
 
                end do
-               if (dE_best < 0.0_DP) exit outer
                ! We didn't converge. Reset the fragment positions and velocities and try a new configuration with some slightly different parameters
-               if (fragments%nbody == 2) exit outer
-               ! Reduce the number of fragments by one
-               nlast = fragments%nbody
-               fragments%Ip(:,1) = fragments%mass(1) * fragments%Ip(:,1) + fragments%mass(nlast) * fragments%Ip(:,nlast)
-               fragments%mass(1) = fragments%mass(1) + fragments%mass(nlast)
-               fragments%Ip(:,1) = fragments%Ip(:,1) / fragments%mass(1)
-               fragments%Gmass(1) = fragments%Gmass(1) + fragments%mass(nlast)
-               volume = 4.0_DP / 3.0_DP * PI * ((fragments%radius(1))**3 + (fragments%radius(nlast))**3)
-               fragments%density(1) = fragments%mass(1) / volume
-               fragments%radius(1) = (3._DP * volume / (4._DP * PI))**(THIRD)
-               fragments%Ip(:,nlast) = 0.0_DP
-               fragments%mass(nlast) = 0.0_DP
-               fragments%Gmass(nlast) = 0.0_DP
-               fragments%radius(nlast) = 0.0_DP
-               fragments%status(nlast) = INACTIVE
-               fragments%nbody = nlast - 1
+               ! Reduce the fragment masses and add it to the largest remenant and try again
+               if (any(fragments%mass(2:nfrag) > collider%min_mfrag)) then
+                  do i = 2, nfrag
+                     if (fragments%mass(i) > collider%min_mfrag) then
+                        dM = min(mass_reduction_ratio * fragments%mass(i), fragments%mass(i) - collider%min_mfrag)
+                        fragments%mass(i) = fragments%mass(i) - dM
+                        fragments%mass(1) = fragments%mass(1) + dM
+                     end if
+                  end do
+               else
+                  exit outer
+               end if
+               fragments%Gmass(:) = GC * fragments%mass(:)
+
+               volume(:) = fragments%mass(:) / fragments%density(:)
+               fragments%radius(:) = (3._DP * volume(:) / (4._DP * PI))**(THIRD)
 
                call fragments%reset()
                call fraggle_generate_pos_vec(collider_local)

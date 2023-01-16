@@ -921,6 +921,8 @@ contains
          fragments%Gmass(:)  = fragments%Gmass(:)  / (collider%dscale**3/collider%tscale**2)
          fragments%radius(:) = fragments%radius(:) / collider%dscale
          impactors%Qloss     = impactors%Qloss     / collider%Escale
+
+         collider%min_mfrag = collider%min_mfrag / collider%mscale
       end associate
 
       return
@@ -986,6 +988,7 @@ contains
          collider%pe(:)        = collider%pe(:)        * collider%Escale
          collider%be(:)        = collider%be(:)        * collider%Escale
          collider%te(:)        = collider%te(:)        * collider%Escale
+         collider%min_mfrag    = collider%min_mfrag    * collider%mscale
    
          collider%mscale = 1.0_DP
          collider%dscale = 1.0_DP

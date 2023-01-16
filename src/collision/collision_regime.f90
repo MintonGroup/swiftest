@@ -213,10 +213,11 @@ contains
       Vhr = Vescp * (C1 * zeta**2 * theta**(2.5_DP) + C2 * zeta**2 + C3 * theta**(2.5_DP) + C4) ! Kokubo & Genda (2010) eq. (3)
       bcrit = rad1 / (rad1 + rad2)
       Qloss = 0.0_DP
-      U_binding = (3 * GC * Mtot**2) / (5 * Rp) ! LS12 eq. 27
-      ke = 0.5_DP * Mtot * Vimp**2
-      pe = - GC * m1 * m2 / norm2(rh2 - rh1)
-      Qmerge = ke + pe + U_binding 
+      ! Specific binding energy
+      U_binding = (3 * GC * Mtot) / (5 * Rp) ! LS12 eq. 27
+      ke = 0.5_DP * Vimp**2
+      pe = - GC * m1 * m2 / (Mtot * norm2(rh2 - rh1))
+      Qmerge = ke + pe + U_binding ! The specific energy lost if this were a perfect merger
 
       if ((m1 < min_mfrag).or.(m2 < min_mfrag)) then 
          regime = COLLRESOLVE_REGIME_MERGE !perfect merging regime
@@ -246,7 +247,7 @@ contains
                Mlr = m1
                Mslr = max(calc_Qrd_rev(m2, m1, Mint, den1, den2, Vimp, c_star), min_mfrag)
                regime = COLLRESOLVE_REGIME_HIT_AND_RUN !hit and run
-               Qloss = (c_star + 1.0_DP) * U_binding ! Qr 
+               Qloss = (c_star - 1.0_DP) * U_binding 
             end if 
          else if (Vimp > Verosion .and. Vimp < Vsupercat) then
             if (m2 < 0.001_DP * m1) then 
@@ -257,17 +258,22 @@ contains
             else 
                Mslr = max(Mtot * (3.0_DP - BETA) * (1.0_DP - N1 * Mlr / Mtot) / (N2 * BETA), min_mfrag)  ! LS12 eq (37)
                regime = COLLRESOLVE_REGIME_DISRUPTION !disruption
-               Qloss = (c_star + 1.0_DP) * U_binding ! Qr - Qr_erosion
+               Qloss = (c_star - 1.0_DP) * U_binding 
             end if 
          else if (Vimp > Vsupercat) then 
             Mlr = max(Mtot * 0.1_DP * (Qr / (Qrd_pstar * SUPERCAT_QRATIO))**(ETA), min_mfrag)   !LS12 eq (44)
             Mslr = max(Mtot * (3.0_DP - BETA) * (1.0_DP - N1 * Mlr / Mtot) / (N2 * BETA), min_mfrag)  !LS12 eq (37)
             regime = COLLRESOLVE_REGIME_SUPERCATASTROPHIC ! supercatastrophic
-            Qloss = (c_star + 1.0_DP) * U_binding ! Qr - Qr_supercat
+            Qloss = (c_star - 1.0_DP) * U_binding 
          else 
             call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Error no regime found in symba_regime")
          end if 
       end if 
+
+      Mresidual = Mtot - Mlr - Mslr
+      if (Mresidual < 0.0_DP) then ! prevents final masses from going negative
+         Mlr = Mlr + Mresidual
+      end if
 
       if (Mslr > Mlr) then ! The second-largest fragment is actually larger than the largest, so we will swap them
          Mtmp = Mlr
@@ -275,10 +281,8 @@ contains
          Mslr = Mtmp
       end if
 
-      Mresidual = Mtot - Mlr - Mslr
-      if (Mresidual < 0.0_DP) then ! prevents final masses from going negative
-         Mlr = Mlr + Mresidual
-      end if
+      Qloss = Qloss * Mtot ! Convert specific energy loss to total energy loss in the system
+
          
       return 
 

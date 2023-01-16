@@ -342,7 +342,7 @@ class Simulation:
         # If the file doesn't exist, flag it for now so we know to create it
         param_file_found = False
         if read_param or read_data:
-            if self.read_param(read_init_cond = not read_data):
+            if self.read_param(read_init_cond = read_data):
                 # We will add the parameter file to the kwarg list. This will keep the set_parameter method from
                 # overriding everything with defaults when there are no arguments passed to Simulation()
                 kwargs['param_file'] = self.param_file
