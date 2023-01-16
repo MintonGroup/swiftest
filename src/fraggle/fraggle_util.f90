@@ -25,7 +25,7 @@ contains
       integer(I4B)              :: i, j, jproj, jtarg, nfrag, istart
       real(DP), dimension(2)    :: volume
       real(DP), dimension(NDIM) :: Ip_avg
-      real(DP) :: mfrag, mremaining, min_mfrag, mtot, mcumul, G
+      real(DP) :: mfrag, mremaining, mtot, mcumul, G
       real(DP), dimension(:), allocatable :: mass
       real(DP), parameter :: BETA = 2.85_DP
       integer(I4B), parameter :: NFRAGMAX = 100  !! Maximum number of fragments that can be generated
@@ -37,7 +37,7 @@ contains
       integer(I4B), dimension(:), allocatable :: ind
       logical :: flipper
      
-      associate(impactors => self%impactors)
+      associate(impactors => self%impactors, min_mfrag => self%min_mfrag)
          ! Get mass weighted mean of Ip and density
          volume(1:2) = 4._DP / 3._DP * PI * impactors%radius(1:2)**3
          mtot = sum(impactors%mass(:))

@@ -151,6 +151,7 @@ module collision
       integer(I4B)                            :: status              !! Status flag to pass to the collision list once the collision has been resolved
       integer(I4B)                            :: collision_id        !! ID number of this collision event
       integer(I4B)                            :: maxid_collision = 0 !! The current maximum collision id number
+      real(DP)                                :: min_mfrag           !! Minimum fragment mass
 
       ! Scale factors used to scale dimensioned quantities to a more "natural" system where important quantities (like kinetic energy, momentum) are of order ~1
       real(DP) :: dscale = 1.0_DP !! Distance dimension scale factor
