@@ -218,7 +218,7 @@ contains
                   if (param%lrotation) then
                      do concurrent(i = 1:NDIM)
                         fragments%Ip(i,1) = sum(impactors%mass(:) * impactors%Ip(i,:)) 
-                        L_spin_new(i) = sum(impactors%L_orbit(i,:) + impactors%L_orbit(i,:))
+                        L_spin_new(i) = sum(impactors%L_orbit(i,:) + impactors%L_spin(i,:))
                      end do
                      fragments%Ip(:,1) = fragments%Ip(:,1) / fragments%mass(1)
                      fragments%rot(:,1) = L_spin_new(:) / (fragments%Ip(3,1) * fragments%mass(1) * fragments%radius(1)**2)
