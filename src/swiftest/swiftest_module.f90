@@ -50,9 +50,10 @@ module swiftest
 
    type, extends(netcdf_parameters) :: swiftest_netcdf_parameters
    contains
-      procedure :: initialize => swiftest_io_netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
-      procedure :: open       => swiftest_io_netcdf_open              !! Opens a NetCDF file and does the variable inquiries to activate variable ids
-      procedure :: flush      => swiftest_io_netcdf_flush             !! Flushes a NetCDF file by closing it then opening it again
+      procedure :: initialize      => swiftest_io_netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
+      procedure :: get_valid_masks => swiftest_io_netcdf_get_valid_masks   !! Gets logical masks indicating which bodies are valid pl and tp type at the current time
+      procedure :: open            => swiftest_io_netcdf_open              !! Opens a NetCDF file and does the variable inquiries to activate variable ids
+      procedure :: flush           => swiftest_io_netcdf_flush             !! Flushes a NetCDF file by closing it then opening it again
    end type swiftest_netcdf_parameters
 
 
@@ -643,6 +644,13 @@ module swiftest
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
          class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       end subroutine swiftest_io_netcdf_get_t0_values_system
+
+      module subroutine swiftest_io_netcdf_get_valid_masks(self, plmask, tpmask)
+         implicit none
+         class(swiftest_netcdf_parameters),  intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
+         logical, dimension(:), allocatable, intent(out)   :: plmask !! Logical mask indicating which bodies are massive bodies
+         logical, dimension(:), allocatable, intent(out)   :: tpmask !! Logical mask indicating which bodies are test particles
+      end subroutine swiftest_io_netcdf_get_valid_masks
 
       module subroutine swiftest_io_netcdf_initialize_output(self, param)
          implicit none

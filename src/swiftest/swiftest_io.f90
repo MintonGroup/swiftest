@@ -948,6 +948,71 @@ contains
    end subroutine swiftest_io_netcdf_open
 
 
+   module subroutine swiftest_io_netcdf_get_valid_masks(self, plmask, tpmask)
+      !! author: David A. Minton
+      !!
+      !! Given an open NetCDF, returns logical masks indicating which bodies in the body arrays are active pl and tp type at the current time.
+      !! Uses the value of tslot stored in the NetCDF parameter object as the definition of current time
+      implicit none
+      ! Arguments
+      class(swiftest_netcdf_parameters),  intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
+      logical, dimension(:), allocatable, intent(out)   :: plmask !! Logical mask indicating which bodies are massive bodies
+      logical, dimension(:), allocatable, intent(out)   :: tpmask !! Logical mask indicating which bodies are test particles
+      ! Internals
+      real(DP), dimension(:), allocatable :: Gmass, a
+      real(DP), dimension(:,:), allocatable :: rh
+      integer(I4B), dimension(:), allocatable :: body_status 
+      logical, dimension(:), allocatable :: lvalid
+      integer(I4B) :: idmax, status
+
+      call netcdf_io_check( nf90_inquire_dimension(self%id, self%name_dimid, len=idmax), "swiftest_io_netcdf_get_valid_masks nf90_inquire_dimension name_dimid"  )
+
+      allocate(Gmass(idmax))
+      allocate(tpmask(idmax))
+      allocate(plmask(idmax))
+      allocate(lvalid(idmax))
+
+      associate(tslot => self%tslot)
+
+         call netcdf_io_check( nf90_get_var(self%id, self%Gmass_varid, Gmass, start=[1,1], count=[idmax,1]), "swiftest_io_netcdf_get_valid_masks nf90_getvar Gmass_varid"  )
+
+         status = nf90_inq_varid(self%id, self%status_varname, self%status_varid) 
+         if (status == NF90_NOERR) then
+            allocate(body_status(idmax))
+            call netcdf_io_check( nf90_get_var(self%id, self%status_varid, body_status, start=[1, tslot], count=[idmax,1]), "swiftest_io_netcdf_get_valid_masks nf90_getvar status_varid"  )
+            lvalid(:) = body_status /= INACTIVE
+         else
+            status = nf90_inq_varid(self%id, self%rh_varname, self%rh_varid) 
+            if (status == NF90_NOERR) then
+               allocate(rh(NDIM,idmax))
+               call netcdf_io_check( nf90_get_var(self%id, self%rh_varid, rh, start=[1, 1, tslot], count=[NDIM,idmax,1]), "swiftest_io_netcdf_get_valid_masks nf90_getvar rh_varid"  )
+               lvalid(:) = rh(1,:) == rh(1,:)
+            else
+               status = nf90_inq_varid(self%id, self%a_varname, self%a_varid) 
+               if (status == NF90_NOERR) then
+                  allocate(a(idmax))
+                  call netcdf_io_check( nf90_get_var(self%id, self%a_varid, a, start=[1, tslot], count=[idmax,1]), "swiftest_io_netcdf_get_valid_masks nf90_getvar a_varid"  )
+                  lvalid(:) = a(:) == a(:)
+               else
+                  lvalid(:) = .false.
+               end if
+            end if
+         end if
+
+         plmask(:) = Gmass(:) == Gmass(:)
+         tpmask(:) = .not. plmask(:)
+         plmask(1) = .false. ! This is the central body
+
+         ! Select only active bodies
+         plmask(:) = plmask(:) .and. lvalid(:)
+         tpmask(:) = tpmask(:) .and. lvalid(:)
+
+      end associate
+
+      return
+   end subroutine swiftest_io_netcdf_get_valid_masks
+
+
    module function swiftest_io_netcdf_read_frame_system(self, nc, param) result(ierr)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
@@ -964,11 +1029,17 @@ contains
       real(DP), dimension(:), allocatable       :: rtemp
       real(DP), dimension(:,:), allocatable     :: vectemp
       integer(I4B), dimension(:), allocatable   :: itemp
-      logical, dimension(:), allocatable        :: validmask, tpmask, plmask
-
+      logical, dimension(:), allocatable        :: tpmask, plmask
 
       call nc%open(param, readonly=.true.)
       call nc%find_tslot(self%t, tslot)
+      call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%time_dimid, len=nc%max_tslot), "netcdf_io_read_frame_system nf90_inquire_dimension time_dimid"  )
+      if (tslot > nc%max_tslot) then
+         write(*,*)
+         write(*,*) "Error in reading frame from NetCDF file. Requested time index value (",tslot,") exceeds maximum time in file (",nc%max_tslot,"). " 
+         call base_util_exit(FAILURE)
+      end if
+
       call self%read_hdr(nc, param)
 
       associate(cb => self%cb, pl => self%pl, tp => self%tp)
@@ -981,32 +1052,10 @@ contains
          allocate(rtemp(idmax))
          allocate(vectemp(NDIM,idmax))
          allocate(itemp(idmax))
-         allocate(validmask(idmax))
-         allocate(tpmask(idmax))
-         allocate(plmask(idmax))
-         call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%time_dimid, len=nc%max_tslot), "netcdf_io_read_frame_system nf90_inquire_dimension time_dimid"  )
-         if (tslot > nc%max_tslot) then
-            write(*,*)
-            write(*,*) "Error in reading frame from NetCDF file. Requested time index value (",tslot,") exceeds maximum time in file (",nc%max_tslot,"). " 
-            call base_util_exit(FAILURE)
-         end if
 
          call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%str_dimid, len=str_max), "netcdf_io_read_frame_system nf90_inquire_dimension str_dimid"  )
 
-         ! First filter out only the id slots that contain valid bodies
-         if (param%in_form == "XV") then
-            call netcdf_io_check( nf90_get_var(nc%id, nc%rh_varid, vectemp(:,:), start=[1, 1, tslot]), "netcdf_io_read_frame_system filter pass nf90_getvar rh_varid"  )
-            validmask(:) = vectemp(1,:) == vectemp(1,:)
-         else
-            call netcdf_io_check( nf90_get_var(nc%id, nc%a_varid, rtemp(:), start=[1, tslot]), "netcdf_io_read_frame_system filter pass nf90_getvar a_varid"  )
-            validmask(:) = rtemp(:) == rtemp(:)
-         end if
-
-         ! Next, filter only bodies that don't have mass (test particles)
-         call netcdf_io_check( nf90_get_var(nc%id, nc%Gmass_varid, rtemp(:), start=[1, tslot]), "netcdf_io_read_frame_system nf90_getvar tp finder Gmass_varid"  )
-         plmask(:) = rtemp(:) == rtemp(:) .and. validmask(:)
-         tpmask(:) = .not. plmask(:) .and. validmask(:)
-         plmask(1) = .false. ! This is the central body
+         call nc%get_valid_masks(plmask, tpmask)
 
          ! Check to make sure the number of bodies is correct
          npl_check = count(plmask(:))
@@ -1020,8 +1069,6 @@ contains
             write(*,*) "Error reading in NetCDF file: The recorded value of ntp does not match the number of active test particles"
             call base_util_exit(failure)
          end if
-
-         if (param%lmtiny_pl) pl%nplm = count(pack(rtemp,plmask) > param%GMTINY )
 
          ! Now read in each variable and split the outputs by body type
          if ((param%in_form == "XV") .or. (param%in_form == "XVEL")) then
@@ -1095,11 +1142,11 @@ contains
 
          ! Set initial central body mass for Helio bookkeeping
          cb%GM0 = cb%Gmass
-            
 
          if (npl > 0) then
             pl%Gmass(:) = pack(rtemp, plmask)
             pl%mass(:) = pl%Gmass(:) / param%GU
+            if (param%lmtiny_pl) pl%nplm = count(pack(rtemp,plmask) > param%GMTINY )
 
             status = nf90_get_var(nc%id, nc%rhill_varid, rtemp, start=[1, tslot], count=[idmax,1])
             if (status == NF90_NOERR) then
@@ -1200,37 +1247,18 @@ contains
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       ! Internals
       integer(I4B) :: status, idmax
-      real(DP), dimension(:), allocatable       :: Gmtemp
       logical, dimension(:), allocatable        :: plmask, tpmask, plmmask
-      integer(I4B), dimension(:), allocatable   :: body_status
+      real(DP), dimension(:), allocatable :: Gmtemp
 
       associate(tslot => nc%tslot)
-         call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%name_dimid, len=idmax), "netcdf_io_read_hdr_system nf90_inquire_dimension name_dimid"  )
          call netcdf_io_check( nf90_get_var(nc%id, nc%time_varid, self%t, start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar time_varid"  )
-
-         allocate(Gmtemp(idmax))
-         allocate(tpmask(idmax))
-         allocate(plmask(idmax))
-         allocate(plmmask(idmax))
-         allocate(body_status(idmax))
-
-         call netcdf_io_check( nf90_get_var(nc%id, nc%Gmass_varid, Gmtemp, start=[1,1], count=[idmax,1]), "netcdf_io_read_hdr_system nf90_getvar Gmass_varid"  )
-         status = nf90_inq_varid(nc%id, nc%status_varname, nc%status_varid) 
-         if (status == NF90_NOERR) then
-            call netcdf_io_check( nf90_get_var(nc%id, nc%status_varid,  body_status, start=[1,tslot], count=[idmax,1]), "netcdf_io_read_hdr_system nf90_getvar status_varid"  )
-         else
-            body_status(:) = ACTIVE
-         end if
-
-         plmask(:) = Gmtemp(:) == Gmtemp(:)
-         tpmask(:) = .not. plmask(:)
-         plmask(1) = .false. ! This is the central body
-
-         ! Select only active bodies
-         plmask(:) = plmask(:) .and. (body_status(:) /= INACTIVE)
-         tpmask(:) = tpmask(:) .and. (body_status(:) /= INACTIVE)
+         call nc%get_valid_masks(plmask, tpmask)
 
          if (param%lmtiny_pl) then
+            idmax = size(plmask)
+            allocate(plmmask(idmax))
+            allocate(Gmtemp(idmax))
+            call netcdf_io_check( nf90_get_var(nc%id, nc%Gmass_varid, Gmtemp, start=[1,1], count=[idmax,1]), "netcdf_io_read_hdr_system nf90_getvar Gmass_varid"  )
             where(plmask(:))
                plmmask(:) = Gmtemp(:) > param%GMTINY
             endwhere
@@ -1611,7 +1639,6 @@ contains
       ! Internals
       integer(I4B)                              :: idslot, old_mode
 
-
       associate(tslot => nc%tslot)
          call self%write_info(nc, param)
 
@@ -1668,7 +1695,8 @@ contains
       class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       ! Internals
-      integer(I4B) :: tslot
+      integer(I4B) :: i,tslot, idmax
+      integer(I4B), dimension(:), allocatable :: body_status
 
       call nc%find_tslot(self%t, tslot)
       call netcdf_io_check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var time_varid"  )
@@ -1690,6 +1718,9 @@ contains
          call netcdf_io_check( nf90_put_var(nc%id, nc%GMescape_varid, self%GMescape, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var GMescape_varid"  )
       end if
 
+      ! Set the status flag to INACTIVE by default
+      call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%name_dimid, len=idmax), "netcdf_io_get_t0_values_system name_dimid" )
+      call netcdf_io_check( nf90_put_var(nc%id, nc%status_varid, [(INACTIVE, i=1,idmax)], start=[1,tslot], count=[idmax,1]), "netcdf_io_write_info_body nf90_put_var status_varid"  )
 
       return
    end subroutine swiftest_io_netcdf_write_hdr_system
@@ -1706,10 +1737,9 @@ contains
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       ! Internals
       integer(I4B)                              :: i, j, idslot, old_mode
-      integer(I4B), dimension(:), allocatable   :: ind
+      integer(I4B), dimension(:), allocatable   :: ind, body_status
       character(len=NAMELEN) :: charstring
 
-      ! This string of spaces of length NAMELEN is used to clear out any old data left behind inside the string variables
       call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "netcdf_io_write_info_body nf90_set_fill NF90_NOFILL"  )
 
       select type(self)
