@@ -974,7 +974,7 @@ contains
 
       associate(tslot => self%tslot)
 
-         call netcdf_io_check( nf90_get_var(self%id, self%Gmass_varid, Gmass, start=[1,1], count=[idmax,1]), "swiftest_io_netcdf_get_valid_masks nf90_getvar Gmass_varid"  )
+         call netcdf_io_check( nf90_get_var(self%id, self%Gmass_varid, Gmass, start=[1,tslot], count=[idmax,1]), "swiftest_io_netcdf_get_valid_masks nf90_getvar Gmass_varid"  )
 
          status = nf90_inq_varid(self%id, self%status_varname, self%status_varid) 
          if (status == NF90_NOERR) then
@@ -1258,10 +1258,9 @@ contains
             idmax = size(plmask)
             allocate(plmmask(idmax))
             allocate(Gmtemp(idmax))
-            call netcdf_io_check( nf90_get_var(nc%id, nc%Gmass_varid, Gmtemp, start=[1,1], count=[idmax,1]), "netcdf_io_read_hdr_system nf90_getvar Gmass_varid"  )
-            where(plmask(:))
-               plmmask(:) = Gmtemp(:) > param%GMTINY
-            endwhere
+            call netcdf_io_check( nf90_get_var(nc%id, nc%Gmass_varid, Gmtemp, start=[1,tslot], count=[idmax,1]), "netcdf_io_read_hdr_system nf90_getvar Gmass_varid"  )
+            where(Gmtemp(:) /= Gmtemp(:)) Gmtemp(:) = 0.0_DP
+            plmmask(:) = plmask(:) .and. Gmtemp(:) > param%GMTINY
          else
             plmmask(:) = plmask(:)
          end if
@@ -1737,7 +1736,7 @@ contains
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       ! Internals
       integer(I4B)                              :: i, j, idslot, old_mode
-      integer(I4B), dimension(:), allocatable   :: ind, body_status
+      integer(I4B), dimension(:), allocatable   :: ind
       character(len=NAMELEN) :: charstring
 
       call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "netcdf_io_write_info_body nf90_set_fill NF90_NOFILL"  )
