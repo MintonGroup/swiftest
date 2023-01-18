@@ -134,7 +134,10 @@ contains
                end if
                density(j) = impactors%mass(j) / volume(j)
                impactors%radius(j) = (3 * volume(j) / (4 * PI))**(1.0_DP / 3.0_DP)
-               if (param%lrotation) impactors%Ip(:, j) = impactors%Ip(:, j) / impactors%mass(j)
+               if (param%lrotation) then
+                  impactors%Ip(:, j) = impactors%Ip(:, j) / impactors%mass(j)
+                  impactors%rot(:,j) = impactors%L_spin(:, j) / (impactors%Ip(3,j) * impactors%mass(j) * impactors%radius(j)**2)
+               end if
             end do
             lflag = .true.
 
