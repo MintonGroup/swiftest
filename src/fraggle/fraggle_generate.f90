@@ -441,14 +441,14 @@ contains
           
          Lafter(:) = mass_final * (impactors%rb(:,2) - impactors%rb(:,1)) .cross. (v_final * impactors%bounce_unit(:))
          L_spin(:) = impactors%L_spin(:,1) + random_scale_factor * (Lbefore(:) - Lafter(:))
-         ! Add in some random spin noise. The magnitude will be scaled by the before-after amount and the direction will be random
+         ! Add in some random spin noise. The magnitude will be scaled by a fraction of  the pre-impact rotation in a random direction
          do i = 2,nfrag
             call random_number(rotdir)
-            call random_number(rotmag)
             rotdir = rotdir - 0.5_DP
             rotdir = .unit. rotdir
-            fragments%rotmag(i) = random_scale_factor * rotmag * .mag.L_spin(:) / ((nfrag - 1) * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i))
-            fragments%rot(:,i) = fragments%rot(:,i) + fragments%rotmag(i) * rotdir
+            rotmag = random_scale_factor * .mag. fragments%rot(:,i)
+            fragments%rot(:,i) = fragments%rot(:,i) + rotmag * rotdir
+            fragments%rotmag(i) = .mag.fragments%rot(:,i)
          end do
       end associate
 
