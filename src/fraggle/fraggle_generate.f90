@@ -407,7 +407,7 @@ contains
       ! Internals
       real(DP), dimension(NDIM) :: Lbefore, Lafter, L_spin, rotdir
       real(DP) :: v_init, v_final, mass_init, mass_final, rotmag, dKE, KE_init, KE_final
-      real(DP), parameter :: random_scale_factor = 0.01_DP !! The relative scale factor to apply to the random component of the rotation vector
+      real(DP), parameter :: random_scale_factor = 0.001_DP !! The relative scale factor to apply to the random component of the rotation vector
       integer(I4B) :: i
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
@@ -543,14 +543,12 @@ contains
                   j = fragments%origin_body(i)
                   vrot(:) = impactors%rot(:,j) .cross. (fragments%rc(:,i) - impactors%rc(:,j))
                   if (lhitandrun) then
-                     if (i == 1) then
-                        fragments%vc(:,1) = impactors%vc(:,1)
+                     if (i ==1) then
+                        fragments%vc(:,i) = impactors%vc(:,1)
                      else
-                        vmag = .mag.impactors%vc(:,2) / maxval(vscale(:))
-                        fragments%vc(:,i) = vmag * vscale(i) * impactors%bounce_unit(:) * vsign(i) + vrot(:)
+                        fragments%vc(:,i) = impactors%vc(:,2) + vsign(i) * impactors%bounce_unit(:) * (vscale(i) - 0.5_DP *(maxval(vscale(:)) - minval(vscale(:))))
                      end if
                   else
-                     ! Add more velocity dispersion to disruptions vs hit and runs.
                      vmag = vesc * vscale(i) 
                      rimp(:) = fragments%rc(:,i) - impactors%rbimp(:)
                      vimp_unit(:) = .unit. (rimp(:) + vsign(i) * impactors%bounce_unit(:))
