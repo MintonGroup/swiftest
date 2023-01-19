@@ -31,6 +31,7 @@ import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from scipy.spatial.transform import Rotation as R
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Define the names and initial conditions of the various fragmentation simulation types
@@ -74,14 +75,14 @@ vel_vectors = {"disruption_headon"         : [np.array([ 0.00,  6.280005, 0.0]),
                                               np.array([ 0.05,  6.18,     0.0])] 
                }
 
-rot_vectors = {"disruption_headon"         : [np.array([0.0, 0.0, 0.0]),
-                                              np.array([0.0, 0.0, 0.0])],
-               "disruption_off_axis":        [np.array([0.0, 0.0, 0.0]),
-                                              np.array([0.0, 0.0, 0.0])],
-               "supercatastrophic_headon":   [np.array([0.0, 0.0, 0.0]),
-                                              np.array([0.0, 0.0, 0.0])],
-               "supercatastrophic_off_axis": [np.array([0.0, 0.0, 0.0]),
-                                              np.array([0.0, 0.0, 0.0])],
+rot_vectors = {"disruption_headon"         : [np.array([1.0e3, 0.0, 1.0e2]),
+                                              np.array([-1.0e2, -1.0e3, 0.0])],
+               "disruption_off_axis":        [np.array([0.0, 0.0, 2.0e3]),
+                                              np.array([0.0, 0.0, -1.0e4])],
+               "supercatastrophic_headon":   [np.array([3.0e2, 3.0e2, 1.0e3]),
+                                              np.array([1.0e3, -3.0e2, -5.0e3])],
+               "supercatastrophic_off_axis": [np.array([3.0e2, 3.0e2, 1.0e3]),
+                                              np.array([1.0e3, 3.0e3, -1.0e4])],
                "hitandrun_disrupt"         : [np.array([0.0, 0.0, 6.0e3]),
                                               np.array([0.0, 0.0, 1.0e4])],
                "hitandrun_pure"            : [np.array([0.0, 0.0, 6.0e3]),
@@ -129,7 +130,7 @@ def encounter_combiner(sim):
     """
 
     # Only keep a minimal subset of necessary data from the simulation and encounter datasets
-    keep_vars = ['name','rh','vh','Gmass','radius']
+    keep_vars = ['name','rh','vh','Gmass','radius','rot']
     data = sim.data[keep_vars]
     enc = sim.encounters[keep_vars].load()
 
@@ -158,6 +159,7 @@ def encounter_combiner(sim):
     # Add a bit of padding to the time, otherwise there are some issues with the interpolation in the last few frames.
     smooth_time = np.linspace(start=tgood.isel(time=0), stop=ds.time[-1], num=int(1.2*num_movie_frames))
     ds = ds.interp(time=smooth_time)
+    ds['rotangle'] = xr.zeros_like(ds['rot'])
 
     return ds
 
@@ -167,7 +169,6 @@ class AnimatedScatter(object):
     def __init__(self, sim, animfile, title, style, nskip=1):
 
         self.ds = encounter_combiner(sim)
-        self.sim = sim
         self.title = title
         self.body_color_list = {'Initial conditions': 'xkcd:windows blue',
                       'Disruption': 'xkcd:baby poop',
@@ -215,10 +216,6 @@ class AnimatedScatter(object):
         
         # Define a function to calculate a reference frame for the animation
         # This will be based on the initial velocity of the Target body
-        def reference_frame(r_ref, v_ref, t):
-            coord_pos = r_ref + v_ref * t 
-            return coord_pos.values[0], coord_pos.values[1]
-        
         def center(Gmass, x, y):
             x = x[~np.isnan(x)]
             y = y[~np.isnan(y)]
@@ -242,11 +239,14 @@ class AnimatedScatter(object):
             Gmass = ds['Gmass'].values
             rh = ds['rh'].values
             point_rad = radius * self.ax_pt_size
-            
-            # Save the initial velocity of body 1 to use as a reference
-            if frame == 0:
-                self.r_ref = ds.sel(name="Target")['rh'] 
-                self.v_ref = ds.sel(name="Target")['vh'] 
+            if frame > 0:
+                dsold = self.ds.isel(time=frame-1)
+                told = dsold['time'].values[()]
+                dt = t - told
+                ds['rotangle'] = dsold['rotangle'] + dt * dsold['rot']
+                ds['rotangle'] = np.mod(ds['rotangle'], 360.0)
+                self.ds[dict(time=frame)]['rotangle'] = ds['rotangle']
+
             yield t, Gmass, rh, point_rad
 
 if __name__ == "__main__":

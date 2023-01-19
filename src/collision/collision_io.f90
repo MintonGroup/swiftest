@@ -410,7 +410,7 @@ contains
                      call netcdf_io_check( nf90_put_var(nc%id, nc%radius_varid, pl%radius(i), start=[   idslot, stage, eslot]), "collision_io_netcdf_write_frame_snapshot nf90_put_var radius_varid"  )
                      if (param%lrotation) then
                         call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid,     pl%Ip(:,i),   start=[1, idslot, stage, eslot], count=[NDIM,1,1,1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var Ip_varid"  )
-                        call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid,    pl%rot(:,i),  start=[1, idslot, stage, eslot], count=[NDIM,1,1,1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var rotx_varid"  )
+                        call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid,    pl%rot(:,i)*RAD2DEG,  start=[1, idslot, stage, eslot], count=[NDIM,1,1,1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var rotx_varid"  )
                      end if
                   end do
                end do

@@ -621,6 +621,7 @@ contains
 
             if (param%lrotation) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%rot_varid, rot0, start=[1,1,tslot], count=[NDIM,1,1]), "netcdf_io_get_t0_values_system rot_varid" )
+               rot0(:) = rot0(:) * DEG2RAD
                call netcdf_io_check( nf90_get_var(nc%id, nc%Ip_varid, Ip0, start=[1,1,tslot], count=[NDIM,1,1]), "netcdf_io_get_t0_values_system Ip_varid" )
                cb%L0(:) = Ip0(3) * mass0 * cb%R0**2 * rot0(:)
             end if
@@ -1174,7 +1175,8 @@ contains
             end do
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%rot_varid, vectemp, start=[1, 1, tslot], count=[NDIM,idmax,1]), "netcdf_io_read_frame_system nf90_getvar rot_varid"  )
-            cb%rot(:) = vectemp(:,1)
+            vectemp(:,:) = vectemp(:,:) * DEG2RAD
+            cb%rot(:) = vectemp(:,1) 
             do i = 1, NDIM
                if (npl > 0) pl%rot(i,:) = pack(vectemp(i,:), plmask(:))
             end do
@@ -1608,7 +1610,7 @@ contains
                   if (param%lclose) call netcdf_io_check( nf90_put_var(nc%id, nc%radius_varid, self%radius(j), start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body radius_varid"  )
                   if (param%lrotation) then
                      call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid, self%Ip(:, j), start=[1,idslot, tslot], count=[NDIM,1,1]), "netcdf_io_write_frame_body nf90_put_var body Ip_varid"  )
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, self%rot(:, j), start=[1,idslot, tslot], count=[NDIM,1,1]), "netcdf_io_write_frame_body nf90_put_var body rotx_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, self%rot(:, j) * RAD2DEG, start=[1,idslot, tslot], count=[NDIM,1,1]), "netcdf_io_write_frame_body nf90_put_var body rotx_varid"  )
                   end if
                   ! if (param%ltides) then
                   !    call netcdf_io_check( nf90_put_var(nc%id, nc%k2_varid, self%k2(j), start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body k2_varid"  )
@@ -1653,7 +1655,7 @@ contains
          call netcdf_io_check( nf90_put_var(nc%id, nc%j4rp4_varid, self%j4rp4, start=[tslot]), "netcdf_io_write_frame_cb nf90_put_var cb j4rp4_varid" )
          if (param%lrotation) then
             call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid, self%Ip(:), start=[1, idslot, tslot], count=[NDIM,1,1]), "netcdf_io_write_frame_cb nf90_put_var cb Ip_varid"  )
-            call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, self%rot(:), start=[1, idslot, tslot], count=[NDIM,1,1]), "netcdf_io_write_frame_cby nf90_put_var cb rot_varid"  )
+            call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, self%rot(:) * RAD2DEG, start=[1, idslot, tslot], count=[NDIM,1,1]), "netcdf_io_write_frame_cby nf90_put_var cb rot_varid"  )
          end if
 
          call netcdf_io_check( nf90_set_fill(nc%id, old_mode, old_mode), "netcdf_io_write_frame_cb nf90_set_fill old_mode"  )
@@ -2687,6 +2689,7 @@ contains
       if (param%lrotation) then
          read(iu, *, err = 667, iomsg = errmsg) self%Ip(1), self%Ip(2), self%Ip(3)
          read(iu, *, err = 667, iomsg = errmsg) self%rot(1), self%rot(2), self%rot(3)
+         self%rot(:) = self%rot(:) * DEG2RAD
       end if
       ierr = 0
       close(iu, err = 667, iomsg = errmsg)
@@ -2832,6 +2835,7 @@ contains
                   if (param%lrotation) then
                      read(iu, *, err = 667, iomsg = errmsg) self%Ip(1, i), self%Ip(2, i), self%Ip(3, i)
                      read(iu, *, err = 667, iomsg = errmsg) self%rot(1, i), self%rot(2, i), self%rot(3, i)
+                     self%rot(:,i) = self%rot(:,i) * DEG2RAD 
                   end if
                   ! if (param%ltides) then
                   !    read(iu, *, err = 667, iomsg = errmsg) self%k2(i)

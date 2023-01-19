@@ -96,16 +96,16 @@ def solar_system_horizons(name: str,
     }
     
     planetrot = {
-       'Sun' : np.longdouble(2*np.pi / 25.05) / swiftest.JD2S, # Approximate
-       'Mercury': np.longdouble(2*np.pi / 58.646) / swiftest.JD2S,
-       'Venus': np.longdouble(2*np.pi / 243.0226 ) / swiftest.JD2S,
-       'Earth': np.longdouble(2*np.pi / 0.99726968) / swiftest.JD2S,
-       'Mars': np.longdouble(2*np.pi / 1.025957) / swiftest.JD2S,
-       'Jupiter': np.longdouble(2*np.pi / (9.9250 / 24.0) ) / swiftest.JD2S,
-       'Saturn': np.longdouble(2*np.pi / (10.656 / 24.0) ) / swiftest.JD2S,
-       'Uranus': np.longdouble(2*np.pi / 0.71833) / swiftest.JD2S,
-       'Neptune': np.longdouble(2*np.pi / 0.6713) / swiftest.JD2S,
-       'Pluto': np.longdouble(2*np.pi / 6.387230) / swiftest.JD2S
+       'Sun' : np.longdouble(360.0 / 25.05) / swiftest.JD2S, # Approximate
+       'Mercury': np.longdouble(360.0 / 58.646) / swiftest.JD2S,
+       'Venus': np.longdouble(360.0 / 243.0226 ) / swiftest.JD2S,
+       'Earth': np.longdouble(360.0 / 0.99726968) / swiftest.JD2S,
+       'Mars': np.longdouble(360.0 / 1.025957) / swiftest.JD2S,
+       'Jupiter': np.longdouble(360.0 / (9.9250 / 24.0) ) / swiftest.JD2S,
+       'Saturn': np.longdouble(360.0 / (10.656 / 24.0) ) / swiftest.JD2S,
+       'Uranus': np.longdouble(360.0 / 0.71833) / swiftest.JD2S,
+       'Neptune': np.longdouble(360.0 / 0.6713) / swiftest.JD2S,
+       'Pluto': np.longdouble(360.0 / 6.387230) / swiftest.JD2S
     }
    
     planetIpz = { # Only the polar moments of inertia are used currently. Where the quantity is unkown, we just use the value of a sphere = 0.4
@@ -262,7 +262,7 @@ def vec2xr(param: Dict, **kwargs: Any):
     rhill : float or array-like of float, optional
         Hill's radius values if these are massive bodies
     rot:  (n,3) array-like of float, optional
-        Rotation rate vectors if these are massive bodies with rotation enabled. This can be used instead of passing
+        Rotation rate vectors if these are massive bodies with rotation enabled in deg/TU
     Ip: (n,3) array-like of flaot, optional
         Principal axes moments of inertia vectors if these are massive bodies with rotation enabled. This can be used
         instead of passing Ip1, Ip2, and Ip3 separately
