@@ -71,24 +71,24 @@ vel_vectors = {"disruption_headon"         : [np.array([ 0.00,  6.280005, 0.0]),
                                               np.array([-1.45, -6.28,     0.0])],
                "hitandrun_pure"            : [np.array([ 0.00,  6.28,     0.0]),
                                               np.array([-1.52, -6.28,     0.0])],
-               "merge"                     : [np.array([ 0.05,  6.28,     0.0]),
+               "merge"                     : [np.array([ 0.04,  6.28,     0.0]),
                                               np.array([ 0.05,  6.18,     0.0])] 
                }
 
-rot_vectors = {"disruption_headon"         : [np.array([1.0e3, 0.0, 1.0e2]),
-                                              np.array([-1.0e2, -1.0e3, 0.0])],
-               "disruption_off_axis":        [np.array([0.0, 0.0, 2.0e3]),
+rot_vectors = {"disruption_headon"         : [np.array([0.0, 0.0, 1.0e5]),
+                                              np.array([0.0, 0.0, -5e5])],
+               "disruption_off_axis":        [np.array([0.0, 0.0, 2.0e5]),
+                                              np.array([0.0, 0.0, -1.0e5])],
+               "supercatastrophic_headon":   [np.array([0.0, 0.0, 1.0e5]),
+                                              np.array([0.0, 0.0, -5.0e5])],
+               "supercatastrophic_off_axis": [np.array([0.0, 0.0, 1.0e5]),
                                               np.array([0.0, 0.0, -1.0e4])],
-               "supercatastrophic_headon":   [np.array([3.0e2, 3.0e2, 1.0e3]),
-                                              np.array([1.0e3, -3.0e2, -5.0e3])],
-               "supercatastrophic_off_axis": [np.array([3.0e2, 3.0e2, 1.0e3]),
-                                              np.array([1.0e3, 3.0e3, -1.0e4])],
-               "hitandrun_disrupt"         : [np.array([0.0, 0.0, 6.0e3]),
-                                              np.array([0.0, 0.0, 1.0e4])],
+               "hitandrun_disrupt"         : [np.array([0.0, 0.0, -6.0e5]),
+                                              np.array([0.0, 0.0, 1.0e5])],
                "hitandrun_pure"            : [np.array([0.0, 0.0, 6.0e3]),
                                               np.array([0.0, 0.0, 1.0e4])],
-               "merge"                     : [np.array([0.0, 0.0, -6.0e3]),
-                                              np.array([0.0, 0.0, 1.0e4])] 
+               "merge"                     : [np.array([0.0, 0.0, 0.0]),
+                                              np.array([0.0, 0.0, 0.0])] 
                }
 
 body_Gmass = {"disruption_headon"        : [1e-7, 1e-9],
@@ -160,15 +160,24 @@ def encounter_combiner(sim):
     smooth_time = np.linspace(start=tgood.isel(time=0), stop=ds.time[-1], num=int(1.2*num_movie_frames))
     ds = ds.interp(time=smooth_time)
     ds['rotangle'] = xr.zeros_like(ds['rot'])
+    ds['rot'] = ds['rot'].fillna(0.0)
 
     return ds
 
+def center(Gmass, x, y):
+    x = x[~np.isnan(x)]
+    y = y[~np.isnan(y)]
+    Gmass = Gmass[~np.isnan(Gmass)]
+    x_com = np.sum(Gmass * x) / np.sum(Gmass)
+    y_com = np.sum(Gmass * y) / np.sum(Gmass)
+    return x_com, y_com 
 class AnimatedScatter(object):
     """An animated scatter plot using matplotlib.animations.FuncAnimation."""
 
     def __init__(self, sim, animfile, title, style, nskip=1):
 
         self.ds = encounter_combiner(sim)
+        self.npl = len(self.ds['name']) - 1
         self.title = title
         self.body_color_list = {'Initial conditions': 'xkcd:windows blue',
                       'Disruption': 'xkcd:baby poop',
@@ -179,9 +188,7 @@ class AnimatedScatter(object):
         # Set up the figure and axes...
         self.figsize = (4,4)
         self.fig, self.ax = self.setup_plot()
-
-        # Then setup FuncAnimation.
-        self.ani = animation.FuncAnimation(self.fig, self.update_plot, interval=1, frames=range(0,num_movie_frames,nskip), blit=True)
+        self.ani = animation.FuncAnimation(self.fig, self.update_plot, init_func=self.init_func, interval=1, frames=range(0,num_movie_frames,nskip), blit=True)
         self.ani.save(animfile, fps=60, dpi=300, extra_args=['-vcodec', 'libx264'])
         print(f"Finished writing {animfile}")
 
@@ -199,7 +206,7 @@ class AnimatedScatter(object):
            scale_frame *= 2
            
         ax = plt.Axes(fig, [0.1, 0.1, 0.8, 0.8])
-        self.ax_pt_size = self.figsize[0] *  72 / scale_frame
+        self.ax_pt_size = self.figsize[0] *  72 / scale_frame  * 0.7
         ax.set_xlim(-scale_frame, scale_frame)
         ax.set_ylim(-scale_frame, scale_frame)
         ax.set_xticks([])
@@ -209,46 +216,92 @@ class AnimatedScatter(object):
         ax.set_title(self.title)
         fig.add_axes(ax)
 
-        self.scatter_artist = ax.scatter([], [], animated=True, c='k', edgecolors='face')
         return fig, ax
+    
+    def init_func(self):
+        self.artists = [] 
+        aarg = self.vec_props('xkcd:beige')
+        for i in range(self.npl):
+            self.artists.append(self.ax.annotate("",xy=(0,0),**aarg)) 
+        
+        self.artists.append(self.ax.scatter([],[],c='k', animated=True, zorder=10))
+        return self.artists
 
     def update_plot(self, frame):
-        
         # Define a function to calculate a reference frame for the animation
         # This will be based on the initial velocity of the Target body
-        def center(Gmass, x, y):
-            x = x[~np.isnan(x)]
-            y = y[~np.isnan(y)]
-            Gmass = Gmass[~np.isnan(Gmass)]
-            x_com = np.sum(Gmass * x) / np.sum(Gmass)
-            y_com = np.sum(Gmass * y) / np.sum(Gmass)
-            return x_com, y_com 
 
-        t, Gmass, rh, point_rad = next(self.data_stream(frame))
+        t, Gmass, rh, radius, rotangle = next(self.data_stream(frame))
         x_ref, y_ref = center(Gmass, rh[:,0], rh[:,1]) 
-        self.scatter_artist.set_offsets(np.c_[rh[:,0] - x_ref, rh[:,1] - y_ref])
-        self.scatter_artist.set_sizes(point_rad**2)
-        return self.scatter_artist,
+        rh = np.c_[rh[:,0] - x_ref, rh[:,1] - y_ref]
+        self.artists[-1].set_offsets(rh)
+        point_rad = radius * self.ax_pt_size
+        self.artists[-1].set_sizes(point_rad**2)
+        
+        sarrowend, sarrowtip = self.spin_arrows(rh, rotangle, 1.1*radius) 
+        for i, s in enumerate(self.artists[:-1]):
+            self.artists[i].set_position(sarrowtip[i])
+            self.artists[i].xy = sarrowend[i]
+        
+        return self.artists
 
     def data_stream(self, frame=0):
         while True:
-            ds = self.ds.isel(time=frame)
-            ds = ds.where(ds['name'] != "Sun", drop=True)
-            t = ds['time'].values[()]
-            radius = ds['radius'].values
-            Gmass = ds['Gmass'].values
-            rh = ds['rh'].values
-            point_rad = radius * self.ax_pt_size
+            t = self.ds.isel(time=frame)['time'].values[()]
+            
             if frame > 0:
                 dsold = self.ds.isel(time=frame-1)
                 told = dsold['time'].values[()]
                 dt = t - told
-                ds['rotangle'] = dsold['rotangle'] + dt * dsold['rot']
-                ds['rotangle'] = np.mod(ds['rotangle'], 360.0)
-                self.ds[dict(time=frame)]['rotangle'] = ds['rotangle']
+                self.ds['rotangle'][dict(time=frame)] = dsold['rotangle'] + dt * dsold['rot']
+            
+            ds = self.ds.isel(time=frame)
+            ds = ds.where(ds['name'] != "Sun", drop=True)
+            radius = ds['radius'].values
+            Gmass = ds['Gmass'].values
+            rh = ds['rh'].values
+            rotangle = ds['rotangle'].values
 
-            yield t, Gmass, rh, point_rad
+            yield t, Gmass, rh, radius, rotangle
+            
+    def spin_arrows(self, rh, rotangle, rotlen):
+        px = rh[:, 0]
+        py = rh[:, 1]
+        sarrowend = []
+        sarrowtip = []
+        for i in range(rh.shape[0]):
+            endrel = np.array([0.0, -rotlen[i],  0.0])
+            tiprel = np.array([0.0, rotlen[i], 0.0])
+            r = R.from_rotvec(rotangle[i,:], degrees=True)
+            endrel = r.apply(endrel)
+            tiprel = r.apply(tiprel)
+            send = (px[i] + endrel[0], py[i] + endrel[1])
+            stip = (px[i] + tiprel[0], py[i] + tiprel[1])
+            sarrowend.append(send)
+            sarrowtip.append(stip)
+        return sarrowend, sarrowtip
+    
+    def vec_props(self, c):
+        arrowprops = {
+            'arrowstyle': '-',
+            'linewidth' : 1,
+        }
 
+        arrow_args = {
+            'xycoords': 'data',
+            'textcoords': 'data',
+            'arrowprops': arrowprops,
+            'annotation_clip': True,
+            'zorder': 100,
+            'animated' : True
+        }
+        aarg = arrow_args.copy()
+        aprop = arrowprops.copy()
+        aprop['color'] = c
+        aarg['arrowprops'] = aprop
+        aarg['color'] = c
+        return aarg    
+    
 if __name__ == "__main__":
 
     print("Select a fragmentation movie to generate.")

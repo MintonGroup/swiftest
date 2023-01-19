@@ -30,3 +30,4 @@ dump*
 
 bin/
 build/*
+disruption_headon/swiftest_driver.sh
