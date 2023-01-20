@@ -487,7 +487,7 @@ contains
       integer(I4B), parameter :: MAXLOOP = 50
       integer(I4B), parameter :: MAXTRY = 50
       real(DP), parameter     :: MAX_REDUCTION_RATIO = 0.1_DP ! Ratio of difference between first and second fragment mass to remove from the largest fragment in case of a failure
-      real(DP),     parameter :: ROT_MAX_FRAC = 0.05_DP !! Fraction of difference between current rotation and maximum to add when angular momentum budget gets too high
+      real(DP),     parameter :: ROT_MAX_FRAC = 0.01_DP !! Fraction of difference between current rotation and maximum to add when angular momentum budget gets too high
       real(DP), parameter :: SUCCESS_METRIC = 1.0e-2_DP
       class(collision_fraggle), allocatable :: collider_local
       character(len=STRMAX) :: message
@@ -590,7 +590,7 @@ contains
                            fragments%rotmag(i) = .mag.fragments%rot(:,i)
                         else ! We would break the spin barrier here. Put less into spin and more into velocity shear. 
                            drotmag = collider_local%max_rot - fragments%rotmag(i)
-                           drot(:) = ROT_MAX_FRAC * drotmag * L_residual_unit(:) ! Put a fraction of the difference between the spin barrier and the current spin into the new rotation
+                           drot(:) = -ROT_MAX_FRAC * drotmag * L_residual_unit(:) ! Put a fraction of the difference between the spin barrier and the current spin into the new rotation
                            fragments%rot(:,i) = fragments%rot(:,i) + drot(:)
                            dL(:) = -L_residual(:) * fragments%mass(i) / mfrag + drot(:) * fragments%Ip(3,i) * fragments%mass(i) * fragments%radius(i)**2 
                            call fraggle_generate_velocity_torque(dL, fragments%mass(i), fragments%rc(:,i), fragments%vc(:,i))
