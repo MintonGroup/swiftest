@@ -190,7 +190,8 @@ contains
             ! Update rotation of central body to by consistent with its angular momentum 
             if (param%lrotation) then
                drot0(:) = cb%L0(:)/ (cb%Ip(3) * cb%mass * cb%radius**2)  
-               drot1(:) = cb%dL(:) / (cb%Ip(3) * cb%mass * cb%radius**2)        
+               drot1(:) = cb%dL(:) / (cb%Ip(3) * cb%mass * cb%radius**2)
+               cb%rot(:) = drot0(:) + drot1(:)
                ke_spin  = ke_spin - 0.5_DP * cb%mass * cb%radius**2 * cb%Ip(3) * dot_product(cb%rot(:), cb%rot(:)) 
             end if
             cb%rb(:) = xcom(:)
