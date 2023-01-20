@@ -566,7 +566,7 @@ contains
                      call swiftest_io_log_one_message(COLLISION_LOG_OUT, "collision_id " // trim(adjustl(idstr)))
 
                      ! Get the collision regime
-                     call impactors%get_regime(nbody_system, param)
+                     call collider%get_regime(nbody_system, param)
 
                      call collision_history%take_snapshot(param,nbody_system, t, "before") 
 

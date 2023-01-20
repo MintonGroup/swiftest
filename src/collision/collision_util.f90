@@ -923,6 +923,7 @@ contains
          impactors%Qloss     = impactors%Qloss     / collider%Escale
 
          collider%min_mfrag = collider%min_mfrag / collider%mscale
+         collider%max_rot   = collider%max_rot   * collider%tscale
       end associate
 
       return
@@ -989,6 +990,7 @@ contains
          collider%be(:)        = collider%be(:)        * collider%Escale
          collider%te(:)        = collider%te(:)        * collider%Escale
          collider%min_mfrag    = collider%min_mfrag    * collider%mscale
+         collider%max_rot      = collider%max_rot      / collider%tscale
    
          collider%mscale = 1.0_DP
          collider%dscale = 1.0_DP
