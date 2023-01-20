@@ -487,7 +487,7 @@ contains
       integer(I4B), parameter :: MAXLOOP = 50
       integer(I4B), parameter :: MAXTRY = 50
       real(DP), parameter     :: MAX_REDUCTION_RATIO = 0.1_DP ! Ratio of difference between first and second fragment mass to remove from the largest fragment in case of a failure
-      real(DP),     parameter :: ROT_MAX_FRAC = 0.01_DP !! Fraction of difference between current rotation and maximum to add when angular momentum budget gets too high
+      real(DP),     parameter :: ROT_MAX_FRAC = 0.001_DP !! Fraction of difference between current rotation and maximum to add when angular momentum budget gets too high
       real(DP), parameter :: SUCCESS_METRIC = 1.0e-2_DP
       class(collision_fraggle), allocatable :: collider_local
       character(len=STRMAX) :: message
@@ -589,14 +589,19 @@ contains
                            fragments%rot(:,i) = rot_new(:)
                            fragments%rotmag(i) = .mag.fragments%rot(:,i)
                         else ! We would break the spin barrier here. Put less into spin and more into velocity shear. 
-                           drotmag = collider_local%max_rot - fragments%rotmag(i)
-                           drot(:) = -ROT_MAX_FRAC * drotmag * L_residual_unit(:) ! Put a fraction of the difference between the spin barrier and the current spin into the new rotation
-                           fragments%rot(:,i) = fragments%rot(:,i) + drot(:)
+
                            dL(:) = -L_residual(:) * fragments%mass(i) / mfrag + drot(:) * fragments%Ip(3,i) * fragments%mass(i) * fragments%radius(i)**2 
                            call fraggle_generate_velocity_torque(dL, fragments%mass(i), fragments%rc(:,i), fragments%vc(:,i))
                            call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)  
+                           call random_number(drot)
+                           drot(:) = (0.5_DP * collider_local%max_rot - fragments%rotmag(i)) * 2 * (drot(:) - 0.5_DP)
+                           fragments%rot(:,i) = fragments%rot(:,i) + drot(:)
                            fragments%vmag(i) = .mag.fragments%vc(:,i)
                            fragments%rotmag(i) = .mag.fragments%rot(:,i)
+                           if (fragments%rotmag(i) > collider%max_rot) then
+                              fragments%rotmag(i) = 0.5_DP * collider%max_rot
+                              fragments%rot(:,i) = fragments%rotmag(i) * .unit. fragments%rot(:,i)
+                           end if
                            call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
                            L_residual(:) = (collider_local%L_total(:,2) - collider_local%L_total(:,1))           
                         end if
