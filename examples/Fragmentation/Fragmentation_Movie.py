@@ -36,8 +36,8 @@ from scipy.spatial.transform import Rotation as R
 # ----------------------------------------------------------------------------------------------------------------------
 # Define the names and initial conditions of the various fragmentation simulation types
 # ----------------------------------------------------------------------------------------------------------------------
-available_movie_styles = ["disruption_headon", "disruption_off_axis", "supercatastrophic_headon", "supercatastrophic_off_axis","hitandrun_disrupt", "hitandrun_pure", "merge"]
-movie_title_list = ["Head-on Disruption", "Off-axis Disruption", "Head-on Supercatastrophic", "Off-axis Supercatastrophic", "Hit and Run w/ Runner Disruption", "Pure Hit and Run", "Merge"]
+available_movie_styles = ["disruption_headon", "disruption_off_axis", "supercatastrophic_headon", "supercatastrophic_off_axis","hitandrun_disrupt", "hitandrun_pure", "merge", "merge_spinner"]
+movie_title_list = ["Head-on Disruption", "Off-axis Disruption", "Head-on Supercatastrophic", "Off-axis Supercatastrophic", "Hit and Run w/ Runner Disruption", "Pure Hit and Run", "Merge", "Merge crossing the spin barrier"]
 movie_titles = dict(zip(available_movie_styles, movie_title_list))
 num_movie_frames = 1000
 
@@ -56,6 +56,8 @@ pos_vectors = {"disruption_headon"         : [np.array([1.0, -5.0e-05, 0.0]),
                "hitandrun_pure"            : [np.array([1.0, -4.2e-05, 0.0]),
                                               np.array([1.0,  4.2e-05, 0.0])],
                "merge"                      : [np.array([1.0, -5.0e-05, 0.0]),
+                                              np.array([1.0,  5.0e-05 ,0.0])],
+               "merge_spinner"               : [np.array([1.0, -5.0e-05, 0.0]),
                                               np.array([1.0,  5.0e-05 ,0.0])]                
                }
 
@@ -72,6 +74,8 @@ vel_vectors = {"disruption_headon"         : [np.array([ 0.00,  6.280005, 0.0]),
                "hitandrun_pure"            : [np.array([ 0.00,  6.28,     0.0]),
                                               np.array([-1.52, -6.28,     0.0])],
                "merge"                     : [np.array([ 0.04,  6.28,     0.0]),
+                                              np.array([ 0.05,  6.18,     0.0])],
+               "merge_spinner"             : [np.array([ 0.04,  6.28,     0.0]),
                                               np.array([ 0.05,  6.18,     0.0])] 
                }
 
@@ -88,7 +92,9 @@ rot_vectors = {"disruption_headon"         : [np.array([0.0, 0.0, 1.0e5]),
                "hitandrun_pure"            : [np.array([0.0, 0.0, 6.0e3]),
                                               np.array([0.0, 0.0, 1.0e4])],
                "merge"                     : [np.array([0.0, 0.0, 0.0]),
-                                              np.array([0.0, 0.0, 0.0])] 
+                                              np.array([0.0, 0.0, 0.0])],
+               "merge_spinner"             : [np.array([0.0, 0.0, -1.2e6]),
+                                              np.array([0.0, 0.0, 0.0])],
                }
 
 body_Gmass = {"disruption_headon"        : [1e-7, 1e-9],
@@ -97,7 +103,8 @@ body_Gmass = {"disruption_headon"        : [1e-7, 1e-9],
              "supercatastrophic_off_axis": [1e-7, 1e-8],
              "hitandrun_disrupt"         : [1e-7, 7e-10],
              "hitandrun_pure"            : [1e-7, 7e-10],
-             "merge"                     : [1e-7, 1e-8] 
+             "merge"                     : [1e-7, 1e-8],
+             "merge_spinner"             : [1e-7, 1e-8] 
                }
 
 tstop = {"disruption_headon"         : 2.0e-3,
@@ -107,6 +114,7 @@ tstop = {"disruption_headon"         : 2.0e-3,
          "hitandrun_disrupt"         : 2.0e-4,
          "hitandrun_pure"            : 2.0e-4,
          "merge"                     : 5.0e-3,
+         "merge_spinner"             : 5.0e-3,
          }
 
 density = 3000 * swiftest.AU2M**3 / swiftest.MSun
@@ -312,10 +320,11 @@ if __name__ == "__main__":
     print("5. Hit and run with disruption of the runner")
     print("6. Pure hit and run")
     print("7. Merge")
-    print("8. All of the above")
+    print("8. Merge crossing the spin barrier")
+    print("9. All of the above")
     user_selection = int(input("? "))
 
-    if user_selection > 0 and user_selection < 8:
+    if user_selection > 0 and user_selection < 9:
         movie_styles = [available_movie_styles[user_selection-1]]
     else:
         print("Generating all movie styles")

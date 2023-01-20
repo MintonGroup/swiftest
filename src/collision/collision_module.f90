@@ -33,6 +33,7 @@ module collision
    character(len=NAMELEN),parameter :: REGIME_NAME_GRAZE_AND_MERGE = "Graze and Merge"
    character(len=NAMELEN),parameter :: REGIME_NAME_HIT_AND_RUN = "Hit and Run"
    character(len=NAMELEN),dimension(5), parameter :: REGIME_NAMES = [REGIME_NAME_MERGE, REGIME_NAME_DISRUPTION, REGIME_NAME_SUPERCATASTROPHIC, REGIME_NAME_GRAZE_AND_MERGE, REGIME_NAME_HIT_AND_RUN]
+   real(DP), parameter :: MAX_ROT_SI = 7.108e-4 !! Spin limit in rad/s of cohesionless body from Holsapple (2007)
 
    !> Swiftest class for tracking pl-pl close encounters in a step when collisions are possible
    type, extends(encounter_list) :: collision_list_plpl
@@ -88,7 +89,6 @@ module collision
 
    contains
       procedure :: consolidate           => collision_resolve_consolidate_impactors !! Consolidates a multi-body collision into an equivalent 2-body collision
-      procedure :: get_regime            => collision_regime_impactors              !! Determine which fragmentation regime the set of impactors will be
       procedure :: dealloc               => collision_util_dealloc_impactors        !! Resets the collider object variables to 0 and deallocates the index and mass distributions
       procedure :: set_coordinate_system => collision_util_set_coordinate_impactors !! Sets the coordinate system of the impactors
       final     ::                          collision_final_impactors               !! Finalizer will deallocate all allocatables
@@ -152,8 +152,9 @@ module collision
       integer(I4B)                            :: collision_id        !! ID number of this collision event
       integer(I4B)                            :: maxid_collision = 0 !! The current maximum collision id number
       real(DP)                                :: min_mfrag           !! Minimum fragment mass
+      real(DP)                                :: max_rot             !! Maximum rotation rate (in system or natural units, depending on )
 
-      ! Scale factors used to scale dimensioned quantities to a more "natural" system where important quantities (like kinetic energy, momentum) are of order ~1
+      ! Scale factors used to scale dimensioned quantities to a more "natural" system where escape velocity is 1 and body masses are of order 1
       real(DP) :: dscale = 1.0_DP !! Distance dimension scale factor
       real(DP) :: mscale = 1.0_DP !! Mass scale factor
       real(DP) :: tscale = 1.0_DP !! Time scale factor
@@ -178,6 +179,7 @@ module collision
       procedure :: add_fragments              => collision_util_add_fragments_to_collider  !! Add fragments to nbody_system
       procedure :: get_energy_and_momentum    => collision_util_get_energy_and_momentum    !! Calculates total nbody_system energy in either the pre-collision outcome state (lbefore = .true.) or the post-collision outcome state (lbefore = .false.)
       procedure :: dealloc                    => collision_util_dealloc_basic               !! Deallocates all allocatables
+      procedure :: get_regime                 => collision_regime_collider              !! Determine which fragmentation regime the set of impactors will be
       procedure :: setup                      => collision_util_setup_collider             !! Initializer for the encounter collision system and the before/after snapshots
       procedure :: setup_impactors            => collision_util_setup_impactors_collider   !! Initializer for the impactors for the encounter collision system. Deallocates old impactors before creating new ones
       procedure :: setup_fragments            => collision_util_setup_fragments_collider   !! Initializer for the fragments of the collision system. 
@@ -303,16 +305,16 @@ module collision
          class(base_parameters),      intent(inout) :: param   !! Current run configuration parameters
       end subroutine collision_io_netcdf_write_frame_snapshot
 
-      module subroutine collision_regime_impactors(self, nbody_system, param)
+      module subroutine collision_regime_collider(self, nbody_system, param)
          implicit none 
-         class(collision_impactors), intent(inout) :: self         !! Collision system impactors object
-         class(base_nbody_system),   intent(in)    :: nbody_system !! Swiftest nbody system object
-         class(base_parameters),     intent(in)    :: param        !! Current Swiftest run configuration parameters
-      end subroutine collision_regime_impactors
+         class(collision_basic),   intent(inout) :: self         !! Collision system object
+         class(base_nbody_system), intent(in)    :: nbody_system !! Swiftest nbody system object
+         class(base_parameters),   intent(in)    :: param        !! Current Swiftest run configuration parameters
+      end subroutine collision_regime_collider
 
       module subroutine collision_check_plpl(self, nbody_system, param, t, dt, irec, lany_collision)
          implicit none
-         class(collision_list_plpl), intent(inout) :: self           !!  encounter list object
+         class(collision_list_plpl), intent(inout) :: self           !! encounter list object
          class(base_nbody_system),   intent(inout) :: nbody_system   !! Swiftest nbody system object
          class(base_parameters),     intent(inout) :: param          !! Current run configuration parameters 
          real(DP),                   intent(in)    :: t              !! current time

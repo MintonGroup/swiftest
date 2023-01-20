@@ -331,6 +331,8 @@ contains
             allocate(collision_fraggle :: nbody_system%collider)
          end select
          call nbody_system%collider%setup(nbody_system)
+
+         nbody_system%collider%max_rot = MAX_ROT_SI * param%TU2S
          select type(nc => collision_history%nc)
          class is (collision_netcdf_parameters)
             nbody_system%collider%maxid_collision = nc%max_idslot
