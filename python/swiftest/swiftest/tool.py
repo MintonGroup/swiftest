@@ -17,7 +17,13 @@ import xarray as xr
 """
 Functions that recreate the Swift/Swifter tool programs
 """
-
+def magnitude(ds,x):
+    dim = "space"
+    ord = None
+    return xr.apply_ufunc(
+        np.linalg.norm, ds[x], input_core_dims=[[dim]], kwargs={"ord": ord, "axis": -1}
+    )
+        
 def wrap_angle(angle):
     """
     Converts angles to be between 0 and 360 degrees.

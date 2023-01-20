@@ -472,7 +472,7 @@ contains
       integer(I4B) :: i, j, loop, try, istart, nfrag, nsteps
       logical :: lhitandrun, lsupercat
       real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, L_residual, vdir, L_residual_unit, Li, Lrat, r_lever
-      real(DP) :: rmag, vmag, vesc, dE, E_residual, ke_min, ke_avail, ke_remove, dE_best, E_residual_best, fscale, f_spin, f_orbit, dE_metric, dM, mfrag
+      real(DP) :: rmag, vimp, vmag, vesc, dE, E_residual, ke_min, ke_avail, ke_remove, dE_best, E_residual_best, fscale, f_spin, f_orbit, dE_metric, dM, mfrag
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
       real(DP), dimension(collider%fragments%nbody) :: vscale, ke_rot_remove, volume
       ! For the initial "guess" of fragment velocities, this is the minimum and maximum velocity relative to escape velocity that the fragments will have
@@ -521,6 +521,9 @@ contains
                vesc = sqrt(2 * sum(impactors%Gmass(:)) / sum(impactors%radius(:)))
             end if
 
+            vimp = .mag. (impactors%vc(:,2) - impactors%vc(:,1))
+            vmax_guess = 2 * vimp
+
             E_residual_best = huge(1.0_DP)
             lfailure = .false.
             dE_metric = huge(1.0_DP)
@@ -530,7 +533,7 @@ contains
                ! Scale the magnitude of the velocity by the distance from the impact point
                ! This will reduce the chances of fragments colliding with each other immediately, and is more physically correct  
                do concurrent(i = 1:nfrag)
-                  rimp(:) = fragments%rc(:,i) - impactors%rbimp(:) 
+                  rimp(:) = fragments%rc(:,i) !- impactors%rbimp(:) 
                   vscale(i) = .mag. rimp(:) / (.mag. (impactors%rb(:,2) - impactors%rb(:,1)))
                end do
 
@@ -553,25 +556,27 @@ contains
                      vmag = vesc * vscale(i) 
                      rimp(:) = fragments%rc(:,i) - impactors%rbimp(:)
                      vimp_unit(:) = .unit. (rimp(:) + vsign(i) * impactors%bounce_unit(:))
-                     fragments%vc(:,i) = vmag * vscale(i) * vimp_unit(:) + vrot(:) 
+                     fragments%vc(:,i) = vmag * vimp_unit(:) + vrot(:) 
                   end if
                end do
+               fragments%vmag(:) = .mag. fragments%vc(:,:)
 
                ! Every time the collision-frame velocities are altered, we need to be sure to shift everything back to the center-of-mass frame
                call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)            
                call fragments%set_coordinate_system()
                ke_min = 0.5_DP * fragments%mtot * vesc**2
 
-               ! Try to put as much of the residual angular momentum into the spin of the fragments before the target body
-               call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
-               L_residual(:) = (collider_local%L_total(:,2) - collider_local%L_total(:,1)) 
-               do i = istart, fragments%nbody
-                  fragments%L_spin(:,i) = fragments%L_spin(:,i) - L_residual(:) * fragments%mass(i) / fragments%mtot
-                  fragments%rot(:,i) = fragments%L_spin(:,i) / (fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(:,i)) 
-               end do
-
                do loop = 1, MAXLOOP
                   nsteps = loop * try
+
+                  ! Try to put as much of the residual angular momentum into the spin of the fragments before the target body
+                  call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
+                  L_residual(:) = (collider_local%L_total(:,2) - collider_local%L_total(:,1)) 
+                  do i = istart, fragments%nbody
+                     fragments%L_spin(:,i) = fragments%L_spin(:,i) - L_residual(:) * fragments%mass(i) / fragments%mtot
+                     fragments%rot(:,i) = fragments%L_spin(:,i) / (fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(:,i)) 
+                  end do
+
                   call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
                   ke_avail = 0.0_DP
                   do i = 1, fragments%nbody
@@ -580,36 +585,37 @@ contains
 
                   ! Check for any residual angular momentum, and put it into spin and shear
                   L_residual(:) = (collider_local%L_total(:,2) - collider_local%L_total(:,1))
+                  if (lhitandrun .or. (ke_avail < epsilon(1.0_DP))) then
+                     ! Start by putting residual angular momentum into velocity shear
+                     mfrag = sum(fragments%mass(istart:fragments%nbody))
+                     L_residual_unit(:) = .unit. L_residual(:)
+                     fragments%r_unit(:,:) = .unit.fragments%rc(:,:)
+                     do i = 1, fragments%nbody
+                        r_lever(:) = (L_residual_unit(:) .cross. fragments%r_unit(:,i))
+                        rmag = .mag.r_lever(:)
+                        if (rmag > epsilon(1.0_DP)) then
+                           vdir(:) = -.unit. r_lever(:)
+                           vmag = .mag.L_residual(:) / (fragments%mtot * .mag.r_lever(:) * fragments%rmag(i))
+                           Li(:) = fragments%mass(i) * fragments%rc(:,i) .cross. (vmag * vdir(:))
+                           Lrat(:) = L_residual(:) / Li(:)
+                           fragments%vc(:,i) = fragments%vc(:,i) + vmag * vdir(:)
+                        end if
+                     end do
+                     fragments%vmag(:) = .mag.fragments%vc(:,:)
+   
+                     ! Update the coordinate system now that the velocities have changed
+                     call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)            
+                     call fragments%set_coordinate_system()
+                     call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
+                     L_residual(:) = (collider_local%L_total(:,2) - collider_local%L_total(:,1)) 
 
-                  ! Start by putting residual angular momentum into velocity shear
-                  mfrag = sum(fragments%mass(istart:fragments%nbody))
-                  L_residual_unit(:) = .unit. L_residual(:)
-                  fragments%r_unit(:,:) = .unit.fragments%rc(:,:)
-                  do i = 1, fragments%nbody
-                     r_lever(:) = (L_residual_unit(:) .cross. fragments%r_unit(:,i))
-                     rmag = .mag.r_lever(:)
-                     if (rmag > epsilon(1.0_DP)) then
-                        vdir(:) = -.unit. r_lever(:)
-                        vmag = .mag.L_residual(:) / (fragments%mtot * .mag.r_lever(:) * fragments%rmag(i))
-                        Li(:) = fragments%mass(i) * fragments%rc(:,i) .cross. (vmag * vdir(:))
-                        Lrat(:) = L_residual(:) / Li(:)
-                        fragments%vc(:,i) = fragments%vc(:,i) + vmag * vdir(:)
-                     end if
-                  end do
-                  fragments%vmag(:) = .mag.fragments%vc(:,:)
-
-                  ! Update the coordinate system now that the velocities have changed
-                  call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)            
-                  call fragments%set_coordinate_system()
-                  call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
-                  L_residual(:) = (collider_local%L_total(:,2) - collider_local%L_total(:,1)) 
-
-                  ! Put any remaining residual angular momentum into the spin of the target body
-                  fragments%L_spin(:,1) = fragments%L_spin(:,1) - L_residual(:) 
-                  fragments%rot(:,1) = fragments%L_spin(:,1) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(:,1)) 
-                  fragments%rotmag(:) = .mag.fragments%rot(:,:)
-                  call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
-                  L_residual(:) = (collider_local%L_total(:,2) - collider_local%L_total(:,1)) 
+                     ! Put any remaining residual angular momentum into the spin of the target body
+                     fragments%L_spin(:,1) = fragments%L_spin(:,1) - L_residual(:) 
+                     fragments%rot(:,1) = fragments%L_spin(:,1) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(:,1)) 
+                     fragments%rotmag(:) = .mag.fragments%rot(:,:)
+                     call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
+                     L_residual(:) = (collider_local%L_total(:,2) - collider_local%L_total(:,1)) 
+                  end if
 
                   dE = collider_local%te(2) - collider_local%te(1) 
                   E_residual = dE + impactors%Qloss
@@ -629,26 +635,21 @@ contains
                   end if
                   if ((dE_best < 0.0_DP) .and. (dE_metric <= SUCCESS_METRIC * try)) exit outer ! As the tries increase, we relax the success metric. What was once a failure might become a success
 
-                  ! If we have an offset of energy from our target, we'll remove it from both orbit and spin, keeping the proportion of each source roughly constant
-
                   ! Remove a constant amount of velocity from the bodies so we don't shift the center of mass and screw up the momentum 
-                  f_spin = (fragments%ke_spin_tot )/ (fragments%ke_spin_tot + fragments%ke_orbit_tot)
-                  f_orbit = 1.0_DP - f_spin
-
-                  ke_remove = min(f_orbit * E_residual, ke_avail)
+                  ke_remove = min(E_residual, ke_avail)
                   f_orbit = ke_remove / E_residual
                   fscale = sqrt((max(fragments%ke_orbit_tot - ke_remove, 0.0_DP))/fragments%ke_orbit_tot)
                   fragments%vc(:,:) = fscale * fragments%vc(:,:)
 
-                  f_spin = 1.0_DP - f_orbit
-                  ke_remove = min(f_spin * E_residual, 0.9_DP*fragments%ke_spin_tot)
-                  ke_rot_remove(:) = ke_remove * (fragments%ke_spin(:) / fragments%ke_spin_tot)
-                  where(ke_rot_remove(:) > fragments%ke_spin(:)) ke_rot_remove(:) = fragments%ke_spin(:) 
-                  do concurrent(i = istart:fragments%nbody, fragments%ke_spin(i) > 10*sqrt(tiny(1.0_DP)))
-                     fscale = sqrt((fragments%ke_spin(i) - ke_rot_remove(i))/fragments%ke_spin(i))
-                     fragments%rotmag(i) = fscale * fragments%rotmag(i)
-                     fragments%rot(:,i) = fscale * fragments%rot(:,i)
-                  end do
+                  ! f_spin = 1.0_DP - f_orbit
+                  ! ke_remove = min(f_spin * E_residual, 0.9_DP*fragments%ke_spin_tot)
+                  ! ke_rot_remove(:) = ke_remove * (fragments%ke_spin(:) / fragments%ke_spin_tot)
+                  ! where(ke_rot_remove(:) > fragments%ke_spin(:)) ke_rot_remove(:) = fragments%ke_spin(:) 
+                  ! do concurrent(i = istart:fragments%nbody, fragments%ke_spin(i) > 10*sqrt(tiny(1.0_DP)))
+                  !    fscale = sqrt((fragments%ke_spin(i) - ke_rot_remove(i))/fragments%ke_spin(i))
+                  !    fragments%rotmag(i) = fscale * fragments%rotmag(i)
+                  !    fragments%rot(:,i) = fscale * fragments%rot(:,i)
+                  ! end do
 
                   ! Update the unit vectors and magnitudes for the fragments based on their new orbits and rotations
                   call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)            
