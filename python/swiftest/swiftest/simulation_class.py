@@ -39,7 +39,7 @@ from typing import (
 )
 
 
-class Simulation:
+class Simulation(object):
     """
     This is a class that defines the basic Swift/Swifter/Swiftest simulation object
     """
@@ -2998,3 +2998,6 @@ class Simulation:
                if f.exists():
                   os.remove(f)        
         return
+
+
+
