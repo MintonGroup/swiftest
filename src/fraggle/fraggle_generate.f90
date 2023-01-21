@@ -413,8 +413,11 @@ contains
       real(DP) :: v_init, v_final, mass_init, mass_final, rotmag, dKE, KE_init, KE_final
       real(DP), parameter :: random_scale_factor = 0.01_DP !! The relative scale factor to apply to the random component of the rotation vector
       integer(I4B) :: i
+      logical :: lhitandrun
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
+
+         lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
 
          ! We will start by assuming that kinetic energy gets partitioned such that the change in kinetic energy of body 1 is equal to the 
          ! change in kinetic energy between bodies 2 and all fragments. This will then be used to compute a torque on body/fragment 1.
@@ -431,27 +434,14 @@ contains
             fragments%rot(:,i) = impactors%rot(:,2)
             fragments%vc(:,i) = impactors%vc(:,2)
          end do
+
+         ! Initialize the largest body with the combined spin angular momentum of the imapactors
+         fragments%rot(:,1) = (impactors%L_spin(:,1) + impactors%L_spin(:,2)) / (fragments%mass(1) * fragments%Ip(3,1) * fragments%radius(1))
+         fragments%rot(:,2:nfrag) = 0.0_DP
          fragments%rotmag(:) = .mag.fragments%rot(:,:)
-         call collider%get_energy_and_momentum(nbody_system, param, phase="after")
-         dKE = 0.5_DP * (collider%pe(2) - collider%pe(1) + collider%be(2) - collider%be(1) - impactors%Qloss)
-         KE_final = max(KE_init + dKE,0.0_DP)
-
-         v_final = sqrt(2 * KE_final / mass_final)
-
-         Lbefore(:) = mass_init * (impactors%rb(:,2) - impactors%rb(:,1)) .cross. (impactors%vb(:,2) - impactors%vb(:,1))
-          
-         Lafter(:) = mass_final * (impactors%rb(:,2) - impactors%rb(:,1)) .cross. (v_final * impactors%bounce_unit(:))
-         L_spin(:) = impactors%L_spin(:,1) + random_scale_factor * (Lbefore(:) - Lafter(:))
-         ! Add in some random spin noise. The magnitude will be scaled by a fraction of  the pre-impact rotation in a random direction
-         do i = 2,nfrag
-            call random_number(rotdir)
-            rotdir = rotdir - 0.5_DP
-            rotdir = .unit. rotdir
-            rotmag = random_scale_factor * .mag. fragments%rot(:,i)
-            fragments%rot(:,i) = fragments%rot(:,i) + rotmag * rotdir
-            fragments%rotmag(i) = .mag.fragments%rot(:,i)
+         do i = 1,nfrag
             if (fragments%rotmag(i) > collider%max_rot) then
-               fragments%rotmag(i) = collider%max_rot
+               fragments%rotmag(i) = 0.5_DP * collider%max_rot
                fragments%rot(:,i) = fragments%rotmag(i) * .unit.fragments%rot(:,i)
             end if
          end do
