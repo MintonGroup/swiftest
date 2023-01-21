@@ -578,19 +578,20 @@ contains
 
                   ! Try to put residual angular momentum into the spin, but if this would go past the spin barrier, then put it into velocity shear instead 
                   angmtm: do j = 1, MAXTRY
+                     call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
+                     L_residual(:) = (collider_local%L_total(:,2) - collider_local%L_total(:,1)) 
+                     if (.mag.L_residual(:) / .mag.collider_local%L_total(:,1) <= epsilon(1.0_DP)) exit angmtm
+                     L_residual_unit(:) = .unit. L_residual(:)
                      do i = 1, fragments%nbody
-                        call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
-                        L_residual(:) = (collider_local%L_total(:,2) - collider_local%L_total(:,1)) 
-                        if (.mag.L_residual(:) / .mag.collider_local%L_total(:,1) <= epsilon(1.0_DP)) exit angmtm
-                        L_residual_unit(:) = .unit. L_residual(:)
+
                         mfrag = sum(fragments%mass(i:fragments%nbody))
-                        drot(:) = -L_residual(:) / (mfrag * fragments%Ip(3,i) * fragments%radius(i)**2)
+                        drot(:) = -L_residual(:) / (fragments%mtot * fragments%Ip(3,i) * fragments%radius(i)**2)
                         rot_new(:) = fragments%rot(:,i) + drot(:)
                         if (.mag.rot_new(:) < collider_local%max_rot) then
                            fragments%rot(:,i) = rot_new(:)
                            fragments%rotmag(i) = .mag.fragments%rot(:,i)
                         else ! We would break the spin barrier here. Put less into spin and more into velocity shear. 
-                           dL(:) = -L_residual(:) * fragments%mass(i) / mfrag + drot(:) * fragments%Ip(3,i) * fragments%mass(i) * fragments%radius(i)**2 
+                           dL(:) = -L_residual(:) * fragments%mass(i) / fragments%mtot + drot(:) * fragments%Ip(3,i) * fragments%mass(i) * fragments%radius(i)**2 
                            call fraggle_generate_velocity_torque(dL, fragments%mass(i), fragments%rc(:,i), fragments%vc(:,i))
                            call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)  
                            fragments%vmag(i) = .mag.fragments%vc(:,i)
