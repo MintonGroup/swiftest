@@ -25,9 +25,10 @@ contains
       integer(I4B)              :: i, j, jproj, jtarg, nfrag, istart
       real(DP), dimension(2)    :: volume
       real(DP), dimension(NDIM) :: Ip_avg
-      real(DP) :: mfrag, mremaining, mtot, mcumul, G
+      real(DP) :: mfrag, mremaining, mtot, mcumul, G, mass_noise
       real(DP), dimension(:), allocatable :: mass
       real(DP), parameter :: BETA = 2.85_DP
+      integer(I4B), parameter :: MASS_NOISE_FACTOR = 4  !! The number of digits of random noise that get added to the minimum mass value to prevent identical masses from being generated in a single run 
       integer(I4B), parameter :: NFRAGMAX = 100  !! Maximum number of fragments that can be generated
       integer(I4B), parameter :: NFRAGMIN = 7 !! Minimum number of fragments that can be generated (set by the fraggle_generate algorithm for constraining momentum and energy)
       integer(I4B), parameter :: NFRAG_SIZE_MULTIPLIER = 3 !! Log-space scale factor that scales the number of fragments by the collisional system mass
@@ -61,7 +62,10 @@ contains
 
             select type(param)
             class is (swiftest_parameters)
-               min_mfrag = (param%min_GMfrag / param%GU) 
+               ! Add a small amount of noise to the last digits of the minimum mass value so that multiple fragments don't get generated with identical mass values
+               call random_number(mass_noise)
+               mass_noise = 1.0_DP + mass_noise * epsilon(1.0_DP) * 10**(MASS_NOISE_FACTOR)
+               min_mfrag = (param%min_GMfrag / param%GU) * mass_noise
                ! The number of fragments we generate is bracked by the minimum required by fraggle_generate (7) and the 
                ! maximum set by the NFRAG_SIZE_MULTIPLIER which limits the total number of fragments to prevent the nbody
                ! code from getting an overwhelmingly large number of fragments
