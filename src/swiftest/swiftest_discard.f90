@@ -28,12 +28,14 @@ contains
       associate(nbody_system => self, tp => self%tp, pl => self%pl, tp_discards => self%tp_discards, pl_discards => self%pl_discards, nc => self%system_history%nc)
          lpl_discards = .false.
          ltp_discards = .false.
-         if (lpl_check) then
+         if (lpl_check .and. pl%nbody > 0) then
+            pl%ldiscard = pl%status(:) /= ACTIVE
             call pl%discard(nbody_system, param)
             lpl_discards = (pl_discards%nbody > 0)
          end if
             
-         if (ltp_check) then
+         if (ltp_check .and. tp%nbody > 0) then
+            tp%ldiscard = tp%status(:) /= ACTIVE
             call tp%discard(nbody_system, param)
             ltp_discards = (tp_discards%nbody > 0)
          end if
