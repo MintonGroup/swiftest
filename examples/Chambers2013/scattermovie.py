@@ -4,11 +4,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import animation
 import matplotlib.colors as mcolors
+plt.switch_backend('agg')
 
 titletext = "Chambers (2013)"
 valid_plot_styles = ["aescatter", "aiscatter"]
-xlim={"aescatter" : (0.0, 2.25),
-      "aiscatter" : (0.0, 2.25)}
+xlim={"aescatter" : (0.0, 2.5),
+      "aiscatter" : (0.0, 2.5)}
 ylim={"aescatter" : (0.0, 1.0),
       "aiscatter" : (0.0, 40.0)}
 xlabel={"aescatter": "Semimajor axis (AU)",
@@ -17,7 +18,7 @@ ylabel={"aescatter": "Eccentricity",
         "aiscatter": "Inclination (deg)"}
 
 
-plot_style = valid_plot_styles[1]
+plot_style = valid_plot_styles[0]
 framejump = 1
 animation_file = f"Chambers2013-{plot_style}.mp4"
 
@@ -45,19 +46,7 @@ class AnimatedScatter(object):
         self.ax.set_xlim(xlim[plot_style])
         self.ax.set_ylim(ylim[plot_style])
         fig.add_axes(self.ax)
-        self.ani = animation.FuncAnimation(fig, self.update, interval=1, frames=nframes, init_func=self.setup_plot, blit=True)
-        self.ani.save(animation_file, fps=60, dpi=300, extra_args=['-vcodec', 'libx264'])
-        print(f'Finished writing {animation_file}')
-
-    def scatters(self, pl, radmarker, origin):
-        scat = []
-        for key, value in self.clist.items():
-            idx = origin == key
-            s = self.ax.scatter(pl[idx, 0], pl[idx, 1], marker='o', s=radmarker[idx], c=value, alpha=0.75, label=key, animated=True)
-            scat.append(s)
-        return scat
-
-    def setup_plot(self):
+        
         # First frame
         """Initial drawing of the scatter plot."""
         t, npl, pl, radmarker, origin = next(self.data_stream(0))
@@ -73,16 +62,31 @@ class AnimatedScatter(object):
         title.set_text(f"{titletext} -  Time = ${t*1e-6:6.2f}$ My with ${npl:4.0f}$ particles")
         self.slist = self.scatters(pl, radmarker, origin)
         self.slist.append(title)
+        
         leg = plt.legend(loc="upper left", scatterpoints=1, fontsize=10)
         for i,l in enumerate(leg.legendHandles):
-           leg.legendHandles[i]._sizes = [20]
+           leg.legendHandles[i]._sizes = [20] 
+        
+        self.ani = animation.FuncAnimation(fig, self.update, interval=1, frames=nframes, init_func=self.setup_plot, blit=True)
+        self.ani.save(animation_file, fps=60, dpi=300, extra_args=['-vcodec', 'libx264'])
+        print(f'Finished writing {animation_file}')
+
+    def scatters(self, pl, radmarker, origin):
+        scat = []
+        for key, value in self.clist.items():
+            idx = origin == key
+            s = self.ax.scatter(pl[idx, 0], pl[idx, 1], marker='o', s=radmarker[idx], c=value, alpha=0.75, label=key, animated=True)
+            scat.append(s)
+        return scat
+
+    def setup_plot(self):
         return self.slist
 
     def data_stream(self, frame=0):
         while True:
             d = self.ds.isel(time = frame)
-            name_good = d['name'].where(d['name'] != "Sun", drop=True)
-            d = d.sel(name=name_good)
+            n=len(d['name'])
+            d = d.isel(name=range(1,n))
             d['radmarker'] = (d['radius'] / self.Rcb) * self.radscale
 
             t = d['time'].values
