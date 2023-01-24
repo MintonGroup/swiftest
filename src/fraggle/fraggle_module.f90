@@ -18,10 +18,10 @@ module fraggle
    type, extends(collision_basic) :: collision_fraggle
       real(DP) :: fail_scale      !! Scale factor to apply to distance values in the position model when overlaps occur. 
    contains
-      procedure :: disrupt         => fraggle_generate_disrupt            !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
-      procedure :: generate        => fraggle_generate                    !! A simple disruption models that does not constrain energy loss in collisions
-      procedure :: hitandrun       => fraggle_generate_hitandrun          !! Generates either a pure hit and run, or one in which the runner is disrupted
-      procedure :: set_mass_dist   => fraggle_util_set_mass_dist          !! Sets the distribution of mass among the fragments depending on the regime type
+      procedure :: disrupt         => fraggle_generate_disrupt   !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
+      procedure :: generate        => fraggle_generate           !! A simple disruption models that does not constrain energy loss in collisions
+      procedure :: hitandrun       => fraggle_generate_hitandrun !! Generates either a pure hit and run, or one in which the runner is disrupted
+      procedure :: set_mass_dist   => fraggle_util_set_mass_dist !! Sets the distribution of mass among the fragments depending on the regime type
    end type collision_fraggle  
 
    interface
@@ -39,7 +39,7 @@ module fraggle
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
          real(DP),                 intent(in)    :: t            !! Time of collision 
-         logical, optional,        intent(out)   :: lfailure     !! Answers the question: Should this have been a merger instead?
+         logical,                  intent(out)   :: lfailure     !! True if Fraggle could not satisfy all constraints.
       end subroutine fraggle_generate_disrupt
 
       module subroutine fraggle_generate_hitandrun(self, nbody_system, param, t) 
