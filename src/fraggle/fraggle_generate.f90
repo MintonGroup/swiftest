@@ -57,6 +57,7 @@ contains
             if (lfailure) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find an energy-losing solution. Treating this as a hit and run.") 
                call self%hitandrun(nbody_system, param, t)
+               return
             end if
 
             associate (fragments => self%fragments)
