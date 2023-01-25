@@ -22,9 +22,9 @@ contains
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
 
       call swiftest_util_setup_initialize_system(self, param)
-      call self%pl%h2b(self%cb)
-      call self%tp%h2b(self%cb)
       call self%pl%sort("mass", ascending=.false.)
+      call self%pl%vh2vb(self%cb)
+      call self%tp%h2b(self%cb)
 
       ! Make sure that the discard list gets allocated initially
       call self%tp_discards%setup(0, param)
