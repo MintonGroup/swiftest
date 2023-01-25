@@ -106,7 +106,6 @@ program swiftest_driver
                   if (idump == dump_cadence) then
                      idump = 0
                      call nbody_system%dump(param)
-
                   end if
 
                   call integration_timer%report(message="Integration steps:", unit=display_unit, nsubsteps=istep_out)
