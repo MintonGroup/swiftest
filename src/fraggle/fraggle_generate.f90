@@ -135,7 +135,7 @@ contains
          lfailure = .false.
          call self%get_energy_and_momentum(nbody_system, param, phase="before")
          self%fail_scale = fail_scale_initial
-         call fraggle_generate_pos_vec(self)
+         call fraggle_generate_pos_vec(self, nbody_system, param)
          call fraggle_generate_rot_vec(self, nbody_system, param)
          call fraggle_generate_vel_vec(self, nbody_system, param, lfailure)
 
@@ -256,7 +256,7 @@ contains
    end subroutine fraggle_generate_hitandrun
 
 
-   module subroutine fraggle_generate_pos_vec(collider)
+   module subroutine fraggle_generate_pos_vec(collider, nbody_system, param)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Initializes the position vectors of the fragments around the center of mass based on the collision style.
@@ -265,7 +265,9 @@ contains
       !! regenerated if they overlap.
       implicit none
       ! Arguments
-      class(collision_fraggle), intent(inout) :: collider !! Fraggle collision system object
+      class(collision_fraggle),     intent(inout) :: collider     !! Fraggle collision system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       ! Internals
       real(DP)  :: dis, direction, rdistance
       real(DP), dimension(NDIM,2) :: fragment_cloud_center
@@ -281,7 +283,8 @@ contains
       real(DP), parameter :: cloud_size_scale_factor = 3.0_DP ! Scale factor to apply to the size of the cloud relative to the distance from the impact point. 
                                                                ! A larger value puts more space between fragments initially
 
-      associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
+      associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody, &
+         pl => nbody_system%pl, tp => nbody_system%tp, npl => nbody_system%pl%nbody, ntp => nbody_system%tp%nbody)
          lsupercat = (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) 
          lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
 
@@ -361,10 +364,17 @@ contains
             ! Check for any overlapping bodies.
             loverlap(:) = .false.
             do j = 1, nfrag
+               ! Check for overlaps between fragments
                do i = j + 1, nfrag
                   dis = .mag.(fragments%rc(:,j) - fragments%rc(:,i))
                   loverlap(i) = loverlap(i) .or. (dis <= (fragments%radius(i) + fragments%radius(j))) 
                   loverlap(j) = loverlap(j) .or. (dis <= (fragments%radius(i) + fragments%radius(j))) 
+               end do
+               ! Check for overlaps with existing bodies that are not involved in the collision 
+               do i = 1, npl
+                  if (any(impactors%id(:) == i)) cycle
+                  dis = .mag. (fragments%rc(:,j) - (pl%rb(:,i) / collider%dscale - impactors%rbcom(:)))
+                  loverlap(j) = loverlap(j) .or. (dis <= (pl%radius(i) / collider%dscale + fragments%radius(j))) 
                end do
             end do
             rdistance = rdistance * collider%fail_scale
@@ -650,7 +660,7 @@ contains
                fragments%radius(:) = (3._DP * volume(:) / (4._DP * PI))**(THIRD)
 
                call fragments%reset()
-               call fraggle_generate_pos_vec(collider_local)
+               call fraggle_generate_pos_vec(collider_local, nbody_system, param)
                call fraggle_generate_rot_vec(collider_local, nbody_system, param)
 
                ! Increase the spatial size factor to get a less dense cloud
