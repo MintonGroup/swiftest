@@ -369,7 +369,6 @@ contains
                volume = 4.0_DP/3.0_DP * PI * plnew%radius(i)**3
                plnew%density(i) = fragments%mass(i) / volume
             end do
-            call plnew%set_rhill(cb)
 
             select case(status)
             case(SUPERCATASTROPHIC)

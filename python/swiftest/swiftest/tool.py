@@ -9,10 +9,7 @@
  If not, see: https://www.gnu.org/licenses. 
 """
 
-import swiftest
 import numpy as np
-import os
-import glob
 import xarray as xr
 """
 Functions that recreate the Swift/Swifter tool programs
