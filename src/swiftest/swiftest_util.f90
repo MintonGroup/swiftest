@@ -3054,6 +3054,8 @@ contains
       end select
       end select
 
+      call nbody_system%pl%set_rhill(nbody_system%cb)
+
       ! Take a minimal snapshot wihout all of the extra storage objects
       allocate(snapshot, mold=nbody_system)
       allocate(snapshot%cb, source=nbody_system%cb )

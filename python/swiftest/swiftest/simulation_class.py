@@ -2999,5 +2999,3 @@ class Simulation(object):
                   os.remove(f)        
         return
 
-
-
