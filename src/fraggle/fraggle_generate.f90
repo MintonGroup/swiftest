@@ -311,21 +311,14 @@ contains
                fragment_cloud_radius(:) = impactors%radius(:)
                fragment_cloud_center(:,1) = impactors%rc(:,1) 
                fragment_cloud_center(:,2) = impactors%rc(:,2) + rdistance * impactors%bounce_unit(:)
-            else if (lsupercat) then
-               fragment_cloud_center(:,1) = impactors%rc(:,1) 
-               fragment_cloud_center(:,2) = impactors%rc(:,2) 
-               fragment_cloud_radius(:) = cloud_size_scale_factor * rdistance 
             else
-               fragment_cloud_center(:,1) = impactors%rbimp(:) - impactors%radius(1) * impactors%y_unit(:)
-               fragment_cloud_center(:,2) = impactors%rbimp(:) + impactors%radius(2) * impactors%y_unit(:)
+               fragment_cloud_center(:,1) = impactors%rbimp(:) - 1.001_DP * max(fragments%radius(1),impactors%radius(1)) * impactors%y_unit(:)
+               fragment_cloud_center(:,2) = impactors%rbimp(:) + 1.001_DP * max(fragments%radius(2),impactors%radius(2)) * impactors%y_unit(:)
                fragment_cloud_radius(:) = cloud_size_scale_factor * rdistance
             end if
-            if (lsupercat) then
-               istart = 1
-            else
-               fragments%rc(:,1) = fragment_cloud_center(:,1)
-               istart = 2
-            end if
+            fragments%rc(:,1) = fragment_cloud_center(:,1)
+            fragments%rc(:,2) = fragment_cloud_center(:,2)
+            istart = 3
 
             do i = istart, nfrag
                if (loverlap(i)) then
