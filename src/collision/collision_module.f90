@@ -397,6 +397,13 @@ module collision
          class(base_parameters),   intent(in)    :: param        !! Current Swiftest run configuration parameters
       end subroutine collision_util_add_fragments_to_collider
 
+      module subroutine collision_util_bounce_one(r,v,rcom,vcom,radius)
+         implicit none
+         real(DP), dimension(:), intent(inout) :: r,v
+         real(DP), dimension(:), intent(in)    :: rcom,vcom
+         real(DP),               intent(in)    :: radius
+      end subroutine collision_util_bounce_one
+
       module subroutine collision_util_construct_constraint_system(collider, nbody_system, param, constraint_system, phase)
          implicit none
          class(collision_basic),                 intent(inout) :: collider          !! Collision system object

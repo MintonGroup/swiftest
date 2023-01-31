@@ -54,10 +54,34 @@ contains
             end select
             call self%set_mass_dist(param) 
             call self%disrupt(nbody_system, param, t, lfailure)
+            
             if (lfailure) then
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find an energy-losing solution. Treating this as a hit and run.") 
-               call self%hitandrun(nbody_system, param, t)
-               return
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find an energy-losing solution. Simplifying the collisional model.") 
+
+               impactors%mass_dist(1) = impactors%mass(1)
+               impactors%mass_dist(2) = max(0.5_DP * impactors%mass(2), self%min_mfrag)
+               impactors%mass_dist(3) = impactors%mass(2) - impactors%mass_dist(2)
+               impactors%regime = COLLRESOLVE_REGIME_DISRUPTION
+               call self%set_mass_dist(param)
+               call self%disrupt(nbody_system, param, t, lfailure)
+
+               if (lfailure) then
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find an energy-losing solution. Treating this as a bounce.") 
+                  call collision_util_bounce_one(impactors%rb(:,1),impactors%vb(:,1),impactors%rbcom(:),impactors%vbcom(:),impactors%radius(1))
+                  call collision_util_bounce_one(impactors%rb(:,2),impactors%vb(:,2),impactors%rbcom(:),impactors%vbcom(:),0.0_DP)
+                  call impactors%set_coordinate_system()
+                  call self%setup_fragments(2)
+                  associate (fragments => self%fragments)
+                     fragments%mass(1:2) = impactors%mass(1:2)
+                     fragments%Gmass(1:2) = impactors%Gmass(1:2)
+                     fragments%radius(1:2) = impactors%radius(1:2)
+                     fragments%rb(:,1:2) = impactors%rb(:,1:2)
+                     fragments%vb(:,1:2) = impactors%vb(:,1:2)
+                     fragments%Ip(:,1:2) = impactors%Ip(:,1:2)
+                     fragments%rot(:,1:2) = impactors%rot(:,1:2)
+                  end associate
+
+               end if
             end if
 
             associate (fragments => self%fragments)
@@ -572,11 +596,6 @@ contains
                            fragments%rot(:,i) = rot_new(:)
                            fragments%rotmag(i) = .mag.fragments%rot(:,i)
                         else ! We would break the spin barrier here. Put less into spin and more into velocity shear. 
-                           dL(:) = -L_residual(:) * fragments%mass(i) / fragments%mtot + drot(:) * fragments%Ip(3,i) * fragments%mass(i) * fragments%radius(i)**2 
-                           call fraggle_generate_velocity_torque(dL, fragments%mass(i), fragments%rc(:,i), fragments%vc(:,i))
-                           call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)  
-                           fragments%vmag(i) = .mag.fragments%vc(:,i)
-
                            if (i >= istart) then
                               call random_number(drot)
                               drot(:) = (0.5_DP * collider_local%max_rot - fragments%rotmag(i)) * 2 * (drot(:) - 0.5_DP)
@@ -586,12 +605,21 @@ contains
                                  fragments%rotmag(i) = 0.5_DP * collider%max_rot
                                  fragments%rot(:,i) = fragments%rotmag(i) * .unit. fragments%rot(:,i)
                               end if
+                           else
+                              drot(:) = 0.0_DP
                            end if
+
+                           dL(:) = -L_residual(:) * fragments%mass(i) / fragments%mtot + drot(:) * fragments%Ip(3,i) * fragments%mass(i) * fragments%radius(i)**2 
+                           call fraggle_generate_velocity_torque(dL, fragments%mass(i), fragments%rc(:,i), fragments%vc(:,i))
+                           call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)  
+                           fragments%vmag(i) = .mag.fragments%vc(:,i)
 
                         end if
                      end do
                   end do angmtm
 
+                  call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)            
+                  call fragments%set_coordinate_system()
                   call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
                   ke_avail = 0.0_DP
                   do i = 1, fragments%nbody
@@ -627,6 +655,8 @@ contains
                   fscale = sqrt((max(fragments%ke_orbit_tot - ke_remove, 0.0_DP))/fragments%ke_orbit_tot)
                   fragments%vc(:,:) = fscale * fragments%vc(:,:)
                   fragments%vmag(:) = .mag.fragments%vc(:,:)
+                  fragments%rc(:,:) = 1.0_DP / fscale * fragments%rc(:,:)
+                  fragments%rmag(:) = .mag.fragments%rc(:,:)
 
                   ! Update the unit vectors and magnitudes for the fragments based on their new orbits and rotations
                   call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)            
