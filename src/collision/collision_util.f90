@@ -60,6 +60,29 @@ contains
       return
    end subroutine collision_util_add_fragments_to_collider
 
+   module subroutine collision_util_bounce_one(r,v,rcom,vcom,radius)
+      !! Author: David A. Minton
+      !!
+      !! Performs a "bounce" operation on a single body by reversing its velocity in a center of mass frame.
+      implicit none
+      ! Arguments
+      real(DP), dimension(:), intent(inout) :: r,v
+      real(DP), dimension(:), intent(in)    :: rcom,vcom
+      real(DP),               intent(in)    :: radius
+      ! Internals
+      real(DP), dimension(NDIM) :: rrel, vrel, rnorm
+
+      rrel(:) = r(:) - rcom(:)
+      vrel(:) = v(:) - vcom(:)
+      rnorm(:) = .unit. rrel(:)
+      ! Do the reflection
+      vrel(:) = vrel(:) - 2 * dot_product(vrel(:),rnorm(:)) * rnorm(:)
+      ! Shift the positions so that the collision doesn't immediately occur again
+      r(:) = r(:) + 0.5_DP * radius * rnorm(:)
+      v(:) = vcom(:) + vrel(:)
+
+      return
+   end subroutine collision_util_bounce_one
 
    module subroutine collision_util_construct_constraint_system(collider, nbody_system, param, constraint_system, phase)
       !! Author: David A. Minton
