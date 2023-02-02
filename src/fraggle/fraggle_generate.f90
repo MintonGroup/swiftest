@@ -506,7 +506,7 @@ contains
       real(DP)                :: vmin_guess = 1.01_DP 
       real(DP)                :: vmax_guess 
       real(DP)                :: delta_v, GC
-      integer(I4B), parameter :: MAXLOOP = 50
+      integer(I4B), parameter :: MAXLOOP = 10
       integer(I4B), parameter :: MAXTRY = 100
       real(DP), parameter     :: MAX_REDUCTION_RATIO = 0.1_DP ! Ratio of difference between first and second fragment mass to remove from the largest fragment in case of a failure
       real(DP),     parameter :: ROT_MAX_FRAC = 0.001_DP !! Fraction of difference between current rotation and maximum to add when angular momentum budget gets too high
