@@ -50,11 +50,12 @@ module fraggle
          real(DP),                 intent(in)    :: t            !! Time of collision
       end subroutine fraggle_generate_hitandrun
 
-      module subroutine fraggle_generate_pos_vec(collider, nbody_system, param)
+      module subroutine fraggle_generate_pos_vec(collider, nbody_system, param, lfailure)
          implicit none
          class(collision_fraggle),     intent(inout) :: collider     !! Fraggle collision system object
          class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+         logical,                      intent(out)   :: lfailure     !! Did the velocity computation fail?
       end subroutine fraggle_generate_pos_vec 
 
       module subroutine fraggle_generate_rot_vec(collider, nbody_system, param)

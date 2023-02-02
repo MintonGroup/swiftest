@@ -84,7 +84,7 @@ module collision
       real(DP), dimension(NDIM) :: v_unit !! velocity direction unit vector of collisional system
       real(DP), dimension(NDIM) :: rbcom  !! Center of mass position vector of the collider nbody_system in nbody_system barycentric coordinates
       real(DP), dimension(NDIM) :: vbcom  !! Velocity vector of the center of mass of the collider nbody_system in nbody_system barycentric coordinates
-      real(DP), dimension(NDIM) :: rbimp  !! Impact point position vector of the collider nbody_system in nbody_system barycentric coordinates
+      real(DP), dimension(NDIM) :: rcimp  !! Impact point position vector of the collider nbody_system in nbody_system barycentric coordinates
       real(DP), dimension(NDIM) :: bounce_unit  !! The impact point velocity vector is the component of the velocity in the distance vector direction
 
    contains
