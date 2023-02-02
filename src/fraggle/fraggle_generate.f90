@@ -483,7 +483,7 @@ contains
       real(DP)                :: delta_v, GC
       integer(I4B), parameter :: MAXINNER = 10
       integer(I4B), parameter :: MAXOUTER = 10
-      integer(I4B), parameter :: MAXANGMTM = 100
+      integer(I4B), parameter :: MAXANGMTM = 10000
       class(collision_fraggle), allocatable :: collider_local
       character(len=STRMAX) :: message
 
