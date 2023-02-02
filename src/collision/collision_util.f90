@@ -359,7 +359,7 @@ contains
       self%v_unit(:) = 0.0_DP
       self%rbcom(:) = 0.0_DP
       self%vbcom(:) = 0.0_DP
-      self%rbimp(:) = 0.0_DP
+      self%rcimp(:) = 0.0_DP
 
       return
    end subroutine collision_util_dealloc_impactors
@@ -690,8 +690,8 @@ contains
          impactors%vc(:,1) = impactors%vb(:,1) - impactors%vbcom(:)
          impactors%vc(:,2) = impactors%vb(:,2) - impactors%vbcom(:)
    
-         ! Find the point of impact between the two bodies
-         impactors%rbimp(:) = impactors%rb(:,1) + impactors%radius(1) * impactors%y_unit(:) - impactors%rbcom(:)
+         ! Find the point of impact between the two bodies, defined as the location (in the collisional coordinate system) at the surface of body 1 along the line connecting the two bodies.
+         impactors%rcimp(:) = impactors%rb(:,1) + impactors%radius(1) * impactors%y_unit(:) - impactors%rbcom(:)
 
          ! Set the velocity direction as the "bounce" direction" for disruptions, and body 2's direction for hit and runs
          if (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) then
@@ -921,7 +921,7 @@ contains
          ! Scale all dimensioned quantities of impactors and fragments
          impactors%rbcom(:)     = impactors%rbcom(:)      / collider%dscale
          impactors%vbcom(:)     = impactors%vbcom(:)      / collider%vscale
-         impactors%rbimp(:)     = impactors%rbimp(:)      / collider%dscale
+         impactors%rcimp(:)     = impactors%rcimp(:)      / collider%dscale
          impactors%rb(:,:)      = impactors%rb(:,:)       / collider%dscale
          impactors%vb(:,:)      = impactors%vb(:,:)       / collider%vscale
          impactors%rc(:,:)      = impactors%rc(:,:)       / collider%dscale
@@ -973,7 +973,7 @@ contains
          ! Restore scale factors
          impactors%rbcom(:)  = impactors%rbcom(:) * collider%dscale
          impactors%vbcom(:)  = impactors%vbcom(:) * collider%vscale
-         impactors%rbimp(:)  = impactors%rbimp(:) * collider%dscale
+         impactors%rcimp(:)  = impactors%rcimp(:) * collider%dscale
 
          impactors%mass      = impactors%mass      * collider%mscale
          impactors%Gmass(:)  = impactors%Gmass(:)  * (collider%dscale**3/collider%tscale**2)
