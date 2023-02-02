@@ -476,12 +476,12 @@ contains
       real(DP) :: vimp, vmag, vesc, dE, E_residual, E_residual_best, E_residual_last, ke_min, ke_avail, ke_remove, dE_best, fscale, dE_metric, mfrag, dL_metric, dL_best, rn
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
       real(DP), dimension(collider%fragments%nbody) :: vscale
-      real(DP), parameter :: L_ROT_VEL_RATIO = 0.01_DP ! Ratio of angular momentum to put into rotation relative to velocity shear of fragments
+      real(DP), parameter :: L_ROT_VEL_RATIO = 0.2_DP ! Ratio of angular momentum to put into rotation relative to velocity shear of fragments
       ! For the initial "guess" of fragment velocities, this is the minimum and maximum velocity relative to escape velocity that the fragments will have
       real(DP)                :: vmin_guess = 1.01_DP 
       real(DP)                :: vmax_guess 
       real(DP)                :: delta_v, GC
-      integer(I4B), parameter :: MAXINNER = 10
+      integer(I4B), parameter :: MAXINNER = 50
       integer(I4B), parameter :: MAXOUTER = 10
       integer(I4B), parameter :: MAXANGMTM = 10000
       class(collision_fraggle), allocatable :: collider_local
