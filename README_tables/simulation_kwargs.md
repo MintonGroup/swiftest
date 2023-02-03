@@ -4,7 +4,7 @@
 |```simdir```                     | Path to subdirectory in which to store data. Default is ```/simdir```.                             | pathlike string (ex. ```path/to/directory```)                                                      | all
 |```read_param```                 | Read in a pre-existing parameter input file. Default is ```False```.                               | ```True```, ```False```                                                                            | all
 |```param_file```                 | Name of the pre-existing parameter input file. Only used if ```read_param``` is set to ```True```. | string (ex. ```param.in```)                                                                        | all
-|```read_old_output```       | Read in a pre-existing simulation output file. Default is ```False```.                             | ```True```, ```False```                                                                            | all
+|```read_data```       | Read in a pre-existing simulation output file. Default is ```False```.                             | ```True```, ```False```                                                                            | all
 |```codename```                   | Name of the N-body code to use. Default is ```Swiftest```.                                         | ```Swiftest```, ```Swifter```, ```Swift```                                                         | all
 |```integrator```                 | Name of the N-body integrator to use. Default is ```symba```.                                      | ```symba```, ```helio```, ```rmvs```, ```whm```                                                    | all
 |```t0```                         | The reference time for the start of the simulation in time units. Default is ```0.0```.            | floating point (ex. ```0.0```)                                                                     | all
@@ -23,6 +23,9 @@
 |```MU```                         | Mass unit system to use in the simulation. Default is ```Msun```.                                  | ```Msun```, ```Mearth```, ```kg```, ```g``` (case-insensitive)                                     | all                           
 |```DU```                         | Distance unit system to use in the simulation. Default is ```AU```.                                | ```AU```, ```Rearth```, ```m```, ```cm``` (case-insensitive)                                       | all
 |```TU```                         | Time unit system to use in the simulation. Default is ```Y```.                                     | ```Y```, ```YR```, ```DAY``` (Julian day), ```d``` (Julian day), ```JD``` (Julian day), ```s``` (case-insensitive) | all
+|```MU_name```                    | The name of the mass unit. Overrides ```MU```.                                                     | string (ex. ```kilograms```)                                                                       | all
+|```DU_name```                    | The name of the distance unit. Overrides ```DU```.                                                 | string (ex. ```meters```)                                                                          | all
+|```TU_name```                    | The name of the time unit. Overrides ```TU```.                                                     | string (ex. ```seconds```)                                                                         | all
 |```MU2KG```                      | Mass units to kilogram conversion factor. Overrides ```MU```.                                      | floating point (ex. ```1.988409870698051e+30```)                                                   | all
 |```DU2M```                       | Distance units to meters conversion factor. Overrides ```DU```.                                    | floating point (ex. ```31557600.0```)                                                              | all
 |```TU2S```                       | Time units to seconds conversion factor. Overrides ```TU```.                                       | floating point (ex. ```149597870700.0```)                                                          | all
@@ -32,8 +35,9 @@
 |```mtiny```                      | Mass cutoff between fully and semi-interacting massive bodies in mass units. Either ```mtiny``` **OR** ```gmtiny``` may be set. | floating point (ex. ```1e23```)                                       | all
 |```gmtiny```                     | Mass cutoff between fully and semi-interacting massive bodies in gravitational mass units. Default is ```0.0```. Either ```mtiny``` **OR** ```gmtiny``` may be set. | floating point (ex. ```4e-6```)   | all
 |```close_encounter_check```      | Check for close encounters. Default is ```True```. Requires radius of massive bodies to be provided in initial conditions. | ```True```, ```False```                                                    | all
+|```encounter_save```             | Save data for each close encounter to a file. Warning! This can generate very large files!         | ```TRAJECTORY```, ```CLOSEST```, ```BOTH```                                                        | SyMBA
 |```general_relativity```         | General relativity. Default is ```True```.                                                         | ```True```, ```False```                                                                            | all
-|```fragmentation```              | Resolve collisions with fragmentation. Default is ```False```.                                     | ```True```, ```False```                                                                            | SyMBA
+|```collision_model```            | Resolve collisions. Default is ```MERGE```.                                                        | ```MERGE```, ```BOUNCE```, ```FRAGGLE```                                                           | SyMBA
 |```minimum_fragment_gmass```     | Minimum fragment mass in gravitational mass units. Default is ```0.0```. Either ```minimum_fragment_gmass``` **OR** ```minimum_fragment_mass``` may be set. | floating point (ex. ```1e-9```)           | SyMBA
 |```minimum_fragment_mass```      | Minimum fragment mass in mass units. Either ```minimum_fragment_gmass``` **OR** ```minimum_fragment_mass``` may be set. | floating point (ex. ```1e20```)                                               | SyMBA
 |```rotation```                   | Rotation of massive bodies. Requires rotation vectors, radii, and moments of inertia to be provided in initial conditions. Default is ```False```. | ```True```, ```False```                            | SyMBA
@@ -57,3 +61,8 @@ In the above list, the following are defined as:
 - ```REAL8``` - Double precision 8-byte native Fortran binary format (Swifter/Swift only)
 - ```XDR4``` - Single precision 4-byte XDR format (Swifter/Swift only)
 - ```XDR8``` - Double precision 8-byte XDR format (Swifter/Swift only)
+- ```TRAJECTORY``` - Save the position and velocity vectors of all bodies involved in the close encounter at each intermediary step of the encounter
+- ```CLOSEST``` - Save the position and velocity vectors of all bodies involved in the close encounter at the point of closest approach 
+- ```MERGE``` - Perfectly conserve the mass of all colliding bodies into a single resultant body
+- ```BOUNCE``` - Perfectly-elastic collision in which all bodies reverse trajectory after the collision
+- ```FRAGGLE``` - Collisional fragments are generated as a result of a collision
