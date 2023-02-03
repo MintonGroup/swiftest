@@ -70,14 +70,7 @@ contains
                nimp = size(impactors%id(:))
                do i = 1, nimp
                   j = impactors%id(i)
-                  rcom(:) = pl%rb(:,j) - impactors%rbcom(:)
-                  vcom(:) = pl%vb(:,j) - impactors%vbcom(:)
-                  rnorm(:) = .unit. rcom(:)
-                  ! Do the reflection
-                  vcom(:) = vcom(:) - 2 * dot_product(vcom(:),rnorm(:)) * rnorm(:)
-                  ! Shift the positions so that the collision doesn't immediately occur again
-                  pl%rb(:,j) = pl%rb(:,j) + 0.5_DP * pl%radius(j) * rnorm(:)
-                  pl%vb(:,j) = impactors%vbcom(:) + vcom(:)
+                  call collision_util_bounce_one(pl%rb(:,j),pl%vb(:,j),impactors%rbcom(:),impactors%vbcom(:),pl%radius(j))
                   self%status = DISRUPTED
                   pl%status(j) = ACTIVE
                   pl%ldiscard(j) = .false.

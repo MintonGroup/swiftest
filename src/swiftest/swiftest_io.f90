@@ -129,7 +129,11 @@ contains
 
       associate(nbody_system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, display_unit => param%display_unit, nc => self%system_history%nc)
 
-         call pl%vb2vh(cb)
+         select type(self)
+         class is (helio_nbody_system) ! Don't convert vh to vb for Helio-based integrators, because they are already have that calculated
+         class is (whm_nbody_system)
+            call pl%vh2vb(cb)
+         end select
          call pl%rh2rb(cb)
 
          call nbody_system%get_energy_and_momentum(param) 

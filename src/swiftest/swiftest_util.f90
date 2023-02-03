@@ -1808,7 +1808,7 @@ contains
       class(encounter_list), allocatable :: plplenc_old
       logical :: lencounter
 
-      associate(pl => self, tp => nbody_system%tp, pl_adds => nbody_system%pl_adds)
+      associate(pl => self, tp => nbody_system%tp, cb => nbody_system%cb, pl_adds => nbody_system%pl_adds)
 
          npl = pl%nbody
          nadd = pl_adds%nbody
@@ -1857,6 +1857,8 @@ contains
          ! Reindex the new list of bodies 
          call pl%sort("mass", ascending=.false.)
          call pl%flatten(param)
+
+         call pl%set_rhill(cb)
 
          ! Reset the kinship trackers
          call pl%reset_kinship([(i, i=1, npl)])
@@ -3037,6 +3039,24 @@ contains
       character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in collision snapshots)
       ! Internals
       class(swiftest_nbody_system), allocatable :: snapshot
+
+      ! To allow for runs to be restarted in a bit-identical way, we'll need to run the same coordinate conversion routines we would run upon restarting
+      select type(pl => nbody_system%pl)
+      class is (whm_pl)
+         call pl%h2j(nbody_system%cb)
+      class is (helio_pl)
+         call pl%vh2vb(nbody_system%cb)
+      end select
+
+      select type(tp => nbody_system%tp)
+      class is (helio_tp)
+      select type(cb => nbody_system%cb)
+      class is (helio_cb)
+         call tp%vh2vb(vbcb = -cb%ptbeg)
+      end select
+      end select
+
+      call nbody_system%pl%set_rhill(nbody_system%cb)
 
       ! Take a minimal snapshot wihout all of the extra storage objects
       allocate(snapshot, mold=nbody_system)

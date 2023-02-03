@@ -34,8 +34,6 @@ newfeaturelist = ("RESTART",
                   "DUMP_CADENCE",
                   "ENCOUNTER_SAVE")
 
-
-
 # This list defines features that are booleans, so must be converted to/from string when writing/reading from file
 bool_param = ["RESTART",
               "CHK_CLOSE",
@@ -83,7 +81,8 @@ def bool2yesno(boolval):
         return "YES"
     else:
         return "NO"
-
+ 
+ 
 def bool2tf(boolval):
     """
     Converts a boolean into a string of either "T" or "F".
@@ -102,6 +101,7 @@ def bool2tf(boolval):
         return "T"
     else:
         return "F"
+
 
 def str2bool(input_str):
     """
@@ -801,6 +801,7 @@ def swifter2xr(param, verbose=True):
         if verbose: print(f"Successfully converted {ds.sizes['time']} output frames.")
     return ds
 
+
 def process_netcdf_input(ds, param):
     """
     Performs several tasks to convert raw NetCDF files output by the Fortran program into a form that
@@ -822,6 +823,7 @@ def process_netcdf_input(ds, param):
         ds = fix_types(ds,ftype=np.float32)
 
     return ds
+
 
 def swiftest2xr(param, verbose=True):
     """
@@ -849,6 +851,7 @@ def swiftest2xr(param, verbose=True):
 
     return ds
 
+
 def xstrip_nonstr(a):
     """
     Cleans up the string values in the DataSet to remove extra white space
@@ -863,6 +866,7 @@ def xstrip_nonstr(a):
     """
     func = lambda x: np.char.strip(x)
     return xr.apply_ufunc(func, a.str.decode(encoding='utf-8'),dask='parallelized')
+
 
 def xstrip_str(a):
     """
@@ -898,6 +902,7 @@ def string_converter(da):
 
     return da
 
+
 def char_converter(da):
     """`
     Converts a string to a unicode string
@@ -915,6 +920,7 @@ def char_converter(da):
     elif type(da.values[0]) != np.str_:
         da = xstrip_nonstr(da)
     return da
+
 
 def clean_string_values(ds):
     """
@@ -962,6 +968,7 @@ def unclean_string_values(ds):
             n = string_converter(ds[c])
             ds[c] = n.str.ljust(1).str.encode('utf-8')
     return ds
+
 
 def fix_types(ds,itype=np.int64,ftype=np.float64):
 
@@ -1054,6 +1061,7 @@ def swiftest_particle_2xr(param):
 
     return infoxr
 
+
 def select_active_from_frame(ds, param, framenum=-1):
     """
     Selects a particular frame from a DataSet and returns only the active particles in that frame
@@ -1095,6 +1103,7 @@ def select_active_from_frame(ds, param, framenum=-1):
 
 
     return frame
+
 
 def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,framenum=-1,verbose=True):
     """
@@ -1280,6 +1289,7 @@ def swifter_xr2infile(ds, param, framenum=-1):
         print(f"{param['IN_TYPE']} is an unknown input file type")
 
     return
+
 
 def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
     """
@@ -1500,6 +1510,7 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
     swifter_param['! VERSION'] = "Swifter parameter file converted from Swift"
     
     return swifter_param
+
 
 def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_questions={}):
     """
@@ -1753,6 +1764,7 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
     swiftest_param['! VERSION'] = "Swiftest parameter file converted from Swifter"
     return swiftest_param
 
+
 def swift2swiftest(swift_param, plname="", tpname="", cbname="", conversion_questions={}):
     """
     Converts from a Swift run to a Swiftest run
@@ -1797,6 +1809,7 @@ def swift2swiftest(swift_param, plname="", tpname="", cbname="", conversion_ques
     swiftest_param = swifter2swiftest(swifter_param, plname, tpname, cbname, conversion_questions)
     swiftest_param['! VERSION'] = "Swiftest parameter file converted from Swift"
     return swiftest_param
+
 
 def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
     """

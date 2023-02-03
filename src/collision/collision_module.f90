@@ -84,7 +84,7 @@ module collision
       real(DP), dimension(NDIM) :: v_unit !! velocity direction unit vector of collisional system
       real(DP), dimension(NDIM) :: rbcom  !! Center of mass position vector of the collider nbody_system in nbody_system barycentric coordinates
       real(DP), dimension(NDIM) :: vbcom  !! Velocity vector of the center of mass of the collider nbody_system in nbody_system barycentric coordinates
-      real(DP), dimension(NDIM) :: rbimp  !! Impact point position vector of the collider nbody_system in nbody_system barycentric coordinates
+      real(DP), dimension(NDIM) :: rcimp  !! Impact point position vector of the collider nbody_system in nbody_system barycentric coordinates
       real(DP), dimension(NDIM) :: bounce_unit  !! The impact point velocity vector is the component of the velocity in the distance vector direction
 
    contains
@@ -396,6 +396,13 @@ module collision
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(in)    :: param        !! Current Swiftest run configuration parameters
       end subroutine collision_util_add_fragments_to_collider
+
+      module subroutine collision_util_bounce_one(r,v,rcom,vcom,radius)
+         implicit none
+         real(DP), dimension(:), intent(inout) :: r,v
+         real(DP), dimension(:), intent(in)    :: rcom,vcom
+         real(DP),               intent(in)    :: radius
+      end subroutine collision_util_bounce_one
 
       module subroutine collision_util_construct_constraint_system(collider, nbody_system, param, constraint_system, phase)
          implicit none
