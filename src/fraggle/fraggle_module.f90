@@ -44,7 +44,7 @@ module fraggle
 
       module subroutine fraggle_generate_hitandrun(self, nbody_system, param, t) 
          implicit none
-         class(collision_fraggle),   intent(inout) :: self         !! Collision system object
+         class(collision_fraggle), intent(inout) :: self         !! Collision system object
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters with SyMBA additions
          real(DP),                 intent(in)    :: t            !! Time of collision
