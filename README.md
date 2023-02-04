@@ -131,33 +131,33 @@ $ ipython kernel install --user --name EnvName --display-name "Swiftest Kernel"
 
 #### Usage
 
-Swiftest is built to make running a Swiftest simulation a streamlined and user friendly experience, even for a new user. As a result, Swiftest is highly flexible and a simulation can be created, run, and processed in a number of different ways. The first choice the user must make is if they would prefer ASCII input files or NetCDF input files. We recommend NetCDF input files, however we include documentation for ASCII input files for completeness.
+Swiftest is built to make running a Swiftest simulation a streamlined and user-friendly experience, even for a new user. As a result, Swiftest is highly flexible and a simulation can be created, run, and processed in a number of different ways. The first choice the user must make is if they would prefer ASCII input files or NetCDF input files. We recommend NetCDF input files, however we include documentation for ASCII input files for completeness.
 
 **Brief Outline**
 To create and run a Swiftest simulation using the Swiftest Python package, follow the general script below. For more details on the input files and user options, continue reading this section.
 
 ```
 import swiftest                                                  # Import the Swiftest Python package
-sim = swiftest.Simulation(simdir = "directory_name", **kwargs)   # Initialize a Swiftest simulation
-sim.add_solar_system_body(**kwargs)                              # Add any desired named Solar System bodies
+sim = swiftest.Simulation(simdir = "directory_name", **kwargs)   # Initialize a Swiftest simulation and define a directory/path in which to store simulation data
+sim.add_solar_system_body(**kwargs)                              # Add any desired named Solar System bodies, including the Sun
 sim.add_body(**kwargs)                                           # Add any desired user defined bodies
 sim.get_parameter(**kwargs)                                      # View the default simulation parameters
 sim.set_parameter(**kwargs)                                      # Set any desired simulation parameters
 sim.write_param(**kwargs)                                        # Write simulation parameters to the param.in
-sim.run(**kwargs)                                                # Run the simulation (ignore if running from the terminal)
+sim.save(**kwargs)                                               # Save the simulation initial conditions to init_cond.nc
+sim.run(**kwargs)                                                # Run the simulation (leave off if running from the terminal)
 ```
 
 To read in a set of Swiftest output files using the Swiftest Python package, follow the general script below. For more details on the output files and user options, continue reading this section.
 
 ```
 import swiftest                                                              # Import the Swiftest Python package
-sim = swiftest.Simulation(simdir = "directory_name", read_old_output=True)   # Initialize a Swiftest simulation
-sim.data        # Body data over time
-sim.init_cond   # The initial conditions for the simulation
-sim.encounters  # Encounter data for all close encountering pairs
-sim.collisions  # Collision data for all colliders and collisional fragments
+sim = swiftest.Simulation(simdir = "directory_name", read_data=True)         # Initialize a Swiftest simulation
+sim.data                                                                     # Body data over time
+sim.init_cond                                                                # The initial conditions for the simulation
+sim.encounters                                                               # Encounter data for all close encountering pairs
+sim.collisions                                                               # Collision data for all colliders and collisional fragments
 ```
-
 
 **NetCDF Input Files (Recommended)**
 
@@ -193,10 +193,16 @@ sim.add_body(**kwargs)
 
 The key word arguments available to the user for the ```add_body``` method are described in [add_body_kwargs](README_tables/add_body_kwargs.md).
 
-All desired bodies and parameters are added to the simulation object and the information is saved to a NetCDF input file (**<span>init_cond.nc</span>**) and an ASCII parameter file (**<span>param.in</span>**) automatically. The parameter file is not necessary to run a Swiftest simulation, it is simply a convenient reference for the user. These files are stored in the ```/simdata``` subdirectory.
+Once all desired bodies have been added to the Swiftest simulation, the simulation parameters can be accessed and changed using the ```get_parameter``` and ```set_parameter``` methods. The key word arguments available to the user for the ```get_parameter``` and ```set_parameter``` are the same as those described in [simulation_kwargs](README_tables/simulation_kwargs.md).
+
+After all desired parameters have been set, the parameters can be saved to the **<span>param.in</span>** using the ```write_param``` method. The key word arguments available to the user for the ```write_param``` method are described in [write_param_kwargs](README_tables/write_param_kwargs.md).
+
+The state of the system can be saved to the initial conditions NetCDF file, **<span>init_cond.nc</span>**, using the ```save``` method. The key word arguments available to the user for the ```save``` method are described in [save_kwargs](README_tables/save_kwargs.md).
+
+Finally, a simulation can be run from the same script in which it is created (or a separate Python script) using the ```run``` method. This is optional as the simulation can also be run from the terminal. More details on running a Swiftest simulation can be found in the section **Running a Swiftest Simulation**. The key word arguments available to the user for the ```run``` method are the same as those described in [simulation_kwargs](README_tables/simulation_kwargs.md).
 
 **ASCII Input Files**
-Swiftest accepts 4 ASCII input files. All four input files are necessary, however the structure of each input file varies slightly depending on the features and capabilities of the integrator selected. For examples of Swiftest input files, see the examples section. The four input files are as follows:
+Swiftest accepts 4 ASCII input files. All four input files are necessary, however the structure of each input file varies slightly depending on the features and capabilities of the integrator selected. The four input files are as follows:
 
 - **<span>param.in</span>** - The parameter input file.
 - **<span>cb.in</span>** - The central body input file.
@@ -251,7 +257,7 @@ Note that the ID numbers of the test particles are a continuation of the ID numb
 
 **Running a Swiftest Simulation**
 
-The input files necessary to successfully run Swiftest should now be generated in the simulation directory. The user is now faced with a second choice: to run a Swiftest simulation from a Python environment (recommended) or to run it directly from the terminal. Either option is possible with NetCDF format input files, however ASCII input files must be run directly from the terminal.
+The input files necessary to successfully run Swiftest should now be generated in the simulation directory. The user is now faced with a second choice: to run a Swiftest simulation from a Python environment or to run it directly from the terminal. Either option is possible with NetCDF format input files, however ASCII input files must be run directly from the terminal.
 
 **Running via Python**
 
@@ -261,16 +267,16 @@ To run a Swiftest simulation from the same script in which the initial condition
 sim.run()
 ```
 
-To run a previously created set of initial conditions, first read the old output file into Python, and then run it. Note that Swiftest will look in the ```/simdata``` subdirectory for the initial conditions by default. You may set a new path to the initial conditions using the ```param_file``` keyword argument.
+To run a previously created set of initial conditions, first read the old parameter file into Python, and then run it. Note that Swiftest will look in the ```/simdata``` subdirectory for the initial conditions by default. You may set a new path to the initial conditions using the ```param_file``` keyword argument. See the documentation detailing the key word arguments available to the user in [simulation_kwargs](README_tables/simulation_kwargs.md).
 
 ```
-sim = swiftest.Simulation(simdir = "directory_name", read_old_output=True)
+sim = swiftest.Simulation(simdir = "directory_name", read_param=True)
 sim.run()
 ```
 
 **Running via a Terminal**
 
-When creating a new Swiftest simulation, ensure that all required input files exist in a unique directory. A symbolic link to the Swiftest driver should also exist in the simulation directory. To create a symbolic link to the Swiftest driver from your current directory, type:
+To run a Swiftest simulation through the terminal, create a symbolic link to the Swiftest driver from your current directory.
 
 ```
 $ ln -s ~/PATH/TO/swiftest/bin/swiftest_driver .
@@ -282,16 +288,16 @@ To run Swiftest, simply type the following command into the terminal:
 $ ./swiftest_driver INTEGRATOR param.in
 ```
 
-Where ```INTEGRATOR``` is your integrator of choice, either ```whm```, ```rmvs```, ```helio```, or ```symba```.
+Where ```INTEGRATOR``` is your integrator of choice, either ```whm```, ```rmvs```, ```helio```, or ```symba```. 
 
 **Outputs**
 
 The number and type of output files generated by Swiftest depends on the input parameters selected and the method through which Swiftest was run. The standard output files are as follows:
 - **<span>data.nc</span>** - Always generated, the output file containing the information for every body in the system, recorded every ```ISTEP_OUT``` timesteps and written every ```DUMP_CADENCE```. This file can be analyzed using the Swiftest Python package (```sim.data```).
-- **fraggle.log** - The log containing the record of each fragmentation event, including the collisional regime, and the number of the fragments created, only if ```FRAGMENTATION``` is ```YES```, Swiftest SyMBA only.
-- **swiftest.log** - A log containing a brief updated on the status of the run. Only generated if Swiftest is run through the Python package. If Swiftest is run through the terminal, these updates are output directly to the terminal.
-- **collision_xxxxxx.nc** - The details of each collision that occurs in a simulation are recorded in a NetCDF file. Each collision receives its own file. These files are consolidated and can be analyzed using the Swiftest Python package (```sim.collisions```). Only if ```CHK_CLOSE```/```close_encounter_check``` is ```YES```/```True```.
-- **encounter_xxxxxx.nc** - The details of each close encounter that occurs in a simulation are recorded in a NetCDF file. Each encounter receives its own file. These files are consolidated and can be analyzed using the Swiftest Python package (```sim.encounters```). Only if ```CHK_CLOSE```/```close_encounter_check``` is ```YES```/```True```.
+- **collisions.log** - The log containing the record of each fragmentation event, including the collisional regime, and the number of the fragments created, only if ```FRAGMENTATION``` is ```YES```, Swiftest SyMBA only.
+- **swiftest.log** - A log containing a brief update on the status of the run. Only generated if Swiftest is run through the Python package or through a shell script. If Swiftest is run directly through the terminal, these updates are output directly to the terminal.
+- **collisions.nc** - The details of each collision that occurs in a simulation are recorded in a NetCDF file. Only if ```CHK_CLOSE```/```close_encounter_check``` is ```YES```/```True```. This file can be analyzed using the Swiftest Python package (```sim.collisions```).
+- **encounters.nc** - The details of each close encounter that occurs in a simulation are recorded in a NetCDF file. Only if ```CHK_CLOSE```/```close_encounter_check``` is ```YES```/```True```. This file can be analyzed using the Swiftest Python package (```sim.encounters```).
 - **init_cond.nc** - The initial conditions used to run the simulation. This file can be analyzed using the Swiftest Python package (```sim.init_cond```).
 - **encounter_check_plpl_timer.log** - The log containing the encounter check timer for each massive body/massive body encounter,  only if ```CHK_CLOSE```/```close_encounter_check``` is ```YES```/```True``` and ```ENCOUNTER_CHECK```/```encounter_check_loops``` is ```ADAPTIVE```.
 - **encounter_check_pltp_time.log** - The log containing the encounter check timer for each massive body/test particle encounter, only if ```CHK_CLOSE```/```close_encounter_check``` is ```YES```/```True``` and ```ENCOUNTER_CHECK```/```encounter_check_loops``` is ```ADAPTIVE```.
@@ -301,10 +307,10 @@ To read in a Swiftest output file, simply create a new Python script in the simu
 
 ```
 import swiftest                                            
-sim = swiftest.Simulation(simdir = "directory_name", read_old_output=True) 
+sim = swiftest.Simulation(simdir = "directory_name", read_data=True) 
 ```
 
-All Swiftest data is now stored in the Xarray dataset ```sim.data``` and is easily processed, manipulated, and analyzed.
+All Swiftest data is now stored in the Xarray datasets ```sim.data```, ```sim.collisions```, and ```sim.encounters``` and is easily processed, manipulated, and analyzed.
 
 Regardless of whether the status outputs are recorded in the **swiftest.log** or in the terminal, the output format is the same. Below is an example of a single status output:
 
@@ -326,7 +332,7 @@ To restart a Swiftest simulation via the Swiftest Python package, follow the out
 
 ```
 import swiftest
-sim = swiftest.Simulation(simdir = "directory_name", read_old_output=True)
+sim = swiftest.Simulation(simdir = "directory_name", read_data=True)
 sim.set_parameter(tstop=VAL)  # Set a new stop time if desired
 sim.write_param()             # Write simulation parameters to the param.in
 sim.run()
@@ -336,21 +342,13 @@ Note that Swiftest will look in the ```/simdata``` subdirectory for the initial 
 
 **Restarting via a Terminal**
 
-Every ```DUMP_CADENCE``` X ```ISTEP_OUT``` timesteps, Swiftest writes all simulation information from memory to the output files. At the same time, Swiftest also writes all simulation information to one of two sets of dump files, alternating between sets at each subsequent dump. This way, even if Swiftest is terminated during the writing stage, at least one set of dump files is preserved and the information is not lost. When Swiftest is restarted from a dump file, it automatically determines which set of dump files has proceeded further in simulation time, and picks up from that point. 
-
-The Dump Files:
-- **dump_param1.in** - The file storing all simulation parameters for set 1 of the dump files, ASCII file format only
-- **dump_param2.in** - The file storing all simulation parameters for set 2 of the dump files, ASCII file format only
-- **dump_bin1.nc** or **dump_bin1.dat** - The file storing all simulation information for set 1 of the dump files, NetCDF file format 
-- **dump_bin2.nc** or **dump_bin2.dat** - The file storing all simulation information for set 2 of the dump files, NetCDF file format 
-
-To restart Swiftest from a dump file, simply follow the instructions detailed in the **Running via a Terminal** section, replacing ```PARAM``` with either **dump_param1.in** or **dump_param2.in**. The option of specifying **dump_param1.in** or **dump_param2.in** is included for backwards compatibility. Swiftest will still automatically check which dump file has progressed further and select that dump file, regardless of your choice of dump parameter file. If you would like to force Swiftest to select one dump parameter file over the other, simply delete the set of dump files that you do not want. 
+Every ```DUMP_CADENCE``` X ```ISTEP_OUT``` timesteps, Swiftest writes all simulation information from memory to the output files. At the same time, Swiftest also writes all simulation information to a new parameter file, titled **<span>param.XXXXXXXXXXXXXXXXXX.in</span>**. To restart a run from a previous parameter file, simply follow the instructions detailed in the **Running via a Terminal** section, replacing ```param.in``` with the name of the parameter file from which you wish to restart. 
 
 ---
 
 #### Updates to Swifter Included in Swiftest
 
-**Fraggle**
+**Collisional Fragmentation via Fraggle**
 
 To activate the Fraggle algorithm, set ```FRAGMENTATION```/```fragmentation``` to ```YES```/```True```, depending on the mode in which Swiftest is being run. When resolving a close encounter that results in a collision, Fraggle determines the regime of the collision as well as the mass, number, position, velocity, and rotation of all resulting bodies. This is distinct from Swiftest SyMBA's predecessor, Swifter SyMBA, which assumes that all collisions result in perfect mergers. 
 
@@ -381,10 +379,6 @@ Fraggle logfile
 ```
 
 The details of the collision are stored in the simulation object (```sim.collisions```) which can be accessed using the Swiftest Python package.
-
-**Encounter Trajectory Saving**
-
-DO THIS
 
 **General Relativity**
 
@@ -451,7 +445,7 @@ The 2003 version of Fortran introduced object-oriented programming, with Fortran
 
 **Parallelization**
 
-Parallelization using OpenMP is still under development in Swiftest. For preliminary results, see **Figure 3**.
+Parallelization using OpenMP is still under development in Swiftest. For preliminary results, see **Figure 2**.
 
 ---
 
@@ -478,16 +472,6 @@ This example highlights the functionality of the Fraggle algorithm. It can be fo
 
 To generate a movide depicting the collision and results of each test case, run the Python script titled **Fragmentation_Movie.py**.
 
-**Comparison with Swifter SyMBA**
-
-This example demonstrates that Swiftest SyMBA produces results that are in good agreement with Swifter SyMBA. It can be found in the ```/swiftest/examples/Swifter_Swiftest``` directory. It is intended to be run using the SyMBA integrator. It contains two sets of identical initial conditions, one formated to be compatable with Swifter and the other with Swiftest. This example contains the 8 fully-interacting modern planets, 50 additional fully-interacting massive bodies, 50 semi-interacting massive bodies, and 50 test particles. For the purposes of comparison, fragmentation, rotation, and general relativity were turned off in Swiftest SyMBA. All bodies were also assumed to be spherical.   
-
-After 1 My, there is good agreement between Swiftest SyMBA and Swifter SyMBA in both the structure of the final system and the general evolution of the system over time. The system run with Swifter SyMBA results in 92 massive bodies and 47 test particles in the terrestrial disk. The system run with Swiftest SyMBA results in 90 massive bodies and 44 test particles in the terrestrial disk. The total final terrestrial disk mass for the Swifter and Swiftest runs are $9.13 M_{\oplus}$ and $9.04 M_{\oplus}$, respectively. The average eccentricity of a terrestrial body in the Swifter SyMBA simulation is $0.21$ compared to $0.22$ in the Swiftest SyMBA simulation. Finally, the average inclination of a terrestrial body in the Swifter SyMBA simulation is $7.21^{\circ}$ compared to $6.69^{\circ}$ in the Swiftest SyMBA simulation. The evolution of both systems is also comparable, with both systems showing mass steadily accrete over the age of the system. The results of this example are included in **Figure 2**.
-
-|![SyMBA Swifter v. Swiftest](README_figs/swifter_swiftest_comp.png "SyMBA Swifter v. Swiftest")|
-|:--:|
-|**Figure 2** - The number of bodies in the system over time. An identical set of initial conditions was run using Swifter SyMBA (red) and Swiftest SyMBA (navy). Solid lines represent the number of massive bodies in the system, while dotted lines represent the number of test particles in the system. Due to the stochastic nature of n-body integrations, it is unrealistic to expect these two codes to produce bit identical results. Instead, we track the general trend of solar system evolution in these two runs using the number of bodies remaining in the system as a metric for the development of the total system. Here we show that the general behavior of Swiftest SyMBA is in good agreement with the general behavior of Swifter SyMBA after 1 My. | 
-
 ---
 
 #### Simulation Parameter FAQs and Recommendations
@@ -496,11 +480,11 @@ After 1 My, there is good agreement between Swiftest SyMBA and Swifter SyMBA in 
 
 A good rule is to set ```dt``` equal to one tenth the orbit of the inner-most body in your simulation. For example, if Mercury is your inner-most body, ```dt``` should be set to one tenth Mercury's orbit. Mercury's orbit is ~0.24 years (~88 days) so a timestep of 0.024 years should be sufficiently small to accurately model the orbit of Mercury. You can always go smaller to increase resolution.
 
-**How often should I output (**```ISTEP_OUT``` **and** ```DUMP_CADENCE```**)?**
+**How often should I output (**```ISTEP_OUT``` or ```TSTEP_OUT```, **and** ```DUMP_CADENCE```**)?**
 
-Depending on your simulation, you may want to write to the output file more or less frequently. Writing takes a considerable amount of computational time, so it is important to set a output cadence that is manageable. Conversely, storing data in memory may not be reasonable for all simualtion configurations or hardware, so writing more frequently may be necessary. There is no hard and fast rule for how often you should output, however it is dependent on your total simulation length (```tmax```) and your timestep (```dt```). Think of ```ISTEP_OUT``` as the number of timesteps between writing to memory, and ```DUMP_CADENCE``` as the number of write to memory operations between writing to file.
+Depending on your simulation, you may want to write to the output file more or less frequently. Writing takes a considerable amount of computational time, so it is important to set a output cadence that is manageable. Conversely, storing data in memory may not be reasonable for all simualtion configurations or hardware, so writing more frequently may be necessary. There is no hard and fast rule for how often you should output, however it is dependent on your total simulation length (```tmax```) and your timestep (```dt```). Think of ```ISTEP_OUT``` as the number of timesteps between writing to memory (or, alternatively with ```TSTEP_OUT```, the length of time between writing to memory), and ```DUMP_CADENCE``` as the number of write to memory operations between writing to file. 
 
-For example, an appropriate output cadence for run with a timestep of 0.005 years and a total simulation length of 100 My might be ```ISTEP_OUT = 2e5``` and ```DUMP_CADENCE = 10```. This means that data will be stores to memory every 2e5 timesteps and written to file every 2e6 timesteps. Based on our value of ```dt```, this is every 1,000 years and every 10,000 years, respectiely. Our total simulation length tells us that we will write to file 10,000 times over the course of the simulation. For longer simulations, the output cadence may be less frequent to save computational space. For shorter simulations, the output cadence may be more frequent to increase resolution. 
+For example, an appropriate output cadence for a run with a timestep of 0.005 years and a total simulation length of 100 My might be ```ISTEP_OUT = 2e5``` (```TSTEP_OUT = 1e3```) and ```DUMP_CADENCE = 10```. This means that data will be stores to memory every 2e5 timesteps and written to file every 2e6 timesteps. Based on our value of ```dt```, this is every 1,000 years and every 10,000 years, respectiely. Our total simulation length tells us that we will write to file 10,000 times over the course of the simulation. For longer simulations, the output cadence may be less frequent to save computational space. For shorter simulations, the output cadence may be more frequent to increase resolution. 
 
 **What mass threshold should I set to differentiate fully-interactive and semi-interactive bodies (**```GMTINY``` **or** ```MTINY```**)?**
 
