@@ -579,7 +579,7 @@ contains
       integer(I4B)                              :: itmax, idmax, tslot
       real(DP), dimension(:), allocatable       :: vals
       real(DP), dimension(1)                    :: rtemp
-      real(DP), dimension(NDIM)                 :: rot0, Ip0
+      real(DP), dimension(NDIM)                 :: rot0, Ip0, L
       real(DP) :: mass0
 
       associate (nc => self%system_history%nc, cb => self%cb)
@@ -628,6 +628,8 @@ contains
                rot0(:) = rot0(:) * DEG2RAD
                call netcdf_io_check( nf90_get_var(nc%id, nc%Ip_varid, Ip0, start=[1,1,tslot], count=[NDIM,1,1]), "netcdf_io_get_t0_values_system Ip_varid" )
                cb%L0(:) = Ip0(3) * mass0 * cb%R0**2 * rot0(:)
+               L(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
+               cb%dL(:) = L(:) - cb%L0
             end if
 
             ! Retrieve the current bookkeeping variables
@@ -2400,8 +2402,8 @@ contains
          end if
          call io_param_writer_one("FIRSTKICK",param%lfirstkick, unit)
 
-         if (param%GMTINY > 0.0_DP) call io_param_writer_one("GMTINY",param%GMTINY, unit)
-         if (param%min_GMfrag > 0.0_DP) call io_param_writer_one("MIN_GMFRAG",param%min_GMfrag, unit)
+         if (param%GMTINY >= 0.0_DP) call io_param_writer_one("GMTINY",param%GMTINY, unit)
+         if (param%min_GMfrag >= 0.0_DP) call io_param_writer_one("MIN_GMFRAG",param%min_GMfrag, unit)
          call io_param_writer_one("COLLISION_MODEL",param%collision_model, unit)
          if (param%collision_model == "FRAGGLE" ) then
             nseeds = size(param%seed)

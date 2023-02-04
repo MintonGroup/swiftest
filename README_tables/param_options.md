@@ -34,7 +34,7 @@
 | ```GR```                | General relativity.                                                                                                          | ```YES```, ```NO```                                                                                     | all
 | ```RHILL_PRESENT```     | Hill Radius present in massive body input file.                                                                              | ```YES```, ```NO```                                                                                     | SyMBA
 | ```ENERGY```            | Track and report the total energy, angular momentum, and mass of the system.                                                 | ```YES```, ```NO```                                                                                     | SyMBA
-| ```FRAGMENTATION```     | Resolve collisions with fragmentation.                                                                                       | ```YES```, ```NO```                                                                                     | SyMBA
+| ```COLLISION_MODEL```   | Resolve collisions.                                                                                                          | ```MERGE```, ```BOUNCE```, ```FRAGGLE```                                                                | SyMBA
 | ```ROTATION```          | Rotation of massive bodies. Requires rotation vectors, radii, and moments of inertia to be provided in initial conditions.   | ```YES```, ```NO```                                                                                     | SyMBA
 | ```GMTINY```            | Mass cutoff between fully and semi-interacting massive bodies in gravitational mass units.                                   | floating point (ex. ```4e-06```)                                                                        | SyMBA
 | ```MIN_GMFRAG```        | Minimum fragment mass in gravitational mass units.                                                                           | floating point (ex. ```1e-09```)                                                                        | SyMBA
@@ -50,5 +50,8 @@ In the above list, the following are defined as:
 - ```XVEL``` - Heliocentric position and velocity components and osculating orbital elements for ```OUT_FORM```
 - ```NETCDF_FLOAT``` - Single precision NetCDF format for ```OUT_TYPE```
 - ```NETCDF_DOUBLE``` - Double precision NetCDF format for ```OUT_TYPE```
+- ```MERGE``` - Perfectly conserve the mass of all colliding bodies into a single resultant body
+- ```BOUNCE``` - Perfectly-elastic collision in which all bodies reverse trajectory after the collision
+- ```FRAGGLE``` - Collisional fragments are generated as a result of a collision
 
 For more details on the ```INTERACTION_LOOPS``` and ```ENCOUNTER_CHECK``` options, see the **Updates to Swifter SyMBA** section below.
