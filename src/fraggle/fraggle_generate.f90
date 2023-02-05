@@ -469,11 +469,11 @@ contains
       logical,                      intent(out)   :: lfailure     !! Did the velocity computation fail?
       ! Internals
       real(DP), parameter :: ENERGY_SUCCESS_METRIC = 1.0e-4_DP    !! Relative energy error to accept as a success (success also must be energy-losing in addition to being within the metric amount)
-      real(DP)  :: MOMENTUM_SUCCESS_METRIC = 10*epsilon(1.0_DP) !! Relative angular momentum error to accept as a success (should be *much* stricter than energy)
+      real(DP)  :: MOMENTUM_SUCCESS_METRIC = 2*epsilon(1.0_DP) !! Relative angular momentum error to accept as a success (should be *much* stricter than energy)
       integer(I4B) :: i, j, loop, try, istart, nfrag, nsteps, nsteps_best
       logical :: lhitandrun, lsupercat
-      real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, L_residual, L_residual_unit, dL, drot, rot_new
-      real(DP) :: vimp, vmag, vesc, dE, E_residual, E_residual_best, E_residual_last, ke_min, ke_avail, ke_remove, dE_best, fscale, dE_metric, mfrag, dL_metric, dL_best, rn
+      real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, L_residual, L_residual_unit, dL, drot, rot_new, dL_metric, dL_best
+      real(DP) :: vimp, vmag, vesc, dE, E_residual, E_residual_best, E_residual_last, ke_min, ke_avail, ke_remove, dE_best, fscale, dE_metric, mfrag, rn
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
       real(DP), dimension(collider%fragments%nbody) :: vscale
       real(DP), parameter :: L_ROT_VEL_RATIO = 0.2_DP ! Ratio of angular momentum to put into rotation relative to velocity shear of fragments
@@ -526,7 +526,7 @@ contains
             lfailure = .false.
             dE_metric = huge(1.0_DP)
             dE_best = huge(1.0_DP)
-            dL_best = huge(1.0_DP)
+            dL_best(:) = huge(1.0_DP)
             nsteps_best = 0
             nsteps = 0
             outer: do try = 1, MAXOUTER
@@ -575,11 +575,11 @@ contains
                   angmtm: do j = 1, MAXANGMTM
                      call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
                      L_residual(:) = (collider_local%L_total(:,2) - collider_local%L_total(:,1))
-                     dL_metric = .mag.L_residual(:) / .mag.(collider_local%L_total(:,1))
+                     dL_metric(:) = abs(L_residual(:)) / .mag.(collider_local%L_total(:,1)) / MOMENTUM_SUCCESS_METRIC
 
-                     if (dL_metric / MOMENTUM_SUCCESS_METRIC <= 1.0_DP) exit angmtm
+                     if (all(dL_metric(:)  <= 1.0_DP)) exit angmtm
                      L_residual_unit(:) = .unit. L_residual(:)
-                     do i = 1, fragments%nbody
+                     do i = fragments%nbody,1,-1
                         mfrag = sum(fragments%mass(i:fragments%nbody))
                         drot(:) = -L_ROT_VEL_RATIO * L_residual(:) / (fragments%mtot * fragments%Ip(3,i) * fragments%radius(i)**2)
                         rot_new(:) = fragments%rot(:,i) + drot(:)
@@ -614,7 +614,7 @@ contains
                   call fragments%set_coordinate_system()
                   call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
                   ke_avail = 0.0_DP
-                  do i = 1, fragments%nbody
+                  do i = fragments%nbody, 1, -1
                      ke_avail = ke_avail + 0.5_DP * fragments%mass(i) * max(fragments%vmag(i) - vesc,0.0_DP)**2
                   end do
 
@@ -623,14 +623,14 @@ contains
                   E_residual = dE + impactors%Qloss
 
                   L_residual(:) = (collider_local%L_total(:,2) - collider_local%L_total(:,1))
-                  dL_metric = .mag.L_residual(:) / .mag.collider_local%L_total(:,1)
+                  dL_metric(:) = abs(L_residual(:)) / .mag.collider_local%L_total(:,1) / MOMENTUM_SUCCESS_METRIC
 
                   ! Check if we've converged on our constraints
-                  if (dL_metric < MOMENTUM_SUCCESS_METRIC) then
+                  if (all(dL_metric(:) <= 1.0_DP)) then
                      if ((abs(E_residual) < abs(E_residual_best)) .or. ((dE < 0.0_DP) .and. (dE_best >= 0.0_DP))) then ! This is our best case so far. Save it for posterity
                         E_residual_best = E_residual
                         dE_best = dE
-                        dL_best = dL_metric
+                        dL_best(:) = dL_metric(:)
                         nsteps_best = nsteps
 
                         do concurrent(i = 1:fragments%nbody)
@@ -672,12 +672,12 @@ contains
                vmin_guess = vmin_guess + delta_v
                vmax_guess = vmax_guess - delta_v
             end do outer
-            lfailure = (dE_best > 0.0_DP) .or. (dL_best > MOMENTUM_SUCCESS_METRIC)
+            lfailure = (dE_best > 0.0_DP) .or. (any(dL_best(:) > 1.0_DP))
 
             write(message, *) nsteps
             if (lfailure) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle velocity calculation failed to converge after " // trim(adjustl(message)) // " steps. The best solution found had:")
-               write(message,*) "|dL|/|L0| = ",dL_best
+               write(message,*) "|dL|/|L0| = ",.mag.(dL_best) * MOMENTUM_SUCCESS_METRIC
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
                write(message,*) "       dE = ",dE_best
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
