@@ -469,7 +469,7 @@ contains
       logical,                      intent(out)   :: lfailure     !! Did the velocity computation fail?
       ! Internals
       real(DP), parameter :: ENERGY_SUCCESS_METRIC = 1.0e-4_DP    !! Relative energy error to accept as a success (success also must be energy-losing in addition to being within the metric amount)
-      real(DP)  :: MOMENTUM_SUCCESS_METRIC = 2*epsilon(1.0_DP) !! Relative angular momentum error to accept as a success (should be *much* stricter than energy)
+      real(DP)  :: MOMENTUM_SUCCESS_METRIC = 10*epsilon(1.0_DP) !! Relative angular momentum error to accept as a success (should be *much* stricter than energy)
       integer(I4B) :: i, j, loop, try, istart, nfrag, nsteps, nsteps_best
       logical :: lhitandrun, lsupercat
       real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, L_residual, L_residual_unit, dL, drot, rot_new, dL_metric, dL_best
