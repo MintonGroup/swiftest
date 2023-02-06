@@ -26,6 +26,7 @@ contains
       real(DP),                 intent(in)    :: t            !! Time of collision
       ! Internals
       integer(I4B)          :: i, ibiggest, nfrag
+      real(DP), dimension(NDIM) :: L_residual, vbcom_orig, dvb
       character(len=STRMAX) :: message 
       logical               :: lfailure
 
@@ -36,6 +37,9 @@ contains
          associate(impactors => self%impactors, status => self%status, maxid => nbody_system%maxid)
             ! Set the coordinate system of the impactors
             call impactors%set_coordinate_system()
+
+
+            vbcom_orig(:) = impactors%vbcom(:)
 
             select case (impactors%regime) 
             case (COLLRESOLVE_REGIME_HIT_AND_RUN)
@@ -84,9 +88,21 @@ contains
                end if
             end if
 
+            ! Get the energy and momentum of the system before and after the collision
+            call self%get_energy_and_momentum(nbody_system, param, phase="before")
+            call self%get_energy_and_momentum(nbody_system, param, phase="after")
+            L_residual(:) = (self%L_total(:,2) - self%L_total(:,1))
+
             associate (fragments => self%fragments)
-               ! Populate the list of new bodies
                nfrag = fragments%nbody
+
+               ! Put any residual angular momentum into orbital velocity
+               call collision_util_velocity_torque(-L_residual(:), fragments%mtot, impactors%rbcom(:), impactors%vbcom(:))
+               dvb(:) = impactors%vbcom(:) - vbcom_orig(:)
+               do concurrent(i = 1:nfrag)
+                  fragments%vb(:,i) = fragments%vb(:,i) + dvb(:)
+               end do
+
                select case(impactors%regime)
                case(COLLRESOLVE_REGIME_DISRUPTION)
                   status = DISRUPTED
@@ -481,7 +497,7 @@ contains
       real(DP)                :: vmin_guess = 1.01_DP 
       real(DP)                :: vmax_guess 
       real(DP)                :: delta_v, GC
-      integer(I4B), parameter :: MAXINNER = 50
+      integer(I4B), parameter :: MAXINNER = 100
       integer(I4B), parameter :: MAXOUTER = 10
       integer(I4B), parameter :: MAXANGMTM = 10000
       class(collision_fraggle), allocatable :: collider_local
