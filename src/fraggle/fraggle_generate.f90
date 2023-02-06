@@ -472,7 +472,7 @@ contains
       real(DP)  :: MOMENTUM_SUCCESS_METRIC = 10*epsilon(1.0_DP) !! Relative angular momentum error to accept as a success (should be *much* stricter than energy)
       integer(I4B) :: i, j, loop, try, istart, nfrag, nsteps, nsteps_best
       logical :: lhitandrun, lsupercat
-      real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, L_residual, L_residual_unit, dL, drot, rot_new, dL_metric, dL_best
+      real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, L_residual, L_residual_unit, L_residual_best, dL, drot, rot_new, dL_metric
       real(DP) :: vimp, vmag, vesc, dE, E_residual, E_residual_best, E_residual_last, ke_min, ke_avail, ke_remove, dE_best, fscale, dE_metric, mfrag, rn
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
       real(DP), dimension(collider%fragments%nbody) :: vscale
@@ -526,7 +526,6 @@ contains
             lfailure = .false.
             dE_metric = huge(1.0_DP)
             dE_best = huge(1.0_DP)
-            dL_best(:) = huge(1.0_DP)
             nsteps_best = 0
             nsteps = 0
             outer: do try = 1, MAXOUTER
@@ -613,6 +612,7 @@ contains
                   call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)            
                   call fragments%set_coordinate_system()
                   call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
+
                   ke_avail = 0.0_DP
                   do i = fragments%nbody, 1, -1
                      ke_avail = ke_avail + 0.5_DP * fragments%mass(i) * max(fragments%vmag(i) - vesc,0.0_DP)**2
@@ -629,13 +629,9 @@ contains
                   if (all(dL_metric(:) <= 1.0_DP)) then
                      if ((abs(E_residual) < abs(E_residual_best)) .or. ((dE < 0.0_DP) .and. (dE_best >= 0.0_DP))) then ! This is our best case so far. Save it for posterity
                         E_residual_best = E_residual
+                        L_residual_best(:) = L_residual(:)
                         dE_best = dE
-                        dL_best(:) = dL_metric(:)
                         nsteps_best = nsteps
-
-                        do concurrent(i = 1:fragments%nbody)
-                           fragments%vb(:,i) = fragments%vc(:,i) + impactors%vbcom(:)
-                        end do
 
                         if (allocated(collider%fragments)) deallocate(collider%fragments)
                         allocate(collider%fragments, source=fragments)
@@ -672,18 +668,24 @@ contains
                vmin_guess = vmin_guess + delta_v
                vmax_guess = vmax_guess - delta_v
             end do outer
-            lfailure = (dE_best > 0.0_DP) .or. (any(dL_best(:) > 1.0_DP))
+            lfailure = (dE_best > 0.0_DP) 
+
+            call fraggle_generate_velocity_torque(-L_residual_best(:), fragments%mtot, impactors%rbcom, impactors%vbcom)
+
+            do concurrent(i = 1:collider%fragments%nbody)
+               collider%fragments%vb(:,i) = collider%fragments%vc(:,i) + impactors%vbcom(:)
+            end do
 
             write(message, *) nsteps
             if (lfailure) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle velocity calculation failed to converge after " // trim(adjustl(message)) // " steps. The best solution found had:")
-               write(message,*) "|dL|/|L0| = ",.mag.(dL_best) * MOMENTUM_SUCCESS_METRIC
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
-               write(message,*) "       dE = ",dE_best
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
             else 
                call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Fraggle velocity calculation converged after " // trim(adjustl(message)) // " steps.")
             end if
+            write(message,*) "dL/|L0|  = ",(L_residual_best(:))/.mag.collider_local%L_total(:,1) 
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
+            write(message,*) "dE/Qloss = ",-dE_best / impactors%Qloss
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
             write(message,*) nsteps_best
             call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Best solution came after " // trim(adjustl(message)) // " steps.")
 
