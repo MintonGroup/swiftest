@@ -31,6 +31,8 @@ contains
       if (.not. allocated(source)) return
 
       nnew = count(lsource_mask(1:nsrc))
+      if (nnew == 0) return
+
       if (.not.allocated(arr)) then
          allocate(arr(nold+nnew))
       else
@@ -59,6 +61,8 @@ contains
       if (.not. allocated(source)) return
 
       nnew = count(lsource_mask(1:nsrc))
+      if (nnew == 0) return
+
       if (.not.allocated(arr)) then
          allocate(arr(nold+nnew))
       else
@@ -87,6 +91,8 @@ contains
       if (.not. allocated(source)) return
 
       nnew = count(lsource_mask(1:nsrc))
+      if (nnew == 0) return
+
       if (.not.allocated(arr)) then
          allocate(arr(NDIM,nold+nnew))
       else
@@ -117,6 +123,8 @@ contains
       if (.not. allocated(source)) return
 
       nnew = count(lsource_mask(1:nsrc))
+      if (nnew == 0) return
+
       if (.not.allocated(arr)) then
          allocate(arr(nold+nnew))
       else
@@ -146,6 +154,8 @@ contains
       if (.not. allocated(source)) return
 
       nnew = count(lsource_mask(1:nsrc))
+      if (nnew == 0) return
+
       if (.not.allocated(arr)) then
          allocate(arr(nold+nnew))
       else
@@ -178,6 +188,8 @@ contains
       if (.not. allocated(source)) return
 
       nnew = count(lsource_mask(1:nsrc))
+      if (nnew == 0) return
+
       if (.not.allocated(arr)) then
          allocate(arr(nold+nnew))
       else
@@ -206,6 +218,8 @@ contains
       if (.not. allocated(source)) return
 
       nnew = count(lsource_mask(1:nsrc))
+      if (nnew == 0) return
+
       if (.not.allocated(arr)) then
          allocate(arr(nold+nnew))
       else
