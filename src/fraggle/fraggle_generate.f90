@@ -58,7 +58,6 @@ contains
             end select
             call self%set_mass_dist(param) 
             call self%disrupt(nbody_system, param, t, lfailure)
-            
             if (lfailure) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find an energy-losing solution. Simplifying the collisional model.") 
 
@@ -68,7 +67,6 @@ contains
                impactors%regime = COLLRESOLVE_REGIME_DISRUPTION
                call self%set_mass_dist(param)
                call self%disrupt(nbody_system, param, t, lfailure)
-
                if (lfailure) then
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find an energy-losing solution. Treating this as a bounce.") 
                   call collision_util_bounce_one(impactors%rb(:,1),impactors%vb(:,1),impactors%rbcom(:),impactors%vbcom(:),impactors%radius(1))
@@ -81,10 +79,14 @@ contains
                      fragments%radius(1:2) = impactors%radius(1:2)
                      fragments%rb(:,1:2) = impactors%rb(:,1:2)
                      fragments%vb(:,1:2) = impactors%vb(:,1:2)
+                     do concurrent(i = 1:2)
+                        fragments%rc(:,i) = fragments%rb(:,i) - impactors%rbcom(:)
+                        fragments%vc(:,i) = fragments%vb(:,i) - impactors%vbcom(:)
+                     end do
                      fragments%Ip(:,1:2) = impactors%Ip(:,1:2)
                      fragments%rot(:,1:2) = impactors%rot(:,1:2)
+                     fragments%mtot = sum(fragments%mass(1:2))
                   end associate
-
                end if
             end if
 
