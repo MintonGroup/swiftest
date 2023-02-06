@@ -602,7 +602,7 @@ contains
                         end if
 
                         dL(:) = -L_residual(:) * fragments%mass(i) / fragments%mtot - drot(:) * fragments%Ip(3,i) * fragments%mass(i) * fragments%radius(i)**2 
-                        call fraggle_generate_velocity_torque(dL, fragments%mass(i), fragments%rc(:,i), fragments%vc(:,i))
+                        call collision_util_velocity_torque(dL, fragments%mass(i), fragments%rc(:,i), fragments%vc(:,i))
                         call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)  
                         fragments%vmag(i) = .mag.fragments%vc(:,i)
 
@@ -670,7 +670,7 @@ contains
             end do outer
             lfailure = (dE_best > 0.0_DP) 
 
-            call fraggle_generate_velocity_torque(-L_residual_best(:), fragments%mtot, impactors%rbcom, impactors%vbcom)
+            call collision_util_velocity_torque(-L_residual_best(:), fragments%mtot, impactors%rbcom, impactors%vbcom)
 
             do concurrent(i = 1:collider%fragments%nbody)
                collider%fragments%vb(:,i) = collider%fragments%vc(:,i) + impactors%vbcom(:)
@@ -693,35 +693,6 @@ contains
       end associate
       return
    end subroutine fraggle_generate_vel_vec
-
-
-   subroutine fraggle_generate_velocity_torque(dL, mass, r, v)
-      !! author: David A. Minton
-      !!
-      !! Applies a torque to a body's center of mass velocity given a change in angular momentum
-      implicit none
-      ! Arguments
-      real(DP), dimension(:), intent(in)    :: dL   !! Change in angular momentum to apply
-      real(DP),               intent(in)    :: mass !! Mass of body
-      real(DP), dimension(:), intent(in)    :: r    !! Position of body wrt system center of mass
-      real(DP), dimension(:), intent(inout) :: v !! Velocity of body wrt system center of mass
-      ! Internals
-      real(DP), dimension(NDIM) :: dL_unit, r_unit, r_lever, vapply
-      real(DP) :: rmag, r_lever_mag
-
-      dL_unit(:) = .unit. dL
-      r_unit(:) = .unit.r(:)
-      rmag = .mag.r(:)
-      ! Project the position vector onto the plane defined by the angular momentum vector and the origin to get the "lever arm" distance
-      r_lever(:) = dL_unit(:) .cross. (r(:) .cross. dL_unit(:))
-      r_lever_mag = .mag.r_lever(:)
-      if ((r_lever_mag > epsilon(1.0_DP)) .and. (rmag > epsilon(1.0_DP))) then
-         vapply(:) = (dL(:) .cross. r(:)) / (mass * rmag**2)
-         v(:) = v(:) + vapply(:)
-      end if
-
-      return
-   end subroutine fraggle_generate_velocity_torque
 
 
 end submodule s_fraggle_generate

@@ -521,6 +521,13 @@ module collision
          integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
       end subroutine collision_util_setup_fragments
 
+      module subroutine collision_util_velocity_torque(dL, mass, r, v)
+         implicit none
+         real(DP), dimension(:), intent(in)    :: dL   !! Change in angular momentum to apply
+         real(DP),               intent(in)    :: mass !! Mass of body
+         real(DP), dimension(:), intent(in)    :: r    !! Position of body wrt system center of mass
+         real(DP), dimension(:), intent(inout) :: v !! Velocity of body wrt system center of mass
+      end subroutine collision_util_velocity_torque
    end interface
 
    contains
