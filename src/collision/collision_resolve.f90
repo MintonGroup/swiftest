@@ -33,8 +33,8 @@ contains
       integer(I4B), dimension(2)       :: nchild
       integer(I4B)                     :: i, j, nimpactors, idx_child
       real(DP), dimension(2)           :: volume, density
-      real(DP)                         :: mchild, volchild
-      real(DP), dimension(NDIM)        :: xc, vc, xcom, vcom, xchild, vchild, xcrossv
+      real(DP)                         :: mchild, volchild, b, r_dot_vunit, rrel_mag, vrel_mag, rlim, dt
+      real(DP), dimension(NDIM)        :: xc, vc, xcom, vcom, xchild, vchild, xcrossv, rrel, vrel, vrel_unit
       real(DP), dimension(NDIM,2)      :: mxc, vcc
 
       select type(nbody_system)
@@ -140,6 +140,19 @@ contains
                end if
             end do
             lflag = .true.
+
+            ! Shift the impactors so that they are not overlapping
+
+            rlim = sum(impactors%radius(1:2))
+            vrel = impactors%vb(:,2) - impactors%vb(:,1)
+            rrel = impactors%rb(:,2) - impactors%rb(:,1)
+            vrel_mag = .mag. vrel
+            rrel_mag = .mag. rrel 
+            vrel_unit = .unit. vrel
+            r_dot_vunit = dot_product(rrel,vrel_unit)
+            b = sqrt(rrel_mag**2 - r_dot_vunit**2)
+            dt = (sqrt(rlim**2 - b**2) + r_dot_vunit)/vrel_mag
+            impactors%rb(:,1:2) = impactors%rb(:,1:2) - dt * impactors%vb(:,1:2)
 
             xcom(:) = (impactors%mass(1) * impactors%rb(:, 1) + impactors%mass(2) * impactors%rb(:, 2)) / sum(impactors%mass(:))
             vcom(:) = (impactors%mass(1) * impactors%vb(:, 1) + impactors%mass(2) * impactors%vb(:, 2)) / sum(impactors%mass(:))
