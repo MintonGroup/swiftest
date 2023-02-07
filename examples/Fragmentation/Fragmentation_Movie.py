@@ -152,12 +152,12 @@ def encounter_combiner(sim):
     ds = xr.combine_nested([data,enc],concat_dim='time').sortby("time").interpolate_na(dim="time")
     
     # Rename the merged Target body so that their data can be combined
-    tname=[n for n in ds['name'].data if "Target" in n]
-    nottname=[n for n in ds['name'].data if "Target" not in n]
+    tname=[n for n in ds['name'].data if names[0] in n]
+    nottname=[n for n in ds['name'].data if names[0] not in n]
     dslist = []
     for n in tname:
         dsnew = ds.sel(name=n)
-        dsnew['name'] = "Target"
+        dsnew['name'] = names[0]
         dslist.append(dsnew)
 
     newds = xr.merge(dslist,compat="no_conflicts") 
@@ -165,7 +165,7 @@ def encounter_combiner(sim):
    
     # Interpolate in time to make a smooth, constant time step dataset 
     # Add a bit of padding to the time, otherwise there are some issues with the interpolation in the last few frames.
-    smooth_time = np.linspace(start=tgood.isel(time=0), stop=ds.time[-1], num=int(1.2*num_movie_frames))
+    smooth_time = np.linspace(start=ds.time[0], stop=ds.time[-1], num=int(1.2*num_movie_frames))
     ds = ds.interp(time=smooth_time)
     ds['rotangle'] = xr.zeros_like(ds['rot'])
     ds['rot'] = ds['rot'].fillna(0.0)
@@ -183,7 +183,7 @@ class AnimatedScatter(object):
     """An animated scatter plot using matplotlib.animations.FuncAnimation."""
 
     def __init__(self, sim, animfile, title, style, nskip=1):
-
+        self.sim = sim
         self.ds = encounter_combiner(sim)
         self.npl = len(self.ds['name']) - 1
         self.title = title
@@ -206,8 +206,8 @@ class AnimatedScatter(object):
 
         # Calculate the distance along the y-axis between the colliding bodies at the start of the simulation.
         # This will be used to scale the axis limits on the movie.
-        rhy1 = self.ds['rh'].sel(name="Target",space='y').isel(time=0).values[()]
-        rhy2 = self.ds['rh'].sel(name="Projectile",space='y').isel(time=0).values[()]
+        rhy1 = self.sim.data['rh'].sel(name=names[0],space='y').isel(time=0).values[()]
+        rhy2 = self.sim.data['rh'].sel(name=names[1],space='y').isel(time=0).values[()]
 
         scale_frame =   abs(rhy1) + abs(rhy2)
         if "hitandrun" in style:
