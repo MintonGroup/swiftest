@@ -26,6 +26,7 @@ contains
       real(DP),                 intent(in)    :: t            !! Time of collision
       ! Internals
       integer(I4B)          :: i, ibiggest, nfrag
+      real(DP), dimension(NDIM) :: L_residual, vbcom_orig, dvb
       character(len=STRMAX) :: message 
       logical               :: lfailure
 
@@ -36,6 +37,9 @@ contains
          associate(impactors => self%impactors, status => self%status, maxid => nbody_system%maxid)
             ! Set the coordinate system of the impactors
             call impactors%set_coordinate_system()
+
+
+            vbcom_orig(:) = impactors%vbcom(:)
 
             select case (impactors%regime) 
             case (COLLRESOLVE_REGIME_HIT_AND_RUN)
@@ -54,17 +58,14 @@ contains
             end select
             call self%set_mass_dist(param) 
             call self%disrupt(nbody_system, param, t, lfailure)
-            
             if (lfailure) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find an energy-losing solution. Simplifying the collisional model.") 
-
                impactors%mass_dist(1) = impactors%mass(1)
                impactors%mass_dist(2) = max(0.5_DP * impactors%mass(2), self%min_mfrag)
                impactors%mass_dist(3) = impactors%mass(2) - impactors%mass_dist(2)
                impactors%regime = COLLRESOLVE_REGIME_DISRUPTION
                call self%set_mass_dist(param)
                call self%disrupt(nbody_system, param, t, lfailure)
-
                if (lfailure) then
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find an energy-losing solution. Treating this as a bounce.") 
                   call collision_util_bounce_one(impactors%rb(:,1),impactors%vb(:,1),impactors%rbcom(:),impactors%vbcom(:),impactors%radius(1))
@@ -77,16 +78,32 @@ contains
                      fragments%radius(1:2) = impactors%radius(1:2)
                      fragments%rb(:,1:2) = impactors%rb(:,1:2)
                      fragments%vb(:,1:2) = impactors%vb(:,1:2)
+                     do concurrent(i = 1:2)
+                        fragments%rc(:,i) = fragments%rb(:,i) - impactors%rbcom(:)
+                        fragments%vc(:,i) = fragments%vb(:,i) - impactors%vbcom(:)
+                     end do
                      fragments%Ip(:,1:2) = impactors%Ip(:,1:2)
                      fragments%rot(:,1:2) = impactors%rot(:,1:2)
+                     fragments%mtot = sum(fragments%mass(1:2))
                   end associate
-
                end if
             end if
 
+            ! Get the energy and momentum of the system before and after the collision
+            call self%get_energy_and_momentum(nbody_system, param, phase="before")
+            call self%get_energy_and_momentum(nbody_system, param, phase="after")
+            L_residual(:) = (self%L_total(:,2) - self%L_total(:,1))
+
             associate (fragments => self%fragments)
-               ! Populate the list of new bodies
                nfrag = fragments%nbody
+
+               ! Put any residual angular momentum into orbital velocity
+               call collision_util_velocity_torque(-L_residual(:), fragments%mtot, impactors%rbcom(:), impactors%vbcom(:))
+               dvb(:) = impactors%vbcom(:) - vbcom_orig(:)
+               do concurrent(i = 1:nfrag)
+                  fragments%vb(:,i) = fragments%vb(:,i) + dvb(:)
+               end do
+
                select case(impactors%regime)
                case(COLLRESOLVE_REGIME_DISRUPTION)
                   status = DISRUPTED
@@ -472,16 +489,16 @@ contains
       real(DP)  :: MOMENTUM_SUCCESS_METRIC = 10*epsilon(1.0_DP) !! Relative angular momentum error to accept as a success (should be *much* stricter than energy)
       integer(I4B) :: i, j, loop, try, istart, nfrag, nsteps, nsteps_best
       logical :: lhitandrun, lsupercat
-      real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, L_residual, L_residual_unit, dL, drot, rot_new
-      real(DP) :: vimp, vmag, vesc, dE, E_residual, E_residual_best, E_residual_last, ke_min, ke_avail, ke_remove, dE_best, fscale, dE_metric, mfrag, dL_metric, dL_best, rn
+      real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, L_residual, L_residual_unit, L_residual_best, dL, drot, rot_new, dL_metric
+      real(DP) :: vimp, vmag, vesc, dE, E_residual, E_residual_best, E_residual_last, ke_min, ke_avail, ke_remove, dE_best, fscale, dE_metric, mfrag, rn
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
       real(DP), dimension(collider%fragments%nbody) :: vscale
       real(DP), parameter :: L_ROT_VEL_RATIO = 0.2_DP ! Ratio of angular momentum to put into rotation relative to velocity shear of fragments
       ! For the initial "guess" of fragment velocities, this is the minimum and maximum velocity relative to escape velocity that the fragments will have
-      real(DP)                :: vmin_guess = 1.01_DP 
+      real(DP)                :: vmin_guess 
       real(DP)                :: vmax_guess 
       real(DP)                :: delta_v, GC
-      integer(I4B), parameter :: MAXINNER = 50
+      integer(I4B), parameter :: MAXINNER = 100
       integer(I4B), parameter :: MAXOUTER = 10
       integer(I4B), parameter :: MAXANGMTM = 10000
       class(collision_fraggle), allocatable :: collider_local
@@ -521,12 +538,12 @@ contains
 
             vimp = .mag. (impactors%vc(:,2) - impactors%vc(:,1))
             vmax_guess = 1.1_DP * vimp
+            vmin_guess = 1.001_DP * vesc
 
             E_residual_best = huge(1.0_DP)
             lfailure = .false.
             dE_metric = huge(1.0_DP)
             dE_best = huge(1.0_DP)
-            dL_best = huge(1.0_DP)
             nsteps_best = 0
             nsteps = 0
             outer: do try = 1, MAXOUTER
@@ -575,11 +592,11 @@ contains
                   angmtm: do j = 1, MAXANGMTM
                      call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
                      L_residual(:) = (collider_local%L_total(:,2) - collider_local%L_total(:,1))
-                     dL_metric = .mag.L_residual(:) / .mag.(collider_local%L_total(:,1))
+                     dL_metric(:) = abs(L_residual(:)) / .mag.(collider_local%L_total(:,1)) / MOMENTUM_SUCCESS_METRIC
 
-                     if (dL_metric / MOMENTUM_SUCCESS_METRIC <= 1.0_DP) exit angmtm
+                     if (all(dL_metric(:)  <= 1.0_DP)) exit angmtm
                      L_residual_unit(:) = .unit. L_residual(:)
-                     do i = 1, fragments%nbody
+                     do i = fragments%nbody,1,-1
                         mfrag = sum(fragments%mass(i:fragments%nbody))
                         drot(:) = -L_ROT_VEL_RATIO * L_residual(:) / (fragments%mtot * fragments%Ip(3,i) * fragments%radius(i)**2)
                         rot_new(:) = fragments%rot(:,i) + drot(:)
@@ -603,7 +620,7 @@ contains
                         end if
 
                         dL(:) = -L_residual(:) * fragments%mass(i) / fragments%mtot - drot(:) * fragments%Ip(3,i) * fragments%mass(i) * fragments%radius(i)**2 
-                        call fraggle_generate_velocity_torque(dL, fragments%mass(i), fragments%rc(:,i), fragments%vc(:,i))
+                        call collision_util_velocity_torque(dL, fragments%mass(i), fragments%rc(:,i), fragments%vc(:,i))
                         call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)  
                         fragments%vmag(i) = .mag.fragments%vc(:,i)
 
@@ -613,8 +630,9 @@ contains
                   call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)            
                   call fragments%set_coordinate_system()
                   call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
+
                   ke_avail = 0.0_DP
-                  do i = 1, fragments%nbody
+                  do i = fragments%nbody, 1, -1
                      ke_avail = ke_avail + 0.5_DP * fragments%mass(i) * max(fragments%vmag(i) - vesc,0.0_DP)**2
                   end do
 
@@ -623,19 +641,15 @@ contains
                   E_residual = dE + impactors%Qloss
 
                   L_residual(:) = (collider_local%L_total(:,2) - collider_local%L_total(:,1))
-                  dL_metric = .mag.L_residual(:) / .mag.collider_local%L_total(:,1)
+                  dL_metric(:) = abs(L_residual(:)) / .mag.collider_local%L_total(:,1) / MOMENTUM_SUCCESS_METRIC
 
                   ! Check if we've converged on our constraints
-                  if (dL_metric < MOMENTUM_SUCCESS_METRIC) then
+                  if (all(dL_metric(:) <= 1.0_DP)) then
                      if ((abs(E_residual) < abs(E_residual_best)) .or. ((dE < 0.0_DP) .and. (dE_best >= 0.0_DP))) then ! This is our best case so far. Save it for posterity
                         E_residual_best = E_residual
+                        L_residual_best(:) = L_residual(:)
                         dE_best = dE
-                        dL_best = dL_metric
                         nsteps_best = nsteps
-
-                        do concurrent(i = 1:fragments%nbody)
-                           fragments%vb(:,i) = fragments%vc(:,i) + impactors%vbcom(:)
-                        end do
 
                         if (allocated(collider%fragments)) deallocate(collider%fragments)
                         allocate(collider%fragments, source=fragments)
@@ -668,22 +682,28 @@ contains
                collider_local%fail_scale = collider_local%fail_scale * 1.001_DP
 
                ! Bring the minimum and maximum velocities closer together 
-               delta_v = 0.125_DP * (vmax_guess - vmin_guess)
+               delta_v = (vmax_guess - vmin_guess) / 16.0_DP
                vmin_guess = vmin_guess + delta_v
                vmax_guess = vmax_guess - delta_v
             end do outer
-            lfailure = (dE_best > 0.0_DP) .or. (dL_best > MOMENTUM_SUCCESS_METRIC)
+            lfailure = (dE_best > 0.0_DP) 
+
+            call collision_util_velocity_torque(-L_residual_best(:), fragments%mtot, impactors%rbcom, impactors%vbcom)
+
+            do concurrent(i = 1:collider%fragments%nbody)
+               collider%fragments%vb(:,i) = collider%fragments%vc(:,i) + impactors%vbcom(:)
+            end do
 
             write(message, *) nsteps
             if (lfailure) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle velocity calculation failed to converge after " // trim(adjustl(message)) // " steps. The best solution found had:")
-               write(message,*) "|dL|/|L0| = ",dL_best
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
-               write(message,*) "       dE = ",dE_best
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
             else 
                call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Fraggle velocity calculation converged after " // trim(adjustl(message)) // " steps.")
             end if
+            write(message,*) "dL/|L0|  = ",(L_residual_best(:))/.mag.collider_local%L_total(:,1) 
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
+            write(message,*) "dE/Qloss = ",-dE_best / impactors%Qloss
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
             write(message,*) nsteps_best
             call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Best solution came after " // trim(adjustl(message)) // " steps.")
 
@@ -691,35 +711,6 @@ contains
       end associate
       return
    end subroutine fraggle_generate_vel_vec
-
-
-   subroutine fraggle_generate_velocity_torque(dL, mass, r, v)
-      !! author: David A. Minton
-      !!
-      !! Applies a torque to a body's center of mass velocity given a change in angular momentum
-      implicit none
-      ! Arguments
-      real(DP), dimension(:), intent(in)    :: dL   !! Change in angular momentum to apply
-      real(DP),               intent(in)    :: mass !! Mass of body
-      real(DP), dimension(:), intent(in)    :: r    !! Position of body wrt system center of mass
-      real(DP), dimension(:), intent(inout) :: v !! Velocity of body wrt system center of mass
-      ! Internals
-      real(DP), dimension(NDIM) :: dL_unit, r_unit, r_lever, vapply
-      real(DP) :: rmag, r_lever_mag
-
-      dL_unit(:) = .unit. dL
-      r_unit(:) = .unit.r(:)
-      rmag = .mag.r(:)
-      ! Project the position vector onto the plane defined by the angular momentum vector and the origin to get the "lever arm" distance
-      r_lever(:) = dL_unit(:) .cross. (r(:) .cross. dL_unit(:))
-      r_lever_mag = .mag.r_lever(:)
-      if ((r_lever_mag > epsilon(1.0_DP)) .and. (rmag > epsilon(1.0_DP))) then
-         vapply(:) = (dL(:) .cross. r(:)) / (mass * rmag**2)
-         v(:) = v(:) + vapply(:)
-      end if
-
-      return
-   end subroutine fraggle_generate_velocity_torque
 
 
 end submodule s_fraggle_generate

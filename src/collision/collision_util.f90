@@ -1028,4 +1028,32 @@ contains
    end subroutine collision_util_set_original_scale_factors
 
 
+   module subroutine collision_util_velocity_torque(dL, mass, r, v)
+      !! author: David A. Minton
+      !!
+      !! Applies a torque to a body's center of mass velocity given a change in angular momentum
+      implicit none
+      ! Arguments
+      real(DP), dimension(:), intent(in)    :: dL   !! Change in angular momentum to apply
+      real(DP),               intent(in)    :: mass !! Mass of body
+      real(DP), dimension(:), intent(in)    :: r    !! Position of body wrt system center of mass
+      real(DP), dimension(:), intent(inout) :: v !! Velocity of body wrt system center of mass
+      ! Internals
+      real(DP), dimension(NDIM) :: dL_unit, r_unit, r_lever, vapply
+      real(DP) :: rmag, r_lever_mag
+
+      dL_unit(:) = .unit. dL
+      r_unit(:) = .unit.r(:)
+      rmag = .mag.r(:)
+      ! Project the position vector onto the plane defined by the angular momentum vector and the origin to get the "lever arm" distance
+      r_lever(:) = dL_unit(:) .cross. (r(:) .cross. dL_unit(:))
+      r_lever_mag = .mag.r_lever(:)
+      if ((r_lever_mag > epsilon(1.0_DP)) .and. (rmag > epsilon(1.0_DP))) then
+         vapply(:) = (dL(:) .cross. r(:)) / (mass * rmag**2)
+         v(:) = v(:) + vapply(:)
+      end if
+
+      return
+   end subroutine collision_util_velocity_torque
+
 end submodule s_collision_util

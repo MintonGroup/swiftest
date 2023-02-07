@@ -172,7 +172,7 @@ contains
       real(DP),                 intent(in)    :: t            !! The time of the collision
       ! Internals
       integer(I4B)                              :: i, j, k, ibiggest
-      real(DP), dimension(NDIM)                 :: L_spin_new
+      real(DP), dimension(NDIM)                 :: L_spin_new, L_residual
       real(DP)                                  :: volume
       character(len=STRMAX) :: message
 
@@ -227,6 +227,9 @@ contains
 
                   ! Get the energy of the system after the collision
                   call self%get_energy_and_momentum(nbody_system, param, phase="after")
+
+                  L_residual(:) = (self%L_total(:,2) - self%L_total(:,1))
+                  call collision_util_velocity_torque(-L_residual(:), fragments%mass(1), fragments%rb(:,1), fragments%vb(:,1))
 
                   ! Update any encounter lists that have the removed bodies in them so that they instead point to the new body
                   do k = 1, nbody_system%plpl_encounter%nenc
