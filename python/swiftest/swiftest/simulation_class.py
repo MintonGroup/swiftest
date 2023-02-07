@@ -342,7 +342,7 @@ class Simulation(object):
         # If the file doesn't exist, flag it for now so we know to create it
         param_file_found = False
         if read_param or read_data:
-            if self.read_param(read_init_cond = read_data):
+            if self.read_param(read_init_cond = True):
                 # We will add the parameter file to the kwarg list. This will keep the set_parameter method from
                 # overriding everything with defaults when there are no arguments passed to Simulation()
                 kwargs['param_file'] = self.param_file
@@ -394,9 +394,9 @@ class Simulation(object):
         iloop = int((self.param['TSTART'] - self.param['T0']) / self.param['DT'])
         twidth = int(np.ceil(np.log10(self.param['TSTOP']/(self.param['DT'] * self.param['ISTEP_OUT']))))
         pre_message = f"Time: {self.param['TSTART']:.{twidth}e} / {self.param['TSTOP']:.{twidth}e} {self.TU_name} "
-        post_message = f"npl: {self.data['npl'].values[0]} ntp: {self.data['ntp'].values[0]}"
-        if "nplm" in self.data:
-            post_message += f" nplm: {self.data['nplm'].values[0]}"
+        post_message = f"npl: {self.init_cond['npl'].values[0]} ntp: {self.init_cond['ntp'].values[0]}"
+        if "nplm" in self.init_cond:
+            post_message += f" nplm: {self.init_cond['nplm'].values[0]}"
         if self.param['ENERGY']:
             post_message += f" dL/L0: {0.0:.5e} dE/|E0|: {0.0:+.5e}"
         post_message += f" Wall time / step: {0.0:.5e} s"
