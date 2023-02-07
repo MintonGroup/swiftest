@@ -60,7 +60,6 @@ contains
             call self%disrupt(nbody_system, param, t, lfailure)
             if (lfailure) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find an energy-losing solution. Simplifying the collisional model.") 
-
                impactors%mass_dist(1) = impactors%mass(1)
                impactors%mass_dist(2) = max(0.5_DP * impactors%mass(2), self%min_mfrag)
                impactors%mass_dist(3) = impactors%mass(2) - impactors%mass_dist(2)
@@ -496,7 +495,7 @@ contains
       real(DP), dimension(collider%fragments%nbody) :: vscale
       real(DP), parameter :: L_ROT_VEL_RATIO = 0.2_DP ! Ratio of angular momentum to put into rotation relative to velocity shear of fragments
       ! For the initial "guess" of fragment velocities, this is the minimum and maximum velocity relative to escape velocity that the fragments will have
-      real(DP)                :: vmin_guess = 1.01_DP 
+      real(DP)                :: vmin_guess 
       real(DP)                :: vmax_guess 
       real(DP)                :: delta_v, GC
       integer(I4B), parameter :: MAXINNER = 100
@@ -539,6 +538,7 @@ contains
 
             vimp = .mag. (impactors%vc(:,2) - impactors%vc(:,1))
             vmax_guess = 1.1_DP * vimp
+            vmin_guess = 1.001_DP * vesc
 
             E_residual_best = huge(1.0_DP)
             lfailure = .false.
@@ -682,7 +682,7 @@ contains
                collider_local%fail_scale = collider_local%fail_scale * 1.001_DP
 
                ! Bring the minimum and maximum velocities closer together 
-               delta_v = 0.125_DP * (vmax_guess - vmin_guess)
+               delta_v = (vmax_guess - vmin_guess) / 16.0_DP
                vmin_guess = vmin_guess + delta_v
                vmax_guess = vmax_guess - delta_v
             end do outer
