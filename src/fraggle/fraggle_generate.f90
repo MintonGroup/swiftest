@@ -686,17 +686,20 @@ contains
             end do outer
             lfailure = (dE_best > 0.0_DP) 
 
-            call collision_util_velocity_torque(-L_residual_best(:), fragments%mtot, impactors%rbcom, impactors%vbcom)
-
-            do concurrent(i = 1:collider%fragments%nbody)
-               collider%fragments%vb(:,i) = collider%fragments%vc(:,i) + impactors%vbcom(:)
-            end do
-
             write(message, *) nsteps
             if (lfailure) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle velocity calculation failed to converge after " // trim(adjustl(message)) // " steps. The best solution found had:")
             else 
                call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Fraggle velocity calculation converged after " // trim(adjustl(message)) // " steps.")
+
+               call collider%get_energy_and_momentum(nbody_system, param, phase="after")
+               L_residual(:) = (collider%L_total(:,2) - collider%L_total(:,1))
+               call collision_util_velocity_torque(-L_residual(:), collider%fragments%mtot, impactors%rbcom, impactors%vbcom)
+   
+               do concurrent(i = 1:collider%fragments%nbody)
+                  collider%fragments%vb(:,i) = collider%fragments%vc(:,i) + impactors%vbcom(:)
+               end do
+
             end if
             write(message,*) "dL/|L0|  = ",(L_residual_best(:))/.mag.collider_local%L_total(:,1) 
             call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)

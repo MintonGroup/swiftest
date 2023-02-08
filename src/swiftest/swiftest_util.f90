@@ -2661,6 +2661,7 @@ contains
       class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
 
       if (self%nbody == 0) return
+      if (cb%Gmass <= tiny(1.0_DP)) return
 
       call self%xv2el(cb) 
       where(self%a(1:self%nbody) > 0.0_DP)
