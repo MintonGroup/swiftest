@@ -116,6 +116,8 @@ contains
 
             ! Remove spins and velocities from all bodies other than the new fragments so that we can isolate the kinetic energy and momentum of the collision system, but still be able to compute
             ! the potential energy correctly
+            tmpsys%cb%Gmass = 0.0_DP
+            tmpsys%cb%mass = 0.0_DP
             tmpsys%cb%rot(:) = 0.0_DP
             tmpsys%pl%rot(:,:) = 0.0_DP
             tmpsys%pl%vb(:,:) = 0.0_DP
@@ -1039,17 +1041,16 @@ contains
       real(DP), dimension(:), intent(in)    :: r    !! Position of body wrt system center of mass
       real(DP), dimension(:), intent(inout) :: v !! Velocity of body wrt system center of mass
       ! Internals
-      real(DP), dimension(NDIM) :: dL_unit, r_unit, r_lever, vapply
-      real(DP) :: rmag, r_lever_mag
+      real(DP), dimension(NDIM) :: dL_unit, r_unit, vapply
+      real(DP) :: rmag, vmag, vapply_mag
 
       dL_unit(:) = .unit. dL
       r_unit(:) = .unit.r(:)
       rmag = .mag.r(:)
-      ! Project the position vector onto the plane defined by the angular momentum vector and the origin to get the "lever arm" distance
-      r_lever(:) = dL_unit(:) .cross. (r(:) .cross. dL_unit(:))
-      r_lever_mag = .mag.r_lever(:)
-      if ((r_lever_mag > epsilon(1.0_DP)) .and. (rmag > epsilon(1.0_DP))) then
-         vapply(:) = (dL(:) .cross. r(:)) / (mass * rmag**2)
+      vmag = .mag.v(:)
+      vapply_mag = .mag.(dL(:)/(rmag * mass))
+      if ((vapply_mag / vmag) > epsilon(1.0_DP)) then
+         vapply(:) = vapply_mag * (dL_unit(:) .cross. r_unit(:))
          v(:) = v(:) + vapply(:)
       end if
 

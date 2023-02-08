@@ -316,14 +316,15 @@ contains
       real(DP), dimension(collider%fragments%nbody) :: mass_rscale, phi, theta, u
       integer(I4B) :: i, j, loop, istart
       logical :: lsupercat, lhitandrun
-      integer(I4B), parameter :: MAXLOOP = 100
+      integer(I4B), parameter :: MAXLOOP = 200
       real(DP), parameter :: rdistance_scale_factor = 1.0_DP ! Scale factor to apply to distance scaling of cloud centers in the event of overlap
                                                              ! The distance is chosen to be close to the original locations of the impactors
                                                              ! but far enough apart to prevent a collisional cascade between fragments 
       real(DP), parameter :: cloud_size_scale_factor = 3.0_DP ! Scale factor to apply to the size of the cloud relative to the distance from the impact point. 
                                                               ! A larger value puts more space between fragments initially
       real(DP) :: rbuffer  ! Body radii are inflated by this scale factor to prevent secondary collisions 
-      rbuffer = 1.1_DP 
+      real(DP), parameter :: rbuffer_max = 1.2
+      rbuffer = 1.05_DP 
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody, &
          pl => nbody_system%pl, tp => nbody_system%tp, npl => nbody_system%pl%nbody, ntp => nbody_system%tp%nbody)
@@ -355,8 +356,8 @@ contains
                fragment_cloud_center(:,1) = impactors%rc(:,1) 
                fragment_cloud_center(:,2) = impactors%rc(:,2) + rdistance * impactors%bounce_unit(:)
             else ! Keep the first and second bodies at approximately their original location, but so as not to be overlapping
-               fragment_cloud_center(:,1) = impactors%rc(:,1)
-               fragment_cloud_center(:,2) = impactors%rcimp(:) + 1.001_DP * max(fragments%radius(2),impactors%radius(2)) * impactors%y_unit(:)
+               fragment_cloud_center(:,1) = impactors%rcimp(:) - rbuffer * max(fragments%radius(1),impactors%radius(1)) * impactors%y_unit(:)
+               fragment_cloud_center(:,2) = impactors%rcimp(:) + rbuffer * max(fragments%radius(2),impactors%radius(2)) * impactors%y_unit(:)
                fragment_cloud_radius(:) = cloud_size_scale_factor * rdistance
             end if
             fragments%rc(:,1) = fragment_cloud_center(:,1)
@@ -376,7 +377,7 @@ contains
 
                ! Make a random cloud
                phi(i) = TWOPI * phi(i)
-               theta(i) = acos( 2 * theta(i) - 1.0_DP)
+               theta(i) = acos(2 * theta(i) - 1.0_DP)
                ! Scale the cloud size
                fragments%rmag(i) = fragment_cloud_radius(j) * mass_rscale(i) * u(i)**(THIRD)
 
@@ -426,7 +427,7 @@ contains
                end do
             end do
             rdistance = rdistance * collider%fail_scale
-            rbuffer = rbuffer * collider%fail_scale
+            rbuffer = min(rbuffer * collider%fail_scale, rbuffer_max)
          end do
 
          lfailure = any(loverlap(:))
@@ -686,17 +687,20 @@ contains
             end do outer
             lfailure = (dE_best > 0.0_DP) 
 
-            call collision_util_velocity_torque(-L_residual_best(:), fragments%mtot, impactors%rbcom, impactors%vbcom)
-
-            do concurrent(i = 1:collider%fragments%nbody)
-               collider%fragments%vb(:,i) = collider%fragments%vc(:,i) + impactors%vbcom(:)
-            end do
-
             write(message, *) nsteps
             if (lfailure) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle velocity calculation failed to converge after " // trim(adjustl(message)) // " steps. The best solution found had:")
             else 
                call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Fraggle velocity calculation converged after " // trim(adjustl(message)) // " steps.")
+
+               call collider%get_energy_and_momentum(nbody_system, param, phase="after")
+               L_residual(:) = (collider%L_total(:,2) - collider%L_total(:,1))
+               call collision_util_velocity_torque(-L_residual(:), collider%fragments%mtot, impactors%rbcom, impactors%vbcom)
+   
+               do concurrent(i = 1:collider%fragments%nbody)
+                  collider%fragments%vb(:,i) = collider%fragments%vc(:,i) + impactors%vbcom(:)
+               end do
+
             end if
             write(message,*) "dL/|L0|  = ",(L_residual_best(:))/.mag.collider_local%L_total(:,1) 
             call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
