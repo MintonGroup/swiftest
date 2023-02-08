@@ -26,7 +26,7 @@ contains
       real(DP),                 intent(in)    :: t            !! Time of collision
       ! Internals
       integer(I4B)          :: i, ibiggest, nfrag
-      real(DP), dimension(NDIM) :: L_residual, vbcom_orig, dvb
+      real(DP), dimension(NDIM) :: L_residual, vbcom_orig
       character(len=STRMAX) :: message 
       logical               :: lfailure
 
@@ -37,10 +37,6 @@ contains
          associate(impactors => self%impactors, status => self%status, maxid => nbody_system%maxid)
             ! Set the coordinate system of the impactors
             call impactors%set_coordinate_system()
-
-
-            vbcom_orig(:) = impactors%vbcom(:)
-
             select case (impactors%regime) 
             case (COLLRESOLVE_REGIME_HIT_AND_RUN)
                call self%hitandrun(nbody_system, param, t)
@@ -78,10 +74,6 @@ contains
                      fragments%radius(1:2) = impactors%radius(1:2)
                      fragments%rb(:,1:2) = impactors%rb(:,1:2)
                      fragments%vb(:,1:2) = impactors%vb(:,1:2)
-                     do concurrent(i = 1:2)
-                        fragments%rc(:,i) = fragments%rb(:,i) - impactors%rbcom(:)
-                        fragments%vc(:,i) = fragments%vb(:,i) - impactors%vbcom(:)
-                     end do
                      fragments%Ip(:,1:2) = impactors%Ip(:,1:2)
                      fragments%rot(:,1:2) = impactors%rot(:,1:2)
                      fragments%mtot = sum(fragments%mass(1:2))
@@ -89,19 +81,23 @@ contains
                end if
             end if
 
-            ! Get the energy and momentum of the system before and after the collision
-            call self%get_energy_and_momentum(nbody_system, param, phase="before")
-            call self%get_energy_and_momentum(nbody_system, param, phase="after")
-            L_residual(:) = (self%L_total(:,2) - self%L_total(:,1))
 
             associate (fragments => self%fragments)
+               ! Get the energy and momentum of the system before and after the collision
+               call self%get_energy_and_momentum(nbody_system, param, phase="before")
                nfrag = fragments%nbody
+               do concurrent(i = 1:2)
+                  fragments%rc(:,i) = fragments%rb(:,i) - impactors%rbcom(:)
+                  fragments%vc(:,i) = fragments%vb(:,i) - impactors%vbcom(:)
+               end do
+               call self%get_energy_and_momentum(nbody_system, param, phase="after")
+               L_residual(:) = (self%L_total(:,2) - self%L_total(:,1))
 
                ! Put any residual angular momentum into orbital velocity
+               vbcom_orig = impactors%vbcom(:)
                call collision_util_velocity_torque(-L_residual(:), fragments%mtot, impactors%rbcom(:), impactors%vbcom(:))
-               dvb(:) = impactors%vbcom(:) - vbcom_orig(:)
-               do concurrent(i = 1:nfrag)
-                  fragments%vb(:,i) = fragments%vb(:,i) + dvb(:)
+               do i=1,nfrag
+                  fragments%vb(:,i) = fragments%vc(:,i) + impactors%vbcom(:)
                end do
 
                select case(impactors%regime)
@@ -325,8 +321,9 @@ contains
                                                              ! The distance is chosen to be close to the original locations of the impactors
                                                              ! but far enough apart to prevent a collisional cascade between fragments 
       real(DP), parameter :: cloud_size_scale_factor = 3.0_DP ! Scale factor to apply to the size of the cloud relative to the distance from the impact point. 
-                                                               ! A larger value puts more space between fragments initially
-      
+                                                              ! A larger value puts more space between fragments initially
+      real(DP) :: rbuffer  ! Body radii are inflated by this scale factor to prevent secondary collisions 
+      rbuffer = 1.1_DP 
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody, &
          pl => nbody_system%pl, tp => nbody_system%tp, npl => nbody_system%pl%nbody, ntp => nbody_system%tp%nbody)
@@ -418,17 +415,18 @@ contains
                ! Check for overlaps between fragments
                do i = j + 1, nfrag
                   dis = .mag.(fragments%rc(:,j) - fragments%rc(:,i))
-                  loverlap(i) = loverlap(i) .or. (dis <= (fragments%radius(i) + fragments%radius(j))) 
-                  loverlap(j) = loverlap(j) .or. (dis <= (fragments%radius(i) + fragments%radius(j))) 
+                  loverlap(i) = loverlap(i) .or. (dis <= rbuffer * (fragments%radius(i) + fragments%radius(j))) 
+                  loverlap(j) = loverlap(j) .or. (dis <= rbuffer * (fragments%radius(i) + fragments%radius(j))) 
                end do
                ! Check for overlaps with existing bodies that are not involved in the collision 
                do i = 1, npl
                   if (any(impactors%id(:) == i)) cycle
                   dis = .mag. (fragments%rc(:,j) - (pl%rb(:,i) / collider%dscale - impactors%rbcom(:)))
-                  loverlap(j) = loverlap(j) .or. (dis <= (pl%radius(i) / collider%dscale + fragments%radius(j))) 
+                  loverlap(j) = loverlap(j) .or. (dis <= rbuffer * (pl%radius(i) / collider%dscale + fragments%radius(j))) 
                end do
             end do
             rdistance = rdistance * collider%fail_scale
+            rbuffer = rbuffer * collider%fail_scale
          end do
 
          lfailure = any(loverlap(:))
@@ -631,11 +629,6 @@ contains
                   call fragments%set_coordinate_system()
                   call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
 
-                  ke_avail = 0.0_DP
-                  do i = fragments%nbody, 1, -1
-                     ke_avail = ke_avail + 0.5_DP * fragments%mass(i) * max(fragments%vmag(i) - vesc,0.0_DP)**2
-                  end do
-
                   dE = collider_local%te(2) - collider_local%te(1) 
                   E_residual_last = E_residual
                   E_residual = dE + impactors%Qloss
@@ -661,6 +654,11 @@ contains
                   end if
 
                   ! Remove a constant amount of velocity from the bodies so we don't shift the center of mass and screw up the momentum 
+                  ke_avail = 0.0_DP
+                  do i = fragments%nbody, 1, -1
+                     ke_avail = ke_avail + 0.5_DP * fragments%mass(i) * max(fragments%vmag(i) - vesc,0.0_DP)**2
+                  end do
+
                   ke_remove = min(E_residual, ke_avail)
                   fscale = sqrt((max(fragments%ke_orbit_tot - ke_remove, 0.0_DP))/fragments%ke_orbit_tot)
                   fragments%vc(:,:) = fscale * fragments%vc(:,:)

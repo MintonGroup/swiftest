@@ -142,7 +142,6 @@ contains
             lflag = .true.
 
             ! Shift the impactors so that they are not overlapping
-
             rlim = sum(impactors%radius(1:2))
             vrel = impactors%vb(:,2) - impactors%vb(:,1)
             rrel = impactors%rb(:,2) - impactors%rb(:,1)
