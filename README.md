@@ -462,6 +462,10 @@ This example walks through how to set up a standard solar system simulation. It 
 
 To generate the initial conditions, run the Python script titled **initial_conditions.py**. To process the output file, run the script titled **output_reader.py**. 
 
+**Chambers2013**
+
+This example acts as a comparison to the work of [Chambers 2013](https://www.sciencedirect.com/science/article/pii/S0019103513000754?via%3Dihub). It can be found in the ```/swiftest/examples/Chambers2013``` directory. It is intended to be run using the SyMBA integrator.
+
 **Fragmentation**
 
 This example highlights the functionality of the Fraggle algorithm. It can be found in the ```/swiftest/examples/Fragmentation``` directory. It is intended to be run using the SyMBA integrator. It contains three pre-built collisional test cases:
@@ -471,6 +475,22 @@ This example highlights the functionality of the Fraggle algorithm. It can be fo
 - A Disruptive Hit and Run Collision
 
 To generate a movide depicting the collision and results of each test case, run the Python script titled **Fragmentation_Movie.py**.
+
+**helio_gr_test**
+
+This example demonstrates the functionality of general relativity in Swiftest HELIO. It can be found in the ```/swiftest/examples/helio_gr_test``` directory. It is intended to be run using the HELIO integrator. Because the SyMBA integrator is built upon the HELIO integrator, GR can also be used in SyMBA.
+
+**solar_impact**
+
+This example demonstrates the conservation of angular momentum, energy, and mass during a collision between a massive body and the Sun, or central body. It can be found in the ```/swiftest/examples/solar_impact``` directory. It is intended to be run using the SyMBA integrator. 
+
+**Swifter_Swiftest**
+
+This set of examples acts as a comparison between Swiftest and its predecessor, Swifter. Two unique simulations are included in this example, one with 8 massive bodies and 0 test particles, and one with 108 massive bodies and 50 test particles. These simulations can be found in the ```/swiftest/examples/Swifter_Swiftest/8pl_0tp``` and the ```/swiftest/examples/Swifter_Swiftest/108pl_50tp``` directories, respectively. They are intended to be run using the SyMBA integrator. For details on how to run a simulation using Swifter, please see the [Swifter website](https://www.boulder.swri.edu/swifter/).
+
+**whm_gr_test**
+
+This example demonstrates the functionality of general relativity in Swiftest WHM. It can be found in the ```/swiftest/examples/whm_gr_test``` directory. It is intended to be run using the WHM integrator. Because the SyMBA integrator is built upon the HELIO integrator, which is in turn built upon the WHM integrator, GR can also be used in SyMBA.
 
 ---
 
@@ -510,6 +530,7 @@ To get a sense of the scope of your desired simulation, it is recommended that y
 
 - Angeletti, M., Bonny, J. -M., and Koko, J. (2019). Parallel Euclidean distance matrix computation on big datasets. **HAL**. [HAL Id: hal-02047514](https://hal.archives-ouvertes.fr/hal-02047514) 
 - Duncan, M. J., Levison, H. F., and Lee, M. H. (1998). A Multiple Time Step Symplectic Algorithm for Integrating Close Encounters. **The Astronomical Journal**, 116, 2067. [doi: 10.1086/300541](https://iopscience.iop.org/article/10.1086/300541)
+- Chambers, J. E. (2013). Late-Stage Planetary Accretion Including Hit-and-Run Collisions and Fragmentation. **Icarus**, 224. [doi: 10.1016/j.icarus.2013.02.015](https://www.sciencedirect.com/science/article/pii/S0019103513000754?via%3Dihub)
 - Ericson, C. (2005) Real-Time Collision Detection. **Elsevier Inc.** [ISBN: 978-1-55860-732-3](https://www.sciencedirect.com/book/9781558607323/real-time-collision-detection)
 - Leinhardt, Z. M. and Stewart, S. T. (2012). Collisions between Gravity-dominated Bodies. I. Outcome Regimes and Scaling Laws. **The Astrophysical Journal**, 745, 79. [doi:10.1088/0004-637X/745/1/79](https://iopscience.iop.org/article/10.1088/0004-637X/745/1/79)
 - Levison, H. F. and Duncan, M. J. (1994). The Long-Term Behavior of Short-Period Comets. **Icarus**, 108, 18. [doi: 10.1006/icar.1994.1039](https://www.sciencedirect.com/science/article/pii/S0019103584710396?via%3Dihub)
