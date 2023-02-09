@@ -142,7 +142,6 @@ contains
             lflag = .true.
 
             ! Shift the impactors so that they are not overlapping
-
             rlim = sum(impactors%radius(1:2))
             vrel = impactors%vb(:,2) - impactors%vb(:,1)
             rrel = impactors%rb(:,2) - impactors%rb(:,1)
@@ -366,6 +365,7 @@ contains
             plnew%mass(1:nfrag) = fragments%mass(1:nfrag)
             plnew%Gmass(1:nfrag) = param%GU * fragments%mass(1:nfrag)
             plnew%radius(1:nfrag) = fragments%radius(1:nfrag)
+            if (allocated(pl%a)) call plnew%xv2el(cb)
 
             if (param%lrotation) then
                plnew%Ip(:, 1:nfrag) = fragments%Ip(:, 1:nfrag)
@@ -520,13 +520,14 @@ contains
       real(DP),                   intent(in)    :: dt     !! Current simulation step size
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
       ! Internals
-      real(DP) :: E_before, E_after, dLmag
-      real(DP), dimension(NDIM) :: L_orbit_before, L_orbit_after, L_spin_before, L_spin_after, L_before, L_after, dL_orbit, dL_spin, dL
+      real(DP) :: E_before, E_after, mnew
+      real(DP), dimension(NDIM) ::L_before, L_after, dL
       logical :: lplpl_collision
       character(len=STRMAX) :: timestr, idstr
       integer(I4B), dimension(2) :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
       logical  :: lgoodcollision
-      integer(I4B) :: i, loop, ncollisions
+      integer(I4B) :: i, j, nnew, loop, ncollisions
+      integer(I4B), dimension(:), allocatable :: idnew
       integer(I4B), parameter :: MAXCASCADE = 1000
   
       select type (nbody_system)
@@ -549,8 +550,6 @@ contains
             if (param%lenergy) then
                call nbody_system%get_energy_and_momentum(param)
                E_before = nbody_system%te
-               L_orbit_before(:) = nbody_system%L_orbit(:)
-               L_spin_before(:) = nbody_system%L_spin(:)
                L_before(:) = nbody_system%L_total(:)
             end if
 
@@ -597,6 +596,10 @@ contains
                   call plpl_collision%setup(0_I8B)
 
                   if ((nbody_system%pl_adds%nbody == 0) .and. (nbody_system%pl_discards%nbody == 0)) exit
+                  if (allocated(idnew)) deallocate(idnew)
+                  nnew = nbody_system%pl_adds%nbody
+                  allocate(idnew, source=nbody_system%pl_adds%id)
+                  mnew = sum(nbody_system%pl_adds%mass(:))
 
                   ! Rearrange the arrays: Remove discarded bodies, add any new bodies, re-sort, and recompute all indices and encounter lists
                   call pl%rearray(nbody_system, param)
@@ -604,6 +607,26 @@ contains
                   ! Destroy the add/discard list so that we don't append the same body multiple times if another collision is detected
                   call nbody_system%pl_discards%setup(0, param)
                   call nbody_system%pl_adds%setup(0, param)
+
+                  if (param%lenergy) then
+                     call nbody_system%get_energy_and_momentum(param)
+                     L_after(:) = nbody_system%L_total(:)
+                     dL = L_after(:) - L_before(:)
+
+                     ! Add some velocity torque to the new bodies to remove residual angular momentum difference
+                     do j = 1, nnew
+                        i = findloc(pl%id,idnew(j),dim=1)
+                        if (i == 0) cycle
+                        call collision_util_velocity_torque(-dL * pl%mass(i)/mnew, pl%mass(i), pl%rb(:,i), pl%vb(:,i)) 
+                     end do
+
+                     call nbody_system%get_energy_and_momentum(param)
+                     E_after = nbody_system%te
+                     nbody_system%E_collisions = nbody_system%E_collisions + (E_after - E_before)
+                     L_after(:) = nbody_system%L_total(:)
+                     dL = L_after(:) - L_before(:)
+                  end if
+
 
                   ! Check whether or not any of the particles that were just added are themselves in a collision state. This will generate a new plpl_collision 
                   call self%collision_check(nbody_system, param, t, dt, irec, lplpl_collision)
@@ -616,21 +639,6 @@ contains
                   end if
                end associate
             end do
-
-            if (param%lenergy) then
-               call nbody_system%get_energy_and_momentum(param)
-               E_after = nbody_system%te
-               nbody_system%E_collisions = nbody_system%E_collisions + (E_after - E_before)
-
-               L_orbit_after(:) = nbody_system%L_orbit(:)
-               L_spin_after(:) = nbody_system%L_spin(:)
-               L_after(:) = nbody_system%L_total(:)
-
-               dL_orbit = L_orbit_after(:) - L_orbit_before(:)
-               dL_spin = L_spin_after(:) - L_spin_before(:)
-               dL = L_after(:) - L_before(:)
-               dLmag = .mag.dL
-            end if
 
          end associate
       end select
