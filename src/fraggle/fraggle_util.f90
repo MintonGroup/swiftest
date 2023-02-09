@@ -30,7 +30,7 @@ contains
       real(DP), parameter :: BETA = 2.85_DP
       integer(I4B), parameter :: MASS_NOISE_FACTOR = 4  !! The number of digits of random noise that get added to the minimum mass value to prevent identical masses from being generated in a single run 
       integer(I4B), parameter :: NFRAGMAX = 100  !! Maximum number of fragments that can be generated
-      integer(I4B), parameter :: NFRAGMIN = 7 !! Minimum number of fragments that can be generated (set by the fraggle_generate algorithm for constraining momentum and energy)
+      integer(I4B), parameter :: NFRAGMIN = 1 !! Minimum number of fragments that can be generated (set by the fraggle_generate algorithm for constraining momentum and energy)
       integer(I4B), parameter :: NFRAG_SIZE_MULTIPLIER = 3 !! Log-space scale factor that scales the number of fragments by the collisional system mass
       integer(I4B), parameter :: iMlr = 1
       integer(I4B), parameter :: iMslr = 2
@@ -76,15 +76,19 @@ contains
                nfrag = NFRAGMAX
             end select
 
-            i = iMrem
             mremaining = impactors%mass_dist(iMrem)
-            do while (i <= nfrag)
-               mfrag = (1 + i - iMslr)**(-3._DP / BETA) * impactors%mass_dist(iMslr)
-               if (mremaining - mfrag < 0.0_DP) exit
-               mremaining = mremaining - mfrag
-               i = i + 1
-            end do
-            if (i < nfrag) nfrag = max(i, NFRAGMIN)  ! The sfd would actually give us fewer fragments than our maximum
+            if (mremaining > 0.0_DP) then
+               i = iMrem 
+               do while (i <= nfrag)
+                  mfrag = max((1 + i - iMslr)**(-3._DP / BETA) * impactors%mass_dist(iMslr), min_mfrag)
+                  if (mremaining - mfrag <= 0.0_DP) exit
+                  mremaining = mremaining - mfrag
+                  i = i + 1
+               end do
+            else
+               i = iMrem - 1
+            end if
+            nfrag = i
             call self%setup_fragments(nfrag)
 
          case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE) 
@@ -113,7 +117,9 @@ contains
             ! Distribute the remaining mass the 3:nfrag bodies following the model SFD given by slope BETA 
             mremaining = impactors%mass_dist(iMrem)
             do i = iMrem, nfrag
-               mfrag = (1 + i - iMslr)**(-3._DP / BETA) * impactors%mass_dist(iMslr)
+               call random_number(mass_noise)
+               mass_noise = 1.0_DP + mass_noise * epsilon(1.0_DP) * 10**(MASS_NOISE_FACTOR)
+               mfrag = max((1 + i - iMslr)**(-3._DP / BETA) * impactors%mass_dist(iMslr), min_mfrag) * mass_noise
                mass(i) = mfrag
                mremaining = mremaining - mfrag
             end do
@@ -134,8 +140,7 @@ contains
             ! Sort the distribution in descending order by mass so that the largest fragment is always the first
             call swiftest_util_sort(-mass, ind)
             call swiftest_util_sort_rearrange(mass, ind, nfrag)
-            fragments%mass(:) = mass(:)
-            deallocate(mass)
+            call move_alloc(mass, fragments%mass)
 
             fragments%Gmass(:) = G * fragments%mass(:)
 

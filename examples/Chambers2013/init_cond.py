@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
  Copyright 2023 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
  This file is part of Swiftest.
@@ -9,7 +11,20 @@
  If not, see: https://www.gnu.org/licenses. 
 """
 
-#!/usr/bin/env python3
+"""
+Generates a set of Swiftest input files from initial conditions with the SyMBA integrator. All simulation 
+outputs are stored in the /simdata subdirectory.
+
+Input
+------
+None.
+
+Output
+------
+init_cond.nc   : A NetCDF file containing the initial conditions for the simulation.
+param.in       : An ASCII file containing the parameters for the simulation.
+"""
+
 import swiftest
 import numpy as np
 from numpy.random import default_rng

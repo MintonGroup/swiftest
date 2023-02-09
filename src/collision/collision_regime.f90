@@ -186,7 +186,7 @@ contains
       real(DP)           :: a1, alpha, aint, b, bcrit, c_star, egy, zeta, l, lint, mu, phi, theta, ke, pe
       real(DP)           :: Qr, Qrd_pstar, Qr_erosion, Qr_supercat
       real(DP)           :: Vhr, Verosion, Vescp, Vhill, Vimp, Vsupercat
-      real(DP)           :: Mint, Mtot, Mtmp
+      real(DP)           :: Mint, Mtot, Mtmp, Mbig, Msmall
       real(DP)           :: Rp, rhill 
       real(DP)           :: Mresidual
       real(DP)           :: U_binding
@@ -279,11 +279,14 @@ contains
 
       if (regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) then
          Mlr  = max(Mtot * 0.1_DP * (Qr / (Qrd_pstar * SUPERCAT_QRATIO))**(ETA), min_mfrag)   !LS12 eq (44)
+      else if (regime == COLLRESOLVE_REGIME_HIT_AND_RUN) then
+         Mlr = m1
       else 
          Mlr = max((1.0_DP - Qr / Qrd_pstar / 2.0_DP) * Mtot, min_mfrag) ! [kg] # LS12 eq (5)
       end if
-
-      Mslr_hitandrun = max(calc_Qrd_rev(m2, m1, Mint, den1, den2, Vimp, c_star), min_mfrag)
+      Mbig = max(m1,Mlr)
+      Msmall = mtot - Mbig
+      Mslr_hitandrun = max(calc_Qrd_rev(Msmall, Mbig, Mint, den1, den2, Vimp, c_star), min_mfrag)
       if (regime == COLLRESOLVE_REGIME_HIT_AND_RUN ) then
          Mslr = Mslr_hitandrun
       else

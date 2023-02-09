@@ -2,5 +2,4 @@
 !.gitignore
 !initial_conditions.py
 !output_reader.py
-!run_from_file.py
-!read_old_run.py
+!README.txt
