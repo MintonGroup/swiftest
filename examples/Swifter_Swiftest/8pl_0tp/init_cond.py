@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
  Copyright 2023 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
  This file is part of Swiftest.
@@ -9,7 +11,7 @@
  If not, see: https://www.gnu.org/licenses. 
 """
 
-#!/usr/bin/env python3
+"""
 import numpy as np
 import swiftest
 import swiftest.io as swio

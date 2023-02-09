@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
  Copyright 2023 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
  This file is part of Swiftest.
@@ -9,7 +11,6 @@
  If not, see: https://www.gnu.org/licenses. 
 """
 
-#!/usr/bin/env python3
 """
 Generates and runs two sets of Swiftest input files from initial conditions with the WHM integrator. All simulation 
 outputs for the general relativity run are stored in the /gr subdirectory while all simulation outputs for the run 

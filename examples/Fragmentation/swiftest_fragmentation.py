@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
  Copyright 2023 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
  This file is part of Swiftest.
@@ -8,7 +10,7 @@
  You should have received a copy of the GNU General Public License along with Swiftest.
  If not, see: https://www.gnu.org/licenses.
 """
-#!/usr/bin/env python3
+
 """
 Generates and runs a set of Swiftest input files from initial conditions with the SyMBA integrator. All simulation 
 outputs for the disruption case are stored in the /disruption subdirectory. All simulation outputs for the hit and run 

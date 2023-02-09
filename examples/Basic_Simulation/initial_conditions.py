@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
  Copyright 2023 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
  This file is part of Swiftest.
@@ -9,7 +11,6 @@
  If not, see: https://www.gnu.org/licenses. 
 """
 
-#!/usr/bin/env python3
 """
 Generates and runs a set of Swiftest input files from initial conditions with the SyMBA integrator. All simulation 
 outputs are stored in the /simdata subdirectory.
