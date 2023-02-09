@@ -80,7 +80,7 @@ contains
             mremaining = impactors%mass_dist(iMrem)
             do while (i <= nfrag)
                mfrag = (1 + i - iMslr)**(-3._DP / BETA) * impactors%mass_dist(iMslr)
-               if (mremaining - mfrag < 0.0_DP) exit
+               if (mremaining - mfrag <= 0.0_DP) exit
                mremaining = mremaining - mfrag
                i = i + 1
             end do
