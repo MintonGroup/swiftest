@@ -17,7 +17,7 @@ Included in the Chambers2013 example directory are the following files:
 
 	- README.txt      : This file
 	- init_cond.py    : A Python Script that generates and runs a set of initial conditions.
-	- scattermovie.py : A Python Script that processes out.nc and generates Chambers2013-aescatter.mp4 or Chambers2013-aiscatter.mp4
+	- scattermovie.py : A Python Script that processes data.nc and generates Chambers2013-aescatter.mp4 or Chambers2013-aiscatter.mp4
 
 This example is intended to be run with Swiftest SyMBA. For details on how to generate, run, and analyze this example, 
 see the Swiftest User Manual.
