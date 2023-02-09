@@ -279,6 +279,8 @@ contains
 
       if (regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) then
          Mlr  = max(Mtot * 0.1_DP * (Qr / (Qrd_pstar * SUPERCAT_QRATIO))**(ETA), min_mfrag)   !LS12 eq (44)
+      else if (regime == COLLRESOLVE_REGIME_HIT_AND_RUN) then
+         Mlr = m1
       else 
          Mlr = max((1.0_DP - Qr / Qrd_pstar / 2.0_DP) * Mtot, min_mfrag) ! [kg] # LS12 eq (5)
       end if
