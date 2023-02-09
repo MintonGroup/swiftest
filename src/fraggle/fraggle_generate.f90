@@ -527,16 +527,16 @@ contains
       class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       logical,                      intent(out)   :: lfailure     !! Did the velocity computation fail?
       ! Internals
-      real(DP), parameter :: ENERGY_SUCCESS_METRIC = 1.0e-4_DP    !! Relative energy error to accept as a success (success also must be energy-losing in addition to being within the metric amount)
+      real(DP), parameter :: ENERGY_SUCCESS_METRIC = 1.0e-3_DP    !! Relative energy error to accept as a success (success also must be energy-losing in addition to being within the metric amount)
       real(DP)  :: MOMENTUM_SUCCESS_METRIC = 10*epsilon(1.0_DP) !! Relative angular momentum error to accept as a success (should be *much* stricter than energy)
       integer(I4B) :: i, j, loop, try, istart, nfrag, nsteps, nsteps_best
       logical :: lhitandrun, lsupercat
       real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, L_residual, L_residual_unit, L_residual_best, dL, drot, rot_new, dL_metric
-      real(DP) :: vimp, vmag, vesc, dE, E_residual, E_residual_best, E_residual_last, ke_avail, ke_remove, dE_best, fscale, dE_metric, mfrag, rn, dL1_mag
+      real(DP) :: vimp, vmag, vesc, dE, E_residual, E_residual_best, E_residual_last, ke_avail, ke_remove, dE_best, fscale, dE_metric, mfrag, rn, dL1_mag, dE_conv
       integer(I4B), dimension(collider%fragments%nbody) :: vsign
       real(DP), dimension(collider%fragments%nbody) :: vscale
       real(DP), dimension(collider%fragments%nbody) :: dLi_mag
-      real(DP), parameter :: L_ROT_VEL_RATIO = 0.9_DP ! Ratio of angular momentum to put into rotation relative to velocity shear of fragments
+      real(DP), parameter :: L_ROT_VEL_RATIO = 0.5_DP ! Ratio of angular momentum to put into rotation relative to velocity shear of fragments
       ! For the initial "guess" of fragment velocities, this is the minimum and maximum velocity relative to escape velocity that the fragments will have
       real(DP), parameter     :: hitandrun_vscale = 0.25_DP 
       real(DP)                :: vmin_guess 
@@ -544,7 +544,7 @@ contains
       real(DP)                :: delta_v, GC
       integer(I4B), parameter :: MAXINNER = 100
       integer(I4B), parameter :: MAXOUTER = 10
-      integer(I4B), parameter :: MAXANGMTM = 10000
+      integer(I4B), parameter :: MAXANGMTM = 1000
       class(collision_fraggle), allocatable :: collider_local
       character(len=STRMAX) :: message
 
@@ -594,23 +594,23 @@ contains
             outer: do try = 1, MAXOUTER
                ! Scale the magnitude of the velocity by the distance from the impact point
                ! This will reduce the chances of fragments colliding with each other immediately, and is more physically correct  
-               do concurrent(i = 2:nfrag)
+               do concurrent(i = 1:nfrag)
                   rimp(:) = fragments%rc(:,i) - impactors%rcimp(:) 
-                  vscale(i) = .mag. rimp(:) / (.mag. (impactors%rb(:,2) - impactors%rb(:,1)))
+                  vscale(i) = .mag. rimp(:) / sum(impactors%radius(1:2))
                end do
 
                ! Set the velocity scale factor to span from vmin/vesc to vmax/vesc
                if (nfrag == 2) then
                   vscale(:) = 1.0_DP
                else
-                  vscale(2:nfrag) = vscale(2:nfrag)/minval(vscale(2:nfrag))
-                  fscale = log(vmax_guess - vmin_guess + 1.0_DP) / log(maxval(vscale(2:nfrag)))
-                  vscale(2:nfrag) = vscale(2:nfrag)**fscale + vmin_guess - 1.0_DP
+                  vscale(:) = vscale(:)/minval(vscale(:))
+                  fscale = log(vmax_guess - vmin_guess + 1.0_DP) / log(maxval(vscale(:)))
+                  vscale(:) = vscale(:)**fscale + vmin_guess - 1.0_DP
                end if
 
                ! Set the velocities of all fragments using all of the scale factors determined above
-               fragments%vc(:,1) = impactors%vc(:,1) * impactors%mass(1) / fragments%mass(1)
-               do concurrent(i = 2:nfrag)
+               if (istart > 1) fragments%vc(:,1) = impactors%vc(:,1) * impactors%mass(1) / fragments%mass(1)
+               do concurrent(i = istart:nfrag)
                   j = fragments%origin_body(i)
                   vrot(:) = impactors%rot(:,j) .cross. (fragments%rc(:,i) - impactors%rc(:,j))
                   if (lhitandrun) then
@@ -693,6 +693,7 @@ contains
 
                   L_residual(:) = (collider_local%L_total(:,2) - collider_local%L_total(:,1))
                   dL_metric(:) = abs(L_residual(:)) / .mag.collider_local%L_total(:,1) / MOMENTUM_SUCCESS_METRIC
+                  dE_conv = abs(E_residual - E_residual_last) / abs(E_residual_last) 
 
                   ! Check if we've converged on our constraints
                   if (all(dL_metric(:) <= 1.0_DP)) then
@@ -705,10 +706,9 @@ contains
                         if (allocated(collider%fragments)) deallocate(collider%fragments)
                         allocate(collider%fragments, source=fragments)
                         dE_metric = abs(E_residual) / impactors%Qloss
-                     else if (abs(E_residual) >= abs(E_residual_last)) then
-                        exit inner ! We are no longer converging on a solution. At this point, it's best to give up
                      end if
                      if ((dE_best < 0.0_DP) .and. (dE_metric <= ENERGY_SUCCESS_METRIC * try)) exit outer ! As the tries increase, we relax the success metric. What was once a failure might become a success
+                     if (dE_conv < ENERGY_SUCCESS_METRIC * try) exit inner
                   end if
 
                   ! Remove a constant amount of velocity from the bodies so we don't shift the center of mass and screw up the momentum 
@@ -742,7 +742,7 @@ contains
                vmin_guess = vmin_guess + delta_v
                vmax_guess = vmax_guess - delta_v
             end do outer
-            lfailure = (dE_best > 0.0_DP) 
+            lfailure = lfailure .or. (dE_best > 0.0_DP) 
 
             write(message, *) nsteps
             if (lfailure) then
