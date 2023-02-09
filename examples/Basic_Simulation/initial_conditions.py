@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
  Copyright 2023 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
  This file is part of Swiftest.
@@ -9,7 +11,6 @@
  If not, see: https://www.gnu.org/licenses. 
 """
 
-#!/usr/bin/env python3
 """
 Generates and runs a set of Swiftest input files from initial conditions with the SyMBA integrator. All simulation 
 outputs are stored in the /simdata subdirectory.
@@ -20,12 +21,8 @@ None.
 
 Output
 ------
-data.nc         : A NetCDF file containing the simulation output.
-dump_bin1.nc   : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
-dump_bin2.nc   : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
-dump_param1.in : An ASCII file containing the necessary parameters to restart a simulation.
-dump_param2.in : An ASCII file containing the necessary parameters to restart a simulation.
-fraggle.log    : An ASCII file containing the information of any collisional events that occured.
+data.nc        : A NetCDF file containing the simulation output.
+collisions.log : An ASCII file containing the information of any collisional events that occured.
 init_cond.nc   : A NetCDF file containing the initial conditions for the simulation.
 param.in       : An ASCII file containing the parameters for the simulation.
 swiftest.log   : An ASCII file containing the information on the status of the simulation as it runs.

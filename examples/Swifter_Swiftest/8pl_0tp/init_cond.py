@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
  Copyright 2023 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
  This file is part of Swiftest.
@@ -9,7 +11,26 @@
  If not, see: https://www.gnu.org/licenses. 
 """
 
-#!/usr/bin/env python3
+"""
+Generates and runs a set of Swiftest input files and a set of Swifter input files from initial conditions with the 
+SyMBA integrator. 
+
+Input
+------
+None.
+
+Output
+------
+param.swiftest.in      : An ASCII file containing the parameters for the Swiftest simulation.
+param.swifter.in       : An ASCII file containing the parameters for the Swifter simulation.
+cb.swiftest.in         : An ASCII file containing the central body data for the Swiftest simulation.
+pl.swifter.in          : An ASCII file containing the massive body data for the Swifter simulation.
+pl.swiftest.in         : An ASCII file containing the massive body data for the Swiftest simulation.
+tp.swifter.in          : An ASCII file containing the test particle data for the Swifter simulation.
+tp.swiftest.in         : An ASCII file containing the test particle data for the Swiftest simulation.
+
+"""
+
 import numpy as np
 import swiftest
 import swiftest.io as swio

@@ -15,15 +15,12 @@ Generates a movie of a multi-body fragmentation event from set of Swiftest outpu
 
 Inputs
 _______
-param.in : ASCII text file
-    Swiftest parameter input file.
-out.nc   : NetCDF file
-    Swiftest output file.
+param.in    : ASCII Swiftest parameter input file.
+data.nc     : A NetCDF file containing the simulation output.
 
 Returns
 -------
-fragmentation.mp4 : mp4 movie file
-    Movie of a fragmentation event.
+fragmentation.mp4 : A .mp4 file of a fragmentation event.
 """
 
 import swiftest
