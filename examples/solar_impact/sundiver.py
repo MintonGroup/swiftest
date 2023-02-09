@@ -12,6 +12,22 @@
 """
 
 """
+Generates and runs a set of Swiftest input files from initial conditions with the SyMBA integrator. All simulation 
+outputs are stored in the /simdata subdirectory.
+
+Input
+------
+None.
+
+Output
+------
+data.nc        : A NetCDF file containing the simulation output.
+collisions.log : An ASCII file containing the information of any collisional events that occured.
+init_cond.nc   : A NetCDF file containing the initial conditions for the simulation.
+param.in       : An ASCII file containing the parameters for the simulation.
+swiftest.log   : An ASCII file containing the information on the status of the simulation as it runs.
+"""
+
 import swiftest
 import numpy as np
 

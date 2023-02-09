@@ -12,6 +12,21 @@
 """
 
 """
+Creates a movie from a set of Swiftest output files. All simulation 
+outputs are stored in the /simdata subdirectory.
+
+Input
+------
+param.in    : ASCII Swiftest parameter input file.
+data.nc     : A NetCDF file containing the simulation output.
+
+Output
+------
+Chambers2013-aescatter.mp4  : A .mp4 file plotting eccentricity vs semimajor axis. 
+OR 
+Chambers2013-aiscatter.mp4  : A .mp4 file plotting inclination vs semimajor axis. 
+"""
+
 import swiftest 
 import numpy as np
 import matplotlib.pyplot as plt
