@@ -36,22 +36,26 @@ from collections import namedtuple
 plt.switch_backend('agg')
 
 titletext = "Chambers (2013)"
-valid_plot_styles = ["aescatter", "aiscatter"]
-xlim={"aescatter" : (0.0, 2.5),
-      "aiscatter" : (0.0, 2.5)}
+valid_plot_styles = ["aescatter", "aiscatter", "arotscatter"]
+xlim={"aescatter" : (0.0, 3.0),
+      "aiscatter" : (0.0, 3.0), 
+      "arotscatter" : (0.0, 2.5)}
 ylim={"aescatter" : (0.0, 1.0),
-      "aiscatter" : (0.0, 40.0)}
+      "aiscatter" : (0.0, 40.0),
+      "arotscatter" : (1.0, 10000.0)}
 xlabel={"aescatter": "Semimajor axis (AU)",
-        "aiscatter": "Semimajor axis (AU)"}
+        "aiscatter": "Semimajor axis (AU)",
+        "arotscatter": "Semimajor axis (AU)"}
 ylabel={"aescatter": "Eccentricity",
-        "aiscatter": "Inclination (deg)"}
+        "aiscatter": "Inclination (deg)",
+        "arotscatter": "Rotation period (h)"}
 
+YR2HR = 365.25 * 24
+ROT2PERIOD = YR2HR * 360.0
 
-plot_style = valid_plot_styles[0]
 framejump = 1
-animation_file = f"Chambers2013-{plot_style}.mp4"
-
 origin_types = ["Initial conditions", "Merger", "Disruption", "Supercatastrophic", "Hit and run fragmentation"]
+
 
 class AnimatedScatter(object):
     """An animated scatter plot using matplotlib.animations.FuncAnimation."""
@@ -59,12 +63,13 @@ class AnimatedScatter(object):
 
         self.radscale = 2000
         nframes = int(ds['time'].size / framejump)
+        ds['rot_mag'] = swiftest.tool.magnitude(ds,"rot")
+        ds['rot_mag'] = ROT2PERIOD / ds['rot_mag']
+        self.Rcb = ds['radius'].sel(name="Sun").isel(time=0).values[()]
         self.ds = ds
         self.param = param
-        self.Rcb = self.ds['radius'].sel(name="Sun").isel(time=0).values[()]
         colors = ["k", "xkcd:faded blue", "xkcd:marigold", "xkcd:shocking pink", "xkcd:baby poop green"]
         self.clist = dict(zip(origin_types,colors))
-
 
         # Setup the figure and axes...
         fig = plt.figure(figsize=(8,4.5), dpi=300)
@@ -104,7 +109,10 @@ class AnimatedScatter(object):
         
         leg = plt.legend(loc="upper left", scatterpoints=1, fontsize=10)
         for i,l in enumerate(leg.legendHandles):
-           leg.legendHandles[i]._sizes = [20]      
+            leg.legendHandles[i]._sizes = [20]
+        
+        if plot_style == "arotscatter":
+            self.ax.set_yscale('log')
         
         return self.artists
 
@@ -123,6 +131,8 @@ class AnimatedScatter(object):
             pl = np.c_[d['a'].values,d['e'].values]
         elif plot_style == "aiscatter":
             pl = np.c_[d['a'].values,d['inc'].values]
+        elif plot_style == "arotscatter":
+            pl = np.c_[d['a'].values,d['rot_mag'].values]
 
         return t, npl, pl, radmarker, origin
 
@@ -143,6 +153,8 @@ class AnimatedScatter(object):
         return self.artists
 
 sim = swiftest.Simulation(read_data=True)
-print('Making animation')
-anim = AnimatedScatter(sim.data,sim.param)
-print('Animation finished')
+for plot_style in valid_plot_styles:
+    animation_file = f"Chambers2013-{plot_style}.mp4"
+    print('Making animation')
+    anim = AnimatedScatter(sim.data,sim.param)
+    print('Animation finished')
