@@ -21,9 +21,10 @@ None.
 
 Output
 ------
-init_cond.nc   : A NetCDF file containing the initial conditions for the simulation.
-param.in       : An ASCII file containing the parameters for the simulation.
-"""
+inital_conditions.png : A .png file depicting the simulation initial configuration.
+init_cond.nc          : A NetCDF file containing the initial conditions for the simulation.
+param.in              : An ASCII file containing the parameters for the simulation.
+""" 
 
 import swiftest
 import numpy as np
