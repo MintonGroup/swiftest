@@ -322,7 +322,7 @@ contains
       real(DP), dimension(collider%fragments%nbody) :: mass_rscale, phi, theta, u
       integer(I4B) :: i, j, loop, istart
       logical :: lsupercat, lhitandrun
-      integer(I4B), parameter :: MAXLOOP = 100
+      integer(I4B), parameter :: MAXLOOP = 1000
       real(DP), parameter :: rdistance_scale_factor = 1.0_DP ! Scale factor to apply to distance scaling of cloud centers in the event of overlap
                                                              ! The distance is chosen to be close to the original locations of the impactors
                                                              ! but far enough apart to prevent a collisional cascade between fragments 
@@ -404,6 +404,9 @@ contains
 
                ! Shift to the cloud center coordinates
                fragments%rc(:,i) = fragments%rc(:,i) + fragment_cloud_center(:,j)
+               if (lhitandrun) then ! Stretch out the hit and run cloud along the flight trajectory
+                  fragments%rc(:,i) = fragments%rc(:,i) + cloud_size_scale_factor * rdistance * fragments%rmag(i) * impactors%bounce_unit(:)
+               end if
 
                ! Make sure that the fragments are positioned away from the impact point
                direction = dot_product(fragments%rc(:,i) - impactors%rcimp(:), fragment_cloud_center(:,j) - impactors%rcimp(:))
