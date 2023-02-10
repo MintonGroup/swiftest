@@ -717,7 +717,7 @@ contains
                   ! Remove a constant amount of velocity from the bodies so we don't shift the center of mass and screw up the momentum 
                   ke_avail = 0.0_DP
                   do i = fragments%nbody, 1, -1
-                     ke_avail = ke_avail + 0.5_DP * fragments%mass(i) * max(fragments%vmag(i) - vesc,0.0_DP)**2
+                     ke_avail = ke_avail + 0.5_DP * fragments%mass(i) * max(fragments%vmag(i) - vesc/try,0.0_DP)**2
                   end do
 
                   ke_remove = min(E_residual, ke_avail)
