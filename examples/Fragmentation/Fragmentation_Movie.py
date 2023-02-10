@@ -59,9 +59,9 @@ pos_vectors = {"disruption_headon"         : [np.array([1.0, -5.0e-05, 0.0]),
                }
 
 vel_vectors = {"disruption_headon"         : [np.array([ 0.00,  6.280005, 0.0]),
-                                              np.array([ 0.00,  4.28,     0.0])],
+                                              np.array([ 0.00,  3.28,     0.0])],
                "disruption_off_axis"       : [np.array([ 0.00,  6.280005, 0.0]),
-                                              np.array([ 0.05,  4.28,     0.0])],
+                                              np.array([ 0.05,  3.28,     0.0])],
                "supercatastrophic_headon":   [np.array([ 0.00,  6.28,     0.0]),
                                               np.array([ 0.00,  4.28,     0.0])],
                "supercatastrophic_off_axis": [np.array([ 0.00,  6.28,     0.0]),
