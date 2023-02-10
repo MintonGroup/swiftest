@@ -1,0 +1,35 @@
+!! Copyright 2023 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+!! This file is part of Swiftest.
+!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+!! You should have received a copy of the GNU General Public License along with Swiftest. 
+!! If not, see: https://www.gnu.org/licenses. 
+
+! VERSION        Swiftest parameter input
+T0               0.0
+TSTOP            1000000.0
+DT               0.005
+PL_IN            pl.swifter.in
+TP_IN            tp.swifter.in
+IN_TYPE          ASCII
+ISTEP_OUT        200000
+ISTEP_DUMP       200000
+BIN_OUT          swifter.dat
+OUT_TYPE         REAL8
+OUT_FORM         EL
+OUT_STAT         UNKNOWN
+J2               0.0
+J4               0.0
+CHK_CLOSE        YES
+CHK_RMIN         0.004650467260962157
+CHK_RMAX         1000.0
+CHK_EJECT        1000.0
+CHK_QMIN         0.004650467260962157
+CHK_QMIN_COORD   HELIO
+CHK_QMIN_RANGE   0.004650467260962157 1000.0
+ENC_OUT          enc.swifter.dat
+EXTRA_FORCE      NO
+BIG_DISCARD      NO
+RHILL_PRESENT    YES
