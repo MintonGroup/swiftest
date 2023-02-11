@@ -59,9 +59,9 @@ pos_vectors = {"disruption_headon"         : [np.array([1.0, -5.0e-05, 0.0]),
                }
 
 vel_vectors = {"disruption_headon"         : [np.array([ 0.00,  6.280005, 0.0]),
-                                              np.array([ 0.00,  3.28,     0.0])],
+                                              np.array([ 0.00,  3.90,     0.0])],
                "disruption_off_axis"       : [np.array([ 0.00,  6.280005, 0.0]),
-                                              np.array([ 0.05,  3.28,     0.0])],
+                                              np.array([ 0.05,  3.90,     0.0])],
                "supercatastrophic_headon":   [np.array([ 0.00,  6.28,     0.0]),
                                               np.array([ 0.00,  4.28,     0.0])],
                "supercatastrophic_off_axis": [np.array([ 0.00,  6.28,     0.0]),
@@ -140,13 +140,13 @@ def encounter_combiner(sim):
     enc = sim.encounters[keep_vars].load()
 
     # Remove any encounter data at the same time steps that appear in the data to prevent duplicates
-    t_not_duplicate = ~enc['time'].isin(data['time'])
-    enc = enc.where(t_not_duplicate,drop=True)
+    t_not_duplicate = ~data['time'].isin(enc['time'])
+    data = data.sel(time=t_not_duplicate)
     tgood=enc.time.where(~np.isnan(enc.time),drop=True)
     enc = enc.sel(time=tgood)
 
     # The following will combine the two datasets along the time dimension, sort the time dimension, and then fill in any time gaps with interpolation
-    ds = xr.combine_nested([data,enc],concat_dim='time').sortby("time").interpolate_na(dim="time")
+    ds = xr.combine_nested([data,enc],concat_dim='time').sortby("time").interpolate_na(dim="time", method="akima")
     
     # Rename the merged Target body so that their data can be combined
     tname=[n for n in ds['name'].data if names[0] in n]
@@ -336,7 +336,7 @@ if __name__ == "__main__":
         sim.add_body(name=names, Gmass=body_Gmass[style], radius=body_radius[style], rh=pos_vectors[style], vh=vel_vectors[style], rot=rot_vectors[style])
 
         # Set fragmentation parameters
-        minimum_fragment_gmass = 0.05 * body_Gmass[style][1] 
+        minimum_fragment_gmass = 0.01 * body_Gmass[style][1] 
         gmtiny = 0.10 * body_Gmass[style][1] 
         sim.set_parameter(collision_model="fraggle", encounter_save="both", gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, verbose=False)
         sim.run(dt=5e-4, tstop=tstop[style], istep_out=1, dump_cadence=0)

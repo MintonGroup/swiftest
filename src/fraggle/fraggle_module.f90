@@ -22,6 +22,7 @@ module fraggle
       procedure :: generate      => fraggle_generate           !! A simple disruption models that does not constrain energy loss in collisions
       procedure :: hitandrun     => fraggle_generate_hitandrun !! Generates either a pure hit and run, or one in which the runner is disrupted
       procedure :: set_mass_dist => fraggle_util_set_mass_dist !! Sets the distribution of mass among the fragments depending on the regime type
+      procedure :: restructure   => fraggle_util_restructure   !! Restructures the fragment distribution after a failure to converge on a solution
    end type collision_fraggle  
 
    interface
@@ -72,6 +73,14 @@ module fraggle
          class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
          logical,                      intent(out)   :: lfailure     !! Did the velocity computation fail?
       end subroutine fraggle_generate_vel_vec
+
+      module subroutine fraggle_util_restructure(self, nbody_system, param, lfailure)
+         implicit none
+         class(collision_fraggle),     intent(inout) :: self         !! Fraggle collision system object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+         logical,                      intent(out)   :: lfailure     !! Did the computation fail?
+      end subroutine fraggle_util_restructure
 
       module subroutine fraggle_util_set_mass_dist(self, param)
          implicit none
