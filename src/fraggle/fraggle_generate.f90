@@ -57,7 +57,7 @@ contains
             call self%set_mass_dist(param) 
             call self%disrupt(nbody_system, param, t, lfailure)
             if (lfailure) then
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find an energy-losing solution. Treating this as a merge.") 
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find a solution to match energy contraint. Treating this as a merge.") 
                call self%merge(nbody_system, param, t) ! Use the default collision model, which is merge
                return
             end if
@@ -508,7 +508,7 @@ contains
       class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       logical,                      intent(out)   :: lfailure     !! Did the velocity computation fail?
       ! Internals
-      real(DP), parameter :: ENERGY_SUCCESS_METRIC = 1.0e-5_DP    !! Relative energy error to accept as a success (success also must be energy-losing in addition to being within the metric amount)
+      real(DP), parameter :: ENERGY_SUCCESS_METRIC = 1.0e-2_DP    !! Relative energy error to accept as a success (success also must be energy-losing in addition to being within the metric amount)
       real(DP)  :: MOMENTUM_SUCCESS_METRIC = 10*epsilon(1.0_DP) !! Relative angular momentum error to accept as a success (should be *much* stricter than energy)
       integer(I4B) :: i, j, loop, try, istart, nfrag, nsteps, nsteps_best
       logical :: lhitandrun, lsupercat
@@ -709,7 +709,8 @@ contains
             call collider_local%restructure(nbody_system, param, lfailure)
             if (lfailure) exit outer
          end do outer
-         lfailure = lfailure .or. (dE_best > 0.0_DP) 
+         dE_metric = abs(E_residual_best) / impactors%Qloss
+         lfailure = lfailure .or. (dE_best > 0.0_DP) .or. (dE_metric > ENERGY_SUCCESS_METRIC)
 
          write(message, *) nsteps
          if (lfailure) then
