@@ -11,6 +11,70 @@ submodule(fraggle) s_fraggle_util
    use swiftest
 contains
 
+   module subroutine fraggle_util_restructure(self, nbody_system, param, lfailure)
+      !! author: David A. Minton
+      !!
+      !! Restructures the fragment distribution after a failure to converge on a solution.
+      implicit none
+      ! Arguments
+      class(collision_fraggle),     intent(inout) :: self         !! Fraggle collision system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+      logical,                      intent(out)   :: lfailure     !! Did the computation fail?
+      ! Internals
+      class(collision_fragments), allocatable :: new_fragments
+      integer(I4B) :: i,nnew, nold
+      real(DP) :: volume
+
+      associate(old_fragments => self%fragments)
+         lfailure = .false.
+         ! Merge the second-largest fragment into the first and shuffle the masses up
+         nold = old_fragments%nbody
+         if (nold <= 3) then
+            lfailure = .true.
+            return
+         end if
+         nnew = nold - 1
+         allocate(new_fragments, mold=old_fragments)
+         call new_fragments%setup(nnew)
+
+         ! Merge the first and second bodies
+         volume = 4._DP / 3._DP * PI * sum(old_fragments%radius(1:2)**3)
+         new_fragments%mass(1) = sum(old_fragments%mass(1:2))
+         new_fragments%Gmass(1) =sum(old_fragments%Gmass(1:2))
+         new_fragments%density(1) = new_fragments%mass(1) / volume
+         new_fragments%radius(1) = (3._DP * volume / (4._DP * PI))**(THIRD)
+         do concurrent(i = 1:NDIM)
+            new_fragments%Ip(i,1) = sum(old_fragments%mass(1:2) * old_fragments%Ip(i,1:2)) 
+         end do
+         new_fragments%Ip(:,1) = new_fragments%Ip(:,1) / new_fragments%mass(1)
+         new_fragments%origin_body(1) = old_fragments%origin_body(1)
+         
+         ! Copy the n>2 old fragments to the n>1 new fragments
+         new_fragments%mass(2:nnew) = old_fragments%mass(3:nold)
+         new_fragments%Gmass(2:nnew) = old_fragments%Gmass(3:nold)
+         new_fragments%density(2:nnew) = old_fragments%density(3:nold)
+         new_fragments%radius(2:nnew) = old_fragments%radius(3:nold)
+         do concurrent(i = 1:NDIM)
+            new_fragments%Ip(i,2:nnew) = old_fragments%Ip(i,3:nold) 
+         end do
+         new_fragments%origin_body(2:nnew) = old_fragments%origin_body(3:nold)
+
+         new_fragments%mtot = old_fragments%mtot
+      end associate
+
+      deallocate(self%fragments)
+      call move_alloc(new_fragments, self%fragments)
+
+      call fraggle_generate_pos_vec(self, nbody_system, param, lfailure)
+      if (lfailure) return
+      call fraggle_generate_rot_vec(self, nbody_system, param)
+
+      ! Increase the spatial size factor to get a less dense cloud
+      self%fail_scale = self%fail_scale * 1.001_DP
+
+   end subroutine fraggle_util_restructure
+
    module subroutine fraggle_util_set_mass_dist(self, param)
       !! author: David A. Minton
       !!
