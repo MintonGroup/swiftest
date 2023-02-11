@@ -65,24 +65,11 @@ contains
                call self%set_mass_dist(param)
                call self%disrupt(nbody_system, param, t, lfailure)
                if (lfailure) then
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find an energy-losing solution. Treating this as a bounce.") 
-                  call collision_util_bounce_one(impactors%rb(:,1),impactors%vb(:,1),impactors%rbcom(:),impactors%vbcom(:),impactors%radius(1))
-                  call collision_util_bounce_one(impactors%rb(:,2),impactors%vb(:,2),impactors%rbcom(:),impactors%vbcom(:),0.0_DP)
-                  call impactors%set_coordinate_system()
-                  call self%setup_fragments(2)
-                  associate (fragments => self%fragments)
-                     fragments%mass(1:2) = impactors%mass(1:2)
-                     fragments%Gmass(1:2) = impactors%Gmass(1:2)
-                     fragments%radius(1:2) = impactors%radius(1:2)
-                     fragments%rb(:,1:2) = impactors%rb(:,1:2)
-                     fragments%vb(:,1:2) = impactors%vb(:,1:2)
-                     fragments%Ip(:,1:2) = impactors%Ip(:,1:2)
-                     fragments%rot(:,1:2) = impactors%rot(:,1:2)
-                     fragments%mtot = sum(fragments%mass(1:2))
-                  end associate
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Fraggle failed to find an energy-losing solution. Treating this as a merge.") 
+                  call self%merge(nbody_system, param, t) ! Use the default collision model, which is merge
+                  return
                end if
             end if
-
 
             associate (fragments => self%fragments)
                ! Get the energy and momentum of the system before and after the collision
