@@ -338,7 +338,7 @@ if __name__ == "__main__":
         # Set fragmentation parameters
         minimum_fragment_gmass = 0.01 * body_Gmass[style][1] 
         gmtiny = 0.10 * body_Gmass[style][1] 
-        sim.set_parameter(collision_model="fraggle", encounter_save="both", gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, verbose=False)
+        sim.set_parameter(collision_model="fraggle", encounter_save="both", gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, nfrag_reduction=10.0)
         sim.run(dt=5e-4, tstop=tstop[style], istep_out=1, dump_cadence=0)
 
         print("Generating animation")
