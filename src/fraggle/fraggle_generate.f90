@@ -651,11 +651,12 @@ contains
 
                   ! Put any remaining residual into velocity shear
                   angmtm: do j = 1, MAXANGMTM
+                     if (j == MAXANGMTM) exit inner
                      call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
                      L_residual(:) = (collider_local%L_total(:,2) - collider_local%L_total(:,1))
                      dL_metric(:) = abs(L_residual(:)) / .mag.(collider_local%L_total(:,1)) / MOMENTUM_SUCCESS_METRIC
 
-                     if (all(dL_metric(:)  <= 1.0_DP)) exit angmtm
+                     if (all(dL_metric(:) <= 1.0_DP)) exit angmtm
    
                      do i = istart, fragments%nbody
                         dL(:) = -L_residual(:) * fragments%mass(i) / sum(fragments%mass(istart:fragments%nbody))
@@ -696,7 +697,7 @@ contains
                   ! Remove a constant amount of velocity from the bodies so we don't shift the center of mass and screw up the momentum 
                   ke_avail = 0.0_DP
                   do i = fragments%nbody, 1, -1
-                     ke_avail = ke_avail + 0.5_DP * fragments%mass(i) * max(fragments%vmag(i) - vesc,0.0_DP)**2
+                     ke_avail = ke_avail + 0.5_DP * fragments%mass(i) * max(fragments%vmag(i) - vesc / try,0.0_DP)**2
                   end do
 
                   ke_remove = min(E_residual, ke_avail)
