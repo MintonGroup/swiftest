@@ -95,7 +95,7 @@ contains
       integer(I4B), parameter :: MASS_NOISE_FACTOR = 4  !! The number of digits of random noise that get added to the minimum mass value to prevent identical masses from being generated in a single run 
       integer(I4B), parameter :: NFRAGMAX = 100  !! Maximum number of fragments that can be generated
       integer(I4B), parameter :: NFRAGMIN = 1 !! Minimum number of fragments that can be generated (set by the fraggle_generate algorithm for constraining momentum and energy)
-      integer(I4B), parameter :: NFRAG_SIZE_MULTIPLIER = 3 !! Log-space scale factor that scales the number of fragments by the collisional system mass
+      integer(I4B), parameter :: NFRAG_SIZE_MULTIPLIER = 10 !! Log-space scale factor that scales the number of fragments by the collisional system mass
       integer(I4B), parameter :: iMlr = 1
       integer(I4B), parameter :: iMslr = 2
       integer(I4B), parameter :: iMrem = 3
@@ -130,7 +130,7 @@ contains
                call random_number(mass_noise)
                mass_noise = 1.0_DP + mass_noise * epsilon(1.0_DP) * 10**(MASS_NOISE_FACTOR)
                min_mfrag = (param%min_GMfrag / param%GU) * mass_noise
-               ! The number of fragments we generate is bracked by the minimum required by fraggle_generate (7) and the 
+               ! The number of fragments we generate is bracked by the minimum required by fraggle_generate nd the 
                ! maximum set by the NFRAG_SIZE_MULTIPLIER which limits the total number of fragments to prevent the nbody
                ! code from getting an overwhelmingly large number of fragments
                nfrag = ceiling(NFRAG_SIZE_MULTIPLIER  * log(mtot / min_mfrag))
@@ -144,7 +144,7 @@ contains
             if (mremaining > 0.0_DP) then
                i = iMrem 
                do while (i <= nfrag)
-                  mfrag = max((1 + i - iMslr)**(-3._DP / BETA) * impactors%mass_dist(iMslr), min_mfrag)
+                  mfrag = max((i - 1)**(-3._DP / BETA) * impactors%mass_dist(iMslr), min_mfrag)
                   if (mremaining - mfrag <= 0.0_DP) exit
                   mremaining = mremaining - mfrag
                   i = i + 1
