@@ -9,15 +9,13 @@ If not, see: https://www.gnu.org/licenses.
 
 README.txt
 
-Swiftest Example : Chambers2013
+Swiftest Example : Fragmentation
 Author           : David Minton and Carlisle Wishard
 Date             : December 6, 2022
 
-Included in the Chambers2013 example directory are the following files:
+Included in the Fragmentation example directory are the following files:
 
-	- README.txt      : This file
-	- init_cond.py    : A Python Script that generates a set of initial conditions.
-	- scattermovie.py : A Python Script that processes data.nc and generates Chambers2013-aescatter.mp4 or Chambers2013-aiscatter.mp4
+	- README.txt 		    : This file
+	- Multibody_Movie.py        : A Python Script that generates, runs, and processes a multi-body collisional event.
 
-This example is intended to be run with Swiftest SyMBA. For details on how to generate, run, and analyze this example, 
-see the Swiftest User Manual.
+This example is intended to be run with Swiftest SyMBA. For details on how to generate, run, and analyze this example, see the Swiftest User Manual.

@@ -460,25 +460,35 @@ This example walks through how to set up a standard solar system simulation. It 
 - Semi-Interacting Massive Bodies - Gravitationally affect and are affected by fully-interacting massive bodies, do not gravitationally affect and are not affected by other semi-interacting massive bodies.
 - Test Particles - Gravitationally affected by fully-interacting massive bodies only. 
 
-To generate the initial conditions, run the Python script titled **initial_conditions.py**. To process the output file, run the script titled **output_reader.py**. 
+To generate the initial conditions, run the Python script titled **initial_conditions.py**. This script also runs Swiftest SyMBA, generating output. To process the output file, run the script titled **output_reader.py**. 
 
 **Chambers2013**
 
-This example acts as a comparison to the work of [Chambers 2013](https://www.sciencedirect.com/science/article/pii/S0019103513000754?via%3Dihub). It can be found in the ```/swiftest/examples/Chambers2013``` directory. It is intended to be run using the SyMBA integrator.
+This example acts as a comparison to the work of [Chambers 2013](https://www.sciencedirect.com/science/article/pii/S0019103513000754?via%3Dihub). It can be found in the ```/swiftest/examples/Chambers2013``` directory. It is intended to be run using the SyMBA integrator and highlights how to run Swiftest using and executable, as opposed to through a Python script. To generate the initial conditions, run **init_cond.py**. To run Swiftest with these intial conditions, type:
+
+```
+./swiftest_driver symba param.in
+```
+
+To process the output file, run the script titled **<span>scattermovie.py</span>**.
 
 **Fragmentation**
 
 This example highlights the functionality of the Fraggle algorithm. It can be found in the ```/swiftest/examples/Fragmentation``` directory. It is intended to be run using the SyMBA integrator. It contains three pre-built collisional test cases:
 
-- A Head-On Disruptive Collision
-- An Off-Axis Supercatastrophic Disruptive Collision
+- A Head-On Disruptive Collision 
+- An Off-Axis Super-Catastrophic Disruptive Collision
 - A Disruptive Hit and Run Collision
 
-To generate a movide depicting the collision and results of each test case, run the Python script titled **Fragmentation_Movie.py**.
+To generate a movie depicting the collision and results of each of the test cases, run the Python script titled **Fragmentation_Movie.py**.
 
 **helio_gr_test**
 
-This example demonstrates the functionality of general relativity in Swiftest HELIO. It can be found in the ```/swiftest/examples/helio_gr_test``` directory. It is intended to be run using the HELIO integrator. Because the SyMBA integrator is built upon the HELIO integrator, GR can also be used in SyMBA.
+This example demonstrates the functionality of general relativity in Swiftest HELIO. It can be found in the ```/swiftest/examples/helio_gr_test``` directory. It is intended to be run using the HELIO integrator. Because the SyMBA integrator is built upon the HELIO integrator, GR is also available in SyMBA.
+
+**Multibody_Fragmentation**
+
+This example highlights the functionality of the Fraggle algorithm. It can be found in the ```/swiftest/examples/Mulitbody_Fragmentation``` directory. It is intended to be run using the SyMBA integrator. To generate a set of initial conditions, run the initial conditions using Swiftest, and generate a movie depicting the collisional result, run the Python script titled **Multibody_Movie.py**.
 
 **solar_impact**
 
@@ -490,7 +500,7 @@ This set of examples acts as a comparison between Swiftest and its predecessor, 
 
 **whm_gr_test**
 
-This example demonstrates the functionality of general relativity in Swiftest WHM. It can be found in the ```/swiftest/examples/whm_gr_test``` directory. It is intended to be run using the WHM integrator. Because the SyMBA integrator is built upon the HELIO integrator, which is in turn built upon the WHM integrator, GR can also be used in SyMBA.
+This example demonstrates the functionality of general relativity in Swiftest WHM. It can be found in the ```/swiftest/examples/whm_gr_test``` directory. It is intended to be run using the WHM integrator. Because the SyMBA integrator is built upon the HELIO integrator, which is in turn built upon the WHM integrator, GR is also available in SyMBA.
 
 ---
 
@@ -516,13 +526,9 @@ This mass threshold is necessary to ensure that Swiftest SyMBA does not generate
 
 **What are the limits of Swiftest SyMBA?**
 
-While Swifest SyMBA is a powerful tool for modeling gravitational interactions between massive bodies, it does have its limits. While Swiftest SyMBA is capable of modeling systems containing thousands of massive bodies, the code does slow down significantly. For this reason, Swiftest SyMBA is best used for systems containing tens to hundreds of fully-interacting massive bodies. It is also best used for timescales on the order of a few hundred million years or less. While it is possible to model systems on a billion year timescale, the computational power required may be beyond what is available to the average user. In these cases, it is recommended that the user consider modeling with test particles instead of massive bodies. For systems that contain mainly test particles, with few to no close encounters between massive bodies, Swiftest RMVS is likely a more appropriate tool. An overview of the performance capabilities of Swiftest SyMBA is included in **Figure 3**. 
+While Swifest SyMBA is a powerful tool for modeling gravitational interactions between massive bodies, it does have its limits. While Swiftest SyMBA is capable of modeling systems containing thousands of massive bodies, the code does slow down significantly. For this reason, Swiftest SyMBA is best used for systems containing tens to hundreds of fully-interacting massive bodies. It is also best used for timescales on the order of a few hundred million years or less. While it is possible to model systems on a billion year timescale, the computational power required may be beyond what is available to the average user. In these cases, it is recommended that the user consider modeling with test particles instead of massive bodies. For systems that contain mainly test particles, with few to no close encounters between massive bodies, Swiftest RMVS is likely a more appropriate tool. 
 
 To get a sense of the scope of your desired simulation, it is recommended that you run your initial conditions and parameters for a just few steps. Make sure that you set ```ISTEP_OUT``` and ```DUMP_CADENCE``` to output only once the simulation is complete, not between steps. Because writing to the output files and memory takes a significant amount of computational time compared to integrating the step, we want to avoid counting writing time in our diagnostic information. The terminal output contains information about the total wall time and the wall time per integration step. To get a sense of how long your run will take to complete your desired ```tmax```, simply scale up the wall time per integration step to the number of steps necessary for ```tmax``` to be reached. Remember that writing to the output files will take a considerable amount of time. Adjust your intitial conditions and parameters accordingly.
-
-|![Swiftest SyMBA Performance](README_figs/performance.png "Swiftest SyMBA Performance")|
-|:--:|
-|**Figure 3** - The wall time per integration step as a result of the number of CPUs used. The results for a system containing 10, 100, and 1000 fully-interacting massive bodies are shown in dark blue, medium blue, and teal, respectively. In red are the the optimum number of CPUs needed to achieve peek performance in each run. Parallelization in Swiftest SyMBA is still under development, so performance at higher numbers of CPUs is expected to improve.| 
 
 ---
 

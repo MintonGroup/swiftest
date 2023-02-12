@@ -21,11 +21,14 @@ None.
 
 Output
 ------
-data.nc        : A NetCDF file containing the simulation output.
-collisions.log : An ASCII file containing the information of any collisional events that occured.
-init_cond.nc   : A NetCDF file containing the initial conditions for the simulation.
-param.in       : An ASCII file containing the parameters for the simulation.
-swiftest.log   : An ASCII file containing the information on the status of the simulation as it runs.
+collisions.log   : An ASCII file containing the information of any collisional events that occured.
+collisions.nc    : A NetCDF file containing the collision output.
+data.nc          : A NetCDF file containing the simulation output.
+init_cond.nc     : A NetCDF file containing the initial conditions for the simulation.
+param.00...0.in  : A series of parameter input files containing the parameters for the simulation at every output stage.
+param.in         : An ASCII file containing the parameters for the simulation.
+param.restart.in : An ASCII file containing the parameters for the simulation at the last output. 
+swiftest.log     : An ASCII file containing the information on the status of the simulation as it runs.
 """
 
 import swiftest

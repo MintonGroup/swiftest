@@ -21,9 +21,10 @@ None.
 
 Output
 ------
-init_cond.nc   : A NetCDF file containing the initial conditions for the simulation.
-param.in       : An ASCII file containing the parameters for the simulation.
-"""
+inital_conditions.png : A .png file depicting the simulation initial configuration.
+init_cond.nc          : A NetCDF file containing the initial conditions for the simulation.
+param.in              : An ASCII file containing the parameters for the simulation.
+""" 
 
 import swiftest
 import numpy as np
@@ -38,10 +39,11 @@ Nb = 14
 Ns = 140
 Mb = 2.8e-7 * 14 / Nb
 Ms = 2.8e-8 * 140 / Ns
-dens = 3000.0 / (sim.MU2KG / sim.DU2M**3)
+dens = 3000.0 * sim.KG2MU / sim.M2DU**3
 
 mtiny = 1e-2 * Ms
-mininum_fragment_mass = 1e-4 * Ms
+minimum_fragment_mass = 1e-5 * Ms
+nfrag_reduction = 10.0
 rng = default_rng(seed=3031179)
 
 runname = "Chambers (2013)"
@@ -127,7 +129,7 @@ names = [f"Small{i:03}" for i in range(Ns)]
 sim.add_solar_system_body(["Sun","Jupiter","Saturn","Uranus","Neptune"])
 sim.add_body(name=nameb, a=avalb, e=evalb, inc=incvalb, capom=capomvalb, omega=omegavalb, capm=capmvalb, mass=Mvalb, radius=Rvalb, rot=rotvalb, Ip=Ipvalb)
 sim.add_body(name=names, a=avals, e=evals, inc=incvals, capom=capomvals, omega=omegavals, capm=capmvals, mass=Mvals, radius=Rvals, rot=rotvals, Ip=Ipvals)
-sim.set_parameter(mtiny=mtiny, minimum_fragment_mass=mininum_fragment_mass)
+sim.set_parameter(mtiny=mtiny, minimum_fragment_mass=minimum_fragment_mass, nfrag_reduction=nfrag_reduction)
 
 sim.set_parameter(tstop=3e8, dt=6.0875/365.25, istep_out=60000, dump_cadence=10)
 sim.clean()

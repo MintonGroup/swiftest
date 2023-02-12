@@ -17,7 +17,6 @@ Included in the Fragmentation example directory are the following files:
 
 	- README.txt 		    : This file
 	- swiftest_fragmentation.py : A Python Script that generates and runs three sets of initial conditions.
-	- Fragmentation_Movie.py    : A Python Script that processes an out.nc file and generates a movie (.mp4) of a collisional event.
-	- Multibody_Movie.py        : A Python Script that processes an out.nc file and generates a movie (.mp4) of a multi-body collisional event.
+	- Fragmentation_Movie.py    : A Python Script that processes a data.nc file and generates a movie (.mp4) of a collisional event.
 
-This example is intendedto be run with Swiftest SyMBA. For details on how to generate, run, and analyze this example, see the Swiftest User Manual.
+This example is intended to be run with Swiftest SyMBA. For details on how to generate, run, and analyze this example, see the Swiftest User Manual.

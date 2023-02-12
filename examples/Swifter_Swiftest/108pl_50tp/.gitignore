@@ -1,0 +1,13 @@
+*
+!.gitignore
+!cb.in
+!param.swifter.in
+!param.swiftest.in
+!pl.swifter.in
+!pl.swiftest.in
+!README.txt
+!swifter_start.in
+!swifter_swiftest_comp.eps
+!swifter_swiftest_comp.py
+!tp.swifter.in
+!tp.swiftest.in

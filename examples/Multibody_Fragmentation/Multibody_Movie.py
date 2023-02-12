@@ -11,16 +11,25 @@
 """
 
 """
-Generates a movie of a multi-body fragmentation event from set of Swiftest output files.
+Generates, runs, and processes a set of initial conditions for a multi-body super-catastrophic distruption collisional event. 
+All Swiftest output files are stored in the /supercatastrophic_multi subdirectory.
 
 Inputs
 _______
-param.in    : ASCII Swiftest parameter input file.
-data.nc     : A NetCDF file containing the simulation output.
+None.
 
 Returns
 -------
-fragmentation.mp4 : A .mp4 file of a fragmentation event.
+supercatastrophic_multi.mp4 : A .mp4 file of a fragmentation event.
+collisions.log   : An ASCII file containing the information of any collisional events that occured.
+collisions.nc    : A NetCDF file containing the collision output.
+data.nc          : A NetCDF file containing the simulation output.
+encounters.nc    : A NetCDF file containing the encounters output.
+init_cond.nc     : A NetCDF file containing the initial conditions for the simulation.
+param.00....in   : A series of parameter input files containing the parameters for the simulation at every output stage.
+param.in         : An ASCII file containing the inital parameters for the simulation.
+param.restart.in : An ASCII file containing the parameters for the simulation at the last output. 
+swiftest.log     : An ASCII file containing the information on the status of the simulation as it runs.
 """
 
 import swiftest
