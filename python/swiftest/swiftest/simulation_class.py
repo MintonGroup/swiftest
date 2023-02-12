@@ -239,6 +239,11 @@ class Simulation(object):
             fragmentation model is enabled. Ignored otherwise
             *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
             Parameter input file equivalent: `MIN_GMFRAG`
+        nfrag_reduction : float, optional
+            If fragmentation is turne don, this is a reduction factor used to limit the number of fragments generated in a collision.
+            For instance, if the SFD of the collision would generated 300 fragments above the `minimum_fragment_mass`, then a value
+            of `nfrag_reduction = 30.0` would reduce it to 10.  
+            *Note.* Currently only used by the Fraggle collision model.
         rotation : bool, default False
             If set to True, this turns on rotation tracking and radius, rotation vector, and moments of inertia values
             must be included in the initial conditions.
@@ -764,6 +769,7 @@ class Simulation(object):
             "qmin_coord": "HELIO",
             "gmtiny": 0.0,
             "mtiny": None,
+            "nfrag_reduction": 30.0,
             "close_encounter_check": True,
             "general_relativity": True,
             "collision_model": "FRAGGLE",
@@ -1009,6 +1015,7 @@ class Simulation(object):
                     collision_model: Literal["MERGE","BOUNCE","FRAGGLE"] | None = None,
                     minimum_fragment_gmass: float | None = None,
                     minimum_fragment_mass: float | None = None,
+                    nfrag_reduction: float | None = None,
                     rotation: bool | None = None,
                     compute_conservation_values: bool | None = None,
                     extra_force: bool | None = None,
@@ -1054,6 +1061,11 @@ class Simulation(object):
             fragmentation model is enabled. Ignored otherwise
             *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
             Parameter input file equivalent: `MIN_GMFRAG`
+        nfrag_reduction : float, optional
+            If fragmentation is turne don, this is a reduction factor used to limit the number of fragments generated in a collision.
+            For instance, if the SFD of the collision would generated 300 fragments above the `minimum_fragment_mass`, then a value
+            of `nfrag_reduction = 30.0` would reduce it to 10.  
+            *Note.* Currently only used by the Fraggle collision model. 
         rotation : bool, optional
             If set to True, this turns on rotation tracking and radius, rotation vector, and moments of inertia values
             must be included in the initial conditions.
@@ -1151,6 +1163,10 @@ class Simulation(object):
             self.param["MIN_GMFRAG"] = minimum_fragment_mass * self.GU
             if "minimum_fragment_gmass" not in update_list:
                 update_list.append("minimum_fragment_gmass")
+                
+        if nfrag_reduction is not None:
+            self.param["NFRAG_REDUCTION"] = nfrag_reduction
+            update_list.append("nfrag_reduction")
 
         if rotation is not None:
             self.param['ROTATION'] = rotation
@@ -1167,6 +1183,7 @@ class Simulation(object):
         if extra_force is not None:
             self.param["EXTRA_FORCE"] = extra_force
             update_list.append("extra_force")
+        
 
         if big_discard is not None:
             if self.codename != "Swifter":
@@ -1264,6 +1281,7 @@ class Simulation(object):
                      "collision_model": "COLLISION_MODEL",
                      "encounter_save": "ENCOUNTER_SAVE",
                      "minimum_fragment_gmass": "MIN_GMFRAG",
+                     "nfrag_reduction": "NFRAG_REDUCTION",
                      "rotation": "ROTATION",
                      "general_relativity": "GR",
                      "compute_conservation_values": "ENERGY",

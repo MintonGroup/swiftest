@@ -2054,6 +2054,8 @@ contains
                   read(param_value, *) param%GMTINY
                case ("MIN_GMFRAG")
                   read(param_value, *) param%min_GMfrag
+               case ("NFRAG_REDUCTION")
+                  read(param_value, *) param%nfrag_reduction
                case ("ENCOUNTER_SAVE")
                   call swiftest_io_toupper(param_value)
                   read(param_value, *) param%encounter_save
@@ -2229,6 +2231,10 @@ contains
                call random_seed(get = param%seed)
             end if
             if (param%min_GMfrag < 0.0_DP) param%min_GMfrag = param%GMTINY
+            if (param%nfrag_reduction < 1.0_DP) then
+               write(iomsg,*) "Warning: NFRAG_REDUCTION value invalid. Setting to 1.0" 
+               param%nfrag_reduction = 1.0_DP
+            end if
          end if
    
          ! Determine if the GR flag is set correctly for this integrator
@@ -2406,6 +2412,7 @@ contains
          if (param%min_GMfrag >= 0.0_DP) call io_param_writer_one("MIN_GMFRAG",param%min_GMfrag, unit)
          call io_param_writer_one("COLLISION_MODEL",param%collision_model, unit)
          if (param%collision_model == "FRAGGLE" ) then
+            call io_param_writer_one("NFRAG_REDUCTION",param%nfrag_reduction, unit)
             nseeds = size(param%seed)
             call random_seed(get = param%seed)
             call io_param_writer_one("SEED", [nseeds, param%seed(:)], unit)

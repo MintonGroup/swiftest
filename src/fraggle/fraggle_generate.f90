@@ -34,6 +34,8 @@ contains
       class is (swiftest_nbody_system)
       select type(pl => nbody_system%pl)
       class is (swiftest_pl)
+      select type(param)
+      class is (swiftest_parameters)
          associate(impactors => self%impactors, status => self%status, maxid => nbody_system%maxid)
             ! Set the coordinate system of the impactors
             call impactors%set_coordinate_system()
@@ -97,6 +99,7 @@ contains
  
             end associate
          end associate
+      end select
       end select
       end select
       return
@@ -228,6 +231,8 @@ contains
       class is (swiftest_nbody_system)
       select type(pl => nbody_system%pl)
       class is (swiftest_pl)
+      select type(param)
+      class is (swiftest_parameters)
          associate(impactors => self%impactors, maxid => nbody_system%maxid)
             call collision_io_collider_message(nbody_system%pl, impactors%id, message)
             if (impactors%mass(1) > impactors%mass(2)) then
@@ -271,6 +276,7 @@ contains
             status = HIT_AND_RUN_DISRUPT
             call collision_resolve_mergeaddsub(nbody_system, param, t, status)
          end associate
+      end select
       end select
       end select
 

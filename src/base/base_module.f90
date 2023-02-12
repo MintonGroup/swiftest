@@ -54,6 +54,7 @@ module base
       real(DP)                                :: inv_c2               = -1.0_DP         !! Inverse speed of light squared in the system units
       real(DP)                                :: GMTINY               = -1.0_DP         !! Smallest G*mass that is fully gravitating
       real(DP)                                :: min_GMfrag           = -1.0_DP         !! Smallest G*mass that can be produced in a fragmentation event
+      real(DP)                                :: nfrag_reduction      =  30.0_DP        !! Reduction factor for limiting the number of fragments in a collision
       integer(I4B), dimension(:), allocatable :: seed                                   !! Random seeds for fragmentation modeling
       logical                                 :: lmtiny_pl            = .false.         !! Include semi-interacting massive bodies
       character(STRMAX)                       :: collision_model      = "MERGE"         !! The Coll
