@@ -83,8 +83,8 @@ contains
       !!
       implicit none
       ! Arguments
-      class(collision_fraggle), intent(inout) :: self  !! Fraggle collision system object
-      class(base_parameters),             intent(in)    :: param !! Current Swiftest run configuration parameters
+      class(collision_fraggle),   intent(inout) :: self  !! Fraggle collision system object
+      class(swiftest_parameters), intent(in)    :: param !! Current Swiftest run configuration parameters
       ! Internals
       integer(I4B)              :: i, j, jproj, jtarg, nfrag, istart
       real(DP), dimension(2)    :: volume
@@ -95,7 +95,7 @@ contains
       integer(I4B), parameter :: MASS_NOISE_FACTOR = 4  !! The number of digits of random noise that get added to the minimum mass value to prevent identical masses from being generated in a single run 
       integer(I4B), parameter :: NFRAGMAX = 100  !! Maximum number of fragments that can be generated
       integer(I4B), parameter :: NFRAGMIN = 1 !! Minimum number of fragments that can be generated (set by the fraggle_generate algorithm for constraining momentum and energy)
-      integer(I4B), parameter :: NFRAG_SIZE_MULTIPLIER = 3 !! Log-space scale factor that scales the number of fragments by the collisional system mass
+      integer(I4B), parameter :: NFRAG_SIZE_MULTIPLIER = 10 !! Log-space scale factor that scales the number of fragments by the collisional system mass
       integer(I4B), parameter :: iMlr = 1
       integer(I4B), parameter :: iMslr = 2
       integer(I4B), parameter :: iMrem = 3
@@ -124,35 +124,19 @@ contains
             ! the limits bracketed above and the model size distribution of fragments.
             ! Check to see if our size distribution would give us a smaller number of fragments than the maximum number
 
-            select type(param)
-            class is (swiftest_parameters)
-               ! Add a small amount of noise to the last digits of the minimum mass value so that multiple fragments don't get generated with identical mass values
-               call random_number(mass_noise)
-               mass_noise = 1.0_DP + mass_noise * epsilon(1.0_DP) * 10**(MASS_NOISE_FACTOR)
-               min_mfrag = (param%min_GMfrag / param%GU) * mass_noise
-               ! The number of fragments we generate is bracked by the minimum required by fraggle_generate (7) and the 
-               ! maximum set by the NFRAG_SIZE_MULTIPLIER which limits the total number of fragments to prevent the nbody
-               ! code from getting an overwhelmingly large number of fragments
-               nfrag = ceiling(NFRAG_SIZE_MULTIPLIER  * log(mtot / min_mfrag))
-               nfrag = max(min(nfrag, NFRAGMAX), NFRAGMIN)
-            class default
-               min_mfrag = 0.0_DP
-               nfrag = NFRAGMAX
-            end select
+            ! ! Add a small amount of noise to the last digits of the minimum mass value so that multiple fragments don't get generated with identical mass values
+            call random_number(mass_noise)
+            mass_noise = 1.0_DP + mass_noise * epsilon(1.0_DP) * 10**(MASS_NOISE_FACTOR)
+            min_mfrag = (param%min_GMfrag / param%GU)
 
             mremaining = impactors%mass_dist(iMrem)
-            if (mremaining > 0.0_DP) then
-               i = iMrem 
-               do while (i <= nfrag)
-                  mfrag = max((1 + i - iMslr)**(-3._DP / BETA) * impactors%mass_dist(iMslr), min_mfrag)
-                  if (mremaining - mfrag <= 0.0_DP) exit
-                  mremaining = mremaining - mfrag
-                  i = i + 1
-               end do
-            else
-               i = iMrem - 1
-            end if
-            nfrag = i
+            nfrag = iMrem - 1 
+            do while (mremaining > 0.0_DP)
+               nfrag = nfrag + 1
+               mfrag = max((nfrag - 1)**(-3._DP / BETA) * impactors%mass_dist(iMslr), min_mfrag)
+               mremaining = mremaining - mfrag
+            end do
+            nfrag = ceiling(nfrag / param%nfrag_reduction)
             call self%setup_fragments(nfrag)
 
          case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE) 
@@ -167,7 +151,7 @@ contains
             end associate
             return
          case default
-            write(*,*) "collision_util_set_mass_dist_fragments error: Unrecognized regime code",impactors%regime
+            write(*,*) "fraggle_util_set_mass_dist_fragments error: Unrecognized regime code",impactors%regime
          end select
 
          associate(fragments => self%fragments)
@@ -176,14 +160,14 @@ contains
 
             ! Make the first two bins the same as the Mlr and Mslr values that came from collision_regime
             mass(1) = impactors%mass_dist(iMlr) 
-            mass(2) = impactors%mass_dist(iMslr) 
+            mass(2) = impactors%mass_dist(iMslr)
 
             ! Distribute the remaining mass the 3:nfrag bodies following the model SFD given by slope BETA 
             mremaining = impactors%mass_dist(iMrem)
             do i = iMrem, nfrag
                call random_number(mass_noise)
                mass_noise = 1.0_DP + mass_noise * epsilon(1.0_DP) * 10**(MASS_NOISE_FACTOR)
-               mfrag = max((1 + i - iMslr)**(-3._DP / BETA) * impactors%mass_dist(iMslr), min_mfrag) * mass_noise
+               mfrag = max((i - 1)**(-3._DP / BETA) * impactors%mass_dist(iMslr), min_mfrag) * mass_noise
                mass(i) = mfrag
                mremaining = mremaining - mfrag
             end do
@@ -192,7 +176,7 @@ contains
             if (mremaining < 0.0_DP) then ! If the remainder is negative, this means that that the number of fragments required by the SFD is smaller than our lower limit set by fraggle_generate. 
                istart = iMrem ! We will reduce the mass of the 3:nfrag bodies to prevent the second-largest fragment from going smaller
             else ! If the remainder is postiive, this means that the number of fragments required by the SFD is larger than our upper limit set by computational expediency. 
-               istart = iMslr ! We will increase the mass of the 2:nfrag bodies to compensate, which ensures that the second largest fragment remains the second largest
+               istart = iMslr ! We will increase the mass of the 2:nfrag bodies to compensate, which ensures that the second largest fragment either remains the second largest or becomes the largest
             end if
             mfrag = 1._DP + mremaining / sum(mass(istart:nfrag))
             mass(istart:nfrag) = mass(istart:nfrag) * mfrag

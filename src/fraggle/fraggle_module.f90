@@ -85,7 +85,7 @@ module fraggle
       module subroutine fraggle_util_set_mass_dist(self, param)
          implicit none
          class(collision_fraggle), intent(inout) :: self  !! Fraggle collision object
-         class(base_parameters),   intent(in)    :: param !! Current Swiftest run configuration parameters
+         class(swiftest_parameters),   intent(in)    :: param !! Current Swiftest run configuration parameters
       end subroutine fraggle_util_set_mass_dist
    end interface
    
