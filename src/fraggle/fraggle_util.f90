@@ -92,10 +92,9 @@ contains
       real(DP) :: mfrag, mremaining, mtot, mcumul, G, mass_noise
       real(DP), dimension(:), allocatable :: mass
       real(DP), parameter :: BETA = 2.85_DP
-      integer(I4B), parameter :: MASS_NOISE_FACTOR = 4  !! The number of digits of random noise that get added to the minimum mass value to prevent identical masses from being generated in a single run 
-      integer(I4B), parameter :: NFRAGMAX = 100  !! Maximum number of fragments that can be generated
+      integer(I4B), parameter :: MASS_NOISE_FACTOR = 5  !! The number of digits of random noise that get added to the minimum mass value to prevent identical masses from being generated in a single run 
+      integer(I4B), parameter :: NFRAGMAX = 1000  !! Maximum number of fragments that can be generated
       integer(I4B), parameter :: NFRAGMIN = 1 !! Minimum number of fragments that can be generated (set by the fraggle_generate algorithm for constraining momentum and energy)
-      integer(I4B), parameter :: NFRAG_SIZE_MULTIPLIER = 10 !! Log-space scale factor that scales the number of fragments by the collisional system mass
       integer(I4B), parameter :: iMlr = 1
       integer(I4B), parameter :: iMslr = 2
       integer(I4B), parameter :: iMrem = 3
@@ -136,7 +135,7 @@ contains
                mfrag = max((nfrag - 1)**(-3._DP / BETA) * impactors%mass_dist(iMslr), min_mfrag)
                mremaining = mremaining - mfrag
             end do
-            nfrag = ceiling(nfrag / param%nfrag_reduction)
+            nfrag = min(ceiling(nfrag / param%nfrag_reduction), NFRAGMAX)
             call self%setup_fragments(nfrag)
 
          case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE) 
