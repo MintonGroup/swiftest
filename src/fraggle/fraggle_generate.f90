@@ -324,8 +324,10 @@ contains
          ! We will treat the first two fragments of the list as special cases. 
          ! Place the first two bodies at the centers of the two fragment clouds, but be sure they are sufficiently far apart to avoid overlap
          loverlap(:) = .true.
+         istart = 3
          if (lhitandrun) then
-            rdistance = 1.0_DP
+            rdistance = impactors%radius(2)
+            istart = 2
          else if (lsupercat) then
             rdistance = 0.5_DP * sum(impactors%radius(:))
          else
@@ -342,20 +344,15 @@ contains
             mass_rscale(:) = mass_rscale(:) * (fragments%mtot / fragments%mass(1:nfrag))**(0.125_DP) ! The power is arbitrary. It just gives the velocity a small mass dependence
             mass_rscale(:) = mass_rscale(:) / maxval(mass_rscale(:))
          end if
-         istart = 3
 
          do loop = 1, MAXLOOP
             if (.not.any(loverlap(:))) exit
-            if (lhitandrun) then  ! Keep the target unchanged and place the largest fragment at rdistance away from the projectile along its trajectory 
+            if (lhitandrun) then  ! Keep the target unchanged and set the 2nd fragment cloud to be centered on the projectile 
                fragment_cloud_radius(1) = rbuffer * max(fragments%radius(1), impactors%radius(1))
                fragment_cloud_radius(2) = rbuffer * max(fragments%radius(2), impactors%radius(2))
-               ! Initialize the largest body at the original target body position
-               fragments%rc(:,1) = impactors%rc(:,1)
-               ! Ensure that the second largest body does not overlap (including the buffer). Otherwise, shift it downrange
-               dis = max(1.00001_DP * sum(fragment_cloud_radius(1:2)) - .mag.(impactors%rc(:,2) - impactors%rc(:,1)), 0.0_DP)
-               fragments%rc(:,2) = impactors%rc(:,2) + dis * impactors%bounce_unit(:)
-               fragment_cloud_center(:,1) = fragments%rc(:,1) 
-               fragment_cloud_center(:,2) = fragments%rc(:,2) + sum(fragment_cloud_radius(1:2)) * rdistance * impactors%bounce_unit(:)
+               fragment_cloud_center(:,1) = impactors%rc(:,1)
+               fragment_cloud_center(:,2) = impactors%rc(:,2) 
+               fragments%rc(:,1) = fragment_cloud_center(:,1)
             else ! Keep the first and second bodies at approximately their original location, but so as not to be overlapping
                fragment_cloud_center(:,1) = impactors%rcimp(:) - rbuffer * max(fragments%radius(1),impactors%radius(1)) * impactors%y_unit(:)
                fragment_cloud_center(:,2) = impactors%rcimp(:) + rbuffer * max(fragments%radius(2),impactors%radius(2)) * impactors%y_unit(:)
@@ -379,18 +376,20 @@ contains
                ! Make a random cloud
                phi(i) = TWOPI * phi(i)
                theta(i) = acos(2 * theta(i) - 1.0_DP)
+
                ! Scale the cloud size
                fragments%rmag(i) = fragment_cloud_radius(j) * mass_rscale(i) * u(i)**(THIRD)
 
+               ! Position the fragment in a random point within the cloud
                fragments%rc(1,i) = fragments%rmag(i) * sin(theta(i)) * cos(phi(i))
                fragments%rc(2,i) = fragments%rmag(i) * sin(theta(i)) * sin(phi(i))
                fragments%rc(3,i) = fragments%rmag(i) * cos(theta(i))
 
                ! Shift to the cloud center coordinates
                fragments%rc(:,i) = fragments%rc(:,i) + fragment_cloud_center(:,j)
-               if (lhitandrun) then ! Stretch out the hit and run cloud along the flight trajectory
-                  fragments%rc(:,i) = fragments%rc(:,i) + cloud_size_scale_factor * rdistance * fragments%rmag(i) * impactors%bounce_unit(:)
-               end if
+
+               ! Stretch out the hit and run cloud along the flight trajectory
+               if (lhitandrun) fragments%rc(:,i) = fragments%rc(:,i) + cloud_size_scale_factor * rdistance * u(i) * impactors%bounce_unit(:)
 
                ! Make sure that the fragments are positioned away from the impact point
                direction = dot_product(fragments%rc(:,i) - impactors%rcimp(:), fragment_cloud_center(:,j) - impactors%rcimp(:))
@@ -461,11 +460,14 @@ contains
       ! Internals
       integer(I4B) :: i
       real(DP), parameter :: frag_rot_fac = 0.1_DP ! Fraction of projectile rotation magnitude to add as random noise to fragment rotation
+      real(DP), parameter :: hitandrun_momentum_transfer = 0.01_DP ! Fraction of projectile momentum transfered to target in a hit and run
       real(DP) :: mass_fac
       real(DP), dimension(NDIM) :: drot, dL
       integer(I4B), parameter :: MAXLOOP = 10
+      logical :: lhitandrun
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
+         lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
 
          ! Initialize fragment rotations and velocities to be pre-impact rotation for body 1, and randomized for bodies >1 and scaled to the original rotation. 
          ! This will get updated later when conserving angular momentum
@@ -488,6 +490,22 @@ contains
             end do
             fragments%rot(:,1) = fragments%rot(:,1) + drot(:)
          end if
+
+         if (lhitandrun) then
+            dL(:) = hitandrun_momentum_transfer * impactors%mass(2) * (impactors%rc(:,2) - impactors%rc(:,1)) .cross. (impactors%vc(:,2) - impactors%vc(:,1)) 
+            drot(:) = dL(:) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(3,1))
+            do i = 1, MAXLOOP
+               if (.mag.(fragments%rot(:,1) + drot(:)) < collider%max_rot) exit
+               if (i == MAXLOOP) drot(:) = 0.0_DP
+               where(drot(:) > TINY(1.0_DP))
+                  drot(:) = drot(:) / 2
+               elsewhere
+                  drot(:) = 0.0_DP
+               endwhere
+            end do
+            fragments%rot(:,1) = fragments%rot(:,1) + drot(:)
+         end if   
+
          call random_number(fragments%rot(:,2:nfrag))
          do concurrent (i = 2:nfrag)
             mass_fac = fragments%mass(i) / impactors%mass(2)
@@ -564,8 +582,8 @@ contains
 
                if (lhitandrun) then
                   vesc = sqrt(2 * sum(fragments%Gmass(istart:fragments%nbody)) / sum(fragments%radius(istart:fragments%nbody)))
-                  vmin_guess = .mag.impactors%vc(:,2) - vimp * hitandrun_vscale
-                  vmax_guess = .mag.impactors%vc(:,2) + vimp * hitandrun_vscale
+                  vmin_guess = .mag.impactors%vc(:,2) * (1.0_DP - hitandrun_vscale)
+                  vmax_guess = .mag.impactors%vc(:,2) * (1.0_DP + hitandrun_vscale)
                else
                   vesc = sqrt(2 * sum(impactors%Gmass(:)) / sum(impactors%radius(:)))
                   vmin_guess = 1.001_DP * vesc
