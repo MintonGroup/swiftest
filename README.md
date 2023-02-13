@@ -209,7 +209,7 @@ Swiftest accepts 4 ASCII input files. All four input files are necessary, howeve
 - **<span>pl.in</span>** - The massive body input file.
 - **<span>tp.in</span>** - The test particle input file.
 
-The parameter options used in the parameter input file are as described in [param_options](README_tables/param_options.md).
+The parameter options used in the parameter input file are as described in [simulation_kwargs](README_tables/simulation_kwargs.md).
 
 The **<span>cb.in</span>** includes all central body initial conditions. The structure of the **<span>cb.in</span>** is as follows:
 
