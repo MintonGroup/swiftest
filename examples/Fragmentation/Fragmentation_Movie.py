@@ -11,16 +11,30 @@
 """
 
 """
-Generates a movie of a fragmentation event from set of Swiftest output files.
+Generates and runs a set of Swiftest input files from initial conditions with the SyMBA integrator. All simulation 
+outputs for the disruption case are stored in the /disruption subdirectory. All simulation outputs for the hit and run 
+case are stored in the /hitandrun subdirectory. All simulation outputs for the super-catastrophic disruption case are 
+stored in the /supercat subdirectory.
 
 Inputs
 _______
-param.in    : ASCII Swiftest parameter input file.
-data.nc     : A NetCDF file containing the simulation output.
+None.
 
-Returns
--------
-fragmentation.mp4 : A .mp4 file of a fragmentation event.
+Output
+------
+Three subdirectories:
+disruption/
+hitandrun/
+supercat/
+
+Each subdirectory contains:
+data.nc             : A NetCDF file containing the simulation output.
+init_cond.nc        : A NetCDF file containing the initial conditions for the simulation.
+collision_000001.nc : A NetCDF file containing the data for the collisions.
+encounter_000001.nc : A NetCDF file containing the data for the close encounters.
+collisions.log      : An ASCII file containing the information of any collisional events that occured.
+param.in            : An ASCII file containing the parameters for the simulation.
+swiftest.log        : An ASCII file containing the information on the status of the simulation as it runs.
 """
 
 import swiftest
