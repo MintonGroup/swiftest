@@ -1,4 +1,4 @@
-# Swiftest
+# Swiftest User Manual
 ### The Purdue University Swiftest Team
 #### Carlisle Wishard, David Minton, Jennifer Pouplin, Jake Elliott, & Dana Singh
 
