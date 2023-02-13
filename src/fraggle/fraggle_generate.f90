@@ -306,15 +306,13 @@ contains
       real(DP), dimension(collider%fragments%nbody) :: mass_rscale, phi, theta, u
       integer(I4B) :: i, j, loop, istart
       logical :: lsupercat, lhitandrun
-      integer(I4B), parameter :: MAXLOOP = 1000
-      real(DP), parameter :: rdistance_scale_factor = 1.0_DP ! Scale factor to apply to distance scaling of cloud centers in the event of overlap
-                                                             ! The distance is chosen to be close to the original locations of the impactors
-                                                             ! but far enough apart to prevent a collisional cascade between fragments 
+      integer(I4B), parameter :: MAXLOOP = 10000
       real(DP), parameter :: cloud_size_scale_factor = 3.0_DP ! Scale factor to apply to the size of the cloud relative to the distance from the impact point. 
                                                               ! A larger value puts more space between fragments initially
       real(DP) :: rbuffer  ! Body radii are inflated by this scale factor to prevent secondary collisions 
-      real(DP), parameter :: rbuffer_max = 1.2
-      rbuffer = 1.05_DP 
+      real(DP), parameter :: rbuffer_max = 1.2_DP
+      real(DP), parameter :: pack_density = 0.5236_DP ! packing density of loose spheres
+      rbuffer = 1.01_DP 
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody, &
          pl => nbody_system%pl, tp => nbody_system%tp, npl => nbody_system%pl%nbody, ntp => nbody_system%tp%nbody)
@@ -323,15 +321,15 @@ contains
 
          ! We will treat the first two fragments of the list as special cases. 
          ! Place the first two bodies at the centers of the two fragment clouds, but be sure they are sufficiently far apart to avoid overlap
-         loverlap(:) = .true.
-         istart = 3
          if (lhitandrun) then
             rdistance = impactors%radius(2)
             istart = 2
          else if (lsupercat) then
             rdistance = 0.5_DP * sum(impactors%radius(:))
+            istart = 3
          else
             rdistance = 2 * impactors%radius(2)
+            istart = 3
          end if
 
          if (lhitandrun) then
@@ -345,11 +343,12 @@ contains
             mass_rscale(:) = mass_rscale(:) / maxval(mass_rscale(:))
          end if
 
+         loverlap(:) = .true.
          do loop = 1, MAXLOOP
             if (.not.any(loverlap(:))) exit
             if (lhitandrun) then  ! Keep the target unchanged and set the 2nd fragment cloud to be centered on the projectile 
-               fragment_cloud_radius(1) = rbuffer * max(fragments%radius(1), impactors%radius(1))
-               fragment_cloud_radius(2) = rbuffer * max(fragments%radius(2), impactors%radius(2))
+               fragment_cloud_radius(1) = rbuffer * max(fragments%radius(1), impactors%radius(1)) 
+               fragment_cloud_radius(2) = rbuffer * max(fragments%radius(2), impactors%radius(2)) / pack_density
                fragment_cloud_center(:,1) = impactors%rc(:,1)
                fragment_cloud_center(:,2) = impactors%rc(:,2) 
                fragments%rc(:,1) = fragment_cloud_center(:,1)
@@ -389,13 +388,15 @@ contains
                fragments%rc(:,i) = fragments%rc(:,i) + fragment_cloud_center(:,j)
 
                ! Stretch out the hit and run cloud along the flight trajectory
-               if (lhitandrun) fragments%rc(:,i) = fragments%rc(:,i) + cloud_size_scale_factor * rdistance * u(i) * impactors%bounce_unit(:)
-
-               ! Make sure that the fragments are positioned away from the impact point
-               direction = dot_product(fragments%rc(:,i) - impactors%rcimp(:), fragment_cloud_center(:,j) - impactors%rcimp(:))
-               if (direction < 0.0_DP) then
-                  fragments%rc(:,i) = fragments%rc(:,i) - fragment_cloud_center(:,j)
-                  fragments%rc(:,i) = -fragments%rc(:,i) + fragment_cloud_center(:,j)
+               if (lhitandrun) then
+                  fragments%rc(:,i) = fragments%rc(:,i) + cloud_size_scale_factor * rdistance * u(i) * impactors%bounce_unit(:)
+               else
+                  ! Make sure that the fragments are positioned away from the impact point
+                  direction = dot_product(fragments%rc(:,i) - impactors%rcimp(:), fragment_cloud_center(:,j) - impactors%rcimp(:))
+                  if (direction < 0.0_DP) then
+                     fragments%rc(:,i) = fragments%rc(:,i) - fragment_cloud_center(:,j)
+                     fragments%rc(:,i) = -fragments%rc(:,i) + fragment_cloud_center(:,j)
+                  end if
                end if
             end do
 
@@ -534,7 +535,7 @@ contains
       ! Internals
       real(DP), parameter :: ENERGY_SUCCESS_METRIC = 1.0e-2_DP    !! Relative energy error to accept as a success (success also must be energy-losing in addition to being within the metric amount)
       real(DP)  :: MOMENTUM_SUCCESS_METRIC = 10*epsilon(1.0_DP) !! Relative angular momentum error to accept as a success (should be *much* stricter than energy)
-      integer(I4B) :: i, j, loop, try, istart, nfrag, nsteps, nsteps_best
+      integer(I4B) :: i, j, loop, try, istart, nfrag, nsteps, nsteps_best, posloop
       logical :: lhitandrun, lsupercat
       real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, vdisp, L_residual, L_residual_unit, L_residual_best, dL, drot, rot_new, dL_metric
       real(DP) :: vimp, vmag, vesc, dE, E_residual, E_residual_best, E_residual_last, ke_avail, ke_remove, dE_best, fscale, dE_metric, mfrag, rn, dL1_mag, dE_conv
@@ -735,7 +736,11 @@ contains
                end do inner
             end associate
 
-            call collider_local%restructure(nbody_system, param, lfailure)
+            do posloop = 1, MAXLOOP
+               collider_local%fail_scale = collider%fail_scale * posloop
+               call collider_local%restructure(nbody_system, param, lfailure)
+               if (.not.lfailure) exit
+            end do
             if (lfailure) exit outer
          end do outer
          dE_metric = abs(E_residual_best) / impactors%Qloss
