@@ -486,7 +486,7 @@ This example highlights the functionality of the Fraggle algorithm. It can be fo
 - A Merger Crossing the Spin Barrier
 - All of the Above
 
-To generate, run, and create a movie depicting the collision, run the Python script titled **Fragmentation_Movie.py**. Please note that this example requires a large amount of memory. For reference, this example was created and run using 2 nodes, each with 256 GB of memory. This amount of computational memory is necessary to generate a smooth movie. In this example, the trajectories of all bodies involved in the collision are saved at every point in the simulation. This is extremely expensive and should only be used to study a particular collisional event in detail.   
+To generate, run, and create a movie depicting the collision, run the Python script titled **Fragmentation_Movie.py**. Please note that this example requires a large amount of memory. For reference, this example was created and run using 4 nodes, each with 256 GB of memory. This amount of computational memory is necessary to generate a smooth movie. In this example, the trajectories of all bodies involved in the collision are saved at every point in the simulation. This is extremely expensive and should only be used to study a particular collisional event in detail.   
 
 **helio_gr_test**
 
