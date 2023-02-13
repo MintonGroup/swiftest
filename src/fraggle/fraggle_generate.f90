@@ -536,7 +536,7 @@ contains
       real(DP)  :: MOMENTUM_SUCCESS_METRIC = 10*epsilon(1.0_DP) !! Relative angular momentum error to accept as a success (should be *much* stricter than energy)
       integer(I4B) :: i, j, loop, try, istart, nfrag, nsteps, nsteps_best
       logical :: lhitandrun, lsupercat
-      real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, L_residual, L_residual_unit, L_residual_best, dL, drot, rot_new, dL_metric
+      real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, vdisp, L_residual, L_residual_unit, L_residual_best, dL, drot, rot_new, dL_metric
       real(DP) :: vimp, vmag, vesc, dE, E_residual, E_residual_best, E_residual_last, ke_avail, ke_remove, dE_best, fscale, dE_metric, mfrag, rn, dL1_mag, dE_conv
       integer(I4B), dimension(:), allocatable :: vsign
       real(DP), dimension(:), allocatable :: vscale
@@ -581,7 +581,7 @@ contains
                if (allocated(dLi_mag)) deallocate(dLi_mag); allocate(dLi_mag(fragments%nbody))
 
                if (lhitandrun) then
-                  vesc = sqrt(2 * sum(fragments%Gmass(istart:fragments%nbody)) / sum(fragments%radius(istart:fragments%nbody)))
+                  vesc = sqrt(2 * sum(fragments%Gmass(istart:fragments%nbody)) / impactors%radius(2))
                   vmin_guess = .mag.impactors%vc(:,2) * (1.0_DP - hitandrun_vscale)
                   vmax_guess = .mag.impactors%vc(:,2) * (1.0_DP + hitandrun_vscale)
                else
@@ -615,7 +615,8 @@ contains
                   j = fragments%origin_body(i)
                   vrot(:) = impactors%rot(:,j) .cross. (fragments%rc(:,i) - impactors%rc(:,j))
                   if (lhitandrun) then
-                     fragments%vc(:,i) = vsign(i) * impactors%bounce_unit(:) * vscale(i) + vrot(:)
+                     vdisp(:) = .unit.(fragments%rc(:,i) - impactors%rc(:,2)) * vesc
+                     fragments%vc(:,i) = vsign(i) * impactors%bounce_unit(:) * vscale(i) + vrot(:) + vdisp(:)
                   else
                      vmag = vscale(i) 
                      rimp(:) = fragments%rc(:,i) - impactors%rcimp(:)
