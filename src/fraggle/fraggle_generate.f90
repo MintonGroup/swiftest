@@ -569,6 +569,7 @@ contains
          vimp = .mag. (impactors%vc(:,2) - impactors%vc(:,1))
 
          E_residual_best = huge(1.0_DP)
+         L_residual_best(:) = 0.0_DP
          lfailure = .false.
          dE_metric = huge(1.0_DP)
          dE_best = huge(1.0_DP)
@@ -639,6 +640,7 @@ contains
                   call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
                   L_residual(:) = (collider_local%L_total(:,2) - collider_local%L_total(:,1))
                   L_residual_unit(:) = .unit. L_residual(:)
+                  if (nsteps == 1) L_residual_best(:) = L_residual(:)
 
                   ! Use equipartition of spin kinetic energy to distribution spin angular momentum
                   do concurrent(i = istart:fragments%nbody)
