@@ -474,13 +474,19 @@ To process the output file, run the script titled **<span>scattermovie.py</span>
 
 **Fragmentation**
 
-This example highlights the functionality of the Fraggle algorithm. It can be found in the ```/swiftest/examples/Fragmentation``` directory. It is intended to be run using the SyMBA integrator. It contains three pre-built collisional test cases:
+This example highlights the functionality of the Fraggle algorithm. It can be found in the ```/swiftest/examples/Fragmentation``` directory. It is intended to be run using the SyMBA integrator. It contains 9 pre-built collisional test cases:
 
 - A Head-On Disruptive Collision 
+- An Off-Axis Disruptive Collision 
+- A Head-On Super-Catastrophic Disruptive Collision
 - An Off-Axis Super-Catastrophic Disruptive Collision
-- A Disruptive Hit and Run Collision
+- A Disruptive Hit and Run Collision 
+- A Pure Hit and Run Collision
+- A Merger
+- A Merger Crossing the Spin Barrier
+- All of the Above
 
-To generate a movie depicting the collision and results of each of the test cases, run the Python script titled **Fragmentation_Movie.py**.
+To generate, run, and create a movie depicting the collision, run the Python script titled **Fragmentation_Movie.py**. Please note that this example requires a large amount of memory. For reference, this example was created and run using 2 nodes, each with 256 GB of memory. This amount of computational memory is necessary to generate a smooth movie. In this example, the trajectories of all bodies involved in the collision are saved at every point in the simulation. This is extremely expensive and should only be used to study a particular collisional event in detail.   
 
 **helio_gr_test**
 
