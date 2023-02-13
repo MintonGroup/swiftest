@@ -42,7 +42,7 @@ import swiftest
 import numpy as np
 from numpy.random import default_rng
 
-run_arguments = {"tstart": 0.0, "tstop":1e-5, "dt": 1e-5, "istep_out": 1, "fragmentation":True, "encounter_save":"both", "compute_conservation_values":True,
+run_arguments = {"tstart": 0.0, "tstop":1e-5, "dt": 1e-5, "istep_out": 1, "collision_model": "fraggle", "encounter_save":"both", "compute_conservation_values":True,
                  "minimum_fragment_gmass":1.0e-11, "gmtiny":1.0e-11, "output_format":"XVEL", "init_cond_format":"XV"}
 
 # Initialize the simulation object as a variable with arguments.
