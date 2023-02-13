@@ -528,7 +528,8 @@ contains
       real(DP), parameter     :: hitandrun_vscale = 0.25_DP 
       real(DP)                :: vmin_guess 
       real(DP)                :: vmax_guess 
-      integer(I4B), parameter :: MAXINNER = 20
+      integer(I4B), parameter :: MAXLOOP = 20
+      integer(I4B), parameter :: MAXTRY  = 10
       integer(I4B), parameter :: MAXANGMTM = 1000
       class(collision_fraggle), allocatable :: collider_local
       character(len=STRMAX) :: message
@@ -555,7 +556,7 @@ contains
          dE_best = huge(1.0_DP)
          nsteps_best = 0
          nsteps = 0
-         outer: do try = 1, nfrag - istart - 1
+         outer: do try = 1, min(nfrag - istart - 1, MAXTRY)
             associate(fragments => collider_local%fragments)
                if (allocated(vsign)) deallocate(vsign); allocate(vsign(fragments%nbody))
                if (allocated(vscale)) deallocate(vscale); allocate(vscale(fragments%nbody))
@@ -611,7 +612,7 @@ contains
                call fragments%set_coordinate_system()
 
                E_residual = huge(1.0_DP)
-               inner: do loop = 1, MAXINNER
+               inner: do loop = 1, MAXLOOP
                   nsteps = nsteps + 1
                   mfrag = sum(fragments%mass(istart:fragments%nbody))
 
