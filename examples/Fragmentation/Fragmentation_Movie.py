@@ -12,9 +12,7 @@
 
 """
 Generates and runs a set of Swiftest input files from initial conditions with the SyMBA integrator. All simulation 
-outputs for the disruption case are stored in the /disruption subdirectory. All simulation outputs for the hit and run 
-case are stored in the /hitandrun subdirectory. All simulation outputs for the super-catastrophic disruption case are 
-stored in the /supercat subdirectory.
+outputs are stored in the subdirectory named after their collisional regime. 
 
 Inputs
 _______
@@ -22,19 +20,17 @@ None.
 
 Output
 ------
-Three subdirectories:
-disruption/
-hitandrun/
-supercat/
+collisions.log   : An ASCII file containing the information of any collisional events that occured.
+collisions.nc    : A NetCDF file containing the collision output.
+data.nc          : A NetCDF file containing the simulation output.
+encounters.nc    : A NetCDF file containing the encounter output.
+init_cond.nc     : A NetCDF file containing the initial conditions for the simulation.
+param.00...0.in  : A series of parameter input files containing the parameters for the simulation at every output stage.
+param.in         : An ASCII file containing the inital parameters for the simulation.
+param.restart.in : An ASCII file containing the parameters for the simulation at the last output. 
+swiftest.log     : An ASCII file containing the information on the status of the simulation as it runs.
+collision.mp4    : A movie file named after the collisional regime depicting the collision.
 
-Each subdirectory contains:
-data.nc             : A NetCDF file containing the simulation output.
-init_cond.nc        : A NetCDF file containing the initial conditions for the simulation.
-collision_000001.nc : A NetCDF file containing the data for the collisions.
-encounter_000001.nc : A NetCDF file containing the data for the close encounters.
-collisions.log      : An ASCII file containing the information of any collisional events that occured.
-param.in            : An ASCII file containing the parameters for the simulation.
-swiftest.log        : An ASCII file containing the information on the status of the simulation as it runs.
 """
 
 import swiftest
