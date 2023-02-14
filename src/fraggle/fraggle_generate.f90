@@ -533,7 +533,7 @@ contains
       class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       logical,                      intent(out)   :: lfailure     !! Did the velocity computation fail?
       ! Internals
-      real(DP), parameter :: ENERGY_SUCCESS_METRIC = 1.0e-2_DP    !! Relative energy error to accept as a success (success also must be energy-losing in addition to being within the metric amount)
+      real(DP), parameter :: ENERGY_SUCCESS_METRIC = 1.0e-3_DP    !! Relative energy error to accept as a success (success also must be energy-losing in addition to being within the metric amount)
       real(DP)  :: MOMENTUM_SUCCESS_METRIC = 10*epsilon(1.0_DP) !! Relative angular momentum error to accept as a success (should be *much* stricter than energy)
       integer(I4B) :: i, j, loop, try, istart, nfrag, nsteps, nsteps_best, posloop
       logical :: lhitandrun, lsupercat
@@ -542,13 +542,12 @@ contains
       integer(I4B), dimension(:), allocatable :: vsign
       real(DP), dimension(:), allocatable :: vscale
       real(DP), dimension(:), allocatable :: dLi_mag
-      real(DP), parameter :: L_ROT_VEL_RATIO = 0.5_DP ! Ratio of angular momentum to put into rotation relative to velocity shear of fragments
       ! For the initial "guess" of fragment velocities, this is the minimum and maximum velocity relative to escape velocity that the fragments will have
       real(DP), parameter     :: hitandrun_vscale = 0.25_DP 
       real(DP)                :: vmin_guess 
       real(DP)                :: vmax_guess 
-      integer(I4B), parameter :: MAXLOOP = 20
-      integer(I4B), parameter :: MAXTRY  = 10
+      integer(I4B), parameter :: MAXLOOP = 100
+      integer(I4B), parameter :: MAXTRY  = 100
       integer(I4B), parameter :: MAXANGMTM = 1000
       class(collision_fraggle), allocatable :: collider_local
       character(len=STRMAX) :: message
@@ -653,12 +652,12 @@ contains
 
                   do i = istart,fragments%nbody
                      dL(:) = -dL1_mag * dLi_mag(i) * L_residual_unit(:)
-                     drot(:) = L_ROT_VEL_RATIO * dL(:) / (fragments%mass(i) * fragments%Ip(3,i) * fragments%radius(i)**2)
+                     drot(:) = dL(:) / (fragments%mass(i) * fragments%Ip(3,i) * fragments%radius(i)**2)
                      rot_new(:) = fragments%rot(:,i) + drot(:)
                      if (.mag.rot_new(:) < collider_local%max_rot) then
                         fragments%rot(:,i) = rot_new(:)
                         fragments%rotmag(i) = .mag.fragments%rot(:,i)
-                     else ! We would break the spin barrier here. Put less into spin and more into velocity shear. 
+                     else ! We would break the spin barrier here. Add a random component of rotation that is less than what would break the limit. The rest will go in velocity shear
                         call random_number(drot)
                         call random_number(rn)
                         drot(:) = (rn * collider_local%max_rot - fragments%rotmag(i)) * 2 * (drot(:) - 0.5_DP)
@@ -669,7 +668,7 @@ contains
                            fragments%rot(:,i) = fragments%rotmag(i) * .unit. fragments%rot(:,i)
                         end if
                      end if
-                     L_residual(:) = L_residual(:) - drot(:) * fragments%Ip(3,i) * fragments%mass(i) * fragments%radius(i)**2 
+                     L_residual(:) = L_residual(:) + drot(:) * fragments%Ip(3,i) * fragments%mass(i) * fragments%radius(i)**2 
                   end do
 
                   ! Put any remaining residual into velocity shear
@@ -682,7 +681,7 @@ contains
                      if (all(dL_metric(:) <= 1.0_DP)) exit angmtm
    
                      do i = istart, fragments%nbody
-                        dL(:) = -L_residual(:) * fragments%mass(i) / sum(fragments%mass(istart:fragments%nbody))
+                        dL(:) = -L_residual(:) / (fragments%nbody - istart + 1) 
                         call collision_util_velocity_torque(dL, fragments%mass(i), fragments%rc(:,i), fragments%vc(:,i))
                         call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)  
                         fragments%vmag(i) = .mag.fragments%vc(:,i)
