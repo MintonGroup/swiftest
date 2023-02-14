@@ -187,7 +187,7 @@ contains
       real(DP)           :: Qr, Qrd_pstar, Qr_erosion, Qr_supercat
       real(DP)           :: Vhr, Verosion, Vescp, Vhill, Vimp, Vsupercat
       real(DP)           :: Mint, Mtot, Mtmp, Mbig, Msmall
-      real(DP)           :: Rp, rhill 
+      real(DP)           :: Rc1, rhill 
       real(DP)           :: Mresidual
       real(DP)           :: U_binding
 
@@ -209,14 +209,14 @@ contains
          alpha = 1.0_DP
          Mint = m2
       end if 
-      Rp = (3 * (m1 / den1 + alpha * m2 / den2) / (4 * PI))**(1.0_DP/3.0_DP) ! (Mustill et al. 2018)
-      c_star = calc_c_star(Rp)
+      Rc1 = (3 * Mtot / (4 * PI * DENSITY1))**THIRD ! Stewart and Leinhardt (2009) 
+      c_star = calc_c_star(Rc1)
 
       !calculate Vescp
-      Vescp = sqrt(2 * GC * Mtot / Rp) !Mustill et al. 2018 eq 6 
+      Vescp = sqrt(2 * GC * Mtot / Rc1) ! Steward and Leinhardt (2012) e.g. Fig. 7 caption.
 
       !calculate rhill
-      rhill = a1 * (m1 / 3.0_DP / (Mcb + m1))**(1.0_DP/3.0_DP)
+      rhill = a1 * (m1 / (3 *(Mcb + m1)))**(1.0_DP/3.0_DP)
 
       !calculate Vhill
       if ((rad2 + rad1) < rhill) then 
@@ -245,7 +245,7 @@ contains
       Vhr = Vescp * (C1 * zeta**2 * theta**(2.5_DP) + C2 * zeta**2 + C3 * theta**(2.5_DP) + C4) ! Kokubo & Genda (2010) eq. (3)
       bcrit = rad1 / (rad1 + rad2)
       ! Specific binding energy
-      U_binding = (3 * GC * Mtot) / (5 * Rp) ! LS12 eq. 27
+      U_binding = (3 * GC * Mtot) / (5 * Rc1) ! LS12 eq. 27
       ke = 0.5_DP * Vimp**2
       pe = - GC * m1 * m2 / (Mtot * norm2(rh2 - rh1))
 
@@ -325,17 +325,18 @@ contains
             ! Result
             real(DP)      :: Qrd_pstar
             ! Internals
-            real(DP)      :: Qrd_star1, mu_alpha, mu, Qrd_star
+            real(DP)      :: Qrd_star1, mu_alpha, mu, Qrd_star, gamma
 
             ! calc mu, mu_alpha
             mu = (Mtarg * Mp) / (Mtarg + Mp)  ! [kg]
             mu_alpha = (Mtarg * alpha * Mp) / (Mtarg + alpha * Mp)  ! [kg]
+            gamma = Mp / Mtarg
             ! calc Qrd_star1
-            Qrd_star1 = (c_star * 4 * PI * DENSITY1 * GC * Rp**2) / 5.0_DP
+            Qrd_star1 = (c_star * 4 * PI * DENSITY1 * GC * Rc1**2) / 5.0_DP ! LS12 eq. 28
             ! calc Qrd_star
-            Qrd_star = Qrd_star1 * (((Mp / Mtarg + 1.0_DP)**2) / (4 * Mp / Mtarg))**(2.0_DP / (3.0_DP * MU_BAR) - 1.0_DP)  !(eq 23)
+            Qrd_star = Qrd_star1 * (((gamma + 1.0_DP)**2) / (4 * gamma))**(2.0_DP / (3 * MU_BAR) - 1.0_DP)  !(eq 23)
             ! calc Qrd_pstar, v_pstar
-            Qrd_pstar = ((mu / mu_alpha)**(2.0_DP - 3.0_DP * MU_BAR / 2.0_DP)) * Qrd_star  ! (eq 15)
+            Qrd_pstar = ((mu / mu_alpha)**(2.0_DP - 3 * MU_BAR / 2.0_DP)) * Qrd_star  ! (eq 15)
 
             return
          end function calc_Qrd_pstar
@@ -365,8 +366,8 @@ contains
             ! calc Qrd_star1, v_star1
             Qrd_star1 = (c_star * 4 * PI * mtot_rev * GC ) / Rc1 / 5.0_DP
             ! calc Qrd_pstar_rev
-            Qrd_star = Qrd_star1 * (((gamma_rev + 1.0_DP)**2) / (4 * gamma_rev)) ** (2.0_DP / (3.0_DP * MU_BAR) - 1.0_DP) !(eq 52)
-            Qrd_pstar = Qrd_star * ((mu_rev / mu_alpha_rev)**(2.0_DP - 3.0_DP * MU_BAR / 2.0_DP))
+            Qrd_star = Qrd_star1 * (((gamma_rev + 1.0_DP)**2) / (4 * gamma_rev)) ** (2.0_DP / (3 * MU_BAR) - 1.0_DP) !(eq 52)
+            Qrd_pstar = Qrd_star * ((mu_rev / mu_alpha_rev)**(2.0_DP - 3 * MU_BAR / 2.0_DP))
             Qrd_pstar_rev = Qrd_pstar * (Vhill / Vescp)**CRUFU !Rufu and Aharaonson eq (3)
             !calc Qr_supercat_rev
             Qr_supercat_rev = 1.8_DP * Qrd_pstar_rev 
@@ -417,8 +418,8 @@ contains
             !! Result
             real(DP)             :: c_star
             !! Internals
-            real(DP), parameter  :: loR   = 1.0e3_DP ! Lower bound of inteRpolation size (m)
-            real(DP), parameter  :: hiR   = 1.0e7_DP ! Upper bound of inteRpolation size (m)
+            real(DP), parameter  :: loR   = 1.0e3_DP ! Lower bound of interpolation size (m)
+            real(DP), parameter  :: hiR   = 1.0e7_DP ! Upper bound of interpolation size (m)
             real(DP), parameter  :: loval = 5.0_DP   ! Value of C* at lower bound
             real(DP), parameter  :: hival = 1.9_DP   ! Value of C* at upper bound
 
