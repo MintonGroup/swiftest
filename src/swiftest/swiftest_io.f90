@@ -738,6 +738,7 @@ contains
          end if
 
          call netcdf_io_check( nf90_def_var(nc%id, nc%Gmass_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%Gmass_varid), "netcdf_io_initialize_output nf90_def_var Gmass_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%mass_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%mass_varid), "netcdf_io_initialize_output nf90_def_var mass_varid"  )
          call netcdf_io_check( nf90_def_var(nc%id, nc%rhill_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%rhill_varid), "netcdf_io_initialize_output nf90_def_var rhill_varid"  )
 
          if (param%lclose) then
@@ -1610,6 +1611,7 @@ contains
                select type(self)  
                class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
                   call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid, self%Gmass(j), start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body Gmass_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%mass_varid, self%mass(j), start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body mass_varid"  )
                   if (param%lrhill_present) then
                      call netcdf_io_check( nf90_put_var(nc%id, nc%rhill_varid, self%rhill(j), start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body rhill_varid"  )
                   end if
@@ -1656,6 +1658,7 @@ contains
          call netcdf_io_check( nf90_put_var(nc%id, nc%status_varid, ACTIVE, start=[idslot, tslot]), "netcdf_io_write_frame_cb nf90_put_var cb id_varid"  )
 
          call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid, self%Gmass, start=[idslot, tslot]), "netcdf_io_write_frame_cb nf90_put_var cb Gmass_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%mass_varid, self%mass, start=[idslot, tslot]), "netcdf_io_write_frame_cb nf90_put_var cb mass_varid"  )
          if (param%lclose) call netcdf_io_check( nf90_put_var(nc%id, nc%radius_varid, self%radius, start=[idslot, tslot]), "netcdf_io_write_frame_cb nf90_put_var cb radius_varid"  )
          call netcdf_io_check( nf90_put_var(nc%id, nc%j2rp2_varid, self%j2rp2, start=[tslot]), "netcdf_io_write_frame_cb nf90_put_var cb j2rp2_varid" )
          call netcdf_io_check( nf90_put_var(nc%id, nc%j4rp4_varid, self%j4rp4, start=[tslot]), "netcdf_io_write_frame_cb nf90_put_var cb j4rp4_varid" )
