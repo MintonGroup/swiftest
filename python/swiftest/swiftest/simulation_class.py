@@ -44,7 +44,12 @@ class Simulation(object):
     This is a class that defines the basic Swift/Swifter/Swiftest simulation object
     """
 
-    def __init__(self,read_param: bool = False, read_data: bool = False, simdir: os.PathLike | str = "simdata", **kwargs: Any):
+    def __init__(self,read_param: bool = False, 
+                 read_data: bool = False, 
+                 read_collisions: bool | None = None, 
+                 read_encounters: bool | None = None,
+                 simdir: os.PathLike | str = "simdata", 
+                 **kwargs: Any):
         """
 
         Parameters
@@ -67,8 +72,12 @@ class Simulation(object):
                 - The argument has an equivalent parameter or set of parameters in the parameter input file.
             3. Default values (see below)
         read_data : bool, default False
-            If true, read in a pre-existing binary input file given by the argument `output_file_name` if it exists.
+            If True, read in a pre-existing binary input file given by the argument `output_file_name` if it exists.
             Parameter input file equivalent: None
+        read_collisions : bool, default None
+            If True, read in a pre-existing collision file `collisions.nc`. If None, then it will take the value of `read_data`. 
+        read_encounters : bool, default None
+            If True, read in a pre-existing encounter file `encounters.nc`. If None, then it will take the value of `read_data`. 
         simdir : PathLike, default `"simdir"`
             Directory where simulation data will be stored, including the parameter file, initial conditions file, output file,
             dump files, and log files.
@@ -346,6 +355,17 @@ class Simulation(object):
         # If the user asks to read in an old parameter file or output file, override any default parameters with values from the file
         # If the file doesn't exist, flag it for now so we know to create it
         param_file_found = False
+        
+        if read_collisions is None:
+            self.read_collisions = read_data
+        else:
+            self.read_collisions = read_collisions
+        
+        if read_encounters is None:
+            self.read_encounters = read_data
+        else:
+            self.read_encounters = read_encounters
+            
         if read_param or read_data:
             if self.read_param(read_init_cond = True):
                 # We will add the parameter file to the kwarg list. This will keep the set_parameter method from
@@ -2779,8 +2799,10 @@ class Simulation(object):
                 else:
                     self.init_cond = self.data.isel(time=0)
 
-            self.read_encounter()
-            self.read_collision()
+            if self.read_encounters:
+                self.read_encounter_file()
+            if self.read_collisions:
+                self.read_collision_file()
             if self.verbose:
                 print("Finished reading Swiftest dataset files.")
 
@@ -2793,7 +2815,7 @@ class Simulation(object):
             warnings.warn('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".',stacklevel=2)
         return
 
-    def read_encounter(self):
+    def read_encounter_file(self):
         enc_file = self.simdir / "encounters.nc"
         if not os.path.exists(enc_file):
            return
@@ -2810,7 +2832,7 @@ class Simulation(object):
 
         return
 
-    def read_collision(self):
+    def read_collision_file(self):
        
         col_file = self.simdir / "collisions.nc"
         if not os.path.exists(col_file):
