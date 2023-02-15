@@ -1850,6 +1850,8 @@ contains
             npl = pl%nbody
          end if
 
+         if (npl == 0) return
+
          ! Reset all of the status flags for this body
          pl%status(1:npl) = ACTIVE
          do i = 1, npl
