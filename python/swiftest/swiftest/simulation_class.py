@@ -1753,11 +1753,11 @@ class Simulation(object):
         TU2S_old = None
 
         if "MU_name" not in dir(self):
-            self.MU_name = None
+            self.MU_name = "MU"
         if "DU_name" not in dir(self):
-            self.DU_name = None
+            self.DU_name = "DU"
         if "TU_name" not in dir(self):
-            self.TU_name = None
+            self.TU_name = "TU"
 
         update_list = []
         if MU is not None or MU2KG is not None:
