@@ -83,8 +83,10 @@ module netcdf_io
       integer(I4B)       :: vh_varid                                    !! ID for the heliocentric velocity vector variable 
       character(NAMELEN) :: gr_pseudo_vh_varname    = "gr_pseudo_vh"    !! name of the heliocentric pseudovelocity vector variable (used in GR only)
       integer(I4B)       :: gr_pseudo_vh_varid                          !! ID for the heliocentric pseudovelocity vector variable (used in GR)
-      character(NAMELEN) :: Gmass_varname           = "Gmass"           !! name of the mass variable
-      integer(I4B)       :: Gmass_varid                                 !! ID for the mass variable
+      character(NAMELEN) :: Gmass_varname           = "Gmass"           !! name of the G*mass variable
+      integer(I4B)       :: Gmass_varid                                 !! ID for the G*mass variable
+      character(NAMELEN) :: mass_varname            = "mass"            !! name of the mass variable
+      integer(I4B)       :: mass_varid                                  !! ID for the mass variable
       character(NAMELEN) :: rhill_varname           = "rhill"           !! name of the hill radius variable
       integer(I4B)       :: rhill_varid                                 !! ID for the hill radius variable
       character(NAMELEN) :: radius_varname          = "radius"          !! name of the radius variable
