@@ -1421,7 +1421,6 @@ contains
          call cb%info%set_value(status="ACTIVE")
 
          if (param%lclose) then
-
             status = nf90_inq_varid(nc%id, nc%origin_type_varname, nc%origin_type_varid)
             if (status == NF90_NOERR) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%origin_type_varid, ctemp, count=[NAMELEN, idmax]), "netcdf_io_read_particle_info_system nf90_getvar origin_type_varid"  )
@@ -1551,7 +1550,6 @@ contains
       integer(I4B), dimension(:), allocatable   :: ind
       real(DP), dimension(NDIM)                 :: vh !! Temporary variable to store heliocentric velocity values when converting from pseudovelocity in GR-enabled runs
       real(DP)                                  :: a, e, inc, omega, capom, capm, varpi, lam, f, cape, capf
-
 
       call self%write_info(nc, param)
 
@@ -1749,6 +1747,7 @@ contains
       integer(I4B)                              :: i, j, idslot, old_mode
       integer(I4B), dimension(:), allocatable   :: ind
       character(len=NAMELEN) :: charstring
+      character(len=NAMELEN), dimension(self%nbody) :: origin_type
 
       call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "netcdf_io_write_info_body nf90_set_fill NF90_NOFILL"  )
 
@@ -1773,6 +1772,7 @@ contains
 
                if (param%lclose) then
                   charstring = trim(adjustl(self%info(j)%origin_type))
+                  origin_type(i) = charstring
                   call netcdf_io_check( nf90_put_var(nc%id, nc%origin_type_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_io_write_info_body nf90_put_var origin_type_varid"  )
                   call netcdf_io_check( nf90_put_var(nc%id, nc%origin_time_varid,  self%info(j)%origin_time,  start=[idslot]), "netcdf_io_write_info_body nf90_put_var origin_time_varid"  )
                   call netcdf_io_check( nf90_put_var(nc%id, nc%origin_rh_varid,    self%info(j)%origin_rh(:), start=[1,idslot], count=[NDIM,1]), "netcdf_io_write_info_body nf90_put_var origin_rh_varid"  )
