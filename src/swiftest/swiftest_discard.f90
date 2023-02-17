@@ -43,12 +43,10 @@ contains
          if (ltp_discards.or.lpl_discards) then
             call nc%open(param)
             if (lpl_discards) then
-               call pl_discards%write_info(self%system_history%nc, param)
                if (param%lenergy) call self%conservation_report(param, lterminal=.false.)
                call pl_discards%setup(0,param) 
             end if
             if (ltp_discards) then
-               call tp_discards%write_info(self%system_history%nc, param)
                call tp_discards%setup(0,param) 
             end if
             call nc%close()

@@ -513,6 +513,8 @@ class Simulation(object):
         self._run_swiftest_driver()
 
         # Read in new data
+        self.read_encounters = True
+        self.read_collisions = True
         self.read_output_file()
 
         return
@@ -2589,7 +2591,7 @@ class Simulation(object):
     def read_param(self,
                    param_file : os.PathLike | str | None = None,
                    codename: Literal["Swiftest", "Swifter", "Swift"] | None = None,
-                   read_init_cond : Bool | None = None,
+                   read_init_cond : bool | None = None,
                    verbose: bool | None = None):
         """
         Reads in an input parameter file and stores the values in the param dictionary.

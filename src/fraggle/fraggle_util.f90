@@ -86,19 +86,20 @@ contains
       class(collision_fraggle),   intent(inout) :: self  !! Fraggle collision system object
       class(swiftest_parameters), intent(in)    :: param !! Current Swiftest run configuration parameters
       ! Internals
-      integer(I4B)              :: i, j, jproj, jtarg, nfrag, istart, nfragmax
+      integer(I4B)              :: i, j, jproj, jtarg, nfrag, istart, nfragmax, nrem
       real(DP), dimension(2)    :: volume
       real(DP), dimension(NDIM) :: Ip_avg
-      real(DP) :: mfrag, mremaining, mtot, mcumul, G, mass_noise
+      real(DP) :: mfrag, mremaining, mtot, mcumul, G, mass_noise, Mslr, mscale, y, yp, Mrat, m0
       real(DP), dimension(:), allocatable :: mass
-      real(DP), parameter :: BETA = 2.85_DP
+      real(DP)  :: beta 
       integer(I4B), parameter :: MASS_NOISE_FACTOR = 5  !! The number of digits of random noise that get added to the minimum mass value to prevent identical masses from being generated in a single run 
       integer(I4B), parameter :: NFRAGMAX_UNSCALED = 3000  !! Maximum number of fragments that can be generated
-      integer(I4B), parameter :: NFRAGMIN = 3 !! Minimum number of fragments that can be generated 
       integer(I4B), parameter :: iMlr = 1
       integer(I4B), parameter :: iMslr = 2
       integer(I4B), parameter :: iMrem = 3
+      integer(I4B), parameter :: NFRAGMIN = iMrem + 2 !! Minimum number of fragments that can be generated 
       integer(I4B), dimension(:), allocatable :: ind
+      integer(I4B), parameter :: MAXLOOP = 10000
       logical :: flipper
      
       associate(impactors => self%impactors, min_mfrag => self%min_mfrag)
@@ -107,7 +108,6 @@ contains
          mtot = sum(impactors%mass(:))
          G = impactors%Gmass(1) / impactors%mass(1)
          Ip_avg(:) = (impactors%mass(1) * impactors%Ip(:,1) + impactors%mass(2) * impactors%Ip(:,2)) / mtot
-         nfragmax = ceiling(NFRAGMAX_UNSCALED / param%nfrag_reduction)
 
          if (impactors%mass(1) >= impactors%mass(2)) then
             jtarg = 1
@@ -116,7 +116,7 @@ contains
             jtarg = 2
             jproj = 1
          end if
-  
+
          select case(impactors%regime)
          case(COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC, COLLRESOLVE_REGIME_HIT_AND_RUN)
             ! The first two bins of the mass_dist are the largest and second-largest fragments that came out of collision_regime.
@@ -127,16 +127,23 @@ contains
             ! ! Add a small amount of noise to the last digits of the minimum mass value so that multiple fragments don't get generated with identical mass values
             call random_number(mass_noise)
             mass_noise = 1.0_DP + mass_noise * epsilon(1.0_DP) * 10**(MASS_NOISE_FACTOR)
-            min_mfrag = (param%min_GMfrag / param%GU)
-
+            min_mfrag = (param%min_GMfrag / param%GU) * mass_noise
+            
             mremaining = impactors%mass_dist(iMrem)
             nfrag = iMrem - 1 
+            beta = 2.85_DP ! From Leinhardt & Stewart (2012)
+            Mslr = impactors%mass_dist(iMslr)
+
+            mfrag = Mslr
             do while (mremaining > 0.0_DP)
-               nfrag = nfrag + 1
-               mfrag = max((nfrag - 1)**(-3._DP / BETA) * impactors%mass_dist(iMslr), min_mfrag)
+               mfrag = (nfrag)**(-3._DP / BETA) * impactors%mass_dist(iMslr)
+               mfrag = max(mfrag, min_mfrag)
                mremaining = mremaining - mfrag
+               nfrag = nfrag + 1
             end do
+            nfragmax = ceiling(NFRAGMAX_UNSCALED / param%nfrag_reduction)
             nfrag = max(min(ceiling(nfrag / param%nfrag_reduction), nfragmax), NFRAGMIN)
+
             call self%setup_fragments(nfrag)
 
          case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE) 
@@ -162,28 +169,39 @@ contains
             mass(1) = impactors%mass_dist(iMlr) 
             mass(2) = impactors%mass_dist(iMslr)
 
-            ! Distribute the remaining mass the 3:nfrag bodies following the model SFD given by slope BETA 
+            ! Recompute the slope parameter beta so that we span the complete size range
+            if (Mslr == min_mfrag) Mslr = Mslr + impactors%mass_dist(iMrem) / nfrag
             mremaining = impactors%mass_dist(iMrem)
-            do i = iMrem, nfrag
-               call random_number(mass_noise)
-               mass_noise = 1.0_DP + mass_noise * epsilon(1.0_DP) * 10**(MASS_NOISE_FACTOR)
-               mfrag = max((i - 1)**(-3._DP / BETA) * impactors%mass_dist(iMslr), min_mfrag) * mass_noise
+
+            ! The mass will be distributed evenly in logspace between the second-largest remnant and the minimum mass
+            ! Use Newton's method solver to get the logspace slope of the mass function
+            Mrat = mremaining / min_mfrag
+            nrem = nfrag - 2
+            mscale = 1.0_DP - 1.0_DP/Mrat
+            do j = 1, MAXLOOP
+               y = Mrat - (1.0_DP - mscale**nrem)/(1.0_DP - mscale)
+               yp = (mscale + mscale**nrem * ((nrem - 1) * mscale - nrem)) / (mscale * (mscale - 1.0_DP)**2)
+               m0 = mscale
+               mscale = m0 + y/yp
+               if (abs((mscale - m0)/mscale) < epsilon(1.0_DP)) exit
+            end do
+            Mslr = impactors%mass_dist(iMslr)
+
+            mass(iMslr) = Mslr
+            mfrag = min_mfrag
+            do i = iMrem,nfrag
                mass(i) = mfrag
                mremaining = mremaining - mfrag
+               mfrag = max(mfrag * mscale, min_mfrag)
             end do
-
-            ! If there is any residual mass (either positive or negative) we will distribute remaining mass proportionally among the the fragments
-            if (mremaining < 0.0_DP) then ! If the remainder is negative, this means that that the number of fragments required by the SFD is smaller than our lower limit set by fraggle_generate. 
-               istart = iMrem ! We will reduce the mass of the 3:nfrag bodies to prevent the second-largest fragment from going smaller
-            else ! If the remainder is postiive, this means that the number of fragments required by the SFD is larger than our upper limit set by computational expediency. 
-               istart = iMslr ! We will increase the mass of the 2:nfrag bodies to compensate, which ensures that the second largest fragment either remains the second largest or becomes the largest
-            end if
-            mfrag = 1._DP + mremaining / sum(mass(istart:nfrag))
-            mass(istart:nfrag) = mass(istart:nfrag) * mfrag
 
             ! There may still be some small residual due to round-off error. If so, simply add it to the last bin of the mass distribution.
             mremaining = fragments%mtot - sum(mass(1:nfrag))
-            mass(nfrag) = mass(nfrag) + mremaining
+            if (mremaining < 0.0_DP) then
+               mass(iMlr) = mass(iMlr) + mremaining
+            else
+               mass(iMslr) = mass(iMslr) + mremaining
+            end if
 
             ! Sort the distribution in descending order by mass so that the largest fragment is always the first
             call swiftest_util_sort(-mass, ind)
