@@ -143,15 +143,17 @@ contains
 
             ! Shift the impactors so that they are not overlapping
             rlim = sum(impactors%radius(1:2))
-            vrel = impactors%vb(:,2) - impactors%vb(:,1)
             rrel = impactors%rb(:,2) - impactors%rb(:,1)
-            vrel_mag = .mag. vrel
             rrel_mag = .mag. rrel 
-            vrel_unit = .unit. vrel
-            r_dot_vunit = dot_product(rrel,vrel_unit)
-            b = sqrt(rrel_mag**2 - r_dot_vunit**2)
-            dt = (sqrt(rlim**2 - b**2) + r_dot_vunit)/vrel_mag
-            impactors%rb(:,1:2) = impactors%rb(:,1:2) - dt * impactors%vb(:,1:2)
+            if (rrel_mag < rlim) then
+               vrel = impactors%vb(:,2) - impactors%vb(:,1)
+               vrel_mag = .mag. vrel
+               vrel_unit = .unit. vrel
+               r_dot_vunit = dot_product(rrel,vrel_unit)
+               b = sqrt(rrel_mag**2 - r_dot_vunit**2)
+               dt = (sqrt(rlim**2 - b**2) + r_dot_vunit)/vrel_mag
+               impactors%rb(:,1:2) = impactors%rb(:,1:2) - dt * impactors%vb(:,1:2)
+            end if
 
             xcom(:) = (impactors%mass(1) * impactors%rb(:, 1) + impactors%mass(2) * impactors%rb(:, 2)) / sum(impactors%mass(:))
             vcom(:) = (impactors%mass(1) * impactors%vb(:, 1) + impactors%mass(2) * impactors%vb(:, 2)) / sum(impactors%mass(:))
