@@ -41,7 +41,6 @@ contains
          end if
 
          if (ltp_discards.or.lpl_discards) then
-            call nc%open(param)
             if (lpl_discards) then
                if (param%lenergy) call self%conservation_report(param, lterminal=.false.)
                call pl_discards%setup(0,param) 
@@ -49,7 +48,6 @@ contains
             if (ltp_discards) then
                call tp_discards%setup(0,param) 
             end if
-            call nc%close()
          end if
          
       end associate
