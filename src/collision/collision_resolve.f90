@@ -33,8 +33,8 @@ contains
       integer(I4B), dimension(2)       :: nchild
       integer(I4B)                     :: i, j, nimpactors, idx_child
       real(DP), dimension(2)           :: volume, density
-      real(DP)                         :: mchild, volchild, b, r_dot_vunit, rrel_mag, vrel_mag, rlim, dt
-      real(DP), dimension(NDIM)        :: xc, vc, xcom, vcom, xchild, vchild, xcrossv, rrel, vrel, vrel_unit
+      real(DP)                         :: mchild, volchild, rrel_mag, rlim, dt, mtot
+      real(DP), dimension(NDIM)        :: xc, vc, xcom, vcom, xchild, vchild, xcrossv, rrel, rrel_unit, dr
       real(DP), dimension(NDIM,2)      :: mxc, vcc
 
       select type(nbody_system)
@@ -141,22 +141,23 @@ contains
             end do
             lflag = .true.
 
+            mtot = sum(impactors%mass(:))
+            xcom(:) = (impactors%mass(1) * impactors%rb(:, 1) + impactors%mass(2) * impactors%rb(:, 2)) / mtot
+            vcom(:) = (impactors%mass(1) * impactors%vb(:, 1) + impactors%mass(2) * impactors%vb(:, 2)) / mtot
+
             ! Shift the impactors so that they are not overlapping
             rlim = sum(impactors%radius(1:2))
             rrel = impactors%rb(:,2) - impactors%rb(:,1)
             rrel_mag = .mag. rrel 
             if (rrel_mag < rlim) then
-               vrel = impactors%vb(:,2) - impactors%vb(:,1)
-               vrel_mag = .mag. vrel
-               vrel_unit = .unit. vrel
-               r_dot_vunit = dot_product(rrel,vrel_unit)
-               b = sqrt(rrel_mag**2 - r_dot_vunit**2)
-               dt = (sqrt(rlim**2 - b**2) + r_dot_vunit)/vrel_mag
-               impactors%rb(:,1:2) = impactors%rb(:,1:2) - dt * impactors%vb(:,1:2)
+               rrel_unit = .unit.rrel
+               dr(:) = (1.0_DP + 2*epsilon(1.0_DP)) * (rlim - rrel_mag) * rrel_unit(:)
+               impactors%rb(:,1) = impactors%rb(:,1) - dr(:) *  impactors%mass(2) / mtot
+               impactors%rb(:,2) = impactors%rb(:,2) + dr(:) *  impactors%mass(1) / mtot
+               rrel = impactors%rb(:,2) - impactors%rb(:,1)
+               rrel_mag = .mag. rrel 
             end if
 
-            xcom(:) = (impactors%mass(1) * impactors%rb(:, 1) + impactors%mass(2) * impactors%rb(:, 2)) / sum(impactors%mass(:))
-            vcom(:) = (impactors%mass(1) * impactors%vb(:, 1) + impactors%mass(2) * impactors%vb(:, 2)) / sum(impactors%mass(:))
             mxc(:, 1) = impactors%mass(1) * (impactors%rb(:, 1) - xcom(:))
             mxc(:, 2) = impactors%mass(2) * (impactors%rb(:, 2) - xcom(:))
             vcc(:, 1) = impactors%vb(:, 1) - vcom(:)
