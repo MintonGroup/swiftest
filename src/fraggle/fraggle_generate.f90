@@ -533,7 +533,7 @@ contains
       class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       logical,                      intent(out)   :: lfailure     !! Did the velocity computation fail?
       ! Internals
-      real(DP), parameter :: ENERGY_SUCCESS_METRIC = 1.0e-3_DP    !! Relative energy error to accept as a success (success also must be energy-losing in addition to being within the metric amount)
+      real(DP), parameter :: ENERGY_SUCCESS_METRIC = 1.0e-2_DP    !! Relative energy error to accept as a success (success also must be energy-losing in addition to being within the metric amount)
       real(DP)  :: MOMENTUM_SUCCESS_METRIC = 10*epsilon(1.0_DP) !! Relative angular momentum error to accept as a success (should be *much* stricter than energy)
       integer(I4B) :: i, j, loop, try, istart, nfrag, nsteps, nsteps_best, posloop
       logical :: lhitandrun, lsupercat
@@ -546,8 +546,8 @@ contains
       real(DP), parameter     :: hitandrun_vscale = 0.25_DP 
       real(DP)                :: vmin_guess 
       real(DP)                :: vmax_guess 
-      integer(I4B), parameter :: MAXLOOP = 100
-      integer(I4B), parameter :: MAXTRY  = 100
+      integer(I4B), parameter :: MAXLOOP = 25
+      integer(I4B), parameter :: MAXTRY  = 10
       integer(I4B), parameter :: MAXANGMTM = 1000
       class(collision_fraggle), allocatable :: collider_local
       character(len=STRMAX) :: message
