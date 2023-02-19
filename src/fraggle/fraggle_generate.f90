@@ -533,7 +533,8 @@ contains
       class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       logical,                      intent(out)   :: lfailure     !! Did the velocity computation fail?
       ! Internals
-      real(DP), parameter :: ENERGY_SUCCESS_METRIC = 0.1_DP    !! Relative energy error to accept as a success (success also must be energy-losing in addition to being within the metric amount)
+      real(DP), parameter :: ENERGY_SUCCESS_METRIC = 0.1_DP   !! Relative energy error to accept as a success (success also must be energy-losing in addition to being within the metric amount)
+      real(DP), parameter :: ENERGY_CONVERGENCE_TOL = 1e-3_DP !! Relative change in error before giving up on energy convergence
       real(DP)  :: MOMENTUM_SUCCESS_METRIC = 10*epsilon(1.0_DP) !! Relative angular momentum error to accept as a success (should be *much* stricter than energy)
       integer(I4B) :: i, j, loop, try, istart, nfrag, nsteps, nsteps_best, posloop
       logical :: lhitandrun, lsupercat
@@ -713,7 +714,7 @@ contains
                         dE_metric = abs(E_residual) / impactors%Qloss
                      end if
                      if ((dE_best < 0.0_DP) .and. (dE_metric <= ENERGY_SUCCESS_METRIC)) exit outer 
-                     if (dE_conv < ENERGY_SUCCESS_METRIC) exit inner
+                     if (dE_conv < ENERGY_CONVERGENCE_TOL) exit inner
                   end if
 
                   ! Remove a constant amount of velocity from the bodies so we don't shift the center of mass and screw up the momentum 
