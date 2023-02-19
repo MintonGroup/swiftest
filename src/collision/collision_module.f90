@@ -67,7 +67,8 @@ module collision
       real(DP),     dimension(NDIM,2)              :: L_spin    !! Two-body equivalent spin angular momentum vectors of the collider bodies prior to collision
       real(DP),     dimension(NDIM,2)              :: L_orbit   !! Two-body equivalent orbital angular momentum vectors of the collider bodies prior to collision
       real(DP),     dimension(2)                   :: ke_orbit  !! Orbital kinetic energy of each individual impactor
-      real(DP),     dimension(2)                   :: ke_spin   !! Spin kinetic energy of each individual impactors
+      real(DP),     dimension(2)                   :: ke_spin   !! Spin kinetic energy of each individual impactor
+      real(DP),     dimension(2)                   :: be        !! Binding energy of each individual impactor
       real(DP),     dimension(NDIM,2)              :: Ip        !! Two-body equivalent principal axes moments of inertia the collider bodies prior to collision
       real(DP),     dimension(2)                   :: Gmass     !! Two-body equivalent G*mass of the collider bodies prior to the collision
       real(DP),     dimension(2)                   :: mass      !! Two-body equivalent mass of the collider bodies prior to the collision
@@ -403,15 +404,6 @@ module collision
          real(DP), dimension(:), intent(in)    :: rcom,vcom
          real(DP),               intent(in)    :: radius
       end subroutine collision_util_bounce_one
-
-      module subroutine collision_util_construct_constraint_system(collider, nbody_system, param, constraint_system, phase)
-         implicit none
-         class(collision_basic),                 intent(inout) :: collider          !! Collision system object
-         class(base_nbody_system),               intent(in)    :: nbody_system      !! Original Swiftest nbody system object
-         class(base_parameters),                 intent(inout) :: param             !! Current Swiftest run configuration parameters
-         class(base_nbody_system), allocatable,  intent(out)   :: constraint_system !! Output temporary Swiftest nbody system object
-         character(len=*),                       intent(in)    :: phase             !! One of "before" or "after", indicating which phase of the calculation this needs to be done
-      end subroutine collision_util_construct_constraint_system
 
       module subroutine collision_util_dealloc_fragments(self)
          implicit none

@@ -84,82 +84,6 @@ contains
       return
    end subroutine collision_util_bounce_one
 
-   module subroutine collision_util_construct_constraint_system(collider, nbody_system, param, constraint_system, phase)
-      !! Author: David A. Minton
-      !!
-      !! Constructs a temporary system that is used to evaluate the convergence on energy and angular momentum constraints. 
-      !! The rotations of all bodies other than those involved in the collision are set to 0 so that the changes in spin kinetic
-      !! energy and momentum are isolated to the collision system.
-      implicit none
-      ! Arguments
-      class(collision_basic),                 intent(inout) :: collider          !! Collision system object
-      class(base_nbody_system),               intent(in)    :: nbody_system      !! Original Swiftest nbody system object
-      class(base_parameters),                 intent(inout) :: param             !! Current Swiftest run configuration parameters
-      class(base_nbody_system), allocatable,  intent(out)   :: constraint_system !! Output temporary Swiftest nbody system object
-      character(len=*),                       intent(in)    :: phase             !! One of "before" or "after", indicating which phase of the calculation this needs to be done
-      ! Internals
-      integer(I4B) :: i, status
-      class(swiftest_nbody_system), allocatable :: tmpsys
-
-      select type(nbody_system)
-      class is (swiftest_nbody_system)
-      select type(param)
-      class is (swiftest_parameters)
-         associate(pl => nbody_system%pl, npl => nbody_system%pl%nbody, cb => nbody_system%cb, nfrag => collider%fragments%nbody)
-
-            ! Set up a new temporary system based on the original
-            allocate(tmpsys, mold=nbody_system)
-            allocate(tmpsys%cb, source=cb)
-            allocate(tmpsys%pl, source=pl)
-            allocate(tmpsys%collider, source=collider)
-            call tmpsys%collider%set_original_scale()
-
-            ! Remove spins and velocities from all bodies other than the new fragments so that we can isolate the kinetic energy and momentum of the collision system, but still be able to compute
-            ! the potential energy correctly
-            tmpsys%cb%Gmass = 0.0_DP
-            tmpsys%cb%mass = 0.0_DP
-            tmpsys%cb%rot(:) = 0.0_DP
-            tmpsys%pl%rot(:,:) = 0.0_DP
-            tmpsys%pl%vb(:,:) = 0.0_DP
-
-            if (phase == "before") then
-               ! Put back the spins and velocities of the colliding bodies to compute pre-impact KE and L
-               tmpsys%pl%rot(:,collider%impactors%id(:)) = pl%rot(:,collider%impactors%id(:))
-               tmpsys%pl%vb(:,collider%impactors%id(:)) = pl%vb(:,collider%impactors%id(:))
-            else if (phase == "after") then
-               allocate(tmpsys%pl_adds, mold=pl)
-               allocate(tmpsys%pl_discards, mold=pl)
-               associate(impactors => tmpsys%collider%impactors, fragments => tmpsys%collider%fragments) ! Be sure to select the temporary version because its unit system has been updated
-                  ! Update barycentric vector values
-                  do concurrent(i = 1:nfrag)
-                     fragments%rb(:,i) = fragments%rc(:,i) + impactors%rbcom(:)
-                     fragments%vb(:,i) = fragments%vc(:,i) + impactors%vbcom(:)
-                  end do
-
-                  select case(impactors%regime)
-                  case(COLLRESOLVE_REGIME_DISRUPTION)
-                     status = DISRUPTED
-                  case(COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
-                     status = SUPERCATASTROPHIC
-                  case(COLLRESOLVE_REGIME_HIT_AND_RUN)
-                     status = HIT_AND_RUN_DISRUPT
-                  end select
-               end associate
-
-               call collision_resolve_mergeaddsub(tmpsys, param, nbody_system%t, status)
-               deallocate(tmpsys%collider%before)
-               deallocate(tmpsys%collider%after)
-               call tmpsys%pl%rearray(tmpsys, param)
-            end if
-            call move_alloc(tmpsys, constraint_system)
-
-         end associate
-      end select
-      end select
-
-      return
-   end subroutine collision_util_construct_constraint_system
-
 
    module subroutine collision_util_get_idvalues_snapshot(self, idvals)
       !! author: David A. Minton
@@ -218,9 +142,6 @@ contains
       !! Author: David A. Minton
       !!
       !! Calculates total system energy in either the pre-collision outcome state (phase = "before") or the post-collision outcome state (lbefore = .false.)
-      !! This subrourtine works by building a temporary internal massive body object out of the non-excluded bodies and optionally with fragments appended. 
-      !! This will get passed to the energy calculation subroutine so that energy is computed exactly the same way is it is in the main program. 
-      !! This will temporarily expand the massive body object in a temporary system object called constraint_system to feed it into symba_energy
       implicit none
       ! Arguments
       class(collision_basic),   intent(inout) :: self         !! Encounter collision system object
@@ -228,7 +149,6 @@ contains
       class(base_parameters),   intent(inout) :: param        !! Current Swiftest run configuration parameters
       character(len=*),         intent(in)    :: phase        !! One of "before" or "after", indicating which phase of the calculation this needs to be done
       ! Internals
-      class(base_nbody_system), allocatable :: constraint_system
       integer(I4B) :: i, phase_val
 
       select case(phase)
@@ -246,40 +166,44 @@ contains
       select type(param)
       class is (swiftest_parameters)
          associate(fragments => self%fragments, impactors => self%impactors, nfrag => self%fragments%nbody, pl => nbody_system%pl, cb => nbody_system%cb)
-            call collision_util_construct_constraint_system(self, nbody_system, param, constraint_system, phase)
-            select type(constraint_system)
-            class is (swiftest_nbody_system)
-               call constraint_system%get_energy_and_momentum(param)
-               self%L_orbit(:,phase_val) = constraint_system%L_orbit(:) / self%Lscale
-               self%L_spin(:,phase_val) = constraint_system%L_spin(:) / self%Lscale
-               self%L_total(:,phase_val) = constraint_system%L_total(:) / self%Lscale
-               self%ke_orbit(phase_val) = constraint_system%ke_orbit / self%Escale
-               self%ke_spin(phase_val) = constraint_system%ke_spin / self%Escale
-               self%pe(phase_val) = constraint_system%pe / self%Escale
-               self%be(phase_val) = constraint_system%be / self%Escale
-               self%te(phase_val) = constraint_system%te / self%Escale
-               if (phase_val == 1) then
-                  do concurrent(i = 1:2)
-                     impactors%ke_orbit(i) = 0.5_DP * impactors%mass(i) * dot_product(impactors%vc(:,i), impactors%vc(:,i))
-                     impactors%ke_spin(i) = 0.5_DP * impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i) * dot_product(impactors%rot(:,i), impactors%rot(:,i))
-                     impactors%L_orbit(:,i) = impactors%mass(i) * impactors%rc(:,i) .cross. impactors%vc(:,i)
-                     impactors%L_spin(:,i) = impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i) * impactors%rot(:,i)
-                  end do
-               else if (phase_val == 2) then
-                  do concurrent(i = 1:nfrag)
-                     fragments%ke_orbit(i) = 0.5_DP * fragments%mass(i) * dot_product(fragments%vc(:,i), fragments%vc(:,i))
-                     fragments%ke_spin(i) = 0.5_DP * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) * dot_product(fragments%rot(:,i), fragments%rot(:,i))
-                     fragments%L_orbit(:,i) = fragments%mass(i) * fragments%rc(:,i) .cross. fragments%vc(:,i)
-                     fragments%L_spin(:,i) = fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) * fragments%rot(:,i)
-                  end do
-                  call swiftest_util_get_potential_energy(nfrag, [(.true., i = 1, nfrag)], constraint_system%cb%Gmass, fragments%Gmass, fragments%mass, fragments%rb, fragments%pe)
-                  fragments%be = sum(-3*fragments%Gmass(1:nfrag)*fragments%mass(1:nfrag)/(5*fragments%radius(1:nfrag)))
-                  fragments%L_orbit_tot(:) = sum(fragments%L_orbit(:,1:nfrag),dim=2)
-                  fragments%L_spin_tot(:) = sum(fragments%L_spin(:,1:nfrag),dim=2)
-                  fragments%ke_orbit_tot = sum(fragments%ke_orbit(1:nfrag))
-                  fragments%ke_spin_tot = sum(fragments%ke_spin(1:nfrag))
-               end if
-            end select
+            if (phase_val == 1) then
+               do concurrent(i = 1:2)
+                  impactors%ke_orbit(i) = 0.5_DP * impactors%mass(i) * dot_product(impactors%vc(:,i), impactors%vc(:,i))
+                  impactors%ke_spin(i) = 0.5_DP * impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i) * dot_product(impactors%rot(:,i), impactors%rot(:,i))
+                  impactors%be(i) = -3 * impactors%Gmass(i) * impactors%mass(i) / (5 * impactors%radius(i))
+                  impactors%L_orbit(:,i) = impactors%mass(i) * impactors%rc(:,i) .cross. impactors%vc(:,i)
+                  impactors%L_spin(:,i) = impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i) * impactors%rot(:,i)
+               end do
+               self%L_orbit(:,phase_val) = sum(impactors%L_orbit(:,1:2),dim=2)
+               self%L_spin(:,phase_val) = sum(impactors%L_spin(:,1:2),dim=2)
+               self%L_total(:,phase_val) = self%L_orbit(:,phase_val) + self%L_spin(:,phase_val) 
+               self%ke_orbit(phase_val) = sum(impactors%ke_orbit(1:2))
+               self%ke_spin(phase_val) = sum(impactors%ke_spin(1:2))
+               self%be(phase_val) = sum(impactors%be(1:2))
+               call swiftest_util_get_potential_energy(2, [(.true., i = 1, 2)], 0.0_DP, impactors%Gmass, impactors%mass, impactors%rb, self%pe(phase_val))
+               self%te(phase_val) = self%ke_orbit(phase_val) + self%ke_spin(phase_val) + self%be(phase_val) + self%pe(phase_val)
+            else if (phase_val == 2) then
+               do concurrent(i = 1:nfrag)
+                  fragments%ke_orbit(i) = 0.5_DP * fragments%mass(i) * dot_product(fragments%vc(:,i), fragments%vc(:,i))
+                  fragments%ke_spin(i) = 0.5_DP * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) * dot_product(fragments%rot(:,i), fragments%rot(:,i))
+                  fragments%L_orbit(:,i) = fragments%mass(i) * fragments%rc(:,i) .cross. fragments%vc(:,i)
+                  fragments%L_spin(:,i) = fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) * fragments%rot(:,i)
+               end do
+               call swiftest_util_get_potential_energy(nfrag, [(.true., i = 1, nfrag)], 0.0_DP, fragments%Gmass, fragments%mass, fragments%rb, fragments%pe)
+               fragments%be = sum(-3*fragments%Gmass(1:nfrag)*fragments%mass(1:nfrag)/(5*fragments%radius(1:nfrag)))
+               fragments%L_orbit_tot(:) = sum(fragments%L_orbit(:,1:nfrag),dim=2)
+               fragments%L_spin_tot(:) = sum(fragments%L_spin(:,1:nfrag),dim=2)
+               fragments%ke_orbit_tot = sum(fragments%ke_orbit(1:nfrag))
+               fragments%ke_spin_tot = sum(fragments%ke_spin(1:nfrag))
+               self%L_orbit(:,phase_val) = fragments%L_orbit_tot(:)
+               self%L_spin(:,phase_val) = fragments%L_spin_tot(:)
+               self%L_total(:,phase_val) = self%L_orbit(:,phase_val) + self%L_spin(:,phase_val) 
+               self%ke_orbit(phase_val) = fragments%ke_orbit_tot
+               self%ke_spin(phase_val) = fragments%ke_spin_tot
+               self%be(phase_val) = fragments%be
+               self%pe(phase_val) = fragments%pe
+               self%te(phase_val) = self%ke_orbit(phase_val) + self%ke_spin(phase_val) + self%be(phase_val) + self%pe(phase_val)
+            end if
 
          end associate
       end select
