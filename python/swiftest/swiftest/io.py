@@ -842,7 +842,9 @@ def swiftest2xr(param, verbose=True):
 
     if ((param['OUT_TYPE'] == 'NETCDF_DOUBLE') or (param['OUT_TYPE'] == 'NETCDF_FLOAT')):
         if verbose: print('\nCreating Dataset from NetCDF file')
-        ds = xr.open_dataset(param['BIN_OUT'], mask_and_scale=False)
+        #ds = xr.open_dataset(param['BIN_OUT'], mask_and_scale=False)
+        ds = xr.open_mfdataset(param['BIN_OUT'], parallel=True, engine='h5netcdf', mask_and_scale=False)
+        
         ds = process_netcdf_input(ds, param)
     else:
         print(f"Error encountered. OUT_TYPE {param['OUT_TYPE']} not recognized.")
