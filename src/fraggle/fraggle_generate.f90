@@ -533,7 +533,7 @@ contains
       class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       logical,                      intent(out)   :: lfailure     !! Did the velocity computation fail?
       ! Internals
-      real(DP), parameter :: ENERGY_SUCCESS_METRIC = 1.0e-2_DP    !! Relative energy error to accept as a success (success also must be energy-losing in addition to being within the metric amount)
+      real(DP), parameter :: ENERGY_SUCCESS_METRIC = 0.1_DP    !! Relative energy error to accept as a success (success also must be energy-losing in addition to being within the metric amount)
       real(DP)  :: MOMENTUM_SUCCESS_METRIC = 10*epsilon(1.0_DP) !! Relative angular momentum error to accept as a success (should be *much* stricter than energy)
       integer(I4B) :: i, j, loop, try, istart, nfrag, nsteps, nsteps_best, posloop
       logical :: lhitandrun, lsupercat
