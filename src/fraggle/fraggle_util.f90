@@ -134,14 +134,14 @@ contains
             beta = 2.85_DP ! From Leinhardt & Stewart (2012)
             Mslr = impactors%mass_dist(iMslr)
 
-            mfrag = Mslr
-            do while (mremaining > 0.0_DP)
-               mfrag = (nfrag)**(-3._DP / BETA) * impactors%mass_dist(iMslr)
+            nfragmax = ceiling(NFRAGMAX_UNSCALED / param%nfrag_reduction)
+            do i = 1, nfragmax
+               mfrag = (nfrag)**(-3._DP / BETA) * Mslr
                mfrag = max(mfrag, min_mfrag)
                mremaining = mremaining - mfrag
                nfrag = nfrag + 1
+               if (mremaining < 0.0_DP) exit
             end do
-            nfragmax = ceiling(NFRAGMAX_UNSCALED / param%nfrag_reduction)
             nfrag = max(min(ceiling(nfrag / param%nfrag_reduction), nfragmax), NFRAGMIN)
 
             call self%setup_fragments(nfrag)
