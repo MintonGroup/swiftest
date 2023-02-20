@@ -89,7 +89,7 @@ contains
       integer(I4B)              :: i, j, jproj, jtarg, nfrag, istart, nfragmax, nrem
       real(DP), dimension(2)    :: volume
       real(DP), dimension(NDIM) :: Ip_avg
-      real(DP) :: mfrag, mremaining, mtot, mcumul, G, mass_noise, Mslr, mscale, mscale0, y, yp, Mrat
+      real(DP) :: mfrag, mremaining, mtot, mcumul, G, mass_noise, Mslr, mscale, x0, x1, xmid, ymid, y0, y1, y, yp, eps, Mrat
       real(DP), dimension(:), allocatable :: mass
       real(DP)  :: beta 
       integer(I4B), parameter :: MASS_NOISE_FACTOR = 5  !! The number of digits of random noise that get added to the minimum mass value to prevent identical masses from being generated in a single run 
@@ -99,7 +99,7 @@ contains
       integer(I4B), parameter :: iMrem = 3
       integer(I4B), parameter :: NFRAGMIN = iMrem + 2 !! Minimum number of fragments that can be generated 
       integer(I4B), dimension(:), allocatable :: ind
-      integer(I4B), parameter :: MAXLOOP = 10000
+      integer(I4B), parameter :: MAXLOOP = 20
       logical :: flipper
      
       associate(impactors => self%impactors, min_mfrag => self%min_mfrag)
@@ -134,14 +134,14 @@ contains
             beta = 2.85_DP ! From Leinhardt & Stewart (2012)
             Mslr = impactors%mass_dist(iMslr)
 
-            nfragmax = ceiling(NFRAGMAX_UNSCALED / param%nfrag_reduction)
-            do i = 1, nfragmax
+            do i = 1, NFRAGMAX_UNSCALED
                mfrag = (nfrag)**(-3._DP / BETA) * Mslr
                mfrag = max(mfrag, min_mfrag)
                mremaining = mremaining - mfrag
                nfrag = nfrag + 1
                if (mremaining < 0.0_DP) exit
             end do
+            nfragmax = ceiling(NFRAGMAX_UNSCALED / param%nfrag_reduction)
             nfrag = max(min(ceiling(nfrag / param%nfrag_reduction), nfragmax), NFRAGMIN)
 
             call self%setup_fragments(nfrag)
@@ -177,16 +177,42 @@ contains
             ! Use Newton's method solver to get the logspace slope of the mass function
             Mrat = mremaining / min_mfrag
             nrem = nfrag - 2
-            mscale = Mrat**(1.0_DP/nrem)
-            do j = 1, MAXLOOP
-               y = Mrat - (1.0_DP - mscale**nrem)/(1.0_DP - mscale)
-               yp = (mscale + mscale**nrem * ((nrem - 1) * mscale - nrem)) / (mscale * (mscale - 1.0_DP)**2)
-               mscale0 = mscale
-               mscale = mscale0 + y/yp
-               if (abs((mscale - mscale0)/mscale) < epsilon(1.0_DP)) exit
+            x0 = 1.0_DP + 100*epsilon(1.0_DP)
+            x1 = Mrat**(1.0/nrem)
+            do j = 1, MAXLOOP 
+               y0 = Mrat - (1.0_DP - x0**nrem)/(1.0_DP - x0)
+               y1 = Mrat - (1.0_DP - x1**nrem)/(1.0_DP - x1)
+               if (y0*y1 < 0.0_DP) exit
+               x1 = x1 * 1.6_DP
             end do
-            Mslr = impactors%mass_dist(iMslr)
 
+            ! Find the mass scaling factor with bisection
+            do i = 1, MAXLOOP
+               mscale= 0.5_DP * (x0 + x1)
+               ymid = Mrat - (1.0_DP - mscale**nrem)/(1.0_DP - mscale)
+               if (abs((y0 - ymid)/y0) < 1e-12_DP) exit
+               if (y0 * ymid <  0.0_DP) then
+                  x1 = mscale 
+                  y1 = ymid  
+               else if (y1 * ymid < 0.0_DP) then
+                  x0 = mscale
+                  y0 = ymid
+               else
+                  exit
+               end if 
+               ! Finish with Newton if we still haven't made it
+               if (i == MAXLOOP) then
+                  do j = 1, MAXLOOP
+                     y = Mrat - (1.0_DP - mscale**nrem)/(1.0_DP - mscale)
+                     yp = (mscale + mscale**nrem * ((nrem - 1) * mscale - nrem)) / (mscale * (mscale - 1.0_DP)**2)
+                     eps = y/yp
+                     if (abs(eps) < epsilon(1.0_DP) * mscale) exit
+                     mscale = mscale + eps
+                  end do
+               end if
+            end do
+
+            Mslr = impactors%mass_dist(iMslr)
             mass(iMslr) = Mslr
             mfrag = min_mfrag
             do i = iMrem,nfrag
