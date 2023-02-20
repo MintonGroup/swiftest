@@ -89,7 +89,7 @@ contains
       integer(I4B)              :: i, j, jproj, jtarg, nfrag, istart, nfragmax, nrem
       real(DP), dimension(2)    :: volume
       real(DP), dimension(NDIM) :: Ip_avg
-      real(DP) :: mfrag, mremaining, mtot, mcumul, G, mass_noise, Mslr, mscale, y, yp, Mrat, m0
+      real(DP) :: mfrag, mremaining, mtot, mcumul, G, mass_noise, Mslr, mscale, mscale0, y, yp, Mrat
       real(DP), dimension(:), allocatable :: mass
       real(DP)  :: beta 
       integer(I4B), parameter :: MASS_NOISE_FACTOR = 5  !! The number of digits of random noise that get added to the minimum mass value to prevent identical masses from being generated in a single run 
@@ -177,13 +177,13 @@ contains
             ! Use Newton's method solver to get the logspace slope of the mass function
             Mrat = mremaining / min_mfrag
             nrem = nfrag - 2
-            mscale = 1.0_DP - 1.0_DP/Mrat
+            mscale = Mrat**(1.0_DP/nrem)
             do j = 1, MAXLOOP
                y = Mrat - (1.0_DP - mscale**nrem)/(1.0_DP - mscale)
                yp = (mscale + mscale**nrem * ((nrem - 1) * mscale - nrem)) / (mscale * (mscale - 1.0_DP)**2)
-               m0 = mscale
-               mscale = m0 + y/yp
-               if (abs((mscale - m0)/mscale) < epsilon(1.0_DP)) exit
+               mscale0 = mscale
+               mscale = mscale0 + y/yp
+               if (abs((mscale - mscale0)/mscale) < epsilon(1.0_DP)) exit
             end do
             Mslr = impactors%mass_dist(iMslr)
 
