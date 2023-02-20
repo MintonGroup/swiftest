@@ -124,7 +124,7 @@ contains
       real(DP)                             :: dE
       real(DP), dimension(NDIM)            :: dL
       character(len=STRMAX)                :: message
-      real(DP), parameter                  :: fail_scale_initial = 1.001_DP
+      real(DP), parameter                  :: fail_scale_initial = 1.01_DP
       integer(I4B)                         :: nfrag_start
 
       ! The minimization and linear solvers can sometimes lead to floating point exceptions. Rather than halting the code entirely if this occurs, we
@@ -310,7 +310,7 @@ contains
       real(DP), parameter :: cloud_size_scale_factor = 3.0_DP ! Scale factor to apply to the size of the cloud relative to the distance from the impact point. 
                                                               ! A larger value puts more space between fragments initially
       real(DP) :: rbuffer  ! Body radii are inflated by this scale factor to prevent secondary collisions 
-      real(DP), parameter :: rbuffer_max = 1.2_DP
+      real(DP), parameter :: rbuffer_max = 1.02_DP
       real(DP), parameter :: pack_density = 0.5236_DP ! packing density of loose spheres
       rbuffer = 1.01_DP 
 
@@ -415,12 +415,14 @@ contains
             fragments%rmag(:) = .mag. fragments%rc(:,:)
 
             ! Check for any overlapping bodies.
-            loverlap(:) = .false.
+            !loverlap(:) = .false.
             do j = 1, nfrag
+               if (.not.loverlap(j)) cycle
+               loverlap(j) = .false.
                ! Check for overlaps between fragments
                do i = j + 1, nfrag
                   dis = .mag.(fragments%rc(:,j) - fragments%rc(:,i))
-                  loverlap(i) = loverlap(i) .or. (dis <= rbuffer * (fragments%radius(i) + fragments%radius(j))) 
+                  loverlap(j) = loverlap(j) .or. (dis <= rbuffer * (fragments%radius(i) + fragments%radius(j))) 
                end do
                ! Check for overlaps with existing bodies that are not involved in the collision 
                do i = 1, npl
