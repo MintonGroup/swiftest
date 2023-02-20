@@ -420,7 +420,7 @@ contains
                if (.not.loverlap(j)) cycle
                loverlap(j) = .false.
                ! Check for overlaps between fragments
-               do i = j + 1, nfrag
+               do concurrent(i = 1:nfrag, i/=j)
                   dis = .mag.(fragments%rc(:,j) - fragments%rc(:,i))
                   loverlap(j) = loverlap(j) .or. (dis <= rbuffer * (fragments%radius(i) + fragments%radius(j))) 
                end do
