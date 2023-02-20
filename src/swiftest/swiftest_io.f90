@@ -909,6 +909,7 @@ contains
          ! end if
 
          ! Optional variables The User Doesn't Need to Know About
+         status = nf90_inq_varid(nc%id, nc%mass_varname, nc%mass_varid)
          status = nf90_inq_varid(nc%id, nc%rhill_varname, nc%rhill_varid)
          param%lrhill_present = (status == NF90_NOERR)
          status = nf90_inq_varid(nc%id, nc%npl_varname, nc%npl_varid)
@@ -1649,23 +1650,23 @@ contains
       associate(tslot => nc%tslot)
          call self%write_info(nc, param)
 
-         call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "netcdf_io_write_frame_cb nf90_set_fill"  )
+         call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "swiftest_io_netcdf_write_frame_cb nf90_set_fill"  )
 
          call nc%find_idslot(self%id, idslot) 
-         call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id, start=[idslot]), "netcdf_io_write_frame_cb nf90_put_var cb id_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%status_varid, ACTIVE, start=[idslot, tslot]), "netcdf_io_write_frame_cb nf90_put_var cb id_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id, start=[idslot]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb id_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%status_varid, ACTIVE, start=[idslot, tslot]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb id_varid"  )
 
-         call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid, self%Gmass, start=[idslot, tslot]), "netcdf_io_write_frame_cb nf90_put_var cb Gmass_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%mass_varid, self%mass, start=[idslot, tslot]), "netcdf_io_write_frame_cb nf90_put_var cb mass_varid"  )
-         if (param%lclose) call netcdf_io_check( nf90_put_var(nc%id, nc%radius_varid, self%radius, start=[idslot, tslot]), "netcdf_io_write_frame_cb nf90_put_var cb radius_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%j2rp2_varid, self%j2rp2, start=[tslot]), "netcdf_io_write_frame_cb nf90_put_var cb j2rp2_varid" )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%j4rp4_varid, self%j4rp4, start=[tslot]), "netcdf_io_write_frame_cb nf90_put_var cb j4rp4_varid" )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid, self%Gmass, start=[idslot, tslot]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb Gmass_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%mass_varid, self%mass, start=[idslot, tslot]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb mass_varid"  )
+         if (param%lclose) call netcdf_io_check( nf90_put_var(nc%id, nc%radius_varid, self%radius, start=[idslot, tslot]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb radius_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%j2rp2_varid, self%j2rp2, start=[tslot]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb j2rp2_varid" )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%j4rp4_varid, self%j4rp4, start=[tslot]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb j4rp4_varid" )
          if (param%lrotation) then
-            call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid, self%Ip(:), start=[1, idslot, tslot], count=[NDIM,1,1]), "netcdf_io_write_frame_cb nf90_put_var cb Ip_varid"  )
-            call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, self%rot(:) * RAD2DEG, start=[1, idslot, tslot], count=[NDIM,1,1]), "netcdf_io_write_frame_cby nf90_put_var cb rot_varid"  )
+            call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid, self%Ip(:), start=[1, idslot, tslot], count=[NDIM,1,1]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb Ip_varid"  )
+            call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, self%rot(:) * RAD2DEG, start=[1, idslot, tslot], count=[NDIM,1,1]), "swiftest_io_netcdf_write_frame_cby nf90_put_var cb rot_varid"  )
          end if
 
-         call netcdf_io_check( nf90_set_fill(nc%id, old_mode, old_mode), "netcdf_io_write_frame_cb nf90_set_fill old_mode"  )
+         call netcdf_io_check( nf90_set_fill(nc%id, old_mode, old_mode), "swiftest_io_netcdf_write_frame_cb nf90_set_fill old_mode"  )
       end associate
 
       return
