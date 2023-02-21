@@ -166,7 +166,7 @@ def encounter_combiner(sim):
     enc = enc.sel(time=tgood)
 
     # The following will combine the two datasets along the time dimension, sort the time dimension, and then fill in any time gaps with interpolation
-    ds = xr.combine_nested([data,enc],concat_dim='time').sortby("time").chunk(dict(time=-1)).interpolate_na(dim="time", method="akima")
+    ds = xr.combine_nested([data,enc],concat_dim='time').sortby("time").interpolate_na(dim="time", method="akima")
     
     # Rename the merged Target body so that their data can be combined
     tname=[n for n in ds['name'].data if names[0] in n]
@@ -359,7 +359,7 @@ if __name__ == "__main__":
         minimum_fragment_gmass = 0.01 * body_Gmass[style][1] 
         gmtiny = 0.10 * body_Gmass[style][1] 
         sim.set_parameter(collision_model="fraggle", encounter_save="both", gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, nfrag_reduction=nfrag_reduction[style])
-        sim.run(dt=5e-4, tstop=tstop[style], istep_out=1, dump_cadence=0, dask=False)
+        sim.run(dt=5e-4, tstop=tstop[style], istep_out=1, dump_cadence=0)
 
         print("Generating animation")
         anim = AnimatedScatter(sim,movie_filename,movie_titles[style],style,nskip=1)

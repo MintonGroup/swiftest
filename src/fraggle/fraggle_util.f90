@@ -175,15 +175,16 @@ contains
 
             ! The mass will be distributed evenly in logspace between the second-largest remnant and the minimum mass
             ! Use Newton's method solver to get the logspace slope of the mass function
-            Mrat = mremaining / min_mfrag
+            Mrat = (mremaining + Mslr) / Mslr
             nrem = nfrag - 2
-            x0 = 1.0_DP + 100*epsilon(1.0_DP)
+            x0 = 1.0_DP - 100*epsilon(1.0_DP)
             x1 = Mrat**(1.0/nrem)
             do j = 1, MAXLOOP 
                y0 = Mrat - (1.0_DP - x0**nrem)/(1.0_DP - x0)
                y1 = Mrat - (1.0_DP - x1**nrem)/(1.0_DP - x1)
                if (y0*y1 < 0.0_DP) exit
                x1 = x1 * 1.6_DP
+               x0 = x0 / 1.6_DP
             end do
 
             ! Find the mass scaling factor with bisection
@@ -214,11 +215,11 @@ contains
 
             Mslr = impactors%mass_dist(iMslr)
             mass(iMslr) = Mslr
-            mfrag = min_mfrag
+            mfrag = Mslr 
             do i = iMrem,nfrag
+               mfrag = mfrag * mscale
                mass(i) = mfrag
                mremaining = mremaining - mfrag
-               mfrag = max(mfrag * mscale, min_mfrag)
             end do
 
             ! There may still be some small residual due to round-off error. If so, simply add it to the last bin of the mass distribution.
