@@ -166,15 +166,14 @@ contains
             ! The mass will be distributed in a power law where N>M=(M/Mslr)**(-beta/3)
             ! Use Newton's method solver to get the logspace slope of the mass function
             Mrat = (mremaining + Mslr) / Mslr
-            nrem = nfrag - iMslr + 1 
             x0 = 0.1_DP
             x1 = 5.0_DP  
             do j = 1, MAXLOOP 
                y0 = Mrat - 1.0_DP
                y1 = Mrat - 1.0_DP
-               do i = 2, nrem
-                  y0 = y0 - (i)**(-x0/3.0_DP)
-                  y1 = y1 - (i)**(-x1/3.0_DP)
+               do i = iMrem, nfrag
+                  y0 = y0 - (i-1)**(-x0/3.0_DP)
+                  y1 = y1 - (i-1)**(-x1/3.0_DP)
                end do
                if (y0*y1 < 0.0_DP) exit
                x1 = x1 * 1.6_DP
@@ -185,8 +184,8 @@ contains
             do j = 1, MAXLOOP
                beta = 0.5_DP * (x0 + x1)
                ymid = Mrat - 1.0_DP
-               do i = 2, nrem
-                  ymid = ymid - (i)**(-beta/3.0_DP)
+               do i = iMrem, nfrag
+                  ymid = ymid - (i-1)**(-beta/3.0_DP)
                end do
                if (abs((y0 - ymid)/y0) < 1e-12_DP) exit
                if (y0 * ymid <  0.0_DP) then
@@ -203,9 +202,9 @@ contains
                   do k = 1, MAXLOOP
                      y = Mrat - 1.0_DP
                      yp = 0.0_DP
-                     do i = 2, nrem
-                        y = y - (i)**(-beta/3.0_DP)
-                        if (i > 3) yp = yp - (i)**(-beta/3.0_DP) * log(real(i,kind=DP))
+                     do i = iMrem, nfrag
+                        y = y - (i-1)**(-beta/3.0_DP)
+                        if (i > 3) yp = yp - (i-1)**(-beta/3.0_DP) * log(real(i-1,kind=DP))
                      end do
                      eps = y/yp
                      if (abs(eps) < epsilon(1.0_DP) * beta) exit
@@ -214,7 +213,6 @@ contains
                end if
             end do
 
-            Mslr = impactors%mass_dist(iMslr)
             do i = iMrem,nfrag
                mass(i) = Mslr * (i-1)**(-beta/3.0_DP)
             end do
