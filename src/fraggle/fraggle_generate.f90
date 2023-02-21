@@ -390,7 +390,7 @@ contains
                fragments%rc(:,i) = fragments%rc(:,i) + fragment_cloud_center(:,j)
 
                if (lhitandrun) then
-                  fragments%rc(:,i) = fragments%rc(:,i) + (fragment_cloud_radius(j) + maxval(mass_rscale)) * impactors%bounce_unit(:) ! Shift the stretched cloud downrange
+                  fragments%rc(:,i) = fragments%rc(:,i) + 2 * fragment_cloud_radius(j) * mass_rscale(i) * impactors%bounce_unit(:) ! Shift the stretched cloud downrange
                else
                   ! Make sure that the fragments are positioned away from the impact point
                   direction = dot_product(fragments%rc(:,i) - impactors%rcimp(:), fragment_cloud_center(:,j) - impactors%rcimp(:))
