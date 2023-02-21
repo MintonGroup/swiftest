@@ -43,7 +43,7 @@ dens = 3000.0 * sim.KG2MU / sim.M2DU**3
 
 mtiny = 1e-2 * Ms
 minimum_fragment_mass = 1e-5 * Ms
-nfrag_reduction = 10.0
+nfrag_reduction = 30.0
 rng = default_rng(seed=3031179)
 
 runname = "Chambers (2013)"
