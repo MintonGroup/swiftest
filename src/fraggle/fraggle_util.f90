@@ -177,7 +177,7 @@ contains
             ! Use Newton's method solver to get the logspace slope of the mass function
             Mrat = (mremaining + Mslr) / Mslr
             nrem = nfrag - 2
-            x0 = 1.0_DP - 100*epsilon(1.0_DP)
+            x0 = 1.0_DP - 1.0_DP/Mrat 
             x1 = Mrat**(1.0/nrem)
             do j = 1, MAXLOOP 
                y0 = Mrat - (1.0_DP - x0**nrem)/(1.0_DP - x0)

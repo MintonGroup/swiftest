@@ -309,10 +309,8 @@ contains
       integer(I4B), parameter :: MAXLOOP = 10000
       real(DP), parameter :: cloud_size_scale_factor = 3.0_DP ! Scale factor to apply to the size of the cloud relative to the distance from the impact point. 
                                                               ! A larger value puts more space between fragments initially
-      real(DP) :: rbuffer  ! Body radii are inflated by this scale factor to prevent secondary collisions 
-      real(DP), parameter :: rbuffer_max = 1.02_DP
+      real(DP), parameter :: rbuffer = 1.01_DP ! Body radii are inflated by this scale factor to prevent secondary collisions 
       real(DP), parameter :: pack_density = 0.5236_DP ! packing density of loose spheres
-      rbuffer = 1.01_DP 
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody, &
          pl => nbody_system%pl, tp => nbody_system%tp, npl => nbody_system%pl%nbody, ntp => nbody_system%tp%nbody)
@@ -415,16 +413,17 @@ contains
             fragments%rmag(:) = .mag. fragments%rc(:,:)
 
             ! Check for any overlapping bodies.
-            !loverlap(:) = .false.
-            do j = 1, nfrag
+            do j = nfrag, 1, -1
                if (.not.loverlap(j)) cycle
                loverlap(j) = .false.
                ! Check for overlaps between fragments
-               do concurrent(i = 1:nfrag, i/=j)
+               do i = 1,nfrag
+                  if (i == j) cycle
                   dis = .mag.(fragments%rc(:,j) - fragments%rc(:,i))
-                  loverlap(j) = loverlap(j) .or. (dis <= rbuffer * (fragments%radius(i) + fragments%radius(j))) 
+                  loverlap(j) = (dis <= rbuffer * (fragments%radius(i) + fragments%radius(j)))
+                  if (loverlap(j)) exit
                end do
-               ! Check for overlaps with existing bodies that are not involved in the collision 
+               if (loverlap(j)) cycle
                do i = 1, npl
                   if (any(impactors%id(:) == i)) cycle
                   dis = .mag. (fragments%rc(:,j) - (pl%rb(:,i) / collider%dscale - impactors%rbcom(:)))
@@ -432,7 +431,6 @@ contains
                end do
             end do
             rdistance = rdistance * collider%fail_scale
-            rbuffer = min(rbuffer * collider%fail_scale, rbuffer_max)
          end do
 
          lfailure = any(loverlap(:))
