@@ -682,7 +682,7 @@ contains
                      if (all(dL_metric(:) <= 1.0_DP)) exit angmtm
    
                      do i = istart, fragments%nbody
-                        dL(:) = -L_residual(:) / (fragments%nbody - istart + 1) 
+                        dL(:) = -L_residual(:)  * fragments%mass(i) / sum(fragments%mass(istart:fragments%nbody))
                         call collision_util_velocity_torque(dL, fragments%mass(i), fragments%rc(:,i), fragments%vc(:,i))
                         call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)  
                         fragments%vmag(i) = .mag.fragments%vc(:,i)

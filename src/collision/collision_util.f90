@@ -833,8 +833,8 @@ contains
 
       associate(collider => self, fragments => self%fragments, impactors => self%impactors)
          ! Set primary scale factors (mass, length, and time) based on the impactor properties at the time of collision
-         collider%mscale = minval(fragments%mass(:))
-         collider%dscale = minval(fragments%radius(:))
+         collider%mscale = minval(impactors%mass(:))
+         collider%dscale = minval(impactors%radius(:))
 
          vesc = sqrt(2 * sum(impactors%Gmass(:)) / sum(impactors%radius(:)))
          collider%tscale = collider%dscale / vesc
