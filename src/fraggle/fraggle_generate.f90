@@ -384,7 +384,7 @@ contains
 
                ! Stretch out the hit and run cloud along the flight trajectory
                if (lhitandrun) then
-                  fragments%rc(:,i) = fragments%rc(:,i) * (1.0_DP + fragment_cloud_radius(j) * mass_rscale(i) * impactors%bounce_unit(:))
+                  fragments%rc(:,i) = fragments%rc(:,i) * (1.0_DP + 2 * fragment_cloud_radius(j) * mass_rscale(i) * impactors%bounce_unit(:))
                end if
 
                fragments%rc(:,i) = fragments%rc(:,i) + fragment_cloud_center(:,j)
