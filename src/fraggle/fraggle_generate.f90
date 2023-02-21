@@ -552,7 +552,7 @@ contains
       real(DP)                :: vmax_guess 
       integer(I4B), parameter :: MAXLOOP = 25
       integer(I4B), parameter :: MAXTRY  = 10
-      integer(I4B), parameter :: MAXANGMTM = 30000
+      integer(I4B), parameter :: MAXANGMTM = 1000
       class(collision_fraggle), allocatable :: collider_local
       character(len=STRMAX) :: message
 
