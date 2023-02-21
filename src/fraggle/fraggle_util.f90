@@ -86,14 +86,14 @@ contains
       class(collision_fraggle),   intent(inout) :: self  !! Fraggle collision system object
       class(swiftest_parameters), intent(in)    :: param !! Current Swiftest run configuration parameters
       ! Internals
-      integer(I4B)              :: i, j, jproj, jtarg, nfrag, istart, nfragmax, nrem
+      integer(I4B)              :: i, j, k, jproj, jtarg, nfrag, istart, nfragmax, nrem
       real(DP), dimension(2)    :: volume
       real(DP), dimension(NDIM) :: Ip_avg
-      real(DP) :: mfrag, mremaining, mtot, mcumul, G, mass_noise, Mslr, mscale, x0, x1, xmid, ymid, y0, y1, y, yp, eps, Mrat
+      real(DP) ::  mremaining, mtot, mcumul, G, mass_noise, Mslr, x0, x1, ymid, y0, y1, y, yp, eps, Mrat
       real(DP), dimension(:), allocatable :: mass
       real(DP)  :: beta 
       integer(I4B), parameter :: MASS_NOISE_FACTOR = 5  !! The number of digits of random noise that get added to the minimum mass value to prevent identical masses from being generated in a single run 
-      integer(I4B), parameter :: NFRAGMAX_UNSCALED = 3000  !! Maximum number of fragments that can be generated
+      integer(I4B), parameter :: NFRAGMAX_UNSCALED = 100  !! Maximum number of fragments that can be generated
       integer(I4B), parameter :: iMlr = 1
       integer(I4B), parameter :: iMslr = 2
       integer(I4B), parameter :: iMrem = 3
@@ -120,29 +120,19 @@ contains
          select case(impactors%regime)
          case(COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC, COLLRESOLVE_REGIME_HIT_AND_RUN)
             ! The first two bins of the mass_dist are the largest and second-largest fragments that came out of collision_regime.
-            ! The remainder from the third bin will be distributed among nfrag-2 bodies. The following code will determine nfrag based on
-            ! the limits bracketed above and the model size distribution of fragments.
-            ! Check to see if our size distribution would give us a smaller number of fragments than the maximum number
+            ! The remainder from the third bin will be distributed among nfrag-2 bodies. 
 
-            ! ! Add a small amount of noise to the last digits of the minimum mass value so that multiple fragments don't get generated with identical mass values
+            !Add a small amount of noise to the last digits of the minimum mass value so that multiple fragments don't get generated with identical mass values
             call random_number(mass_noise)
             mass_noise = 1.0_DP + mass_noise * epsilon(1.0_DP) * 10**(MASS_NOISE_FACTOR)
             min_mfrag = (param%min_GMfrag / param%GU) * mass_noise
             
             mremaining = impactors%mass_dist(iMrem)
             nfrag = iMrem - 1 
-            beta = 2.85_DP ! From Leinhardt & Stewart (2012)
             Mslr = impactors%mass_dist(iMslr)
-
-            do i = 1, NFRAGMAX_UNSCALED
-               mfrag = (nfrag)**(-3._DP / BETA) * Mslr
-               mfrag = max(mfrag, min_mfrag)
-               mremaining = mremaining - mfrag
-               nfrag = nfrag + 1
-               if (mremaining < 0.0_DP) exit
-            end do
             nfragmax = ceiling(NFRAGMAX_UNSCALED / param%nfrag_reduction)
-            nfrag = max(min(ceiling(nfrag / param%nfrag_reduction), nfragmax), NFRAGMIN)
+            Mrat = max((mremaining + Mslr) / min_mfrag, 1.0_DP)
+            nfrag = max(ceiling(nfragmax * (log(Mrat) + 1.0_DP)), NFRAGMIN)
 
             call self%setup_fragments(nfrag)
 
@@ -173,53 +163,60 @@ contains
             if (Mslr == min_mfrag) Mslr = Mslr + impactors%mass_dist(iMrem) / nfrag
             mremaining = impactors%mass_dist(iMrem)
 
-            ! The mass will be distributed evenly in logspace between the second-largest remnant and the minimum mass
+            ! The mass will be distributed in a power law where N>M=(M/Mslr)**(-beta/3)
             ! Use Newton's method solver to get the logspace slope of the mass function
             Mrat = (mremaining + Mslr) / Mslr
-            nrem = nfrag - 2
-            x0 = 1.0_DP - 1.0_DP/Mrat 
-            x1 = Mrat**(1.0/nrem)
+            nrem = nfrag - iMslr + 1 
+            x0 = 0.1_DP
+            x1 = 5.0_DP  
             do j = 1, MAXLOOP 
-               y0 = Mrat - (1.0_DP - x0**nrem)/(1.0_DP - x0)
-               y1 = Mrat - (1.0_DP - x1**nrem)/(1.0_DP - x1)
+               y0 = Mrat - 1.0_DP
+               y1 = Mrat - 1.0_DP
+               do i = 2, nrem
+                  y0 = y0 - (i)**(-x0/3.0_DP)
+                  y1 = y1 - (i)**(-x1/3.0_DP)
+               end do
                if (y0*y1 < 0.0_DP) exit
                x1 = x1 * 1.6_DP
                x0 = x0 / 1.6_DP
             end do
 
             ! Find the mass scaling factor with bisection
-            do i = 1, MAXLOOP
-               mscale= 0.5_DP * (x0 + x1)
-               ymid = Mrat - (1.0_DP - mscale**nrem)/(1.0_DP - mscale)
+            do j = 1, MAXLOOP
+               beta = 0.5_DP * (x0 + x1)
+               ymid = Mrat - 1.0_DP
+               do i = 2, nrem
+                  ymid = ymid - (i)**(-beta/3.0_DP)
+               end do
                if (abs((y0 - ymid)/y0) < 1e-12_DP) exit
                if (y0 * ymid <  0.0_DP) then
-                  x1 = mscale 
+                  x1 = beta
                   y1 = ymid  
                else if (y1 * ymid < 0.0_DP) then
-                  x0 = mscale
+                  x0 = beta
                   y0 = ymid
                else
                   exit
                end if 
                ! Finish with Newton if we still haven't made it
-               if (i == MAXLOOP) then
-                  do j = 1, MAXLOOP
-                     y = Mrat - (1.0_DP - mscale**nrem)/(1.0_DP - mscale)
-                     yp = (mscale + mscale**nrem * ((nrem - 1) * mscale - nrem)) / (mscale * (mscale - 1.0_DP)**2)
+               if (j == MAXLOOP) then
+                  do k = 1, MAXLOOP
+                     y = Mrat - 1.0_DP
+                     yp = 0.0_DP
+                     do i = 2, nrem
+                        y = y - (i)**(-beta/3.0_DP)
+                        if (i > 3) yp = yp - (i)**(-beta/3.0_DP) * log(real(i,kind=DP))
+                     end do
                      eps = y/yp
-                     if (abs(eps) < epsilon(1.0_DP) * mscale) exit
-                     mscale = mscale + eps
+                     if (abs(eps) < epsilon(1.0_DP) * beta) exit
+                     beta = beta + eps
                   end do
                end if
             end do
 
             Mslr = impactors%mass_dist(iMslr)
-            mass(iMslr) = Mslr
-            mfrag = Mslr 
             do i = iMrem,nfrag
-               mfrag = mfrag * mscale
-               mass(i) = mfrag
-               mremaining = mremaining - mfrag
+               mass(i) = Mslr * (i-1)**(-beta/3.0_DP)
             end do
 
             ! There may still be some small residual due to round-off error. If so, simply add it to the last bin of the mass distribution.
