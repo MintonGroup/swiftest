@@ -160,6 +160,7 @@ contains
             call fraggle_generate_rot_vec(self, nbody_system, param)
             call fraggle_generate_vel_vec(self, nbody_system, param, lfailure)
          end if
+         lfailure = .true.
 
          if (.not.lfailure) then
             if (self%fragments%nbody /= nfrag_start) then
@@ -282,6 +283,51 @@ contains
 
       return
    end subroutine fraggle_generate_hitandrun
+
+
+   module subroutine fraggle_generate_merge(self, nbody_system, param, t)
+      !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
+      !!
+      !! Merge massive bodies in any collisional system. If the rotation is too high, switch to hit and run.
+      !! 
+      !! Adapted from David E. Kaufmann's Swifter routines symba_merge_pl.f90 and symba_discard_merge_pl.f90
+      !!
+      !! Adapted from Hal Levison's Swift routines symba5_merge.f and discard_mass_merge.f
+      implicit none
+      class(collision_fraggle), intent(inout) :: self         !! Fraggle system object
+      class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+      class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+      real(DP),                 intent(in)    :: t            !! The time of the collision
+
+      ! Internals
+      integer(I4B)                              :: i, j
+      real(DP), dimension(NDIM)                 :: L_spin_new, Ip, rot
+      real(DP)                                  :: rotmag, mass, volume, radius
+
+      select type(nbody_system)
+      class is (swiftest_nbody_system)
+         associate(impactors => self%impactors)
+            mass = sum(impactors%mass(:))
+            volume = 4._DP / 3._DP * PI * sum(impactors%radius(:)**3)
+            radius = (3._DP * volume / (4._DP * PI))**(THIRD)
+            do concurrent(i = 1:NDIM)
+               Ip(i) = sum(impactors%mass(:) * impactors%Ip(i,:)) 
+               L_spin_new(i) = sum(impactors%L_orbit(i,:) + impactors%L_spin(i,:))
+            end do
+            Ip(:) = Ip(:) / mass
+            rot(:) = L_spin_new(:) / (Ip(3) * mass * radius**2)
+            rotmag = .mag.rot(:)
+            if (rotmag < self%max_rot) then
+               call self%collision_basic%merge(nbody_system, param, t)
+            else
+               impactors%mass_dist(1:2) = impactors%mass(1:2)
+               call self%hitandrun(nbody_system, param, t)
+            end if
+
+         end associate
+      end select
+      return 
+   end subroutine fraggle_generate_merge
 
 
    module subroutine fraggle_generate_pos_vec(collider, nbody_system, param, lfailure)

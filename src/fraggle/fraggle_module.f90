@@ -18,9 +18,10 @@ module fraggle
    type, extends(collision_basic) :: collision_fraggle
       real(DP) :: fail_scale !! Scale factor to apply to distance values in the position model when overlaps occur. 
    contains
-      procedure :: disrupt       => fraggle_generate_disrupt   !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
       procedure :: generate      => fraggle_generate           !! A simple disruption models that does not constrain energy loss in collisions
+      procedure :: disrupt       => fraggle_generate_disrupt   !! Generates a system of fragments in barycentric coordinates that conserves energy and momentum.
       procedure :: hitandrun     => fraggle_generate_hitandrun !! Generates either a pure hit and run, or one in which the runner is disrupted
+      procedure :: merge         => fraggle_generate_merge     !! Merges bodies unless the rotation would be too high, then it switches to pure hit and run.
       procedure :: set_mass_dist => fraggle_util_set_mass_dist !! Sets the distribution of mass among the fragments depending on the regime type
       procedure :: restructure   => fraggle_util_restructure   !! Restructures the fragment distribution after a failure to converge on a solution
    end type collision_fraggle  
@@ -28,7 +29,7 @@ module fraggle
    interface
       module subroutine fraggle_generate(self, nbody_system, param, t)
          implicit none
-         class(collision_fraggle), intent(inout) :: self        !! Fraggle fragment system object 
+         class(collision_fraggle), intent(inout) :: self         !! Fraggle fragment system object 
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
          real(DP),                 intent(in)    :: t            !! The time of the collision
@@ -36,7 +37,7 @@ module fraggle
 
       module subroutine fraggle_generate_disrupt(self, nbody_system, param, t, lfailure)
          implicit none
-         class(collision_fraggle), intent(inout) :: self         !! Fraggle system object the outputs will be the fragmentation 
+         class(collision_fraggle), intent(inout) :: self         !! Fraggle system object
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
          real(DP),                 intent(in)    :: t            !! Time of collision 
@@ -45,11 +46,19 @@ module fraggle
 
       module subroutine fraggle_generate_hitandrun(self, nbody_system, param, t) 
          implicit none
-         class(collision_fraggle), intent(inout) :: self         !! Collision system object
+         class(collision_fraggle), intent(inout) :: self         !! Fraggle system object
          class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
          class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters with SyMBA additions
          real(DP),                 intent(in)    :: t            !! Time of collision
       end subroutine fraggle_generate_hitandrun
+
+      module subroutine fraggle_generate_merge(self, nbody_system, param, t)
+         implicit none
+         class(collision_fraggle), intent(inout) :: self         !! Fraggle system object
+         class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+         real(DP),                 intent(in)    :: t            !! The time of the collision
+      end subroutine fraggle_generate_merge
 
       module subroutine fraggle_generate_pos_vec(collider, nbody_system, param, lfailure)
          implicit none

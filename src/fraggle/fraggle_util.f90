@@ -166,8 +166,8 @@ contains
             ! The mass will be distributed in a power law where N>M=(M/Mslr)**(-beta/3)
             ! Use Newton's method solver to get the logspace slope of the mass function
             Mrat = (mremaining + Mslr) / Mslr
-            x0 = 0.1_DP
-            x1 = 5.0_DP  
+            x0 = -3.0_DP
+            x1 = 3.0_DP  
             do j = 1, MAXLOOP 
                y0 = Mrat - 1.0_DP
                y1 = Mrat - 1.0_DP

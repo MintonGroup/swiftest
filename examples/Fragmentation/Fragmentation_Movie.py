@@ -166,7 +166,7 @@ def encounter_combiner(sim):
     enc = enc.sel(time=tgood)
 
     # The following will combine the two datasets along the time dimension, sort the time dimension, and then fill in any time gaps with interpolation
-    ds = xr.combine_nested([data,enc],concat_dim='time').sortby("time").interpolate_na(dim="time", method="akima")
+    ds = xr.combine_nested([data,enc],concat_dim='time').sortby("time").interpolate_na(dim="time")
     
     # Rename the merged Target body so that their data can be combined
     tname=[n for n in ds['name'].data if names[0] in n]
