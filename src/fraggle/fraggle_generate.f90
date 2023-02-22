@@ -160,7 +160,6 @@ contains
             call fraggle_generate_rot_vec(self, nbody_system, param)
             call fraggle_generate_vel_vec(self, nbody_system, param, lfailure)
          end if
-         lfailure = .true.
 
          if (.not.lfailure) then
             if (self%fragments%nbody /= nfrag_start) then
@@ -320,6 +319,7 @@ contains
             if (rotmag < self%max_rot) then
                call self%collision_basic%merge(nbody_system, param, t)
             else
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Merger would break the spin barrier. Converting to pure hit and run" )
                impactors%mass_dist(1:2) = impactors%mass(1:2)
                call self%hitandrun(nbody_system, param, t)
             end if
