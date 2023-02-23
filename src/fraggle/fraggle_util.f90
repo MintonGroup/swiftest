@@ -81,6 +81,7 @@ contains
       !! Sets the mass of fragments based on the mass distribution returned by the regime calculation.
       !! This subroutine must be run after the the setup routine has been run on the fragments
       !!
+      use, intrinsic :: ieee_exceptions
       implicit none
       ! Arguments
       class(collision_fraggle),   intent(inout) :: self  !! Fraggle collision system object
@@ -101,6 +102,10 @@ contains
       integer(I4B), dimension(:), allocatable :: ind
       integer(I4B), parameter :: MAXLOOP = 20
       logical :: flipper
+      logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
+
+      call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
+      call ieee_set_halting_mode(IEEE_ALL,.false.)
      
       associate(impactors => self%impactors, min_mfrag => self%min_mfrag)
          ! Get mass weighted mean of Ip and density
@@ -146,6 +151,7 @@ contains
                fragments%density(1) = impactors%mass_dist(1) / volume(jtarg)
                if (param%lrotation) fragments%Ip(:, 1) = impactors%Ip(:,1)
             end associate
+            call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)
             return
          case default
             write(*,*) "fraggle_util_set_mass_dist_fragments error: Unrecognized regime code",impactors%regime
@@ -176,8 +182,8 @@ contains
                   y1 = y1 - (i-1)**(-x1/3.0_DP)
                end do
                if (y0*y1 < 0.0_DP) exit
-               x1 = x1 * 1.6_DP
-               x0 = x0 / 1.6_DP
+               x1 = x1 * 1.1_DP
+               x0 = x0 * 1.1_DP
             end do
 
             ! Find the mass scaling factor with bisection
@@ -276,6 +282,7 @@ contains
 
       end associate
 
+      call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)
       return
    end subroutine fraggle_util_set_mass_dist
 
