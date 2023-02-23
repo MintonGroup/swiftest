@@ -33,8 +33,8 @@ contains
       integer(I4B), dimension(2)       :: nchild
       integer(I4B)                     :: i, j, nimpactors, idx_child
       real(DP), dimension(2)           :: volume, density
-      real(DP)                         :: mchild, volchild, rrel_mag, rlim, dt, mtot
-      real(DP), dimension(NDIM)        :: xc, vc, xcom, vcom, xchild, vchild, xcrossv, rrel, rrel_unit, dr
+      real(DP)                         :: mchild, volchild, rrel_mag, rlim, mtot, vdotr
+      real(DP), dimension(NDIM)        :: xc, vc, xcom, vcom, xchild, vchild, xcrossv, rrel, vrel, rrel_unit, vrel_unit, dr
       real(DP), dimension(NDIM,2)      :: mxc, vcc
 
       select type(nbody_system)
@@ -151,7 +151,11 @@ contains
             rrel_mag = .mag. rrel 
             if (rrel_mag < rlim) then
                rrel_unit = .unit.rrel
-               dr(:) = (1.0_DP + 2*epsilon(1.0_DP)) * (rlim - rrel_mag) * rrel_unit(:)
+               vrel = impactors%vb(:,2) - impactors%vb(:,1)
+               vrel_unit = .unit.vrel
+               vdotr = dot_product(vrel_unit, rrel)
+               dr(:) = -(vdotr - sign(1.0_DP, vdotr) * sqrt(rlim**2 - rrel_mag**2 + vdotr**2)) * vrel_unit(:)
+               dr(:) = (1.0_DP + 2*epsilon(1.0_DP)) * dr(:)
                impactors%rb(:,1) = impactors%rb(:,1) - dr(:) *  impactors%mass(2) / mtot
                impactors%rb(:,2) = impactors%rb(:,2) + dr(:) *  impactors%mass(1) / mtot
                rrel = impactors%rb(:,2) - impactors%rb(:,1)

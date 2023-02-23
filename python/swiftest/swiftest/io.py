@@ -825,7 +825,7 @@ def process_netcdf_input(ds, param):
     return ds
 
 
-def swiftest2xr(param, verbose=True):
+def swiftest2xr(param, verbose=True, dask=False):
     """
     Converts a Swiftest binary data file into an xarray DataSet.
 
@@ -833,6 +833,8 @@ def swiftest2xr(param, verbose=True):
     ----------
     param : dict
         Swiftest parameters
+    dask : bool, default False
+        Use Dask to lazily load data (useful for very large datasets)
 
     Returns
     -------
@@ -842,7 +844,11 @@ def swiftest2xr(param, verbose=True):
 
     if ((param['OUT_TYPE'] == 'NETCDF_DOUBLE') or (param['OUT_TYPE'] == 'NETCDF_FLOAT')):
         if verbose: print('\nCreating Dataset from NetCDF file')
-        ds = xr.open_dataset(param['BIN_OUT'], mask_and_scale=False)
+        if dask:
+            ds = xr.open_mfdataset(param['BIN_OUT'], engine='h5netcdf', mask_and_scale=False)
+        else:
+            ds = xr.open_dataset(param['BIN_OUT'], mask_and_scale=False)
+        
         ds = process_netcdf_input(ds, param)
     else:
         print(f"Error encountered. OUT_TYPE {param['OUT_TYPE']} not recognized.")

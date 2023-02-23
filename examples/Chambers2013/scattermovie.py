@@ -152,7 +152,7 @@ class AnimatedScatter(object):
 
         return self.artists
 
-sim = swiftest.Simulation(read_data=True)
+sim = swiftest.Simulation(read_data=True, read_collisions=False, dask=True)
 for plot_style in valid_plot_styles:
     animation_file = f"Chambers2013-{plot_style}.mp4"
     print('Making animation')

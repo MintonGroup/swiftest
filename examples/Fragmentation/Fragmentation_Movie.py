@@ -11,16 +11,26 @@
 """
 
 """
-Generates a movie of a fragmentation event from set of Swiftest output files.
+Generates and runs a set of Swiftest input files from initial conditions with the SyMBA integrator. All simulation 
+outputs are stored in the subdirectory named after their collisional regime. 
 
 Inputs
 _______
-param.in    : ASCII Swiftest parameter input file.
-data.nc     : A NetCDF file containing the simulation output.
+None.
 
-Returns
--------
-fragmentation.mp4 : A .mp4 file of a fragmentation event.
+Output
+------
+collisions.log   : An ASCII file containing the information of any collisional events that occured.
+collisions.nc    : A NetCDF file containing the collision output.
+data.nc          : A NetCDF file containing the simulation output.
+encounters.nc    : A NetCDF file containing the encounter output.
+init_cond.nc     : A NetCDF file containing the initial conditions for the simulation.
+param.00...0.in  : A series of parameter input files containing the parameters for the simulation at every output stage.
+param.in         : An ASCII file containing the inital parameters for the simulation.
+param.restart.in : An ASCII file containing the parameters for the simulation at the last output. 
+swiftest.log     : An ASCII file containing the information on the status of the simulation as it runs.
+collision.mp4    : A movie file named after the collisional regime depicting the collision.
+
 """
 
 import swiftest
@@ -156,7 +166,7 @@ def encounter_combiner(sim):
     enc = enc.sel(time=tgood)
 
     # The following will combine the two datasets along the time dimension, sort the time dimension, and then fill in any time gaps with interpolation
-    ds = xr.combine_nested([data,enc],concat_dim='time').sortby("time").interpolate_na(dim="time", method="akima")
+    ds = xr.combine_nested([data,enc],concat_dim='time').sortby("time").interpolate_na(dim="time")
     
     # Rename the merged Target body so that their data can be combined
     tname=[n for n in ds['name'].data if names[0] in n]

@@ -124,7 +124,7 @@ contains
       real(DP)                             :: dE
       real(DP), dimension(NDIM)            :: dL
       character(len=STRMAX)                :: message
-      real(DP), parameter                  :: fail_scale_initial = 1.001_DP
+      real(DP), parameter                  :: fail_scale_initial = 1.01_DP
       integer(I4B)                         :: nfrag_start
 
       ! The minimization and linear solvers can sometimes lead to floating point exceptions. Rather than halting the code entirely if this occurs, we
@@ -284,6 +284,52 @@ contains
    end subroutine fraggle_generate_hitandrun
 
 
+   module subroutine fraggle_generate_merge(self, nbody_system, param, t)
+      !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
+      !!
+      !! Merge massive bodies in any collisional system. If the rotation is too high, switch to hit and run.
+      !! 
+      !! Adapted from David E. Kaufmann's Swifter routines symba_merge_pl.f90 and symba_discard_merge_pl.f90
+      !!
+      !! Adapted from Hal Levison's Swift routines symba5_merge.f and discard_mass_merge.f
+      implicit none
+      class(collision_fraggle), intent(inout) :: self         !! Fraggle system object
+      class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+      class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+      real(DP),                 intent(in)    :: t            !! The time of the collision
+
+      ! Internals
+      integer(I4B)                              :: i, j
+      real(DP), dimension(NDIM)                 :: L_spin_new, Ip, rot
+      real(DP)                                  :: rotmag, mass, volume, radius
+
+      select type(nbody_system)
+      class is (swiftest_nbody_system)
+         associate(impactors => self%impactors)
+            mass = sum(impactors%mass(:))
+            volume = 4._DP / 3._DP * PI * sum(impactors%radius(:)**3)
+            radius = (3._DP * volume / (4._DP * PI))**(THIRD)
+            do concurrent(i = 1:NDIM)
+               Ip(i) = sum(impactors%mass(:) * impactors%Ip(i,:)) 
+               L_spin_new(i) = sum(impactors%L_orbit(i,:) + impactors%L_spin(i,:))
+            end do
+            Ip(:) = Ip(:) / mass
+            rot(:) = L_spin_new(:) / (Ip(3) * mass * radius**2)
+            rotmag = .mag.rot(:)
+            if (rotmag < self%max_rot) then
+               call self%collision_basic%merge(nbody_system, param, t)
+            else
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Merger would break the spin barrier. Converting to pure hit and run" )
+               impactors%mass_dist(1:2) = impactors%mass(1:2)
+               call self%hitandrun(nbody_system, param, t)
+            end if
+
+         end associate
+      end select
+      return 
+   end subroutine fraggle_generate_merge
+
+
    module subroutine fraggle_generate_pos_vec(collider, nbody_system, param, lfailure)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
@@ -309,10 +355,8 @@ contains
       integer(I4B), parameter :: MAXLOOP = 10000
       real(DP), parameter :: cloud_size_scale_factor = 3.0_DP ! Scale factor to apply to the size of the cloud relative to the distance from the impact point. 
                                                               ! A larger value puts more space between fragments initially
-      real(DP) :: rbuffer  ! Body radii are inflated by this scale factor to prevent secondary collisions 
-      real(DP), parameter :: rbuffer_max = 1.2_DP
+      real(DP), parameter :: rbuffer = 1.01_DP ! Body radii are inflated by this scale factor to prevent secondary collisions 
       real(DP), parameter :: pack_density = 0.5236_DP ! packing density of loose spheres
-      rbuffer = 1.01_DP 
 
       associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody, &
          pl => nbody_system%pl, tp => nbody_system%tp, npl => nbody_system%pl%nbody, ntp => nbody_system%tp%nbody)
@@ -328,20 +372,17 @@ contains
             rdistance = 0.5_DP * sum(impactors%radius(:))
             istart = 3
          else
-            rdistance = 2 * impactors%radius(2)
+            rdistance = impactors%radius(2)
             istart = 3
          end if
 
-         if (lhitandrun) then
-            mass_rscale(:) = 1.0_DP
-         else
-            ! Give the fragment positions a random value that is scaled with fragment mass so that the more massive bodies tend to be closer to the impact point
-            ! Later, velocities will be scaled such that the farther away a fragment is placed from the impact point, the higher will its velocity be.
-            call random_number(mass_rscale)
-            mass_rscale(:) = (mass_rscale(:) + 1.0_DP) / 2
-            mass_rscale(:) = mass_rscale(:) * (fragments%mtot / fragments%mass(1:nfrag))**(0.125_DP) ! The power is arbitrary. It just gives the velocity a small mass dependence
-            mass_rscale(:) = mass_rscale(:) / maxval(mass_rscale(:))
-         end if
+         mass_rscale(1:istart-1) = 1.0_DP
+         ! Give the fragment positions a random value that is scaled with fragment mass so that the more massive bodies tend to be closer to the impact point
+         ! Later, velocities will be scaled such that the farther away a fragment is placed from the impact point, the higher will its velocity be.
+         call random_number(mass_rscale(istart:nfrag))
+         mass_rscale(istart:nfrag) = (mass_rscale(istart:nfrag) + 1.0_DP) / 2
+         mass_rscale(istart:nfrag) = mass_rscale(istart:nfrag) * (sum(fragments%mass(istart:nfrag)) / fragments%mass(istart:nfrag))**(0.125_DP) ! The power is arbitrary. It just gives the velocity a small mass dependence
+         mass_rscale(istart:nfrag) = mass_rscale(istart:nfrag) / minval(mass_rscale(istart:nfrag))
 
          loverlap(:) = .true.
          do loop = 1, MAXLOOP
@@ -355,9 +396,8 @@ contains
             else ! Keep the first and second bodies at approximately their original location, but so as not to be overlapping
                fragment_cloud_center(:,1) = impactors%rcimp(:) - rbuffer * max(fragments%radius(1),impactors%radius(1)) * impactors%y_unit(:)
                fragment_cloud_center(:,2) = impactors%rcimp(:) + rbuffer * max(fragments%radius(2),impactors%radius(2)) * impactors%y_unit(:)
-               fragment_cloud_radius(:) = cloud_size_scale_factor * rdistance
-               fragments%rc(:,1) = fragment_cloud_center(:,1)
-               fragments%rc(:,2) = fragment_cloud_center(:,2)
+               fragment_cloud_radius(:) = rdistance / pack_density
+               fragments%rc(:,1:2) = fragment_cloud_center(:,1:2)
             end if
 
             do i = 1, nfrag
@@ -365,6 +405,8 @@ contains
                   call random_number(phi(i))
                   call random_number(theta(i))
                   call random_number(u(i))
+                  phi(i) = TWOPI * phi(i)
+                  theta(i) = asin(2 * theta(i) - 1.0_DP)
                end if
             end do
 
@@ -372,12 +414,12 @@ contains
             do concurrent(i = istart:nfrag, loverlap(i))
                j = fragments%origin_body(i)
 
-               ! Make a random cloud
-               phi(i) = TWOPI * phi(i)
-               theta(i) = acos(2 * theta(i) - 1.0_DP)
-
                ! Scale the cloud size
-               fragments%rmag(i) = fragment_cloud_radius(j) * mass_rscale(i) * u(i)**(THIRD)
+               if (lhitandrun) then
+                  fragments%rmag(i) = fragment_cloud_radius(j) * u(i)**(THIRD)
+               else
+                  fragments%rmag(i) = fragment_cloud_radius(j) * mass_rscale(i) * u(i)**(THIRD)
+               end if
 
                ! Position the fragment in a random point within the cloud
                fragments%rc(1,i) = fragments%rmag(i) * sin(theta(i)) * cos(phi(i))
@@ -385,11 +427,16 @@ contains
                fragments%rc(3,i) = fragments%rmag(i) * cos(theta(i))
 
                ! Shift to the cloud center coordinates
-               fragments%rc(:,i) = fragments%rc(:,i) + fragment_cloud_center(:,j)
 
                ! Stretch out the hit and run cloud along the flight trajectory
                if (lhitandrun) then
-                  fragments%rc(:,i) = fragments%rc(:,i) + cloud_size_scale_factor * rdistance * u(i) * impactors%bounce_unit(:)
+                  fragments%rc(:,i) = fragments%rc(:,i) * (1.0_DP + 2 * fragment_cloud_radius(j) * mass_rscale(i) * impactors%bounce_unit(:))
+               end if
+
+               fragments%rc(:,i) = fragments%rc(:,i) + fragment_cloud_center(:,j)
+
+               if (lhitandrun) then
+                  fragments%rc(:,i) = fragments%rc(:,i) + 2 * fragment_cloud_radius(j) * mass_rscale(i) * impactors%bounce_unit(:) ! Shift the stretched cloud downrange
                else
                   ! Make sure that the fragments are positioned away from the impact point
                   direction = dot_product(fragments%rc(:,i) - impactors%rcimp(:), fragment_cloud_center(:,j) - impactors%rcimp(:))
@@ -415,14 +462,17 @@ contains
             fragments%rmag(:) = .mag. fragments%rc(:,:)
 
             ! Check for any overlapping bodies.
-            loverlap(:) = .false.
-            do j = 1, nfrag
+            do j = nfrag, 1, -1
+               if (.not.loverlap(j)) cycle
+               loverlap(j) = .false.
                ! Check for overlaps between fragments
-               do i = j + 1, nfrag
+               do i = 1,nfrag
+                  if (i == j) cycle
                   dis = .mag.(fragments%rc(:,j) - fragments%rc(:,i))
-                  loverlap(i) = loverlap(i) .or. (dis <= rbuffer * (fragments%radius(i) + fragments%radius(j))) 
+                  loverlap(j) = (dis <= rbuffer * (fragments%radius(i) + fragments%radius(j)))
+                  if (loverlap(j)) exit
                end do
-               ! Check for overlaps with existing bodies that are not involved in the collision 
+               if (loverlap(j)) cycle
                do i = 1, npl
                   if (any(impactors%id(:) == i)) cycle
                   dis = .mag. (fragments%rc(:,j) - (pl%rb(:,i) / collider%dscale - impactors%rbcom(:)))
@@ -430,7 +480,6 @@ contains
                end do
             end do
             rdistance = rdistance * collider%fail_scale
-            rbuffer = min(rbuffer * collider%fail_scale, rbuffer_max)
          end do
 
          lfailure = any(loverlap(:))
@@ -533,7 +582,8 @@ contains
       class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       logical,                      intent(out)   :: lfailure     !! Did the velocity computation fail?
       ! Internals
-      real(DP), parameter :: ENERGY_SUCCESS_METRIC = 1.0e-3_DP    !! Relative energy error to accept as a success (success also must be energy-losing in addition to being within the metric amount)
+      real(DP), parameter :: ENERGY_SUCCESS_METRIC = 0.1_DP   !! Relative energy error to accept as a success (success also must be energy-losing in addition to being within the metric amount)
+      real(DP), parameter :: ENERGY_CONVERGENCE_TOL = 1e-3_DP !! Relative change in error before giving up on energy convergence
       real(DP)  :: MOMENTUM_SUCCESS_METRIC = 10*epsilon(1.0_DP) !! Relative angular momentum error to accept as a success (should be *much* stricter than energy)
       integer(I4B) :: i, j, loop, try, istart, nfrag, nsteps, nsteps_best, posloop
       logical :: lhitandrun, lsupercat
@@ -546,8 +596,8 @@ contains
       real(DP), parameter     :: hitandrun_vscale = 0.25_DP 
       real(DP)                :: vmin_guess 
       real(DP)                :: vmax_guess 
-      integer(I4B), parameter :: MAXLOOP = 100
-      integer(I4B), parameter :: MAXTRY  = 100
+      integer(I4B), parameter :: MAXLOOP = 25
+      integer(I4B), parameter :: MAXTRY  = 10
       integer(I4B), parameter :: MAXANGMTM = 1000
       class(collision_fraggle), allocatable :: collider_local
       character(len=STRMAX) :: message
@@ -681,11 +731,11 @@ contains
                      if (all(dL_metric(:) <= 1.0_DP)) exit angmtm
    
                      do i = istart, fragments%nbody
-                        dL(:) = -L_residual(:) / (fragments%nbody - istart + 1) 
+                        dL(:) = -L_residual(:) * fragments%mass(i) / sum(fragments%mass(istart:fragments%nbody))
                         call collision_util_velocity_torque(dL, fragments%mass(i), fragments%rc(:,i), fragments%vc(:,i))
-                        call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)  
-                        fragments%vmag(i) = .mag.fragments%vc(:,i)
                      end do
+                     call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)  
+                     fragments%vmag(:) = .mag.fragments%vc(:,:)
                   end do angmtm
 
                   call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)            
@@ -713,7 +763,7 @@ contains
                         dE_metric = abs(E_residual) / impactors%Qloss
                      end if
                      if ((dE_best < 0.0_DP) .and. (dE_metric <= ENERGY_SUCCESS_METRIC)) exit outer 
-                     if (dE_conv < ENERGY_SUCCESS_METRIC) exit inner
+                     if (dE_conv < ENERGY_CONVERGENCE_TOL) exit inner
                   end if
 
                   ! Remove a constant amount of velocity from the bodies so we don't shift the center of mass and screw up the momentum 

@@ -1,4 +1,4 @@
-# Swiftest
+# Swiftest User Manual
 ### The Purdue University Swiftest Team
 #### Carlisle Wishard, David Minton, Jennifer Pouplin, Jake Elliott, & Dana Singh
 
@@ -145,7 +145,7 @@ sim.get_parameter(**kwargs)                                      # View the defa
 sim.set_parameter(**kwargs)                                      # Set any desired simulation parameters
 sim.write_param(**kwargs)                                        # Write simulation parameters to the param.in
 sim.save(**kwargs)                                               # Save the simulation initial conditions to init_cond.nc
-sim.run(**kwargs)                                                # Run the simulation (leave off if running from the terminal)
+sim.run(**kwargs)                                                # Run the simulation (leave off if running from the executable)
 ```
 
 To read in a set of Swiftest output files using the Swiftest Python package, follow the general script below. For more details on the output files and user options, continue reading this section.
@@ -195,11 +195,11 @@ The key word arguments available to the user for the ```add_body``` method are d
 
 Once all desired bodies have been added to the Swiftest simulation, the simulation parameters can be accessed and changed using the ```get_parameter``` and ```set_parameter``` methods. The key word arguments available to the user for the ```get_parameter``` and ```set_parameter``` are the same as those described in [simulation_kwargs](README_tables/simulation_kwargs.md).
 
-After all desired parameters have been set, the parameters can be saved to the **<span>param.in</span>** using the ```write_param``` method. The key word arguments available to the user for the ```write_param``` method are described in [write_param_kwargs](README_tables/write_param_kwargs.md).
+After all desired parameters have been set, the parameters can be saved to the **param<span>.in</span>** using the ```write_param``` method. The key word arguments available to the user for the ```write_param``` method are described in [write_param_kwargs](README_tables/write_param_kwargs.md).
 
 The state of the system can be saved to the initial conditions NetCDF file, **<span>init_cond.nc</span>**, using the ```save``` method. The key word arguments available to the user for the ```save``` method are described in [save_kwargs](README_tables/save_kwargs.md).
 
-Finally, a simulation can be run from the same script in which it is created (or a separate Python script) using the ```run``` method. This is optional as the simulation can also be run from the terminal. More details on running a Swiftest simulation can be found in the section **Running a Swiftest Simulation**. The key word arguments available to the user for the ```run``` method are the same as those described in [simulation_kwargs](README_tables/simulation_kwargs.md).
+Finally, a simulation can be run from the same script in which it is created (or a separate Python script) using the ```run``` method. This is optional as the simulation can also be run from an executable. More details on running a Swiftest simulation can be found in the section **Running a Swiftest Simulation**. The key word arguments available to the user for the ```run``` method are the same as those described in [simulation_kwargs](README_tables/simulation_kwargs.md).
 
 **ASCII Input Files**
 Swiftest accepts 4 ASCII input files. All four input files are necessary, however the structure of each input file varies slightly depending on the features and capabilities of the integrator selected. The four input files are as follows:
@@ -209,7 +209,7 @@ Swiftest accepts 4 ASCII input files. All four input files are necessary, howeve
 - **<span>pl.in</span>** - The massive body input file.
 - **<span>tp.in</span>** - The test particle input file.
 
-The parameter options used in the parameter input file are as described in [param_options](README_tables/param_options.md).
+The parameter options used in the parameter input file are as described in [simulation_kwargs](README_tables/simulation_kwargs.md).
 
 The **<span>cb.in</span>** includes all central body initial conditions. The structure of the **<span>cb.in</span>** is as follows:
 
@@ -257,7 +257,7 @@ Note that the ID numbers of the test particles are a continuation of the ID numb
 
 **Running a Swiftest Simulation**
 
-The input files necessary to successfully run Swiftest should now be generated in the simulation directory. The user is now faced with a second choice: to run a Swiftest simulation from a Python environment or to run it directly from the terminal. Either option is possible with NetCDF format input files, however ASCII input files must be run directly from the terminal.
+The input files necessary to successfully run Swiftest should now be generated in the simulation directory. The user is now faced with a second choice: to run a Swiftest simulation from a Python environment or to run it directly from an executable. Either option is possible with NetCDF format input files, however ASCII input files must be run directly from an executable.
 
 **Running via Python**
 
@@ -274,9 +274,9 @@ sim = swiftest.Simulation(simdir = "directory_name", read_param=True)
 sim.run()
 ```
 
-**Running via a Terminal**
+**Running via an Executable**
 
-To run a Swiftest simulation through the terminal, create a symbolic link to the Swiftest driver from your current directory.
+To run a Swiftest simulation through an executable, create a symbolic link to the Swiftest driver from your current directory.
 
 ```
 $ ln -s ~/PATH/TO/swiftest/bin/swiftest_driver .
@@ -295,9 +295,9 @@ Where ```INTEGRATOR``` is your integrator of choice, either ```whm```, ```rmvs``
 The number and type of output files generated by Swiftest depends on the input parameters selected and the method through which Swiftest was run. The standard output files are as follows:
 - **<span>data.nc</span>** - Always generated, the output file containing the information for every body in the system, recorded every ```ISTEP_OUT``` timesteps and written every ```DUMP_CADENCE```. This file can be analyzed using the Swiftest Python package (```sim.data```).
 - **collisions.log** - The log containing the record of each fragmentation event, including the collisional regime, and the number of the fragments created, only if ```FRAGMENTATION``` is ```YES```, Swiftest SyMBA only.
-- **swiftest.log** - A log containing a brief update on the status of the run. Only generated if Swiftest is run through the Python package or through a shell script. If Swiftest is run directly through the terminal, these updates are output directly to the terminal.
-- **collisions.nc** - The details of each collision that occurs in a simulation are recorded in a NetCDF file. Only if ```CHK_CLOSE```/```close_encounter_check``` is ```YES```/```True```. This file can be analyzed using the Swiftest Python package (```sim.collisions```).
-- **encounters.nc** - The details of each close encounter that occurs in a simulation are recorded in a NetCDF file. Only if ```CHK_CLOSE```/```close_encounter_check``` is ```YES```/```True```. This file can be analyzed using the Swiftest Python package (```sim.encounters```).
+- **swiftest.log** - A log containing a brief update on the status of the run. Only generated if Swiftest is run through the Python package or through a shell script. If Swiftest is run through an executable, these updates are output directly to the terminal.
+- **collisions<span>.nc</span>** - The details of each collision that occurs in a simulation are recorded in a NetCDF file. Only if ```CHK_CLOSE```/```close_encounter_check``` is ```YES```/```True```. This file can be analyzed using the Swiftest Python package (```sim.collisions```).
+- **encounters<span>.nc</span>** - The details of each close encounter that occurs in a simulation are recorded in a NetCDF file. Only if ```CHK_CLOSE```/```close_encounter_check``` is ```YES```/```True```. This file can be analyzed using the Swiftest Python package (```sim.encounters```).
 - **init_cond.nc** - The initial conditions used to run the simulation. This file can be analyzed using the Swiftest Python package (```sim.init_cond```).
 - **encounter_check_plpl_timer.log** - The log containing the encounter check timer for each massive body/massive body encounter,  only if ```CHK_CLOSE```/```close_encounter_check``` is ```YES```/```True``` and ```ENCOUNTER_CHECK```/```encounter_check_loops``` is ```ADAPTIVE```.
 - **encounter_check_pltp_time.log** - The log containing the encounter check timer for each massive body/test particle encounter, only if ```CHK_CLOSE```/```close_encounter_check``` is ```YES```/```True``` and ```ENCOUNTER_CHECK```/```encounter_check_loops``` is ```ADAPTIVE```.
@@ -324,7 +324,7 @@ The first line includes the simulation time, the fraction of the simulation that
 
 **Restarting a Simulation From t $\neq$ 0**
 
-Just like Swiftest allows the user to run a simulation through the terminal or through Python, Swiftest also allows the user to restart a simulation from t $\neq$ 0 in the same two manners. This can be useful in the case of an accidental termination of a simulation, such as through a power outage or computer failure. In many cases, it is also necessary to run a simulation to a new end point, past the original ```TSTOP```.
+Just like Swiftest allows the user to run a simulation through an executable or through Python, Swiftest also allows the user to restart a simulation from t $\neq$ 0 in the same two manners. This can be useful in the case of an accidental termination of a simulation, such as through a power outage or computer failure. In many cases, it is also necessary to run a simulation to a new end point, past the original ```TSTOP```.
 
 **Restarting via Python**
 
@@ -340,9 +340,9 @@ sim.run()
 
 Note that Swiftest will look in the ```/simdata``` subdirectory for the initial conditions by default. You may set a new path to the initial conditions using the ```param_file``` keyword argument.
 
-**Restarting via a Terminal**
+**Restarting via an Executable**
 
-Every ```DUMP_CADENCE``` X ```ISTEP_OUT``` timesteps, Swiftest writes all simulation information from memory to the output files. At the same time, Swiftest also writes all simulation information to a new parameter file, titled **<span>param.XXXXXXXXXXXXXXXXXX.in</span>**. To restart a run from a previous parameter file, simply follow the instructions detailed in the **Running via a Terminal** section, replacing ```param.in``` with the name of the parameter file from which you wish to restart. 
+Every ```DUMP_CADENCE``` X ```ISTEP_OUT``` timesteps, Swiftest writes all simulation information from memory to the output files. At the same time, Swiftest also writes all simulation information to a new parameter file, titled **<span>param.XXXXXXXXXXXXXXXXXX.in</span>**. To restart a run from a previous parameter file, simply follow the instructions detailed in the **Running via an Executable** section, replacing ```param.in``` with the name of the parameter file from which you wish to restart. 
 
 ---
 
@@ -474,13 +474,19 @@ To process the output file, run the script titled **<span>scattermovie.py</span>
 
 **Fragmentation**
 
-This example highlights the functionality of the Fraggle algorithm. It can be found in the ```/swiftest/examples/Fragmentation``` directory. It is intended to be run using the SyMBA integrator. It contains three pre-built collisional test cases:
+This example highlights the functionality of the Fraggle algorithm. It can be found in the ```/swiftest/examples/Fragmentation``` directory. It is intended to be run using the SyMBA integrator. It contains 9 pre-built collisional test cases:
 
 - A Head-On Disruptive Collision 
+- An Off-Axis Disruptive Collision 
+- A Head-On Super-Catastrophic Disruptive Collision
 - An Off-Axis Super-Catastrophic Disruptive Collision
-- A Disruptive Hit and Run Collision
+- A Disruptive Hit and Run Collision 
+- A Pure Hit and Run Collision
+- A Merger
+- A Merger Crossing the Spin Barrier
+- All of the Above
 
-To generate a movie depicting the collision and results of each of the test cases, run the Python script titled **Fragmentation_Movie.py**.
+To generate, run, and create a movie depicting the collision, run the Python script titled **Fragmentation_Movie.py**. Please note that this example requires a large amount of memory. For reference, this example was created and run using 4 nodes, each with 256 GB of memory. This amount of computational memory is necessary to generate a smooth movie. In this example, the trajectories of all bodies involved in the collision are saved at every point in the simulation. This is extremely expensive and should only be used to study a particular collisional event in detail.   
 
 **helio_gr_test**
 
@@ -522,11 +528,11 @@ Semi-interacting bodies are useful because the integrator is not required to cal
 
 **What should minimum fragment mass should I use (**```MIN_GMFRAG``` **or** ```MIN_MFRAG```**)?**
 
-This mass threshold is necessary to ensure that Swiftest SyMBA does not generate huge amounts of very small fragments, grinding the model to a halt. While this value is largely empirical and dependent on each specific set of initial conditions, a good place to start is to set the minimum fragment mass threshold to be one tenth the size of the smallest body in your simulation. 
+This mass threshold is necessary to ensure that Swiftest SyMBA does not generate huge amounts of very small fragments, grinding the model to a halt. While this value is largely empirical and dependent on each specific set of initial conditions, a good place to start is to set the minimum fragment mass threshold to be one tenth the size of the smallest body in your simulation. You can also adjust ```FRAG_REDUCTION``` to keep the number of fragments within a reasonable range.
 
 **What are the limits of Swiftest SyMBA?**
 
-While Swifest SyMBA is a powerful tool for modeling gravitational interactions between massive bodies, it does have its limits. While Swiftest SyMBA is capable of modeling systems containing thousands of massive bodies, the code does slow down significantly. For this reason, Swiftest SyMBA is best used for systems containing tens to hundreds of fully-interacting massive bodies. It is also best used for timescales on the order of a few hundred million years or less. While it is possible to model systems on a billion year timescale, the computational power required may be beyond what is available to the average user. In these cases, it is recommended that the user consider modeling with test particles instead of massive bodies. For systems that contain mainly test particles, with few to no close encounters between massive bodies, Swiftest RMVS is likely a more appropriate tool. 
+While Swifest SyMBA is a powerful tool for modeling gravitational interactions between massive bodies, it does have its limits. Swiftest SyMBA is best used for systems containing tens to hundreds of fully-interacting massive bodies. It is also best used for timescales on the order of a few hundred million years or less. While it is possible to model systems on a billion year timescale, the computational power required may be beyond what is available to the average user. In these cases, it is recommended that the user consider modeling with test particles instead of massive bodies. For systems that contain mainly test particles, with few to no close encounters between massive bodies, Swiftest RMVS is likely a more appropriate tool. 
 
 To get a sense of the scope of your desired simulation, it is recommended that you run your initial conditions and parameters for a just few steps. Make sure that you set ```ISTEP_OUT``` and ```DUMP_CADENCE``` to output only once the simulation is complete, not between steps. Because writing to the output files and memory takes a significant amount of computational time compared to integrating the step, we want to avoid counting writing time in our diagnostic information. The terminal output contains information about the total wall time and the wall time per integration step. To get a sense of how long your run will take to complete your desired ```tmax```, simply scale up the wall time per integration step to the number of steps necessary for ```tmax``` to be reached. Remember that writing to the output files will take a considerable amount of time. Adjust your intitial conditions and parameters accordingly.
 
