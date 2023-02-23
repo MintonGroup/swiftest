@@ -288,7 +288,9 @@ contains
       Msmall = Mtot - Mbig
       if (Msmall < min_mfrag) then
          regime = COLLRESOLVE_REGIME_MERGE
+         Mbig = Mtot
          Mslr = 0.0_DP
+         Mslr_hitandrun = 0.0_DP
       else
          Mslr_hitandrun = max(calc_Qrd_rev(Msmall, Mbig, Mint, den1, den2, Vimp, c_star), min_mfrag)
          if (regime == COLLRESOLVE_REGIME_HIT_AND_RUN ) then
