@@ -182,8 +182,8 @@ contains
                   y1 = y1 - (i-1)**(-x1/3.0_DP)
                end do
                if (y0*y1 < 0.0_DP) exit
-               x1 = x1 * 1.1_DP
-               x0 = x0 * 1.1_DP
+               if (y0 > 0.0_DP) x0 = x0 * 1.6_DP
+               if (y1 < 0.0_DP) x1 = x1 * 1.6_DP
             end do
 
             ! Find the mass scaling factor with bisection
