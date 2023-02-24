@@ -1043,11 +1043,7 @@ contains
       call nc%open(param, readonly=.true.)
       call nc%find_tslot(self%t, tslot)
       call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%time_dimid, len=nc%max_tslot), "netcdf_io_read_frame_system nf90_inquire_dimension time_dimid"  )
-      if (tslot > nc%max_tslot) then
-         write(*,*)
-         write(*,*) "Error in reading frame from NetCDF file. Requested time index value (",tslot,") exceeds maximum time in file (",nc%max_tslot,"). " 
-         call base_util_exit(FAILURE)
-      end if
+      tslot = min(tslot, nc%max_tslot)
 
       call self%read_hdr(nc, param)
 
