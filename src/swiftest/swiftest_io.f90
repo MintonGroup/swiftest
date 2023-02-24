@@ -1034,20 +1034,20 @@ contains
       ! Return
       integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
       ! Internals
-      integer(I4B)                              :: i, idmax, npl_check, ntp_check, str_max, status, npl, ntp, tslot
+      integer(I4B)                              :: i, idmax, npl_check, ntp_check, str_max, status, npl, ntp
       real(DP), dimension(:), allocatable       :: rtemp
       real(DP), dimension(:,:), allocatable     :: vectemp
       integer(I4B), dimension(:), allocatable   :: itemp
       logical, dimension(:), allocatable        :: tpmask, plmask
 
-      call nc%open(param, readonly=.true.)
-      call nc%find_tslot(self%t, tslot)
-      call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%time_dimid, len=nc%max_tslot), "netcdf_io_read_frame_system nf90_inquire_dimension time_dimid"  )
-      tslot = min(tslot, nc%max_tslot)
+      associate(cb => self%cb, pl => self%pl, tp => self%tp, tslot => nc%tslot)
+         call nc%open(param, readonly=.true.)
+         call nc%find_tslot(self%t, tslot)
+         call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%time_dimid, len=nc%max_tslot), "netcdf_io_read_frame_system nf90_inquire_dimension time_dimid"  )
+         tslot = min(tslot, nc%max_tslot)
 
-      call self%read_hdr(nc, param)
+         call self%read_hdr(nc, param)
 
-      associate(cb => self%cb, pl => self%pl, tp => self%tp)
          ! Save these values as variables as they get reset by the setup method
          npl = pl%nbody
          ntp = tp%nbody
