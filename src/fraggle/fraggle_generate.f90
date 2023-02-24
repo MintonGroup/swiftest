@@ -124,7 +124,7 @@ contains
       real(DP)                             :: dE
       real(DP), dimension(NDIM)            :: dL
       character(len=STRMAX)                :: message
-      real(DP), parameter                  :: fail_scale_initial = 1.01_DP
+      real(DP), parameter                  :: fail_scale_initial = 1.0003_DP
       integer(I4B)                         :: nfrag_start
 
       ! The minimization and linear solvers can sometimes lead to floating point exceptions. Rather than halting the code entirely if this occurs, we
