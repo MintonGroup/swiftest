@@ -290,7 +290,7 @@ module solver
          integer(I4B) :: i,j, ev,br, niter, error
          integer(I4B),parameter :: NTRY = 50
          integer(I4B),parameter :: NBRACKET =20 
-         real(DP),parameter :: FIRSTFACTOR = 1.6_DP
+         real(DP),parameter :: FIRSTFACTOR = 1.1_DP
          real(DP) :: f1, f2, fmin
          integer(I4B) :: numev,numbr
       
@@ -313,7 +313,7 @@ module solver
             bracket: do br = 1, NBRACKET
                numbr = numbr + 1
                x1 = startx1
-               x2 = startx1 + abs(startx1 * factor)
+               x2 = startx1 + abs(startx1 * (1.0_DP - factor))
 
                ! First bracket the root
                f1 = f(x1)
@@ -339,7 +339,7 @@ module solver
                   end if
                end do
                x1 = x2
-               factor = 0.5_DP * (factor + 1._DP)
+               factor = factor + 0.5_DP * (factor - 1._DP)
             end do bracket
 
             ! Now do a Brent's method to find the root

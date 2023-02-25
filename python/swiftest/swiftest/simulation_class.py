@@ -111,14 +111,20 @@ class Simulation(object):
         istep_out : int, optional
             The number of time steps between output saves to file. *Note*: only `istep_out` or `tstep_out` can be set.
             Parameter input file equivalent: `ISTEP_OUT`
+        tstep_out : float, optional
+            The approximate time between when outputs are written to file. Passing this computes
+            `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `tstep_out` can be set.
+            Parameter input file equivalent: None 
+        nstep_out : int, optional
+            The total number of times that outputs are written to file. Passing this allows for a geometric progression of output steps:
+            `TSTART, f**0 * TSTEP_OUT, f**1 * TSTEP_OUT, f**2 * TSTEP_OUT, ..., f**(nstep_out-1) * TSTEP_OUT`, 
+            where `f` is a factor that can stretch (or shrink) the time between outputs. Setting `nstep_out = int((tstart - tstop) / (tstep_out))` is
+            equivalent to the standard linear output (i.e. `f==1`) and is the same as not passing anything for this argument. 
+            *Note*: Passing `nstep_out` requires passing either `istep_out` or `tstep_out` as well.     
         dump_cadence : int, optional
             The number of output steps (given by `istep_out`) between when the saved data is dumped to a file. Setting it to 0
             is equivalent to only dumping data to file at the end of the simulation. Default value is 10.
             Parameter input file equivalent: `DUMP_CADENCE`
-        tstep_out : float, optional
-            The approximate time between when outputs are written to file. Passing this computes
-            `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `tstep_out` can be set.
-            Parameter input file equivalent: None
         init_cond_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"}, default "NETCDF_DOUBLE"
             The file type containing initial conditions for the simulation:
             * NETCDF_DOUBLE: A single initial conditions input file in NetCDF file format of type NETCDF_DOUBLE.
@@ -571,6 +577,7 @@ class Simulation(object):
                             dt: float | None = None,
                             istep_out: int | None = None,
                             tstep_out: float | None = None,
+                            nstep_out: int | None = None,
                             dump_cadence: int | None = None,
                             verbose: bool | None = None,
                             **kwargs: Any
@@ -588,10 +595,18 @@ class Simulation(object):
         dt : float, optional
             The step size of the simulation. `dt` must be less than or equal to `tstop-dstart`.
         istep_out : int, optional
-            The number of time steps between outputs to file. *Note*: only `istep_out` or `tstep_out` can be set.
+            The number of time steps between output saves to file. *Note*: only `istep_out` or `tstep_out` can be set.
+            Parameter input file equivalent: `ISTEP_OUT`
         tstep_out : float, optional
             The approximate time between when outputs are written to file. Passing this computes
             `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `tstep_out` can be set.
+            Parameter input file equivalent: None 
+        nstep_out : int, optional
+            The total number of times that outputs are written to file. Passing this allows for a geometric progression of output steps:
+            `TSTART, f**0 * TSTEP_OUT, f**1 * TSTEP_OUT, f**2 * TSTEP_OUT, ..., f**(nstep_out-1) * TSTEP_OUT`, 
+            where `f` is a factor that can stretch (or shrink) the time between outputs. Setting `nstep_out = int((tstart - tstop) / (tstep_out))` is
+            equivalent to the standard linear output (i.e. `f==1`) and is the same as not passing anything for this argument. 
+            *Note*: Passing `nstep_out` requires passing either `istep_out` or `tstep_out` as well.     
         dump_cadence : int, optional
             The number of output steps (given by `istep_out`) between when the saved data is dumped to a file. Setting it to 0
             is equivalent to only dumping data to file at the end of the simulation. Default value is 10.
@@ -672,6 +687,12 @@ class Simulation(object):
 
         if istep_out is not None:
             self.param['ISTEP_OUT'] = int(istep_out)
+            
+        if nstep_out is not None:
+            if istep_out is None:
+                warnings.warn("nstep_out requires either istep_out or tstep_out to also be set", stacklevel=2)
+            else:
+                self.param['NSTEP_OUT'] = int(nstep_out)
 
         if dump_cadence is None:
             dump_cadence = self.param.pop("DUMP_CADENCE", 1)
@@ -714,6 +735,7 @@ class Simulation(object):
                      "tstop": "TSTOP",
                      "dt": "DT",
                      "istep_out": "ISTEP_OUT",
+                     "nstep_out": "NSTEP_OUT",
                      "dump_cadence": "DUMP_CADENCE",
                      }
 
@@ -723,6 +745,7 @@ class Simulation(object):
                  "dt": self.TU_name,
                  "tstep_out": self.TU_name,
                  "istep_out": "",
+                 "nstep_out": "",
                  "dump_cadence": ""}
 
         tstep_out = None
@@ -772,6 +795,7 @@ class Simulation(object):
             "dt": None,
             "istep_out": 1,
             "tstep_out": None,
+            "nstep_out": None,
             "dump_cadence": 10,
             "init_cond_file_type": "NETCDF_DOUBLE",
             "init_cond_file_name": None,
