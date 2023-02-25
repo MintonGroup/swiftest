@@ -170,54 +170,10 @@ contains
             mremaining = impactors%mass_dist(iMrem)
 
             ! The mass will be distributed in a power law where N>M=(M/Mslr)**(-beta/3)
-            ! Use Newton's method solver to get the logspace slope of the mass function
+            ! Use Brent's method solver to get the logspace slope of the mass function
             Mrat = (mremaining + Mslr) / Mslr
-            x0 = -3.0_DP
-            x1 = 3.0_DP  
-            do j = 1, MAXLOOP 
-               y0 = Mrat - 1.0_DP
-               y1 = Mrat - 1.0_DP
-               do i = iMrem, nfrag
-                  y0 = y0 - (i-1)**(-x0/3.0_DP)
-                  y1 = y1 - (i-1)**(-x1/3.0_DP)
-               end do
-               if (y0*y1 < 0.0_DP) exit
-               if (y0 > 0.0_DP) x0 = x0 * 1.6_DP
-               if (y1 < 0.0_DP) x1 = x1 * 1.6_DP
-            end do
-
-            ! Find the mass scaling factor with bisection
-            do j = 1, MAXLOOP
-               beta = 0.5_DP * (x0 + x1)
-               ymid = Mrat - 1.0_DP
-               do i = iMrem, nfrag
-                  ymid = ymid - (i-1)**(-beta/3.0_DP)
-               end do
-               if (abs((y0 - ymid)/y0) < 1e-12_DP) exit
-               if (y0 * ymid <  0.0_DP) then
-                  x1 = beta
-                  y1 = ymid  
-               else if (y1 * ymid < 0.0_DP) then
-                  x0 = beta
-                  y0 = ymid
-               else
-                  exit
-               end if 
-               ! Finish with Newton if we still haven't made it
-               if (j == MAXLOOP) then
-                  do k = 1, MAXLOOP
-                     y = Mrat - 1.0_DP
-                     yp = 0.0_DP
-                     do i = iMrem, nfrag
-                        y = y - (i-1)**(-beta/3.0_DP)
-                        if (i > 3) yp = yp - (i-1)**(-beta/3.0_DP) * log(real(i-1,kind=DP))
-                     end do
-                     eps = y/yp
-                     if (abs(eps) < epsilon(1.0_DP) * beta) exit
-                     beta = beta + eps
-                  end do
-               end if
-            end do
+            beta = 3.0_DP
+            call solve_roots(sfd_function,beta)
 
             do i = iMrem,nfrag
                mass(i) = Mslr * (i-1)**(-beta/3.0_DP)
@@ -284,6 +240,21 @@ contains
 
       call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)
       return
+
+      contains 
+
+      function sfd_function(x) result(y)
+         implicit none
+         real(DP), intent(in) :: x
+         real(DP)             :: y
+         integer(I4B) :: i
+
+         y = Mrat - 1.0_DP
+         do i = iMrem, nfrag
+            y = y - (i-1)**(-x/3.0_DP)
+         end do
+      end function sfd_function
+
    end subroutine fraggle_util_set_mass_dist
 
 
