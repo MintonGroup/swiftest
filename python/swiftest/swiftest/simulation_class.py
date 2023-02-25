@@ -109,7 +109,7 @@ class Simulation(object):
             The step size of the simulation. `dt` must be less than or equal to `tstop-tstart`.
             Parameter input file equivalent: `DT`
         istep_out : int, optional
-            The number of time steps between output saves to file. *Note*: only `istep_out` or `toutput` can be set.
+            The number of time steps between output saves to file. *Note*: only `istep_out` or `tstep_out` can be set.
             Parameter input file equivalent: `ISTEP_OUT`
         dump_cadence : int, optional
             The number of output steps (given by `istep_out`) between when the saved data is dumped to a file. Setting it to 0
@@ -117,7 +117,7 @@ class Simulation(object):
             Parameter input file equivalent: `DUMP_CADENCE`
         tstep_out : float, optional
             The approximate time between when outputs are written to file. Passing this computes
-            `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `toutput` can be set.
+            `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `tstep_out` can be set.
             Parameter input file equivalent: None
         init_cond_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"}, default "NETCDF_DOUBLE"
             The file type containing initial conditions for the simulation:
@@ -588,10 +588,10 @@ class Simulation(object):
         dt : float, optional
             The step size of the simulation. `dt` must be less than or equal to `tstop-dstart`.
         istep_out : int, optional
-            The number of time steps between outputs to file. *Note*: only `istep_out` or `toutput` can be set.
+            The number of time steps between outputs to file. *Note*: only `istep_out` or `tstep_out` can be set.
         tstep_out : float, optional
             The approximate time between when outputs are written to file. Passing this computes
-            `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `toutput` can be set.
+            `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `tstep_out` can be set.
         dump_cadence : int, optional
             The number of output steps (given by `istep_out`) between when the saved data is dumped to a file. Setting it to 0
             is equivalent to only dumping data to file at the end of the simulation. Default value is 10.
