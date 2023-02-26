@@ -27,6 +27,8 @@ program swiftest_driver
    integer(I8B)                              :: istart            !! Starting index for loop counter
    integer(I4B)                              :: iout              !! Output cadence counter
    integer(I4B)                              :: idump             !! Dump cadence counter
+   integer(I4B)                              :: nout              !! Current output step
+   integer(I4B)                              :: istep             !! Current value of istep (used for time stretching)
    type(walltimer)                           :: integration_timer !! Object used for computing elapsed wall time
 
    call swiftest_io_get_args(integrator, param_file_name, display_style)
@@ -44,6 +46,8 @@ program swiftest_driver
       iloop           => param%iloop, &
       nloops          => param%nloops, &
       istep_out       => param%istep_out, &
+      fstep_out       => param%fstep_out, &
+      ltstretch       => param%ltstretch, &
       dump_cadence    => param%dump_cadence, &
       display_unit    => param%display_unit)
 
@@ -53,6 +57,13 @@ program swiftest_driver
       iloop = istart - 1
       iout = 0
       idump = 0
+      if (ltstretch) then
+         nout = floor(log(1.0_DP + iloop * (fstep_out - 1.0_DP) / istep_out) / log(fstep_out)) 
+         istep = floor(istep_out * fstep_out**nout, kind=I4B)
+      else
+         nout = 1
+         istep = istep_out
+      end if
 
       ! Set up nbody_system storage for intermittent file dumps
       if (dump_cadence == 0) dump_cadence = int(ceiling(nloops / (1.0_DP * istep_out), kind=I8B), kind=I4B)
@@ -98,9 +109,14 @@ program swiftest_driver
             !> If the loop counter is at the output cadence value, append the data file with a single frame
             if (istep_out > 0) then
                iout = iout + 1
-               if (iout == istep_out) then
+               if ((iout == istep) .or. (iloop == nloops)) then
                   iout = 0
                   idump = idump + 1
+                  if (ltstretch) then 
+                     nout = nout + 1
+                     istep = floor(istep_out * fstep_out**nout, kind=I4B)
+                  end if
+
                   call system_history%take_snapshot(param,nbody_system)
 
                   if (idump == dump_cadence) then

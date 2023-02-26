@@ -1883,6 +1883,7 @@ contains
       integer(I4B)                   :: nseeds, nseeds_from_file
       logical                        :: seed_set = .false.      !! Is the random seed set in the input file?
       character(len=:), allocatable  :: integrator
+      real(DP)                       :: tratio, y
       
 
       ! Parse the file line by line, extracting tokens then matching them up with known parameters if possible
@@ -1931,6 +1932,8 @@ contains
                   param%in_form = param_value
                case ("ISTEP_OUT")
                   read(param_value, *) param%istep_out
+               case ("NSTEP_OUT")
+                  read(param_value, *) param%nstep_out
                case ("BIN_OUT")
                   param%outfile = param_value
                case ("OUT_TYPE")
@@ -2125,6 +2128,21 @@ contains
             write(iomsg,*) 'Invalid ISTEP_OUT. Must be a positive integer'
             iostat = -1
             return
+         end if
+         if (param%nstep_out <= 0) then
+            param%nstep_out = int((param%tstop - param%t0) / (param%istep_out * param%dt))
+            param%fstep_out = 1.0_DP ! Linear output time
+            param%ltstretch = .false.
+         else
+            param%fstep_out = 1._DP
+            tratio = (param%TSTOP - param%T0) / (param%istep_out * param%dt)
+            if (int(tratio) == param%nstep_out) then
+               param%ltstretch = .false.
+            else
+               param%ltstretch = .true.
+               y = time_stretcher(param%fstep_out) 
+               call solve_roots(time_stretcher,param%fstep_out)
+            end if
          end if
          if (param%dump_cadence < 0) then
             write(iomsg,*) 'Invalid DUMP_CADENCE. Must be a positive integer or 0.'
@@ -2332,6 +2350,27 @@ contains
       return 
       667 continue
       write(*,*) "Error reading param file: ", trim(adjustl(iomsg))
+
+      contains
+         function time_stretcher(fstep_out) result(ans)
+            !! author: David A. Minton
+            !!
+            !! Equation for the time stretchinf function. Solving the roots of this equation gives the time stretching factor for non-linear file output cadence.
+            implicit none
+            ! Arguments
+            real(DP), intent(in) :: fstep_out
+            ! Result
+            real(DP)             :: ans
+
+            if (abs(fstep_out-1.0_DP) < epsilon(1.0_DP)) then
+               ans = self%nstep_out - tratio
+            else
+               ans = (1.0_DP - fstep_out**(self%nstep_out))/ (1.0_DP - fstep_out) - tratio
+            end if
+
+            return
+         end function time_stretcher
+
    end subroutine swiftest_io_param_reader
 
 
