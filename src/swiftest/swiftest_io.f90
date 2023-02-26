@@ -2132,11 +2132,17 @@ contains
          if (param%nstep_out <= 0) then
             param%nstep_out = int((param%tstop - param%t0) / (param%istep_out * param%dt))
             param%fstep_out = 1.0_DP ! Linear output time
+            param%ltstretch = .false.
          else
             param%fstep_out = 1._DP
             tratio = (param%TSTOP - param%T0) / (param%istep_out * param%dt)
-            y = time_stretcher(param%fstep_out) 
-            call solve_roots(time_stretcher,param%fstep_out)
+            if (int(tratio) == param%nstep_out) then
+               param%ltstretch = .false.
+            else
+               param%ltstretch = .true.
+               y = time_stretcher(param%fstep_out) 
+               call solve_roots(time_stretcher,param%fstep_out)
+            end if
          end if
          if (param%dump_cadence < 0) then
             write(iomsg,*) 'Invalid DUMP_CADENCE. Must be a positive integer or 0.'

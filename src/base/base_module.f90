@@ -37,6 +37,7 @@ module base
       integer(I4B)                            :: istep_out            = -1              !! Number of time steps between saved outputs
       integer(I4B)                            :: nstep_out            = -1              !! Total number of saved outputs
       real(DP)                                :: fstep_out            = 1.0_DP          !! The output step time stretching factor
+      logical                                 :: ltstretch            = .false.         !! Whether to employ time stretching or not
       character(STRMAX)                       :: outfile              = BIN_OUTFILE     !! Name of output binary file
       character(STRMAX)                       :: out_type             = "NETCDF_DOUBLE" !! Binary format of output file
       character(STRMAX)                       :: out_form             = "XVEL"          !! Data to write to output file
