@@ -902,11 +902,11 @@ module swiftest
          real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
       end subroutine swiftest_kick_getacch_int_all_flat_pl
 
-      module subroutine swiftest_kick_getacch_int_all_triangular_pl(npl, nplm, x, Gmass, radius, acc)
+      module subroutine swiftest_kick_getacch_int_all_triangular_pl(npl, nplm, r, Gmass, radius, acc)
          implicit none
          integer(I4B),                 intent(in)             :: npl    !! Total number of massive bodies
          integer(I4B),                 intent(in)             :: nplm   !! Number of fully interacting massive bodies
-         real(DP),     dimension(:,:), intent(in)             :: x      !! Position vector array
+         real(DP),     dimension(:,:), intent(in)             :: r      !! Position vector array
          real(DP),     dimension(:),   intent(in)             :: Gmass  !! Array of massive body G*mass
          real(DP),     dimension(:),   intent(in),   optional :: radius !! Array of massive body radii
          real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
