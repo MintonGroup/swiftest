@@ -38,6 +38,7 @@ from numpy.random import default_rng
 # Initialize the simulation object as a variable. Arguments may be defined here or through the sim.run() method.
 #sim = swiftest.Simulation(fragmentation=True, minimum_fragment_mass = 2.5e-11, mtiny=2.5e-8)
 sim = swiftest.Simulation()
+sim.clean()
 
 # Add the modern planets and the Sun using the JPL Horizons Database.
 sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"])
@@ -73,9 +74,10 @@ omega_tp    = default_rng().uniform(0.0, 360.0, ntp)
 capm_tp     = default_rng().uniform(0.0, 360.0, ntp)
 
 sim.add_body(name=name_tp, a=a_tp, e=e_tp, inc=inc_tp, capom=capom_tp, omega=omega_tp, capm=capm_tp)
-# Display the run configuration parameters.
-sim.write_param()
-sim.get_parameter()
 
 # Run the simulation. Arguments may be defined here or thorugh the swiftest.Simulation() method.
-sim.run(tstart=0.0, tstop=1.0e3, dt=0.01, istep_out=100, dump_cadence=10)
+#sim.run(tstart=0.0, tstop=1.0e3, dt=0.01, istep_out=100, dump_cadence=10)
+sim.set_parameter(tstart=0.0, tstop=1.0e3, dt=0.01, istep_out=100, dump_cadence=0)
+# Display the run configuration parameters.
+sim.get_parameter()
+sim.save()
