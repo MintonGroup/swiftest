@@ -127,7 +127,7 @@ tstop = {"disruption_headon"         : 2.0e-3,
 nfrag_reduction = {"disruption_headon" : 1.0,
          "disruption_off_axis"         : 1.0,
          "supercatastrophic_headon"    : 1.0,
-         "supercatastrophic_off_axis"  : 1.0,
+         "supercatastrophic_off_axis"  : 10.0,
          "hitandrun_disrupt"           : 1.0,
          "hitandrun_pure"              : 1.0,
          "merge"                       : 1.0,
@@ -357,7 +357,7 @@ if __name__ == "__main__":
 
         # Set fragmentation parameters
         minimum_fragment_gmass = 0.01 * body_Gmass[style][1] 
-        gmtiny = 0.10 * body_Gmass[style][1] 
+        gmtiny = 0.50 * body_Gmass[style][1] 
         sim.set_parameter(collision_model="fraggle", encounter_save="both", gmtiny=gmtiny, minimum_fragment_gmass=minimum_fragment_gmass, nfrag_reduction=nfrag_reduction[style])
         sim.run(dt=5e-4, tstop=tstop[style], istep_out=1, dump_cadence=0)
 
