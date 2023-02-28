@@ -234,7 +234,6 @@ contains
                   ry = r(2, j) - r(2, i) 
                   rz = r(3, j) - r(3, i) 
                   rji2 = rx**2 + ry**2 + rz**2
-                  rlim2 = (radius(i) + radius(j))**2
                   call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), Gmass(j), &
                                              ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
                end do
@@ -252,7 +251,6 @@ contains
                   ry = r(2,j) - r(2,i)
                   rz = r(3,j) - r(3,i)
                   rji2 = rx**2 + ry**2 + rz**2
-                  rlim2 = (radius(i) + radius(j))**2
                   fac = Gmass(j) / (rji2 * sqrt(rji2))
                   acc(1,i) = acc(1,i) + fac * rx
                   acc(2,i) = acc(2,i) + fac * ry
