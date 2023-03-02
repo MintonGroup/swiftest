@@ -18,15 +18,19 @@ authors:
   - name: Jennifer Pouplin
     affiliation: 2
   - name: Jake Elliott
-    affiliation: 2
+    affiliation: 3
   - name: Dana Singh
-    affiliation: 2
+    affiliation: 4
 affiliations:
  - name: Department of Earth, Atmospheric, and Planetary Sciences, Purdue University, USA
    index: 1
- - name: Independent Researcher, USA
+ - name: Department of Earth, Atmospheric, and Planetary Sciences, Purdue University, USA; currently at Metrea Orbital Effects, USA
    index: 2
-date: 03 February 2023
+ - name: Department of Earth, Atmospheric, and Planetary Sciences, Purdue University, USA; currently at Verisk, USA
+   index: 3
+ - name: Department of Earth, Atmospheric, and Planetary Sciences, Purdue University, USA; currently at SAIC, USA
+   index: 4
+date: 03 March 2023
 bibliography: paper.bib
 ---
 
