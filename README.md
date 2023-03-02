@@ -117,8 +117,7 @@ $ conda activate EnvName
 Next, we will install further required packages. Using the ```-e``` flag imports all packages in ```/swiftest/python/swiftest/requirements.txt```, including Swiftest. If the Swiftest Python package is updated in the future, using the ```-e``` flag should ensure that the user does not have to reinstall the package to use the updated version.
 
 ```
-$ pip install pySLALIB
-$ pip install -e . 
+$ pip install --user -e . 
 ```
 
 The Swiftest Python package should now be installed in the conda environment and is ready to use. If you would like to take the further step to add Swiftest to a Jupyter Notebook kernel, type the following:
