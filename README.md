@@ -105,16 +105,16 @@ The Swiftest executable, called ```swiftest_driver```, should now be created in 
 
 **Swiftest Python Package**
 
-Included with Swiftest, in the ```/swiftest/python/swiftest/``` directory, is a Python package designed to fascilitate seamless data processing and analysis. The Python package, also called Swiftest, can be used to generate input files, run Swiftest simulations, and process output files in the NetCDF file format.
+Included with Swiftest, in the ```/swiftest/python/swiftest/``` directory, is a Python package designed to facilitate seamless data processing and analysis. The Python package, also called Swiftest, can be used to generate input files, run Swiftest simulations, and process output files in the NetCDF file format.
 
-To begin, Swiftest can be added to an existing conda environment, or a new conda environment may be created, so long as the required pacakges are installed. To create and activate a new conda environment with the prerequisite packages, open a terminal and navigate to the ```/swiftest/python/swiftest/``` directory. Type the following:
+To begin, Swiftest can be added to an existing conda environment, or a new conda environment may be created, so long as the required packages are installed. To create and activate a new conda environment with the prerequisite packages, open a terminal and navigate to the ```/swiftest/python/swiftest/``` directory. Type the following:
 
 ```
 $ conda create --name EnvName pip scipy numpy matplotlib pandas xarray jupyter astropy -y
 $ conda activate EnvName
 ```
 
-Next, we will install further required pacakges. Using the ```-e``` flag imports all packages in ```/swiftest/python/swiftest/requirements.txt```, including Swiftest. If the Swiftest Python package is updated in the future, using the ```-e``` flag should ensure that the user does not have to reinstall the pacakge to use the updated verison.
+Next, we will install further required packages. Using the ```-e``` flag imports all packages in ```/swiftest/python/swiftest/requirements.txt```, including Swiftest. If the Swiftest Python package is updated in the future, using the ```-e``` flag should ensure that the user does not have to reinstall the package to use the updated version.
 
 ```
 $ pip install pySLALIB
@@ -433,7 +433,7 @@ encounter_check_all_plpl: the fastest loop method tested is TRIANGULAR       ! T
 
 Together, adaptive interaction calculations and encounter checking are idea for lengthy simulations with a large number of particles. The flexibility of Swiftest SyMBA ensures that the parameters of the integration are optimized for each individual simulation, even as the simulation evolves. 
 
-**NetCDF Compatability**
+**NetCDF Compatibility**
 
 The NetCDF (Network Common Data Form) file format is a cross-platform method of creating, accessing, and sharing data. Due to its self-describing nature, NetCDF is ideal for archiving multidimensional scientific data. NetCDF files are also appendable, allowing for data to be added to a file after creation, making the NetCDF file format well suited for handling simulation output. NetCDF is maintained by the University Corporation for Atmospheric Research (UCAR) and is a standard file format across much of the atmospheric modeling community. 
 
@@ -518,9 +518,9 @@ A good rule is to set ```dt``` equal to one tenth the orbit of the inner-most bo
 
 **How often should I output (**```ISTEP_OUT``` or ```TSTEP_OUT```, **and** ```DUMP_CADENCE```**)?**
 
-Depending on your simulation, you may want to write to the output file more or less frequently. Writing takes a considerable amount of computational time, so it is important to set a output cadence that is manageable. Conversely, storing data in memory may not be reasonable for all simualtion configurations or hardware, so writing more frequently may be necessary. There is no hard and fast rule for how often you should output, however it is dependent on your total simulation length (```tmax```) and your timestep (```dt```). Think of ```ISTEP_OUT``` as the number of timesteps between writing to memory (or, alternatively with ```TSTEP_OUT```, the length of time between writing to memory), and ```DUMP_CADENCE``` as the number of write to memory operations between writing to file. 
+Depending on your simulation, you may want to write to the output file more or less frequently. Writing takes a considerable amount of computational time, so it is important to set a output cadence that is manageable. Conversely, storing data in memory may not be reasonable for all simulation configurations or hardware, so writing more frequently may be necessary. There is no hard and fast rule for how often you should output, however it is dependent on your total simulation length (```tmax```) and your timestep (```dt```). Think of ```ISTEP_OUT``` as the number of timesteps between writing to memory (or, alternatively with ```TSTEP_OUT```, the length of time between writing to memory), and ```DUMP_CADENCE``` as the number of write to memory operations between writing to file. 
 
-For example, an appropriate output cadence for a run with a timestep of 0.005 years and a total simulation length of 100 My might be ```ISTEP_OUT = 2e5``` (```TSTEP_OUT = 1e3```) and ```DUMP_CADENCE = 10```. This means that data will be stores to memory every 2e5 timesteps and written to file every 2e6 timesteps. Based on our value of ```dt```, this is every 1,000 years and every 10,000 years, respectiely. Our total simulation length tells us that we will write to file 10,000 times over the course of the simulation. For longer simulations, the output cadence may be less frequent to save computational space. For shorter simulations, the output cadence may be more frequent to increase resolution. 
+For example, an appropriate output cadence for a run with a timestep of 0.005 years and a total simulation length of 100 My might be ```ISTEP_OUT = 2e5``` (```TSTEP_OUT = 1e3```) and ```DUMP_CADENCE = 10```. This means that data will be stores to memory every 2e5 timesteps and written to file every 2e6 timesteps. Based on our value of ```dt```, this is every 1,000 years and every 10,000 years, respectively. Our total simulation length tells us that we will write to file 10,000 times over the course of the simulation. For longer simulations, the output cadence may be less frequent to save computational space. For shorter simulations, the output cadence may be more frequent to increase resolution. 
 
 **What mass threshold should I set to differentiate fully-interactive and semi-interactive bodies (**```GMTINY``` **or** ```MTINY```**)?**
 
@@ -532,9 +532,9 @@ This mass threshold is necessary to ensure that Swiftest SyMBA does not generate
 
 **What are the limits of Swiftest SyMBA?**
 
-While Swifest SyMBA is a powerful tool for modeling gravitational interactions between massive bodies, it does have its limits. Swiftest SyMBA is best used for systems containing tens to hundreds of fully-interacting massive bodies. It is also best used for timescales on the order of a few hundred million years or less. While it is possible to model systems on a billion year timescale, the computational power required may be beyond what is available to the average user. In these cases, it is recommended that the user consider modeling with test particles instead of massive bodies. For systems that contain mainly test particles, with few to no close encounters between massive bodies, Swiftest RMVS is likely a more appropriate tool. 
+While Swiftest SyMBA is a powerful tool for modeling gravitational interactions between massive bodies, it does have its limits. Swiftest SyMBA is best used for systems containing tens to hundreds of fully-interacting massive bodies. It is also best used for timescales on the order of a few hundred million years or less. While it is possible to model systems on a billion year timescale, the computational power required may be beyond what is available to the average user. In these cases, it is recommended that the user consider modeling with test particles instead of massive bodies. For systems that contain mainly test particles, with few to no close encounters between massive bodies, Swiftest RMVS is likely a more appropriate tool. 
 
-To get a sense of the scope of your desired simulation, it is recommended that you run your initial conditions and parameters for a just few steps. Make sure that you set ```ISTEP_OUT``` and ```DUMP_CADENCE``` to output only once the simulation is complete, not between steps. Because writing to the output files and memory takes a significant amount of computational time compared to integrating the step, we want to avoid counting writing time in our diagnostic information. The terminal output contains information about the total wall time and the wall time per integration step. To get a sense of how long your run will take to complete your desired ```tmax```, simply scale up the wall time per integration step to the number of steps necessary for ```tmax``` to be reached. Remember that writing to the output files will take a considerable amount of time. Adjust your intitial conditions and parameters accordingly.
+To get a sense of the scope of your desired simulation, it is recommended that you run your initial conditions and parameters for a just few steps. Make sure that you set ```ISTEP_OUT``` and ```DUMP_CADENCE``` to output only once the simulation is complete, not between steps. Because writing to the output files and memory takes a significant amount of computational time compared to integrating the step, we want to avoid counting writing time in our diagnostic information. The terminal output contains information about the total wall time and the wall time per integration step. To get a sense of how long your run will take to complete your desired ```tmax```, simply scale up the wall time per integration step to the number of steps necessary for ```tmax``` to be reached. Remember that writing to the output files will take a considerable amount of time. Adjust your initial conditions and parameters accordingly.
 
 ---
 
