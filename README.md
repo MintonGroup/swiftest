@@ -202,7 +202,7 @@ The state of the system can be saved to the initial conditions NetCDF file, **<s
 Finally, a simulation can be run from the same script in which it is created (or a separate Python script) using the ```run``` method. This is optional as the simulation can also be run from an executable. More details on running a Swiftest simulation can be found in the section **Running a Swiftest Simulation**. The key word arguments available to the user for the ```run``` method are the same as those described in [simulation_kwargs](README_tables/simulation_kwargs.md).
 
 **ASCII Input Files**
-Swiftest accepts 4 ASCII input files. All four input files are necessary, however the structure of each input file varies slightly depending on the features and capabilities of the integrator selected. The four input files are as follows:
+Swiftest accepts 4 ASCII input files. All four ASCII input files are necessary if using the ASCII input format, however the structure of each input file varies slightly depending on the features and capabilities of the integrator selected. The four ASCII input files are not necessary if using NetCDF input files. The four input files are as follows:
 
 - **<span>param.in</span>** - The parameter input file.
 - **<span>cb.in</span>** - The central body input file.
@@ -456,7 +456,7 @@ All examples are included in the ```/swiftest/examples/``` directory. Simply run
 **Basic_Simulation**
 
 This example walks through how to set up a standard solar system simulation. It can be found in the ```/swiftest/examples/Basic_Simulation``` directory. It is intended to be run using the SyMBA integrator. It contains three classes of bodies:
-- Fully-Interacting Massive Bodies - Gravitational affect and are affected by other massive bodies.
+- Fully-Interacting Massive Bodies - Gravitationally affect and are affected by other massive bodies.
 - Semi-Interacting Massive Bodies - Gravitationally affect and are affected by fully-interacting massive bodies, do not gravitationally affect and are not affected by other semi-interacting massive bodies.
 - Test Particles - Gravitationally affected by fully-interacting massive bodies only. 
 
