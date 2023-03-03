@@ -133,6 +133,7 @@ $ ipython kernel install --user --name EnvName --display-name "Swiftest Kernel"
 Swiftest is built to make running a Swiftest simulation a streamlined and user-friendly experience, even for a new user. As a result, Swiftest is highly flexible and a simulation can be created, run, and processed in a number of different ways. The first choice the user must make is if they would prefer ASCII input files or NetCDF input files. We recommend NetCDF input files, however we include documentation for ASCII input files for completeness.
 
 **Brief Outline**
+
 To create and run a Swiftest simulation using the Swiftest Python package, follow the general script below. For more details on the input files and user options, continue reading this section.
 
 ```
