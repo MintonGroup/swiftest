@@ -37,7 +37,7 @@ bibliography: paper.bib
 
 # Summary
 
-The dynamical evolution of planetary systems is dominated by gravitational interactions between massive bodies. Determining the orbits of massive bodies over long time scales is the first step towards understanding the formation and evolution of planets, moons, asteroids, comets, and more. To model these systems, which often include hundreds or thousands of gravitationally interacting bodies, a numerical tool called an N-body integrator is often employed. 
+The dynamical evolution of planetary systems is dominated by gravitational interactions between massive bodies. Determining the orbits of massive bodies over long time scales is the first step towards understanding the formation and evolution of planets, moons, asteroids, comets, and more. To model these systems, which often include hundreds or thousands of gravitationally interacting bodies, a numerical tool called an n-body integrator is often employed. 
 
 # Statement of Need
 
@@ -46,6 +46,10 @@ The dynamical evolution of planetary systems is dominated by gravitational inter
 Building off a strong legacy, including its predecessors `Swifter` [@Duncan:1998] and `Swift` [@Levison:1994], `Swiftest` takes the next step in modeling gravitationally dominated systems by including collisional fragmentation. Our collisional fragmentation algorithm, `Fraggle` (based on the work of @Leinhardt:2012), is designed to resolve collisions between massive bodies and generate collisional debris. `Swiftest` fully incorporates this debris into the gravitational system, evolving these new bodies along with pre-existing bodies. This allows for a more complete model of the orbital evolution of the system and the growth of massive bodies. 
 
 The combination of modern programming practices, flexible data processing tools, and the latest advances in the field of collisional dynamics make `Swiftest` the ideal tool for studying the formation of planetary systems, the growth of planetary moons, the evolution of asteroid families, and beyond.
+
+# Acknowledgements
+
+`Swiftest` was developed at Purdue University and was funded under the NASA Emerging Worlds and Solar System Workings programs. Active development by the Purdue Swiftest Team is ongoing and contributions from the community are highly encouraged.
 
 # References
 
