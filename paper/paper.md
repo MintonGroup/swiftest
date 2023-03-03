@@ -52,4 +52,3 @@ The combination of modern programming practices, flexible data processing tools,
 `Swiftest` was developed at Purdue University and was funded under the NASA Emerging Worlds and Solar System Workings programs. Active development by the Purdue Swiftest Team is ongoing and contributions from the community are highly encouraged.
 
 # References
-
