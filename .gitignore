@@ -14,6 +14,7 @@
 !README_tables/**
 !paper/paper.md
 !paper/paper.bib
+!paper/performance.png
 !README.swifter 
 dump*
 !**/.gitignore

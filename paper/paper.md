@@ -1,5 +1,5 @@
 ---
-title: 'Swiftest: An N-body Integrator for Gravitational Systems'
+title: 'Swiftest: An \textit{N}-body Integrator for Gravitational Systems'
 tags:
   - Python
   - Fortran
@@ -37,7 +37,7 @@ bibliography: paper.bib
 
 # Summary
 
-The dynamical evolution of planetary systems is dominated by gravitational interactions between massive bodies. Determining the orbits of massive bodies over long time scales is the first step towards understanding the formation and evolution of planets, moons, asteroids, comets, and more. To model these systems, which often include hundreds or thousands of gravitationally interacting bodies, a numerical tool called an n-body integrator is often employed. 
+The dynamical evolution of planetary systems is dominated by gravitational interactions between massive bodies. Determining the orbits of massive bodies over long time scales is the first step towards understanding the formation and evolution of planets, moons, asteroids, comets, and more. To model these systems, which often include hundreds or thousands of gravitationally interacting bodies, a numerical tool called an \textit{n}-body integrator is often employed. 
 
 # Statement of Need
 
@@ -47,8 +47,16 @@ Building off a strong legacy, including its predecessors `Swifter` [@Duncan:1998
 
 The combination of modern programming practices, flexible data processing tools, and the latest advances in the field of collisional dynamics make `Swiftest` the ideal tool for studying the formation of planetary systems, the growth of planetary moons, the evolution of asteroid families, and beyond.
 
+# Performance
+
+Modeling the behavior of a thousands of fully interacting bodies over long timescales is computationally expensive, with typical runs taking weeks or months to complete. The addition of collisional fragmentation can quickly generate hundreds or thousands of new bodies in a short time period, creating further computational challenges for traditional \textit{n}-body integrators. As a result, enhancing computational performance was a key aspect of the development of 'Swiftest'. Here we show a comparison between the performance of 'Swift', 'Swifter-OMP' (a parallel version of 'Swifter'), and 'Swiftest' on simulations with 1k, 2k, 4k, 8k, and 16k fully interacting bodies. The number of CPUs dedicated to each run is varied from 1 to 24 to test the parallel performance of each program.
+
+Figure \autoref{fig:performance} shows the results of this performance test. We can see that 'Swiftest' outperforms 'Swifter-OMP' and 'Swift' in each simulation set, even when run in serial. When run in parallel, 'Swiftest' shows a significant performance boost when the number of bodies is increased. The improved performance of 'Swiftest' compared to 'Swifter-OMP' and 'Swift' is a critical step forward in \textit{n}-body modeling, providing a powerful tool for modeling the dynamical evolution of planetary systems.
+
 # Acknowledgements
 
 `Swiftest` was developed at Purdue University and was funded under the NASA Emerging Worlds and Solar System Workings programs. Active development by the Purdue Swiftest Team is ongoing and contributions from the community are highly encouraged.
+
+![Performance testing of 'Swiftest' \textit{SyMBA} on systems of (a) 1k, (b) 2k, (c) 4k, (d) 8k, and (e) 16k fully interacting massive bodies. Speedup is measured relative to 'Swift' (dashed), with an ideal 1:1 speedup relative to 'Swiftest'  in serial shown as an upper limit (dotted). The performance of 'Swifter-OMP' is shown in green while the performance of 'Swiftest' is shown in blue. \label{fig:performance}](performance.png)
 
 # References
