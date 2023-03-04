@@ -5,8 +5,8 @@ import pandas as pd
 swomp = {}
 swest = {} 
 swift = {}
+ncores = 24
 npl =  [1,  2,  4,  8,  16, 32]
-ymax = [24, 24, 24, 24, 24, 24]
 
 for n in npl:
     swomp[n] = pd.read_csv(f"swifter-omp/pl{n:02d}k/swifter-{n}k-timehist.log")
@@ -19,18 +19,23 @@ CB_color_cycle = ['#377eb8', '#ff7f00', '#4daf4a',
                   '#999999', '#e41a1c', '#dede00']
 y1style =(0, (5, 1)) # densly dashed line
 
-x1line = np.arange(1,24)
+x1line = np.arange(1,ncores)
 y1line = np.full_like(x1line, 1.0)
 
 for i,n in enumerate(npl):
     nsteps = 1000
-    axes_fontsize = 32
+    axes_fontsize = 24
     legend_fontsize = 24
-    fig = plt.figure(1, figsize=(14,10), facecolor="white")
+    fig = plt.figure(1, figsize=(10,10), facecolor="white")
     ax = fig.add_subplot(111)
+    ax.set_aspect('equal', adjustable='box')
     plt.setp(ax.get_xticklabels(), fontsize=axes_fontsize)
     plt.setp(ax.get_yticklabels(), fontsize=axes_fontsize)
-    ax.set_ylim([0,ymax[i]])
+    ax.set_ylim([0,ncores])
+    ax.set_xlim([1,ncores])
+    ax.set_yticks([1, 2, 4, 6, 8, 12, 16, 20, 24])
+    ax.set_xticks([1, 2, 4, 6, 8, 12, 16, 20, 24])
+    ax.grid(True)
     ax.set_xlabel("Number of CPUs", fontsize=axes_fontsize)
     ax.set_ylabel("Speedup (relative to Swift-SyMBA)", fontsize=axes_fontsize)
     ax.set_facecolor("white")
@@ -44,6 +49,6 @@ for i,n in enumerate(npl):
         plt.legend(loc='upper right', fontsize=legend_fontsize, markerscale=20)
     else:
         plt.legend(loc='upper left', fontsize=legend_fontsize, markerscale=20)
-    plt.title(f"{n}k fully interacting bodies with SyMBA", fontsize=axes_fontsize)
+    plt.title(f"{n}k fully interacting bodies", fontsize=axes_fontsize)
     fig.savefig(f"swiftest_vs_swifter_{n}k.png")
     plt.close(fig)
