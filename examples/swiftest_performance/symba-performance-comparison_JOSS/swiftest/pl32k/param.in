@@ -1,0 +1,35 @@
+!
+!Parameter file for the Entire Solar System for the Terrestrial Disk
+!
+TSTART          0.0e0                           !starting time in years
+TSTOP           0.060                     !simulation length in years
+DT              0.001                           !step size in years
+CB_IN           cb.in
+PL_IN           Jul27_32k_fully.in
+TP_IN           tp.in
+IN_TYPE         ASCII                           !format of input file
+IN_FORM         XV                              !format of input file
+ISTEP_OUT       60                             !output cadence 
+BIN_OUT         data.nc                          !output file
+OUT_TYPE        NETCDF_DOUBLE                   !double precision real output
+OUT_FORM        XVEL                            !output type in XV OR EL
+OUT_STAT        REPLACE
+CHK_CLOSE       yes                             !check for planetary close encounters
+CHK_RMAX        10000.0                         !drop things from the simulation in AU
+CHK_EJECT       -1.0                            !turns this off
+CHK_QMIN        -1.0                            !turns this off
+EXTRA_FORCE     no                              !this would be user defined forces
+BIG_DISCARD     no                              !output all planets if anything is discarded
+RHILL_PRESENT   yes                             !Rhill is definted in the input file
+ROTATION        no
+TIDES           no
+GR              no
+MU2KG           5.038e30                        !Conversion from mass unit to grams (M_sun*G --> kg where G=4pi^2 AU^3/(y^2*M_sun))
+DU2M            1.5e11                     		!Conversion from distance unit to centimeters (AU --> m)
+TU2S            3.16e7                          !Conversion from time unit to seconds (years --> seconds)
+GMTINY           1e-20						!(G*M)
+ENERGY          no
+INTERACTION_LOOPS TRIANGULAR
+ENCOUNTER_CHECK TRIANGULAR
+COLLISION_MODEL MERGE
+DUMP_CADENCE 0
