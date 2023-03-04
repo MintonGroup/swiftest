@@ -53,10 +53,10 @@ Modeling the behavior of thousands of fully interacting bodies over long timesca
 
 \autoref{fig:performance} shows the results of this performance test. We can see that `Swiftest` outperforms `Swifter-OMP` and `Swift` in each simulation set, even when run in serial. When run in parallel, `Swiftest` shows a significant performance boost when the number of bodies is increased. The improved performance of `Swiftest` compared to `Swifter-OMP` and `Swift` is a critical step forward in \textit{n}-body modeling, providing a powerful tool for modeling the dynamical evolution of planetary systems.
 
+![Performance testing of `Swiftest` on systems of (a) 1k, (b) 2k, (c) 8k, and (d) 16k fully interacting massive bodies. All simulations were run using the \textit{SyMBA} integrator included in `Swift`, `Swifter-OMP`, and `Swiftest`. Speedup is measured relative to `Swift` (dashed), with an ideal 1:1 speedup relative to `Swiftest`  in serial shown as an upper limit (dotted). The performance of `Swifter-OMP` is shown in green while the performance of `Swiftest` is shown in blue. All simulations were run on the Purdue University Rosen Center for Advanced Computing Brown Community Cluster. Brown contains 550 Dell compute nodes, with each node containing 2 12-core Intel Xeon Gold Sky Lake processors, resulting in 24 cores per node. Each node has 96 GB of memory. \label{fig:performance}](performance.png)
+
 # Acknowledgements
 
 `Swiftest` was developed at Purdue University and was funded under the NASA Emerging Worlds and Solar System Workings programs. Active development by the Purdue Swiftest Team is ongoing and contributions from the community are highly encouraged.
-
-![Performance testing of `Swiftest` on systems of (a) 1k, (b) 2k, (c) 8k, and (d) 16k fully interacting massive bodies. All simulations were run using the \textit{SyMBA} integrator included in `Swift`, `Swifter-OMP`, and `Swiftest`. Speedup is measured relative to `Swift` (dashed), with an ideal 1:1 speedup relative to `Swiftest`  in serial shown as an upper limit (dotted). The performance of `Swifter-OMP` is shown in green while the performance of `Swiftest` is shown in blue. All simulations were run on the Purdue University Rosen Center for Advanced Computing Brown Community Cluster. Brown contains 550 Dell compute nodes, with each node containing 2 12-core Intel Xeon Gold Sky Lake processors, resulting in 24 cores per node. Each node has 96 GB of memory. \label{fig:performance}](performance.png)
 
 # References
