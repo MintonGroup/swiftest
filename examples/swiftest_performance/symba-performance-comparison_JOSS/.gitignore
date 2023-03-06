@@ -1,0 +1,8 @@
+*
+!.gitignore
+!Jul27_Test
+!parallel-performance-plots.py
+!README.txt
+!swift
+!swifter-omp
+!swiftest
