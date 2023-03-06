@@ -1039,7 +1039,7 @@ class Simulation:
             in initial conditions.
         encounter_save : {"NONE","TRAJECTORY","CLOSEST","BOTH"}, default "NONE"
             Indicate if and how encounter data should be saved. If set to "TRAJECTORY", the position and velocity vectors
-            of all bodies undergoing close encounters are saved at each intermediate step to the encounter files.
+            of all bodies undergoing close encounter are saved at each intermediate step to the encounter files.
             If set to "CLOSEST", the position  and velocities at the point of closest approach between pairs of bodies are 
             computed and stored to the encounter files. If set to "BOTH", then this stores the values that would be computed
             in "TRAJECTORY" and "CLOSEST". If set to "NONE" no trajectory information is saved.
@@ -2738,8 +2738,8 @@ class Simulation:
                 else:
                     self.init_cond = self.data.isel(time=0)
 
-            self.read_encounters()
-            self.read_collisions()
+            self.read_encounter()
+            self.read_collision()
             if self.verbose:
                 print("Finished reading Swiftest dataset files.")
 
@@ -2752,23 +2752,14 @@ class Simulation:
             warnings.warn('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".',stacklevel=2)
         return
 
-    def read_encounters(self):
-        enc_files = glob(f"{self.simdir}{os.path.sep}encounter_*.nc")
-        if len(enc_files) == 0:
-            return
+    def read_encounter(self):
+        enc_file = self.simdir / "encounters.nc"
+        if not os.path.exists(enc_file):
+           return
 
-        if self.verbose:
-            print("Reading encounter history file as .encounters")
-
-        enc_files.sort()
-
-        # This is needed in order to pass the param argument down to the io.process_netcdf_input function
-        def _preprocess(ds, param):
-            return io.process_netcdf_input(ds,param)
-        partial_func = partial(_preprocess, param=self.param)
-
-        self.encounters = xr.open_mfdataset(enc_files,parallel=True,combine="nested",concat_dim="time",join="left",preprocess=partial_func,mask_and_scale=True)
+        self.encounters = xr.open_dataset(enc_file)
         self.encounters = io.process_netcdf_input(self.encounters, self.param)
+
         # Remove any overlapping time values
         tgood,tid = np.unique(self.encounters.time,return_index=True)
         self.encounters = self.encounters.isel(time=tid)
@@ -2778,21 +2769,16 @@ class Simulation:
 
         return
 
-    def read_collisions(self):
-        col_files = glob(f"{self.simdir}{os.path.sep}collision_*.nc")
-        if len(col_files) == 0:
-            return
+    def read_collision(self):
+       
+        col_file = self.simdir / "collisions.nc"
+        if not os.path.exists(col_file):
+           return
 
-        col_files.sort()
         if self.verbose:
-                print("Reading collision history file as .collisions")
+                print("Reading collisions history file as .collisions")
 
-        # This is needed in order to pass the param argument down to the io.process_netcdf_input function
-        def _preprocess(ds, param):
-            return io.process_netcdf_input(ds,param)
-        partial_func = partial(_preprocess, param=self.param)
-
-        self.collisions = xr.open_mfdataset(col_files,parallel=True,  combine="nested", concat_dim="collision", preprocess=partial_func,mask_and_scale=True)
+        self.collisions = xr.open_dataset(col_file)
         self.collisions = io.process_netcdf_input(self.collisions, self.param)
 
         return
@@ -2964,17 +2950,13 @@ class Simulation:
         old_files = [self.simdir / self.param['BIN_OUT'],
                      self.simdir / "fraggle.log",
                      self.simdir / "swiftest.log",
+                     self.simdir / "collisions.log",
+                     self.simdir / "collisions.nc",
+                     self.simdir / "encounters.nc",
+                     self.simdir / "param.restart.in",
                      ]
-        glob_files = [self.simdir.glob("**/dump_param?.in")] \
-                     + [self.simdir.glob("**/dump_bin?.nc")] \
-                     + [self.simdir.glob("**/encounter_*.nc")] \
-                     + [self.simdir.glob("**/collision_*.nc")]
 
         for f in old_files:
             if f.exists():
                 os.remove(f)
-        for g in glob_files:
-            for f in g:
-                if f.exists():
-                    os.remove(f)
         return

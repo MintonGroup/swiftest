@@ -25,7 +25,7 @@ contains
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       ! Internals
       integer(I4B)                                 :: i
-      character(len=STRMAX) :: timestr, idstri, idstrj
+      character(len=STRMAX) :: timestr, idstri, idstrj, message
 
       if (self%nbody == 0) return
 
@@ -38,9 +38,10 @@ contains
                      write(idstri, *) tp%id(i)
                      write(idstrj, *) pl%id(iplperP)
                      write(timestr, *) t
-                     write(*, *) "Particle "  // trim(adjustl(tp%info(i)%name)) // " (" // trim(adjustl(idstri)) &
+                     write(message, *) "Particle "  // trim(adjustl(tp%info(i)%name)) // " (" // trim(adjustl(idstri)) &
                               // ") q with respect to massive body " // trim(adjustl(pl%info(iplperP)%name))   &
                               // " (" // trim(adjustl(idstrj)) // ") is too small at t = " // trim(adjustl(timestr))
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT,message)
                      tp%ldiscard(i) = .true.
                      tp%lmask(i) = .false.
                      call tp%info(i)%set_value(status="DISCARDED_PLQ", discard_time=t, discard_rh=tp%rh(:,i), &

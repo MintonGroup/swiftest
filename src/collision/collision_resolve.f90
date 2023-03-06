@@ -16,7 +16,7 @@ contains
       !! author: David A. Minton
       !! 
       !! Loops through the pl-pl collision list and groups families together by index. Outputs the indices of all impactors%id members, 
-      !! and pairs of quantities (x and v vectors, mass, radius, Lspin, and Ip) that can be used to resolve the collisional outcome.
+      !! and pairs of quantities (x and v vectors, mass, radius, L_spin, and Ip) that can be used to resolve the collisional outcome.
       implicit none
       ! Arguments
       class(collision_impactors),               intent(out)   :: self         !! Collision impactors object
@@ -83,7 +83,7 @@ contains
 
             impactors%ncoll = count(pl%lcollision(impactors%id(:)))
             impactors%id = pack(impactors%id(:), pl%lcollision(impactors%id(:)))
-            impactors%Lspin(:,:) = 0.0_DP
+            impactors%L_spin(:,:) = 0.0_DP
             impactors%Ip(:,:) = 0.0_DP
 
             ! Find the barycenter of each body along with its children, if it has any
@@ -93,7 +93,7 @@ contains
                ! Assume principal axis rotation about axis corresponding to highest moment of inertia (3rd Ip)
                if (param%lrotation) then
                   impactors%Ip(:, j) = impactors%mass(j) * pl%Ip(:, idx_parent(j))
-                  impactors%Lspin(:, j) = impactors%Ip(3, j) * impactors%radius(j)**2 * pl%rot(:, idx_parent(j))
+                  impactors%L_spin(:, j) = impactors%Ip(3, j) * impactors%radius(j)**2 * pl%rot(:, idx_parent(j))
                end if
 
                if (nchild(j) > 0) then
@@ -113,14 +113,14 @@ contains
                         xc(:) = impactors%rb(:, j) - xcom(:)
                         vc(:) = impactors%vb(:, j) - vcom(:)
                         xcrossv(:) = xc(:) .cross. vc(:) 
-                        impactors%Lspin(:, j) = impactors%Lspin(:, j) + impactors%mass(j) * xcrossv(:)
+                        impactors%L_spin(:, j) = impactors%L_spin(:, j) + impactors%mass(j) * xcrossv(:)
          
                         xc(:) = xchild(:) - xcom(:)
                         vc(:) = vchild(:) - vcom(:)
                         xcrossv(:) = xc(:) .cross. vc(:) 
-                        impactors%Lspin(:, j) = impactors%Lspin(:, j) + mchild * xcrossv(:)
+                        impactors%L_spin(:, j) = impactors%L_spin(:, j) + mchild * xcrossv(:)
 
-                        impactors%Lspin(:, j) = impactors%Lspin(:, j) + mchild * pl%Ip(3, idx_child)  &
+                        impactors%L_spin(:, j) = impactors%L_spin(:, j) + mchild * pl%Ip(3, idx_child)  &
                                                                                  * pl%radius(idx_child)**2 &
                                                                                  * pl%rot(:, idx_child)
                         impactors%Ip(:, j) = impactors%Ip(:, j) + mchild * pl%Ip(:, idx_child)
@@ -144,7 +144,7 @@ contains
             mxc(:, 2) = impactors%mass(2) * (impactors%rb(:, 2) - xcom(:))
             vcc(:, 1) = impactors%vb(:, 1) - vcom(:)
             vcc(:, 2) = impactors%vb(:, 2) - vcom(:)
-            impactors%Lorbit(:,:) = mxc(:,:) .cross. vcc(:,:)
+            impactors%L_orbit(:,:) = mxc(:,:) .cross. vcc(:,:)
 
             ! Destroy the kinship relationships for all members of this impactors%id
             call pl%reset_kinship(impactors%id(:))
@@ -334,9 +334,6 @@ contains
             nimpactors = impactors%ncoll
             nfrag = fragments%nbody
 
-            param%maxid_collision = max(param%maxid_collision, maxval(nbody_system%pl%info(:)%collision_id))
-            param%maxid_collision = param%maxid_collision + 1
-
             ! Setup new bodies
             allocate(plnew, mold=pl)
             call plnew%setup(nfrag, param)
@@ -440,12 +437,6 @@ contains
                plnew%info(1:nfrag)%particle_type = PL_TYPE_NAME 
             end where
 
-            ! Log the properties of the new bodies
-            select type(after => collider%after)
-            class is (swiftest_nbody_system)
-               allocate(after%pl, source=plnew)
-            end select
-
             ! Append the new merged body to the list 
             call pl_adds%append(plnew, lsource_mask=[(.true., i=1, nfrag)])
 
@@ -457,16 +448,22 @@ contains
             lmask(:) = .false.
             lmask(impactors%id(:)) = .true.
             
-            call plnew%setup(0, param)
-            deallocate(plnew)
-
             allocate(plsub, mold=pl)
             call pl%spill(plsub, lmask, ldestructive=.false.)
 
             call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nimpactors)])
 
-            call plsub%setup(0, param)
-            deallocate(plsub)
+            ! Log the properties of the old and new bodies
+            select type(before => collider%before)
+            class is (swiftest_nbody_system)
+               call move_alloc(plsub, before%pl)
+            end select
+
+            select type(after => collider%after)
+            class is (swiftest_nbody_system)
+               call move_alloc(plnew, after%pl)
+            end select
+
          end associate
 
       end select
@@ -490,14 +487,13 @@ contains
       real(DP),                   intent(in)    :: dt     !! Current simulation step size
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
       ! Internals
-      real(DP) :: Eorbit_before, Eorbit_after
+      real(DP) :: E_orbit_before, E_orbit_after
       logical :: lplpl_collision
       character(len=STRMAX) :: timestr
       integer(I4B), dimension(2) :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
       logical  :: lgoodcollision
       integer(I4B) :: i, loop, ncollisions
       integer(I4B), parameter :: MAXCASCADE = 1000
-      real(DP) :: dpe
   
       select type (nbody_system)
       class is (swiftest_nbody_system)
@@ -518,7 +514,7 @@ contains
             ! Get the energy before the collision is resolved
             if (param%lenergy) then
                call nbody_system%get_energy_and_momentum(param)
-               Eorbit_before = nbody_system%te
+               E_orbit_before = nbody_system%te
             end if
 
             do loop = 1, MAXCASCADE
@@ -538,15 +534,19 @@ contains
                      idx_parent(2) = pl%kin(idx2(i))%parent
                      call impactors%consolidate(nbody_system, param, idx_parent, lgoodcollision)
                      if ((.not. lgoodcollision) .or. any(pl%status(idx_parent(:)) /= COLLIDED)) cycle
+
+                     ! Advance the collision id number and save it
+                     param%maxid_collision = max(param%maxid_collision, maxval(nbody_system%pl%info(:)%collision_id))
+                     param%maxid_collision = param%maxid_collision + 1
+                     collider%collision_id = param%maxid_collision
+
+                     ! Get the collision regime
                      call impactors%get_regime(nbody_system, param)
 
                      call collision_history%take_snapshot(param,nbody_system, t, "before") 
 
-                     call nbody_system%get_energy_and_momentum(param)
-
+                     ! Generate the new bodies resulting from the collision
                      call collider%generate(nbody_system, param, t)
-
-                     call nbody_system%get_energy_and_momentum(param)
 
                      call collision_history%take_snapshot(param,nbody_system, t, "after") 
 
@@ -574,9 +574,8 @@ contains
 
                   if (.not.lplpl_collision) exit
                   if (loop == MAXCASCADE) then
-                     write(*,*) 
-                     write(*,*) "A runaway collisional cascade has been detected in collision_resolve_plpl."
-                     write(*,*) "Consider reducing the step size or changing the parameters in the collisional model to reduce the number of fragments."
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT,"An runaway collisional cascade has been detected in collision_resolve_plpl.")
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Consider reducing the step size or changing the parameters in the collisional model to reduce the number of fragments.")
                      call util_exit(FAILURE)
                   end if
                end associate
@@ -584,8 +583,8 @@ contains
 
             if (param%lenergy) then
                call nbody_system%get_energy_and_momentum(param)
-               Eorbit_after = nbody_system%te
-               nbody_system%Ecollisions = nbody_system%Ecollisions + (Eorbit_after - Eorbit_before)
+               E_orbit_after = nbody_system%te
+               nbody_system%E_collisions = nbody_system%E_collisions + (E_orbit_after - E_orbit_before)
             end if
 
          end associate

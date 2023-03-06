@@ -55,6 +55,13 @@ contains
          associate(impactors => nbody_system%collider%impactors, fragments => nbody_system%collider%fragments)
             select case (impactors%regime) 
             case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
+
+               ! Manually save the before/after snapshots because this case doesn't use the mergeaddsub procedure
+               select type(before => self%before)
+               class is (swiftest_nbody_system)
+                  allocate(before%pl, source=pl) 
+               end select
+
                nfrag = size(impactors%id(:))
                do i = 1, nfrag
                   j = impactors%id(i)
@@ -68,19 +75,18 @@ contains
                   pl%ldiscard(j) = .false.
                   pl%lcollision(j) = .false.
                end do
-               select type(before => self%before)
-               class is (swiftest_nbody_system)
+
                select type(after => self%after)
                class is (swiftest_nbody_system)
-                  allocate(after%pl, source=before%pl) ! Be sure to save the pl so that snapshots still work   
+                  allocate(after%pl, source=pl) 
                end select
-               end select
+
             case (COLLRESOLVE_REGIME_HIT_AND_RUN)
                call self%hitandrun(nbody_system, param, t)
             case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE)
                call self%merge(nbody_system, param, t) ! Use the default collision model, which is merge
             case default 
-               write(*,*) "Error in swiftest_collision, unrecognized collision regime"
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Error in swiftest_collision, unrecognized collision regime")
                call util_exit(FAILURE)
             end select
             end associate
@@ -107,7 +113,6 @@ contains
       ! Internals
       character(len=STRMAX) :: message
 
-
       select type(nbody_system)
       class is (swiftest_nbody_system)
       select type(pl => nbody_system%pl)
@@ -117,18 +122,21 @@ contains
             call collision_io_collider_message(nbody_system%pl, impactors%id, message)
             call swiftest_io_log_one_message(COLLISION_LOG_OUT, trim(adjustl(message)))
 
+            ! Manually save the before/after snapshots because this case doesn't use the mergeaddsub procedure
+            select type(before => self%before)
+            class is (swiftest_nbody_system)
+               allocate(before%pl, source=pl) 
+            end select
+
             status = HIT_AND_RUN_PURE
             pl%status(impactors%id(:)) = ACTIVE
             pl%ldiscard(impactors%id(:)) = .false.
             pl%lcollision(impactors%id(:)) = .false.
-            ! Be sure to save the pl so that snapshots still work 
-            select type(before => self%before)
-            class is (swiftest_nbody_system)
+
             select type(after => self%after)
             class is (swiftest_nbody_system)
-               allocate(after%pl, source=before%pl) 
+               allocate(after%pl, source=pl) 
             end select
-            end select  
 
          end associate
       end select
@@ -154,7 +162,7 @@ contains
       real(DP),                 intent(in)    :: t            !! The time of the collision
       ! Internals
       integer(I4B)                              :: i, j, k, ibiggest
-      real(DP), dimension(NDIM)                 :: Lspin_new
+      real(DP), dimension(NDIM)                 :: L_spin_new
       real(DP)                                  :: volume, G
       character(len=STRMAX) :: message
 
@@ -193,12 +201,12 @@ contains
                   if (param%lrotation) then
                      do concurrent(i = 1:NDIM)
                         fragments%Ip(i,1) = sum(impactors%mass(:) * impactors%Ip(i,:)) 
-                        Lspin_new(i) = sum(impactors%Lorbit(i,:) + impactors%Lorbit(i,:))
+                        L_spin_new(i) = sum(impactors%L_orbit(i,:) + impactors%L_orbit(i,:))
                      end do
                      fragments%Ip(:,1) = fragments%Ip(:,1) / fragments%mass(1)
-                     fragments%rot(:,1) = Lspin_new(:) / (fragments%Ip(3,1) * fragments%mass(1) * fragments%radius(1)**2)
+                     fragments%rot(:,1) = L_spin_new(:) / (fragments%Ip(3,1) * fragments%mass(1) * fragments%radius(1)**2)
                   else ! If spin is not enabled, we will consider the lost pre-collision angular momentum as "escaped" and add it to our bookkeeping variable
-                     nbody_system%Lescape(:) = nbody_system%Lescape(:) + impactors%Lorbit(:,1) + impactors%Lorbit(:,2) 
+                     nbody_system%L_escape(:) = nbody_system%L_escape(:) + impactors%L_orbit(:,1) + impactors%L_orbit(:,2) 
                   end if
 
                   ! The fragment trajectory will be the barycentric trajectory

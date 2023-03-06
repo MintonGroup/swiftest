@@ -1242,9 +1242,9 @@ contains
       real(DP) :: hx, hy, hz
 
       associate(nbody_system => self, pl => self%pl, npl => self%pl%nbody, cb => self%cb)
-         nbody_system%Lorbit(:) = 0.0_DP
-         nbody_system%Lspin(:) = 0.0_DP
-         nbody_system%Ltot(:) = 0.0_DP
+         nbody_system%L_orbit(:) = 0.0_DP
+         nbody_system%L_spin(:) = 0.0_DP
+         nbody_system%L_total(:) = 0.0_DP
          nbody_system%ke_orbit = 0.0_DP
          nbody_system%ke_spin = 0.0_DP
 
@@ -1312,20 +1312,20 @@ contains
          nbody_system%ke_orbit = 0.5_DP * (kecb + sum(kepl(1:npl), pl%lmask(1:npl)))
          if (param%lrotation) nbody_system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), pl%lmask(1:npl)))
    
-         nbody_system%Lorbit(1) = Lcborbit(1) + sum(Lplorbitx(1:npl), pl%lmask(1:npl)) 
-         nbody_system%Lorbit(2) = Lcborbit(2) + sum(Lplorbity(1:npl), pl%lmask(1:npl)) 
-         nbody_system%Lorbit(3) = Lcborbit(3) + sum(Lplorbitz(1:npl), pl%lmask(1:npl)) 
+         nbody_system%L_orbit(1) = Lcborbit(1) + sum(Lplorbitx(1:npl), pl%lmask(1:npl)) 
+         nbody_system%L_orbit(2) = Lcborbit(2) + sum(Lplorbity(1:npl), pl%lmask(1:npl)) 
+         nbody_system%L_orbit(3) = Lcborbit(3) + sum(Lplorbitz(1:npl), pl%lmask(1:npl)) 
   
          if (param%lrotation) then
-            nbody_system%Lspin(1) = Lcbspin(1) + sum(Lplspinx(1:npl), pl%lmask(1:npl)) 
-            nbody_system%Lspin(2) = Lcbspin(2) + sum(Lplspiny(1:npl), pl%lmask(1:npl)) 
-            nbody_system%Lspin(3) = Lcbspin(3) + sum(Lplspinz(1:npl), pl%lmask(1:npl)) 
+            nbody_system%L_spin(1) = Lcbspin(1) + sum(Lplspinx(1:npl), pl%lmask(1:npl)) 
+            nbody_system%L_spin(2) = Lcbspin(2) + sum(Lplspiny(1:npl), pl%lmask(1:npl)) 
+            nbody_system%L_spin(3) = Lcbspin(3) + sum(Lplspinz(1:npl), pl%lmask(1:npl)) 
          end if
 
          nbody_system%be = sum(-3*pl%Gmass(1:npl)*pl%mass(1:npl)/(5*pl%radius(1:npl)), pl%lmask(1:npl))
 
          nbody_system%te = nbody_system%ke_orbit + nbody_system%ke_spin + nbody_system%pe + nbody_system%be
-         nbody_system%Ltot(:) = nbody_system%Lorbit(:) + nbody_system%Lspin(:)
+         nbody_system%L_total(:) = nbody_system%L_orbit(:) + nbody_system%L_spin(:)
       end associate
 
       return
@@ -1716,10 +1716,6 @@ contains
                pl%info(1:npl)%particle_type = PL_TYPE_NAME 
             end where
          end if
-
-         call nc%open(param)
-         call pl%write_info(nc, param)
-         call nc%close()
 
          ! Reindex the new list of bodies 
          call pl%sort("mass", ascending=.false.)
@@ -2608,7 +2604,11 @@ contains
                call encounter_history%reset()
                select type(nc => encounter_history%nc)
                class is (encounter_netcdf_parameters)
-                  nc%file_number = param%iloop / param%dump_cadence
+                  nc%file_name = ENCOUNTER_OUTFILE
+                  if (.not.param%lrestart) then
+                     call nc%initialize(param)
+                     call nc%close()
+                  end if
                end select
                allocate(nbody_system%encounter_history, source=encounter_history)
             end if
@@ -2617,7 +2617,11 @@ contains
             call collision_history%reset()
             select type(nc => collision_history%nc)
             class is (collision_netcdf_parameters)
-               nc%file_number = param%iloop / param%dump_cadence
+               nc%file_name = COLLISION_OUTFILE
+               if (.not.param%lrestart) then
+                  call nc%initialize(param)
+                  call nc%close()
+               end if
             end select
             allocate(nbody_system%collision_history, source=collision_history)
 

@@ -93,6 +93,7 @@ contains
       real(DP),     dimension(:,:), allocatable :: xtmp, vtmp
       real(DP),     dimension(:),   allocatable :: GMcb, dto
       integer(I4B), dimension(:),   allocatable :: iflag
+      character(len=STRMAX) :: message
 
       dntenc = real(NTENC, kind=DP)
       associate (npl => pl%nbody)
@@ -112,11 +113,12 @@ contains
             if (any(iflag(1:npl) /= 0)) then
                do i = 1, npl
                   if (iflag(i) /= 0) then
-                     write(*, *) " Planet ", pl%id(i), " is lost!!!!!!!!!!"
-                     write(*, *) GMcb(i), dto(i)
-                     write(*, *) xtmp(:,i)
-                     write(*, *) vtmp(:,i)
-                     write(*, *) " STOPPING "
+                     write(message, *) " Planet ", pl%id(i), " is lost!!!!!!!!!!",new_line('a'), &
+                                       GMcb(i), dto(i),new_line('a'), &
+                                       xtmp(:,i),new_line('a'), &
+                                       vtmp(:,i),new_line('a'), &
+                                       " STOPPING "
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT,message)
                      call util_exit(FAILURE)
                   end if
                end do
@@ -134,11 +136,12 @@ contains
             if (any(iflag(1:npl) /= 0)) then
                do i = 1, npl
                   if (iflag(i) /= 0) then
-                     write(*, *) " Planet ", pl%id(i), " is lost!!!!!!!!!!"
-                     write(*, *) GMcb(i), -dto(i)
-                     write(*, *) xtmp(:,i)
-                     write(*, *) vtmp(:,i)
-                     write(*, *) " STOPPING "
+                     write(message, *) " Planet ", pl%id(i), " is lost!!!!!!!!!!",new_line('a'), &
+                                       GMcb(i), -dto(i), new_line('a'), &
+                                       xtmp(:,i), new_line('a'), &
+                                       vtmp(:,i), new_line('a'), &
+                                       " STOPPING "
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT,message)
                      call util_exit(FAILURE)
                   end if
                end do
@@ -237,6 +240,7 @@ contains
       real(DP),     dimension(:,:), allocatable :: xtmp, vtmp, rh_original, ah_original
       real(DP),     dimension(:),   allocatable :: GMcb, dti
       integer(I4B), dimension(:),   allocatable :: iflag
+      character(len=STRMAX) :: message
 
       associate (npl => nbody_system%pl%nbody)
          dntphenc = real(NTPHENC, kind=DP)
@@ -279,11 +283,12 @@ contains
             if (any(iflag(1:npl) /= 0)) then
                do i = 1, npl
                   if (iflag(i) /=0) then
-                     write(*, *) " Planet ", pl%id(i), " is lost!!!!!!!!!!"
-                     write(*, *) GMcb(i), dti(i)
-                     write(*, *) xtmp(:,i)
-                     write(*, *) vtmp(:,i)
-                     write(*, *) " STOPPING "
+                     write(message, *) " Planet ", pl%id(i), " is lost!!!!!!!!!!", new_line('a'), &
+                                       GMcb(i), dti(i), new_line('a'), &
+                                       xtmp(:,i), new_line('a'), &
+                                       vtmp(:,i), new_line('a'), &
+                                       " STOPPING "
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
                      call util_exit(failure)
                   end if
                end do

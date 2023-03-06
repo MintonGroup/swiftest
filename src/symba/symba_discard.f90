@@ -116,7 +116,7 @@ contains
       integer(I4B),              intent(in)    :: ipl
       logical,                   intent(in)         :: lescape_body
       ! Internals
-      real(DP), dimension(NDIM) :: Lpl, Ltot, Lcb, xcom, vcom
+      real(DP), dimension(NDIM) :: Lpl, L_total, Lcb, xcom, vcom
       real(DP)                  :: pe, be, ke_orbit, ke_spin
       integer(I4B)              :: i, oldstat
    
@@ -142,12 +142,12 @@ contains
                pe = pe - pl%Gmass(i) * pl%mass(ipl) / norm2(pl%rb(:, ipl) - pl%rb(:, i))
             end do
    
-            Ltot(:) = 0.0_DP
+            L_total(:) = 0.0_DP
             do i = 1, pl%nbody
                Lpl(:) = pL%mass(i) * (pl%rb(:,i) .cross. pl%vb(:, i))
-               Ltot(:) = Ltot(:) + Lpl(:)
+               L_total(:) = L_total(:) + Lpl(:)
             end do
-            Ltot(:) = Ltot(:) + cb%mass * (cb%rb(:) .cross. cb%vb(:))
+            L_total(:) = L_total(:) + cb%mass * (cb%rb(:) .cross. cb%vb(:))
             call pl%b2h(cb)
             oldstat = pl%status(ipl)
             pl%status(ipl) = INACTIVE
@@ -156,11 +156,11 @@ contains
             do i = 1, pl%nbody
                if (i == ipl) cycle
                Lpl(:) = pl%mass(i) * (pl%rb(:,i) .cross. pl%vb(:, i))
-               Ltot(:) = Ltot(:) - Lpl(:) 
+               L_total(:) = L_total(:) - Lpl(:) 
             end do 
-            Ltot(:) = Ltot(:) - cb%mass * (cb%rb(:) .cross. cb%vb(:))
-            nbody_system%Lescape(:) = nbody_system%Lescape(:) + Ltot(:)
-            if (param%lrotation) nbody_system%Lescape(:) = nbody_system%Lescape + pl%mass(ipl) * pl%radius(ipl)**2 &
+            L_total(:) = L_total(:) - cb%mass * (cb%rb(:) .cross. cb%vb(:))
+            nbody_system%L_escape(:) = nbody_system%L_escape(:) + L_total(:)
+            if (param%lrotation) nbody_system%L_escape(:) = nbody_system%L_escape + pl%mass(ipl) * pl%radius(ipl)**2 &
                                                                     * pl%Ip(3, ipl) * pl%rot(:, ipl)
    
          else
@@ -195,8 +195,8 @@ contains
    
          ! We must do this for proper book-keeping, since we can no longer track this body's contribution to energy directly
          if (lescape_body) then
-            nbody_system%Ecollisions  = nbody_system%Ecollisions + ke_orbit + ke_spin + pe + be
-            nbody_system%Euntracked  = nbody_system%Euntracked - (ke_orbit + ke_spin + pe + be)
+            nbody_system%E_collisions  = nbody_system%E_collisions + ke_orbit + ke_spin + pe + be
+            nbody_system%E_untracked  = nbody_system%E_untracked - (ke_orbit + ke_spin + pe + be)
          end if
    
       end select
@@ -301,7 +301,7 @@ contains
       logical, save      :: lfirst = .true.
       logical            :: lfirst_orig
       integer(I4B)       :: i
-      character(len=STRMAX) :: timestr, idstr
+      character(len=STRMAX) :: timestr, idstr, message
 
 
       lfirst_orig = pl%lfirst
@@ -320,8 +320,9 @@ contains
                      pl%status(i) = DISCARDED_PERI
                      write(timestr, *) nbody_system%t
                      write(idstr, *) pl%id(i)
-                     write(*, *) trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstr)) // &
+                     write(message, *) trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstr)) // &
                                  ") perihelion distance too small at t = " // trim(adjustl(timestr)) 
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
                      call pl%info(i)%set_value(status="DISCARDED_PERI", discard_time=nbody_system%t, &
                                                discard_rh=pl%rh(:,i), discard_vh=pl%vh(:,i), discard_body_id=nbody_system%cb%id)
                   end if
@@ -345,7 +346,7 @@ contains
       class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       ! Internals
-      real(DP) :: Eorbit_before, Eorbit_after
+      real(DP) :: E_orbit_before, E_orbit_after
    
       select type(nbody_system)
       class is (symba_nbody_system)
@@ -362,7 +363,7 @@ contains
 
                if (param%lenergy) then
                   call nbody_system%get_energy_and_momentum(param)
-                  Eorbit_before = nbody_system%te
+                  E_orbit_before = nbody_system%te
                end if
 
                call symba_discard_nonplpl_conservation(self, nbody_system, param)
@@ -374,8 +375,8 @@ contains
 
                if (param%lenergy) then
                   call nbody_system%get_energy_and_momentum(param)
-                  Eorbit_after = nbody_system%te
-                  nbody_system%Ecollisions = nbody_system%Ecollisions + (Eorbit_after - Eorbit_before)
+                  E_orbit_after = nbody_system%te
+                  nbody_system%E_collisions = nbody_system%E_collisions + (E_orbit_after - E_orbit_before)
                end if
 
             end associate

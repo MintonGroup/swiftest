@@ -29,8 +29,8 @@ supercat/
 Each subdirectory contains:
 data.nc             : A NetCDF file containing the simulation output.
 init_cond.nc        : A NetCDF file containing the initial conditions for the simulation.
-collision_000001.nc : A NetCDF file containing the data for the collision.
-encounter_000001.nc : A NetCDF file containing the data for the close encounter.
+collision_000001.nc : A NetCDF file containing the data for the collisions.
+encounter_000001.nc : A NetCDF file containing the data for the close encounters.
 dump_bin1.nc        : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
 dump_bin2.nc        : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
 dump_param1.in      : An ASCII file containing the necessary parameters to restart a simulation.

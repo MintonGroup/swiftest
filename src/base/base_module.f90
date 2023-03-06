@@ -20,7 +20,7 @@ module base
    !> User defined parameters that are read in from the parameters input file. 
    !>    Each paramter is initialized to a default values. 
    type, abstract :: base_parameters
-      character(len=:), allocatable           :: integrator                             !! Symbolic name of the nbody integrator  used
+      character(len=:), allocatable           :: integrator                             !! Name of the nbody integrator used
       character(len=:), allocatable           :: param_file_name                        !! The name of the parameter file
       integer(I4B)                            :: maxid                = -1              !! The current maximum particle id number 
       integer(I4B)                            :: maxid_collision      = 0               !! The current maximum collision id number
@@ -29,7 +29,6 @@ module base
       real(DP)                                :: tstop                = -1.0_DP         !! Integration stop time
       real(DP)                                :: dt                   = -1.0_DP         !! Time step
       integer(I8B)                            :: iloop                = 0_I8B           !! Main loop counter
-      integer(I4B)                            :: ioutput              = 1               !! Output counter
       character(STRMAX)                       :: incbfile             = CB_INFILE       !! Name of input file for the central body
       character(STRMAX)                       :: inplfile             = PL_INFILE       !! Name of input file for massive bodies
       character(STRMAX)                       :: intpfile             = TP_INFILE       !! Name of input file for test particles
@@ -85,15 +84,15 @@ module base
       logical :: ltides         = .false. !! Include tidal dissipation 
 
       ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be updated with initial conditions values)
-      real(DP)                  :: Eorbit_orig  = 0.0_DP  !! Initial orbital energy
+      real(DP)                  :: E_orbit_orig  = 0.0_DP  !! Initial orbital energy
       real(DP)                  :: GMtot_orig   = 0.0_DP  !! Initial system mass
-      real(DP), dimension(NDIM) :: Ltot_orig    = 0.0_DP  !! Initial total angular momentum vector
-      real(DP), dimension(NDIM) :: Lorbit_orig  = 0.0_DP  !! Initial orbital angular momentum
-      real(DP), dimension(NDIM) :: Lspin_orig   = 0.0_DP  !! Initial spin angular momentum vector
-      real(DP), dimension(NDIM) :: Lescape      = 0.0_DP  !! Angular momentum of bodies that escaped the system (used for bookeeping)
+      real(DP), dimension(NDIM) :: L_total_orig    = 0.0_DP  !! Initial total angular momentum vector
+      real(DP), dimension(NDIM) :: L_orbit_orig  = 0.0_DP  !! Initial orbital angular momentum
+      real(DP), dimension(NDIM) :: L_spin_orig   = 0.0_DP  !! Initial spin angular momentum vector
+      real(DP), dimension(NDIM) :: L_escape      = 0.0_DP  !! Angular momentum of bodies that escaped the system (used for bookeeping)
       real(DP)                  :: GMescape     = 0.0_DP  !! Mass of bodies that escaped the system (used for bookeeping)
-      real(DP)                  :: Ecollisions  = 0.0_DP  !! Energy lost from system due to collisions
-      real(DP)                  :: Euntracked   = 0.0_DP  !! Energy gained from system due to escaped bodies
+      real(DP)                  :: E_collisions  = 0.0_DP  !! Energy lost from system due to collisions
+      real(DP)                  :: E_untracked   = 0.0_DP  !! Energy gained from system due to escaped bodies
       logical                   :: lfirstenergy = .true.  !! This is the first time computing energe
       logical                   :: lfirstkick   = .true.  !! Initiate the first kick in a symplectic step
       logical                   :: lrestart     = .false. !! Indicates whether or not this is a restarted run

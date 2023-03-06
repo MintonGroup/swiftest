@@ -244,7 +244,7 @@ contains
                      write(message, *) "Particle " // trim(adjustl(tp%info(j)%name)) // " ("  // trim(adjustl(idstrj)) // ")" &
                            //  " collided with massive body " // trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstri)) // ")" &
                            //  " at t = " // trim(adjustl(timestr))
-                     !call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
                   end if
                end do
 

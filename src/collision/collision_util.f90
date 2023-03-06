@@ -61,67 +61,6 @@ contains
    end subroutine collision_util_add_fragments_to_collider
 
 
-   module subroutine collision_util_construct_temporary_system(self, nbody_system, param, tmpsys, tmpparam)
-      !! Author: David A. Minton
-      !!
-      !! Constructs a temporary internal system consisting of active bodies and additional fragments. This internal temporary system is used to calculate system energy with and without fragments
-      implicit none
-      ! Arguments
-      class(collision_basic),                intent(inout) :: self         !! Fraggle collision system object
-      class(base_nbody_system),               intent(in)    :: nbody_system !! Original swiftest nbody system object
-      class(base_parameters),                 intent(in)    :: param        !! Current swiftest run configuration parameters
-      class(base_nbody_system), allocatable,  intent(out)   :: tmpsys       !! Output temporary swiftest nbody system object
-      class(base_parameters),   allocatable,  intent(out)   :: tmpparam     !! Output temporary configuration run parameters
-      ! Internals
-      logical, dimension(:), allocatable :: linclude
-      integer(I4B) :: npl_tot
-      ! The following are needed in order to deal with typing requirements
-      class(swiftest_nbody_system), allocatable :: tmpsys_local
-      class(swiftest_parameters), allocatable :: tmpparam_local
-
-      select type(nbody_system)
-      class is (swiftest_nbody_system)
-      select type(param)
-      class is (swiftest_parameters)
-         associate(fragments => self%fragments, nfrag => self%fragments%nbody, pl => nbody_system%pl, npl => nbody_system%pl%nbody, cb => nbody_system%cb)
-            ! Set up a new system based on the original
-            if (allocated(tmpparam)) deallocate(tmpparam)
-            if (allocated(tmpsys)) deallocate(tmpsys)
-            allocate(tmpparam_local, source=param)
-            select type(tmpparam_local)
-            class is (swiftest_parameters)
-               tmpparam_local%system_history%nc%lfile_is_open = .false.
-            end select
-            call swiftest_util_setup_construct_system(tmpsys_local, tmpparam_local)
-
-            ! No test particles necessary for energy/momentum calcs
-            call tmpsys_local%tp%setup(0, tmpparam_local)
-
-            ! Replace the empty central body object with a copy of the original
-            deallocate(tmpsys_local%cb)
-            allocate(tmpsys_local%cb, source=cb)
-
-            ! Make space for the fragments
-            npl_tot = npl + nfrag
-            call tmpsys_local%pl%setup(npl_tot, tmpparam_local)
-            allocate(linclude(npl_tot))
-
-            ! Fill up the temporary system with all of the original bodies, leaving the spaces for fragments empty until we add them in later
-            linclude(1:npl) = .true.
-            linclude(npl+1:npl_tot) = .false.
-            call tmpsys_local%pl%fill(pl, linclude)
-
-            call move_alloc(tmpsys_local, tmpsys) 
-            call move_alloc(tmpparam_local, tmpparam) 
-
-         end associate
-      end select
-      end select
-
-      return
-   end subroutine collision_util_construct_temporary_system
-
-
    module subroutine collision_util_get_idvalues_snapshot(self, idvals)
       !! author: David A. Minton
       !!
@@ -188,12 +127,12 @@ contains
       associate(fragments => self, nfrag => self%nbody)
    
          do i = 1, nfrag
-            fragments%Lorbit(:,i) = fragments%mass(i) * (fragments%rc(:,i) .cross. fragments%vc(:, i))
-            fragments%Lspin(:,i)  = fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(:,i) * fragments%rot(:,i)
+            fragments%L_orbit(:,i) = fragments%mass(i) * (fragments%rc(:,i) .cross. fragments%vc(:, i))
+            fragments%L_spin(:,i)  = fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(:,i) * fragments%rot(:,i)
          end do
 
-         fragments%Lorbit_tot(:) = sum(fragments%Lorbit, dim=2)
-         fragments%Lspin_tot(:) = sum(fragments%Lspin, dim=2)
+         fragments%L_orbit_tot(:) = sum(fragments%L_orbit, dim=2)
+         fragments%L_spin_tot(:) = sum(fragments%L_spin, dim=2)
       end associate
 
       return
@@ -253,9 +192,8 @@ contains
       logical,                  intent(in)    :: lbefore !! Flag indicating that this the "before" state of the nbody_system, with impactors included and fragments excluded or vice versa
       ! Internals
       integer(I4B)  :: stage,i,j
-      real(DP), dimension(NDIM) :: Lorbit, Lspin
+      real(DP), dimension(NDIM) :: L_orbit, L_spin
       real(DP) :: ke_orbit, ke_spin, pe, be
-      real(DP), dimension(self%fragments%nbody) :: pepl
 
       select type(nbody_system)
       class is (swiftest_nbody_system)
@@ -265,8 +203,8 @@ contains
 
 
             if (lbefore) then
-               Lorbit(:) = sum(impactors%Lorbit(:,:), dim=2)
-               Lspin(:) = sum(impactors%Lspin(:,:), dim=2)
+               L_orbit(:) = sum(impactors%L_orbit(:,:), dim=2)
+               L_spin(:) = sum(impactors%L_spin(:,:), dim=2)
                ke_orbit = 0.0_DP
                ke_spin = 0.0_DP
                do concurrent(i = 1:2)
@@ -281,8 +219,8 @@ contains
                
             else
                call fragments%get_angular_momentum()
-               Lorbit(:) = fragments%Lorbit_tot(:) 
-               Lspin(:) = fragments%Lspin_tot(:) 
+               L_orbit(:) = fragments%L_orbit_tot(:) 
+               L_spin(:) = fragments%L_spin_tot(:) 
 
                call fragments%get_energy()
                ke_orbit = fragments%ke_orbit_tot
@@ -297,14 +235,14 @@ contains
             else
                stage = 2
             end if
-            self%Lorbit(:,stage) = Lorbit(:)
-            self%Lspin(:,stage) = Lspin(:)
-            self%Ltot(:,stage) = Lorbit(:) + Lspin(:)
+            self%L_orbit(:,stage) = L_orbit(:)
+            self%L_spin(:,stage) = L_spin(:)
+            self%L_total(:,stage) = L_orbit(:) + L_spin(:)
             self%ke_orbit(stage) = ke_orbit
             self%ke_spin(stage) = ke_spin
             self%pe(stage) = pe
             self%be(stage) = be
-            self%Etot(stage) = ke_orbit + ke_spin + pe + be
+            self%te(stage) = ke_orbit + ke_spin + pe + be
          end associate
       end select
       end select
@@ -351,8 +289,8 @@ contains
       self%rb(:,:) = 0.0_DP
       self%vb(:,:) = 0.0_DP
       self%rot(:,:) = 0.0_DP
-      self%Lspin(:,:) = 0.0_DP
-      self%Lorbit(:,:) = 0.0_DP
+      self%L_spin(:,:) = 0.0_DP
+      self%L_orbit(:,:) = 0.0_DP
       self%Ip(:,:) = 0.0_DP
       self%mass(:) = 0.0_DP
       self%radius(:) = 0.0_DP
@@ -420,13 +358,13 @@ contains
          if (allocated(after%tp)) deallocate(after%tp)
       end select
 
-      self%Lorbit(:,:) = 0.0_DP
-      self%Lspin(:,:) = 0.0_DP
-      self%Ltot(:,:) = 0.0_DP
+      self%L_orbit(:,:) = 0.0_DP
+      self%L_spin(:,:) = 0.0_DP
+      self%L_total(:,:) = 0.0_DP
       self%ke_orbit(:) = 0.0_DP
       self%ke_spin(:) = 0.0_DP
       self%pe(:) = 0.0_DP
-      self%Etot(:) = 0.0_DP
+      self%te(:) = 0.0_DP
 
       if (allocated(self%impactors)) call self%impactors%reset()
       if (allocated(self%fragments)) deallocate(self%fragments)
@@ -445,8 +383,8 @@ contains
 
       associate(impactors => self%impactors, fragments => self%fragments)
 
-         fragments%L_budget(:) = self%Ltot(:,1)
-         fragments%E_budget = self%Etot(1) - impactors%Qloss
+         fragments%L_budget(:) = self%L_total(:,1)
+         fragments%E_budget = self%te(1) - impactors%Qloss
 
       end associate
       
@@ -509,7 +447,7 @@ contains
       ! Arguments
       class(collision_impactors),    intent(inout) :: self      !! Collisional nbody_system
       ! Internals
-      real(DP), dimension(NDIM) ::  delta_r, delta_v, Ltot
+      real(DP), dimension(NDIM) ::  delta_r, delta_v, L_total
       real(DP)   ::  L_mag, mtot
 
       associate(impactors => self)
@@ -521,11 +459,11 @@ contains
 
          ! y-axis is the separation distance
          impactors%y_unit(:) = .unit.delta_r(:) 
-         Ltot = impactors%Lorbit(:,1) + impactors%Lorbit(:,2) + impactors%Lspin(:,1) + impactors%Lspin(:,2)
+         L_total = impactors%L_orbit(:,1) + impactors%L_orbit(:,2) + impactors%L_spin(:,1) + impactors%L_spin(:,2)
 
-         L_mag = .mag.Ltot(:)
+         L_mag = .mag.L_total(:)
          if (L_mag > sqrt(tiny(L_mag))) then
-            impactors%z_unit(:) = .unit.Ltot(:) 
+            impactors%z_unit(:) = .unit.L_total(:) 
          else ! Not enough angular momentum to determine a z-axis direction. We'll just pick a random direction
             call random_number(impactors%z_unit(:))
             impactors%z_unit(:) = .unit.impactors%z_unit(:) 
@@ -628,8 +566,8 @@ contains
       self%fragments%density(:) = 0.0_DP
       self%fragments%rmag(:) = 0.0_DP
       self%fragments%vmag(:) = 0.0_DP
-      self%fragments%Lorbit_tot(:) = 0.0_DP
-      self%fragments%Lspin_tot(:) = 0.0_DP
+      self%fragments%L_orbit_tot(:) = 0.0_DP
+      self%fragments%L_spin_tot(:) = 0.0_DP
       self%fragments%L_budget(:) = 0.0_DP
       self%fragments%ke_orbit_tot = 0.0_DP
       self%fragments%ke_spin_tot = 0.0_DP
@@ -727,8 +665,7 @@ contains
       real(DP),                    intent(in),   optional :: t      !! Time of snapshot if different from nbody_system time
       character(*),                intent(in),   optional :: arg    !! "before": takes a snapshot just before the collision. "after" takes the snapshot just after the collision.
       ! Arguments
-      class(collision_snapshot), allocatable :: snapshot
-      class(swiftest_pl), allocatable :: pl
+      class(collision_snapshot), allocatable, save :: snapshot
       character(len=:), allocatable :: stage
 
       if (present(arg)) then
@@ -744,27 +681,52 @@ contains
          select case(stage)
          case("before")
             ! Saves the states of the bodies involved in the collision before the collision is resolved
-            associate (idx => nbody_system%collider%impactors%id, ncoll => nbody_system%collider%impactors%ncoll)
-               allocate(pl, mold=nbody_system%pl)
-               call pl%setup(ncoll, param)
-               pl%id(:) = nbody_system%pl%id(idx(:))
-               pl%Gmass(:) = nbody_system%pl%Gmass(idx(:))
-               pl%radius(:) = nbody_system%pl%radius(idx(:))
-               pl%rot(:,:) = nbody_system%pl%rot(:,idx(:))
-               pl%Ip(:,:) = nbody_system%pl%Ip(:,idx(:))
-               pl%rh(:,:) = nbody_system%pl%rh(:,idx(:))
-               pl%vh(:,:) = nbody_system%pl%vh(:,idx(:))
-               pl%info(:) = nbody_system%pl%info(idx(:))
-               select type (before => nbody_system%collider%before)
-               class is (swiftest_nbody_system)
-                  call move_alloc(pl, before%pl)
-               end select
-            end associate
-         case("after")
             allocate(collision_snapshot :: snapshot)
             allocate(snapshot%collider, source=nbody_system%collider) 
             snapshot%t = t
+
+            ! Get and record the energy of the system before the collision
+            call nbody_system%get_energy_and_momentum(param)
+            snapshot%collider%L_orbit(:,1) = nbody_system%L_orbit(:)
+            snapshot%collider%L_spin(:,1) = nbody_system%L_spin(:)
+            snapshot%collider%L_total(:,1) = nbody_system%L_total(:)
+            snapshot%collider%ke_orbit(1) = nbody_system%ke_orbit
+            snapshot%collider%ke_spin(1) = nbody_system%ke_spin
+            snapshot%collider%pe(1) = nbody_system%pe
+            snapshot%collider%be(1) = nbody_system%be
+            snapshot%collider%te(1) = nbody_system%te
+
+         case("after")
+            ! Get record the energy of the sytem after the collision
+            call nbody_system%get_energy_and_momentum(param)
+            snapshot%collider%L_orbit(:,2) = nbody_system%L_orbit(:)
+            snapshot%collider%L_spin(:,2) = nbody_system%L_spin(:)
+            snapshot%collider%L_total(:,2) = nbody_system%L_total(:)
+            snapshot%collider%ke_orbit(2) = nbody_system%ke_orbit
+            snapshot%collider%ke_spin(2) = nbody_system%ke_spin
+            snapshot%collider%pe(2) = nbody_system%pe
+            snapshot%collider%be(2) = nbody_system%be
+            snapshot%collider%te(2) = nbody_system%te
+
+            select type(before_snap => snapshot%collider%before )
+            class is (swiftest_nbody_system)
+            select type(before_orig => nbody_system%collider%before)
+            class is (swiftest_nbody_system)
+               call move_alloc(before_orig%pl, before_snap%pl)
+            end select
+            end select
+
+            select type(after_snap => snapshot%collider%after )
+            class is (swiftest_nbody_system)
+            select type(after_orig => nbody_system%collider%after)
+            class is (swiftest_nbody_system)
+               call move_alloc(after_orig%pl, after_snap%pl)
+            end select
+            end select
+
+            ! Save the snapshot for posterity
             call collision_util_save_snapshot(nbody_system%collision_history,snapshot)
+            deallocate(snapshot)
          case default
             write(*,*) "collision_util_snapshot requies either 'before' or 'after' passed to 'arg'"
          end select

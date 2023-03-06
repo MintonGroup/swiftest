@@ -34,6 +34,7 @@ contains
       ! Internals
       integer(I4B)                              :: i   
       integer(I4B), dimension(:), allocatable   :: iflag
+      character(len=STRMAX) :: message
 
       associate(n => self%nbody)
          allocate(iflag(n))
@@ -42,7 +43,10 @@ contains
          if (any(iflag(1:n) /= 0)) then
             where(iflag(1:n) /= 0) self%status(1:n) = DISCARDED_DRIFTERR
             do i = 1, n
-               if (iflag(i) /= 0) write(*, *) " Body ", self%id(i), " lost due to error in Danby drift"
+               if (iflag(i) /= 0) then
+                  write(message, *) " Body ", self%id(i), " lost due to error in Danby drift"
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
+               end if
             end do
          end if
       end associate
