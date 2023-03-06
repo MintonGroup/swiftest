@@ -11,52 +11,69 @@ submodule(fraggle) s_fraggle_util
    use swiftest
 contains
 
-   module subroutine fraggle_util_reset_fragments(self)
+   module subroutine fraggle_util_restructure(self, nbody_system, param, lfailure)
       !! author: David A. Minton
       !!
-      !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
+      !! Restructures the fragment distribution after a failure to converge on a solution.
       implicit none
       ! Arguments
-      class(fraggle_fragments(*)), intent(inout) :: self
+      class(collision_fraggle),     intent(inout) :: self         !! Fraggle collision system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+      logical,                      intent(out)   :: lfailure     !! Did the computation fail?
+      ! Internals
+      class(collision_fragments), allocatable :: new_fragments
+      integer(I4B) :: i,nnew, nold
+      real(DP) :: volume
 
-      self%rc(:,:) = 0.0_DP
-      self%vc(:,:) = 0.0_DP
-      self%rh(:,:) = 0.0_DP
-      self%vh(:,:) = 0.0_DP
-      self%rb(:,:) = 0.0_DP
-      self%vb(:,:) = 0.0_DP
-      self%rot(:,:) = 0.0_DP
-      self%r_unit(:,:) = 0.0_DP
-      self%t_unit(:,:) = 0.0_DP
-      self%n_unit(:,:) = 0.0_DP
+      associate(old_fragments => self%fragments)
+         lfailure = .false.
+         ! Merge the second-largest fragment into the first and shuffle the masses up
+         nold = old_fragments%nbody
+         if (nold <= 3) then
+            lfailure = .true.
+            return
+         end if
+         nnew = nold - 1
+         allocate(new_fragments, mold=old_fragments)
+         call new_fragments%setup(nnew)
 
-      self%rmag(:) = 0.0_DP
-      self%rotmag(:) = 0.0_DP
+         ! Merge the first and second bodies
+         volume = 4._DP / 3._DP * PI * sum(old_fragments%radius(1:2)**3)
+         new_fragments%mass(1) = sum(old_fragments%mass(1:2))
+         new_fragments%Gmass(1) =sum(old_fragments%Gmass(1:2))
+         new_fragments%density(1) = new_fragments%mass(1) / volume
+         new_fragments%radius(1) = (3._DP * volume / (4._DP * PI))**(THIRD)
+         do concurrent(i = 1:NDIM)
+            new_fragments%Ip(i,1) = sum(old_fragments%mass(1:2) * old_fragments%Ip(i,1:2)) 
+         end do
+         new_fragments%Ip(:,1) = new_fragments%Ip(:,1) / new_fragments%mass(1)
+         new_fragments%origin_body(1) = old_fragments%origin_body(1)
+         
+         ! Copy the n>2 old fragments to the n>1 new fragments
+         new_fragments%mass(2:nnew) = old_fragments%mass(3:nold)
+         new_fragments%Gmass(2:nnew) = old_fragments%Gmass(3:nold)
+         new_fragments%density(2:nnew) = old_fragments%density(3:nold)
+         new_fragments%radius(2:nnew) = old_fragments%radius(3:nold)
+         do concurrent(i = 1:NDIM)
+            new_fragments%Ip(i,2:nnew) = old_fragments%Ip(i,3:nold) 
+         end do
+         new_fragments%origin_body(2:nnew) = old_fragments%origin_body(3:nold)
 
-      return
-   end subroutine fraggle_util_reset_fragments
+         new_fragments%mtot = old_fragments%mtot
+      end associate
 
+      deallocate(self%fragments)
+      call move_alloc(new_fragments, self%fragments)
 
-   module subroutine fraggle_util_reset_system(self)
-      !! author: David A. Minton
-      !!
-      !! Resets the collider system and deallocates all allocatables
-      implicit none
-      ! Arguments
-      class(collision_fraggle), intent(inout) :: self  !! Collision system object
+      call fraggle_generate_pos_vec(self, nbody_system, param, lfailure)
+      if (lfailure) return
+      call fraggle_generate_rot_vec(self, nbody_system, param)
 
-      self%dscale = 1.0_DP
-      self%mscale = 1.0_DP
-      self%tscale = 1.0_DP
-      self%vscale = 1.0_DP
-      self%Escale = 1.0_DP
-      self%Lscale = 1.0_DP
+      ! Increase the spatial size factor to get a less dense cloud
+      self%fail_scale = self%fail_scale * 1.001_DP
 
-      call collision_util_reset_system(self)
-
-      return
-   end subroutine fraggle_util_reset_system
-
+   end subroutine fraggle_util_restructure
 
    module subroutine fraggle_util_set_mass_dist(self, param)
       !! author: David A. Minton
@@ -64,114 +81,116 @@ contains
       !! Sets the mass of fragments based on the mass distribution returned by the regime calculation.
       !! This subroutine must be run after the the setup routine has been run on the fragments
       !!
+      use, intrinsic :: ieee_exceptions
       implicit none
       ! Arguments
-      class(collision_fraggle), intent(inout) :: self  !! Fraggle collision system object
-      class(base_parameters),             intent(in)    :: param !! Current Swiftest run configuration parameters
+      class(collision_fraggle),   intent(inout) :: self  !! Fraggle collision system object
+      class(swiftest_parameters), intent(in)    :: param !! Current Swiftest run configuration parameters
       ! Internals
-      integer(I4B)              :: i, j, jproj, jtarg, nfrag, istart
+      integer(I4B)              :: i, j, k, jproj, jtarg, nfrag, istart, nfragmax, nrem
       real(DP), dimension(2)    :: volume
       real(DP), dimension(NDIM) :: Ip_avg
-      real(DP) :: mfrag, mremaining, min_mfrag, mtot, mcumul, G
-      real(DP), parameter :: BETA = 2.85_DP
-      integer(I4B), parameter :: NFRAGMAX = 100  !! Maximum number of fragments that can be generated
-      integer(I4B), parameter :: NFRAGMIN = 7 !! Minimum number of fragments that can be generated (set by the fraggle_generate algorithm for constraining momentum and energy)
-      integer(I4B), parameter :: NFRAG_SIZE_MULTIPLIER = 3 !! Log-space scale factor that scales the number of fragments by the collisional system mass
+      real(DP) ::  mremaining, mtot, mcumul, G, mass_noise, Mslr, x0, x1, ymid, y0, y1, y, yp, eps, Mrat
+      real(DP), dimension(:), allocatable :: mass
+      real(DP)  :: beta 
+      integer(I4B), parameter :: MASS_NOISE_FACTOR = 5  !! The number of digits of random noise that get added to the minimum mass value to prevent identical masses from being generated in a single run 
+      integer(I4B), parameter :: NFRAGMAX_UNSCALED = 100  !! Maximum number of fragments that can be generated
       integer(I4B), parameter :: iMlr = 1
       integer(I4B), parameter :: iMslr = 2
       integer(I4B), parameter :: iMrem = 3
+      integer(I4B), parameter :: NFRAGMIN = iMrem + 2 !! Minimum number of fragments that can be generated 
+      integer(I4B), dimension(:), allocatable :: ind
+      integer(I4B), parameter :: MAXLOOP = 20
       logical :: flipper
+      logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
+
+      call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
+      call ieee_set_halting_mode(IEEE_ALL,.false.)
      
-      associate(impactors => self%impactors)
+      associate(impactors => self%impactors, min_mfrag => self%min_mfrag)
          ! Get mass weighted mean of Ip and density
          volume(1:2) = 4._DP / 3._DP * PI * impactors%radius(1:2)**3
          mtot = sum(impactors%mass(:))
          G = impactors%Gmass(1) / impactors%mass(1)
          Ip_avg(:) = (impactors%mass(1) * impactors%Ip(:,1) + impactors%mass(2) * impactors%Ip(:,2)) / mtot
 
-         if (impactors%mass(1) > impactors%mass(2)) then
+         if (impactors%mass(1) >= impactors%mass(2)) then
             jtarg = 1
             jproj = 2
          else
             jtarg = 2
             jproj = 1
          end if
-  
+
          select case(impactors%regime)
          case(COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC, COLLRESOLVE_REGIME_HIT_AND_RUN)
             ! The first two bins of the mass_dist are the largest and second-largest fragments that came out of collision_regime.
-            ! The remainder from the third bin will be distributed among nfrag-2 bodies. The following code will determine nfrag based on
-            ! the limits bracketed above and the model size distribution of fragments.
-            ! Check to see if our size distribution would give us a smaller number of fragments than the maximum number
+            ! The remainder from the third bin will be distributed among nfrag-2 bodies. 
 
-            select type(param)
-            class is (swiftest_parameters)
-               min_mfrag = (param%min_GMfrag / param%GU) 
-               ! The number of fragments we generate is bracked by the minimum required by fraggle_generate (7) and the 
-               ! maximum set by the NFRAG_SIZE_MULTIPLIER which limits the total number of fragments to prevent the nbody
-               ! code from getting an overwhelmingly large number of fragments
-               nfrag = ceiling(NFRAG_SIZE_MULTIPLIER  * log(mtot / min_mfrag))
-               nfrag = max(min(nfrag, NFRAGMAX), NFRAGMIN)
-            class default
-               min_mfrag = 0.0_DP
-               nfrag = NFRAGMAX
-            end select
-
-            i = iMrem
+            !Add a small amount of noise to the last digits of the minimum mass value so that multiple fragments don't get generated with identical mass values
+            call random_number(mass_noise)
+            mass_noise = 1.0_DP + mass_noise * epsilon(1.0_DP) * 10**(MASS_NOISE_FACTOR)
+            min_mfrag = (param%min_GMfrag / param%GU) * mass_noise
+            
             mremaining = impactors%mass_dist(iMrem)
-            do while (i <= nfrag)
-               mfrag = (1 + i - iMslr)**(-3._DP / BETA) * impactors%mass_dist(iMslr)
-               if (mremaining - mfrag < 0.0_DP) exit
-               mremaining = mremaining - mfrag
-               i = i + 1
-            end do
-            if (i < nfrag) nfrag = max(i, NFRAGMIN)  ! The sfd would actually give us fewer fragments than our maximum
+            nfrag = iMrem - 1 
+            Mslr = impactors%mass_dist(iMslr)
+            nfragmax = ceiling(NFRAGMAX_UNSCALED / param%nfrag_reduction)
+            Mrat = max((mremaining + Mslr) / min_mfrag, 1.0_DP)
+            nfrag = max(ceiling(nfragmax * (log(Mrat) + 1.0_DP)), NFRAGMIN)
+
             call self%setup_fragments(nfrag)
 
          case (COLLRESOLVE_REGIME_MERGE, COLLRESOLVE_REGIME_GRAZE_AND_MERGE) 
 
             call self%setup_fragments(1)
-            select type(fragments => self%fragments)
-            class is (collision_fragments(*))
+            associate(fragments => self%fragments)
                fragments%mass(1) = impactors%mass_dist(1)
                fragments%Gmass(1) = G * impactors%mass_dist(1)
                fragments%radius(1) = impactors%radius(jtarg)
                fragments%density(1) = impactors%mass_dist(1) / volume(jtarg)
                if (param%lrotation) fragments%Ip(:, 1) = impactors%Ip(:,1)
-            end select
+            end associate
+            call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)
             return
          case default
-            write(*,*) "collision_util_set_mass_dist_fragments error: Unrecognized regime code",impactors%regime
+            write(*,*) "fraggle_util_set_mass_dist_fragments error: Unrecognized regime code",impactors%regime
          end select
 
-         select type(fragments => self%fragments)
-         class is (collision_fragments(*))
+         associate(fragments => self%fragments)
             fragments%mtot = mtot
+            allocate(mass, mold=fragments%mass)
 
             ! Make the first two bins the same as the Mlr and Mslr values that came from collision_regime
-            fragments%mass(1) = impactors%mass_dist(iMlr) 
-            fragments%mass(2) = impactors%mass_dist(iMslr) 
+            mass(1) = impactors%mass_dist(iMlr) 
+            mass(2) = impactors%mass_dist(iMslr)
 
-            ! Distribute the remaining mass the 3:nfrag bodies following the model SFD given by slope BETA 
+            ! Recompute the slope parameter beta so that we span the complete size range
+            if (Mslr == min_mfrag) Mslr = Mslr + impactors%mass_dist(iMrem) / nfrag
             mremaining = impactors%mass_dist(iMrem)
-            do i = iMrem, nfrag
-               mfrag = (1 + i - iMslr)**(-3._DP / BETA) * impactors%mass_dist(iMslr)
-               fragments%mass(i) = mfrag
-               mremaining = mremaining - mfrag
+
+            ! The mass will be distributed in a power law where N>M=(M/Mslr)**(-beta/3)
+            ! Use Brent's method solver to get the logspace slope of the mass function
+            Mrat = (mremaining + Mslr) / Mslr
+            beta = 3.0_DP
+            call solve_roots(sfd_function,beta)
+
+            do i = iMrem,nfrag
+               mass(i) = Mslr * (i-1)**(-beta/3.0_DP)
             end do
 
-            ! If there is any residual mass (either positive or negative) we will distribute remaining mass proportionally among the the fragments
-            if (mremaining < 0.0_DP) then ! If the remainder is negative, this means that that the number of fragments required by the SFD is smaller than our lower limit set by fraggle_generate. 
-               istart = iMrem ! We will reduce the mass of the 3:nfrag bodies to prevent the second-largest fragment from going smaller
-            else ! If the remainder is postiive, this means that the number of fragments required by the SFD is larger than our upper limit set by computational expediency. 
-               istart = iMslr ! We will increase the mass of the 2:nfrag bodies to compensate, which ensures that the second largest fragment remains the second largest
-            end if
-            mfrag = 1._DP + mremaining / sum(fragments%mass(istart:nfrag))
-            fragments%mass(istart:nfrag) = fragments%mass(istart:nfrag) * mfrag
-
             ! There may still be some small residual due to round-off error. If so, simply add it to the last bin of the mass distribution.
-            mremaining = fragments%mtot - sum(fragments%mass(1:nfrag))
-            fragments%mass(nfrag) = fragments%mass(nfrag) + mremaining
+            mremaining = fragments%mtot - sum(mass(1:nfrag))
+            if (mremaining < 0.0_DP) then
+               mass(iMlr) = mass(iMlr) + mremaining
+            else
+               mass(iMslr) = mass(iMslr) + mremaining
+            end if
+
+            ! Sort the distribution in descending order by mass so that the largest fragment is always the first
+            call swiftest_util_sort(-mass, ind)
+            call swiftest_util_sort_rearrange(mass, ind, nfrag)
+            call move_alloc(mass, fragments%mass)
 
             fragments%Gmass(:) = G * fragments%mass(:)
 
@@ -214,156 +233,29 @@ contains
                fragments%origin_body(3:nfrag) = 2
             end if
 
-         end select
+         end associate
 
 
       end associate
 
-      return
-   end subroutine fraggle_util_set_mass_dist
-
-
-   module subroutine fraggle_util_set_natural_scale_factors(self)
-      !! author: David A. Minton
-      !!
-      !! Scales dimenional quantities to ~O(1) with respect to the collisional system. 
-      !! This scaling makes it easier for the non-linear minimization to converge on a solution
-      implicit none
-      ! Arguments
-      class(collision_fraggle), intent(inout) :: self  !! Fraggle collision system object
-      ! Internals
-      integer(I4B) :: i
-      real(DP) :: vesc
-
-      associate(collider => self, fragments => self%fragments, impactors => self%impactors)
-         ! Set primary scale factors (mass, length, and time) based on the impactor properties at the time of collision
-         collider%mscale = minval(fragments%mass(:))
-         collider%dscale = minval(fragments%radius(:))
-
-         vesc = sqrt(2 * sum(impactors%Gmass(:)) / sum(impactors%radius(:)))
-         collider%tscale = collider%dscale / vesc
-
-         ! Set secondary scale factors for convenience
-         collider%vscale = collider%dscale / collider%tscale
-         collider%Escale = collider%mscale * collider%vscale**2
-         collider%Lscale = collider%mscale * collider%dscale * collider%vscale
-
-         ! Scale all dimensioned quantities of impactors and fragments
-         impactors%rbcom(:)       = impactors%rbcom(:)       / collider%dscale
-         impactors%vbcom(:)       = impactors%vbcom(:)       / collider%vscale
-         impactors%rbimp(:)       = impactors%rbimp(:)       / collider%dscale
-         impactors%rb(:,:)        = impactors%rb(:,:)        / collider%dscale
-         impactors%vb(:,:)        = impactors%vb(:,:)        / collider%vscale
-         impactors%rc(:,:)        = impactors%rc(:,:)        / collider%dscale
-         impactors%vc(:,:)        = impactors%vc(:,:)        / collider%vscale
-         impactors%mass(:)        = impactors%mass(:)        / collider%mscale
-         impactors%Gmass(:)       = impactors%Gmass(:)       / (collider%dscale**3/collider%tscale**2)
-         impactors%Mcb            = impactors%Mcb            / collider%mscale
-         impactors%radius(:)      = impactors%radius(:)      / collider%dscale
-         impactors%L_spin(:,:)     = impactors%L_spin(:,:)     / collider%Lscale
-         impactors%L_orbit(:,:)    = impactors%L_orbit(:,:)    / collider%Lscale
-
-         do concurrent(i = 1:2)
-            impactors%rot(:,i) = impactors%L_spin(:,i) / (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i))
-         end do
-
-         fragments%mtot      = fragments%mtot      / collider%mscale
-         fragments%mass(:)   = fragments%mass(:)   / collider%mscale
-         fragments%Gmass(:)  = fragments%Gmass(:)  / (collider%dscale**3/collider%tscale**2)
-         fragments%radius(:) = fragments%radius(:) / collider%dscale
-         impactors%Qloss     = impactors%Qloss     / collider%Escale
-      end associate
-
-      return
-   end subroutine fraggle_util_set_natural_scale_factors
-
-
-   module subroutine fraggle_util_set_original_scale_factors(self)
-      !! author: David A. Minton
-      !!
-      !! Restores dimenional quantities back to the system units
-      use, intrinsic :: ieee_exceptions
-      implicit none
-      ! Arguments
-      class(collision_fraggle),      intent(inout) :: self      !! Fraggle fragment system object
-      ! Internals
-      integer(I4B) :: i
-      logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
-
-      call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
-      call ieee_set_halting_mode(IEEE_ALL,.false.)
-
-      associate(collider => self, fragments => self%fragments, impactors => self%impactors)
-
-         ! Restore scale factors
-         impactors%rbcom(:)       = impactors%rbcom(:) * collider%dscale
-         impactors%vbcom(:)       = impactors%vbcom(:) * collider%vscale
-         impactors%rbimp(:)       = impactors%rbimp(:) * collider%dscale
-
-         impactors%mass      = impactors%mass      * collider%mscale
-         impactors%Gmass(:)  = impactors%Gmass(:)  * (collider%dscale**3/collider%tscale**2)
-         impactors%Mcb       = impactors%Mcb       * collider%mscale
-         impactors%mass_dist = impactors%mass_dist * collider%mscale
-         impactors%radius    = impactors%radius    * collider%dscale
-         impactors%rb        = impactors%rb        * collider%dscale
-         impactors%vb        = impactors%vb        * collider%vscale
-         impactors%rc        = impactors%rc        * collider%dscale
-         impactors%vc        = impactors%vc        * collider%vscale
-         impactors%L_spin     = impactors%L_spin     * collider%Lscale
-         impactors%L_orbit    = impactors%L_orbit    * collider%Lscale
-         do concurrent(i = 1:2)
-            impactors%rot(:,i) = impactors%L_spin(:,i) * (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i))
-         end do
-   
-         fragments%mtot      = fragments%mtot        * collider%mscale
-         fragments%mass(:)   = fragments%mass(:)     * collider%mscale
-         fragments%Gmass(:)  = fragments%Gmass(:)    * (collider%dscale**3/collider%tscale**2)
-         fragments%radius(:) = fragments%radius(:)   * collider%dscale
-         fragments%rot(:,:)  = fragments%rot(:,:)    / collider%tscale
-         fragments%rc(:,:)   = fragments%rc(:,:)     * collider%dscale
-         fragments%vc(:,:)   = fragments%vc(:,:)     * collider%vscale
-         fragments%rb(:,:)   = fragments%rb(:,:)     * collider%dscale
-         fragments%vb(:,:)   = fragments%vb(:,:)     * collider%vscale
-
-         impactors%Qloss = impactors%Qloss * collider%Escale
-
-         collider%L_orbit(:,:) = collider%L_orbit(:,:) * collider%Lscale
-         collider%L_spin(:,:)  = collider%L_spin(:,:)  * collider%Lscale
-         collider%L_total(:,:)   = collider%L_total(:,:)   * collider%Lscale
-         collider%ke_orbit(:) = collider%ke_orbit(:) * collider%Escale
-         collider%ke_spin(:)  = collider%ke_spin(:)  * collider%Escale
-         collider%pe(:)       = collider%pe(:)       * collider%Escale
-         collider%be(:)       = collider%be(:)       * collider%Escale
-         collider%te(:)     = collider%te(:)     * collider%Escale
-   
-         collider%mscale = 1.0_DP
-         collider%dscale = 1.0_DP
-         collider%vscale = 1.0_DP
-         collider%tscale = 1.0_DP
-         collider%Lscale = 1.0_DP
-         collider%Escale = 1.0_DP
-      end associate
       call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)
-   
       return
-   end subroutine fraggle_util_set_original_scale_factors
 
+      contains 
 
-   module subroutine fraggle_util_setup_fragments_system(self, nfrag)
-      !! author: David A. Minton
-      !!
-      !! Initializer for the fragments of the collision system. 
-      implicit none
-      ! Arguments
-      class(collision_fraggle), intent(inout) :: self  !! Encounter collision system object
-      integer(I4B),          intent(in)    :: nfrag !! Number of fragments to create
+      function sfd_function(x) result(y)
+         implicit none
+         real(DP), intent(in) :: x
+         real(DP)             :: y
+         integer(I4B) :: i
 
-      if (allocated(self%fragments)) deallocate(self%fragments)
-      allocate(fraggle_fragments(nbody=nfrag) :: self%fragments)
-      self%fragments%nbody = nfrag
+         y = Mrat - 1.0_DP
+         do i = iMrem, nfrag
+            y = y - (i-1)**(-x/3.0_DP)
+         end do
+      end function sfd_function
 
-      return
-   end subroutine fraggle_util_setup_fragments_system
+   end subroutine fraggle_util_set_mass_dist
 
 
 end submodule s_fraggle_util

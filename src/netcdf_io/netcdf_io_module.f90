@@ -24,8 +24,11 @@ module netcdf_io
       logical            :: lfile_is_open = .false.                     !! Flag indicating that the linked file is currently open
       integer(I4B)       :: out_type                                    !! output type (will be assigned either NF90_DOUBLE or NF90_FLOAT, depending on the user parameter)
       integer(I4B)       :: id                                          !! ID for the output file
-      integer(I4B)       :: max_tslot               = 0                 !! Records the last index value of time in the NetCDF file
       integer(I4B)       :: tslot                   = 1                 !! The current time slot that gets passed to the NetCDF reader/writer
+      integer(I4B)       :: max_tslot               = 0                 !! Records the last index value of time in the NetCDF file
+      integer(I4B), dimension(:), allocatable :: idvals                 !! Array of id values in this NetCDF file
+      integer(I4B)       :: idslot                  = 1                 !! The current id slot that gets passed to the NetCDF reader/writer
+      integer(I4B)       :: max_idslot              = 0                 !! Records the last index value of id in the NetCDF file
 
       ! Dimension ids and variable names
       character(NAMELEN) :: str_dimname             = "string32"        !! name of the character string dimension
@@ -80,8 +83,10 @@ module netcdf_io
       integer(I4B)       :: vh_varid                                    !! ID for the heliocentric velocity vector variable 
       character(NAMELEN) :: gr_pseudo_vh_varname    = "gr_pseudo_vh"    !! name of the heliocentric pseudovelocity vector variable (used in GR only)
       integer(I4B)       :: gr_pseudo_vh_varid                          !! ID for the heliocentric pseudovelocity vector variable (used in GR)
-      character(NAMELEN) :: Gmass_varname           = "Gmass"           !! name of the mass variable
-      integer(I4B)       :: Gmass_varid                                 !! ID for the mass variable
+      character(NAMELEN) :: Gmass_varname           = "Gmass"           !! name of the G*mass variable
+      integer(I4B)       :: Gmass_varid                                 !! ID for the G*mass variable
+      character(NAMELEN) :: mass_varname            = "mass"            !! name of the mass variable
+      integer(I4B)       :: mass_varid                                  !! ID for the mass variable
       character(NAMELEN) :: rhill_varname           = "rhill"           !! name of the hill radius variable
       integer(I4B)       :: rhill_varid                                 !! ID for the hill radius variable
       character(NAMELEN) :: radius_varname          = "radius"          !! name of the radius variable
@@ -106,15 +111,17 @@ module netcdf_io
       integer(I4B)       :: PE_varid                                    !! ID for the system potential energy variable
       character(NAMELEN) :: be_varname              = "BE"              !! name of the system binding energy variable
       integer(I4B)       :: BE_varid                                    !! ID for the system binding energy variable
-      character(NAMELEN) :: L_orbit_varname           = "L_orbit"           !! name of the orbital angular momentum vector variable
+      character(NAMELEN) :: te_varname              = "TE"              !! name of the system binding energy variable
+      integer(I4B)       :: TE_varid                                    !! ID for the system binding energy variable
+      character(NAMELEN) :: L_orbit_varname         = "L_orbit"           !! name of the orbital angular momentum vector variable
       integer(I4B)       :: L_orbit_varid                                 !! ID for the system orbital angular momentum vector variable
       character(NAMELEN) :: L_spin_varname          = "L_spin"            !! name of the spin angular momentum vector variable
       integer(I4B)       :: L_spin_varid                                 !! ID for the system spin angular momentum vector variable
       character(NAMELEN) :: L_escape_varname        = "L_escape"        !! name of the escaped angular momentum vector variable
       integer(I4B)       :: L_escape_varid                              !! ID for the escaped angular momentum vector variable
-      character(NAMELEN) :: E_collisions_varname     = "E_collisions"     !! name of the escaped angular momentum y variable                             
+      character(NAMELEN) :: E_collisions_varname    = "E_collisions"     !! name of the escaped angular momentum y variable                             
       integer(I4B)       :: E_collisions_varid                           !! ID for the energy lost in collisions variable
-      character(NAMELEN) :: E_untracked_varname      = "E_untracked"      !! name of the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
+      character(NAMELEN) :: E_untracked_varname     = "E_untracked"      !! name of the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
       integer(I4B)       :: E_untracked_varid                            !! ID for the energy that is untracked due to loss (untracked potential energy due to mergers and body energy for escaped bodies)
       character(NAMELEN) :: GMescape_varname        = "GMescape"        !! name of the G*Mass of bodies that escape the system
       integer(I4B)       :: GMescape_varid                              !! ID for the G*Mass of bodies that escape the system
@@ -138,8 +145,11 @@ module netcdf_io
       integer(I4B)       :: discard_body_id_varid                       !! ID for the id of the other body involved in the discard
       logical            :: lpseudo_vel_exists = .false.                !! Logical flag to indicate whether or not the pseudovelocity vectors were present in an old file.
    contains
-      procedure :: close      => netcdf_io_close             !! Closes an open NetCDF file
-      procedure :: sync       => netcdf_io_sync              !! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
+      procedure :: close       => netcdf_io_close       !! Closes an open NetCDF file
+      procedure :: find_tslot  => netcdf_io_find_tslot  !! Finds the time dimension index for a given value of t
+      procedure :: find_idslot => netcdf_io_find_idslot !! Finds the id dimension index for a given value of id
+      procedure :: get_idvals  => netcdf_io_get_idvals  !! Gets the valid id numbers currently stored in this dataset
+      procedure :: sync        => netcdf_io_sync        !! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
    end type netcdf_parameters
 
    interface
@@ -153,6 +163,25 @@ module netcdf_io
          implicit none
          class(netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
       end subroutine netcdf_io_close
+
+      module subroutine netcdf_io_get_idvals(self)
+         implicit none
+         class(netcdf_parameters),                            intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
+      end subroutine netcdf_io_get_idvals
+
+      module subroutine netcdf_io_find_tslot(self, t, tslot)
+         implicit none
+         class(netcdf_parameters), intent(inout) :: self  !! Parameters used to identify a particular NetCDF dataset
+         real(DP),                 intent(in)    :: t     !! The value of time to search for
+         integer(I4B),             intent(out)   :: tslot !! The index of the time slot where this data belongs
+      end subroutine netcdf_io_find_tslot
+
+      module subroutine netcdf_io_find_idslot(self, id, idslot)
+         implicit none
+         class(netcdf_parameters), intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
+         integer(I4B),             intent(in)    :: id     !! The value of id to search for
+         integer(I4B),             intent(out)   :: idslot !! The index of the id slot where this data belongs
+      end subroutine netcdf_io_find_idslot
    
       module subroutine netcdf_io_sync(self)
          implicit none

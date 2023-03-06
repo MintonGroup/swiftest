@@ -153,7 +153,7 @@ contains
    end subroutine swiftest_kick_getacch_int_all_flat_pl
 
 
-   module subroutine swiftest_kick_getacch_int_all_triangular_pl(npl, nplm, x, Gmass, radius, acc)
+   module subroutine swiftest_kick_getacch_int_all_triangular_pl(npl, nplm, r, Gmass, radius, acc)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations for massive bodies, with parallelization.
@@ -164,59 +164,102 @@ contains
       implicit none
       integer(I4B),                 intent(in)             :: npl    !! Total number of massive bodies
       integer(I4B),                 intent(in)             :: nplm   !! Number of fully interacting massive bodies
-      real(DP),     dimension(:,:), intent(in)             :: x      !! Position vector array
+      real(DP),     dimension(:,:), intent(in)             :: r      !! Position vector array
       real(DP),     dimension(:),   intent(in)             :: Gmass  !! Array of massive body G*mass
       real(DP),     dimension(:),   intent(in),   optional :: radius !! Array of massive body radii
       real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
       ! Internals
+      integer(I4B) :: i, j, nplt
+      real(DP)     :: rji2, rlim2, fac, rx, ry, rz
       real(DP), dimension(NDIM,npl) :: ahi, ahj
-      integer(I4B) :: i, j
-      real(DP)     :: rji2, rlim2
-      real(DP)     :: xr, yr, zr
+      logical :: lmtiny
 
-      ahi(:,:) = 0.0_DP
-      ahj(:,:) = 0.0_DP
+      nplt = npl - nplm
+      lmtiny = (nplt > nplm)
 
       if (present(radius)) then
-         !$omp parallel do default(private) schedule(static)&
-         !$omp shared(npl, nplm, x, Gmass, radius) &
-         !$omp lastprivate(rji2, rlim2, xr, yr, zr) &
-         !$omp reduction(+:ahi) &
-         !$omp reduction(-:ahj) 
-         do i = 1, nplm
-            do concurrent(j = i+1:npl)
-               xr = x(1, j) - x(1, i) 
-               yr = x(2, j) - x(2, i) 
-               zr = x(3, j) - x(3, i) 
-               rji2 = xr**2 + yr**2 + zr**2
-               rlim2 = (radius(i) + radius(j))**2
-               if (rji2 > rlim2) call swiftest_kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), &
-                                       ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+         if (lmtiny) then
+            ahi(:,:) = 0.0_DP
+            ahj(:,:) = 0.0_DP
+            !$omp parallel do default(private) schedule(static)&
+            !$omp shared(npl, nplm, r, Gmass, radius) &
+            !$omp reduction(+:ahi) & 
+            !$omp reduction(-:ahj)
+            do i = 1, nplm
+               do concurrent(j = i+1:npl)
+                  rx = r(1, j) - r(1, i) 
+                  ry = r(2, j) - r(2, i) 
+                  rz = r(3, j) - r(3, i) 
+                  rji2 = rx**2 + ry**2 + rz**2
+                  rlim2 = (radius(i) + radius(j))**2
+                  if (rji2 > rlim2) call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), Gmass(j), &
+                                             ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+               end do
             end do
-         end do
-         !$omp end parallel do
+            !$omp end parallel do
+            do concurrent(i = 1:npl)
+               acc(:,i) = acc(:,i) + ahi(:,i) + ahj(:,i)
+            end do
+         else 
+            !$omp parallel do default(private) schedule(static)&
+            !$omp shared(npl,nplm, r, Gmass, radius, acc)
+            do i = 1, nplm
+               do concurrent(j = 1:npl, j/=i)
+                  rx = r(1,j) - r(1,i)
+                  ry = r(2,j) - r(2,i)
+                  rz = r(3,j) - r(3,i)
+                  rji2 = rx**2 + ry**2 + rz**2
+                  rlim2 = (radius(i) + radius(j))**2
+                  if (rji2 > rlim2)  then
+                     fac = Gmass(j) / (rji2 * sqrt(rji2))
+                     acc(1,i) = acc(1,i) + fac * rx
+                     acc(2,i) = acc(2,i) + fac * ry
+                     acc(3,i) = acc(3,i) + fac * rz
+                  end if
+               end do
+            end do
+            !$omp end parallel do
+         end if
       else
-         !$omp parallel do default(private) schedule(static)&
-         !$omp shared(npl, nplm, x, Gmass) &
-         !$omp lastprivate(rji2, xr, yr, zr) &
-         !$omp reduction(+:ahi) &
-         !$omp reduction(-:ahj) 
-         do i = 1, nplm
-            do concurrent(j = i+1:npl)
-               xr = x(1, j) - x(1, i) 
-               yr = x(2, j) - x(2, i) 
-               zr = x(3, j) - x(3, i) 
-               rji2 = xr**2 + yr**2 + zr**2
-               call swiftest_kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), &
-                                            ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+         if (lmtiny) then
+            ahi(:,:) = 0.0_DP
+            ahj(:,:) = 0.0_DP
+            !$omp parallel do default(private) schedule(static)&
+            !$omp shared(npl, nplm, r, Gmass) &
+            !$omp reduction(+:ahi) & 
+            !$omp reduction(-:ahj)
+            do i = 1, nplm
+               do concurrent(j = i+1:npl)
+                  rx = r(1, j) - r(1, i) 
+                  ry = r(2, j) - r(2, i) 
+                  rz = r(3, j) - r(3, i) 
+                  rji2 = rx**2 + ry**2 + rz**2
+                  call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), Gmass(j), &
+                                             ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+               end do
             end do
-         end do
-         !$omp end parallel do
+            !$omp end parallel do
+            do concurrent(i = 1:npl)
+               acc(:,i) = acc(:,i) + ahi(:,i) + ahj(:,i)
+            end do
+         else 
+            !$omp parallel do default(private) schedule(static)&
+            !$omp shared(npl,nplm, r, Gmass, acc)
+            do i = 1, nplm
+               do concurrent(j = 1:npl, j/=i)
+                  rx = r(1,j) - r(1,i)
+                  ry = r(2,j) - r(2,i)
+                  rz = r(3,j) - r(3,i)
+                  rji2 = rx**2 + ry**2 + rz**2
+                  fac = Gmass(j) / (rji2 * sqrt(rji2))
+                  acc(1,i) = acc(1,i) + fac * rx
+                  acc(2,i) = acc(2,i) + fac * ry
+                  acc(3,i) = acc(3,i) + fac * rz
+               end do
+            end do
+            !$omp end parallel do
+         end if
       end if
-
-      do concurrent(i = 1:npl)
-         acc(:,i) = acc(:,i) + ahi(:,i) + ahj(:,i)
-      end do
 
       return
    end subroutine swiftest_kick_getacch_int_all_triangular_pl

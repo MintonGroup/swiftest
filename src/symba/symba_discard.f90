@@ -104,7 +104,7 @@ contains
    end subroutine symba_discard_cb_pl
 
 
-   subroutine symba_discard_conserve_mtm(pl, nbody_system, param, ipl, lescape_body)
+   subroutine symba_discard_conserve_energy_and_momentum(pl, nbody_system, param, ipl, lescape_body)
       !! author: David A. Minton
       !! 
       !! Conserves nbody_system momentum when a body is lost from the nbody_system or collides with central body
@@ -116,8 +116,8 @@ contains
       integer(I4B),              intent(in)    :: ipl
       logical,                   intent(in)         :: lescape_body
       ! Internals
-      real(DP), dimension(NDIM) :: Lpl, L_total, Lcb, xcom, vcom
-      real(DP)                  :: pe, be, ke_orbit, ke_spin
+      real(DP), dimension(NDIM) :: Lpl, L_total, Lcb, xcom, vcom, drot0, drot1
+      real(DP)                  :: pe, be, ke_orbit, ke_spin, becb0, becb1
       integer(I4B)              :: i, oldstat
    
       select type(cb => nbody_system%cb)
@@ -133,14 +133,15 @@ contains
             ke_spin = 0.0_DP
          end if
    
-         ! Add the pre-collision ke of the central body to the records
-         ! Add planet mass to central body accumulator
          if (lescape_body) then
             nbody_system%GMescape = nbody_system%GMescape + pl%Gmass(ipl)
             do i = 1, pl%nbody
                if (i == ipl) cycle
                pe = pe - pl%Gmass(i) * pl%mass(ipl) / norm2(pl%rb(:, ipl) - pl%rb(:, i))
             end do
+
+            nbody_system%E_collisions  = nbody_system%E_collisions + ke_orbit + ke_spin + pe + be
+            nbody_system%E_untracked  = nbody_system%E_untracked - (ke_orbit + ke_spin + pe + be)
    
             L_total(:) = 0.0_DP
             do i = 1, pl%nbody
@@ -167,41 +168,44 @@ contains
             xcom(:) = (pl%mass(ipl) * pl%rb(:, ipl) + cb%mass * cb%rb(:)) / (cb%mass + pl%mass(ipl))
             vcom(:) = (pl%mass(ipl) * pl%vb(:, ipl) + cb%mass * cb%vb(:)) / (cb%mass + pl%mass(ipl))
             Lpl(:) = (pl%rb(:,ipl) - xcom(:)) .cross. (pL%vb(:,ipl) - vcom(:))
-            if (param%lrotation) Lpl(:) = pl%mass(ipl) * (Lpl(:) + pl%radius(ipl)**2 * pl%Ip(3,ipl) * pl%rot(:, ipl))
+            if (param%lrotation) Lpl(:) = Lpl(:) + pl%radius(ipl)**2 * pl%Ip(3,ipl) * pl%rot(:, ipl)
+            Lpl(:) = pl%mass(ipl) * Lpl(:)
      
             Lcb(:) = cb%mass * ((cb%rb(:) - xcom(:)) .cross. (cb%vb(:) - vcom(:)))
    
             ke_orbit = ke_orbit + 0.5_DP * cb%mass * dot_product(cb%vb(:), cb%vb(:)) 
             if (param%lrotation) ke_spin = ke_spin + 0.5_DP * cb%mass * cb%radius**2 * cb%Ip(3) * dot_product(cb%rot(:), cb%rot(:))
             ! Update mass of central body to be consistent with its total mass
+            becb0 = -(3 * cb%Gmass * cb%mass) / (5 * cb%radius)
             cb%dGM = cb%dGM + pl%Gmass(ipl)
             cb%dR = cb%dR + 1.0_DP / 3.0_DP * (pl%radius(ipl) / cb%radius)**3 - 2.0_DP / 9.0_DP * (pl%radius(ipl) / cb%radius)**6
             cb%Gmass = cb%GM0 + cb%dGM
             cb%mass = cb%Gmass / param%GU
             cb%radius = cb%R0 + cb%dR
             param%rmin = cb%radius
+            becb1 = -(3 * cb%Gmass * cb%mass) / (5 * cb%radius)
+
             ! Add planet angular momentum to central body accumulator
             cb%dL(:) = Lpl(:) + Lcb(:) + cb%dL(:)
             ! Update rotation of central body to by consistent with its angular momentum 
             if (param%lrotation) then
-               cb%rot(:) = (cb%L0(:) + cb%dL(:)) / (cb%Ip(3) * cb%mass * cb%radius**2)        
+               drot0(:) = cb%L0(:)/ (cb%Ip(3) * cb%mass * cb%radius**2)  
+               drot1(:) = cb%dL(:) / (cb%Ip(3) * cb%mass * cb%radius**2)
+               cb%rot(:) = drot0(:) + drot1(:)
                ke_spin  = ke_spin - 0.5_DP * cb%mass * cb%radius**2 * cb%Ip(3) * dot_product(cb%rot(:), cb%rot(:)) 
             end if
             cb%rb(:) = xcom(:)
             cb%vb(:) = vcom(:)
             ke_orbit = ke_orbit - 0.5_DP * cb%mass * dot_product(cb%vb(:), cb%vb(:)) 
+
+            ! Add the change in central body binding energy to the collision energy tracker
+            nbody_system%E_collisions  = nbody_system%E_collisions + (becb1 - becb0)
          end if
          call pl%b2h(cb)
    
-         ! We must do this for proper book-keeping, since we can no longer track this body's contribution to energy directly
-         if (lescape_body) then
-            nbody_system%E_collisions  = nbody_system%E_collisions + ke_orbit + ke_spin + pe + be
-            nbody_system%E_untracked  = nbody_system%E_untracked - (ke_orbit + ke_spin + pe + be)
-         end if
-   
       end select
       return
-   end subroutine symba_discard_conserve_mtm
+   end subroutine symba_discard_conserve_energy_and_momentum
 
 
    subroutine symba_discard_nonplpl(pl, nbody_system, param)
@@ -277,7 +281,7 @@ contains
                cycle
             end if
             ! Conserve all the quantities
-            call symba_discard_conserve_mtm(pl, nbody_system, param, discard_index_list(i), lescape)
+            call symba_discard_conserve_energy_and_momentum(pl, nbody_system, param, discard_index_list(i), lescape)
          end do
       end associate
 
@@ -367,9 +371,6 @@ contains
                end if
 
                call symba_discard_nonplpl_conservation(self, nbody_system, param)
-
-               ! Save the add/discard information to file
-               call nbody_system%write_discard(param)
 
                call pl%rearray(nbody_system, param)
 

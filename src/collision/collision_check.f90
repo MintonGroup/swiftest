@@ -114,7 +114,6 @@ contains
             lany_collision = any(lcollision(:))
             lany_closest = (param%lenc_save_closest .and. any(self%lclosest(:)))
 
-
             if (lany_collision .or. lany_closest) then
                call pl%rh2rb(nbody_system%cb) ! Update the central body barycenteric position vector to get us out of DH and into bary
                do k = 1, nenc
@@ -176,7 +175,6 @@ contains
       logical, dimension(:), allocatable        :: lcollision, lmask
       real(DP), dimension(NDIM)                 :: xr, vr
       integer(I4B)                              :: i, j, k, nenc
-      real(DP)                                  :: rlim
       logical                                   :: lany_closest
       character(len=STRMAX)                     :: timestr, idstri, idstrj, message
       class(collision_list_pltp), allocatable       :: tmp       

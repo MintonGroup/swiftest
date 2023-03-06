@@ -44,6 +44,8 @@ INCLUDE(${CMAKE_MODULE_PATH}/SetMKL.cmake)
 # RELEASE, PROFILING, and TESTING.  
 INCLUDE(${CMAKE_MODULE_PATH}/SetFortranFlags.cmake) 
 
+INCLUDE_DIRECTORIES($ENV{NETCDF_FORTRAN_HOME}/include;$ENV{NETCDF_HOME}/include)
+
 
 # There is an error in CMAKE with this flag for pgf90.  Unset it
 GET_FILENAME_COMPONENT(FCNAME ${CMAKE_Fortran_COMPILER} NAME)

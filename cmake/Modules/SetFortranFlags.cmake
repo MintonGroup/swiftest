@@ -108,14 +108,22 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                          "-fbacktrace"  # GNU (gfortran)
                          "-ftrace=full" # GNU (g95)
                 )
-
-# Check array bounds
+# Sanitize
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
-                 Fortran "-check bounds"  # Intel
-                         "/check:bounds"  # Intel Windows
-                         "-fcheck=bounds" # GNU (New style)
-                         "-fbounds-check" # GNU (Old style)
+                 Fortran "-fsanitize=address"  # Gnu 
                 )
+                
+
+# Check everything
+SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
+                 Fortran "-check"  # Intel
+                         "/check"  # Intel Windows
+                         "-fcheck=all" # GNU 
+                )
+SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
+                 Fortran "-fstack-check" # GNU 
+                )
+                
 
 # Initializes matrices/arrays with NaN values
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
@@ -140,6 +148,7 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
 # Enables floating-point invalid, divide-by-zero, and overflow exceptions
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                  Fortran "-fpe-all=0" # Intel
+                         "-ffpe-trap=zero,overflow,underflow" # GNU
                 )
 
 # Improves floating-point precision and consistency
@@ -208,9 +217,9 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
 #####################
 
 # Optimizations
-SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_TESTING "${CMAKE_Fortran_FLAGS_TESTING}"
-                 Fortran REQUIRED "-O2" # All compilers not on Windows
-                                  "/O2" # Intel Windows
+SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_TESTING "${CMAKE_Fortran_FLAGS_DEBUG}"
+                 Fortran REQUIRED "-O3" # All compilers not on Windows
+                                  "/O3" # Intel Windows
                 )
 
 #####################
@@ -315,3 +324,18 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_PROFILE "${CMAKE_Fortran_FLAGS_RELEASE}"
                          "/Qopt-report:5 /traceback -g3" # Windows Intel
                          "-pg -fbacktrace"
                 )
+
+SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_PROFILE "${CMAKE_Fortran_FLAGS_PROFILE}"
+                 Fortran "-check bounds,pointers,uninit"  # Intel
+                         "-fcheck=bounds,pointer,mem"
+                )
+
+# Sanitize
+SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
+                 Fortran "-fsanitize=address,undefined"  # Gnu 
+                )
+                
+
+SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
+                 Fortran "-fstack-check" # GNU 
+                )     

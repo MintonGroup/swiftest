@@ -72,7 +72,6 @@ SET(FAST_MATH_FILES
             ${SRC}/symba/symba_drift.f90
             ${SRC}/symba/symba_encounter_check.f90
             ${SRC}/symba/symba_gr.f90
-            ${SRC}/symba/symba_io.f90
             ${SRC}/symba/symba_step.f90
             ${SRC}/symba/symba_util.f90
             ${SRC}/walltime/walltime_implementations.f90

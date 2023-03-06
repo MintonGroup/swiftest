@@ -1,5 +1,7 @@
+#!/usr/bin/env python3
+
 """
- Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+ Copyright 2023 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
  This file is part of Swiftest.
  Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
  as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -9,7 +11,6 @@
  If not, see: https://www.gnu.org/licenses. 
 """
 
-#!/usr/bin/env python3
 """
 Generates and runs two sets of Swiftest input files from initial conditions with the WHM integrator. All simulation 
 outputs for the general relativity run are stored in the /gr subdirectory while all simulation outputs for the run 
@@ -30,13 +31,12 @@ gr/
 nogr/
 
 Each subdirecotry contains:
+collisions.log               : A NetCDF file containing the collision output.
 data.nc                      : A NetCDF file containing the simulation output.
-dump_bin1.nc                 : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
-dump_bin2.nc                 : A NetCDF file containing the necessary inputs to restart a simulation from t!=0.
 init_cond.nc                 : A NetCDF file containing the initial conditions for the simulation.
-dump_param1.in               : An ASCII file containing the necessary parameters to restart a simulation.
-dump_param2.in               : An ASCII file containing the necessary parameters to restart a simulation.
+param.00...0.in              : A series of parameter input files containing the parameters for the simulation at every output stage.
 param.in                     : An ASCII file containing the parameters for the simulation.
+param.restart.in             : An ASCII file containing the parameters for the simulation at the last output. 
 swiftest.log                 : An ASCII file containing the information on the status of the simulation as it runs.
 """
 

@@ -22,13 +22,12 @@ module base
    type, abstract :: base_parameters
       character(len=:), allocatable           :: integrator                             !! Name of the nbody integrator used
       character(len=:), allocatable           :: param_file_name                        !! The name of the parameter file
-      integer(I4B)                            :: maxid                = -1              !! The current maximum particle id number 
-      integer(I4B)                            :: maxid_collision      = 0               !! The current maximum collision id number
       real(DP)                                :: t0                   =  0.0_DP         !! Integration reference time
       real(DP)                                :: tstart               = -1.0_DP         !! Integration start time
       real(DP)                                :: tstop                = -1.0_DP         !! Integration stop time
       real(DP)                                :: dt                   = -1.0_DP         !! Time step
       integer(I8B)                            :: iloop                = 0_I8B           !! Main loop counter
+      integer(I8B)                            :: nloops               = 0_I8B           !! Total number of loops to execute
       character(STRMAX)                       :: incbfile             = CB_INFILE       !! Name of input file for the central body
       character(STRMAX)                       :: inplfile             = PL_INFILE       !! Name of input file for massive bodies
       character(STRMAX)                       :: intpfile             = TP_INFILE       !! Name of input file for test particles
@@ -36,6 +35,9 @@ module base
       character(STRMAX)                       :: in_type              = "NETCDF_DOUBLE" !! Data representation type of input data files
       character(STRMAX)                       :: in_form              = "XV"            !! Format of input data files ("EL" or ["XV"])
       integer(I4B)                            :: istep_out            = -1              !! Number of time steps between saved outputs
+      integer(I4B)                            :: nstep_out            = -1              !! Total number of saved outputs
+      real(DP)                                :: fstep_out            = 1.0_DP          !! The output step time stretching factor
+      logical                                 :: ltstretch            = .false.         !! Whether to employ time stretching or not
       character(STRMAX)                       :: outfile              = BIN_OUTFILE     !! Name of output binary file
       character(STRMAX)                       :: out_type             = "NETCDF_DOUBLE" !! Binary format of output file
       character(STRMAX)                       :: out_form             = "XVEL"          !! Data to write to output file
@@ -55,6 +57,7 @@ module base
       real(DP)                                :: inv_c2               = -1.0_DP         !! Inverse speed of light squared in the system units
       real(DP)                                :: GMTINY               = -1.0_DP         !! Smallest G*mass that is fully gravitating
       real(DP)                                :: min_GMfrag           = -1.0_DP         !! Smallest G*mass that can be produced in a fragmentation event
+      real(DP)                                :: nfrag_reduction      =  30.0_DP        !! Reduction factor for limiting the number of fragments in a collision
       integer(I4B), dimension(:), allocatable :: seed                                   !! Random seeds for fragmentation modeling
       logical                                 :: lmtiny_pl            = .false.         !! Include semi-interacting massive bodies
       character(STRMAX)                       :: collision_model      = "MERGE"         !! The Coll
@@ -106,10 +109,11 @@ module base
       logical :: lyarkovsky = .false. !! Turn on Yarkovsky effect
       logical :: lyorp      = .false. !! Turn on YORP effect
    contains
-      procedure(abstract_io_dump_param),        deferred :: dump
-      procedure(abstract_io_param_reader),      deferred :: reader
-      procedure(abstract_io_param_writer),      deferred :: writer    
-      procedure(abstract_io_read_in_param),     deferred :: read_in   
+      procedure :: dealloc => base_util_dealloc_param
+      procedure(abstract_io_dump_param),      deferred :: dump
+      procedure(abstract_io_param_reader),    deferred :: reader
+      procedure(abstract_io_param_writer),    deferred :: writer    
+      procedure(abstract_io_read_in_param),   deferred :: read_in 
    end type base_parameters
 
    abstract interface
@@ -117,7 +121,7 @@ module base
          import base_parameters
          implicit none
          class(base_parameters),intent(in)    :: self            !! Output collection of parameters
-         character(len=*),          intent(in)    :: param_file_name !! Parameter input file name (i.e. param.in)
+         character(len=*),      intent(in)    :: param_file_name !! Parameter input file name (i.e. param.in)
       end subroutine abstract_io_dump_param
 
       subroutine abstract_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
@@ -156,27 +160,31 @@ module base
    type :: base_storage_frame
       class(*), allocatable :: item
    contains
-      procedure :: store         => copy_store       !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
+      procedure :: store         => base_util_copy_store       !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
       generic   :: assignment(=) => store
-      final     ::                  final_storage_frame
+      final     ::                  base_final_storage_frame
    end type
 
 
-   type, abstract :: base_storage(nframes)
+   type, abstract :: base_storage
       !! An class that establishes the pattern for various storage objects
-      integer(I4B), len  :: nframes = 4096 !! Total number of frames that can be stored
+      integer(I4B) :: nframes !! Total number of frames that can be stored
 
       !! An class that establishes the pattern for various storage objects
-      type(base_storage_frame),              dimension(nframes)        :: frame          !! Array of stored frames
-      integer(I4B)                                                     :: iframe = 0     !! Index of the last frame stored in the system
-      integer(I4B)                                                     :: nid            !! Number of unique id values in all saved snapshots
-      integer(I4B),                          dimension(:), allocatable :: idvals         !! The set of unique id values contained in the snapshots
-      integer(I4B),                          dimension(:), allocatable :: idmap          !! The id value -> index map  
-      integer(I4B)                                                     :: nt             !! Number of unique time values in all saved snapshots
-      real(DP),                              dimension(:), allocatable :: tvals          !! The set of unique time values contained in the snapshots
-      integer(I4B),                          dimension(:), allocatable :: tmap           !! The t value -> index map
+      type(base_storage_frame), dimension(:), allocatable :: frame          !! Array of stored frames
+      integer(I4B)                                        :: iframe = 0     !! Index of the last frame stored in the system
+      integer(I4B)                                        :: nid            !! Number of unique id values in all saved snapshots
+      integer(I4B),             dimension(:), allocatable :: idvals         !! The set of unique id values contained in the snapshots
+      integer(I4B),             dimension(:), allocatable :: idmap          !! The id value -> index map  
+      integer(I4B)                                        :: nt             !! Number of unique time values in all saved snapshots
+      real(DP),                 dimension(:), allocatable :: tvals          !! The set of unique time values contained in the snapshots
+      integer(I4B),             dimension(:), allocatable :: tmap           !! The t value -> index map
    contains
-      procedure :: reset  => reset_storage     !! Resets a storage object by deallocating all items and resetting the frame counter to 0
+      procedure :: dealloc => base_util_dealloc_storage !! Deallocates all allocatables
+      procedure :: reset   => base_util_reset_storage   !! Resets the storage object back to its original state by removing all of the saved items from the storage frames
+      procedure :: resize  => base_util_resize_storage  !! Resizes storage if it is too small 
+      procedure :: setup   => base_util_setup_storage   !! Sets up a storage system with a set number of frames
+      procedure :: save    => base_util_snapshot_save   !! Takes a snapshot of the current system
    end type base_storage
 
 
@@ -188,12 +196,24 @@ module base
 
    !> An abstract class for a generic collection of Swiftest bodies
    type, abstract :: base_object
+   contains
+      procedure(abstract_util_dealloc_object), deferred :: dealloc
    end type base_object
 
+   abstract interface
+      subroutine abstract_util_dealloc_object(self)
+         import base_object
+         implicit none
+         class(base_object), intent(inout) :: self !! Generic Swiftest object type
+      end subroutine abstract_util_dealloc_object
+   end interface
 
-   type, abstract :: base_multibody(nbody)
-      integer(I4B), len              :: nbody
-      integer(I4B), dimension(nbody) :: id
+
+   type, abstract, extends(base_object) :: base_multibody
+      integer(I4B)                             :: nbody = 0 !! Number of bodies
+      integer(I4B),  dimension(:), allocatable :: id        !! Identifier
+   contains
+      procedure :: dealloc => base_util_dealloc_multibody
    end type base_multibody 
 
 
@@ -208,7 +228,7 @@ module base
 
    contains
 
-      subroutine copy_store(self, source)
+      subroutine base_util_copy_store(self, source)
          !! author: David A. Minton
          !!
          !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
@@ -220,70 +240,64 @@ module base
          allocate(self%item, source=source)
          
          return
-      end subroutine copy_store 
+      end subroutine base_util_copy_store 
 
 
-      subroutine final_storage_frame(self)
+      subroutine base_util_dealloc_multibody(self)
          !! author: David A. Minton
          !!
-         !! Finalizer for the storage frame data type
+         !! Finalize the multibody body object - deallocates all allocatables
          implicit none
-         type(base_storage_frame) :: self
-   
-         if (allocated(self%item)) deallocate(self%item)
-   
+         ! Argument
+         class(base_multibody),  intent(inout) :: self
+
+         self%nbody = 0
+         if (allocated(self%id)) deallocate(self%id)
+
          return
-      end subroutine final_storage_frame
+      end subroutine base_util_dealloc_multibody
 
 
-      subroutine base_final_storage(self)
+      subroutine base_util_dealloc_param(self)
          !! author: David A. Minton
          !!
-         !! Finalizer for the storage object
+         !! Deallocates all allocatables
          implicit none
          ! Arguments
-         class(base_storage(*)), intent(inout) :: self
-         ! Internals
-         integer(I4B) :: i
+         class(base_parameters),intent(inout)  :: self  !! Collection of parameters
 
-         do i = 1, self%nframes
-            call final_storage_frame(self%frame(i))
-         end do
+         if (allocated(self%integrator)) deallocate(self%integrator)
+         if (allocated(self%param_file_name)) deallocate(self%param_file_name)
+         if (allocated(self%display_style)) deallocate(self%display_style)
+         if (allocated(self%seed)) deallocate(self%seed)
+
          return
-      end subroutine base_final_storage
+      end subroutine base_util_dealloc_param
 
 
-      subroutine reset_storage(self)
+      subroutine base_util_dealloc_storage(self)
          !! author: David A. Minton
          !!
          !! Resets a storage object by deallocating all items and resetting the frame counter to 0
          implicit none
          ! Arguments
-         class(base_storage(*)), intent(inout) :: self !! Swiftest storage object
-         ! Internals
-         integer(I4B) :: i
-   
-         do i = 1, self%nframes
-            if (allocated(self%frame(i)%item)) deallocate(self%frame(i)%item)
-         end do
-   
-         if (allocated(self%idmap)) deallocate(self%idmap)
-         if (allocated(self%tmap)) deallocate(self%tmap)
-         self%nid = 0
-         self%nt = 0
-         self%iframe = 0
+         class(base_storage), intent(inout) :: self !! Swiftest storage object
+
+         call self%reset()
+         if (allocated(self%frame)) deallocate(self%frame)
+         self%nframes = 0
    
          return
-      end subroutine reset_storage
+      end subroutine base_util_dealloc_storage
 
 
-      subroutine util_exit(code)
+      subroutine base_util_exit(code)
          !! author: David A. Minton
          !!
          !! Print termination message and exit program
          !!
-         !! Adapted from David E. Kaufmann's Swifter routine: util_exit.f90
-         !! Adapted from Hal Levison's Swift routine util_exit.f
+         !! Adapted from David E. Kaufmann's Swifter routine: base_util_exit.f90
+         !! Adapted from Hal Levison's Swift routine base_util_exit.f
          implicit none
          ! Arguments
          integer(I4B), intent(in) :: code
@@ -310,6 +324,137 @@ module base
    
          stop
    
-      end subroutine util_exit
+      end subroutine base_util_exit
+
+
+      subroutine base_util_reset_storage(self)
+         !! author: David A. Minton
+         !!
+         !! Resets the storage object back to its original state by removing all of the saved items from the storage frames, but does not deallocate the frames
+         implicit none
+         ! Arguments
+         class(base_storage), intent(inout) :: self
+         ! Internals
+         integer(I4B) :: i
+ 
+         if (allocated(self%frame)) then
+            do i = 1, self%nframes
+               if (allocated(self%frame(i)%item)) deallocate(self%frame(i)%item)
+            end do
+         end if
+
+         if (allocated(self%idmap)) deallocate(self%idmap)
+         if (allocated(self%idvals)) deallocate(self%idvals)
+         if (allocated(self%tmap)) deallocate(self%tmap)
+         if (allocated(self%tvals)) deallocate(self%tvals)
+         self%nid = 0
+         self%nt = 0
+         self%iframe = 0
+
+         return
+      end subroutine base_util_reset_storage 
+
+      
+      subroutine base_util_resize_storage(self, nnew)
+         !! author: David A. Minton
+         !!
+         !! Checks the current size of a Swiftest against the requested size and resizes it if it is too small.
+         implicit none
+         ! Arguments
+         class(base_storage), intent(inout) :: self !! Storage object
+         integer(I4B),        intent(in)    :: nnew !! New size
+         ! Internals
+         class(base_storage_frame), dimension(:), allocatable :: tmp
+         integer(I4B) :: i, nold, nbig
+  
+         nold = self%nframes
+         if (nnew <= nold) return
+   
+         nbig = nold
+         do while (nbig < nnew)
+            nbig = nbig * 2
+         end do
+         call move_alloc(self%frame, tmp)
+         allocate(self%frame(nbig))
+         self%nframes = nbig
+         do i = 1, nold
+            if (allocated(tmp(i)%item)) call move_alloc(tmp(i)%item, self%frame(i)%item)
+         end do
+   
+         return
+      end subroutine base_util_resize_storage 
+
+
+      subroutine base_util_setup_storage(self, n)
+         !! author: David A. Minton
+         !!
+         !! Checks the current size of a Swiftest against the requested size and resizes it if it is too small.
+         implicit none
+         ! Arguments
+         class(base_storage), intent(inout) :: self !! Storage object
+         integer(I4B),        intent(in)    :: n    !! New size
+
+         if (allocated(self%frame)) deallocate(self%frame)
+         allocate(self%frame(n))
+         self%nframes = n
+   
+         return
+      end subroutine base_util_setup_storage 
+  
+      
+      subroutine base_util_snapshot_save(self, snapshot)
+         !! author: David A. Minton
+         !!
+         !! Checks the current size of the storage object against the required size and extends it by a factor of 2 more than requested if it is too small.
+         !! Note: The reason to extend it by a factor of 2 is for performance. When there are many enounters per step, resizing every time you want to add an 
+         !! encounter takes significant computational effort. Resizing by a factor of 2 is a tradeoff between performance (fewer resize calls) and memory managment
+         !! Memory usage grows by a factor of 2 each time it fills up, but no more. 
+         implicit none
+         ! Arguments
+         class(base_storage), intent(inout) :: self     !! Storage ncounter storage object
+         class(*),            intent(in)    :: snapshot !! Object to snapshot
+         ! Internals
+         integer(I4B) :: nnew, nold
+
+         ! Advance the snapshot frame counter
+         self%iframe = self%iframe + 1
+
+         nnew = self%iframe
+         nold = self%nframes
+
+         ! Check to make sure the current storage  object is big enough. If not, grow it by a factor of 2
+         if (nnew > nold) call self%resize(nnew)
+
+         self%frame(nnew) = snapshot
+      
+         return
+      end subroutine base_util_snapshot_save
+   
+
+      subroutine base_final_storage(self)
+         !! author: David A. Minton
+         !!
+         !! Finalizer for the storage object
+         implicit none
+         ! Arguments
+         class(base_storage), intent(inout) :: self
+
+         call self%dealloc()
+         return
+      end subroutine base_final_storage
+
+
+      subroutine base_final_storage_frame(self)
+         !! author: David A. Minton
+         !!
+         !! Finalizer for the storage frame data type
+         implicit none
+         type(base_storage_frame) :: self
+   
+         if (allocated(self%item)) deallocate(self%item)
+   
+         return
+      end subroutine base_final_storage_frame
+
 
 end module base

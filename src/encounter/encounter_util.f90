@@ -24,8 +24,8 @@ contains
       ! Internals
       integer(I4B) :: nold, nsrc
 
-      nold = self%nenc
-      nsrc = source%nenc
+      nold = int(self%nenc, kind=I4B)
+      nsrc = int(source%nenc, kind=I4B)
       call swiftest_util_append(self%tcollision, source%tcollision,   nold, nsrc, lsource_mask)
       call swiftest_util_append(self%lclosest,   source%lclosest,     nold, nsrc, lsource_mask)
       call swiftest_util_append(self%lvdotr,     source%lvdotr,       nold, nsrc, lsource_mask)
@@ -85,12 +85,31 @@ contains
       ! Arguments
       class(encounter_bounding_box_1D), intent(inout) :: self
 
+      self%n = 0
       if (allocated(self%ind)) deallocate(self%ind)
       if (allocated(self%ibeg)) deallocate(self%ibeg)
       if (allocated(self%iend)) deallocate(self%iend)
 
       return
    end subroutine encounter_util_dealloc_aabb
+
+
+   module subroutine encounter_util_dealloc_bounding_box(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatables
+      implicit none
+      ! Arguments
+      class(encounter_bounding_box), intent(inout) :: self !! Bounding box structure
+      ! Internals
+      integer(I4B) :: i
+
+      do i = 1,NDIM
+         call self%aabb(i)%dealloc()
+      end do
+
+      return
+   end subroutine encounter_util_dealloc_bounding_box
 
 
    module subroutine encounter_util_dealloc_list(self)
@@ -100,6 +119,8 @@ contains
       implicit none
       ! Arguments
       class(encounter_list), intent(inout) :: self
+
+      self%nenc = 0
 
       if (allocated(self%tcollision)) deallocate(self%tcollision)
       if (allocated(self%lclosest)) deallocate(self%lclosest)
@@ -117,6 +138,38 @@ contains
 
       return
    end subroutine encounter_util_dealloc_list
+
+
+   module subroutine encounter_util_dealloc_snapshot(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatables
+      implicit none
+      ! Arguments
+      class(encounter_snapshot), intent(inout) :: self !! Encounter shapshot object
+
+      if (allocated(self%pl)) deallocate(self%pl)
+      if (allocated(self%tp)) deallocate(self%tp)
+
+      return
+   end subroutine encounter_util_dealloc_snapshot
+
+
+   module subroutine encounter_util_dealloc_storage(self)
+      !! author: David A. Minton
+      !!
+      !! Resets a storage object by deallocating all items and resetting the frame counter to 0
+      use base, only : base_util_dealloc_storage
+      implicit none
+      ! Arguments
+      class(encounter_storage), intent(inout) :: self !! Swiftest storage object
+
+      if (allocated(self%nc)) deallocate(self%nc)
+
+      call base_util_dealloc_storage(self)
+
+      return
+   end subroutine encounter_util_dealloc_storage
 
 
    module subroutine encounter_util_get_idvalues_snapshot(self, idvals)
@@ -164,7 +217,7 @@ contains
       !!
       !! Gets the id values in a self object, regardless of whether it is encounter of collision
       ! Argument
-      class(encounter_storage(*)), intent(in)               :: self   !! Encounter storages object
+      class(encounter_storage), intent(in)               :: self   !! Encounter storages object
       integer(I4B), dimension(:),  allocatable, intent(out) :: idvals !! Array of all id values in all snapshots
       real(DP),     dimension(:),  allocatable, intent(out) :: tvals  !! Array of all time values in all snapshots
       ! Internals
@@ -195,7 +248,7 @@ contains
 
          allocate(idvals(ntotal))
          nlo = 1
-         ! Second pass to store all ids get all of the ids stored
+         ! Second pass to get all of the ids stored
          do i = 1, nsnaps
             if (allocated(self%frame(i)%item)) then
                select type(snapshot => self%frame(i)%item)
@@ -224,7 +277,7 @@ contains
       !! Basically this will make a unique list of ids that exist in all of the saved snapshots
       implicit none
       ! Arguments
-      class(encounter_storage(*)), intent(inout) :: self !! Swiftest storage object
+      class(encounter_storage), intent(inout) :: self !! Swiftest storage object
       ! Internals
       integer(I4B), dimension(:), allocatable :: idvals
       real(DP), dimension(:), allocatable :: tvals
@@ -412,68 +465,23 @@ contains
    end subroutine encounter_util_spill_list
 
 
-   subroutine encounter_util_save_snapshot(encounter_history, snapshot)
-      !! author: David A. Minton
-      !!
-      !! Checks the current size of the encounter storage against the required size and extends it by a factor of 2 more than requested if it is too small.
-      !! Note: The reason to extend it by a factor of 2 is for performance. When there are many enounters per step, resizing every time you want to add an 
-      !! encounter takes significant computational effort. Resizing by a factor of 2 is a tradeoff between performance (fewer resize calls) and memory managment
-      !! Memory usage grows by a factor of 2 each time it fills up, but no more. 
-      implicit none
-      ! Arguments
-      class(encounter_storage(*)), allocatable, intent(inout) :: encounter_history !! SyMBA encounter storage object
-      class(encounter_snapshot),               intent(in)    :: snapshot          !! Encounter snapshot object
-      ! Internals
-      type(encounter_storage(nframes=:)), allocatable :: tmp
-      integer(I4B) :: i, nnew, nold, nbig
-
-      ! Advance the snapshot frame counter
-      encounter_history%iframe = encounter_history%iframe + 1
-
-      ! Check to make sure the current encounter_history object is big enough. If not, grow it by a factor of 2
-      nnew = encounter_history%iframe
-      nold = encounter_history%nframes
-
-      if (nnew > nold) then
-         nbig = nold
-         do while (nbig < nnew)
-            nbig = nbig * 2
-         end do
-         allocate(encounter_storage(nbig) :: tmp) 
-         tmp%iframe = encounter_history%iframe
-         call move_alloc(encounter_history%nc, tmp%nc)
-
-         do i = 1, nold
-            if (allocated(encounter_history%frame(i)%item)) call move_alloc(encounter_history%frame(i)%item, tmp%frame(i)%item)
-         end do
-         deallocate(encounter_history)
-         call move_alloc(tmp,encounter_history)
-      end if
-
-      ! Find out which time slot this belongs in by searching for an existing slot
-      ! with the same value of time or the first available one
-      encounter_history%frame(nnew) = snapshot
-
-      return
-   end subroutine encounter_util_save_snapshot
-
-
    module subroutine encounter_util_snapshot(self, param, nbody_system, t, arg)
       !! author: David A. Minton
       !!
       !! Takes a minimal snapshot of the state of the system during an encounter so that the trajectories
       !! can be played back through the encounter
-      use symba
+      use symba, only : symba_pl, symba_tp, symba_nbody_system
       implicit none
       ! Internals
-      class(encounter_storage(*)),  intent(inout)        :: self   !! Swiftest storage object
-      class(base_parameters),   intent(inout)        :: param  !! Current run configuration parameters
-      class(base_nbody_system), intent(inout)        :: nbody_system !! Swiftest nbody system object to store
-      real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from system time
-      character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in collision snapshots)
+      class(encounter_storage),  intent(inout)        :: self         !! Swiftest storage object
+      class(base_parameters),    intent(inout)        :: param        !! Current run configuration parameters
+      class(base_nbody_system),  intent(inout)        :: nbody_system !! Swiftest nbody system object to store
+      real(DP),                  intent(in), optional :: t            !! Time of snapshot if different from system time
+      character(*),              intent(in), optional :: arg          !! Optional argument (needed for extended storage type used in collision snapshots)
       ! Arguments
       class(encounter_snapshot), allocatable :: snapshot
-      integer(I4B) :: i, pi, pj, k, npl_snap, ntp_snap, iflag
+      integer(I4B) :: i, pii, pjj, npl_snap, ntp_snap, iflag
+      integer(I8B) :: k
       real(DP), dimension(NDIM) :: rrel, vrel, rcom, vcom
       real(DP) :: Gmtot, a, q, capm, tperi
       real(DP), dimension(NDIM,2) :: rb,vb
@@ -586,86 +594,87 @@ contains
                      end if
 
                      ! Save the snapshot
-                     select type (encounter_history => nbody_system%encounter_history)
-                     class is (encounter_storage(*))
-                        encounter_history%nid = encounter_history%nid + ntp_snap + npl_snap
-                        call encounter_util_save_snapshot(nbody_system%encounter_history,snapshot)
-                     end select
+                     self%nid = self%nid + ntp_snap + npl_snap
+                     call self%save(snapshot)
                   case("closest")
                      associate(plpl_encounter => nbody_system%plpl_encounter, pltp_encounter => nbody_system%pltp_encounter)
-                        if (any(plpl_encounter%lclosest(:))) then
-                           call pl_snap%setup(2, param)
-                           do k = 1, plpl_encounter%nenc
-                              if (plpl_encounter%lclosest(k)) then
-                                 pi = plpl_encounter%index1(k)
-                                 pj = plpl_encounter%index2(k)
-                                 select type(pl_snap)
-                                 class is (symba_pl)
-                                 select type(pl)
-                                 class is (symba_pl)
-                                    pl_snap%levelg(:) = pl%levelg([pi,pj])
-                                 end select
-                                 end select
-                                 pl_snap%id(:) = pl%id([pi,pj])
-                                 pl_snap%info(:) = pl%info([pi,pj])
-                                 pl_snap%Gmass(:) = pl%Gmass([pi,pj])
-                                 Gmtot = sum(pl_snap%Gmass(:))
-                                 if (param%lclose) pl_snap%radius(:) = pl%radius([pi,pj])
-                                 if (param%lrotation) then
-                                    do i = 1, NDIM
-                                       pl_snap%Ip(i,:) = pl%Ip(i,[pi,pj])
-                                       pl_snap%rot(i,:) = pl%rot(i,[pi,pj])
-                                    end do
+                        if (plpl_encounter%nenc > 0) then
+                           if (any(plpl_encounter%lclosest(:))) then
+                              call pl_snap%setup(2, param)
+                              do k = 1_I8B, plpl_encounter%nenc
+                                 if (plpl_encounter%lclosest(k)) then
+                                    pii = plpl_encounter%index1(k)
+                                    pjj = plpl_encounter%index2(k)
+                                    select type(pl_snap)
+                                    class is (symba_pl)
+                                    select type(pl)
+                                    class is (symba_pl)
+                                       pl_snap%levelg(:) = pl%levelg([pii,pjj])
+                                    end select
+                                    end select
+                                    pl_snap%id(:) = pl%id([pii,pjj])
+                                    pl_snap%info(:) = pl%info([pii,pjj])
+                                    pl_snap%Gmass(:) = pl%Gmass([pii,pjj])
+                                    Gmtot = sum(pl_snap%Gmass(:))
+                                    if (param%lclose) pl_snap%radius(:) = pl%radius([pii,pjj])
+                                    if (param%lrotation) then
+                                       do i = 1, NDIM
+                                          pl_snap%Ip(i,:) = pl%Ip(i,[pii,pjj])
+                                          pl_snap%rot(i,:) = pl%rot(i,[pii,pjj])
+                                       end do
+                                    end if
+
+                                    ! Compute pericenter passage time to get the closest approach parameters
+                                    rrel(:) = plpl_encounter%r2(:,k) - plpl_encounter%r1(:,k)
+                                    vrel(:) = plpl_encounter%v2(:,k) - plpl_encounter%v1(:,k)
+                                    call swiftest_orbel_xv2aqt(Gmtot, rrel(1), rrel(2), rrel(3), vrel(1), vrel(2), vrel(3), a, q, capm, tperi)
+                                    snapshot%t = t + tperi
+                                    if ((snapshot%t < maxval(pl_snap%info(:)%origin_time)) .or. &
+                                          (snapshot%t > minval(pl_snap%info(:)%discard_time))) cycle
+
+                                    ! Computer the center mass of the pair
+                                    rcom(:) = (plpl_encounter%r1(:,k) * pl_snap%Gmass(1) + plpl_encounter%r2(:,k) * pl_snap%Gmass(2)) / Gmtot
+                                    vcom(:) = (plpl_encounter%v1(:,k) * pl_snap%Gmass(1) + plpl_encounter%v2(:,k) * pl_snap%Gmass(2)) / Gmtot
+                                    rb(:,1) = plpl_encounter%r1(:,k) - rcom(:)
+                                    rb(:,2) = plpl_encounter%r2(:,k) - rcom(:)
+                                    vb(:,1) = plpl_encounter%v1(:,k) - vcom(:)
+                                    vb(:,2) = plpl_encounter%v2(:,k) - vcom(:)
+
+                                    ! Drift the relative orbit to get the new relative position and velocity
+                                    call swiftest_drift_one(Gmtot, rrel(1), rrel(2), rrel(3), vrel(1), vrel(2), vrel(3), tperi, iflag)
+                                    if (iflag /= 0) write(*,*) "Danby error in encounter_util_snapshot_encounter. Closest approach positions and vectors may not be accurate."
+
+                                    ! Get the new position and velocity vectors
+                                    rb(:,1) = -(pl_snap%Gmass(2) / Gmtot) * rrel(:)
+                                    rb(:,2) =  (pl_snap%Gmass(1)) / Gmtot * rrel(:)
+
+                                    vb(:,1) = -(pl_snap%Gmass(2) / Gmtot) * vrel(:)
+                                    vb(:,2) =  (pl_snap%Gmass(1)) / Gmtot * vrel(:)
+
+                                    ! Move the CoM assuming constant velocity over the time it takes to reach periapsis
+                                    rcom(:) = rcom(:) + vcom(:) * tperi
+
+                                    ! Compute the heliocentric position and velocity vector at periapsis
+                                    pl_snap%rh(:,1) = rb(:,1) + rcom(:)
+                                    pl_snap%rh(:,2) = rb(:,2) + rcom(:)
+                                    pl_snap%vh(:,1) = vb(:,1) + vcom(:)
+                                    pl_snap%vh(:,2) = vb(:,2) + vcom(:)
+
+                                    call pl_snap%sort("id", ascending=.true.)
+                                    call self%save(snapshot)
                                  end if
+                              end do
 
-                                 ! Compute pericenter passage time to get the closest approach parameters
-                                 rrel(:) = plpl_encounter%r2(:,k) - plpl_encounter%r1(:,k)
-                                 vrel(:) = plpl_encounter%v2(:,k) - plpl_encounter%v1(:,k)
-                                 call swiftest_orbel_xv2aqt(Gmtot, rrel(1), rrel(2), rrel(3), vrel(1), vrel(2), vrel(3), a, q, capm, tperi)
-                                 snapshot%t = t + tperi
-                                 if ((snapshot%t < maxval(pl_snap%info(:)%origin_time)) .or. &
-                                       (snapshot%t > minval(pl_snap%info(:)%discard_time))) cycle
-
-                                 ! Computer the center mass of the pair
-                                 rcom(:) = (plpl_encounter%r1(:,k) * pl_snap%Gmass(1) + plpl_encounter%r2(:,k) * pl_snap%Gmass(2)) / Gmtot
-                                 vcom(:) = (plpl_encounter%v1(:,k) * pl_snap%Gmass(1) + plpl_encounter%v2(:,k) * pl_snap%Gmass(2)) / Gmtot
-                                 rb(:,1) = plpl_encounter%r1(:,k) - rcom(:)
-                                 rb(:,2) = plpl_encounter%r2(:,k) - rcom(:)
-                                 vb(:,1) = plpl_encounter%v1(:,k) - vcom(:)
-                                 vb(:,2) = plpl_encounter%v2(:,k) - vcom(:)
-
-                                 ! Drift the relative orbit to get the new relative position and velocity
-                                 call swiftest_drift_one(Gmtot, rrel(1), rrel(2), rrel(3), vrel(1), vrel(2), vrel(3), tperi, iflag)
-                                 if (iflag /= 0) write(*,*) "Danby error in encounter_util_snapshot_encounter. Closest approach positions and vectors may not be accurate."
-
-                                 ! Get the new position and velocity vectors
-                                 rb(:,1) = -(pl_snap%Gmass(2) / Gmtot) * rrel(:)
-                                 rb(:,2) =  (pl_snap%Gmass(1)) / Gmtot * rrel(:)
-
-                                 vb(:,1) = -(pl_snap%Gmass(2) / Gmtot) * vrel(:)
-                                 vb(:,2) =  (pl_snap%Gmass(1)) / Gmtot * vrel(:)
-
-                                 ! Move the CoM assuming constant velocity over the time it takes to reach periapsis
-                                 rcom(:) = rcom(:) + vcom(:) * tperi
-
-                                 ! Compute the heliocentric position and velocity vector at periapsis
-                                 pl_snap%rh(:,1) = rb(:,1) + rcom(:)
-                                 pl_snap%rh(:,2) = rb(:,2) + rcom(:)
-                                 pl_snap%vh(:,1) = vb(:,1) + vcom(:)
-                                 pl_snap%vh(:,2) = vb(:,2) + vcom(:)
-
-                                 call pl_snap%sort("id", ascending=.true.)
-                                 call encounter_util_save_snapshot(nbody_system%encounter_history,snapshot)
-                              end if
-                           end do
-
-                           plpl_encounter%lclosest(:) = .false.
+                              plpl_encounter%lclosest(:) = .false.
+                           end if
                         end if
 
-                        if (any(pltp_encounter%lclosest(:))) then
-                           do k = 1, pltp_encounter%nenc
-                           end do
-                           pltp_encounter%lclosest(:) = .false.
+                        if (pltp_encounter%nenc > 0) then
+                           if (any(pltp_encounter%lclosest(:))) then
+                              do k = 1_I8B, pltp_encounter%nenc
+                              end do
+                              pltp_encounter%lclosest(:) = .false.
+                           end if
                         end if
                      end associate
                   case default
@@ -681,7 +690,6 @@ contains
 
       return
    end subroutine encounter_util_snapshot
-
 
 
 end submodule s_encounter_util

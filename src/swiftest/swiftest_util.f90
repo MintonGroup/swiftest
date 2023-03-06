@@ -31,6 +31,8 @@ contains
       if (.not. allocated(source)) return
 
       nnew = count(lsource_mask(1:nsrc))
+      if (nnew == 0) return
+
       if (.not.allocated(arr)) then
          allocate(arr(nold+nnew))
       else
@@ -59,6 +61,8 @@ contains
       if (.not. allocated(source)) return
 
       nnew = count(lsource_mask(1:nsrc))
+      if (nnew == 0) return
+
       if (.not.allocated(arr)) then
          allocate(arr(nold+nnew))
       else
@@ -87,6 +91,8 @@ contains
       if (.not. allocated(source)) return
 
       nnew = count(lsource_mask(1:nsrc))
+      if (nnew == 0) return
+
       if (.not.allocated(arr)) then
          allocate(arr(NDIM,nold+nnew))
       else
@@ -117,6 +123,8 @@ contains
       if (.not. allocated(source)) return
 
       nnew = count(lsource_mask(1:nsrc))
+      if (nnew == 0) return
+
       if (.not.allocated(arr)) then
          allocate(arr(nold+nnew))
       else
@@ -146,6 +154,8 @@ contains
       if (.not. allocated(source)) return
 
       nnew = count(lsource_mask(1:nsrc))
+      if (nnew == 0) return
+
       if (.not.allocated(arr)) then
          allocate(arr(nold+nnew))
       else
@@ -178,6 +188,8 @@ contains
       if (.not. allocated(source)) return
 
       nnew = count(lsource_mask(1:nsrc))
+      if (nnew == 0) return
+
       if (.not.allocated(arr)) then
          allocate(arr(nold+nnew))
       else
@@ -206,6 +218,8 @@ contains
       if (.not. allocated(source)) return
 
       nnew = count(lsource_mask(1:nsrc))
+      if (nnew == 0) return
+
       if (.not.allocated(arr)) then
          allocate(arr(nold+nnew))
       else
@@ -307,7 +321,7 @@ contains
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class swiftest_pl or its descendents"
-         call util_exit(FAILURE)
+         call base_util_exit(FAILURE)
       end select
 
       return
@@ -334,7 +348,7 @@ contains
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class swiftest_tp or its descendents"
-         call util_exit(FAILURE)
+         call base_util_exit(FAILURE)
       end select
 
       return
@@ -707,18 +721,19 @@ contains
    module subroutine swiftest_util_dealloc_body(self)
       !! author: David A. Minton
       !!
-      !! Finalize the swiftest body object - deallocates all allocatables
+      !! Finalize the Swiftest body object - deallocates all allocatables
       implicit none
       ! Argument
       class(swiftest_body),  intent(inout) :: self
 
+      self%lfirst = .true.
+
       if (allocated(self%info)) deallocate(self%info)
-      if (allocated(self%id)) deallocate(self%id)
       if (allocated(self%status)) deallocate(self%status)
+      if (allocated(self%lmask)) deallocate(self%lmask)
       if (allocated(self%ldiscard)) deallocate(self%ldiscard)
       if (allocated(self%lcollision)) deallocate(self%lcollision)
       if (allocated(self%lencounter)) deallocate(self%lencounter)
-      if (allocated(self%lmask)) deallocate(self%lmask)
       if (allocated(self%mu)) deallocate(self%mu)
       if (allocated(self%rh)) deallocate(self%rh)
       if (allocated(self%vh)) deallocate(self%vh)
@@ -729,16 +744,62 @@ contains
       if (allocated(self%agr)) deallocate(self%agr)
       if (allocated(self%atide)) deallocate(self%atide)
       if (allocated(self%ir3h)) deallocate(self%ir3h)
+      if (allocated(self%isperi)) deallocate(self%isperi)
+      if (allocated(self%peri)) deallocate(self%peri)
+      if (allocated(self%atp)) deallocate(self%atp)
       if (allocated(self%a)) deallocate(self%a)
-      if (allocated(self%e)) deallocate(self%e)
       if (allocated(self%e)) deallocate(self%e)
       if (allocated(self%inc)) deallocate(self%inc)
       if (allocated(self%capom)) deallocate(self%capom)
       if (allocated(self%omega)) deallocate(self%omega)
       if (allocated(self%capm)) deallocate(self%capm)
 
+      call base_util_dealloc_multibody(self)
+
       return
    end subroutine swiftest_util_dealloc_body
+
+
+   module subroutine swiftest_util_dealloc_cb(self)
+      !! author: David A. Minton
+      !!
+      !! Finalize the Swiftest central body object - deallocates all allocatables
+      implicit none
+      ! Arguments
+      class(swiftest_cb), intent(inout) :: self !! Swiftest central body object
+
+      if (allocated(self%info)) deallocate(self%info)
+
+      self%id       = 0      
+      self%mass     = 0.0_DP 
+      self%Gmass    = 0.0_DP 
+      self%radius   = 0.0_DP 
+      self%density  = 1.0_DP 
+      self%j2rp2    = 0.0_DP 
+      self%j4rp4    = 0.0_DP 
+      self%aobl     = 0.0_DP 
+      self%atide    = 0.0_DP 
+      self%aoblbeg  = 0.0_DP 
+      self%aoblend  = 0.0_DP 
+      self%atidebeg = 0.0_DP 
+      self%atideend = 0.0_DP 
+      self%rb       = 0.0_DP 
+      self%vb       = 0.0_DP 
+      self%agr      = 0.0_DP 
+      self%Ip       = 0.0_DP 
+      self%rot      = 0.0_DP 
+      self%k2       = 0.0_DP 
+      self%Q        = 0.0_DP 
+      self%tlag     = 0.0_DP 
+      self%L0       = 0.0_DP 
+      self%dL       = 0.0_DP 
+      self%GM0      = 0.0_DP 
+      self%dGM      = 0.0_DP 
+      self%R0       = 0.0_DP 
+      self%dR       = 0.0_DP 
+
+      return
+   end subroutine swiftest_util_dealloc_cb
 
 
    module subroutine swiftest_util_dealloc_kin(self)
@@ -758,7 +819,7 @@ contains
    module subroutine swiftest_util_dealloc_pl(self)
       !! author: David A. Minton
       !!
-      !! Finalize the swiftest massive body object - deallocates all allocatables
+      !! Finalize the Swiftest massive body object - deallocates all allocatables
       implicit none
       ! Argument
       class(swiftest_pl),  intent(inout) :: self !! Swiftest massive body object
@@ -771,8 +832,11 @@ contains
       if (allocated(self%renc)) deallocate(self%renc)
       if (allocated(self%radius)) deallocate(self%radius)
       if (allocated(self%density)) deallocate(self%density)
-      if (allocated(self%rot)) deallocate(self%rot)
+      if (allocated(self%rbeg)) deallocate(self%rbeg)
+      if (allocated(self%rend)) deallocate(self%rend)
+      if (allocated(self%vbeg)) deallocate(self%vbeg)
       if (allocated(self%Ip)) deallocate(self%Ip)
+      if (allocated(self%rot)) deallocate(self%rot)
       if (allocated(self%k2)) deallocate(self%k2)
       if (allocated(self%Q)) deallocate(self%Q)
       if (allocated(self%tlag)) deallocate(self%tlag)
@@ -795,16 +859,100 @@ contains
    end subroutine swiftest_util_dealloc_pl
 
 
+   module subroutine swiftest_util_dealloc_storage(self)
+      !! author: David A. Minton
+      !!
+      !! Resets a storage object by deallocating all items and resetting the frame counter to 0
+      use base, only : base_util_dealloc_storage
+      implicit none
+      ! Arguments
+      class(swiftest_storage), intent(inout) :: self !! Swiftest storage object
+
+      if (allocated(self%nc)) deallocate(self%nc)
+      call base_util_dealloc_storage(self)
+
+      return
+   end subroutine swiftest_util_dealloc_storage
+
+
+   module subroutine swiftest_util_dealloc_system(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatables and resets all values to defaults. Acts as a base for a finalizer
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), intent(inout) :: self
+
+      if (allocated(self%cb)) deallocate(self%cb)
+      if (allocated(self%pl)) deallocate(self%pl)
+      if (allocated(self%tp)) deallocate(self%tp)
+      if (allocated(self%tp_discards)) deallocate(self%tp_discards)
+      if (allocated(self%pl_discards)) deallocate(self%pl_discards)
+      if (allocated(self%pl_adds)) deallocate(self%pl_adds)
+      if (allocated(self%tp_adds)) deallocate(self%tp_adds)
+      if (allocated(self%pltp_encounter)) deallocate(self%pltp_encounter)
+      if (allocated(self%plpl_encounter)) deallocate(self%plpl_encounter)
+      if (allocated(self%plpl_collision)) deallocate(self%plpl_collision)
+      if (allocated(self%pltp_collision)) deallocate(self%pltp_collision)
+      if (allocated(self%collider)) deallocate(self%collider)
+      if (allocated(self%encounter_history)) deallocate(self%encounter_history)
+      if (allocated(self%collision_history)) deallocate(self%collision_history)
+      if (allocated(self%system_history)) deallocate(self%system_history)
+
+      self%t = -1.0_DP            
+      self%GMtot = 0.0_DP         
+      self%ke_orbit = 0.0_DP      
+      self%ke_spin = 0.0_DP       
+      self%pe = 0.0_DP            
+      self%be = 0.0_DP            
+      self%te = 0.0_DP            
+      self%oblpot = 0.0_DP        
+      self%L_orbit = 0.0_DP        
+      self%L_spin = 0.0_DP         
+      self%L_total = 0.0_DP          
+      self%ke_orbit_orig = 0.0_DP 
+      self%ke_spin_orig = 0.0_DP  
+      self%pe_orig = 0.0_DP       
+      self%be_orig = 0.0_DP       
+      self%E_orbit_orig = 0.0_DP   
+      self%GMtot_orig = 0.0_DP    
+      self%L_total_orig = 0.0_DP     
+      self%L_orbit_orig = 0.0_DP   
+      self%L_spin_orig = 0.0_DP    
+      self%L_escape = 0.0_DP       
+      self%GMescape = 0.0_DP      
+      self%E_collisions = 0.0_DP   
+      self%E_untracked = 0.0_DP    
+
+      self%ke_orbit_error    = 0.0_DP
+      self%ke_spin_error     = 0.0_DP
+      self%pe_error          = 0.0_DP
+      self%be_error          = 0.0_DP
+      self%E_orbit_error     = 0.0_DP
+      self%Ecoll_error       = 0.0_DP
+      self%E_untracked_error = 0.0_DP
+      self%te_error          = 0.0_DP
+      self%L_orbit_error     = 0.0_DP
+      self%L_spin_error      = 0.0_DP
+      self%L_escape_error    = 0.0_DP
+      self%L_total_error     = 0.0_DP
+      self%Mtot_error        = 0.0_DP
+      self%Mescape_error     = 0.0_DP
+
+      return
+   end subroutine swiftest_util_dealloc_system
+
+
    module subroutine swiftest_util_dealloc_tp(self)
       !! author: David A. Minton
       !!
-      !! Finalize the swiftest test particle object - deallocates all allocatables
+      !! Finalize the Swiftest test particle object - deallocates all allocatables
       implicit none
       ! Argument
       class(swiftest_tp),  intent(inout) :: self !! Swiftest test particle object
 
-      if (allocated(self%nplenc)) deallocate(self%nplenc)
       if (allocated(self%k_pltp)) deallocate(self%k_pltp)
+      if (allocated(self%nplenc)) deallocate(self%nplenc)
 
       call swiftest_util_dealloc_body(self)
 
@@ -1221,7 +1369,7 @@ contains
    end subroutine swiftest_util_flatten_eucl_pltp
 
 
-   module subroutine swiftest_util_get_energy_momentum_system(self, param)
+   module subroutine swiftest_util_get_energy_and_momentum_system(self, param)
       !! author: David A. Minton
       !!
       !! Compute total nbody_system angular momentum vector and kinetic, potential and total nbody_system energy
@@ -1233,13 +1381,13 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i,j
       real(DP) :: kecb, kespincb
       real(DP), dimension(self%pl%nbody) :: kepl, kespinpl
-      real(DP), dimension(self%pl%nbody) :: Lplorbitx, Lplorbity, Lplorbitz
-      real(DP), dimension(self%pl%nbody) :: Lplspinx, Lplspiny, Lplspinz
+      real(DP), dimension(NDIM,self%pl%nbody) :: Lplorbit
+      real(DP), dimension(NDIM,self%pl%nbody) :: Lplspin
       real(DP), dimension(NDIM) :: Lcborbit, Lcbspin
-      real(DP) :: hx, hy, hz
+      real(DP), dimension(NDIM) :: h
 
       associate(nbody_system => self, pl => self%pl, npl => self%pl%nbody, cb => self%cb)
          nbody_system%L_orbit(:) = 0.0_DP
@@ -1249,28 +1397,21 @@ contains
          nbody_system%ke_spin = 0.0_DP
 
          kepl(:) = 0.0_DP
-         Lplorbitx(:) = 0.0_DP
-         Lplorbity(:) = 0.0_DP
-         Lplorbitz(:) = 0.0_DP
-         Lplspinx(:) = 0.0_DP
-         Lplspiny(:) = 0.0_DP
-         Lplspinz(:) = 0.0_DP
+         Lplorbit(:,:) = 0.0_DP
+         Lplspin(:,:) = 0.0_DP
 
          pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE
 
          nbody_system%GMtot = cb%Gmass + sum(pl%Gmass(1:npl), pl%lmask(1:npl)) 
          kecb = cb%mass * dot_product(cb%vb(:), cb%vb(:))
+         nbody_system%be_cb = -3*cb%Gmass * cb%mass / (5 * cb%radius) 
          Lcborbit(:) = cb%mass * (cb%rb(:) .cross. cb%vb(:))
 
          do concurrent (i = 1:npl, pl%lmask(i))
-            hx = pl%rb(2,i) * pl%vb(3,i) - pl%rb(3,i) * pl%vb(2,i)
-            hy = pl%rb(3,i) * pl%vb(1,i) - pl%rb(1,i) * pl%vb(3,i)
-            hz = pl%rb(1,i) * pl%vb(2,i) - pl%rb(2,i) * pl%vb(1,i)
+            h(:) = pl%rb(:,i) .cross. pl%vb(:,i)
 
             ! Angular momentum from orbit 
-            Lplorbitx(i) = pl%mass(i) * hx
-            Lplorbity(i) = pl%mass(i) * hy
-            Lplorbitz(i) = pl%mass(i) * hz
+            Lplorbit(:,i) = pl%mass(i) * h(:)
 
             ! Kinetic energy from orbit
             kepl(i) = pl%mass(i) * dot_product(pl%vb(:,i), pl%vb(:,i)) 
@@ -1285,22 +1426,26 @@ contains
             do concurrent (i = 1:npl, pl%lmask(i))
                ! Currently we assume that the rotation pole is the 3rd principal axis
                ! Angular momentum from spin
-               Lplspinx(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(1,i)
-               Lplspiny(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(2,i)  
-               Lplspinz(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(3,i)  
+               Lplspin(:,i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(:,i)
 
                ! Kinetic energy from spin
                kespinpl(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * dot_product(pl%rot(:,i), pl%rot(:,i))
             end do
+
+            nbody_system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), pl%lmask(1:npl)))
+
+            do concurrent (j = 1:NDIM)
+               nbody_system%L_spin(j) = Lcbspin(j) + sum(Lplspin(j,1:npl), pl%lmask(1:npl))
+            end do
          else
-            kespincb = 0.0_DP
-            kespinpl(:) = 0.0_DP
+            nbody_system%ke_spin = 0.0_DP
+            nbody_system%L_spin(:) = 0.0_DP
          end if
   
          if (param%lflatten_interactions) then
-            call swiftest_util_get_energy_potential_flat(npl, pl%nplpl, pl%k_plpl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, nbody_system%pe)
+            call swiftest_util_get_potential_energy(npl, pl%nplpl, pl%k_plpl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, nbody_system%pe)
          else
-            call swiftest_util_get_energy_potential_triangular(npl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, nbody_system%pe)
+            call swiftest_util_get_potential_energy(npl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, nbody_system%pe)
          end if
 
          ! Potential energy from the oblateness term
@@ -1310,29 +1455,25 @@ contains
          end if
 
          nbody_system%ke_orbit = 0.5_DP * (kecb + sum(kepl(1:npl), pl%lmask(1:npl)))
-         if (param%lrotation) nbody_system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), pl%lmask(1:npl)))
    
-         nbody_system%L_orbit(1) = Lcborbit(1) + sum(Lplorbitx(1:npl), pl%lmask(1:npl)) 
-         nbody_system%L_orbit(2) = Lcborbit(2) + sum(Lplorbity(1:npl), pl%lmask(1:npl)) 
-         nbody_system%L_orbit(3) = Lcborbit(3) + sum(Lplorbitz(1:npl), pl%lmask(1:npl)) 
-  
-         if (param%lrotation) then
-            nbody_system%L_spin(1) = Lcbspin(1) + sum(Lplspinx(1:npl), pl%lmask(1:npl)) 
-            nbody_system%L_spin(2) = Lcbspin(2) + sum(Lplspiny(1:npl), pl%lmask(1:npl)) 
-            nbody_system%L_spin(3) = Lcbspin(3) + sum(Lplspinz(1:npl), pl%lmask(1:npl)) 
+         do concurrent (j = 1:NDIM)
+            nbody_system%L_orbit(j) = Lcborbit(j) + sum(Lplorbit(j,1:npl), pl%lmask(1:npl)) 
+         end do
+
+         if ((param%lclose)) then
+            nbody_system%be = sum(-3*pl%Gmass(1:npl)*pl%mass(1:npl)/(5*pl%radius(1:npl)), pl%lmask(1:npl)) 
+         else
+            nbody_system%be = 0.0_DP
          end if
-
-         nbody_system%be = sum(-3*pl%Gmass(1:npl)*pl%mass(1:npl)/(5*pl%radius(1:npl)), pl%lmask(1:npl))
-
-         nbody_system%te = nbody_system%ke_orbit + nbody_system%ke_spin + nbody_system%pe + nbody_system%be
+         nbody_system%te = nbody_system%ke_orbit + nbody_system%ke_spin + nbody_system%pe + nbody_system%be 
          nbody_system%L_total(:) = nbody_system%L_orbit(:) + nbody_system%L_spin(:)
       end associate
 
       return
-   end subroutine swiftest_util_get_energy_momentum_system
+   end subroutine swiftest_util_get_energy_and_momentum_system
 
 
-   subroutine swiftest_util_get_energy_potential_flat(npl, nplpl, k_plpl, lmask, GMcb, Gmass, mass, rb, pe)
+   module subroutine swiftest_util_get_potential_energy_flat(npl, nplpl, k_plpl, lmask, GMcb, Gmass, mass, rb, pe)
       !! author: David A. Minton
       !!
       !! Compute total nbody_system potential energy
@@ -1381,10 +1522,10 @@ contains
       pe = sum(pepl(:), lstatpl(:)) + sum(pecb(1:npl), lmask(1:npl))
 
       return
-   end subroutine swiftest_util_get_energy_potential_flat
+   end subroutine swiftest_util_get_potential_energy_flat
 
 
-   subroutine swiftest_util_get_energy_potential_triangular(npl, lmask, GMcb, Gmass, mass, rb, pe)
+   module subroutine swiftest_util_get_potential_energy_triangular(npl, lmask, GMcb, Gmass, mass, rb, pe)
       !! author: David A. Minton
       !!
       !! Compute total nbody_system potential energy
@@ -1427,41 +1568,7 @@ contains
       pe = pe + sum(pecb(1:npl), lmask(1:npl))
 
       return
-   end subroutine swiftest_util_get_energy_potential_triangular
-
-
-   module subroutine swiftest_util_index_array(ind_arr, n)
-      !! author: David A. Minton
-      !!
-      !! Creates or resizes an index array of size n where ind_arr = [1, 2, ... n].
-      !! This subroutine swiftest_assumes that if ind_arr is already allocated, it is a pre-existing index array of a different size.
-      implicit none
-      ! Arguments
-      integer(I4B), dimension(:), allocatable, intent(inout) :: ind_arr !! Index array. Input is a pre-existing index array where n /= size(ind_arr). Output is a new index array ind_arr = [1, 2, ... n]
-      integer(I4B),                            intent(in)    :: n       !! The new size of the index array
-      ! Internals
-      integer(I4B) :: nold, i
-      integer(I4B), dimension(:), allocatable :: itmp
-
-      if (allocated(ind_arr)) then
-         nold = size(ind_arr)
-         if (nold == n) return ! Nothing to do, so go home
-      else
-         nold = 0
-      end if
-
-      allocate(itmp(n))
-      if (n >= nold) then
-         if (nold > 0) itmp(1:nold) = ind_arr(1:nold)
-         itmp(nold+1:n) = [(i, i = nold + 1, n)]
-         call move_alloc(itmp, ind_arr)
-      else
-         itmp(1:n) = ind_arr(1:n)
-         call move_alloc(itmp, ind_arr)
-      end if
-
-      return
-   end subroutine swiftest_util_index_array
+   end subroutine swiftest_util_get_potential_energy_triangular
 
 
    module subroutine swiftest_util_get_idvalues_system(self, idvals)
@@ -1502,7 +1609,7 @@ contains
       !!
       !! Gets the id values in a storage object, regardless of whether it is encounter of collision
       ! Argument
-      class(swiftest_storage(*)),              intent(in)  :: self   !! Swiftest storage object
+      class(swiftest_storage),              intent(in)  :: self   !! Swiftest storage object
       integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values in all snapshots
       real(DP),     dimension(:), allocatable, intent(out) :: tvals  !! Array of all time values in all snapshots
       ! Internals
@@ -1554,13 +1661,47 @@ contains
    end subroutine swiftest_util_get_vals_storage
 
 
+   module subroutine swiftest_util_index_array(ind_arr, n)
+      !! author: David A. Minton
+      !!
+      !! Creates or resizes an index array of size n where ind_arr = [1, 2, ... n].
+      !! This subroutine swiftest_assumes that if ind_arr is already allocated, it is a pre-existing index array of a different size.
+      implicit none
+      ! Arguments
+      integer(I4B), dimension(:), allocatable, intent(inout) :: ind_arr !! Index array. Input is a pre-existing index array where n /= size(ind_arr). Output is a new index array ind_arr = [1, 2, ... n]
+      integer(I4B),                            intent(in)    :: n       !! The new size of the index array
+      ! Internals
+      integer(I4B) :: nold, i
+      integer(I4B), dimension(:), allocatable :: itmp
+
+      if (allocated(ind_arr)) then
+         nold = size(ind_arr)
+         if (nold == n) return ! Nothing to do, so go home
+      else
+         nold = 0
+      end if
+
+      allocate(itmp(n))
+      if (n >= nold) then
+         if (nold > 0) itmp(1:nold) = ind_arr(1:nold)
+         itmp(nold+1:n) = [(i, i = nold + 1, n)]
+         call move_alloc(itmp, ind_arr)
+      else
+         itmp(1:n) = ind_arr(1:n)
+         call move_alloc(itmp, ind_arr)
+      end if
+
+      return
+   end subroutine swiftest_util_index_array
+
+
    module subroutine swiftest_util_index_map_storage(self)
       !! author: David A. Minton
       !!
       !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
       implicit none
       ! Arguments
-      class(swiftest_storage(*)), intent(inout) :: self  !! Swiftest storage object
+      class(swiftest_storage), intent(inout) :: self  !! Swiftest storage object
       ! Internals
       integer(I4B), dimension(:), allocatable :: idvals
       real(DP), dimension(:), allocatable :: tvals
@@ -1576,7 +1717,22 @@ contains
       return
    end subroutine swiftest_util_index_map_storage
 
-   subroutine swiftest_util_peri(n,m, r, v, atp, q, isperi)
+
+   module subroutine swiftest_util_make_impactors_pl(self, idx)
+      !! author: David A. Minton
+      !!
+      !! This is a simple wrapper function that is used to make a type-bound procedure using a subroutine whose interface is in the collision module, which must be defined first
+      implicit none
+      class(swiftest_pl),         intent(inout) :: self  !! Massive body object
+      integer(I4B), dimension(:), intent(in)    :: idx !! Array holding the indices of the two bodies involved in the collision)
+
+      call collision_resolve_make_impactors_pl(self, idx)
+
+      return
+   end subroutine swiftest_util_make_impactors_pl
+
+
+   module subroutine swiftest_util_peri(n,m, r, v, atp, q, isperi)
       !! author: David A. Minton
       !!
       !! Helper function that does the pericenter passage computation for any body
@@ -1632,6 +1788,8 @@ contains
       ! Internals
       integer(I4B) :: i
 
+      if (self%nbody == 0) return
+
       select type(self)
       class is (swiftest_pl)
          if (self%lfirst) self%isperi(:) = 0
@@ -1664,7 +1822,7 @@ contains
       class(encounter_list), allocatable :: plplenc_old
       logical :: lencounter
 
-      associate(pl => self, tp => nbody_system%tp, pl_adds => nbody_system%pl_adds, nc => param%system_history%nc)
+      associate(pl => self, tp => nbody_system%tp, cb => nbody_system%cb, pl_adds => nbody_system%pl_adds)
 
          npl = pl%nbody
          nadd = pl_adds%nbody
@@ -1685,19 +1843,14 @@ contains
             deallocate(lmask)
          end if
 
-         ! Store the original plplenc list so we don't remove any of the original encounters
-         nenc_old = nbody_system%plpl_encounter%nenc
-         if (nenc_old > 0) then 
-            allocate(plplenc_old, source=nbody_system%plpl_encounter)
-            call plplenc_old%copy(nbody_system%plpl_encounter)
-         end if
-
          ! Add in any new bodies
          if (nadd > 0) then
             ! Append the adds to the main pl object
             call pl%append(pl_adds, lsource_mask=[(.true., i=1, nadd)])
             npl = pl%nbody
          end if
+
+         if (npl == 0) return
 
          ! Reset all of the status flags for this body
          pl%status(1:npl) = ACTIVE
@@ -1721,87 +1874,97 @@ contains
          call pl%sort("mass", ascending=.false.)
          call pl%flatten(param)
 
+         call pl%set_rhill(cb)
+
          ! Reset the kinship trackers
          call pl%reset_kinship([(i, i=1, npl)])
 
-         ! Re-build the encounter list
-         ! Be sure to get the level info if this is a SyMBA nbody_system
-         select type(nbody_system)
-         class is (symba_nbody_system)
-         select type(pl)
-         class is (symba_pl)
-         select type(tp)
-         class is (symba_tp)
-            lencounter = pl%encounter_check(param, nbody_system, param%dt, nbody_system%irec) 
-            if (tp%nbody > 0) then
-               lencounter = tp%encounter_check(param, nbody_system, param%dt, nbody_system%irec)
+         if (allocated(nbody_system%plpl_encounter)) then
+            ! Store the original plplenc list so we don't remove any of the original encounters
+            nenc_old = nbody_system%plpl_encounter%nenc
+            if (nenc_old > 0) then 
+               allocate(plplenc_old, source=nbody_system%plpl_encounter)
+               call plplenc_old%copy(nbody_system%plpl_encounter)
             end if
-         end select
-         end select
-         end select
 
-
-         ! Re-index the encounter list as the index values may have changed
-         if (nenc_old > 0) then
-            nencmin = min(nbody_system%plpl_encounter%nenc, plplenc_old%nenc) 
-            nbody_system%plpl_encounter%nenc = nencmin
-            do k = 1, nencmin
-               idnew1 = nbody_system%plpl_encounter%id1(k)
-               idnew2 = nbody_system%plpl_encounter%id2(k)
-               idold1 = plplenc_old%id1(k)
-               idold2 = plplenc_old%id2(k)
-               if ((idnew1 == idold1) .and. (idnew2 == idold2)) then
-                  ! This is an encounter we already know about, so save the old information
-                  nbody_system%plpl_encounter%lvdotr(k) = plplenc_old%lvdotr(k) 
-                  nbody_system%plpl_encounter%lclosest(k) = plplenc_old%lclosest(k) 
-                  nbody_system%plpl_encounter%status(k) = plplenc_old%status(k) 
-                  nbody_system%plpl_encounter%r1(:,k) = plplenc_old%r1(:,k)
-                  nbody_system%plpl_encounter%r2(:,k) = plplenc_old%r2(:,k)
-                  nbody_system%plpl_encounter%v1(:,k) = plplenc_old%v1(:,k)
-                  nbody_system%plpl_encounter%v2(:,k) = plplenc_old%v2(:,k)
-                  nbody_system%plpl_encounter%tcollision(k) = plplenc_old%tcollision(k)
-                  nbody_system%plpl_encounter%level(k) = plplenc_old%level(k)
-               else if (((idnew1 == idold2) .and. (idnew2 == idold1))) then
-                  ! This is an encounter we already know about, but with the order reversed, so save the old information
-                  nbody_system%plpl_encounter%lvdotr(k) = plplenc_old%lvdotr(k) 
-                  nbody_system%plpl_encounter%lclosest(k) = plplenc_old%lclosest(k) 
-                  nbody_system%plpl_encounter%status(k) = plplenc_old%status(k) 
-                  nbody_system%plpl_encounter%r1(:,k) = plplenc_old%r2(:,k)
-                  nbody_system%plpl_encounter%r2(:,k) = plplenc_old%r1(:,k)
-                  nbody_system%plpl_encounter%v1(:,k) = plplenc_old%v2(:,k)
-                  nbody_system%plpl_encounter%v2(:,k) = plplenc_old%v1(:,k)
-                  nbody_system%plpl_encounter%tcollision(k) = plplenc_old%tcollision(k)
-                  nbody_system%plpl_encounter%level(k) = plplenc_old%level(k)
+            ! Re-build the encounter list
+            ! Be sure to get the level info if this is a SyMBA nbody_system
+            select type(nbody_system)
+            class is (symba_nbody_system)
+            select type(pl)
+            class is (symba_pl)
+            select type(tp)
+            class is (symba_tp)
+               lencounter = pl%encounter_check(param, nbody_system, param%dt, nbody_system%irec) 
+               if (tp%nbody > 0) then
+                  lencounter = tp%encounter_check(param, nbody_system, param%dt, nbody_system%irec)
                end if
-               nbody_system%plpl_encounter%index1(k) = findloc(pl%id(1:npl), nbody_system%plpl_encounter%id1(k), dim=1)
-               nbody_system%plpl_encounter%index2(k) = findloc(pl%id(1:npl), nbody_system%plpl_encounter%id2(k), dim=1)
-            end do
-            if (allocated(lmask)) deallocate(lmask)
-            allocate(lmask(nencmin))
-            nenc_old = nencmin
-            if (any(nbody_system%plpl_encounter%index1(1:nencmin) == 0) .or. any(nbody_system%plpl_encounter%index2(1:nencmin) == 0)) then
-               lmask(:) = nbody_system%plpl_encounter%index1(1:nencmin) /= 0 .and. nbody_system%plpl_encounter%index2(1:nencmin) /= 0
-            else
-               return
-            end if
-            nencmin = count(lmask(:))
-            nbody_system%plpl_encounter%nenc = nencmin
-            if (nencmin > 0) then
-               nbody_system%plpl_encounter%index1(1:nencmin) = pack(nbody_system%plpl_encounter%index1(1:nenc_old), lmask(1:nenc_old))
-               nbody_system%plpl_encounter%index2(1:nencmin) = pack(nbody_system%plpl_encounter%index2(1:nenc_old), lmask(1:nenc_old))
-               nbody_system%plpl_encounter%id1(1:nencmin) = pack(nbody_system%plpl_encounter%id1(1:nenc_old), lmask(1:nenc_old))
-               nbody_system%plpl_encounter%id2(1:nencmin) = pack(nbody_system%plpl_encounter%id2(1:nenc_old), lmask(1:nenc_old))
-               nbody_system%plpl_encounter%lvdotr(1:nencmin) = pack(nbody_system%plpl_encounter%lvdotr(1:nenc_old), lmask(1:nenc_old))
-               nbody_system%plpl_encounter%lclosest(1:nencmin) = pack(nbody_system%plpl_encounter%lclosest(1:nenc_old), lmask(1:nenc_old))
-               nbody_system%plpl_encounter%status(1:nencmin) = pack(nbody_system%plpl_encounter%status(1:nenc_old), lmask(1:nenc_old))
-               nbody_system%plpl_encounter%tcollision(1:nencmin) = pack(nbody_system%plpl_encounter%tcollision(1:nenc_old), lmask(1:nenc_old))
-               nbody_system%plpl_encounter%level(1:nencmin) = pack(nbody_system%plpl_encounter%level(1:nenc_old), lmask(1:nenc_old))
-               do i = 1, NDIM
-                  nbody_system%plpl_encounter%r1(i, 1:nencmin) = pack(nbody_system%plpl_encounter%r1(i, 1:nenc_old), lmask(1:nenc_old))
-                  nbody_system%plpl_encounter%r2(i, 1:nencmin) = pack(nbody_system%plpl_encounter%r2(i, 1:nenc_old), lmask(1:nenc_old))
-                  nbody_system%plpl_encounter%v1(i, 1:nencmin) = pack(nbody_system%plpl_encounter%v1(i, 1:nenc_old), lmask(1:nenc_old))
-                  nbody_system%plpl_encounter%v2(i, 1:nencmin) = pack(nbody_system%plpl_encounter%v2(i, 1:nenc_old), lmask(1:nenc_old))
+            end select
+            end select
+            end select
+
+            ! Re-index the encounter list as the index values may have changed
+            if (nenc_old > 0) then
+               nencmin = min(nbody_system%plpl_encounter%nenc, plplenc_old%nenc) 
+               nbody_system%plpl_encounter%nenc = nencmin
+               do k = 1, nencmin
+                  idnew1 = nbody_system%plpl_encounter%id1(k)
+                  idnew2 = nbody_system%plpl_encounter%id2(k)
+                  idold1 = plplenc_old%id1(k)
+                  idold2 = plplenc_old%id2(k)
+                  if ((idnew1 == idold1) .and. (idnew2 == idold2)) then
+                     ! This is an encounter we already know about, so save the old information
+                     nbody_system%plpl_encounter%lvdotr(k) = plplenc_old%lvdotr(k) 
+                     nbody_system%plpl_encounter%lclosest(k) = plplenc_old%lclosest(k) 
+                     nbody_system%plpl_encounter%status(k) = plplenc_old%status(k) 
+                     nbody_system%plpl_encounter%r1(:,k) = plplenc_old%r1(:,k)
+                     nbody_system%plpl_encounter%r2(:,k) = plplenc_old%r2(:,k)
+                     nbody_system%plpl_encounter%v1(:,k) = plplenc_old%v1(:,k)
+                     nbody_system%plpl_encounter%v2(:,k) = plplenc_old%v2(:,k)
+                     nbody_system%plpl_encounter%tcollision(k) = plplenc_old%tcollision(k)
+                     nbody_system%plpl_encounter%level(k) = plplenc_old%level(k)
+                  else if (((idnew1 == idold2) .and. (idnew2 == idold1))) then
+                     ! This is an encounter we already know about, but with the order reversed, so save the old information
+                     nbody_system%plpl_encounter%lvdotr(k) = plplenc_old%lvdotr(k) 
+                     nbody_system%plpl_encounter%lclosest(k) = plplenc_old%lclosest(k) 
+                     nbody_system%plpl_encounter%status(k) = plplenc_old%status(k) 
+                     nbody_system%plpl_encounter%r1(:,k) = plplenc_old%r2(:,k)
+                     nbody_system%plpl_encounter%r2(:,k) = plplenc_old%r1(:,k)
+                     nbody_system%plpl_encounter%v1(:,k) = plplenc_old%v2(:,k)
+                     nbody_system%plpl_encounter%v2(:,k) = plplenc_old%v1(:,k)
+                     nbody_system%plpl_encounter%tcollision(k) = plplenc_old%tcollision(k)
+                     nbody_system%plpl_encounter%level(k) = plplenc_old%level(k)
+                  end if
+                  nbody_system%plpl_encounter%index1(k) = findloc(pl%id(1:npl), nbody_system%plpl_encounter%id1(k), dim=1)
+                  nbody_system%plpl_encounter%index2(k) = findloc(pl%id(1:npl), nbody_system%plpl_encounter%id2(k), dim=1)
                end do
+               if (allocated(lmask)) deallocate(lmask)
+               allocate(lmask(nencmin))
+               nenc_old = nencmin
+               if (any(nbody_system%plpl_encounter%index1(1:nencmin) == 0) .or. any(nbody_system%plpl_encounter%index2(1:nencmin) == 0)) then
+                  lmask(:) = nbody_system%plpl_encounter%index1(1:nencmin) /= 0 .and. nbody_system%plpl_encounter%index2(1:nencmin) /= 0
+               else
+                  return
+               end if
+               nencmin = count(lmask(:))
+               nbody_system%plpl_encounter%nenc = nencmin
+               if (nencmin > 0) then
+                  nbody_system%plpl_encounter%index1(1:nencmin) = pack(nbody_system%plpl_encounter%index1(1:nenc_old), lmask(1:nenc_old))
+                  nbody_system%plpl_encounter%index2(1:nencmin) = pack(nbody_system%plpl_encounter%index2(1:nenc_old), lmask(1:nenc_old))
+                  nbody_system%plpl_encounter%id1(1:nencmin) = pack(nbody_system%plpl_encounter%id1(1:nenc_old), lmask(1:nenc_old))
+                  nbody_system%plpl_encounter%id2(1:nencmin) = pack(nbody_system%plpl_encounter%id2(1:nenc_old), lmask(1:nenc_old))
+                  nbody_system%plpl_encounter%lvdotr(1:nencmin) = pack(nbody_system%plpl_encounter%lvdotr(1:nenc_old), lmask(1:nenc_old))
+                  nbody_system%plpl_encounter%lclosest(1:nencmin) = pack(nbody_system%plpl_encounter%lclosest(1:nenc_old), lmask(1:nenc_old))
+                  nbody_system%plpl_encounter%status(1:nencmin) = pack(nbody_system%plpl_encounter%status(1:nenc_old), lmask(1:nenc_old))
+                  nbody_system%plpl_encounter%tcollision(1:nencmin) = pack(nbody_system%plpl_encounter%tcollision(1:nenc_old), lmask(1:nenc_old))
+                  nbody_system%plpl_encounter%level(1:nencmin) = pack(nbody_system%plpl_encounter%level(1:nenc_old), lmask(1:nenc_old))
+                  do i = 1, NDIM
+                     nbody_system%plpl_encounter%r1(i, 1:nencmin) = pack(nbody_system%plpl_encounter%r1(i, 1:nenc_old), lmask(1:nenc_old))
+                     nbody_system%plpl_encounter%r2(i, 1:nencmin) = pack(nbody_system%plpl_encounter%r2(i, 1:nenc_old), lmask(1:nenc_old))
+                     nbody_system%plpl_encounter%v1(i, 1:nencmin) = pack(nbody_system%plpl_encounter%v1(i, 1:nenc_old), lmask(1:nenc_old))
+                     nbody_system%plpl_encounter%v2(i, 1:nencmin) = pack(nbody_system%plpl_encounter%v2(i, 1:nenc_old), lmask(1:nenc_old))
+                  end do
+               end if
             end if
          end if
       end associate
@@ -1872,7 +2035,6 @@ contains
       ! Internals
       integer(I4B) :: i, j
 
-      
       self%kin(idx(:))%parent = idx(:)
       self%kin(idx(:))%nchild = 0
       do j = 1, size(idx(:))
@@ -2411,16 +2573,20 @@ contains
       fmtlabel = "(A" // trim(adjustl(lenstr)) // ")"
 
       if (present(name)) then
-         write(self%name, fmtlabel) trim(adjustl(name))
+         write(self%name, fmtlabel) name
+         call swiftest_io_remove_nul_char(self%name)
       end if
       if (present(particle_type)) then
-         write(self%particle_type, fmtlabel) trim(adjustl(particle_type))
+         write(self%particle_type, fmtlabel) particle_type
+         call swiftest_io_remove_nul_char(self%particle_type)
       end if 
       if (present(status)) then
-         write(self%status, fmtlabel) trim(adjustl(status))
+         write(self%status, fmtlabel) status
+         call swiftest_io_remove_nul_char(self%status)
       end if
       if (present(origin_type)) then
-         write(self%origin_type, fmtlabel) trim(adjustl(origin_type))
+         write(self%origin_type, fmtlabel) origin_type
+         call swiftest_io_remove_nul_char(self%origin_type)
       end if
       if (present(origin_time)) then
          self%origin_time = origin_time
@@ -2497,6 +2663,7 @@ contains
       class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
 
       if (self%nbody == 0) return
+      if (cb%Gmass <= tiny(1.0_DP)) return
 
       call self%xv2el(cb) 
       where(self%a(1:self%nbody) > 0.0_DP)
@@ -2538,13 +2705,6 @@ contains
       ! Arguments
       class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system !! Swiftest nbody_system object
       class(swiftest_parameters),                intent(inout) :: param  !! Current run configuration parameters
-      ! Internals
-      type(encounter_storage)  :: encounter_history
-      type(collision_storage)  :: collision_history
-
-      allocate(swiftest_storage(param%dump_cadence) :: param%system_history)
-      allocate(swiftest_netcdf_parameters :: param%system_history%nc)
-      call param%system_history%reset()
 
       select case(param%integrator)
       case (INT_BS)
@@ -2599,51 +2759,18 @@ contains
             allocate(symba_list_plpl :: nbody_system%plpl_encounter)
             allocate(collision_list_plpl :: nbody_system%plpl_collision)
 
-            if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
-               allocate(encounter_netcdf_parameters :: encounter_history%nc)
-               call encounter_history%reset()
-               select type(nc => encounter_history%nc)
-               class is (encounter_netcdf_parameters)
-                  nc%file_name = ENCOUNTER_OUTFILE
-                  if (.not.param%lrestart) then
-                     call nc%initialize(param)
-                     call nc%close()
-                  end if
-               end select
-               allocate(nbody_system%encounter_history, source=encounter_history)
-            end if
-            
-            allocate(collision_netcdf_parameters :: collision_history%nc)
-            call collision_history%reset()
-            select type(nc => collision_history%nc)
-            class is (collision_netcdf_parameters)
-               nc%file_name = COLLISION_OUTFILE
-               if (.not.param%lrestart) then
-                  call nc%initialize(param)
-                  call nc%close()
-               end if
-            end select
-            allocate(nbody_system%collision_history, source=collision_history)
-
          end select
       case (INT_RINGMOONS)
          write(*,*) 'RINGMOONS-SyMBA integrator not yet enabled'
       case default
          write(*,*) 'Unkown integrator',param%integrator
-         call util_exit(FAILURE)
+         call base_util_exit(FAILURE)
       end select
 
       allocate(swiftest_particle_info :: nbody_system%cb%info)
 
-      select case(param%collision_model)
-      case("MERGE")
-         allocate(collision_basic :: nbody_system%collider)
-      case("BOUNCE")
-         allocate(collision_bounce :: nbody_system%collider)
-      case("FRAGGLE")
-         allocate(collision_fraggle :: nbody_system%collider)
-      end select
-      call nbody_system%collider%setup(nbody_system)
+
+      nbody_system%t = param%tstart
 
 
       return
@@ -2693,8 +2820,15 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody_system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
 
-      associate(nbody_system => self, cb => self%cb, pl => self%pl, tp => self%tp, nc => param%system_history%nc)
+      if (allocated(self%system_history)) then
+         call self%system_history%dealloc()
+         deallocate(self%system_history)
+      end if
+      allocate(swiftest_storage :: self%system_history)
+      call self%system_history%setup(param%dump_cadence)
+      allocate(swiftest_netcdf_parameters :: self%system_history%nc)
 
+      associate(nbody_system => self, cb => self%cb, pl => self%pl, tp => self%tp, nc => self%system_history%nc)
          call nbody_system%read_in(param)
          call nbody_system%validate_ids(param)
          call nbody_system%set_msys()
@@ -2717,7 +2851,6 @@ contains
          nc%file_name = param%outfile
          call nbody_system%write_frame(param) 
          call nc%close()
-
       end associate
 
       return
@@ -2908,7 +3041,7 @@ contains
 
       return
    end subroutine swiftest_util_setup_tp
-
+ 
 
    module subroutine swiftest_util_snapshot_system(self, param, nbody_system, t, arg)
       !! author: David A. Minton
@@ -2916,19 +3049,89 @@ contains
       !! Takes a snapshot of the nbody_system for later file storage
       implicit none
       ! Arguments
-      class(swiftest_storage(*)),   intent(inout) :: self   !! Swiftest storage object
+      class(swiftest_storage),      intent(inout) :: self   !! Swiftest storage object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
       class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object to store
       real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from nbody_system time
       character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in collision snapshots)
+      ! Internals
+      class(swiftest_nbody_system), allocatable :: snapshot
 
-      self%iframe = self%iframe + 1
+      ! To allow for runs to be restarted in a bit-identical way, we'll need to run the same coordinate conversion routines we would run upon restarting
+      select type(pl => nbody_system%pl)
+      class is (whm_pl)
+         call pl%h2j(nbody_system%cb)
+      class is (helio_pl)
+         call pl%vh2vb(nbody_system%cb)
+      end select
+
+      select type(tp => nbody_system%tp)
+      class is (helio_tp)
+      select type(cb => nbody_system%cb)
+      class is (helio_cb)
+         call tp%vh2vb(vbcb = -cb%ptbeg)
+      end select
+      end select
+
+      call nbody_system%pl%set_rhill(nbody_system%cb)
+
+      ! Take a minimal snapshot wihout all of the extra storage objects
+      allocate(snapshot, mold=nbody_system)
+      allocate(snapshot%cb, source=nbody_system%cb )
+      allocate(snapshot%pl, source=nbody_system%pl )
+      allocate(snapshot%tp, source=nbody_system%tp )
+      allocate(snapshot%system_history)
+      allocate(snapshot%system_history%nc, source=nbody_system%system_history%nc)
+      snapshot%system_history%nc%lfile_is_open = .true.
+
+      snapshot%t                 = nbody_system%t
+      snapshot%GMtot             = nbody_system%GMtot
+      snapshot%ke_orbit          = nbody_system%ke_orbit
+      snapshot%ke_spin           = nbody_system%ke_spin
+      snapshot%pe                = nbody_system%pe
+      snapshot%be                = nbody_system%be
+      snapshot%te                = nbody_system%te
+      snapshot%oblpot            = nbody_system%oblpot
+      snapshot%L_orbit           = nbody_system%L_orbit
+      snapshot%L_spin            = nbody_system%L_spin
+      snapshot%L_total           = nbody_system%L_total
+      snapshot%ke_orbit_orig     = nbody_system%ke_orbit_orig
+      snapshot%ke_spin_orig      = nbody_system%ke_spin_orig
+      snapshot%pe_orig           = nbody_system%pe_orig
+      snapshot%be_orig           = nbody_system%be_orig
+      snapshot%E_orbit_orig      = nbody_system%E_orbit_orig
+      snapshot%GMtot_orig        = nbody_system%GMtot_orig
+      snapshot%L_total_orig      = nbody_system%L_total_orig
+      snapshot%L_orbit_orig      = nbody_system%L_orbit_orig
+      snapshot%L_spin_orig       = nbody_system%L_spin_orig
+      snapshot%L_escape          = nbody_system%L_escape
+      snapshot%GMescape          = nbody_system%GMescape
+      snapshot%E_collisions      = nbody_system%E_collisions
+      snapshot%E_untracked       = nbody_system%E_untracked
+      snapshot%ke_orbit_error    = nbody_system%ke_orbit_error   
+      snapshot%ke_spin_error     = nbody_system%ke_spin_error    
+      snapshot%pe_error          = nbody_system%pe_error         
+      snapshot%be_error          = nbody_system%be_error         
+      snapshot%E_orbit_error     = nbody_system%E_orbit_error    
+      snapshot%Ecoll_error       = nbody_system%Ecoll_error      
+      snapshot%E_untracked_error = nbody_system%E_untracked_error
+      snapshot%te_error          = nbody_system%te_error         
+      snapshot%L_orbit_error     = nbody_system%L_orbit_error    
+      snapshot%L_spin_error      = nbody_system%L_spin_error     
+      snapshot%L_escape_error    = nbody_system%L_escape_error   
+      snapshot%L_total_error     = nbody_system%L_total_error    
+      snapshot%Mtot_error        = nbody_system%Mtot_error       
+      snapshot%Mescape_error     = nbody_system%Mescape_error    
+      snapshot%lbeg              = nbody_system%lbeg
+
+
+      ! Store a snapshot of the nbody_system for posterity
+      call base_util_snapshot_save(self, snapshot)
       self%nt = self%iframe
-      self%frame(self%iframe) = nbody_system ! Store a snapshot of the nbody_system for posterity
       self%nid = self%nid + 1 ! Central body
       if (allocated(nbody_system%pl)) self%nid = self%nid + nbody_system%pl%nbody
       if (allocated(nbody_system%tp)) self%nid = self%nid + nbody_system%tp%nbody
-
+       
       return
    end subroutine swiftest_util_snapshot_system
 
@@ -4518,7 +4721,7 @@ contains
       !! author: David A. Minton
       !!
       !! Validate massive body and test particle ids
-      !! subroutine swiftest_causes program to exit with error if any ids are not unique
+      !! If non-unique values detected, it will replace them
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: util_valid.f90
       implicit none
@@ -4526,11 +4729,14 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
       ! Internals
-      integer(I4B)                  :: i
-      integer(I4B), dimension(:), allocatable :: idarr
+      integer(I4B) :: i, nid
+      integer(I4B), dimension(:), allocatable :: idarr, unique_idarr, idmap
 
-      associate(cb => self%cb, pl => self%pl, npl => self%pl%nbody, tp => self%tp, ntp => self%tp%nbody)
-         allocate(idarr(1+npl+ntp))
+      associate(cb => self%cb, pl => self%pl, npl => self%pl%nbody, tp => self%tp, ntp => self%tp%nbody, maxid => self%maxid)
+         nid = 1 + npl+ ntp
+         allocate(idarr(nid))
+         ! Central body should always be id=0
+         cb%id = 0
          idarr(1) = cb%id
          do i = 1, npl
             idarr(1+i) = pl%id(i)
@@ -4538,15 +4744,25 @@ contains
          do i = 1, ntp
             idarr(1+npl+i) = tp%id(i)
          end do
-         call swiftest_util_sort(idarr)
-         do i = 1, npl + ntp 
-            if (idarr(i) == idarr(i+1)) then
-               write(*, *) "Swiftest error:"
-               write(*, *) "   more than one body/particle has id = ", idarr(i)
-               call util_exit(FAILURE)
+         maxid = maxval(idarr)
+
+         ! Check to see if the ids are unique
+         call swiftest_util_unique(idarr, unique_idarr, idmap)
+         if (size(unique_idarr) == nid) return ! All id values are unique
+
+         ! Fix any duplicate id values and update the maxid
+         call swiftest_util_sort(idmap)
+         do i = 2, size(idmap)
+            if (idmap(i) == idmap(i-1)) then
+               maxid = maxid + 1
+               if (i < 1 + npl) then
+                  pl%id(i - 1) = maxid 
+               else
+                  tp%id(i - 1 - npl) = maxid
+               end if
             end if
          end do
-         param%maxid = max(param%maxid, maxval(idarr))
+
       end associate
 
       return

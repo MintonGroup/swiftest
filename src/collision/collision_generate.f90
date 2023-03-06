@@ -45,31 +45,32 @@ contains
       class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       real(DP),                 intent(in)    :: t            !! The time of the collision
       ! Internals
-      integer(I4B) :: i,j,nfrag
-      real(DP), dimension(NDIM) :: vcom, rnorm
+      integer(I4B) :: i,j,nimp
+      real(DP), dimension(NDIM) :: rcom, vcom, rnorm
+      logical, dimension(:), allocatable :: lmask
 
       select type(nbody_system)
       class is (swiftest_nbody_system)
       select type (pl => nbody_system%pl)
       class is (swiftest_pl)
          associate(impactors => nbody_system%collider%impactors, fragments => nbody_system%collider%fragments)
+            allocate(lmask, mold=pl%lmask)
+            lmask(:) = .false.
+            lmask(impactors%id(:)) = .true.
             select case (impactors%regime) 
             case (COLLRESOLVE_REGIME_DISRUPTION, COLLRESOLVE_REGIME_SUPERCATASTROPHIC)
 
                ! Manually save the before/after snapshots because this case doesn't use the mergeaddsub procedure
                select type(before => self%before)
                class is (swiftest_nbody_system)
-                  allocate(before%pl, source=pl) 
+                  allocate(before%pl, mold=pl) 
+                  call pl%spill(before%pl, lmask, ldestructive=.false.)
                end select
 
-               nfrag = size(impactors%id(:))
-               do i = 1, nfrag
+               nimp = size(impactors%id(:))
+               do i = 1, nimp
                   j = impactors%id(i)
-                  vcom(:) = pl%vb(:,j) - impactors%vbcom(:)
-                  rnorm(:) = .unit. (impactors%rb(:,2) - impactors%rb(:,1))
-                  ! Do the reflection
-                  vcom(:) = vcom(:) - 2 * dot_product(vcom(:),rnorm(:)) * rnorm(:)
-                  pl%vb(:,j) = impactors%vbcom(:) + vcom(:)
+                  call collision_util_bounce_one(pl%rb(:,j),pl%vb(:,j),impactors%rbcom(:),impactors%vbcom(:),pl%radius(j))
                   self%status = DISRUPTED
                   pl%status(j) = ACTIVE
                   pl%ldiscard(j) = .false.
@@ -78,7 +79,8 @@ contains
 
                select type(after => self%after)
                class is (swiftest_nbody_system)
-                  allocate(after%pl, source=pl) 
+                  allocate(after%pl, mold=pl) 
+                  call pl%spill(after%pl, lmask, ldestructive=.false.)
                end select
 
             case (COLLRESOLVE_REGIME_HIT_AND_RUN)
@@ -87,7 +89,7 @@ contains
                call self%merge(nbody_system, param, t) ! Use the default collision model, which is merge
             case default 
                call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Error in swiftest_collision, unrecognized collision regime")
-               call util_exit(FAILURE)
+               call base_util_exit(FAILURE)
             end select
             end associate
       end select
@@ -96,7 +98,7 @@ contains
       return
    end subroutine collision_generate_bounce
 
-
+   
    module subroutine collision_generate_hitandrun(self, nbody_system, param, t) 
       !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
@@ -112,12 +114,18 @@ contains
       integer(I4B)                            :: status           !! Status flag assigned to this outcome
       ! Internals
       character(len=STRMAX) :: message
+      logical, dimension(:), allocatable :: lmask
 
       select type(nbody_system)
       class is (swiftest_nbody_system)
       select type(pl => nbody_system%pl)
       class is (swiftest_pl)
          associate(impactors => self%impactors)
+
+            allocate(lmask, mold=pl%lmask)
+            lmask(:) = .false.
+            lmask(impactors%id(:)) = .true.
+
             message = "Hit and run between"
             call collision_io_collider_message(nbody_system%pl, impactors%id, message)
             call swiftest_io_log_one_message(COLLISION_LOG_OUT, trim(adjustl(message)))
@@ -125,7 +133,8 @@ contains
             ! Manually save the before/after snapshots because this case doesn't use the mergeaddsub procedure
             select type(before => self%before)
             class is (swiftest_nbody_system)
-               allocate(before%pl, source=pl) 
+               allocate(before%pl, mold=pl) 
+               call pl%spill(before%pl, lmask, ldestructive=.false.)
             end select
 
             status = HIT_AND_RUN_PURE
@@ -135,7 +144,8 @@ contains
 
             select type(after => self%after)
             class is (swiftest_nbody_system)
-               allocate(after%pl, source=pl) 
+               allocate(after%pl, mold=pl) 
+               call pl%spill(after%pl, lmask, ldestructive=.false.)
             end select
 
          end associate
@@ -162,13 +172,13 @@ contains
       real(DP),                 intent(in)    :: t            !! The time of the collision
       ! Internals
       integer(I4B)                              :: i, j, k, ibiggest
-      real(DP), dimension(NDIM)                 :: L_spin_new
-      real(DP)                                  :: volume, G
+      real(DP), dimension(NDIM)                 :: L_spin_new, L_residual
+      real(DP)                                  :: volume
       character(len=STRMAX) :: message
 
       select type(nbody_system)
       class is (swiftest_nbody_system)
-         associate(impactors => nbody_system%collider%impactors)
+         associate(impactors => self%impactors)
             message = "Merging"
             call collision_io_collider_message(nbody_system%pl, impactors%id, message)
             call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
@@ -180,28 +190,28 @@ contains
 
                ! Generate the merged body as a single fragment
                call self%setup_fragments(1)
-               associate(fragments => nbody_system%collider%fragments)
+               associate(fragments => self%fragments)
 
                   ! Calculate the initial energy of the nbody_system without the collisional family
-                  call self%get_energy_and_momentum(nbody_system, param, lbefore=.true.)
+                  call self%get_energy_and_momentum(nbody_system, param, phase="before")
                
                   ! The new body's metadata will be taken from the largest of the two impactor bodies, so we need 
                   ! its index in the main pl structure
                   ibiggest = impactors%id(maxloc(pl%Gmass(impactors%id(:)), dim=1))
                   fragments%id(1) = pl%id(ibiggest)
+                  if (allocated(fragments%info)) deallocate(fragments%info)
                   allocate(fragments%info, source=pl%info(ibiggest:ibiggest))
 
                   ! Compute the physical properties of the new body after the merge.
                   volume = 4._DP / 3._DP * PI * sum(impactors%radius(:)**3)
-                  G = nbody_system%collider%impactors%Gmass(1) / nbody_system%collider%impactors%mass(1)
-                  fragments%mass(1) = impactors%mass_dist(1)
-                  fragments%Gmass(1) = G * fragments%mass(1)
+                  fragments%mass(1) = sum(impactors%mass(:))
+                  fragments%Gmass(1) =sum(impactors%Gmass(:))
                   fragments%density(1) = fragments%mass(1) / volume
                   fragments%radius(1) = (3._DP * volume / (4._DP * PI))**(THIRD)
                   if (param%lrotation) then
                      do concurrent(i = 1:NDIM)
                         fragments%Ip(i,1) = sum(impactors%mass(:) * impactors%Ip(i,:)) 
-                        L_spin_new(i) = sum(impactors%L_orbit(i,:) + impactors%L_orbit(i,:))
+                        L_spin_new(i) = sum(impactors%L_orbit(i,:) + impactors%L_spin(i,:))
                      end do
                      fragments%Ip(:,1) = fragments%Ip(:,1) / fragments%mass(1)
                      fragments%rot(:,1) = L_spin_new(:) / (fragments%Ip(3,1) * fragments%mass(1) * fragments%radius(1)**2)
@@ -216,7 +226,10 @@ contains
                   fragments%vc(:,1) = 0.0_DP
 
                   ! Get the energy of the system after the collision
-                  call self%get_energy_and_momentum(nbody_system, param, lbefore=.false.)
+                  call self%get_energy_and_momentum(nbody_system, param, phase="after")
+
+                  L_residual(:) = (self%L_total(:,2) - self%L_total(:,1))
+                  call collision_util_velocity_torque(-L_residual(:), fragments%mass(1), fragments%rb(:,1), fragments%vb(:,1))
 
                   ! Update any encounter lists that have the removed bodies in them so that they instead point to the new body
                   do k = 1, nbody_system%plpl_encounter%nenc

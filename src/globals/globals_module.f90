@@ -41,7 +41,7 @@ module globals
    integer(I4B), parameter :: LOWERCASE_END    = iachar('z') !! ASCII character set parameter for lower to upper conversion - end of lowercase
    integer(I4B), parameter :: UPPERCASE_OFFSET = iachar('A') - iachar('a') !! ASCII character set parameter for lower to upper conversion - offset between upper and lower
 
-   real(SP), parameter :: VERSION_NUMBER = 1.0_SP !! swiftest version
+   real(SP), parameter :: VERSION_NUMBER = 1.0_SP !! Swiftest version
 
    !> Symbolic name for integrator types
    character(*), parameter :: UNKNOWN_INTEGRATOR = "UKNOWN INTEGRATOR"
@@ -118,6 +118,6 @@ module globals
    !> Miscellaneous constants:
    integer(I4B), parameter :: NDIM   = 3                  !! Number of dimensions in our reality
    integer(I4B), parameter :: NDIM2  = 2 * NDIM           !! 2x the number of dimensions
-   real(DP),     parameter :: VSMALL = 2 * epsilon(1._DP) !! Very small number used to prevent floating underflow
+   real(DP),     parameter :: VSMALL = sqrt(TINY(1._DP)) !! Very small number used to prevent floating underflow
 
 end module globals

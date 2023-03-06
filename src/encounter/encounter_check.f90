@@ -125,10 +125,6 @@ contains
       ! end if
 
       allocate(tmp_param, source=param)
-      select type(tmp_param)
-      class is (swiftest_parameters)
-         tmp_param%system_history%nc%lfile_is_open = .false.
-      end select
 
       ! Turn off adaptive encounter checks for the pl-pl group
       tmp_param%ladaptive_encounters_plpl = .false.
@@ -156,15 +152,15 @@ contains
 
       if (plmplt_nenc > 0) then ! Consolidate the two lists
          allocate(itmp(nenc+plmplt_nenc))
-         itmp(1:nenc) = index1(1:nenc)
+         if (nenc > 0) itmp(1:nenc) = index1(1:nenc)
          itmp(nenc+1:nenc+plmplt_nenc) = plmplt_index1(1:plmplt_nenc)
          call move_alloc(itmp, index1)
          allocate(itmp(nenc+plmplt_nenc))
-         itmp(1:nenc) = index2(1:nenc)
+         if (nenc > 0) itmp(1:nenc) = index2(1:nenc)
          itmp(nenc+1:nenc+plmplt_nenc) = plmplt_index2(1:plmplt_nenc) + nplm ! Be sure to shift these indices back to their natural range
          call move_alloc(itmp, index2)
          allocate(ltmp(nenc+plmplt_nenc))
-         ltmp(1:nenc) = lvdotr(1:nenc)
+         if (nenc > 0) ltmp(1:nenc) = lvdotr(1:nenc)
          ltmp(nenc+1:nenc+plmplt_nenc) = plmplt_lvdotr(1:plmplt_nenc)
          call move_alloc(ltmp, lvdotr)
          nenc = nenc + plmplt_nenc
@@ -494,7 +490,7 @@ contains
    end subroutine encounter_check_all_sweep_one
 
 
-   pure subroutine encounter_check_all_triangular_one(i, n, xi, yi, zi, vxi, vyi, vzi, x, y, z, vx, vy, vz, renci, renc, &
+   subroutine encounter_check_all_triangular_one(i, n, xi, yi, zi, vxi, vyi, vzi, x, y, z, vx, vy, vz, renci, renc, &
                                                       dt, ind_arr, lenci)
       !! author: David A. Minton
       !!
@@ -706,12 +702,16 @@ contains
             r2min = r2
          else
             v2 = vxr**2 + vyr**2 + vzr**2
-            tmin = -vdotr / v2
-         
-            if (tmin < dt) then
-               r2min = r2 - vdotr**2 / v2
+            if (v2 <= VSMALL) then
+               r2min = r2
             else
-               r2min = r2 + 2 * vdotr * dt + v2 * dt**2
+               tmin = -vdotr / v2
+         
+               if (tmin < dt) then
+                  r2min = r2 - vdotr**2 / v2
+               else
+                  r2min = r2 + 2 * vdotr * dt + v2 * dt**2
+               end if
             end if
          end if
       else
@@ -1023,8 +1023,8 @@ contains
       integer(I4B), dimension(:), allocatable, intent(out)   :: index2     !! List of indices for the other body in each encounter candidate pair
       logical,      dimension(:), allocatable, intent(out)   :: lvdotr     !! Logical array indicating which pairs are approaching
       ! Internals
-      integer(I4B) :: i, nbox, dim
-      integer(I8B) :: k, itmp
+      integer(I4B) :: i, dim, itmp, nbox
+      integer(I8B) :: k
       logical, dimension(n) :: loverlap
       logical, dimension(2*n) :: lencounteri
       real(DP), dimension(2*n) :: xind, yind, zind, vxind, vyind, vzind, rencind
@@ -1062,7 +1062,7 @@ contains
          if (loverlap(i)) then
             ibeg =  self%aabb(dim)%ibeg(i) + 1_I8B
             iend =  self%aabb(dim)%iend(i) - 1_I8B
-            nbox = iend - ibeg + 1
+            nbox = int(iend - ibeg + 1, kind=I4B)
             lencounteri(ibeg:iend) = .true.
             call encounter_check_all_sweep_one(i, nbox, x(1,i), x(2,i), x(3,i), v(1,i), v(2,i), v(3,i), &
                                                       xind(ibeg:iend), yind(ibeg:iend), zind(ibeg:iend),&

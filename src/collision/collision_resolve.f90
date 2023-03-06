@@ -33,8 +33,8 @@ contains
       integer(I4B), dimension(2)       :: nchild
       integer(I4B)                     :: i, j, nimpactors, idx_child
       real(DP), dimension(2)           :: volume, density
-      real(DP)                         :: mchild, volchild
-      real(DP), dimension(NDIM)        :: xc, vc, xcom, vcom, xchild, vchild, xcrossv
+      real(DP)                         :: mchild, volchild, rrel_mag, rlim, mtot, vdotr
+      real(DP), dimension(NDIM)        :: xc, vc, xcom, vcom, xchild, vchild, xcrossv, rrel, vrel, rrel_unit, vrel_unit, dr
       real(DP), dimension(NDIM,2)      :: mxc, vcc
 
       select type(nbody_system)
@@ -134,12 +134,34 @@ contains
                end if
                density(j) = impactors%mass(j) / volume(j)
                impactors%radius(j) = (3 * volume(j) / (4 * PI))**(1.0_DP / 3.0_DP)
-               if (param%lrotation) impactors%Ip(:, j) = impactors%Ip(:, j) / impactors%mass(j)
+               if (param%lrotation) then
+                  impactors%Ip(:, j) = impactors%Ip(:, j) / impactors%mass(j)
+                  impactors%rot(:,j) = impactors%L_spin(:, j) / (impactors%Ip(3,j) * impactors%mass(j) * impactors%radius(j)**2)
+               end if
             end do
             lflag = .true.
 
-            xcom(:) = (impactors%mass(1) * impactors%rb(:, 1) + impactors%mass(2) * impactors%rb(:, 2)) / sum(impactors%mass(:))
-            vcom(:) = (impactors%mass(1) * impactors%vb(:, 1) + impactors%mass(2) * impactors%vb(:, 2)) / sum(impactors%mass(:))
+            mtot = sum(impactors%mass(:))
+            xcom(:) = (impactors%mass(1) * impactors%rb(:, 1) + impactors%mass(2) * impactors%rb(:, 2)) / mtot
+            vcom(:) = (impactors%mass(1) * impactors%vb(:, 1) + impactors%mass(2) * impactors%vb(:, 2)) / mtot
+
+            ! Shift the impactors so that they are not overlapping
+            rlim = sum(impactors%radius(1:2))
+            rrel = impactors%rb(:,2) - impactors%rb(:,1)
+            rrel_mag = .mag. rrel 
+            if (rrel_mag < rlim) then
+               rrel_unit = .unit.rrel
+               vrel = impactors%vb(:,2) - impactors%vb(:,1)
+               vrel_unit = .unit.vrel
+               vdotr = dot_product(vrel_unit, rrel)
+               dr(:) = -(vdotr - sign(1.0_DP, vdotr) * sqrt(rlim**2 - rrel_mag**2 + vdotr**2)) * vrel_unit(:)
+               dr(:) = (1.0_DP + 2*epsilon(1.0_DP)) * dr(:)
+               impactors%rb(:,1) = impactors%rb(:,1) - dr(:) *  impactors%mass(2) / mtot
+               impactors%rb(:,2) = impactors%rb(:,2) + dr(:) *  impactors%mass(1) / mtot
+               rrel = impactors%rb(:,2) - impactors%rb(:,1)
+               rrel_mag = .mag. rrel 
+            end if
+
             mxc(:, 1) = impactors%mass(1) * (impactors%rb(:, 1) - xcom(:))
             mxc(:, 2) = impactors%mass(2) * (impactors%rb(:, 2) - xcom(:))
             vcc(:, 1) = impactors%vb(:, 1) - vcom(:)
@@ -148,9 +170,6 @@ contains
 
             ! Destroy the kinship relationships for all members of this impactors%id
             call pl%reset_kinship(impactors%id(:))
-
-            ! Set the coordinate system of the impactors
-            call impactors%set_coordinate_system()
 
          end associate
       end select
@@ -312,14 +331,18 @@ contains
       implicit none
       ! Arguments
       class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),   intent(inout) :: param  !! Current run configuration parameters with Swiftest additions
-      real(DP),                  intent(in)    :: t      !! Time of collision
-      integer(I4B),              intent(in)    :: status !! Status flag to assign to adds
+      class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters with Swiftest additions
+      real(DP),                 intent(in)    :: t            !! Time of collision
+      integer(I4B),             intent(in)    :: status       !! Status flag to assign to adds
       ! Internals
-      integer(I4B) :: i, ibiggest, ismallest, iother, nimpactors, nfrag
-      logical, dimension(:), allocatable    :: lmask
-      class(swiftest_pl), allocatable           :: plnew, plsub
+      integer(I4B) :: i, ibiggest, ismallest, iother, nimpactors, nfrag, nameidx
+      logical, dimension(:), allocatable  :: lmask
+      class(swiftest_pl), allocatable :: plnew, plsub
       character(*), parameter :: FRAGFMT = '("Newbody",I0.7)'
+      character(*), parameter :: MERGEFMT = '(A,I0.7)'
+      character(*), parameter :: MERGE_PREPEND_TEXT = "_MERGE"
+      integer(I4B) :: merge_text_length 
+      character(len=NAMELEN) :: merge_text
       character(len=NAMELEN) :: newname, origin_type
       real(DP) :: volume
   
@@ -327,7 +350,7 @@ contains
       class is (swiftest_nbody_system)
       select type(param)
       class is (swiftest_parameters)
-         associate(pl => nbody_system%pl, pl_discards => nbody_system%pl_discards, info => nbody_system%pl%info, pl_adds => nbody_system%pl_adds, cb => nbody_system%cb, npl => pl%nbody, &
+         associate(pl => nbody_system%pl, pl_discards => nbody_system%pl_discards, info => nbody_system%pl%info, pl_adds => nbody_system%pl_adds, cb => nbody_system%cb, npl => nbody_system%pl%nbody, &
             collider => nbody_system%collider, impactors => nbody_system%collider%impactors,fragments => nbody_system%collider%fragments)
 
             ! Add the impactors%id bodies to the subtraction list
@@ -349,11 +372,25 @@ contains
             plnew%mass(1:nfrag) = fragments%mass(1:nfrag)
             plnew%Gmass(1:nfrag) = param%GU * fragments%mass(1:nfrag)
             plnew%radius(1:nfrag) = fragments%radius(1:nfrag)
+            if (allocated(pl%a)) call plnew%xv2el(cb)
+
+            if (param%lrotation) then
+               plnew%Ip(:, 1:nfrag) = fragments%Ip(:, 1:nfrag)
+               plnew%rot(:, 1:nfrag) = fragments%rot(:, 1:nfrag)
+            end if
+
+            call plnew%set_rhill(cb)
+
+            ! if (param%ltides) then
+            !    plnew%Q = pl%Q(ibiggest)
+            !    plnew%k2 = pl%k2(ibiggest)
+            !    plnew%tlag = pl%tlag(ibiggest)
+            ! end if
+
             do concurrent(i = 1:nfrag)
                volume = 4.0_DP/3.0_DP * PI * plnew%radius(i)**3
                plnew%density(i) = fragments%mass(i) / volume
             end do
-            call plnew%set_rhill(cb)
 
             select case(status)
             case(SUPERCATASTROPHIC)
@@ -362,7 +399,7 @@ contains
                   write(newname, FRAGFMT) fragments%id(i)
                   call plnew%info(i)%set_value(origin_type="Supercatastrophic", origin_time=t, name=newname, &
                                                 origin_rh=plnew%rh(:,i), origin_vh=plnew%vh(:,i), &
-                                                collision_id=param%maxid_collision)
+                                                collision_id=collider%maxid_collision)
                end do
                do i = 1, nimpactors
                   if (impactors%id(i) == ibiggest) then
@@ -386,7 +423,7 @@ contains
                   write(newname, FRAGFMT) fragments%id(i)
                   call plnew%info(i)%set_value(origin_type=origin_type, origin_time=t, name=newname, &
                                                 origin_rh=plnew%rh(:,i), origin_vh=plnew%vh(:,i), &
-                                                collision_id=param%maxid_collision)
+                                                collision_id=collider%maxid_collision)
                end do
                do i = 1, nimpactors
                   if (impactors%id(i) == ibiggest) cycle
@@ -396,8 +433,22 @@ contains
                                                             discard_body_id=iother)
                end do 
             case(MERGED)
+               write(origin_type,*) "Merger"
                call plnew%info(1)%copy(pl%info(ibiggest))
-               plnew%status(1) = OLD_PARTICLE
+               nbody_system%maxid = nbody_system%maxid + 1
+               plnew%id(1) = nbody_system%maxid
+
+               ! Appends an index number to the end of the original name to make it unique, but still identifiable as the original.
+               ! If there is already an index number appended, replace it
+               write(merge_text,MERGEFMT) MERGE_PREPEND_TEXT,plnew%id(1)
+               merge_text_length = len(trim(adjustl(merge_text)))
+               nameidx = index(plnew%info(1)%name, MERGE_PREPEND_TEXT) - 1
+               if (nameidx < 0) nameidx = min(len(trim(adjustl(plnew%info(1)%name))), NAMELEN - merge_text_length)
+               write(newname,*) trim(adjustl(plnew%info(1)%name(1:nameidx))) // trim(adjustl(merge_text))
+               plnew%status(1) = NEW_PARTICLE
+               call plnew%info(1)%set_value(origin_type=origin_type, origin_time=t, name=newname, &
+                                            origin_rh=plnew%rh(:,1), origin_vh=plnew%vh(:,1), &
+                                            collision_id=collider%maxid_collision)
                do i = 1, nimpactors
                   if (impactors%id(i) == ibiggest) cycle
 
@@ -406,17 +457,6 @@ contains
                                                             discard_vh=pl%vh(:,i), discard_body_id=iother)
                end do 
             end select
-
-            if (param%lrotation) then
-               plnew%Ip(:, 1:nfrag) = fragments%Ip(:, 1:nfrag)
-               plnew%rot(:, 1:nfrag) = fragments%rot(:, 1:nfrag)
-            end if
-
-            ! if (param%ltides) then
-            !    plnew%Q = pl%Q(ibiggest)
-            !    plnew%k2 = pl%k2(ibiggest)
-            !    plnew%tlag = pl%tlag(ibiggest)
-            ! end if
 
             !Copy over or set integration parameters for new bodies
             plnew%lcollision(1:nfrag) = .false.
@@ -453,7 +493,7 @@ contains
 
             call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nimpactors)])
 
-            ! Log the properties of the old and new bodies
+            ! Save the before/after snapshots
             select type(before => collider%before)
             class is (swiftest_nbody_system)
                call move_alloc(plsub, before%pl)
@@ -487,12 +527,14 @@ contains
       real(DP),                   intent(in)    :: dt     !! Current simulation step size
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
       ! Internals
-      real(DP) :: E_orbit_before, E_orbit_after
+      real(DP) :: E_before, E_after, mnew
+      real(DP), dimension(NDIM) ::L_before, L_after, dL
       logical :: lplpl_collision
-      character(len=STRMAX) :: timestr
+      character(len=STRMAX) :: timestr, idstr
       integer(I4B), dimension(2) :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
       logical  :: lgoodcollision
-      integer(I4B) :: i, loop, ncollisions
+      integer(I4B) :: i, j, nnew, loop, ncollisions
+      integer(I4B), dimension(:), allocatable :: idnew
       integer(I4B), parameter :: MAXCASCADE = 1000
   
       select type (nbody_system)
@@ -514,7 +556,8 @@ contains
             ! Get the energy before the collision is resolved
             if (param%lenergy) then
                call nbody_system%get_energy_and_momentum(param)
-               E_orbit_before = nbody_system%te
+               E_before = nbody_system%te
+               L_before(:) = nbody_system%L_total(:)
             end if
 
             do loop = 1, MAXCASCADE
@@ -536,12 +579,14 @@ contains
                      if ((.not. lgoodcollision) .or. any(pl%status(idx_parent(:)) /= COLLIDED)) cycle
 
                      ! Advance the collision id number and save it
-                     param%maxid_collision = max(param%maxid_collision, maxval(nbody_system%pl%info(:)%collision_id))
-                     param%maxid_collision = param%maxid_collision + 1
-                     collider%collision_id = param%maxid_collision
+                     collider%maxid_collision = max(collider%maxid_collision, maxval(nbody_system%pl%info(:)%collision_id))
+                     collider%maxid_collision = collider%maxid_collision + 1
+                     collider%collision_id = collider%maxid_collision
+                     write(idstr,*) collider%collision_id
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, "collision_id " // trim(adjustl(idstr)))
 
                      ! Get the collision regime
-                     call impactors%get_regime(nbody_system, param)
+                     call collider%get_regime(nbody_system, param)
 
                      call collision_history%take_snapshot(param,nbody_system, t, "before") 
 
@@ -551,41 +596,56 @@ contains
                      call collision_history%take_snapshot(param,nbody_system, t, "after") 
 
                      plpl_collision%status(i) = collider%status
-                     call impactors%reset()
+                     call impactors%dealloc()
                   end do
 
                   ! Destroy the collision list now that the collisions are resolved
                   call plpl_collision%setup(0_I8B)
 
                   if ((nbody_system%pl_adds%nbody == 0) .and. (nbody_system%pl_discards%nbody == 0)) exit
+                  if (allocated(idnew)) deallocate(idnew)
+                  nnew = nbody_system%pl_adds%nbody
+                  allocate(idnew, source=nbody_system%pl_adds%id)
+                  mnew = sum(nbody_system%pl_adds%mass(:))
 
-                  ! Save the add/discard information to file
-                  call nbody_system%write_discard(param)
-
-                  ! Rearrange the arrays: Remove discarded bodies, add any new bodies, resort, and recompute all indices and encounter lists
+                  ! Rearrange the arrays: Remove discarded bodies, add any new bodies, re-sort, and recompute all indices and encounter lists
                   call pl%rearray(nbody_system, param)
 
                   ! Destroy the add/discard list so that we don't append the same body multiple times if another collision is detected
                   call nbody_system%pl_discards%setup(0, param)
                   call nbody_system%pl_adds%setup(0, param)
 
+                  if (param%lenergy) then
+                     call nbody_system%get_energy_and_momentum(param)
+                     L_after(:) = nbody_system%L_total(:)
+                     dL = L_after(:) - L_before(:)
+
+                     ! Add some velocity torque to the new bodies to remove residual angular momentum difference
+                     do j = 1, nnew
+                        i = findloc(pl%id,idnew(j),dim=1)
+                        if (i == 0) cycle
+                        call collision_util_velocity_torque(-dL * pl%mass(i)/mnew, pl%mass(i), pl%rb(:,i), pl%vb(:,i)) 
+                     end do
+
+                     call nbody_system%get_energy_and_momentum(param)
+                     E_after = nbody_system%te
+                     nbody_system%E_collisions = nbody_system%E_collisions + (E_after - E_before)
+                     L_after(:) = nbody_system%L_total(:)
+                     dL = L_after(:) - L_before(:)
+                  end if
+
+
                   ! Check whether or not any of the particles that were just added are themselves in a collision state. This will generate a new plpl_collision 
                   call self%collision_check(nbody_system, param, t, dt, irec, lplpl_collision)
 
                   if (.not.lplpl_collision) exit
                   if (loop == MAXCASCADE) then
-                     call swiftest_io_log_one_message(COLLISION_LOG_OUT,"An runaway collisional cascade has been detected in collision_resolve_plpl.")
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT,"A runaway collisional cascade has been detected in collision_resolve_plpl.")
                      call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Consider reducing the step size or changing the parameters in the collisional model to reduce the number of fragments.")
-                     call util_exit(FAILURE)
+                     call base_util_exit(FAILURE)
                   end if
                end associate
             end do
-
-            if (param%lenergy) then
-               call nbody_system%get_energy_and_momentum(param)
-               E_orbit_after = nbody_system%te
-               nbody_system%E_collisions = nbody_system%E_collisions + (E_orbit_after - E_orbit_before)
-            end if
 
          end associate
       end select

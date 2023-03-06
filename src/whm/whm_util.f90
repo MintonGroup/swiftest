@@ -35,7 +35,7 @@ contains
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class whm_pl or its descendents"
-         call util_exit(FAILURE)
+         call base_util_exit(FAILURE)
       end select
 
       return
@@ -87,7 +87,7 @@ contains
             call swiftest_util_fill_pl(keeps, inserts, lfill_list)
          class default
             write(*,*) "Invalid object passed to the fill method. Inserts must be of class whm_pl or its descendents!"
-            call util_exit(FAILURE)
+            call base_util_exit(FAILURE)
          end select
       end associate
    
@@ -324,7 +324,7 @@ contains
             call swiftest_util_spill_pl(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) "Invalid object passed to the spill method. Source must be of class whm_pl or its descendents!"
-            call util_exit(FAILURE)
+            call base_util_exit(FAILURE)
          end select
       end associate
 

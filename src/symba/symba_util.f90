@@ -9,6 +9,7 @@
 
 submodule(symba) s_symba_util
    use swiftest
+   use fraggle
 contains
 
    module subroutine symba_util_append_pl(self, source, lsource_mask)
@@ -32,7 +33,7 @@ contains
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class symba_pl or its descendents!"
-         call util_exit(FAILURE)
+         call base_util_exit(FAILURE)
       end select
 
       return
@@ -60,7 +61,7 @@ contains
          end associate
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class symba_tp or its descendents!"
-         call util_exit(FAILURE)
+         call base_util_exit(FAILURE)
       end select
 
       return
@@ -84,6 +85,21 @@ contains
 
       return
    end subroutine symba_util_dealloc_pl
+
+
+   module subroutine symba_util_dealloc_system(self)
+      !! author: David A. Minton
+      !!
+      !! Deallocates all allocatables and resets all values to defaults. Acts as a base for a finalizer
+      implicit none
+      ! Arguments
+      class(symba_nbody_system), intent(inout) :: self
+
+      self%irec = -1
+      call self%helio_nbody_system%dealloc()
+
+      return
+   end subroutine symba_util_dealloc_system
 
 
    module subroutine symba_util_dealloc_tp(self)
@@ -124,7 +140,7 @@ contains
             call swiftest_util_fill_pl(keeps, inserts, lfill_list)  ! Note: helio_pl does not have its own fill method, so we skip back to the base class
          class default
             write(*,*) "Invalid object passed to the fill method. Source must be of class symba_pl or its descendents!"
-            call util_exit(FAILURE)
+            call base_util_exit(FAILURE)
          end select
       end associate
 
@@ -154,7 +170,7 @@ contains
             call swiftest_util_fill_tp(keeps, inserts, lfill_list) ! Note: helio_tp does not have its own fill method, so we skip back to the base class
          class default
             write(*,*) "Invalid object passed to the fill method. Source must be of class symba_tp or its descendents!"
-            call util_exit(FAILURE)
+            call base_util_exit(FAILURE)
          end select
       end associate
 
@@ -232,7 +248,6 @@ contains
       return
    end subroutine symba_util_resize_tp
 
-   
    module subroutine symba_util_set_renc(self, scale)
       !! author: David A. Minton
       !!
@@ -257,6 +272,7 @@ contains
       return
    end subroutine symba_util_set_renc
 
+
    module subroutine symba_util_setup_initialize_system(self, param)
       !! author: David A. Minton
       !!
@@ -267,13 +283,61 @@ contains
       ! Arguments
       class(symba_nbody_system),  intent(inout) :: self    !! SyMBA nbody_system object
       class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+      ! Internals
+      type(encounter_storage)  :: encounter_history
+      type(collision_storage)  :: collision_history
 
+      call encounter_history%setup(4096)
+      call collision_history%setup(4096)
       ! Call parent method
       associate(nbody_system => self)
          call helio_util_setup_initialize_system(nbody_system, param)
          call nbody_system%pltp_encounter%setup(0_I8B)
          call nbody_system%plpl_encounter%setup(0_I8B)
          call nbody_system%plpl_collision%setup(0_I8B)
+
+         if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
+            allocate(encounter_netcdf_parameters :: encounter_history%nc)
+            select type(nc => encounter_history%nc)
+            class is (encounter_netcdf_parameters)
+               nc%file_name = ENCOUNTER_OUTFILE
+               if (.not.param%lrestart) then
+                  call nc%initialize(param)
+                  call nc%close()
+               end if
+            end select
+            allocate(nbody_system%encounter_history, source=encounter_history)
+         end if
+        
+         allocate(collision_netcdf_parameters :: collision_history%nc)
+         select type(nc => collision_history%nc)
+         class is (collision_netcdf_parameters)
+            nc%file_name = COLLISION_OUTFILE
+            if (param%lrestart) then
+               call nc%open(param) ! This will find the nc%max_idslot variable
+            else
+               call nc%initialize(param)
+            end if
+            call nc%close()
+         end select
+         allocate(nbody_system%collision_history, source=collision_history)
+
+         select case(param%collision_model)
+         case("MERGE")
+            allocate(collision_basic :: nbody_system%collider)
+         case("BOUNCE")
+            allocate(collision_bounce :: nbody_system%collider)
+         case("FRAGGLE")
+            allocate(collision_fraggle :: nbody_system%collider)
+         end select
+         call nbody_system%collider%setup(nbody_system)
+
+         nbody_system%collider%max_rot = MAX_ROT_SI * param%TU2S
+         select type(nc => collision_history%nc)
+         class is (collision_netcdf_parameters)
+            nbody_system%collider%maxid_collision = nc%max_idslot
+         end select
+
       end associate
 
       return
@@ -481,7 +545,7 @@ contains
             call swiftest_util_spill_pl(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) "Invalid object passed to the spill method. Source must be of class symba_pl or its descendents!"
-            call util_exit(FAILURE)
+            call base_util_exit(FAILURE)
          end select
       end associate
      
@@ -513,7 +577,7 @@ contains
             call swiftest_util_spill_tp(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) "Invalid object passed to the spill method. Source must be of class symba_tp or its descendents!"
-            call util_exit(FAILURE)
+            call base_util_exit(FAILURE)
          end select
       end associate
      

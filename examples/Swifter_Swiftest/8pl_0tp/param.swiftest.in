@@ -1,0 +1,47 @@
+!! Copyright 2023 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+!! This file is part of Swiftest.
+!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+!! You should have received a copy of the GNU General Public License along with Swiftest. 
+!! If not, see: https://www.gnu.org/licenses. 
+
+! VERSION        Swiftest parameter input
+T0               0.0
+TSTOP            365
+DT               1.0
+ISTEP_OUT        1
+ISTEP_DUMP       100
+OUT_FORM         XV
+OUT_TYPE         NETCDF_DOUBLE
+OUT_STAT         UNKNOWN
+IN_TYPE          ASCII
+PL_IN            pl.swiftest.in
+TP_IN            tp.swiftest.in
+CB_IN            cb.swiftest.in
+BIN_OUT          bin.swiftest.nc
+CHK_QMIN         0.004650467260962157
+CHK_RMIN         0.004650467260962157
+CHK_RMAX         1000.0
+CHK_EJECT        1000.0
+CHK_QMIN_COORD   HELIO
+CHK_QMIN_RANGE   0.004650467260962157 1000.0
+MU2KG            1.988409870698051e+30
+TU2S             86400
+DU2M             149597870700.0
+IN_FORM          XV
+ENC_OUT          enc.swiftest.dat
+EXTRA_FORCE      NO
+DISCARD_OUT      discard.swiftest.dat
+BIG_DISCARD      NO
+CHK_CLOSE        YES
+RHILL_PRESENT    YES
+FRAGMENTATION    NO
+ROTATION         NO
+TIDES            NO
+ENERGY           NO
+GR               YES
+GMTINY           1e-12
+ENCOUNTER_CHECK  TRIANGULAR
+INTERACTION_LOOPS TRIANGULAR

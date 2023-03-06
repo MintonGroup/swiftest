@@ -50,10 +50,10 @@ module swiftest
 
    type, extends(netcdf_parameters) :: swiftest_netcdf_parameters
    contains
-      procedure :: initialize => swiftest_io_netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
-      procedure :: open       => swiftest_io_netcdf_open              !! Opens a NetCDF file and does the variable inquiries to activate variable ids
-      procedure :: flush      => swiftest_io_netcdf_flush             !! Flushes a NetCDF file by closing it then opening it again
-      final     ::               swiftest_final_netcdf_parameters     !! Finalizer will close the NetCDF file
+      procedure :: initialize      => swiftest_io_netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
+      procedure :: get_valid_masks => swiftest_io_netcdf_get_valid_masks   !! Gets logical masks indicating which bodies are valid pl and tp type at the current time
+      procedure :: open            => swiftest_io_netcdf_open              !! Opens a NetCDF file and does the variable inquiries to activate variable ids
+      procedure :: flush           => swiftest_io_netcdf_flush             !! Flushes a NetCDF file by closing it then opening it again
    end type swiftest_netcdf_parameters
 
 
@@ -61,6 +61,7 @@ module swiftest
       class(swiftest_netcdf_parameters), allocatable :: nc             !! NetCDF object attached to this storage object
    contains
       procedure :: dump             => swiftest_io_dump_storage        !! Dumps storage object contents to file
+      procedure :: dealloc          => swiftest_util_dealloc_storage   !! Resets a storage object by deallocating all items and resetting the frame counter to 0
       procedure :: get_index_values => swiftest_util_get_vals_storage  !! Gets the unique values of the indices of a storage object (i.e. body id or time value)
       procedure :: make_index_map   => swiftest_util_index_map_storage !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
       procedure :: take_snapshot    => swiftest_util_snapshot_system   !! Takes a snapshot of the nbody_system for later file storage
@@ -70,7 +71,6 @@ module swiftest
 
    ! The following extended types or their children should be used, where possible, as the base of any types defined in additional modules, such as new integrators. 
    type, extends(base_parameters) :: swiftest_parameters
-      type(swiftest_storage(nframes=:)), allocatable :: system_history
    contains
       procedure :: dump        => swiftest_io_dump_param
       procedure :: reader      => swiftest_io_param_reader
@@ -87,16 +87,14 @@ module swiftest
       integer(I4B), dimension(:), allocatable :: child  !! Index of children particles
    contains
       procedure :: dealloc  => swiftest_util_dealloc_kin !! Deallocates all allocatable arrays
-      final     :: swiftest_final_kin               !! Finalizes the Swiftest kinship object - deallocates all allocatables
+      final     ::             swiftest_final_kin        !! Finalizes the Swiftest kinship object - deallocates all allocatables
    end type swiftest_kinship
 
 
    !> An abstract class for a generic collection of Swiftest bodies
-   type, abstract, extends(base_object) :: swiftest_body
+   type, abstract, extends(base_multibody) :: swiftest_body
       !! Superclass that defines the generic elements of a Swiftest particle 
-      integer(I4B)                                               :: nbody = 0       !! Number of bodies
       logical                                                    :: lfirst = .true. !! Run the current step as a first
-      integer(I4B),                  dimension(:),   allocatable :: id              !! External identifier (unique)
       type(swiftest_particle_info),  dimension(:),   allocatable :: info            !! Particle metadata information
       logical,                       dimension(:),   allocatable :: lmask           !! Logical mask used to select a subset of bodies when performing certain operations (drift, kick, accel, etc.)
       integer(I4B),                  dimension(:),   allocatable :: status          !! An integrator-specific status indicator 
@@ -209,7 +207,8 @@ module swiftest
       real(DP)                                    :: R0       = 0.0_DP !! Initial radius of the central body
       real(DP)                                    :: dR       = 0.0_DP !! Change in the radius of the central body
    contains
-      procedure :: read_in => swiftest_io_read_in_cb     !! Read in central body initial conditions from an ASCII file
+      procedure :: dealloc      => swiftest_util_dealloc_cb          !! Deallocates all allocatables and resets all values to defaults 
+      procedure :: read_in      => swiftest_io_read_in_cb            !! Read in central body initial conditions from an ASCII file
       procedure :: write_frame  => swiftest_io_netcdf_write_frame_cb !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
       procedure :: write_info   => swiftest_io_netcdf_write_info_cb  !! Dump contents of particle information metadata to file
    end type swiftest_cb
@@ -244,11 +243,11 @@ module swiftest
    contains
       ! Massive body-specific concrete methods 
       ! These are concrete because they are the same implemenation for all integrators
-      procedure :: make_impactors => swiftest_make_impactors_pl      !! Make impactors out of the current kinship relationships
+      procedure :: make_impactors => swiftest_util_make_impactors_pl !! Make impactors out of the current kinship relationships
       procedure :: discard        => swiftest_discard_pl             !! Placeholder method for discarding massive bodies 
       procedure :: accel_int      => swiftest_kick_getacch_int_pl    !! Compute direct cross (third) term heliocentric accelerations of massive bodies
       procedure :: accel_obl      => swiftest_obl_acc_pl             !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
-      procedure :: setup          => swiftest_util_setup_pl               !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
+      procedure :: setup          => swiftest_util_setup_pl          !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
     ! procedure :: accel_tides    => tides_kick_getacch_pl           !! Compute the accelerations of bodies due to tidal interactions with the central body
       procedure :: append         => swiftest_util_append_pl         !! Appends elements from one structure to another
       procedure :: h2b            => swiftest_util_coord_h2b_pl      !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
@@ -309,23 +308,25 @@ module swiftest
       !! This superclass contains a minimial nbody_system of a set of test particles (tp), massive bodies (pl), and a central body (cb)
       !! The full swiftest_nbody_system type that is used as the parent class of all integrators is defined in collision
 
-      class(swiftest_cb),                  allocatable :: cb                !! Central body data structure
-      class(swiftest_pl),                  allocatable :: pl                !! Massive body data structure
-      class(swiftest_tp),                  allocatable :: tp                !! Test particle data structure
+      class(swiftest_cb),         allocatable :: cb                !! Central body data structure
+      class(swiftest_pl),         allocatable :: pl                !! Massive body data structure
+      class(swiftest_tp),         allocatable :: tp                !! Test particle data structure
       class(swiftest_tp), dimension(:),codimension[:], allocatable :: cotp  !! Co-array test particle data structure
       
-      class(swiftest_tp),                  allocatable :: tp_discards       !! Discarded test particle data structure
-      class(swiftest_pl),                  allocatable :: pl_discards       !! Discarded massive body particle data structure
-      class(swiftest_pl),                  allocatable :: pl_adds           !! List of added bodies in mergers or collisions
-      class(swiftest_tp),                  allocatable :: tp_adds           !! List of added bodies in mergers or collisions
-      class(encounter_list),               allocatable :: pltp_encounter    !! List of massive body-test particle encounters in a single step 
-      class(encounter_list),               allocatable :: plpl_encounter    !! List of massive body-massive body encounters in a single step
-      class(collision_list_plpl),          allocatable :: plpl_collision    !! List of massive body-massive body collisions in a single step
-      class(collision_list_plpl),          allocatable :: pltp_collision    !! List of massive body-massive body collisions in a single step
-      class(collision_basic),              allocatable :: collider          !! Collision system object
-      class(encounter_storage(nframes=:)), allocatable :: encounter_history !! Stores encounter history for later retrieval and saving to file
-      class(collision_storage(nframes=:)), allocatable :: collision_history !! Stores encounter history for later retrieval and saving to file
+      class(swiftest_tp),         allocatable :: tp_discards       !! Discarded test particle data structure
+      class(swiftest_pl),         allocatable :: pl_discards       !! Discarded massive body particle data structure
+      class(swiftest_pl),         allocatable :: pl_adds           !! List of added bodies in mergers or collisions
+      class(swiftest_tp),         allocatable :: tp_adds           !! List of added bodies in mergers or collisions
+      class(encounter_list),      allocatable :: pltp_encounter    !! List of massive body-test particle encounters in a single step 
+      class(encounter_list),      allocatable :: plpl_encounter    !! List of massive body-massive body encounters in a single step
+      class(collision_list_plpl), allocatable :: plpl_collision    !! List of massive body-massive body collisions in a single step
+      class(collision_list_plpl), allocatable :: pltp_collision    !! List of massive body-massive body collisions in a single step
+      class(collision_basic),     allocatable :: collider          !! Collision system object
+      class(encounter_storage),   allocatable :: encounter_history !! Stores encounter history for later retrieval and saving to file
+      class(collision_storage),   allocatable :: collision_history !! Stores encounter history for later retrieval and saving to file
+      class(swiftest_storage),    allocatable :: system_history    !! Stores the system history between output dumps
 
+      integer(I4B)                    :: maxid = -1             !! The current maximum particle id number 
       real(DP)                        :: t = -1.0_DP            !! Integration current time
       real(DP)                        :: GMtot = 0.0_DP         !! Total nbody_system mass - used for barycentric coordinate conversion
       real(DP)                        :: ke_orbit = 0.0_DP      !! nbody_system orbital kinetic energy
@@ -334,38 +335,40 @@ module swiftest
       real(DP)                        :: be = 0.0_DP            !! nbody_system binding energy of all bodies
       real(DP)                        :: te = 0.0_DP            !! nbody_system total energy
       real(DP)                        :: oblpot = 0.0_DP        !! nbody_system potential energy due to oblateness of the central body
-      real(DP), dimension(NDIM)       :: L_orbit = 0.0_DP        !! nbody_system orbital angular momentum vector
-      real(DP), dimension(NDIM)       :: L_spin = 0.0_DP         !! nbody_system spin angular momentum vector
-      real(DP), dimension(NDIM)       :: L_total = 0.0_DP          !! nbody_system angular momentum vector
+      real(DP), dimension(NDIM)       :: L_orbit = 0.0_DP       !! nbody_system orbital angular momentum vector
+      real(DP), dimension(NDIM)       :: L_spin = 0.0_DP        !! nbody_system spin angular momentum vector
+      real(DP), dimension(NDIM)       :: L_total = 0.0_DP       !! nbody_system angular momentum vector
       real(DP)                        :: ke_orbit_orig = 0.0_DP !! Initial orbital kinetic energy
       real(DP)                        :: ke_spin_orig = 0.0_DP  !! Initial spin kinetic energy
       real(DP)                        :: pe_orig = 0.0_DP       !! Initial potential energy
-      real(DP)                        :: be_orig = 0.0_DP       !! Initial binding energy
-      real(DP)                        :: E_orbit_orig = 0.0_DP   !! Initial orbital energy
+      real(DP)                        :: be_orig = 0.0_DP       !! Initial gravitational binding energy
+      real(DP)                        :: te_orig = 0.0_DP       !! Initial total energy (sum of all sources of energy tracked)
+      real(DP)                        :: be_cb   = 0.0_DP       !! Binding energy of central body (usually orders of magnitude larger than the rest of the system, and therefore tracked seperately)
+      real(DP)                        :: E_orbit_orig = 0.0_DP  !! Initial orbital energy
       real(DP)                        :: GMtot_orig = 0.0_DP    !! Initial nbody_system mass
-      real(DP), dimension(NDIM)       :: L_total_orig = 0.0_DP     !! Initial total angular momentum vector
-      real(DP), dimension(NDIM)       :: L_orbit_orig = 0.0_DP   !! Initial orbital angular momentum
-      real(DP), dimension(NDIM)       :: L_spin_orig = 0.0_DP    !! Initial spin angular momentum vector
-      real(DP), dimension(NDIM)       :: L_escape = 0.0_DP       !! Angular momentum of bodies that escaped the nbody_system (used for bookeeping)
+      real(DP), dimension(NDIM)       :: L_total_orig = 0.0_DP  !! Initial total angular momentum vector
+      real(DP), dimension(NDIM)       :: L_orbit_orig = 0.0_DP  !! Initial orbital angular momentum
+      real(DP), dimension(NDIM)       :: L_spin_orig = 0.0_DP   !! Initial spin angular momentum vector
+      real(DP), dimension(NDIM)       :: L_escape = 0.0_DP      !! Angular momentum of bodies that escaped the nbody_system (used for bookeeping)
       real(DP)                        :: GMescape = 0.0_DP      !! Mass of bodies that escaped the nbody_system (used for bookeeping)
-      real(DP)                        :: E_collisions = 0.0_DP   !! Energy lost from nbody_system due to collisions
-      real(DP)                        :: E_untracked = 0.0_DP    !! Energy gained from nbody_system due to escaped bodies
+      real(DP)                        :: E_collisions = 0.0_DP  !! Energy lost from nbody_system due to collisions
+      real(DP)                        :: E_untracked = 0.0_DP   !! Energy gained from nbody_system due to escaped bodies
 
       ! Energy, momentum, and mass errors (used in error reporting)
-      real(DP)                        :: ke_orbit_error   = 0.0_DP
-      real(DP)                        :: ke_spin_error    = 0.0_DP
-      real(DP)                        :: pe_error         = 0.0_DP
-      real(DP)                        :: be_error         = 0.0_DP
+      real(DP)                        :: ke_orbit_error    = 0.0_DP
+      real(DP)                        :: ke_spin_error     = 0.0_DP
+      real(DP)                        :: pe_error          = 0.0_DP
+      real(DP)                        :: be_error          = 0.0_DP
       real(DP)                        :: E_orbit_error     = 0.0_DP
-      real(DP)                        :: Ecoll_error      = 0.0_DP
+      real(DP)                        :: Ecoll_error       = 0.0_DP
       real(DP)                        :: E_untracked_error = 0.0_DP
-      real(DP)                        :: te_error       = 0.0_DP
+      real(DP)                        :: te_error          = 0.0_DP
       real(DP)                        :: L_orbit_error     = 0.0_DP
       real(DP)                        :: L_spin_error      = 0.0_DP
       real(DP)                        :: L_escape_error    = 0.0_DP
-      real(DP)                        :: L_total_error       = 0.0_DP
-      real(DP)                        :: Mtot_error       = 0.0_DP
-      real(DP)                        :: Mescape_error    = 0.0_DP
+      real(DP)                        :: L_total_error     = 0.0_DP
+      real(DP)                        :: Mtot_error        = 0.0_DP
+      real(DP)                        :: Mescape_error     = 0.0_DP
 
       logical                         :: lbeg                 !! True if this is the beginning of a step. This is used so that test particle steps can be calculated 
                                                               !!    separately from massive bodies.  Massive body variables are saved at half steps, and passed to 
@@ -375,29 +378,30 @@ module swiftest
       procedure(abstract_step_system), deferred :: step
 
       ! Concrete classes that are common to the basic integrator (only test particles considered for discard)
-      procedure :: discard                 => swiftest_discard_system                         !! Perform a discard step on the nbody_system
-      procedure :: compact_output          => swiftest_io_compact_output                      !! Prints out out terminal output when display_style is set to COMPACT
-      procedure :: conservation_report     => swiftest_io_conservation_report                 !! Compute energy and momentum and print out the change with time
-      procedure :: dump                    => swiftest_io_dump_system                         !! Dump the state of the nbody_system to a file
-      procedure :: get_t0_values         => swiftest_io_netcdf_get_t0_values_system          !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the netcdf output.
-      procedure :: read_frame              => swiftest_io_netcdf_read_frame_system               !! Read in a frame of input data from file
-      procedure :: write_frame_netcdf      => swiftest_io_netcdf_write_frame_system              !! Write a frame of input data from file
-      procedure :: write_frame_system      => swiftest_io_write_frame_system                  !! Write a frame of input data from file
-      procedure :: read_hdr                => swiftest_io_netcdf_read_hdr_system                 !! Read a header for an output frame in NetCDF format
-      procedure :: write_hdr               => swiftest_io_netcdf_write_hdr_system                !! Write a header for an output frame in NetCDF format
-      procedure :: read_in                 => swiftest_io_read_in_system                      !! Reads the initial conditions for an nbody system
-      procedure :: read_particle_info      => swiftest_io_netcdf_read_particle_info_system       !! Read in particle metadata from file
-      procedure :: obl_pot                 => swiftest_obl_pot_system                         !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
+      procedure :: discard                 => swiftest_discard_system                              !! Perform a discard step on the nbody_system
+      procedure :: compact_output          => swiftest_io_compact_output                           !! Prints out out terminal output when display_style is set to COMPACT
+      procedure :: conservation_report     => swiftest_io_conservation_report                      !! Compute energy and momentum and print out the change with time
+      procedure :: display_run_information => swiftest_io_display_run_information                  !! Displays helpful information about the run
+      procedure :: dump                    => swiftest_io_dump_system                              !! Dump the state of the nbody_system to a file
+      procedure :: get_t0_values           => swiftest_io_netcdf_get_t0_values_system              !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the netcdf output.
+      procedure :: read_frame              => swiftest_io_netcdf_read_frame_system                 !! Read in a frame of input data from file
+      procedure :: write_frame_netcdf      => swiftest_io_netcdf_write_frame_system                !! Write a frame of input data from file
+      procedure :: read_hdr                => swiftest_io_netcdf_read_hdr_system                   !! Read a header for an output frame in NetCDF format
+      procedure :: write_hdr               => swiftest_io_netcdf_write_hdr_system                  !! Write a header for an output frame in NetCDF format
+      procedure :: read_particle_info      => swiftest_io_netcdf_read_particle_info_system         !! Read in particle metadata from file
+      procedure :: read_in                 => swiftest_io_read_in_system                           !! Reads the initial conditions for an nbody system
+      procedure :: write_frame_system      => swiftest_io_write_frame_system                       !! Write a frame of input data from file
+      procedure :: obl_pot                 => swiftest_obl_pot_system                              !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
+      procedure :: dealloc                 => swiftest_util_dealloc_system                           !! Deallocates all allocatables and resets all values to defaults. Acts as a base for a finalizer
+      procedure :: get_energy_and_momentum => swiftest_util_get_energy_and_momentum_system         !! Calculates the total nbody_system energy and momentum
+      procedure :: get_idvals              => swiftest_util_get_idvalues_system                    !! Returns an array of all id values in use in the nbody_system
+      procedure :: rescale                 => swiftest_util_rescale_system                         !! Rescales the nbody_system into a new set of units
       procedure :: initialize              => swiftest_util_setup_initialize_system                !! Initialize the nbody_system from input files
       procedure :: init_particle_info      => swiftest_util_setup_initialize_particle_info_system  !! Initialize the nbody_system from input files
-    ! procedure :: step_spin               => tides_step_spin_system                 !! Steps the spins of the massive & central bodies due to tides.
-      procedure :: set_msys                => swiftest_util_set_msys                          !! Sets the value of msys from the masses of nbody_system bodies.
-      procedure :: get_energy_and_momentum => swiftest_util_get_energy_momentum_system        !! Calculates the total nbody_system energy and momentum
-      procedure :: get_idvals              => swiftest_util_get_idvalues_system               !! Returns an array of all id values in use in the nbody_system
-      procedure :: rescale                 => swiftest_util_rescale_system                    !! Rescales the nbody_system into a new set of units
-      procedure :: validate_ids            => swiftest_util_valid_id_system                   !! Validate the numerical ids passed to the nbody_system and save the maximum value
-      procedure :: write_discard           => swiftest_io_write_discard             !! Write out information about discarded and merged planets and test particles in SyMBA
-      generic   :: write_frame             => write_frame_system, write_frame_netcdf !! Generic method call for reading a frame of output data
+    ! procedure :: step_spin               => tides_step_spin_system                               !! Steps the spins of the massive & central bodies due to tides.
+      procedure :: set_msys                => swiftest_util_set_msys                               !! Sets the value of msys from the masses of nbody_system bodies.
+      procedure :: validate_ids            => swiftest_util_valid_id_system                        !! Validate the numerical ids passed to the nbody_system and save the maximum value
+      generic   :: write_frame             => write_frame_system, write_frame_netcdf               !! Generic method call for reading a frame of output data
    end type swiftest_nbody_system
 
 
@@ -575,6 +579,14 @@ module swiftest
          logical,                           intent(in)    :: lterminal !! Indicates whether to output information to the terminal screen
       end subroutine swiftest_io_conservation_report
 
+      module subroutine swiftest_io_display_run_information(self, param, integration_timer, phase)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
+         type(walltimer),              intent(inout) :: integration_timer !! Object used for computing elapsed wall time
+         character(len=*), optional,   intent(in)    :: phase !! One of "first" or "last" 
+      end subroutine swiftest_io_display_run_information
+
       module subroutine swiftest_io_dump_param(self, param_file_name)
          implicit none
          class(swiftest_parameters),intent(in)    :: self            !! Output collection of parameters
@@ -589,7 +601,7 @@ module swiftest
 
       module subroutine swiftest_io_dump_storage(self, param)
          implicit none
-         class(swiftest_storage(*)), intent(inout) :: self   !! Swiftest simulation history storage object
+         class(swiftest_storage), intent(inout) :: self   !! Swiftest simulation history storage object
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
       end subroutine swiftest_io_dump_storage
 
@@ -634,6 +646,13 @@ module swiftest
          class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       end subroutine swiftest_io_netcdf_get_t0_values_system
 
+      module subroutine swiftest_io_netcdf_get_valid_masks(self, plmask, tpmask)
+         implicit none
+         class(swiftest_netcdf_parameters),  intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
+         logical, dimension(:), allocatable, intent(out)   :: plmask !! Logical mask indicating which bodies are massive bodies
+         logical, dimension(:), allocatable, intent(out)   :: tpmask !! Logical mask indicating which bodies are test particles
+      end subroutine swiftest_io_netcdf_get_valid_masks
+
       module subroutine swiftest_io_netcdf_initialize_output(self, param)
          implicit none
          class(swiftest_netcdf_parameters), intent(inout) :: self  !! Parameters used to for writing a NetCDF dataset to file
@@ -643,7 +662,7 @@ module swiftest
       module subroutine swiftest_io_netcdf_open(self, param, readonly)
          implicit none
          class(swiftest_netcdf_parameters), intent(inout) :: self     !! Parameters used to identify a particular NetCDF dataset
-         class(swiftest_parameters),        intent(in)    :: param    !! Current run configuration parameters
+         class(swiftest_parameters),        intent(inout) :: param    !! Current run configuration parameters
          logical, optional,                 intent(in)    :: readonly !! Logical flag indicating that this should be open read only
       end subroutine swiftest_io_netcdf_open
 
@@ -713,11 +732,10 @@ module swiftest
          class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       end subroutine swiftest_io_netcdf_write_info_cb
 
-      module subroutine swiftest_io_write_discard(self, param)
+      module subroutine swiftest_io_remove_nul_char(string)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self  !! SyMBA nbody system object
-         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
-      end subroutine swiftest_io_write_discard
+         character(len=*), intent(inout) :: string !! String to remove nul characters from
+      end subroutine swiftest_io_remove_nul_char
 
       module subroutine swiftest_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
          implicit none
@@ -885,11 +903,11 @@ module swiftest
          real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
       end subroutine swiftest_kick_getacch_int_all_flat_pl
 
-      module subroutine swiftest_kick_getacch_int_all_triangular_pl(npl, nplm, x, Gmass, radius, acc)
+      module subroutine swiftest_kick_getacch_int_all_triangular_pl(npl, nplm, r, Gmass, radius, acc)
          implicit none
          integer(I4B),                 intent(in)             :: npl    !! Total number of massive bodies
          integer(I4B),                 intent(in)             :: nplm   !! Number of fully interacting massive bodies
-         real(DP),     dimension(:,:), intent(in)             :: x      !! Position vector array
+         real(DP),     dimension(:,:), intent(in)             :: r      !! Position vector array
          real(DP),     dimension(:),   intent(in)             :: Gmass  !! Array of massive body G*mass
          real(DP),     dimension(:),   intent(in),   optional :: radius !! Array of massive body radii
          real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
@@ -1124,7 +1142,6 @@ module swiftest
          logical, dimension(:), intent(in)    :: lsource_mask  !! Logical mask indicating which elements to append to
       end subroutine swiftest_util_append_body
 
-
       module subroutine swiftest_util_append_pl(self, source, lsource_mask)
          implicit none
          class(swiftest_pl),    intent(inout) :: self         !! Swiftest massive body object
@@ -1222,10 +1239,25 @@ module swiftest
          class(swiftest_kinship), intent(inout) :: self !! Swiftest kinship object
       end subroutine swiftest_util_dealloc_kin
 
+      module subroutine swiftest_util_dealloc_cb(self)
+         implicit none
+         class(swiftest_cb), intent(inout) :: self !! Swiftest central body object
+      end subroutine swiftest_util_dealloc_cb
+
       module subroutine swiftest_util_dealloc_pl(self)
          implicit none
          class(swiftest_pl), intent(inout) :: self
       end subroutine swiftest_util_dealloc_pl
+
+      module subroutine swiftest_util_dealloc_storage(self)
+         implicit none
+         class(swiftest_storage), intent(inout) :: self !! Swiftest storage object
+      end subroutine swiftest_util_dealloc_storage
+
+      module subroutine swiftest_util_dealloc_system(self)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self
+      end subroutine swiftest_util_dealloc_system
 
       module subroutine swiftest_util_dealloc_tp(self)
          implicit none
@@ -1306,7 +1338,6 @@ module swiftest
    end interface
 
    interface
-
       pure module subroutine swiftest_util_flatten_eucl_ij_to_k(n, i, j, k)
          !$omp declare simd(swiftest_util_flatten_eucl_ij_to_k)
          implicit none
@@ -1337,8 +1368,48 @@ module swiftest
          class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       end subroutine
 
+      module subroutine swiftest_util_get_energy_and_momentum_system(self, param)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest nbody system object
+         class(swiftest_parameters),        intent(in)    :: param    !! Current run configuration parameters
+      end subroutine swiftest_util_get_energy_and_momentum_system
+
+      module subroutine swiftest_util_get_idvalues_system(self, idvals)
+         implicit none
+         class(swiftest_nbody_system),       intent(in)  :: self   !! Encounter snapshot object
+         integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
+      end subroutine swiftest_util_get_idvalues_system
+   end interface
+
+   interface swiftest_util_get_potential_energy
+      module subroutine swiftest_util_get_potential_energy_flat(npl, nplpl, k_plpl, lmask, GMcb, Gmass, mass, rb, pe)
+         implicit none
+         integer(I4B),                 intent(in)  :: npl
+         integer(I8B),                 intent(in)  :: nplpl
+         integer(I4B), dimension(:,:), intent(in)  :: k_plpl
+         logical,      dimension(:),   intent(in)  :: lmask
+         real(DP),                     intent(in)  :: GMcb
+         real(DP),     dimension(:),   intent(in)  :: Gmass
+         real(DP),     dimension(:),   intent(in)  :: mass
+         real(DP),     dimension(:,:), intent(in)  :: rb
+         real(DP),                     intent(out) :: pe
+      end subroutine swiftest_util_get_potential_energy_flat
+   
+      module subroutine swiftest_util_get_potential_energy_triangular(npl, lmask, GMcb, Gmass, mass, rb, pe)
+         implicit none
+         integer(I4B),                 intent(in)  :: npl
+         logical,      dimension(:),   intent(in)  :: lmask
+         real(DP),                     intent(in)  :: GMcb
+         real(DP),     dimension(:),   intent(in)  :: Gmass
+         real(DP),     dimension(:),   intent(in)  :: mass
+         real(DP),     dimension(:,:), intent(in)  :: rb
+         real(DP),                     intent(out) :: pe
+      end subroutine swiftest_util_get_potential_energy_triangular
+   end interface
+
+   interface
       module subroutine swiftest_util_get_vals_storage(self, idvals, tvals)
-         class(swiftest_storage(*)),              intent(in)  :: self   !! Swiftest storage object
+         class(swiftest_storage),              intent(in)  :: self   !! Swiftest storage object
          integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values in all snapshots
          real(DP),     dimension(:), allocatable, intent(out) :: tvals  !! Array of all time values in all snapshots
       end subroutine swiftest_util_get_vals_storage
@@ -1351,8 +1422,25 @@ module swiftest
 
       module subroutine swiftest_util_index_map_storage(self)
          implicit none
-         class(swiftest_storage(*)), intent(inout) :: self !! Swiftest storage object
+         class(swiftest_storage), intent(inout) :: self !! Swiftest storage object
       end subroutine swiftest_util_index_map_storage
+
+      module subroutine swiftest_util_make_impactors_pl(self, idx)
+         implicit none
+         class(swiftest_pl),         intent(inout) :: self  !! Massive body object
+         integer(I4B), dimension(:), intent(in)    :: idx !! Array holding the indices of the two bodies involved in the collision)
+      end subroutine swiftest_util_make_impactors_pl
+
+      module subroutine swiftest_util_peri(n,m, r, v, atp, q, isperi)
+         implicit none
+         integer(I4B),                 intent(in)    :: n      !! Number of bodies
+         real(DP),     dimension(:),   intent(in)    :: m      !! Mass term (mu for HELIO coordinates, and Gmtot for BARY)
+         real(DP),     dimension(:,:), intent(in)    :: r      !! Position vectors (rh for HELIO coordinates, rb for BARY)
+         real(DP),     dimension(:,:), intent(in)    :: v      !! Position vectors (vh for HELIO coordinates, rb for BARY)
+         real(DP),     dimension(:),   intent(out)   :: atp    !! Semimajor axis 
+         real(DP),     dimension(:),   intent(out)   :: q      !! Periapsis
+         integer(I4B), dimension(:),   intent(inout) :: isperi !! Periapsis passage flag
+      end subroutine swiftest_util_peri
 
       module subroutine swiftest_util_peri_body(self, nbody_system, param)
          implicit none
@@ -1388,10 +1476,6 @@ module swiftest
          integer(I4B), dimension(:), intent(in)    :: idx  !! Index array of bodies to reset
       end subroutine swiftest_util_reset_kinship_pl
 
-      module subroutine swiftest_util_reset_storage(self)
-         implicit none
-         class(swiftest_storage(*)), intent(inout) :: self !! Swiftest storage object
-      end subroutine swiftest_util_reset_storage
    end interface
 
 
@@ -1452,23 +1536,19 @@ module swiftest
          integer(I4B),       intent(in)    :: nnew !! New size neded
       end subroutine swiftest_util_resize_pl
 
+      module subroutine swiftest_util_resize_storage(storage, nold, nnew)
+         use base, only : base_storage
+         implicit none
+         class(base_storage), allocatable, intent(inout) :: storage !! Original storage object
+         integer(I4B),                        intent(in)    :: nold    !! Old size
+         integer(I4B),                        intent(in)    :: nnew    !! New size
+      end subroutine swiftest_util_resize_storage 
+
       module subroutine swiftest_util_resize_tp(self, nnew)
          implicit none
          class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
          integer(I4B),       intent(in)    :: nnew !! New size neded
       end subroutine swiftest_util_resize_tp
-
-      module subroutine swiftest_util_get_energy_momentum_system(self, param)
-         implicit none
-         class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest nbody system object
-         class(swiftest_parameters),        intent(in)    :: param    !! Current run configuration parameters
-      end subroutine swiftest_util_get_energy_momentum_system
-
-      module subroutine swiftest_util_get_idvalues_system(self, idvals)
-         implicit none
-         class(swiftest_nbody_system),       intent(in)  :: self   !! Encounter snapshot object
-         integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
-      end subroutine swiftest_util_get_idvalues_system
 
       module subroutine swiftest_util_set_beg_end_pl(self, rbeg, rend, vbeg)
          implicit none
@@ -1542,9 +1622,16 @@ module swiftest
          class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       end subroutine swiftest_util_set_rhill_approximate
 
+      module subroutine swiftest_util_snapshot_save(storage, snapshot)
+         use base, only : base_storage
+         implicit none
+         class(base_storage), allocatable, intent(inout) :: storage  !! Storage ncounter storage object
+         class(*),                         intent(in)    :: snapshot !! Object to snapshot
+      end subroutine swiftest_util_snapshot_save
+
       module subroutine swiftest_util_snapshot_system(self, param, nbody_system, t, arg)
          implicit none
-         class(swiftest_storage(*)),        intent(inout)        :: self   !! Swiftest storage object
+         class(swiftest_storage),        intent(inout)        :: self   !! Swiftest storage object
          class(swiftest_parameters),        intent(inout)        :: param  !! Current run configuration parameters
          class(swiftest_nbody_system), intent(inout)        :: nbody_system !! Swiftest nbody system object to store
          real(DP),                          intent(in), optional :: t      !! Time of snapshot if different from nbody_system time
@@ -1829,20 +1916,6 @@ module swiftest
    end interface
 
    contains
-      subroutine swiftest_make_impactors_pl(self, idx)
-         !! author: David A. Minton
-         !!
-         !! This is a simple wrapper function that is used to make a type-bound procedure using a subroutine whose interface is in the collision module, which must be defined first
-         implicit none
-         class(swiftest_pl),         intent(inout) :: self  !! Massive body object
-         integer(I4B), dimension(:), intent(in)    :: idx !! Array holding the indices of the two bodies involved in the collision)
-
-         call collision_resolve_make_impactors_pl(self, idx)
-
-         return
-      end subroutine swiftest_make_impactors_pl
-
-
       subroutine swiftest_final_kin(self)
          !! author: David A. Minton
          !!
@@ -1857,54 +1930,18 @@ module swiftest
       end subroutine swiftest_final_kin
 
 
-      subroutine swiftest_final_netcdf_parameters(self)
-         !! author: David A. Minton
-         !!
-         !! Finalize the NetCDF by closing the file
-         implicit none
-         ! Arguments
-         type(swiftest_netcdf_parameters), intent(inout) :: self
-
-         call self%close()
-
-         return
-      end subroutine swiftest_final_netcdf_parameters
-
-
       subroutine swiftest_final_storage(self)
          !! author: David A. Minton
          !!
          !! Finalizer for the storage data type
          implicit none
          ! Arguments
-         type(swiftest_storage(*)) :: self
-         ! Internals
-         integer(I4B) :: i
-   
-         do i = 1, self%nframes
-            if (allocated(self%frame(i)%item)) deallocate(self%frame(i)%item)
-         end do
+         type(swiftest_storage) :: self
+
+         call self%dealloc()
    
          return
       end subroutine swiftest_final_storage
    
-   
-      subroutine swiftest_final_system(self)
-         !! author: David A. Minton
-         !!
-         !! Finalize the swiftest nbody system object - deallocates all allocatables
-         implicit none
-         ! Argument
-         class(swiftest_nbody_system),  intent(inout) :: self !! Swiftest nbody system object
-   
-         if (allocated(self%cb)) deallocate(self%cb)
-         if (allocated(self%pl)) deallocate(self%pl)
-         if (allocated(self%tp)) deallocate(self%tp)
-         if (allocated(self%tp_discards)) deallocate(self%tp_discards)
-         if (allocated(self%pl_discards)) deallocate(self%pl_discards)
-   
-         return
-      end subroutine swiftest_final_system
-
 
 end module swiftest

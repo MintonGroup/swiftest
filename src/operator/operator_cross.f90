@@ -8,6 +8,7 @@
 !! If not, see: https://www.gnu.org/licenses. 
 
 submodule(operators) s_operator_cross
+   use, intrinsic :: ieee_exceptions
    use swiftest
    !! author: David A. Minton
    !!
@@ -21,6 +22,8 @@ contains
       implicit none
       real(SP), dimension(:), intent(in) :: A, B
       real(SP), dimension(3) :: C
+
+      call ieee_set_halting_mode(ieee_underflow, .false.)
       C(1) = A(2) * B(3) - A(3) * B(2)
       C(2) = A(3) * B(1) - A(1) * B(3)
       C(3) = A(1) * B(2) - A(2) * B(1)
@@ -31,6 +34,8 @@ contains
       implicit none
       real(DP), dimension(:), intent(in) :: A, B
       real(DP), dimension(3) :: C
+
+      call ieee_set_halting_mode(ieee_underflow, .false.)
       C(1) = A(2) * B(3) - A(3) * B(2)
       C(2) = A(3) * B(1) - A(1) * B(3)
       C(3) = A(1) * B(2) - A(2) * B(1)
@@ -41,6 +46,8 @@ contains
       implicit none
       real(QP), dimension(:), intent(in) :: A, B
       real(QP), dimension(3) :: C
+
+      call ieee_set_halting_mode(ieee_underflow, .false.)
       C(1) = A(2) * B(3) - A(3) * B(2)
       C(2) = A(3) * B(1) - A(1) * B(3)
       C(3) = A(1) * B(2) - A(2) * B(1)
@@ -51,6 +58,7 @@ contains
       implicit none
       integer(I1B), dimension(:), intent(in) :: A, B
       integer(I1B), dimension(3) :: C
+
       C(1) = A(2) * B(3) - A(3) * B(2)
       C(2) = A(3) * B(1) - A(1) * B(3)
       C(3) = A(1) * B(2) - A(2) * B(1)
@@ -61,6 +69,7 @@ contains
       implicit none
       integer(I2B), dimension(:), intent(in) :: A, B
       integer(I2B), dimension(3) :: C
+
       C(1) = A(2) * B(3) - A(3) * B(2)
       C(2) = A(3) * B(1) - A(1) * B(3)
       C(3) = A(1) * B(2) - A(2) * B(1)

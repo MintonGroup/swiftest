@@ -32,9 +32,9 @@ module rmvs
       real(DP), dimension(:,:), allocatable :: vbeg                       !! Planet velocities at beginning ot step
    contains
       !> Replace the abstract procedures with concrete ones
+      procedure :: dealloc    => rmvs_util_dealloc_system           !! Performs RMVS-specific deallocation
       procedure :: initialize => rmvs_util_setup_initialize_system  !! Performs RMVS-specific initilization steps, including generating the close encounter planetocentric structures
-      procedure :: step       => rmvs_step_system              !! Advance the RMVS nbody system forward in time by one step
-      final     ::               rmvs_final_system        !! Finalizes the RMVS nbody system object - deallocates all allocatables
+      procedure :: step       => rmvs_step_system                   !! Advance the RMVS nbody system forward in time by one step
    end type rmvs_nbody_system
 
    type, private :: rmvs_interp
@@ -187,6 +187,11 @@ module rmvs
          class(rmvs_pl),  intent(inout) :: self !! RMVS massive body object
       end subroutine rmvs_util_dealloc_pl
 
+      module subroutine rmvs_util_dealloc_system(self)
+         implicit none
+         class(rmvs_nbody_system), intent(inout) :: self
+      end subroutine rmvs_util_dealloc_system
+
       module subroutine rmvs_util_dealloc_tp(self)
          implicit none
          class(rmvs_tp),  intent(inout) :: self !! RMVS test particle object
@@ -312,21 +317,6 @@ module rmvs
 
          return
       end subroutine rmvs_final_pl
-
-
-      subroutine rmvs_final_system(self)
-         !! author: David A. Minton
-         !!
-         !! Finalize the RMVS nbody system object - deallocates all allocatables
-         implicit none
-         ! Arguments
-         type(rmvs_nbody_system),  intent(inout) :: self !! RMVS nbody system object
-
-         if (allocated(self%vbeg)) deallocate(self%vbeg)
-         call whm_final_system(self%whm_nbody_system)
-
-         return
-      end subroutine rmvs_final_system
 
 
       subroutine rmvs_final_tp(self)

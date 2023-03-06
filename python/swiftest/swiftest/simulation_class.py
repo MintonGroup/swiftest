@@ -28,6 +28,7 @@ import shutil
 import subprocess
 import shlex
 import warnings
+import sys
 from tqdm.auto import tqdm
 from typing import (
     Literal,
@@ -38,12 +39,18 @@ from typing import (
 )
 
 
-class Simulation:
+class Simulation(object):
     """
     This is a class that defines the basic Swift/Swifter/Swiftest simulation object
     """
 
-    def __init__(self,read_param: bool = False, read_old_output: bool = False, simdir: os.PathLike | str = "simdata", **kwargs: Any):
+    def __init__(self,read_param: bool = False, 
+                 read_data: bool = False, 
+                 read_collisions: bool | None = None, 
+                 read_encounters: bool | None = None,
+                 simdir: os.PathLike | str = "simdata", 
+                 dask: bool = False,
+                 **kwargs: Any):
         """
 
         Parameters
@@ -65,9 +72,13 @@ class Simulation:
                   inside the current working directory, which can be changed by passing `param_file` as an argument.
                 - The argument has an equivalent parameter or set of parameters in the parameter input file.
             3. Default values (see below)
-        read_old_output : bool, default False
-            If true, read in a pre-existing binary input file given by the argument `output_file_name` if it exists.
+        read_data : bool, default False
+            If True, read in a pre-existing binary input file given by the argument `output_file_name` if it exists.
             Parameter input file equivalent: None
+        read_collisions : bool, default None
+            If True, read in a pre-existing collision file `collisions.nc`. If None, then it will take the value of `read_data`. 
+        read_encounters : bool, default None
+            If True, read in a pre-existing encounter file `encounters.nc`. If None, then it will take the value of `read_data`. 
         simdir : PathLike, default `"simdir"`
             Directory where simulation data will be stored, including the parameter file, initial conditions file, output file,
             dump files, and log files.
@@ -98,16 +109,22 @@ class Simulation:
             The step size of the simulation. `dt` must be less than or equal to `tstop-tstart`.
             Parameter input file equivalent: `DT`
         istep_out : int, optional
-            The number of time steps between output saves to file. *Note*: only `istep_out` or `toutput` can be set.
+            The number of time steps between output saves to file. *Note*: only `istep_out` or `tstep_out` can be set.
             Parameter input file equivalent: `ISTEP_OUT`
+        tstep_out : float, optional
+            The approximate time between when outputs are written to file. Passing this computes
+            `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `tstep_out` can be set.
+            Parameter input file equivalent: None 
+        nstep_out : int, optional
+            The total number of times that outputs are written to file. Passing this allows for a geometric progression of output steps:
+            `TSTART, f**0 * TSTEP_OUT, f**1 * TSTEP_OUT, f**2 * TSTEP_OUT, ..., f**(nstep_out-1) * TSTEP_OUT`, 
+            where `f` is a factor that can stretch (or shrink) the time between outputs. Setting `nstep_out = int((tstart - tstop) / (tstep_out))` is
+            equivalent to the standard linear output (i.e. `f==1`) and is the same as not passing anything for this argument. 
+            *Note*: Passing `nstep_out` requires passing either `istep_out` or `tstep_out` as well.     
         dump_cadence : int, optional
             The number of output steps (given by `istep_out`) between when the saved data is dumped to a file. Setting it to 0
             is equivalent to only dumping data to file at the end of the simulation. Default value is 10.
             Parameter input file equivalent: `DUMP_CADENCE`
-        tstep_out : float, optional
-            The approximate time between when outputs are written to file. Passing this computes
-            `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `toutput` can be set.
-            Parameter input file equivalent: None
         init_cond_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"}, default "NETCDF_DOUBLE"
             The file type containing initial conditions for the simulation:
             * NETCDF_DOUBLE: A single initial conditions input file in NetCDF file format of type NETCDF_DOUBLE.
@@ -238,6 +255,11 @@ class Simulation:
             fragmentation model is enabled. Ignored otherwise
             *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
             Parameter input file equivalent: `MIN_GMFRAG`
+        nfrag_reduction : float, optional
+            If fragmentation is turne don, this is a reduction factor used to limit the number of fragments generated in a collision.
+            For instance, if the SFD of the collision would generated 300 fragments above the `minimum_fragment_mass`, then a value
+            of `nfrag_reduction = 30.0` would reduce it to 10.  
+            *Note.* Currently only used by the Fraggle collision model.
         rotation : bool, default False
             If set to True, this turns on rotation tracking and radius, rotation vector, and moments of inertia values
             must be included in the initial conditions.
@@ -285,6 +307,8 @@ class Simulation:
               time calculation. The exact floating-point results of the interaction will be different between the two
               algorithm types.
             Parameter input file equivalent: `ENCOUNTER_CHECK`
+        dask : bool, default False
+            Use Dask to lazily load data (useful for very large datasets)
         verbose : bool, default True
             If set to True, then more information is printed by Simulation methods as they are executed. Setting to
             False suppresses most messages other than errors.
@@ -312,6 +336,7 @@ class Simulation:
         self._getter_column_width = self._swiftest_configuration['getter_column_width']
         self._shell = Path(self._swiftest_configuration['shell'])
         self._shell_full = Path(self._swiftest_configuration['shell_full'])
+        self.verbose = kwargs.pop("verbose",True)
 
         self.param = {}
         self.data = xr.Dataset()
@@ -319,19 +344,9 @@ class Simulation:
         self.encounters = xr.Dataset()
         self.collisions = xr.Dataset()
 
-        self.simdir = Path(simdir)
-        if self.simdir.exists():
-            if not self.simdir.is_dir():
-                msg = f"Cannot create the {self.simdir.resolve()} directory: File exists."
-                msg += "\nDelete the file or change the location of param_file"
-                raise NotADirectoryError(msg)
-        else:
-            if read_old_output or read_param:
-                raise NotADirectoryError(f"Cannot find directory {self.simdir.resolve()} ")
-
         # Set the location of the parameter input file, choosing the default if it isn't specified.
-        param_file = kwargs.pop("param_file",Path.cwd() / self.simdir / "param.in")
-        self.verbose = kwargs.pop("verbose",True)
+        self.simdir = Path.cwd() / Path(simdir)
+        param_file = Path(kwargs.pop("param_file", "param.in"))
 
         # Parameters are set in reverse priority order. First the defaults, then values from a pre-existing input file,
         # then using the arguments passed via **kwargs.
@@ -349,8 +364,19 @@ class Simulation:
         # If the user asks to read in an old parameter file or output file, override any default parameters with values from the file
         # If the file doesn't exist, flag it for now so we know to create it
         param_file_found = False
-        if read_param or read_old_output:
-            if self.read_param(read_init_cond = not read_old_output):
+        
+        if read_collisions is None:
+            self.read_collisions = read_data
+        else:
+            self.read_collisions = read_collisions
+        
+        if read_encounters is None:
+            self.read_encounters = read_data
+        else:
+            self.read_encounters = read_encounters
+            
+        if read_param or read_data:
+            if self.read_param(read_init_cond = True, dask=dask):
                 # We will add the parameter file to the kwarg list. This will keep the set_parameter method from
                 # overriding everything with defaults when there are no arguments passed to Simulation()
                 kwargs['param_file'] = self.param_file
@@ -370,10 +396,10 @@ class Simulation:
             self.write_param()
 
         # Read in an old simulation file if requested
-        if read_old_output:
+        if read_data:
             binpath = os.path.join(self.simdir, self.param['BIN_OUT'])
             if os.path.exists(binpath):
-                self.read_output_file()
+                self.read_output_file(dask=dask)
             else:
                 raise FileNotFoundError(f"BIN_OUT file {binpath} not found.")
         return
@@ -386,14 +412,7 @@ class Simulation:
         # Get current environment variables
 
         env = os.environ.copy()
-        driver_script = os.path.join(self.binary_path, "swiftest_driver.sh")
-        with open(driver_script, 'w') as f:
-            f.write(f"#{self._shell_full} -l\n")
-            f.write(f"source ~/.{self._shell}rc\n")
-            f.write(f"cd {self.simdir}\n")
-            f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} compact\n")
-
-        cmd = f"{env['SHELL']} -l {driver_script}"
+        cmd = f"{env['SHELL']} -l {self.driver_script}"
 
         def _type_scrub(output_data):
             int_vars = ["ILOOP","NPL","NTP","NPLM"]
@@ -409,9 +428,9 @@ class Simulation:
         iloop = int((self.param['TSTART'] - self.param['T0']) / self.param['DT'])
         twidth = int(np.ceil(np.log10(self.param['TSTOP']/(self.param['DT'] * self.param['ISTEP_OUT']))))
         pre_message = f"Time: {self.param['TSTART']:.{twidth}e} / {self.param['TSTOP']:.{twidth}e} {self.TU_name} "
-        post_message = f"npl: {self.data['npl'].values[0]} ntp: {self.data['ntp'].values[0]}"
-        if "nplm" in self.data:
-            post_message += f" nplm: {self.data['nplm'].values[0]}"
+        post_message = f"npl: {self.init_cond['npl'].values[0]} ntp: {self.init_cond['ntp'].values[0]}"
+        if "nplm" in self.init_cond:
+            post_message += f" nplm: {self.init_cond['nplm'].values[0]}"
         if self.param['ENERGY']:
             post_message += f" dL/L0: {0.0:.5e} dE/|E0|: {0.0:+.5e}"
         post_message += f" Wall time / step: {0.0:.5e} s"
@@ -453,14 +472,16 @@ class Simulation:
                 if p.returncode != 0:
                     for line in res[1]:
                         print(line, end='')
-                        warnings.warn("Failure in swiftest_driver", stacklevel=2)
+                    warnings.warn("Failure in swiftest_driver", stacklevel=2)
+                    sys.exit()
         except:
             warnings.warn(f"Error executing main swiftest_driver program", stacklevel=2)
+            sys.exit()
 
         pbar.close()
         return
 
-    def run(self,**kwargs):
+    def run(self,dask: bool = False, **kwargs):
         """
         Runs a Swiftest integration. Uses the parameters set by the `param` dictionary unless overridden by keyword
         arguments. Accepts any keyword arguments that can be passed to `set_parameter`.
@@ -485,11 +506,13 @@ class Simulation:
             warnings.warn(f"Running an integration is not yet supported for {self.codename}",stacklevel=2)
             return
 
-        if self.driver_executable is None:
+        if not self.binary_source.exists():
             msg = "Path to swiftest_driver has not been set!"
             msg += f"\nMake sure swiftest_driver is compiled and the executable is in {str(self.binary_path)}"
             warnings.warn(msg,stacklevel=2)
             return
+        else:
+            shutil.copy2(self.binary_source, self.driver_executable) 
 
         if not self.restart:
             self.clean()
@@ -499,7 +522,9 @@ class Simulation:
         self._run_swiftest_driver()
 
         # Read in new data
-        self.read_output_file()
+        self.read_encounters = True
+        self.read_collisions = True
+        self.read_output_file(dask=dask)
 
         return
 
@@ -552,6 +577,7 @@ class Simulation:
                             dt: float | None = None,
                             istep_out: int | None = None,
                             tstep_out: float | None = None,
+                            nstep_out: int | None = None,
                             dump_cadence: int | None = None,
                             verbose: bool | None = None,
                             **kwargs: Any
@@ -569,10 +595,18 @@ class Simulation:
         dt : float, optional
             The step size of the simulation. `dt` must be less than or equal to `tstop-dstart`.
         istep_out : int, optional
-            The number of time steps between outputs to file. *Note*: only `istep_out` or `toutput` can be set.
+            The number of time steps between output saves to file. *Note*: only `istep_out` or `tstep_out` can be set.
+            Parameter input file equivalent: `ISTEP_OUT`
         tstep_out : float, optional
             The approximate time between when outputs are written to file. Passing this computes
-            `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `toutput` can be set.
+            `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `tstep_out` can be set.
+            Parameter input file equivalent: None 
+        nstep_out : int, optional
+            The total number of times that outputs are written to file. Passing this allows for a geometric progression of output steps:
+            `TSTART, f**0 * TSTEP_OUT, f**1 * TSTEP_OUT, f**2 * TSTEP_OUT, ..., f**(nstep_out-1) * TSTEP_OUT`, 
+            where `f` is a factor that can stretch (or shrink) the time between outputs. Setting `nstep_out = int((tstart - tstop) / (tstep_out))` is
+            equivalent to the standard linear output (i.e. `f==1`) and is the same as not passing anything for this argument. 
+            *Note*: Passing `nstep_out` requires passing either `istep_out` or `tstep_out` as well.     
         dump_cadence : int, optional
             The number of output steps (given by `istep_out`) between when the saved data is dumped to a file. Setting it to 0
             is equivalent to only dumping data to file at the end of the simulation. Default value is 10.
@@ -649,10 +683,16 @@ class Simulation:
             update_list.append("istep_out")
 
         if tstep_out is not None and dt is not None:
-            istep_out = int(np.floor(tstep_out / dt))
+            istep_out = int(tstep_out / dt)
 
         if istep_out is not None:
-            self.param['ISTEP_OUT'] = istep_out
+            self.param['ISTEP_OUT'] = int(istep_out)
+            
+        if nstep_out is not None:
+            if istep_out is None:
+                warnings.warn("nstep_out requires either istep_out or tstep_out to also be set", stacklevel=2)
+            else:
+                self.param['NSTEP_OUT'] = int(nstep_out)
 
         if dump_cadence is None:
             dump_cadence = self.param.pop("DUMP_CADENCE", 1)
@@ -695,6 +735,7 @@ class Simulation:
                      "tstop": "TSTOP",
                      "dt": "DT",
                      "istep_out": "ISTEP_OUT",
+                     "nstep_out": "NSTEP_OUT",
                      "dump_cadence": "DUMP_CADENCE",
                      }
 
@@ -704,6 +745,7 @@ class Simulation:
                  "dt": self.TU_name,
                  "tstep_out": self.TU_name,
                  "istep_out": "",
+                 "nstep_out": "",
                  "dump_cadence": ""}
 
         tstep_out = None
@@ -753,11 +795,12 @@ class Simulation:
             "dt": None,
             "istep_out": 1,
             "tstep_out": None,
+            "nstep_out": None,
             "dump_cadence": 10,
             "init_cond_file_type": "NETCDF_DOUBLE",
             "init_cond_file_name": None,
             "init_cond_format": "EL",
-            "read_old_output": False,
+            "read_data": False,
             "output_file_type": "NETCDF_DOUBLE",
             "output_file_name": None,
             "output_format": "XVEL",
@@ -775,12 +818,13 @@ class Simulation:
             "qmin_coord": "HELIO",
             "gmtiny": 0.0,
             "mtiny": None,
+            "nfrag_reduction": 30.0,
             "close_encounter_check": True,
             "general_relativity": True,
-            "collision_model": "MERGE",
+            "collision_model": "FRAGGLE",
             "minimum_fragment_mass": None,
             "minimum_fragment_gmass": 0.0,
-            "rotation": False,
+            "rotation": True,
             "compute_conservation_values": False,
             "extra_force": False,
             "big_discard": False,
@@ -789,13 +833,13 @@ class Simulation:
             "encounter_check_loops": "TRIANGULAR",
             "ephemeris_date": "MBCL",
             "restart": False,
-            "encounter_save" : "NONE"
+            "encounter_save" : "NONE",
+            "simdir" : self.simdir
         }
         param_file = kwargs.pop("param_file",None)
 
-        # Extract the simulation directory and create it if it doesn't exist
         if param_file is not None:
-            self.param_file = Path.cwd() / param_file
+            self.param_file = param_file
 
         # If no arguments (other than, possibly, verbose) are requested, use defaults
         if len(kwargs) == 0:
@@ -902,11 +946,15 @@ class Simulation:
             self.param['! VERSION'] = f"{self.codename} input file"
             update_list.append("codename")
             if self.codename == "Swiftest":
-                self.binary_path = Path(_pyfile).parent.parent.parent.parent / "bin"
+                self.binary_source = Path(_pyfile).parent.parent.parent.parent / "bin" / "swiftest_driver"
+                self.binary_path = self.simdir.resolve()
                 self.driver_executable = self.binary_path / "swiftest_driver"
-                if not self.driver_executable.exists():
+                if not self.binary_source.exists():
                     warnings.warn(f"Cannot find the Swiftest driver in {str(self.binary_path)}",stacklevel=2)
                     self.driver_executable = None
+                else:
+                    if self.binary_path.exists():
+                        self.driver_executable.resolve()
             else:
                 self.binary_path = "NOT IMPLEMENTED FOR THIS CODE"
                 self.driver_executable = None
@@ -1016,6 +1064,7 @@ class Simulation:
                     collision_model: Literal["MERGE","BOUNCE","FRAGGLE"] | None = None,
                     minimum_fragment_gmass: float | None = None,
                     minimum_fragment_mass: float | None = None,
+                    nfrag_reduction: float | None = None,
                     rotation: bool | None = None,
                     compute_conservation_values: bool | None = None,
                     extra_force: bool | None = None,
@@ -1027,6 +1076,7 @@ class Simulation:
                     encounter_check_loops: Literal["TRIANGULAR", "SORTSWEEP", "ADAPTIVE"] | None = None,
                     encounter_save: Literal["NONE", "TRAJECTORY", "CLOSEST", "BOTH"] | None = None,
                     verbose: bool | None = None,
+                    simdir: str | os.PathLike = None, 
                     **kwargs: Any
                     ):
         """
@@ -1060,6 +1110,11 @@ class Simulation:
             fragmentation model is enabled. Ignored otherwise
             *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
             Parameter input file equivalent: `MIN_GMFRAG`
+        nfrag_reduction : float, optional
+            If fragmentation is turne don, this is a reduction factor used to limit the number of fragments generated in a collision.
+            For instance, if the SFD of the collision would generated 300 fragments above the `minimum_fragment_mass`, then a value
+            of `nfrag_reduction = 30.0` would reduce it to 10.  
+            *Note.* Currently only used by the Fraggle collision model. 
         rotation : bool, optional
             If set to True, this turns on rotation tracking and radius, rotation vector, and moments of inertia values
             must be included in the initial conditions.
@@ -1105,6 +1160,9 @@ class Simulation:
             If true, will restart an old run. The file given by `output_file_name` must exist before the run can
             execute. If false, will start a new run. If the file given by `output_file_name` exists, it will be replaced
             when the run is executed.
+        simdir: PathLike, optional
+            Directory where simulation data will be stored, including the parameter file, initial conditions file, output file,
+            dump files, and log files. 
         verbose: bool, optional
             If passed, it will override the Simulation object's verbose flag
         **kwargs
@@ -1154,6 +1212,10 @@ class Simulation:
             self.param["MIN_GMFRAG"] = minimum_fragment_mass * self.GU
             if "minimum_fragment_gmass" not in update_list:
                 update_list.append("minimum_fragment_gmass")
+                
+        if nfrag_reduction is not None:
+            self.param["NFRAG_REDUCTION"] = nfrag_reduction
+            update_list.append("nfrag_reduction")
 
         if rotation is not None:
             self.param['ROTATION'] = rotation
@@ -1170,6 +1232,7 @@ class Simulation:
         if extra_force is not None:
             self.param["EXTRA_FORCE"] = extra_force
             update_list.append("extra_force")
+        
 
         if big_discard is not None:
             if self.codename != "Swifter":
@@ -1222,6 +1285,17 @@ class Simulation:
             else:
                 self.param["ENCOUNTER_SAVE"] = encounter_save
                 update_list.append("encounter_save")
+                
+        if simdir is not None:
+            self.simdir = Path(simdir)
+            if self.simdir.exists():
+                if not self.simdir.is_dir():
+                    msg = f"Cannot create the {self.simdir.resolve()} directory: File exists."
+                    msg += "\nDelete the file or change the location of param_file"
+                    raise NotADirectoryError(msg)
+            self.binary_path = self.simdir.resolve()
+            self.driver_executable = self.binary_path / "swiftest_driver"
+            self.param_file = Path(kwargs.pop("param_file","param.in"))
 
         self.param["TIDES"] = False
 
@@ -1256,6 +1330,7 @@ class Simulation:
                      "collision_model": "COLLISION_MODEL",
                      "encounter_save": "ENCOUNTER_SAVE",
                      "minimum_fragment_gmass": "MIN_GMFRAG",
+                     "nfrag_reduction": "NFRAG_REDUCTION",
                      "rotation": "ROTATION",
                      "general_relativity": "GR",
                      "compute_conservation_values": "ENERGY",
@@ -1727,11 +1802,11 @@ class Simulation:
         TU2S_old = None
 
         if "MU_name" not in dir(self):
-            self.MU_name = None
+            self.MU_name = "MU"
         if "DU_name" not in dir(self):
-            self.DU_name = None
+            self.DU_name = "DU"
         if "TU_name" not in dir(self):
-            self.TU_name = None
+            self.TU_name = "TU"
 
         update_list = []
         if MU is not None or MU2KG is not None:
@@ -1763,6 +1838,8 @@ class Simulation:
                     warnings.warn(f"{MU} not a recognized unit system. Using MSun as a default.",stacklevel=2)
                     self.param['MU2KG'] = constants.MSun
                     self.MU_name = "MSun"
+            self.MU2KG = self.param['MU2KG']
+            self.KG2MU = 1.0 / self.MU2KG
 
         if DU2M is not None or DU is not None:
             DU2M_old = self.param.pop('DU2M', None)
@@ -1786,6 +1863,8 @@ class Simulation:
                     warnings.warn(f"{DU} not a recognized unit system. Using AU as a default.",stacklevel=2)
                     self.param['DU2M'] = constants.AU2M
                     self.DU_name = "AU"
+            self.DU2M = self.param['DU2M']
+            self.M2DU = 1.0 / self.DU2M
 
         if TU2S is not None or TU is not None:
             TU2S_old = self.param.pop('TU2S', None)
@@ -1806,6 +1885,8 @@ class Simulation:
                     warnings.warn(f"{TU} not a recognized unit system. Using YR as a default.",stacklevel=2)
                     self.param['TU2S'] = constants.YR2S
                     self.TU_name = "y"
+            self.TU2S = self.param['TU2S']
+            self.S2TU = 1.0 / self.TU2S
 
         if MU_name is not None:
             self.MU_name = MU_name
@@ -2464,8 +2545,8 @@ class Simulation:
         if mass is not None:
             if Gmass is not None:
                 raise ValueError("Cannot use mass and Gmass inputs simultaneously!")
-            else:
-                Gmass = self.param['GU'] * mass
+            else: 
+                Gmass = self.GU * mass
 
         dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
                                  Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, J2=J2, J4=J4, time=time)
@@ -2537,8 +2618,9 @@ class Simulation:
     def read_param(self,
                    param_file : os.PathLike | str | None = None,
                    codename: Literal["Swiftest", "Swifter", "Swift"] | None = None,
-                   read_init_cond : Bool | None = None,
-                   verbose: bool | None = None):
+                   read_init_cond : bool | None = None,
+                   verbose: bool | None = None,
+                   dask: bool = False):
         """
         Reads in an input parameter file and stores the values in the param dictionary.
         
@@ -2553,12 +2635,15 @@ class Simulation:
         verbose : bool, default is the value of the Simulation object's internal `verbose`
             If set to True, then more information is printed by Simulation methods as they are executed. Setting to
             False suppresses most messages other than errors.
+        dask : bool, default False
+            Use Dask to lazily load data (useful for very large datasets)
+            
         Returns
         -------
         True if the parameter file exists and is read correctly. False otherwise.
         """
         if param_file is None:
-            param_file = self.param_file
+            param_file = self.simdir / self.param_file
         if read_init_cond is None:
             read_init_cond = True
         if codename is None:
@@ -2578,7 +2663,7 @@ class Simulation:
                    if os.path.exists(init_cond_file):
                        param_tmp = self.param.copy()
                        param_tmp['BIN_OUT'] = init_cond_file
-                       self.data = io.swiftest2xr(param_tmp, verbose=self.verbose)
+                       self.data = io.swiftest2xr(param_tmp, verbose=self.verbose, dask=dask)
                        self.init_cond = self.data.copy(deep=True)
                    else:
                        warnings.warn(f"Initial conditions file file {init_cond_file} not found.", stacklevel=2)
@@ -2632,7 +2717,7 @@ class Simulation:
             verbose = self.verbose
 
         if verbose:
-            print(f"Writing parameter inputs to file {param_file}")
+            print(f"Writing parameter inputs to file {str(self.simdir / param_file)}")
         param['! VERSION'] = f"{codename} input file"
         
         self.simdir.mkdir(parents=True, exist_ok=True)
@@ -2644,32 +2729,43 @@ class Simulation:
                 param.pop("CB_IN", None)
                 param.pop("PL_IN", None)
                 param.pop("TP_IN", None)
-            io.write_labeled_param(param, param_file)
+            io.write_labeled_param(param, self.simdir / param_file)
         elif codename == "Swift":
-            io.write_swift_param(param, param_file)
+            io.write_swift_param(param, self.simdir / param_file)
         else:
             warnings.warn('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".',stacklevel=2)
+            
+        # Generate executable script    
+        self.driver_script = os.path.join(self.simdir, "swiftest_driver.sh")
+        with open(self.driver_script, 'w') as f:
+            f.write(f"#{self._shell_full}\n")
+            f.write(f"source ~/.{self._shell}rc\n")
+            f.write(f"cd {self.simdir}\n")
+            f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} compact\n")
+            
         return
 
     def convert(self, param_file, newcodename="Swiftest", plname="pl.swiftest.in", tpname="tp.swiftest.in",
-                cbname="cb.swiftest.in", conversion_questions={}):
+                cbname="cb.swiftest.in", conversion_questions={}, dask = False):
         """
         Converts simulation input files from one format to another (Swift, Swifter, or Swiftest). 
 
         Parameters
         ----------
         param_file : string
-        File name of the input parameter file
+            File name of the input parameter file
         newcodename : string
-        Name of the desired format (Swift/Swifter/Swiftest)
+            Name of the desired format (Swift/Swifter/Swiftest)
         plname : string
-        File name of the massive body input file
+            File name of the massive body input file
         tpname : string
-        File name of the test particle input file
+            File name of the test particle input file
         cbname : string
-        File name of the central body input file
+            File name of the central body input file
         conversion_questions : dictronary
-        Dictionary of additional parameters required to convert between formats
+            Dictionary of additional parameters required to convert between formats
+        dask : bool, default False
+            Use Dask to lazily load data (useful for very large datasets)
 
         Returns
         -------
@@ -2705,15 +2801,16 @@ class Simulation:
             warnings.warn(f"Conversion from {self.codename} to {newcodename} is not supported.",stacklevel=2)
         return oldparam
 
-    def read_output_file(self,read_init_cond : bool = True):
+    def read_output_file(self,read_init_cond : bool = True, dask : bool = False):
         """
         Reads in simulation data from an output file and stores it as an Xarray Dataset in the `data` instance variable.
 
         Parameters
         ----------
-        read_init_cond : bool
-        Read in an initial conditions file along with the output file. Default is True
-
+        read_init_cond : bool, default True
+            Read in an initial conditions file along with the output file. Default is True
+        dask : bool, default False
+            Use Dask to lazily load data (useful for very large datasets)
         Returns
         -------
         self.data : xarray dataset
@@ -2726,7 +2823,7 @@ class Simulation:
         param_tmp = self.param.copy()
         param_tmp['BIN_OUT'] = os.path.join(self.simdir, self.param['BIN_OUT'])
         if self.codename == "Swiftest":
-            self.data = io.swiftest2xr(param_tmp, verbose=self.verbose)
+            self.data = io.swiftest2xr(param_tmp, verbose=self.verbose, dask=dask)
             if self.verbose:
                 print('Swiftest simulation data stored as xarray DataSet .data')
             if read_init_cond:
@@ -2734,12 +2831,14 @@ class Simulation:
                     print("Reading initial conditions file as .init_cond")
                 if "NETCDF" in self.param['IN_TYPE']:
                     param_tmp['BIN_OUT'] = self.simdir / self.param['NC_IN']
-                    self.init_cond = io.swiftest2xr(param_tmp, verbose=False)
+                    self.init_cond = io.swiftest2xr(param_tmp, verbose=False, dask=dask)
                 else:
                     self.init_cond = self.data.isel(time=0)
 
-            self.read_encounter()
-            self.read_collision()
+            if self.read_encounters:
+                self.read_encounter_file(dask=dask)
+            if self.read_collisions:
+                self.read_collision_file(dask=dask)
             if self.verbose:
                 print("Finished reading Swiftest dataset files.")
 
@@ -2752,12 +2851,15 @@ class Simulation:
             warnings.warn('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".',stacklevel=2)
         return
 
-    def read_encounter(self):
+    def read_encounter_file(self, dask=False):
         enc_file = self.simdir / "encounters.nc"
         if not os.path.exists(enc_file):
            return
 
-        self.encounters = xr.open_dataset(enc_file)
+        if dask:
+            self.encounters = xr.open_mfdataset(enc_file,engine='h5netcdf', mask_and_scale=False)
+        else:
+            self.encounters = xr.open_dataset(enc_file, mask_and_scale=False)
         self.encounters = io.process_netcdf_input(self.encounters, self.param)
 
         # Remove any overlapping time values
@@ -2769,7 +2871,7 @@ class Simulation:
 
         return
 
-    def read_collision(self):
+    def read_collision_file(self, dask=False):
        
         col_file = self.simdir / "collisions.nc"
         if not os.path.exists(col_file):
@@ -2778,12 +2880,16 @@ class Simulation:
         if self.verbose:
                 print("Reading collisions history file as .collisions")
 
-        self.collisions = xr.open_dataset(col_file)
+        if dask:
+            self.collisions = xr.open_mfdataset(col_file,engine='h5netcdf', mask_and_scale=False)
+        else:
+            self.collisions = xr.open_dataset(col_file, mask_and_scale=False)
+            
         self.collisions = io.process_netcdf_input(self.collisions, self.param)
 
         return
 
-    def follow(self, codestyle="Swifter"):
+    def follow(self, codestyle="Swifter", dask=False):
         """
         An implementation of the Swift tool_follow algorithm. Under development. Currently only for Swift simulations. 
 
@@ -2797,7 +2903,7 @@ class Simulation:
             fol : xarray dataset
         """
         if self.data is None:
-            self.read_output_file()
+            self.read_output_file(dask=dask)
         if codestyle == "Swift":
             try:
                 with open('follow.in', 'r') as f:
@@ -2861,11 +2967,20 @@ class Simulation:
         if param is None:
             param = self.param
 
-        self.simdir.mkdir(parents=True, exist_ok=True)
+        if not self.simdir.exists():
+            self.simdir.mkdir(parents=True, exist_ok=True)
+        
         if codename == "Swiftest":
             infile_name = Path(self.simdir) / param['NC_IN']
             io.swiftest_xr2infile(ds=self.data, param=param, in_type=self.param['IN_TYPE'], infile_name=infile_name, framenum=framenum, verbose=verbose)
             self.write_param(param_file=param_file,**kwargs)
+            if not self.binary_source.exists():
+                msg = "Path to swiftest_driver has not been set!"
+                msg += f"\nMake sure swiftest_driver is compiled and the executable is in {str(self.binary_path)}"
+                warnings.warn(msg,stacklevel=2)
+                return
+            else:
+                shutil.copy2(self.binary_source, self.driver_executable)  
         elif codename == "Swifter":
             if codename == "Swiftest":
                 swifter_param = io.swiftest2swifter_param(param)
@@ -2953,10 +3068,17 @@ class Simulation:
                      self.simdir / "collisions.log",
                      self.simdir / "collisions.nc",
                      self.simdir / "encounters.nc",
-                     self.simdir / "param.restart.in",
                      ]
+        
+        glob_files = [self.simdir.glob("**/param.*.in")]
 
         for f in old_files:
             if f.exists():
                 os.remove(f)
+                
+        for g in glob_files:
+            for f in g:
+               if f.exists():
+                  os.remove(f)        
         return
+

@@ -8,18 +8,20 @@
 !! If not, see: https://www.gnu.org/licenses. 
 
 submodule(operators) s_operator_mag
+   use, intrinsic :: ieee_exceptions
    !! author: David A. Minton
    !!
    !! Contains implementations for the .mag. operator for all defined real types
    !! Computes the magnitude of a vector or array of vectors using norm2
    !! Single vector implementations:  B   = .mag. A(1:3)
    !! Vector list implementations:   B(:) = .mag. A(1:3, :)
-   contains
+contains
 
    pure module function operator_mag_sp(A) result(B)
       implicit none
       real(SP), dimension(:), intent(in) :: A
       real(SP)                           :: B
+      call ieee_set_halting_mode(ieee_underflow, .false.)
       B = norm2(A(:))
       return
    end function operator_mag_sp
@@ -28,6 +30,7 @@ submodule(operators) s_operator_mag
       implicit none
       real(DP), dimension(:), intent(in) :: A
       real(DP)                           :: B
+      call ieee_set_halting_mode(ieee_underflow, .false.)
       B = norm2(A(:))
       return
    end function operator_mag_dp
@@ -40,6 +43,7 @@ submodule(operators) s_operator_mag
       n = size(A, 2)
       if (allocated(B)) deallocate(B)
       allocate(B(n))
+      call ieee_set_halting_mode(ieee_underflow, .false.)
       do concurrent (i=1:n)
          B(i) = norm2(A(:, i)) 
       end do
@@ -54,6 +58,7 @@ submodule(operators) s_operator_mag
       n = size(A, 2)
       if (allocated(B)) deallocate(B)
       allocate(B(n))
+      call ieee_set_halting_mode(ieee_underflow, .false.)
       do concurrent (i=1:n)
          B(i) = norm2(A(:, i)) 
       end do
@@ -68,6 +73,7 @@ submodule(operators) s_operator_mag
       n = size(A, 2)
       if (allocated(B)) deallocate(B)
       allocate(B(n))
+      call ieee_set_halting_mode(ieee_underflow, .false.)
       do concurrent (i=1:n)
          B(i) = norm2(A(:, i)) 
       end do

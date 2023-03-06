@@ -17,7 +17,7 @@ contains
       !! Dumps the time history of an encounter to file.
       implicit none
       ! Arguments
-      class(encounter_storage(*)), intent(inout) :: self   !! Encounter storage object
+      class(encounter_storage), intent(inout) :: self   !! Encounter storage object
       class(base_parameters),      intent(inout) :: param  !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: i
@@ -40,10 +40,10 @@ contains
                end if
             end do
 
-            call nc%close()
-            call self%reset()
-            ! Update the time slot tracker
             nc%max_tslot = nc%max_tslot + maxval(self%tmap(1:self%iframe))
+            call nc%close()
+            ! Update the time slot tracker
+            call self%reset()
          end if
       end select
 
@@ -145,7 +145,7 @@ contains
 
       667 continue
       write(*,*) "Error creating encounter output file. " // trim(adjustl(errmsg))
-      call util_exit(FAILURE)
+      call base_util_exit(FAILURE)
    end subroutine encounter_io_netcdf_initialize_output
 
 
@@ -227,12 +227,12 @@ contains
       implicit none
       ! Arguments
       class(encounter_snapshot),   intent(in)    :: self              !! Swiftest encounter structure
-      class(encounter_storage(*)), intent(inout) :: history !! Encounter storage object
+      class(encounter_storage), intent(inout) :: history !! Encounter storage object
       class(base_parameters),      intent(inout) :: param             !! Current run configuration parameters
  
       ! Internals
       integer(I4B)           :: i, idslot, old_mode, npl, ntp
-      character(len=:), allocatable :: charstring
+      character(len=STRMAX) :: charstring
 
       select type(param)
       class is (swiftest_parameters)
@@ -248,8 +248,10 @@ contains
             call netcdf_io_check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var time_varid"  )
 
             npl = pl%nbody
+            ! This ensures that there first idslot will have the first body in it, not id 0 which is the default for a new idvals array
+            if (.not.allocated(nc%idvals)) allocate(nc%idvals, source=pl%id)
             do i = 1, npl
-               idslot = findloc(history%idvals,pl%id(i),dim=1)
+               call nc%find_idslot(pl%id(i), idslot) 
                call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, pl%id(i),   start=[idslot]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl id_varid"  )
                call netcdf_io_check( nf90_put_var(nc%id, nc%rh_varid, pl%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl rh_varid"  )
                call netcdf_io_check( nf90_put_var(nc%id, nc%vh_varid, pl%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl vh_varid"  )
@@ -259,26 +261,27 @@ contains
 
                if (param%lrotation) then
                   call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid, pl%Ip(:,i), start=[1, idslot, tslot], count=[NDIM,1,1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl Ip_varid"  )
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, pl%rot(:,i), start=[1,idslot, tslot], count=[NDIM,1,1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl rotx_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, pl%rot(:,i)*RAD2DEG, start=[1,idslot, tslot], count=[NDIM,1,1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl rotx_varid"  )
                end if
 
                charstring = trim(adjustl(pl%info(i)%name))
-               call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl name_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl name_varid"  )
                charstring = trim(adjustl(pl%info(i)%particle_type))
-               call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl particle_type_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl particle_type_varid"  )
             end do
 
             ntp = tp%nbody
+            if (.not.allocated(nc%idvals)) allocate(nc%idvals, source=tp%id)
             do i = 1, ntp
-               idslot = findloc(history%idvals,tp%id(i),dim=1)
+               call nc%find_idslot(tp%id(i), idslot) 
                call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, tp%id(i), start=[idslot]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp id_varid"  )
                call netcdf_io_check( nf90_put_var(nc%id, nc%rh_varid, tp%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp rh_varid"  )
                call netcdf_io_check( nf90_put_var(nc%id, nc%vh_varid, tp%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp vh_varid"  )
 
                charstring = trim(adjustl(tp%info(i)%name))
-               call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp name_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp name_varid"  )
                charstring = trim(adjustl(tp%info(i)%particle_type))
-               call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[len(charstring), 1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp particle_type_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp particle_type_varid"  )
             end do
 
             call netcdf_io_check( nf90_set_fill(nc%id, old_mode, old_mode) )

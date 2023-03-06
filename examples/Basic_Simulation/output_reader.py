@@ -1,5 +1,7 @@
+#!/usr/bin/env python3
+
 """
- Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+ Copyright 2023 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
  This file is part of Swiftest.
  Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
  as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -9,7 +11,6 @@
  If not, see: https://www.gnu.org/licenses. 
 """
 
-#!/usr/bin/env python3
 """
 Reads and processes a Swiftest output file.
 
@@ -28,7 +29,7 @@ import xarray as xr
 import matplotlib.pyplot as plt
 
 # Read in the simulation output and store it as an Xarray dataset.
-sim = swiftest.Simulation(read_old_output=True)
+sim = swiftest.Simulation(read_data=True)
 
 # Plot of the data and save the output plot.
 colors = ['white' if x == 'Massive Body' else 'black' for x in sim.data['particle_type']]

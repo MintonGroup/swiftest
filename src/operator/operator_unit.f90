@@ -8,13 +8,14 @@
 !! If not, see: https://www.gnu.org/licenses. 
 
 submodule(operators) s_operator_unit
+   use, intrinsic :: ieee_exceptions
    !! author: David A. Minton
    !!
    !! Contains implementations for the .unit. operator for all defined real types
    !! Returns a unit vector or array of unit vectors from an input vector or array of vectors
    !! Single vector implementations:  B   = .unit. A(1:NDIM)
    !! Vector list implementations:   B(:) = .unit. A(1:NDIM, :)
-   contains
+contains
 
    pure module function operator_unit_sp(A) result(B)
       implicit none
@@ -24,6 +25,7 @@ submodule(operators) s_operator_unit
       ! Internals
       real(SP)  :: Amag
 
+      call ieee_set_halting_mode(ieee_underflow, .false.)
       Amag = norm2(A(:))
       if (Amag > tiny(1._SP)) then
          B(:) = A(:) / Amag
@@ -43,6 +45,7 @@ submodule(operators) s_operator_unit
       ! Internals
       real(DP)  :: Amag
 
+      call ieee_set_halting_mode(ieee_underflow, .false.)
       Amag = norm2(A(:))
       if (Amag > tiny(1._DP)) then
          B(:) = A(:) / Amag
@@ -62,6 +65,7 @@ submodule(operators) s_operator_unit
       ! Internals
       real(QP)  :: Amag
 
+      call ieee_set_halting_mode(ieee_underflow, .false.)
       Amag = norm2(A(:))
       if (Amag > tiny(1._QP)) then
          B(:) = A(:) / Amag

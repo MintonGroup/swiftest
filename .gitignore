@@ -7,6 +7,7 @@
 !*.sh
 !CMakeLists.txt
 !*.cmake
+!COPYING.txt
 !CHANGELOG 
 !README.md
 !README_figs/**
@@ -30,3 +31,4 @@ dump*
 
 bin/
 build/*
+disruption_headon/swiftest_driver.sh

@@ -194,11 +194,11 @@ contains
             nbody_system%irec = ireci
             dtl = param%dt / (NTENC**ireci)
             dth = 0.5_DP * dtl
-            IF (dtl / param%dt < VSMALL) THEN
+            IF (dtl / param%dt < epsilon(1.0_DP)) THEN
                write(*, *) "SWIFTEST Warning:"
                write(*, *) "   In symba_step_recur_system, local time step is too small"
                write(*, *) "   Roundoff error will be important!"
-               call util_exit(FAILURE)
+               call base_util_exit(FAILURE)
             END IF
             irecp = ireci + 1
             if (ireci == 0) then

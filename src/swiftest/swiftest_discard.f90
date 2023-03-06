@@ -25,31 +25,29 @@ contains
       lpl_check = allocated(self%pl_discards)
       ltp_check = allocated(self%tp_discards)
 
-      associate(nbody_system => self, tp => self%tp, pl => self%pl, tp_discards => self%tp_discards, pl_discards => self%pl_discards, nc => param%system_history%nc)
+      associate(nbody_system => self, tp => self%tp, pl => self%pl, tp_discards => self%tp_discards, pl_discards => self%pl_discards, nc => self%system_history%nc)
          lpl_discards = .false.
          ltp_discards = .false.
-         if (lpl_check) then
+         if (lpl_check .and. pl%nbody > 0) then
+            pl%ldiscard = pl%status(:) /= ACTIVE
             call pl%discard(nbody_system, param)
             lpl_discards = (pl_discards%nbody > 0)
          end if
             
-         if (ltp_check) then
+         if (ltp_check .and. tp%nbody > 0) then
+            tp%ldiscard = tp%status(:) /= ACTIVE
             call tp%discard(nbody_system, param)
             ltp_discards = (tp_discards%nbody > 0)
          end if
 
          if (ltp_discards.or.lpl_discards) then
-            call nc%open(param)
             if (lpl_discards) then
-               call pl_discards%write_info(param%system_history%nc, param)
                if (param%lenergy) call self%conservation_report(param, lterminal=.false.)
                call pl_discards%setup(0,param) 
             end if
             if (ltp_discards) then
-               call tp_discards%write_info(param%system_history%nc, param)
                call tp_discards%setup(0,param) 
             end if
-            call nc%close()
          end if
          
       end associate
@@ -91,6 +89,8 @@ contains
       ! Internals
       logical, dimension(:), allocatable :: ldiscard
       integer(I4B) :: npl, ntp
+
+      if (self%nbody == 0) return
 
       associate(tp => self, cb => nbody_system%cb, pl => nbody_system%pl)
          ntp = tp%nbody
