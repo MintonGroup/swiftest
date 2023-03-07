@@ -211,9 +211,9 @@ contains
          end do
       else 
          !$omp parallel do default(private) schedule(static)&
-         !$omp shared(npl,nplm, r, Gmass, radius, acc)
+         !$omp shared(npl, nplm, r, Gmass, radius, acc)
          do i = 1, nplm
-            do concurrent(j = 1:npl, j/=i)
+            do concurrent(j = 1:npl, i/=j)
                rx = r(1,j) - r(1,i)
                ry = r(2,j) - r(2,i)
                rz = r(3,j) - r(3,i)
@@ -229,24 +229,26 @@ contains
          end do
          !$omp end parallel do
 
-         !$omp parallel do default(private) schedule(static)&
-         !$omp shared(npl,nplm, r, Gmass, radius, acc)
-         do i = nplm+1,npl
-            do concurrent(j = 1:nplm)
-               rx = r(1,j) - r(1,i)
-               ry = r(2,j) - r(2,i)
-               rz = r(3,j) - r(3,i)
-               rji2 = rx**2 + ry**2 + rz**2
-               rlim2 = (radius(i) + radius(j))**2
-               if (rji2 > rlim2)  then
-                  fac = Gmass(j) / (rji2 * sqrt(rji2))
-                  acc(1,i) = acc(1,i) + fac * rx
-                  acc(2,i) = acc(2,i) + fac * ry
-                  acc(3,i) = acc(3,i) + fac * rz
-               end if
+         if (nplt > 0) then
+            !$omp parallel do default(private) schedule(static)&
+            !$omp shared(npl, nplm, r, Gmass, radius, acc)
+            do i = nplm+1,npl
+               do concurrent(j = 1:nplm)
+                  rx = r(1,j) - r(1,i)
+                  ry = r(2,j) - r(2,i)
+                  rz = r(3,j) - r(3,i)
+                  rji2 = rx**2 + ry**2 + rz**2
+                  rlim2 = (radius(i) + radius(j))**2
+                  if (rji2 > rlim2)  then
+                     fac = Gmass(j) / (rji2 * sqrt(rji2))
+                     acc(1,i) = acc(1,i) + fac * rx
+                     acc(2,i) = acc(2,i) + fac * ry
+                     acc(3,i) = acc(3,i) + fac * rz
+                  end if
+               end do
             end do
-         end do
-         !$omp end parallel do
+            !$omp end parallel do
+         end if
 
       end if
 
@@ -301,7 +303,7 @@ contains
          end do
       else 
          !$omp parallel do default(private) schedule(static)&
-         !$omp shared(npl,nplm, r, Gmass, acc)
+         !$omp shared(npl, nplm, r, Gmass, acc)
          do i = 1, nplm
             do concurrent(j = 1:npl, j/=i)
                rx = r(1,j) - r(1,i)
@@ -316,21 +318,23 @@ contains
          end do
          !$omp end parallel do
 
-         !$omp parallel do default(private) schedule(static)&
-         !$omp shared(npl,nplm, r, Gmass, acc)
-         do i = nplm+1,npl
-            do concurrent(j = 1:nplm)
-               rx = r(1,j) - r(1,i)
-               ry = r(2,j) - r(2,i)
-               rz = r(3,j) - r(3,i)
-               rji2 = rx**2 + ry**2 + rz**2
-               fac = Gmass(j) / (rji2 * sqrt(rji2))
-               acc(1,i) = acc(1,i) + fac * rx
-               acc(2,i) = acc(2,i) + fac * ry
-               acc(3,i) = acc(3,i) + fac * rz
+         if (nplt > 0) then
+            !$omp parallel do default(private) schedule(static)&
+            !$omp shared(npl, nplm, r, Gmass, acc)
+            do i = nplm+1,npl
+               do concurrent(j = 1:nplm)
+                  rx = r(1,j) - r(1,i)
+                  ry = r(2,j) - r(2,i)
+                  rz = r(3,j) - r(3,i)
+                  rji2 = rx**2 + ry**2 + rz**2
+                  fac = Gmass(j) / (rji2 * sqrt(rji2))
+                  acc(1,i) = acc(1,i) + fac * rx
+                  acc(2,i) = acc(2,i) + fac * ry
+                  acc(3,i) = acc(3,i) + fac * rz
+               end do
             end do
-         end do
-         !$omp end parallel do
+            !$omp end parallel do
+         end if
 
       end if
 
