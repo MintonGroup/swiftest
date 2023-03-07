@@ -34,38 +34,8 @@ contains
       logical, save :: skipit = .false. ! This will be used to ensure that the sort & sweep subroutine gets called at least once before timing it so that the extent array is nearly sorted when it is timed
       integer(I8B) :: nplpl = 0_I8B
 
-      ! if (param%ladaptive_encounters_plpl .and. (.not. skipit)) then
-      !    nplpl = (npl * (npl - 1) / 2) 
-      !    if (nplpl > 0) then
-      !       if (lfirst) then  
-      !          write(itimer%loopname, *) "encounter_check_all_plpl"
-      !          write(itimer%looptype, *) "ENCOUNTER_PLPL"
-      !          lfirst = .false.
-      !          itimer%step_counter = INTERACTION_TIMER_CADENCE
-      !       else 
-      !          if (itimer%netcdf_io_check(param, nplpl)) call itimer%time_this_loop(param, nplpl)
-      !       end if
-      !    else
-      !       param%lencounter_sas_plpl = .false.
-      !    end if
-      ! end if
-      
-      ! if (param%lencounter_sas_plpl) then
-      !    call encounter_check_all_sort_and_sweep_plpl(npl, x, v, renc, dt, nenc, index1, index2, lvdotr) 
-      ! else
-         call encounter_check_all_triangular_plpl(npl, x, v, renc, dt, nenc, index1, index2, lvdotr) 
-      ! end if
 
-      ! if (skipit) then
-      !    skipit = .false.
-      ! else
-      !    if (param%ladaptive_encounters_plpl .and. nplpl > 0) then 
-      !       if (itimer%is_on) then
-      !          call itimer%adapt(param, nplpl)
-      !          skipit = .true.
-      !       end if
-      !    end if
-      ! end if
+      call encounter_check_all_triangular_plpl(npl, x, v, renc, dt, nenc, index1, index2, lvdotr) 
 
       return
    end subroutine encounter_check_all_plpl
@@ -107,23 +77,6 @@ contains
       integer(I4B), dimension(:), allocatable :: itmp
       logical, dimension(:), allocatable :: ltmp
 
-      ! if (param%ladaptive_encounters_plpl .and. (.not. skipit)) then
-      !    npl = nplm + nplt
-      !    nplplm = nplm * npl - nplm * (nplm + 1) / 2 
-      !    if (nplplm > 0) then
-      !       if (lfirst) then  
-      !          write(itimer%loopname, *) "encounter_check_all_plpl"
-      !          write(itimer%looptype, *) "ENCOUNTER_PLPL"
-      !          lfirst = .false.
-      !          itimer%step_counter = INTERACTION_TIMER_CADENCE
-      !       else 
-      !          if (itimer%netcdf_io_check(param, nplplm)) call itimer%time_this_loop(param, nplplm)
-      !       end if
-      !    else
-      !       param%lencounter_sas_plpl = .false.
-      !    end if
-      ! end if
-
       allocate(tmp_param, source=param)
 
       ! Turn off adaptive encounter checks for the pl-pl group
@@ -132,23 +85,7 @@ contains
       ! Start with the pl-pl group
       call encounter_check_all_plpl(tmp_param, nplm, rplm, vplm, rencm, dt, nenc, index1, index2, lvdotr)
 
-      ! if (param%lencounter_sas_plpl) then
-         ! call encounter_check_all_sort_and_sweep_plplm(nplm, nplt, rplm, vplm, rplt, vplt, rencm, renct, dt, &
-          !                                             plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr)
-      ! else
-         call encounter_check_all_triangular_plplm(nplm, nplt, rplm, vplm, rplt, vplt, rencm, renct, dt, plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr) 
-      ! end if
-
-      ! if (skipit) then
-      !    skipit = .false.
-      ! else
-      !    if (param%ladaptive_encounters_plpl .and. nplplm > 0) then 
-      !       if (itimer%is_on) then
-      !          call itimer%adapt(param, nplplm)
-      !          skipit = .true.
-      !       end if
-      !    end if
-      ! end if
+      call encounter_check_all_triangular_plplm(nplm, nplt, rplm, vplm, rplt, vplt, rencm, renct, dt, plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr) 
 
       if (plmplt_nenc > 0) then ! Consolidate the two lists
          allocate(itmp(nenc+plmplt_nenc))
@@ -202,37 +139,7 @@ contains
       logical, save :: lsecond = .false.
       integer(I8B) :: npltp = 0_I8B
 
-      ! if (param%ladaptive_encounters_pltp) then
-      !    npltp = npl * ntp
-      !    if (npltp > 0) then
-      !       if (lfirst) then  
-      !          write(itimer%loopname, *) "encounter_check_all_pltp"
-      !          write(itimer%looptype, *) "ENCOUNTER_PLTP"
-      !          lfirst = .false.
-      !          lsecond = .true.
-      !       else
-      !          if (lsecond) then ! This ensures that the encounter check methods are run at least once prior to timing. Sort and sweep improves on the second pass due to the bounding box extents needing to be nearly sorted 
-      !             call itimer%time_this_loop(param, npltp)
-      !             lsecond = .false.
-      !          else if (itimer%netcdf_io_check(param, npltp)) then
-      !             lsecond = .true.
-      !             itimer%is_on = .false.
-      !          end if
-      !       end if
-      !    else
-      !       param%lencounter_sas_pltp = .false.
-      !    end if
-      ! end if
-
-      ! if (param%lencounter_sas_pltp) then
-      !    call encounter_check_all_sort_and_sweep_pltp(npl, ntp, rpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
-      ! else
-         call encounter_check_all_triangular_pltp(npl, ntp, rpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr) 
-      ! end if
-
-      ! if (.not.lfirst .and. param%ladaptive_encounters_pltp .and. npltp > 0) then 
-      !    if (itimer%is_on) call itimer%adapt(param, npltp)
-      ! end if
+      call encounter_check_all_triangular_pltp(npl, ntp, rpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr) 
 
       return
    end subroutine encounter_check_all_pltp
@@ -576,6 +483,7 @@ contains
 
       call encounter_check_collapse_ragged_list(lenc, npl, nenc, index1, index2, lvdotr)
 
+      nenc = 0
       return
    end subroutine encounter_check_all_triangular_plpl
 
