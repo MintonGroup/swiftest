@@ -232,7 +232,7 @@ contains
          !$omp parallel do default(private) schedule(static)&
          !$omp shared(npl,nplm, r, Gmass, radius, acc)
          do i = nplm+1,npl
-            do concurrent(j = 1:nplm, j/=i)
+            do concurrent(j = 1:nplm)
                rx = r(1,j) - r(1,i)
                ry = r(2,j) - r(2,i)
                rz = r(3,j) - r(3,i)
@@ -319,7 +319,7 @@ contains
          !$omp parallel do default(private) schedule(static)&
          !$omp shared(npl,nplm, r, Gmass, acc)
          do i = nplm+1,npl
-            do concurrent(j = 1:nplm, j/=i)
+            do concurrent(j = 1:nplm)
                rx = r(1,j) - r(1,i)
                ry = r(2,j) - r(2,i)
                rz = r(3,j) - r(3,i)
