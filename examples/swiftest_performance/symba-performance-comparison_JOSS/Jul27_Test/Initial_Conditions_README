@@ -1,0 +1,9 @@
+Jul27_TEST Initial Conditions
+
+- All particles are of equal mass 
+- Particle Density : 5 g/cm^3
+- Disk Mass : 5 * M_earth
+- a : Surface mass density (slope = -1.5) for (0.5 <= a <= 4.0)
+- e : Gaussian disribution (mean = 0.005, sigma = 0.002)
+- inc : Guassian disribution (mean = 0.5, sigma = 0.2)
+- Angular Orbital Elements : Random uniform disribution

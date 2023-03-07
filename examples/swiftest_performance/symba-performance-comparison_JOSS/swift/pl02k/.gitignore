@@ -1,0 +1,11 @@
+*
+!.gitignore
+!conver2swift.py
+!enc.in
+!Jul27_2k_fully.in
+!param.in
+!param.swift.in
+!pl.in
+!runjob.sh
+!start.in
+!tp.in
