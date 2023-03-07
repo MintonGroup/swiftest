@@ -21,41 +21,22 @@ contains
       class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
       class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
       ! Internals
-     ! type(interaction_timer), save :: itimer
       logical, save :: lfirst = .true.
 
-      ! if (param%ladaptive_interactions) then
-      !    if (self%nplpl > 0) then
-      !       if (lfirst) then
-      !          write(itimer%loopname, *) "kick_getacch_int_pl"
-      !          write(itimer%looptype, *) "INTERACTION"
-      !          call itimer%time_this_loop(param, self%nplpl, self)
-      !          lfirst = .false.
-      !       else
-      !          if (itimer%netcdf_io_check(param, self%nplpl)) call itimer%time_this_loop(param, self%nplpl, self)
-      !       end if
-      !    else
-      !       param%lflatten_interactions = .false.
-      !    end if
-      ! end if
 
-      ! if (param%lflatten_interactions) then
-      !    if (param%lclose) then
-      !       call swiftest_kick_getacch_int_all_flat_pl(self%nbody, self%nplpl, self%k_plpl, self%rh, self%Gmass, self%radius, self%ah)
-      !    else
-      !       call swiftest_kick_getacch_int_all_flat_pl(self%nbody, self%nplpl, self%k_plpl, self%rh, self%Gmass, acc=self%ah)
-      !    end if
-      ! else
+      if (param%lflatten_interactions) then
          if (param%lclose) then
-            call swiftest_kick_getacch_int_all_triangular_pl(self%nbody, self%nbody, self%rh, self%Gmass, self%radius, self%ah)
+            call swiftest_kick_getacch_int_all(self%nbody, self%nplpl, self%k_plpl, self%rh, self%Gmass, self%radius, self%ah)
          else
-            call swiftest_kick_getacch_int_all_triangular_pl(self%nbody, self%nbody, self%rh, self%Gmass, acc=self%ah)
+            call swiftest_kick_getacch_int_all(self%nbody, self%nplpl, self%k_plpl, self%rh, self%Gmass, self%ah)
          end if
-      ! end if
-
-      ! if (param%ladaptive_interactions .and. self%nplpl > 0) then 
-      !    if (itimer%is_on) call itimer%adapt(param, self%nplpl, self)
-      ! end if
+      else
+         if (param%lclose) then
+            call swiftest_kick_getacch_int_all(self%nbody, self%nbody, self%rh, self%Gmass, self%radius, self%ah)
+         else
+            call swiftest_kick_getacch_int_all(self%nbody, self%nbody, self%rh, self%Gmass, self%ah)
+         end if
+      end if
 
       return
    end subroutine swiftest_kick_getacch_int_pl
@@ -84,7 +65,7 @@ contains
    end subroutine swiftest_kick_getacch_int_tp
 
 
-   module subroutine swiftest_kick_getacch_int_all_flat_pl(npl, nplpl, k_plpl, x, Gmass, radius, acc)
+   module subroutine swiftest_kick_getacch_int_all_flat_rad_pl(npl, nplpl, k_plpl, r, Gmass, radius, acc)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations for massive bodies, with parallelization.
@@ -96,64 +77,93 @@ contains
       integer(I4B),                 intent(in)             :: npl    !! Number of massive bodies
       integer(I8B),                 intent(in)             :: nplpl  !! Number of massive body interactions to compute
       integer(I4B), dimension(:,:), intent(in)             :: k_plpl !! Array of interaction pair indices (flattened upper triangular matrix)
-      real(DP),     dimension(:,:), intent(in)             :: x      !! Position vector array
+      real(DP),     dimension(:,:), intent(in)             :: r      !! Position vector array
       real(DP),     dimension(:),   intent(in)             :: Gmass  !! Array of massive body G*mass
-      real(DP),     dimension(:),   intent(in),   optional :: radius !! Array of massive body radii
+      real(DP),     dimension(:),   intent(in)             :: radius !! Array of massive body radii
       real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
       ! Internals
       integer(I8B)                      :: k
       real(DP), dimension(NDIM,npl) :: ahi, ahj
       integer(I4B) :: i, j
       real(DP)     :: rji2, rlim2
-      real(DP)     :: xr, yr, zr
+      real(DP)     :: rx, ry, rz
 
       ahi(:,:) = 0.0_DP
       ahj(:,:) = 0.0_DP
 
-      if (present(radius)) then
-         !$omp parallel do default(private) schedule(static)&
-         !$omp shared(nplpl, k_plpl, x, Gmass, radius) &
-         !$omp lastprivate(i, j, rji2, rlim2, xr, yr, zr) &
-         !$omp reduction(+:ahi) &
-         !$omp reduction(-:ahj) 
-         do k = 1_I8B, nplpl
-            i = k_plpl(1, k)
-            j = k_plpl(2, k)
-            xr = x(1, j) - x(1, i) 
-            yr = x(2, j) - x(2, i) 
-            zr = x(3, j) - x(3, i) 
-            rji2 = xr**2 + yr**2 + zr**2
-            rlim2 = (radius(i) + radius(j))**2
-            if (rji2 > rlim2) call swiftest_kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), &
-                                    ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
-         end do
-         !$omp end parallel do 
-      else
-         !$omp parallel do default(private) schedule(static)&
-         !$omp shared(nplpl, k_plpl, x, Gmass, radius) &
-         !$omp lastprivate(i, j, rji2, xr, yr, zr) &
-         !$omp reduction(+:ahi) &
-         !$omp reduction(-:ahj) 
-         do k = 1_I8B, nplpl
-            i = k_plpl(1, k)
-            j = k_plpl(2, k)
-            xr = x(1, j) - x(1, i) 
-            yr = x(2, j) - x(2, i) 
-            zr = x(3, j) - x(3, i) 
-            rji2 = xr**2 + yr**2 + zr**2
-            call swiftest_kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmass(i), Gmass(j), &
-                                         ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
-         end do
-         !$omp end parallel do
-      end if
+      !$omp parallel do default(private) schedule(static)&
+      !$omp shared(nplpl, k_plpl, r, Gmass, radius) &
+      !$omp lastprivate(i, j, rji2, rlim2, rx, ry, rz) &
+      !$omp reduction(+:ahi) &
+      !$omp reduction(-:ahj) 
+      do k = 1_I8B, nplpl
+         i = k_plpl(1, k)
+         j = k_plpl(2, k)
+         rx = r(1, j) - r(1, i) 
+         ry = r(2, j) - r(2, i) 
+         rz = r(3, j) - r(3, i) 
+         rji2 = rx**2 + ry**2 + rz**2
+         rlim2 = (radius(i) + radius(j))**2
+         if (rji2 > rlim2) call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), Gmass(j), &
+                                 ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+      end do
+      !$omp end parallel do 
+
+      acc(:,:) = acc(:,:) + ahi(:,:) + ahj(:,:)
+
+      return
+   end subroutine swiftest_kick_getacch_int_all_flat_rad_pl
+
+
+   module subroutine swiftest_kick_getacch_int_all_flat_norad_pl(npl, nplpl, k_plpl, r, Gmass, acc)
+      !! author: David A. Minton
+      !!
+      !! Compute direct cross (third) term heliocentric accelerations for massive bodies, with parallelization.
+      !! This is the flattened (single loop) version that uses the k_plpl interaction pair index array
+      !!
+      !! Adapted from Hal Levison's Swift routine getacch_ah3.f
+      !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int.f9
+      implicit none
+      integer(I4B),                 intent(in)             :: npl    !! Number of massive bodies
+      integer(I8B),                 intent(in)             :: nplpl  !! Number of massive body interactions to compute
+      integer(I4B), dimension(:,:), intent(in)             :: k_plpl !! Array of interaction pair indices (flattened upper triangular matrix)
+      real(DP),     dimension(:,:), intent(in)             :: r      !! Position vector array
+      real(DP),     dimension(:),   intent(in)             :: Gmass  !! Array of massive body G*mass
+      real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
+      ! Internals
+      integer(I8B)                      :: k
+      real(DP), dimension(NDIM,npl) :: ahi, ahj
+      integer(I4B) :: i, j
+      real(DP)     :: rji2, rlim2
+      real(DP)     :: rx, ry, rz
+
+      ahi(:,:) = 0.0_DP
+      ahj(:,:) = 0.0_DP
+
+      !$omp parallel do default(private) schedule(static)&
+      !$omp shared(nplpl, k_plpl, r, Gmass) &
+      !$omp lastprivate(i, j, rji2, rx, ry, rz) &
+      !$omp reduction(+:ahi) &
+      !$omp reduction(-:ahj) 
+      do k = 1_I8B, nplpl
+         i = k_plpl(1, k)
+         j = k_plpl(2, k)
+         rx = r(1, j) - r(1, i) 
+         ry = r(2, j) - r(2, i) 
+         rz = r(3, j) - r(3, i) 
+         rji2 = rx**2 + ry**2 + rz**2
+         call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), Gmass(j), &
+                                       ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+      end do
+      !$omp end parallel do
      
       acc(:,:) = acc(:,:) + ahi(:,:) + ahj(:,:)
 
       return
-   end subroutine swiftest_kick_getacch_int_all_flat_pl
+   end subroutine swiftest_kick_getacch_int_all_flat_norad_pl
 
 
-   module subroutine swiftest_kick_getacch_int_all_triangular_pl(npl, nplm, r, Gmass, radius, acc)
+   module subroutine swiftest_kick_getacch_int_all_tri_rad_pl(npl, nplm, r, Gmass, radius, acc)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations for massive bodies, with parallelization.
@@ -166,7 +176,7 @@ contains
       integer(I4B),                 intent(in)             :: nplm   !! Number of fully interacting massive bodies
       real(DP),     dimension(:,:), intent(in)             :: r      !! Position vector array
       real(DP),     dimension(:),   intent(in)             :: Gmass  !! Array of massive body G*mass
-      real(DP),     dimension(:),   intent(in),   optional :: radius !! Array of massive body radii
+      real(DP),     dimension(:),   intent(in)             :: radius !! Array of massive body radii
       real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
       ! Internals
       integer(I4B) :: i, j, nplt
@@ -177,92 +187,156 @@ contains
       nplt = npl - nplm
       lmtiny = (nplt > nplm)
 
-      if (present(radius)) then
-         if (lmtiny) then
-            ahi(:,:) = 0.0_DP
-            ahj(:,:) = 0.0_DP
-            !$omp parallel do default(private) schedule(static)&
-            !$omp shared(npl, nplm, r, Gmass, radius) &
-            !$omp reduction(+:ahi) & 
-            !$omp reduction(-:ahj)
-            do i = 1, nplm
-               do concurrent(j = i+1:npl)
-                  rx = r(1, j) - r(1, i) 
-                  ry = r(2, j) - r(2, i) 
-                  rz = r(3, j) - r(3, i) 
-                  rji2 = rx**2 + ry**2 + rz**2
-                  rlim2 = (radius(i) + radius(j))**2
-                  if (rji2 > rlim2) call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), Gmass(j), &
-                                             ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
-               end do
+      if (lmtiny) then
+         ahi(:,:) = 0.0_DP
+         ahj(:,:) = 0.0_DP
+         !$omp parallel do default(private) schedule(static)&
+         !$omp shared(npl, nplm, r, Gmass, radius) &
+         !$omp reduction(+:ahi) & 
+         !$omp reduction(-:ahj)
+         do i = 1, nplm
+            do concurrent(j = i+1:npl)
+               rx = r(1, j) - r(1, i) 
+               ry = r(2, j) - r(2, i) 
+               rz = r(3, j) - r(3, i) 
+               rji2 = rx**2 + ry**2 + rz**2
+               rlim2 = (radius(i) + radius(j))**2
+               if (rji2 > rlim2) call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), Gmass(j), &
+                                          ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
             end do
-            !$omp end parallel do
-            do concurrent(i = 1:npl)
-               acc(:,i) = acc(:,i) + ahi(:,i) + ahj(:,i)
-            end do
-         else 
-            !$omp parallel do default(private) schedule(static)&
-            !$omp shared(npl,nplm, r, Gmass, radius, acc)
-            do i = 1, nplm
-               do concurrent(j = 1:npl, j/=i)
-                  rx = r(1,j) - r(1,i)
-                  ry = r(2,j) - r(2,i)
-                  rz = r(3,j) - r(3,i)
-                  rji2 = rx**2 + ry**2 + rz**2
-                  rlim2 = (radius(i) + radius(j))**2
-                  if (rji2 > rlim2)  then
-                     fac = Gmass(j) / (rji2 * sqrt(rji2))
-                     acc(1,i) = acc(1,i) + fac * rx
-                     acc(2,i) = acc(2,i) + fac * ry
-                     acc(3,i) = acc(3,i) + fac * rz
-                  end if
-               end do
-            end do
-            !$omp end parallel do
-         end if
-      else
-         if (lmtiny) then
-            ahi(:,:) = 0.0_DP
-            ahj(:,:) = 0.0_DP
-            !$omp parallel do default(private) schedule(static)&
-            !$omp shared(npl, nplm, r, Gmass) &
-            !$omp reduction(+:ahi) & 
-            !$omp reduction(-:ahj)
-            do i = 1, nplm
-               do concurrent(j = i+1:npl)
-                  rx = r(1, j) - r(1, i) 
-                  ry = r(2, j) - r(2, i) 
-                  rz = r(3, j) - r(3, i) 
-                  rji2 = rx**2 + ry**2 + rz**2
-                  call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), Gmass(j), &
-                                             ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
-               end do
-            end do
-            !$omp end parallel do
-            do concurrent(i = 1:npl)
-               acc(:,i) = acc(:,i) + ahi(:,i) + ahj(:,i)
-            end do
-         else 
-            !$omp parallel do default(private) schedule(static)&
-            !$omp shared(npl,nplm, r, Gmass, acc)
-            do i = 1, nplm
-               do concurrent(j = 1:npl, j/=i)
-                  rx = r(1,j) - r(1,i)
-                  ry = r(2,j) - r(2,i)
-                  rz = r(3,j) - r(3,i)
-                  rji2 = rx**2 + ry**2 + rz**2
+         end do
+         !$omp end parallel do
+         do concurrent(i = 1:npl)
+            acc(:,i) = acc(:,i) + ahi(:,i) + ahj(:,i)
+         end do
+      else 
+         !$omp parallel do default(private) schedule(static)&
+         !$omp shared(npl,nplm, r, Gmass, radius, acc)
+         do i = 1, nplm
+            do concurrent(j = 1:npl, j/=i)
+               rx = r(1,j) - r(1,i)
+               ry = r(2,j) - r(2,i)
+               rz = r(3,j) - r(3,i)
+               rji2 = rx**2 + ry**2 + rz**2
+               rlim2 = (radius(i) + radius(j))**2
+               if (rji2 > rlim2)  then
                   fac = Gmass(j) / (rji2 * sqrt(rji2))
                   acc(1,i) = acc(1,i) + fac * rx
                   acc(2,i) = acc(2,i) + fac * ry
                   acc(3,i) = acc(3,i) + fac * rz
-               end do
+               end if
             end do
-            !$omp end parallel do
-         end if
+         end do
+         !$omp end parallel do
+
+         !$omp parallel do default(private) schedule(static)&
+         !$omp shared(npl,nplm, r, Gmass, radius, acc)
+         do i = nplm+1,npl
+            do concurrent(j = 1:nplm, j/=i)
+               rx = r(1,j) - r(1,i)
+               ry = r(2,j) - r(2,i)
+               rz = r(3,j) - r(3,i)
+               rji2 = rx**2 + ry**2 + rz**2
+               rlim2 = (radius(i) + radius(j))**2
+               if (rji2 > rlim2)  then
+                  fac = Gmass(j) / (rji2 * sqrt(rji2))
+                  acc(1,i) = acc(1,i) + fac * rx
+                  acc(2,i) = acc(2,i) + fac * ry
+                  acc(3,i) = acc(3,i) + fac * rz
+               end if
+            end do
+         end do
+         !$omp end parallel do
+
+      end if
+
+
+      return
+   end subroutine swiftest_kick_getacch_int_all_tri_rad_pl
+
+
+   module subroutine swiftest_kick_getacch_int_all_tri_norad_pl(npl, nplm, r, Gmass, acc)
+      !! author: David A. Minton
+      !!
+      !! Compute direct cross (third) term heliocentric accelerations for massive bodies, with parallelization.
+      !! This is the upper triangular matrix (double loop) version.
+      !!
+      !! Adapted from Hal Levison's Swift routine getacch_ah3.f
+      !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int.f9
+      implicit none
+      integer(I4B),                 intent(in)             :: npl    !! Total number of massive bodies
+      integer(I4B),                 intent(in)             :: nplm   !! Number of fully interacting massive bodies
+      real(DP),     dimension(:,:), intent(in)             :: r      !! Position vector array
+      real(DP),     dimension(:),   intent(in)             :: Gmass  !! Array of massive body G*mass
+      real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
+      ! Internals
+      integer(I4B) :: i, j, nplt
+      real(DP)     :: rji2, rlim2, fac, rx, ry, rz
+      real(DP), dimension(NDIM,npl) :: ahi, ahj
+      logical :: lmtiny
+
+      nplt = npl - nplm
+      lmtiny = (nplt > nplm)
+
+      if (lmtiny) then
+         ahi(:,:) = 0.0_DP
+         ahj(:,:) = 0.0_DP
+         !$omp parallel do default(private) schedule(static)&
+         !$omp shared(npl, nplm, r, Gmass) &
+         !$omp reduction(+:ahi) & 
+         !$omp reduction(-:ahj)
+         do i = 1, nplm
+            do concurrent(j = i+1:npl)
+               rx = r(1, j) - r(1, i) 
+               ry = r(2, j) - r(2, i) 
+               rz = r(3, j) - r(3, i) 
+               rji2 = rx**2 + ry**2 + rz**2
+               call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), Gmass(j), &
+                                          ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+            end do
+         end do
+         !$omp end parallel do
+         do concurrent(i = 1:npl)
+            acc(:,i) = acc(:,i) + ahi(:,i) + ahj(:,i)
+         end do
+      else 
+         !$omp parallel do default(private) schedule(static)&
+         !$omp shared(npl,nplm, r, Gmass, acc)
+         do i = 1, nplm
+            do concurrent(j = 1:npl, j/=i)
+               rx = r(1,j) - r(1,i)
+               ry = r(2,j) - r(2,i)
+               rz = r(3,j) - r(3,i)
+               rji2 = rx**2 + ry**2 + rz**2
+               fac = Gmass(j) / (rji2 * sqrt(rji2))
+               acc(1,i) = acc(1,i) + fac * rx
+               acc(2,i) = acc(2,i) + fac * ry
+               acc(3,i) = acc(3,i) + fac * rz
+            end do
+         end do
+         !$omp end parallel do
+
+         !$omp parallel do default(private) schedule(static)&
+         !$omp shared(npl,nplm, r, Gmass, acc)
+         do i = nplm+1,npl
+            do concurrent(j = 1:nplm, j/=i)
+               rx = r(1,j) - r(1,i)
+               ry = r(2,j) - r(2,i)
+               rz = r(3,j) - r(3,i)
+               rji2 = rx**2 + ry**2 + rz**2
+               fac = Gmass(j) / (rji2 * sqrt(rji2))
+               acc(1,i) = acc(1,i) + fac * rx
+               acc(2,i) = acc(2,i) + fac * ry
+               acc(3,i) = acc(3,i) + fac * rz
+            end do
+         end do
+         !$omp end parallel do
+
       end if
 
       return
-   end subroutine swiftest_kick_getacch_int_all_triangular_pl
+   end subroutine swiftest_kick_getacch_int_all_tri_norad_pl
+
 
 
    module subroutine swiftest_kick_getacch_int_all_tp(ntp, npl, xtp, rpl, GMpl, lmask, acc)
