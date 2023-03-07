@@ -22,34 +22,12 @@ contains
       ! Arguments
       class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
       class(swiftest_parameters), intent(inout) :: param !! Current Swiftest run configuration parameter
-      ! Internals
-      ! type(interaction_timer), save :: itimer
-      ! logical, save :: lfirst = .true.
 
-      ! if (param%ladaptive_interactions) then
-      !    if (self%nplplm > 0) then
-      !       if (lfirst) then
-      !          write(itimer%loopname, *)  "symba_kick_getacch_int_pl"
-      !          write(itimer%looptype, *)  "INTERACTION"
-      !          call itimer%time_this_loop(param, self%nplplm, self)
-      !          lfirst = .false.
-      !       else
-      !          if (itimer%netcdf_io_check(param, self%nplplm)) call itimer%time_this_loop(param, self%nplplm, self)
-      !       end if
-      !    else
-      !       param%lflatten_interactions = .false.
-      !    end if
-      ! end if
-
-      ! if (param%lflatten_interactions) then
-         ! call swiftest_kick_getacch_int_all_flat_pl(self%nbody, self%nplplm, self%k_plpl, self%rh, self%Gmass, self%radius, self%ah)
-      ! else
-         call swiftest_kick_getacch_int_all_triangular_pl(self%nbody, self%nplm, self%rh, self%Gmass, self%radius, self%ah)
-      ! end if
-
-      ! if (param%ladaptive_interactions .and. self%nplplm > 0) then 
-      !    if (itimer%is_on) call itimer%adapt(param, self%nplplm, self)
-      ! end if
+      if (param%lflatten_interactions) then
+         call swiftest_kick_getacch_int_all(self%nbody, self%nplplm, self%k_plpl, self%rh, self%Gmass, self%radius, self%ah)
+      else
+         call swiftest_kick_getacch_int_all(self%nbody, self%nplm, self%rh, self%Gmass, self%radius, self%ah)
+      end if
 
       return
    end subroutine symba_kick_getacch_int_pl
@@ -87,7 +65,7 @@ contains
                allocate(k_plpl_enc(2,nplplenc))
                k_plpl_enc(1,1:nplplenc) = plpl_encounter%index1(1:nplplenc)
                k_plpl_enc(2,1:nplplenc) = plpl_encounter%index2(1:nplplenc)
-               call swiftest_kick_getacch_int_all_flat_pl(npl, nplplenc, k_plpl_enc, pl%rh, pl%Gmass, pl%radius, ah_enc)
+               call swiftest_kick_getacch_int_all(npl, nplplenc, k_plpl_enc, pl%rh, pl%Gmass, pl%radius, ah_enc)
                pl%ah(:,1:npl) = pl%ah(:,1:npl) - ah_enc(:,1:npl)
             end if
 
