@@ -890,27 +890,48 @@ module swiftest
          real(DP), dimension(:,:),   intent(in)    :: rhp   !! Massive body position vectors
          integer(I4B),               intent(in)    :: npl   !! Number of active massive bodies
       end subroutine swiftest_kick_getacch_int_tp
+   end interface
 
-      module subroutine swiftest_kick_getacch_int_all_flat_pl(npl, nplpl, k_plpl, x, Gmass, radius, acc)
+   interface swiftest_kick_getacch_int_all
+      module subroutine swiftest_kick_getacch_int_all_flat_rad_pl(npl, nplpl, k_plpl, r, Gmass, radius, acc)
          implicit none
          integer(I4B),                 intent(in)             :: npl    !! Number of massive bodies
          integer(I8B),                 intent(in)             :: nplpl  !! Number of massive body interactions to compute
          integer(I4B), dimension(:,:), intent(in)             :: k_plpl !! Array of interaction pair indices (flattened upper triangular matrix)
-         real(DP),     dimension(:,:), intent(in)             :: x      !! Position vector array
+         real(DP),     dimension(:,:), intent(in)             :: r      !! Position vector array
          real(DP),     dimension(:),   intent(in)             :: Gmass  !! Array of massive body G*mass
-         real(DP),     dimension(:),   intent(in),   optional :: radius !! Array of massive body radii
+         real(DP),     dimension(:),   intent(in)             :: radius !! Array of massive body radii
          real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
-      end subroutine swiftest_kick_getacch_int_all_flat_pl
+      end subroutine swiftest_kick_getacch_int_all_flat_rad_pl
 
-      module subroutine swiftest_kick_getacch_int_all_triangular_pl(npl, nplm, r, Gmass, radius, acc)
+      module subroutine swiftest_kick_getacch_int_all_flat_norad_pl(npl, nplpl, k_plpl, r, Gmass, acc)
+         implicit none
+         integer(I4B),                 intent(in)             :: npl    !! Number of massive bodies
+         integer(I8B),                 intent(in)             :: nplpl  !! Number of massive body interactions to compute
+         integer(I4B), dimension(:,:), intent(in)             :: k_plpl !! Array of interaction pair indices (flattened upper triangular matrix)
+         real(DP),     dimension(:,:), intent(in)             :: r      !! Position vector array
+         real(DP),     dimension(:),   intent(in)             :: Gmass  !! Array of massive body G*mass
+         real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
+      end subroutine swiftest_kick_getacch_int_all_flat_norad_pl
+
+      module subroutine swiftest_kick_getacch_int_all_tri_rad_pl(npl, nplm, r, Gmass, radius, acc)
          implicit none
          integer(I4B),                 intent(in)             :: npl    !! Total number of massive bodies
          integer(I4B),                 intent(in)             :: nplm   !! Number of fully interacting massive bodies
          real(DP),     dimension(:,:), intent(in)             :: r      !! Position vector array
          real(DP),     dimension(:),   intent(in)             :: Gmass  !! Array of massive body G*mass
-         real(DP),     dimension(:),   intent(in),   optional :: radius !! Array of massive body radii
+         real(DP),     dimension(:),   intent(in)             :: radius !! Array of massive body radii
          real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
-      end subroutine swiftest_kick_getacch_int_all_triangular_pl
+      end subroutine swiftest_kick_getacch_int_all_tri_rad_pl
+
+      module subroutine swiftest_kick_getacch_int_all_tri_norad_pl(npl, nplm, r, Gmass, acc)
+         implicit none
+         integer(I4B),                 intent(in)             :: npl    !! Total number of massive bodies
+         integer(I4B),                 intent(in)             :: nplm   !! Number of fully interacting massive bodies
+         real(DP),     dimension(:,:), intent(in)             :: r      !! Position vector array
+         real(DP),     dimension(:),   intent(in)             :: Gmass  !! Array of massive body G*mass
+         real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
+      end subroutine swiftest_kick_getacch_int_all_tri_norad_pl
 
       module subroutine swiftest_kick_getacch_int_all_tp(ntp, npl, xtp, rpl, GMpl, lmask, acc)
          implicit none
@@ -922,7 +943,9 @@ module swiftest
          logical,      dimension(:),   intent(in)    :: lmask !! Logical mask indicating which test particles should be computed
          real(DP),     dimension(:,:), intent(inout) :: acc   !! Acceleration vector array 
       end subroutine swiftest_kick_getacch_int_all_tp
+   end interface
 
+   interface
       pure module subroutine swiftest_kick_getacch_int_one_pl(rji2, xr, yr, zr, Gmi, Gmj, axi, ayi, azi, axj, ayj, azj)
          !$omp declare simd(swiftest_kick_getacch_int_one_pl)
          implicit none
