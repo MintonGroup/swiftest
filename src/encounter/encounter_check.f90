@@ -852,7 +852,7 @@ contains
             iend =  self%aabb%iend(i) - 1_I8B
             nbox = iend - ibeg + 1
             ii = i - n1
-            call encounter_check_all_sweep_one(ii, nbox, r1(1,ii), r1(2,ii), r1(3,ii), v2(1,ii), v2(2,ii), v2(3,ii), &
+            call encounter_check_all_sweep_one(ii, nbox, r2(1,ii), r2(2,ii), r2(3,ii), v2(1,ii), v2(2,ii), v2(3,ii), &
                                                           xind(ibeg:iend), yind(ibeg:iend), zind(ibeg:iend),&
                                                           vxind(ibeg:iend), vyind(ibeg:iend), vzind(ibeg:iend), &
                                                           renc2(ii), rencind(ibeg:iend), dt, ext_ind(ibeg:iend), &
