@@ -249,7 +249,7 @@ contains
       lany_encounter = .false.
       if (self%nbody == 0) return
 
-      associate(tp => self, ntp => self%nbody, pl => nbody_system%pl, npl => nbody_system%pl%nbody)
+      associate(tp => self, ntp => self%nbody, pl => nbody_system%pl, npl => nbody_system%pl%nbody, cb => nbody_system%cb)
          call pl%set_renc(irec)
          call encounter_check_all_pltp(param, npl, ntp, pl%rh, pl%vb, tp%rh, tp%vb, pl%renc, dt, nenc, index1, index2, lvdotr) 
    

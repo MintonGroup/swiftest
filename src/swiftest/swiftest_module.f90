@@ -140,8 +140,8 @@ module swiftest
       procedure :: write_info      => swiftest_io_netcdf_write_info_body    !! Dump contents of particle information metadata to file
       procedure :: accel_obl       => swiftest_obl_acc_body                 !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure :: el2xv           => swiftest_orbel_el2xv_vec              !! Convert orbital elements to position and velocity vectors
-      procedure :: xv2el           => swiftest_orbel_xv2el_vec              !! Convert position and velocity vectors to orbital  elements 
-      procedure :: setup           => swiftest_util_setup_body                   !! A constructor that sets the number of bodies and allocates all allocatable arrays
+      procedure :: xv2el           => swiftest_orbel_xv2el_vec              !! Convert position and velocity vectors to orbital elements 
+      procedure :: setup           => swiftest_util_setup_body              !! A constructor that sets the number of bodies and allocates all allocatable arrays
       procedure :: accel_user      => swiftest_user_kick_getacch_body       !! Add user-supplied heliocentric accelerations to planets
       procedure :: append          => swiftest_util_append_body             !! Appends elements from one structure to another
       procedure :: dealloc         => swiftest_util_dealloc_body            !! Deallocates all allocatable arrays
