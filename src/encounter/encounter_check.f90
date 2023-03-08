@@ -28,15 +28,12 @@ contains
       integer(I4B), dimension(:), allocatable, intent(out)   :: index1 !! List of indices for body 1 in each encounter
       integer(I4B), dimension(:), allocatable, intent(out)   :: index2 !! List of indices for body 2 in each encounter
       logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
-      ! Internals
-      !type(interaction_timer), save :: itimer
-      logical, save :: lfirst = .true.
-      logical, save :: skipit = .false. ! This will be used to ensure that the sort & sweep subroutine gets called at least once before timing it so that the extent array is nearly sorted when it is timed
-      integer(I8B) :: nplpl = 0_I8B
 
-
-      !call encounter_check_all_triangular_plpl(npl, r, v, renc, dt, nenc, index1, index2, lvdotr) 
-      call encounter_check_all_sort_and_sweep_plpl(npl, r, v, renc, dt, nenc, index1, index2, lvdotr)
+      if (param%lencounter_sas_plpl) then
+         call encounter_check_all_sort_and_sweep_plpl(npl, r, v, renc, dt, nenc, index1, index2, lvdotr)
+      else
+         call encounter_check_all_triangular_plpl(npl, r, v, renc, dt, nenc, index1, index2, lvdotr) 
+      end if
 
       return
    end subroutine encounter_check_all_plpl
@@ -80,13 +77,16 @@ contains
 
       allocate(tmp_param, source=param)
 
-      ! Turn off adaptive encounter checks for the pl-pl group
-      tmp_param%ladaptive_encounters_plpl = .false.
-
       ! Start with the pl-pl group
       call encounter_check_all_plpl(tmp_param, nplm, rplm, vplm, rencm, dt, nenc, index1, index2, lvdotr)
 
-      call encounter_check_all_triangular_plplm(nplm, nplt, rplm, vplm, rplt, vplt, rencm, renct, dt, plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr) 
+      if (param%lencounter_sas_plpl) then
+         call encounter_check_all_sort_and_sweep_plplm(nplm, nplt, rplm, vplm, rplt, vplt, rencm, renct, dt, &
+                                                       plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr)
+      else
+         call encounter_check_all_triangular_plplm(nplm, nplt, rplm, vplm, rplt, vplt, rencm, renct, dt, &
+                                                   plmplt_nenc, plmplt_index1, plmplt_index2, plmplt_lvdotr) 
+      end if
 
       if (plmplt_nenc > 0) then ! Consolidate the two lists
          allocate(itmp(nenc+plmplt_nenc))
@@ -134,13 +134,12 @@ contains
       integer(I4B), dimension(:), allocatable, intent(out)   :: index1 !! List of indices for body 1 in each encounter
       integer(I4B), dimension(:), allocatable, intent(out)   :: index2 !! List of indices for body 2 in each encounter
       logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
-      ! Internals
-      ! type(interaction_timer), save :: itimer
-      logical, save :: lfirst = .true.
-      logical, save :: lsecond = .false.
-      integer(I8B) :: npltp = 0_I8B
 
-      call encounter_check_all_triangular_pltp(npl, ntp, rpl, vpl, rtp, vtp, renc, dt, nenc, index1, index2, lvdotr) 
+      if (param%lencounter_sas_pltp) then
+         call encounter_check_all_sort_and_sweep_pltp(npl, ntp, rpl, vpl, rtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
+      else
+         call encounter_check_all_triangular_pltp(npl, ntp, rpl, vpl, rtp, vtp, renc, dt, nenc, index1, index2, lvdotr) 
+      end if
 
       return
    end subroutine encounter_check_all_pltp
