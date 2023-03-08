@@ -283,29 +283,19 @@ class Simulation(object):
             execute. If false, will start a new run. If the file given by `output_file_name` exists, it will be replaced
             when the run is executed.
             Parameter input file equivalent: `OUT_STAT`
-        interaction_loops : {"TRIANGULAR","FLAT","ADAPTIVE"}, default "TRIANGULAR"
+        interaction_loops : {"TRIANGULAR","FLAT"}, default "TRIANGULAR"
             > *Swiftest Experimental feature*
             Specifies which algorithm to use for the computation of body-body gravitational forces.
             * "TRIANGULAR" : Upper-triangular double-loops .
             * "FLAT" : Body-body interation pairs are flattened into a 1-D array.
-            * "ADAPTIVE" : Periodically times the TRIANGULAR and FLAT methods and determines which one to use based on
-              the wall time to complete the loop. *Note:* Using ADAPTIVE means that bit-identical repeatability cannot
-              be assured, as the choice of algorithm depends on possible external factors that can influence the wall
-              time calculation. The exact floating-point results of the interaction will be different between the two
-              algorithm types.
             Parameter input file equivalent: `INTERACTION_LOOPS`
-        encounter_check_loops : {"TRIANGULAR","SORTSWEEP","ADAPTIVE"}, default "TRIANGULAR"
+        encounter_check_loops : {"TRIANGULAR","SORTSWEEP"}, default "TRIANGULAR"
             > *Swiftest Experimental feature*
             Specifies which algorithm to use for checking whether bodies are in a close encounter state or not.
             * "TRIANGULAR" : Upper-triangular double-loops.
             * "SORTSWEEP" : A Sort-Sweep algorithm is used to reduce the population of potential close encounter bodies.
               This algorithm is still in development, and does not necessarily speed up the encounter checking.
               Use with caution.
-            * "ADAPTIVE" : Periodically times the TRIANGULAR and SORTSWEEP methods and determines which one to use based
-              on the wall time to complete the loop. *Note:* Using ADAPTIVE means that bit-identical repeatability cannot
-              be assured, as the choice of algorithm depends on possible external factors that can influence the wall
-              time calculation. The exact floating-point results of the interaction will be different between the two
-              algorithm types.
             Parameter input file equivalent: `ENCOUNTER_CHECK`
         dask : bool, default False
             Use Dask to lazily load data (useful for very large datasets)
@@ -1072,8 +1062,8 @@ class Simulation(object):
                     rhill_present: bool | None = None,
                     restart: bool | None = None,
                     tides: bool | None = None,
-                    interaction_loops: Literal["TRIANGULAR", "FLAT", "ADAPTIVE"] | None = None,
-                    encounter_check_loops: Literal["TRIANGULAR", "SORTSWEEP", "ADAPTIVE"] | None = None,
+                    interaction_loops: Literal["TRIANGULAR", "FLAT"] | None = None,
+                    encounter_check_loops: Literal["TRIANGULAR", "SORTSWEEP"] | None = None,
                     encounter_save: Literal["NONE", "TRAJECTORY", "CLOSEST", "BOTH"] | None = None,
                     verbose: bool | None = None,
                     simdir: str | os.PathLike = None, 
@@ -1128,28 +1118,18 @@ class Simulation(object):
             Includes big bodies when performing a discard (Swifter only)
         rhill_present: bool, optional
             Include the Hill's radius with the input files.
-        interaction_loops : {"TRIANGULAR","FLAT","ADAPTIVE"}, default "TRIANGULAR"
+        interaction_loops : {"TRIANGULAR","FLAT"}, default "TRIANGULAR"
             *Swiftest Experimental feature*
             Specifies which algorithm to use for the computation of body-body gravitational forces.
             * "TRIANGULAR" : Upper-triangular double-loops .
             * "FLAT" : Body-body interation pairs are flattened into a 1-D array.
-            * "ADAPTIVE" : Periodically times the TRIANGULAR and FLAT methods and determines which one to use based on
-              the wall time to complete the loop. *Note:* Using ADAPTIVE means that bit-identical repeatability cannot
-              be assured, as the choice of algorithm depends on possible external factors that can influence the wall
-              time calculation. The exact floating-point results of the interaction will be different between the two
-              algorithm types.
-        encounter_check_loops : {"TRIANGULAR","SORTSWEEP","ADAPTIVE"}, default "TRIANGULAR"
+        encounter_check_loops : {"TRIANGULAR","SORTSWEEP"}, default "TRIANGULAR"
             *Swiftest Experimental feature*
             Specifies which algorithm to use for checking whether bodies are in a close encounter state or not.
             * "TRIANGULAR" : Upper-triangular double-loops.
             * "SORTSWEEP" : A Sort-Sweep algorithm is used to reduce the population of potential close encounter bodies.
               This algorithm is still in development, and does not necessarily speed up the encounter checking.
               Use with caution.
-            * "ADAPTIVE" : Periodically times the TRIANGULAR and SORTSWEEP methods and determines which one to use based
-              on the wall time to complete the loop. *Note:* Using ADAPTIVE means that bit-identical repeatability cannot
-              be assured, as the choice of algorithm depends on possible external factors that can influence the wall
-              time calculation. The exact floating-point results of the interaction will be different between the two
-              algorithm types.
         tides: bool, optional
             Turns on tidal model (IN DEVELOPMENT - IGNORED)
         Yarkovsky: bool, optional
@@ -1250,7 +1230,7 @@ class Simulation(object):
             update_list.append("restart")
 
         if interaction_loops is not None:
-            valid_vals = ["TRIANGULAR", "FLAT", "ADAPTIVE"]
+            valid_vals = ["TRIANGULAR", "FLAT"]
             if interaction_loops not in valid_vals:
                 msg = f"{interaction_loops} is not a valid option for interaction loops."
                 msg += f"\nMust be one of {valid_vals}"
@@ -1262,7 +1242,7 @@ class Simulation(object):
                 update_list.append("interaction_loops")
 
         if encounter_check_loops is not None:
-            valid_vals = ["TRIANGULAR", "SORTSWEEP", "ADAPTIVE"]
+            valid_vals = ["TRIANGULAR", "SORTSWEEP"]
             if encounter_check_loops not in valid_vals:
                 msg = f"{encounter_check_loops} is not a valid option for interaction loops."
                 msg += f"\nMust be one of {valid_vals}"
