@@ -1231,6 +1231,7 @@ class Simulation(object):
 
         if interaction_loops is not None:
             valid_vals = ["TRIANGULAR", "FLAT"]
+            interaction_loops = interaction_loops.upper()
             if interaction_loops not in valid_vals:
                 msg = f"{interaction_loops} is not a valid option for interaction loops."
                 msg += f"\nMust be one of {valid_vals}"
@@ -1243,6 +1244,7 @@ class Simulation(object):
 
         if encounter_check_loops is not None:
             valid_vals = ["TRIANGULAR", "SORTSWEEP"]
+            encounter_check_loops = encounter_check_loops.upper()
             if encounter_check_loops not in valid_vals:
                 msg = f"{encounter_check_loops} is not a valid option for interaction loops."
                 msg += f"\nMust be one of {valid_vals}"
