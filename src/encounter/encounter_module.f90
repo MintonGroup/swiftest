@@ -17,8 +17,8 @@ module encounter
    implicit none
    public
 
-   integer(I4B), parameter :: SWEEPDIM = 3
    character(len=*), parameter :: ENCOUNTER_OUTFILE = 'encounters.nc'  !! Name of NetCDF output file for encounter information
+   real(DP), parameter :: RSWEEP_FACTOR = 1.1_DP
 
    type, abstract :: encounter_list
       integer(I8B)                              :: nenc = 0   !! Total number of encounters
@@ -95,7 +95,7 @@ module encounter
 
 
    type encounter_bounding_box
-      type(encounter_bounding_box_1D), dimension(SWEEPDIM) :: aabb
+      type(encounter_bounding_box_1D) :: aabb
    contains
       procedure :: dealloc      => encounter_util_dealloc_bounding_box    !! Deallocates all allocatables
       procedure :: setup        => encounter_util_setup_aabb              !! Setup a new axis-aligned bounding box structure
@@ -107,12 +107,12 @@ module encounter
 
 
    interface
-      module subroutine encounter_check_all_plpl(param, npl, x, v, renc, dt, nenc, index1, index2, lvdotr)
+      module subroutine encounter_check_all_plpl(param, npl, r, v, renc, dt, nenc, index1, index2, lvdotr)
          use base, only: base_parameters
          implicit none
          class(base_parameters),                  intent(inout) :: param  !! Current Swiftest run configuration parameter5s
          integer(I4B),                            intent(in)    :: npl    !! Total number of massive bodies
-         real(DP),     dimension(:,:),            intent(in)    :: x      !! Position vectors of massive bodies
+         real(DP),     dimension(:,:),            intent(in)    :: r      !! Position vectors of massive bodies
          real(DP),     dimension(:,:),            intent(in)    :: v      !! Velocity vectors of massive bodies
          real(DP),     dimension(:),              intent(in)    :: renc   !! Critical radii of massive bodies that defines an encounter 
          real(DP),                                intent(in)    :: dt     !! Step size
@@ -142,7 +142,7 @@ module encounter
          logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
       end subroutine encounter_check_all_plplm
 
-      module subroutine encounter_check_all_pltp(param, npl, ntp, rpl, vpl, xtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
+      module subroutine encounter_check_all_pltp(param, npl, ntp, rpl, vpl, rtp, vtp, renc, dt, nenc, index1, index2, lvdotr)
          use base, only: base_parameters
          implicit none
          class(base_parameters),                  intent(inout) :: param  !! Current Swiftest run configuration parameter5s
@@ -150,7 +150,7 @@ module encounter
          integer(I4B),                            intent(in)    :: ntp    !! Total number of test particles 
          real(DP),     dimension(:,:),            intent(in)    :: rpl    !! Position vectors of massive bodies
          real(DP),     dimension(:,:),            intent(in)    :: vpl    !! Velocity vectors of massive bodies
-         real(DP),     dimension(:,:),            intent(in)    :: xtp    !! Position vectors of massive bodies
+         real(DP),     dimension(:,:),            intent(in)    :: rtp    !! Position vectors of massive bodies
          real(DP),     dimension(:,:),            intent(in)    :: vtp    !! Velocity vectors of massive bodies
          real(DP),     dimension(:),              intent(in)    :: renc   !! Critical radii of massive bodies that defines an encounter
          real(DP),                                intent(in)    :: dt     !! Step size
@@ -205,11 +205,11 @@ module encounter
          logical,      dimension(:), allocatable, intent(out)   :: lvdotr     !! Logical array indicating which pairs are approaching
       end subroutine encounter_check_sweep_aabb_double_list
 
-      module subroutine encounter_check_sweep_aabb_single_list(self, n, x, v, renc, dt, nenc, index1, index2, lvdotr)
+      module subroutine encounter_check_sweep_aabb_single_list(self, n, r, v, renc, dt, nenc, index1, index2, lvdotr)
          implicit none
          class(encounter_bounding_box),           intent(inout) :: self       !! Multi-dimensional bounding box structure
          integer(I4B),                            intent(in)    :: n          !! Number of bodies
-         real(DP),     dimension(:,:),            intent(in)    :: x, v       !! Array of position and velocity vectors 
+         real(DP),     dimension(:,:),            intent(in)    :: r, v       !! Array of position and velocity vectors 
          real(DP),     dimension(:),              intent(in)    :: renc       !! Radius of encounter regions of bodies 1
          real(DP),                                intent(in)    :: dt         !! Step size
          integer(I8B),                            intent(out)   :: nenc       !! Total number of encounter candidates

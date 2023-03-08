@@ -104,9 +104,7 @@ contains
       ! Internals
       integer(I4B) :: i
 
-      do i = 1,NDIM
-         call self%aabb(i)%dealloc()
-      end do
+      call self%aabb%dealloc()
 
       return
    end subroutine encounter_util_dealloc_bounding_box
@@ -351,26 +349,20 @@ contains
       next_last = 2 * n_last
 
       if (n > n_last) then ! The number of bodies has grown. Resize and append the new bodies
-         do dim = 1, SWEEPDIM
-            allocate(itmp(next))
-            if (n_last > 0) itmp(1:next_last) = self%aabb(dim)%ind(1:next_last)
-            call move_alloc(itmp, self%aabb(dim)%ind)
-            self%aabb(dim)%ind(next_last+1:next) = [(k, k = next_last+1, next)]
-         end do
+         allocate(itmp(next))
+         if (n_last > 0) itmp(1:next_last) = self%aabb%ind(1:next_last)
+         call move_alloc(itmp, self%aabb%ind)
+         self%aabb%ind(next_last+1:next) = [(k, k = next_last+1, next)]
       else ! The number of bodies has gone down. Resize and chop of the old indices
-         do dim = 1, SWEEPDIM
-            allocate(itmp(next))
-            itmp(1:next) = pack(self%aabb(dim)%ind(1:next_last), self%aabb(dim)%ind(1:next_last) <= next)
-            call move_alloc(itmp, self%aabb(dim)%ind)
-         end do
+         allocate(itmp(next))
+         itmp(1:next) = pack(self%aabb%ind(1:next_last), self%aabb%ind(1:next_last) <= next)
+         call move_alloc(itmp, self%aabb%ind)
       end if
 
-      do dim = 1, SWEEPDIM
-         if (allocated(self%aabb(dim)%ibeg)) deallocate(self%aabb(dim)%ibeg)
-         allocate(self%aabb(dim)%ibeg(n))
-         if (allocated(self%aabb(dim)%iend)) deallocate(self%aabb(dim)%iend)
-         allocate(self%aabb(dim)%iend(n))
-      end do
+      if (allocated(self%aabb%ibeg)) deallocate(self%aabb%ibeg)
+      allocate(self%aabb%ibeg(n))
+      if (allocated(self%aabb%iend)) deallocate(self%aabb%iend)
+      allocate(self%aabb%iend(n))
 
       return
    end subroutine encounter_util_setup_aabb

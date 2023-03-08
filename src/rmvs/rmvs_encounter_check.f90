@@ -40,7 +40,7 @@ contains
 
       select type(pl => nbody_system%pl)
       class is (rmvs_pl)
-         associate(tp => self, ntp => self%nbody, npl => pl%nbody)
+         associate(tp => self, ntp => self%nbody, npl => pl%nbody, cb => nbody_system%cb)
             tp%plencP(1:ntp) = 0
             call encounter_check_all_pltp(param, npl, ntp, pl%rbeg, pl%vbeg, tp%rh, tp%vh, pl%renc, dt, & 
                                           nenc, index1, index2, lvdotr)
