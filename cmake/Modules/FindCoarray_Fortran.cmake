@@ -32,7 +32,7 @@ SET (Coarray_Fortran_FLAG_CANDIDATES
      #Intel windows
      "/Qcoarray:distributed" 
      #Gnu
-     "-fcorray=lib -lcaf_mpi"
+     "-fcoarray=lib -lcaf_mpi"
      #Empty, if compiler automatically accepts coarray
      " "
 )
