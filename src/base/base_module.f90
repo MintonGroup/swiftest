@@ -70,11 +70,8 @@ module base
 
       ! The following are used internally, and are not set by the user, but instead are determined by the input value of INTERACTION_LOOPS
       logical :: lflatten_interactions     = .false. !! Use the flattened upper triangular matrix for pl-pl interaction loops
-      logical :: ladaptive_interactions    = .false. !! Adaptive interaction loop is turned on (choose between TRIANGULAR and FLAT based on periodic timing tests)
       logical :: lencounter_sas_plpl       = .false. !! Use the Sort and Sweep algorithm to prune the encounter list before checking for close encounters
       logical :: lencounter_sas_pltp       = .false. !! Use the Sort and Sweep algorithm to prune the encounter list before checking for close encounters
-      logical :: ladaptive_encounters_plpl = .false. !! Adaptive encounter checking is turned on (choose between TRIANGULAR or SORTSWEEP based on periodic timing tests)
-      logical :: ladaptive_encounters_pltp = .false. !! Adaptive encounter checking is turned on (choose between TRIANGULAR or SORTSWEEP based on periodic timing tests)
 
       ! Logical flags to turn on or off various features of the code
       logical :: lrhill_present = .false. !! Hill radii are given as an input rather than calculated by the code (can be used to inflate close encounter regions manually)
