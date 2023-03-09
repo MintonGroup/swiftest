@@ -2270,72 +2270,42 @@ contains
          end if
 
          select case(trim(adjustl(param%interaction_loops)))
-         case("ADAPTIVE")
-            param%ladaptive_interactions = .true.
-            param%lflatten_interactions = .true.
-            call swiftest_io_log_start(param, INTERACTION_TIMER_LOG_OUT, "Interaction loop timer logfile")
-            call swiftest_io_log_one_message(INTERACTION_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
          case("TRIANGULAR")
-            param%ladaptive_interactions = .false.
             param%lflatten_interactions = .false.
          case("FLAT")
-            param%ladaptive_interactions = .false.
             param%lflatten_interactions = .true.
          case default
             write(*,*) "Unknown value for parameter INTERACTION_LOOPS: -> ",trim(adjustl(param%interaction_loops))
-            write(*,*) "Must be one of the following: TRIANGULAR, FLAT, or ADAPTIVE"
-            write(*,*) "Using default value of ADAPTIVE"
-            param%interaction_loops = "ADAPTIVE"
-            param%ladaptive_interactions = .true.
-            param%lflatten_interactions = .true.
-            call swiftest_io_log_start(param, INTERACTION_TIMER_LOG_OUT, "Interaction loop timer logfile")
-            call swiftest_io_log_one_message(INTERACTION_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
+            write(*,*) "Must be one of the following: TRIANGULAR or FLAT"
+            write(*,*) "Using default value of TRIANGULAR"
+            param%interaction_loops = "TRIANGULAR"
+            param%lflatten_interactions = .false.
          end select
 
          select case(trim(adjustl(param%encounter_check_plpl)))
-         case("ADAPTIVE")
-            param%ladaptive_encounters_plpl = .true.
-            param%lencounter_sas_plpl = .true.
-            call swiftest_io_log_start(param, ENCOUNTER_PLPL_TIMER_LOG_OUT, "Encounter check loop timer logfile")
-            call swiftest_io_log_one_message(ENCOUNTER_PLPL_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
          case("TRIANGULAR")
-            param%ladaptive_encounters_plpl = .false.
             param%lencounter_sas_plpl = .false.
          case("SORTSWEEP")
-            param%ladaptive_encounters_plpl = .false.
             param%lencounter_sas_plpl = .true.
          case default
             write(*,*) "Unknown value for parameter ENCOUNTER_CHECK_PLPL: -> ",trim(adjustl(param%encounter_check_plpl))
-            write(*,*) "Must be one of the following: TRIANGULAR, SORTSWEEP, or ADAPTIVE"
-            write(*,*) "Using default value of ADAPTIVE"
-            param%encounter_check_plpl = "ADAPTIVE"
-            param%ladaptive_encounters_plpl = .true.
-            param%lencounter_sas_plpl = .true.
-            call swiftest_io_log_start(param, ENCOUNTER_PLPL_TIMER_LOG_OUT, "Encounter check loop timer logfile")
-            call swiftest_io_log_one_message(ENCOUNTER_PLPL_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, nplpl, metric")
+            write(*,*) "Must be one of the following: TRIANGULAR or SORTSWEEP"
+            write(*,*) "Using default value of TRIANGULAR"
+            param%encounter_check_plpl = "TRIANGULAR"
+            param%lencounter_sas_plpl = .false.
          end select
 
          select case(trim(adjustl(param%encounter_check_pltp)))
-         case("ADAPTIVE")
-            param%ladaptive_encounters_pltp = .true.
-            param%lencounter_sas_pltp = .true.
-            call swiftest_io_log_start(param, ENCOUNTER_PLTP_TIMER_LOG_OUT, "Encounter check loop timer logfile")
-            call swiftest_io_log_one_message(ENCOUNTER_PLTP_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, npltp, metric")
          case("TRIANGULAR")
-            param%ladaptive_encounters_pltp = .false.
             param%lencounter_sas_pltp = .false.
          case("SORTSWEEP")
-            param%ladaptive_encounters_pltp = .false.
             param%lencounter_sas_pltp = .true.
          case default
             write(*,*) "Unknown value for parameter ENCOUNTER_CHECK_PLTP: -> ",trim(adjustl(param%encounter_check_pltp))
-            write(*,*) "Must be one of the following: TRIANGULAR, SORTSWEEP, or ADAPTIVE"
-            write(*,*) "Using default value of ADAPTIVE"
-            param%encounter_check_pltp = "ADAPTIVE"
-            param%ladaptive_encounters_pltp = .true.
-            param%lencounter_sas_pltp = .true.
-            call swiftest_io_log_start(param, ENCOUNTER_PLTP_TIMER_LOG_OUT, "Encounter check loop timer logfile")
-            call swiftest_io_log_one_message(ENCOUNTER_PLTP_TIMER_LOG_OUT, "Diagnostic values: loop style, time count, npltp, metric")
+            write(*,*) "Must be one of the following: TRIANGULAR or SORTSWEEP"
+            write(*,*) "Using default value of TRIANGULAR"
+            param%encounter_check_pltp = "TRIANGULAR"
+            param%lencounter_sas_pltp = .false.
          end select
 
          iostat = 0

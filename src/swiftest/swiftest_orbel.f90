@@ -680,7 +680,7 @@ contains
       abn = n
       if(n < 0._DP) abn = -abn
 
-      if(abn < 0.636_DP * e -0.6_DP) then
+      if(abn < 0.636_DP * e - 0.6_DP) then
          swiftest_orbel_fhybrid = swiftest_orbel_flon(e,n)
       else
          swiftest_orbel_fhybrid = swiftest_orbel_fget(e,n)
@@ -715,7 +715,7 @@ contains
       q = 0.0_DP
       x = [px, py, pz]
       v = [vx, vy, vz]
-      r = sqrt(dot_product(x(:), x(:))) 
+      r = .mag.x(:)
       v2 = dot_product(v(:), v(:))
       hvec(:) = x(:) .cross. v(:)
       h2 = dot_product(hvec(:), hvec(:))
