@@ -186,7 +186,7 @@ contains
             becb1 = -(3 * cb%Gmass * cb%mass) / (5 * cb%radius)
 
             ! Add planet angular momentum to central body accumulator
-            cb%dL(:) = Lpl(:) + Lcb(:) + cb%dL(:)
+            cb%dL(:) = Lpl(:) + cb%dL(:)
             ! Update rotation of central body to by consistent with its angular momentum 
             if (param%lrotation) then
                drot0(:) = cb%L0(:)/ (cb%Ip(3) * cb%mass * cb%radius**2)  
