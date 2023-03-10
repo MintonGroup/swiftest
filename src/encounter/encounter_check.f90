@@ -499,7 +499,7 @@ contains
    end subroutine encounter_check_all_triangular_plplm
 
 
-   subroutine encounter_check_all_triangular_pltp(npl, ntp, rpl, vpl, xtp, vtp, renc, dt, &
+   subroutine encounter_check_all_triangular_pltp(npl, ntp, rpl, vpl, rtp, vtp, renc, dt, &
                                                   nenc, index1, index2, lvdotr)
       !! author: David A. Minton
       !!
@@ -511,7 +511,7 @@ contains
       integer(I4B),                            intent(in)  :: ntp    !! Total number of test particles 
       real(DP),     dimension(:,:),            intent(in)  :: rpl    !! Position vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: vpl    !! Velocity vectors of massive bodies
-      real(DP),     dimension(:,:),            intent(in)  :: xtp    !! Position vectors of massive bodies
+      real(DP),     dimension(:,:),            intent(in)  :: rtp    !! Position vectors of massive bodies
       real(DP),     dimension(:,:),            intent(in)  :: vtp    !! Velocity vectors of massive bodies
       real(DP),     dimension(:),              intent(in)  :: renc   !! Critical radii of massive bodies that defines an encounter
       real(DP),                                intent(in)  :: dt     !! Step size
@@ -529,12 +529,12 @@ contains
       renct(:) = 0.0_DP
 
       !$omp parallel do default(private) schedule(dynamic)&
-      !$omp shared(rpl, vpl, xtp, vtp, renc, renct, lenc, ind_arr) &
+      !$omp shared(rpl, vpl, rtp, vtp, renc, renct, lenc, ind_arr) &
       !$omp firstprivate(npl, ntp, dt)
       do i = 1, npl
          call encounter_check_all_triangular_one(0, ntp, rpl(1,i), rpl(2,i), rpl(3,i), &
                                                          vpl(1,i), vpl(2,i), vpl(3,i), &
-                                                         xtp(1,:), xtp(2,:), xtp(3,:), &
+                                                         rtp(1,:), rtp(2,:), rtp(3,:), &
                                                          vtp(1,:), vtp(2,:), vtp(3,:), &
                                                          renc(i), renct(:), dt, ind_arr(:), lenc(i))
          if (lenc(i)%nenc > 0) lenc(i)%index1(:) = i

@@ -933,11 +933,11 @@ module swiftest
          real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
       end subroutine swiftest_kick_getacch_int_all_tri_norad_pl
 
-      module subroutine swiftest_kick_getacch_int_all_tp(ntp, npl, xtp, rpl, GMpl, lmask, acc)
+      module subroutine swiftest_kick_getacch_int_all_tp(ntp, npl, rtp, rpl, GMpl, lmask, acc)
          implicit none
          integer(I4B),                 intent(in)    :: ntp   !! Number of test particles
          integer(I4B),                 intent(in)    :: npl   !! Number of massive bodies
-         real(DP),     dimension(:,:), intent(in)    :: xtp   !! Test particle position vector array
+         real(DP),     dimension(:,:), intent(in)    :: rtp   !! Test particle position vector array
          real(DP),     dimension(:,:), intent(in)    :: rpl   !! Massive body particle position vector array
          real(DP),     dimension(:),   intent(in)    :: GMpl  !! Array of massive body G*mass
          logical,      dimension(:),   intent(in)    :: lmask !! Logical mask indicating which test particles should be computed
