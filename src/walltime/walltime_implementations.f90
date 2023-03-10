@@ -48,7 +48,6 @@ contains
       character(len=*),           intent(in)    :: message   !! Message to prepend to the wall time terminal output
       integer(I4B),               intent(in)    :: unit      !! Output file unit for report text to be directed
       ! Internals
-      character(len=*), parameter     :: nosubstepfmt = '" Total wall time: ", es12.5, "; Interval wall time: ", es12.5 ' 
       character(len=*), parameter     :: substepfmt   = '" Total wall time: ", es12.5, "; Interval wall time: ", es12.5, ";' //&
                                                         ' Interval wall time/step:  ", es12.5'
       character(len=STRMAX)           :: fmt
@@ -103,7 +102,6 @@ contains
       call system_clock(self%count_start_main, self%count_rate, self%count_max)
       self%main_is_started = .true.
       self%wall_main = 0.0_DP
-      self%nsubsteps = self%nsubsteps + 1
 
       return
    end subroutine walltime_start_main
@@ -134,6 +132,7 @@ contains
       else ! Start a new step timer
          call system_clock(self%count_start_step)
       end if
+      self%nsubsteps = self%nsubsteps + 1
 
       return 
    end subroutine walltime_start
