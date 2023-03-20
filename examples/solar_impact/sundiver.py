@@ -46,9 +46,9 @@ density  = 3000.0 * sim.KG2MU / sim.M2DU**3
 q = 0.9 * swiftest.RSun * sim.M2DU
 a = 0.1
 e = 1.0 - q / a
-M = 1e-4 * swiftest.MEarth * sim.KG2MU
+M = 2e0 * swiftest.MEarth * sim.KG2MU
 R = (3 * M  / (4 * np.pi * density)) ** (1.0 / 3.0)
-rot = 2 * sim.init_cond.sel(name="Earth")['rot']
+rot = 4 * sim.init_cond.sel(name="Earth")['rot']
 sim.add_body(name="Sundiver", a=a, e=e, inc=0.0, capom=0.0, omega=0.0, capm=180.0, mass=M, radius=R, Ip=[0.4,0.4,0.4], rot=rot)
 sim.get_parameter()
 
