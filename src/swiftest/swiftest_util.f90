@@ -494,7 +494,7 @@ contains
       associate(pl => self, npl => self%nbody)
          cb%vb(:) = 0.0_DP
          do i = npl, 1, -1
-            cb%vb(:) = cb%vb(:) - pl%Gmass(i) * pl%vb(:, i) / cb%Gmass
+            if (pl%status(i) /= INACTIVE) cb%vb(:) = cb%vb(:) - pl%Gmass(i) * pl%vb(:, i) / cb%Gmass
          end do
          do concurrent(i = 1:npl)
             pl%vh(:, i) = pl%vb(:, i) - cb%vb(:)
