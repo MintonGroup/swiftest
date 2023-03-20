@@ -19,7 +19,7 @@ program swiftest_driver
    use swiftest
    implicit none
 
-   class(base_nbody_system),     allocatable :: nbody_system      !! Polymorphic object containing the nbody system to be integrated
+   class(swiftest_nbody_system), allocatable :: nbody_system      !! Polymorphic object containing the nbody system to be integrated
    class(swiftest_parameters),   allocatable :: param             !! Run configuration parameters
    character(len=:), allocatable             :: integrator        !! Integrator type code (see globals for symbolic names)
    character(len=:), allocatable             :: param_file_name   !! Name of the file containing user-defined parameters
@@ -70,78 +70,75 @@ program swiftest_driver
 
       ! Construct the main n-body nbody_system using the user-input integrator to choose the type of nbody_system
       call swiftest_util_setup_construct_system(nbody_system, param)
-      select type(nbody_system)
-      class is (swiftest_nbody_system)
 
-         !> Define the maximum number of threads
-         nthreads = 1            ! In the *serial* case
-         !$ nthreads = omp_get_max_threads() ! In the *parallel* case
-         !$ write(param%display_unit,'(a)')   ' OpenMP parameters:'
-         !$ write(param%display_unit,'(a)')   ' ------------------'
-         !$ write(param%display_unit,'(a,i3,/)') ' Number of threads = ', nthreads 
-         !$ if (param%log_output) write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
+      !> Define the maximum number of threads
+      nthreads = 1            ! In the *serial* case
+      !$ nthreads = omp_get_max_threads() ! In the *parallel* case
+      !$ write(param%display_unit,'(a)')   ' OpenMP parameters:'
+      !$ write(param%display_unit,'(a)')   ' ------------------'
+      !$ write(param%display_unit,'(a,i3,/)') ' Number of threads = ', nthreads 
+      !$ if (param%log_output) write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
 
-         call nbody_system%initialize(param)
+      call nbody_system%initialize(param)
 
-         associate (system_history => nbody_system%system_history)
-            ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial conditions to file.
-            call nbody_system%display_run_information(param, integration_timer, phase="first")
-            if (param%lenergy) then
-               if (param%lrestart) then
-                  call nbody_system%get_t0_values(param)
-               else
-                  call nbody_system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
-               end if
-               call nbody_system%conservation_report(param, lterminal=.true.)
+      associate (system_history => nbody_system%system_history)
+         ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial conditions to file.
+         call nbody_system%display_run_information(param, integration_timer, phase="first")
+         if (param%lenergy) then
+            if (param%lrestart) then
+               call nbody_system%get_t0_values(param)
+            else
+               call nbody_system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
             end if
-            call system_history%take_snapshot(param,nbody_system)
-            call nbody_system%dump(param)
+            call nbody_system%conservation_report(param, lterminal=.true.)
+         end if
+         call system_history%take_snapshot(param,nbody_system)
+         call nbody_system%dump(param)
 
-            do iloop = istart, nloops
-               !> Step the nbody_system forward in time
-               call integration_timer%start()
-               call nbody_system%step(param, nbody_system%t, dt)
-               call integration_timer%stop()
+         do iloop = istart, nloops
+            !> Step the nbody_system forward in time
+            call integration_timer%start()
+            call nbody_system%step(param, nbody_system%t, dt)
+            call integration_timer%stop()
 
-               nbody_system%t = t0 + iloop * dt
+            nbody_system%t = t0 + iloop * dt
 
-               !> Evaluate any discards or collisional outcomes
-               call nbody_system%discard(param)
+            !> Evaluate any discards or collisional outcomes
+            call nbody_system%discard(param)
 
-               !> If the loop counter is at the output cadence value, append the data file with a single frame
-               if (istep_out > 0) then
-                  iout = iout + 1
-                  if ((iout == istep) .or. (iloop == nloops)) then
-                     iout = 0
-                     idump = idump + 1
-                     if (ltstretch) then 
-                        nout = nout + 1
-                        istep = floor(istep_out * fstep_out**nout, kind=I4B)
-                     end if
-
-                     call system_history%take_snapshot(param,nbody_system)
-
-                     if (idump == dump_cadence) then
-                        idump = 0
-                        call nbody_system%dump(param)
-                     end if
-
-                     call integration_timer%report(message="Integration steps:", unit=display_unit, nsubsteps=istep_out)
-                     call nbody_system%display_run_information(param, integration_timer)
-                     call integration_timer%reset()
-                     if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
-
+            !> If the loop counter is at the output cadence value, append the data file with a single frame
+            if (istep_out > 0) then
+               iout = iout + 1
+               if ((iout == istep) .or. (iloop == nloops)) then
+                  iout = 0
+                  idump = idump + 1
+                  if (ltstretch) then 
+                     nout = nout + 1
+                     istep = floor(istep_out * fstep_out**nout, kind=I4B)
                   end if
-               end if
 
-            end do
-            ! Dump any remaining history if it exists
-            call nbody_system%dump(param)
-            call system_history%dump(param)
-            call nbody_system%display_run_information(param, integration_timer, phase="last")
-            
-         end associate
-      end select
+                  call system_history%take_snapshot(param,nbody_system)
+
+                  if (idump == dump_cadence) then
+                     idump = 0
+                     call nbody_system%dump(param)
+                  end if
+
+                  call integration_timer%report(message="Integration steps:", unit=display_unit, nsubsteps=istep_out)
+                  call nbody_system%display_run_information(param, integration_timer)
+                  call integration_timer%reset()
+                  if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
+
+               end if
+            end if
+
+         end do
+         ! Dump any remaining history if it exists
+         call nbody_system%dump(param)
+         call system_history%dump(param)
+         call nbody_system%display_run_information(param, integration_timer, phase="last")
+         
+      end associate
    end associate
 
    call base_util_exit(SUCCESS)

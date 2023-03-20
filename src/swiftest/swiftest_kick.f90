@@ -342,8 +342,7 @@ contains
    end subroutine swiftest_kick_getacch_int_all_tri_norad_pl
 
 
-
-   module subroutine swiftest_kick_getacch_int_all_tp(ntp, npl, xtp, rpl, GMpl, lmask, acc)
+   module subroutine swiftest_kick_getacch_int_all_tp(ntp, npl, rtp, rpl, GMpl, lmask, acc)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations of test particles by massive bodies with parallelisim
@@ -353,27 +352,27 @@ contains
       implicit none
       integer(I4B),                 intent(in)    :: ntp    !! Number of test particles
       integer(I4B),                 intent(in)    :: npl    !! Number of massive bodies
-      real(DP),     dimension(:,:), intent(in)    :: xtp    !! Test particle position vector array
+      real(DP),     dimension(:,:), intent(in)    :: rtp    !! Test particle position vector array
       real(DP),     dimension(:,:), intent(in)    :: rpl    !! Massive body particle position vector array
       real(DP),     dimension(:),   intent(in)    :: GMpl   !! Array of massive body G*mass
       logical,      dimension(:),   intent(in)    :: lmask  !! Logical mask indicating which test particles should be computed
       real(DP),     dimension(:,:), intent(inout) :: acc    !! Acceleration vector array 
       ! Internals
       real(DP)     :: rji2
-      real(DP)     :: xr, yr, zr
+      real(DP)     :: rx, ry, rz
       integer(I4B) :: i, j
 
       !$omp parallel do default(private) schedule(static)&
-      !$omp shared(npl, ntp, lmask, xtp, rpl, GMpl) &
+      !$omp shared(npl, ntp, lmask, rtp, rpl, GMpl) &
       !$omp reduction(-:acc)
       do i = 1, ntp
          if (lmask(i)) then
-            do j = 1, npl
-               xr = xtp(1, i) - rpl(1, j)
-               yr = xtp(2, i) - rpl(2, j)
-               zr = xtp(3, i) - rpl(3, j)
-               rji2 = xr**2 + yr**2 + zr**2
-               call swiftest_kick_getacch_int_one_tp(rji2, xr, yr, zr, GMpl(j), acc(1,i), acc(2,i), acc(3,i))
+            do concurrent (j = 1:npl)
+               rx = rtp(1, i) - rpl(1, j)
+               ry = rtp(2, i) - rpl(2, j)
+               rz = rtp(3, i) - rpl(3, j)
+               rji2 = rx**2 + ry**2 + rz**2
+               call swiftest_kick_getacch_int_one_tp(rji2, rx, ry, rz, GMpl(j), acc(1,i), acc(2,i), acc(3,i))
             end do
          end if
       end do

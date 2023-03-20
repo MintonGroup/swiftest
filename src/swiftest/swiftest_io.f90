@@ -1267,8 +1267,6 @@ contains
             call netcdf_io_check( nf90_get_var(nc%id, nc%Gmass_varid, Gmtemp, start=[1,tslot], count=[idmax,1]), "netcdf_io_read_hdr_system nf90_getvar Gmass_varid"  )
             where(Gmtemp(:) /= Gmtemp(:)) Gmtemp(:) = 0.0_DP
             plmmask(:) = plmask(:) .and. Gmtemp(:) > param%GMTINY
-         else
-            plmmask(:) = plmask(:)
          end if
 
          status = nf90_inq_varid(nc%id, nc%npl_varname, nc%npl_varid)
