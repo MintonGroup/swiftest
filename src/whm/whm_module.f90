@@ -70,7 +70,6 @@ module whm
 
    !> An abstract class for the WHM integrator nbody system 
    type, extends(swiftest_nbody_system) :: whm_nbody_system
-      class(whm_tp), dimension(:),codimension[:], allocatable :: cotp  !! Co-array test particle data structure
    contains
       !> Replace the abstract procedures with concrete ones
       procedure :: initialize   => whm_util_setup_initialize_system !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
