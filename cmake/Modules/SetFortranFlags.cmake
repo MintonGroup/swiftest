@@ -325,11 +325,6 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_PROFILE "${CMAKE_Fortran_FLAGS_RELEASE}"
                          "-pg -fbacktrace"
                 )
 
-SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_PROFILE "${CMAKE_Fortran_FLAGS_PROFILE}"
-                 Fortran "-check bounds,pointers,uninit"  # Intel
-                         "-fcheck=bounds,pointer,mem"
-                )
-
 # Sanitize
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                  Fortran "-fsanitize=address,undefined"  # Gnu 
