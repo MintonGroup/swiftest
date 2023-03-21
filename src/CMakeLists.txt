@@ -88,6 +88,9 @@ set(SWIFTEST_src ${FAST_MATH_FILES} ${STRICT_MATH_FILES})
 # Define the executable in terms of the source files
 ADD_EXECUTABLE(${SWIFTEST_DRIVER} ${SWIFTEST_src})
 
+# Turn preprocessor on for all files
+SET_SOURCE_FILES_PROPERTIES(${SWIFTEST_src} PROPERTIES Fortran_PREPROCESS ON)
+
 #####################################################
 # Add the needed libraries and special compiler flags
 #####################################################
@@ -101,11 +104,11 @@ IF(USE_OPENMP)
                           LINK_FLAGS "${OpenMP_Fortran_FLAGS}")
 ENDIF(USE_OPENMP)
 
-IF(USE_CAF)
+IF(USE_COARRAY)
     SET_TARGET_PROPERTIES(${SWIFTEST_DRIVER} PROPERTIES
                           COMPILE_FLAGS "${Coarray_Fortran_FLAGS}"
                           LINK_FLAGS "${Coarray_Fortran_FLAGS}")
-ENDIF(USE_CAF)
+ENDIF(USE_COARRAY)
 
 
 #####################################
@@ -125,5 +128,9 @@ STRING(TOUPPER "${CMAKE_BUILD_TYPE}" BT)
 IF(BT STREQUAL "RELEASE" OR BT STREQUAL "PROFILE")
    SET_PROPERTY(SOURCE ${STRICT_MATH_FILES} APPEND_STRING PROPERTY COMPILE_FLAGS "${STRICTMATH_FLAGS}")
    SET_PROPERTY(SOURCE ${FAST_MATH_FILES} APPEND_STRING PROPERTY COMPILE_FLAGS "${FASTMATH_FLAGS}")
+ENDIF()
+
+IF(BT STREQUAL "DEBUG")
+   ADD_DEFINITIONS(-DDEBUG)
 ENDIF()
 
