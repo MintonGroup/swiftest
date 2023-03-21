@@ -451,67 +451,64 @@ contains
             if (allocated(encmask)) deallocate(encmask)
             allocate(encmask(ntp))
             encmask(1:ntp) = tp%plencP(1:ntp) == i
-            select type (planetocentric => pl%planetocentric)
-            class is(rmvs_nbody_system)
-               allocate(rmvs_tp :: planetocentric(i)%tp)
-               ! Create encountering test particle structure
-               select type(cbenci => planetocentric(i)%cb)
-               class is (rmvs_cb)
-                  select type(plenci => planetocentric(i)%pl)
-                  class is (rmvs_pl)
-                     select type(tpenci => planetocentric(i)%tp)
-                     class is (rmvs_tp)
-                        tpenci%lplanetocentric = .true.
-                        associate(nenci => pl%nenc(i))
-                           call tpenci%setup(nenci, param)
-                           tpenci%cb_heliocentric = cb
-                           tpenci%ipleP = i
-                           tpenci%lmask(1:nenci) = .true.
-                           tpenci%status(1:nenci) = ACTIVE
-                           ! Grab all the encountering test particles and convert them to a planetocentric frame
-                           tpenci%id(1:nenci) = pack(tp%id(1:ntp), encmask(1:ntp)) 
-                           do j = 1, NDIM 
-                              tpenci%rheliocentric(j, 1:nenci) = pack(tp%rh(j,1:ntp), encmask(:)) 
-                              tpenci%rh(j, 1:nenci) = tpenci%rheliocentric(j, 1:nenci) - pl%inner(0)%x(j, i)
-                              tpenci%vh(j, 1:nenci) = pack(tp%vh(j, 1:ntp), encmask(1:ntp)) - pl%inner(0)%v(j, i)
+            allocate(rmvs_tp :: pl%planetocentric(i)%tp)
+            ! Create encountering test particle structure
+            select type(cbenci => pl%planetocentric(i)%cb)
+            class is (rmvs_cb)
+               select type(plenci => pl%planetocentric(i)%pl)
+               class is (rmvs_pl)
+                  select type(tpenci => pl%planetocentric(i)%tp)
+                  class is (rmvs_tp)
+                     tpenci%lplanetocentric = .true.
+                     associate(nenci => pl%nenc(i))
+                        call tpenci%setup(nenci, param)
+                        tpenci%cb_heliocentric = cb
+                        tpenci%ipleP = i
+                        tpenci%lmask(1:nenci) = .true.
+                        tpenci%status(1:nenci) = ACTIVE
+                        ! Grab all the encountering test particles and convert them to a planetocentric frame
+                        tpenci%id(1:nenci) = pack(tp%id(1:ntp), encmask(1:ntp)) 
+                        do j = 1, NDIM 
+                           tpenci%rheliocentric(j, 1:nenci) = pack(tp%rh(j,1:ntp), encmask(:)) 
+                           tpenci%rh(j, 1:nenci) = tpenci%rheliocentric(j, 1:nenci) - pl%inner(0)%x(j, i)
+                           tpenci%vh(j, 1:nenci) = pack(tp%vh(j, 1:ntp), encmask(1:ntp)) - pl%inner(0)%v(j, i)
+                        end do
+                        tpenci%lperi(1:nenci) = pack(tp%lperi(1:ntp), encmask(1:ntp)) 
+                        tpenci%plperP(1:nenci) = pack(tp%plperP(1:ntp), encmask(1:ntp)) 
+                        ! Make sure that the test particles get the planetocentric value of mu 
+                        allocate(cbenci%inner(0:NTPHENC))
+                        do inner_index = 0, NTPHENC 
+                           allocate(plenci%inner(inner_index)%x, mold=pl%inner(inner_index)%x)
+                           allocate(plenci%inner(inner_index)%v, mold=pl%inner(inner_index)%x)
+                           allocate(cbenci%inner(inner_index)%x(NDIM,1))
+                           allocate(cbenci%inner(inner_index)%v(NDIM,1))
+                           cbenci%inner(inner_index)%x(:,1)    =  pl%inner(inner_index)%x(:, i) 
+                           cbenci%inner(inner_index)%v(:,1)    =  pl%inner(inner_index)%v(:, i) 
+                           plenci%inner(inner_index)%x(:,1)    = -cbenci%inner(inner_index)%x(:,1)
+                           plenci%inner(inner_index)%v(:,1)    = -cbenci%inner(inner_index)%v(:,1)
+   
+                           if (param%loblatecb) then
+                              allocate(plenci%inner(inner_index)%aobl, mold=pl%inner(inner_index)%aobl)
+                              allocate(cbenci%inner(inner_index)%aobl(NDIM,1))
+                              cbenci%inner(inner_index)%aobl(:,1) =  pl%inner(inner_index)%aobl(:, i) 
+                           end if
+   
+                           if (param%ltides) then  
+                              allocate(plenci%inner(inner_index)%atide, mold=pl%inner(inner_index)%atide)
+                              allocate(cbenci%inner(inner_index)%atide(NDIM,1))
+                              cbenci%inner(inner_index)%atide(:,1) =  pl%inner(inner_index)%atide(:, i) 
+                           end if
+   
+                           do j = 2, npl
+                              ipc2hc = plenci%plind(j)
+                              plenci%inner(inner_index)%x(:,j) = pl%inner(inner_index)%x(:, ipc2hc) &
+                                                                 - cbenci%inner(inner_index)%x(:,1)
+                              plenci%inner(inner_index)%v(:,j) = pl%inner(inner_index)%v(:, ipc2hc) &
+                                                                 - cbenci%inner(inner_index)%v(:,1)
                            end do
-                           tpenci%lperi(1:nenci) = pack(tp%lperi(1:ntp), encmask(1:ntp)) 
-                           tpenci%plperP(1:nenci) = pack(tp%plperP(1:ntp), encmask(1:ntp)) 
-                           ! Make sure that the test particles get the planetocentric value of mu 
-                           allocate(cbenci%inner(0:NTPHENC))
-                           do inner_index = 0, NTPHENC 
-                              allocate(plenci%inner(inner_index)%x, mold=pl%inner(inner_index)%x)
-                              allocate(plenci%inner(inner_index)%v, mold=pl%inner(inner_index)%x)
-                              allocate(cbenci%inner(inner_index)%x(NDIM,1))
-                              allocate(cbenci%inner(inner_index)%v(NDIM,1))
-                              cbenci%inner(inner_index)%x(:,1)    =  pl%inner(inner_index)%x(:, i) 
-                              cbenci%inner(inner_index)%v(:,1)    =  pl%inner(inner_index)%v(:, i) 
-                              plenci%inner(inner_index)%x(:,1)    = -cbenci%inner(inner_index)%x(:,1)
-                              plenci%inner(inner_index)%v(:,1)    = -cbenci%inner(inner_index)%v(:,1)
-      
-                              if (param%loblatecb) then
-                                 allocate(plenci%inner(inner_index)%aobl, mold=pl%inner(inner_index)%aobl)
-                                 allocate(cbenci%inner(inner_index)%aobl(NDIM,1))
-                                 cbenci%inner(inner_index)%aobl(:,1) =  pl%inner(inner_index)%aobl(:, i) 
-                              end if
-      
-                              if (param%ltides) then  
-                                 allocate(plenci%inner(inner_index)%atide, mold=pl%inner(inner_index)%atide)
-                                 allocate(cbenci%inner(inner_index)%atide(NDIM,1))
-                                 cbenci%inner(inner_index)%atide(:,1) =  pl%inner(inner_index)%atide(:, i) 
-                              end if
-      
-                              do j = 2, npl
-                                 ipc2hc = plenci%plind(j)
-                                 plenci%inner(inner_index)%x(:,j) = pl%inner(inner_index)%x(:, ipc2hc) &
-                                                                  - cbenci%inner(inner_index)%x(:,1)
-                                 plenci%inner(inner_index)%v(:,j) = pl%inner(inner_index)%v(:, ipc2hc) &
-                                                                  - cbenci%inner(inner_index)%v(:,1)
-                              end do
-                           end do
-                           call tpenci%set_mu(cbenci)
-                        end associate
-                     end select
+                        end do
+                        call tpenci%set_mu(cbenci)
+                     end associate
                   end select
                end select
             end select
@@ -614,42 +611,39 @@ contains
       associate (npl => pl%nbody, ntp => tp%nbody)
          do i = 1, npl
             if (pl%nenc(i) == 0) cycle
-            select type(planetocentric => pl%planetocentric)
-            class is(rmvs_nbody_system)
-               select type(cbenci => planetocentric(i)%cb)
-               class is (rmvs_cb)
-                  select type(plenci => planetocentric(i)%pl)
-                  class is (rmvs_pl)
-                     select type(tpenci => planetocentric(i)%tp)
-                     class is (rmvs_tp)
-                        associate(nenci => pl%nenc(i))
-                           if (allocated(tpind)) deallocate(tpind)
-                           allocate(tpind(nenci))
-                           ! Index array of encountering test particles
-                           if (allocated(encmask)) deallocate(encmask)
-                           allocate(encmask(ntp))
-                           encmask(1:ntp) = tp%plencP(1:ntp) == i
-                           tpind(1:nenci) = pack([(j,j=1,ntp)], encmask(1:ntp))
-                  
-                           ! Copy the results of the integration back over and shift back to heliocentric reference
-                           tp%status(tpind(1:nenci)) = tpenci%status(1:nenci) 
-                           tp%lmask(tpind(1:nenci)) = tpenci%lmask(1:nenci) 
-                           do j = 1, NDIM
-                              tp%rh(j, tpind(1:nenci)) = tpenci%rh(j,1:nenci) + pl%inner(NTPHENC)%x(j, i)
-                              tp%vh(j, tpind(1:nenci)) = tpenci%vh(j,1:nenci) + pl%inner(NTPHENC)%v(j, i)
-                           end do
-                           tp%lperi(tpind(1:nenci)) = tpenci%lperi(1:nenci)
-                           tp%plperP(tpind(1:nenci)) = tpenci%plperP(1:nenci)
-                           deallocate(planetocentric(i)%tp)
-                           deallocate(cbenci%inner)
-                           do inner_index = 0, NTPHENC 
-                              deallocate(plenci%inner(inner_index)%x) 
-                              deallocate(plenci%inner(inner_index)%v) 
-                              if (allocated(plenci%inner(inner_index)%aobl))  deallocate(plenci%inner(inner_index)%aobl)
-                              if (allocated(plenci%inner(inner_index)%atide)) deallocate(plenci%inner(inner_index)%atide)
-                           end do
-                        end associate
-                     end select
+            select type(cbenci => pl%planetocentric(i)%cb)
+            class is (rmvs_cb)
+               select type(plenci => pl%planetocentric(i)%pl)
+               class is (rmvs_pl)
+                  select type(tpenci => pl%planetocentric(i)%tp)
+                  class is (rmvs_tp)
+                     associate(nenci => pl%nenc(i))
+                        if (allocated(tpind)) deallocate(tpind)
+                        allocate(tpind(nenci))
+                        ! Index array of encountering test particles
+                        if (allocated(encmask)) deallocate(encmask)
+                        allocate(encmask(ntp))
+                        encmask(1:ntp) = tp%plencP(1:ntp) == i
+                        tpind(1:nenci) = pack([(j,j=1,ntp)], encmask(1:ntp))
+               
+                        ! Copy the results of the integration back over and shift back to heliocentric reference
+                        tp%status(tpind(1:nenci)) = tpenci%status(1:nenci) 
+                        tp%lmask(tpind(1:nenci)) = tpenci%lmask(1:nenci) 
+                        do j = 1, NDIM
+                           tp%rh(j, tpind(1:nenci)) = tpenci%rh(j,1:nenci) + pl%inner(NTPHENC)%x(j, i)
+                           tp%vh(j, tpind(1:nenci)) = tpenci%vh(j,1:nenci) + pl%inner(NTPHENC)%v(j, i)
+                        end do
+                        tp%lperi(tpind(1:nenci)) = tpenci%lperi(1:nenci)
+                        tp%plperP(tpind(1:nenci)) = tpenci%plperP(1:nenci)
+                        deallocate(pl%planetocentric(i)%tp)
+                        deallocate(cbenci%inner)
+                        do inner_index = 0, NTPHENC 
+                           deallocate(plenci%inner(inner_index)%x) 
+                           deallocate(plenci%inner(inner_index)%v) 
+                           if (allocated(plenci%inner(inner_index)%aobl))  deallocate(plenci%inner(inner_index)%aobl)
+                           if (allocated(plenci%inner(inner_index)%atide)) deallocate(plenci%inner(inner_index)%atide)
+                        end do
+                     end associate
                   end select
                end select
             end select

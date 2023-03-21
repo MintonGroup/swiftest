@@ -304,13 +304,14 @@ module swiftest
 
 
    !> An abstract class for a basic Swiftest nbody system 
-   type, extends(base_nbody_system) :: swiftest_nbody_system
+   type, abstract, extends(base_nbody_system) :: swiftest_nbody_system
       !! This superclass contains a minimial nbody_system of a set of test particles (tp), massive bodies (pl), and a central body (cb)
       !! The full swiftest_nbody_system type that is used as the parent class of all integrators is defined in collision
 
       class(swiftest_cb),         allocatable :: cb                !! Central body data structure
       class(swiftest_pl),         allocatable :: pl                !! Massive body data structure
       class(swiftest_tp),         allocatable :: tp                !! Test particle data structure
+      
       class(swiftest_tp),         allocatable :: tp_discards       !! Discarded test particle data structure
       class(swiftest_pl),         allocatable :: pl_discards       !! Discarded massive body particle data structure
       class(swiftest_pl),         allocatable :: pl_adds           !! List of added bodies in mergers or collisions
@@ -373,7 +374,7 @@ module swiftest
                                                               !!    the test particles
    contains
       !> Each integrator will have its own version of the step
-
+      procedure(abstract_step_system), deferred :: step
 
       ! Concrete classes that are common to the basic integrator (only test particles considered for discard)
       procedure :: discard                 => swiftest_discard_system                              !! Perform a discard step on the nbody_system
@@ -390,8 +391,7 @@ module swiftest
       procedure :: read_in                 => swiftest_io_read_in_system                           !! Reads the initial conditions for an nbody system
       procedure :: write_frame_system      => swiftest_io_write_frame_system                       !! Write a frame of input data from file
       procedure :: obl_pot                 => swiftest_obl_pot_system                              !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
-      procedure :: step                    => swiftest_step_system                                 !! Placeholder step method. Each integrator will override
-      procedure :: dealloc                 => swiftest_util_dealloc_system                         !! Deallocates all allocatables and resets all values to defaults. Acts as a base for a finalizer
+      procedure :: dealloc                 => swiftest_util_dealloc_system                           !! Deallocates all allocatables and resets all values to defaults. Acts as a base for a finalizer
       procedure :: get_energy_and_momentum => swiftest_util_get_energy_and_momentum_system         !! Calculates the total nbody_system energy and momentum
       procedure :: get_idvals              => swiftest_util_get_idvalues_system                    !! Returns an array of all id values in use in the nbody_system
       procedure :: rescale                 => swiftest_util_rescale_system                         !! Rescales the nbody_system into a new set of units
@@ -448,6 +448,15 @@ module swiftest
          real(DP),                          intent(in)    :: t      !! Simulation time
          real(DP),                          intent(in)    :: dt     !! Current stepsize
       end subroutine abstract_step_body
+
+      subroutine abstract_step_system(self, param, t, dt)
+         import DP, swiftest_nbody_system, swiftest_parameters
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody_system object
+         class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
+         real(DP),                          intent(in)    :: t     !! Simulation time
+         real(DP),                          intent(in)    :: dt    !! Current stepsize
+      end subroutine abstract_step_system
    end interface
 
 
@@ -1049,7 +1058,7 @@ module swiftest
 
       module subroutine swiftest_util_setup_construct_system(nbody_system, param)
          implicit none
-         class(base_nbody_system), allocatable, intent(inout) :: nbody_system !! Swiftest nbody_system object
+         class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system !! Swiftest nbody_system object
          class(swiftest_parameters),                intent(inout) :: param  !! Current run configuration parameters
       end subroutine swiftest_util_setup_construct_system
 
@@ -1941,16 +1950,6 @@ module swiftest
    
          return
       end subroutine swiftest_final_kin
-
-
-      subroutine swiftest_step_system(self, param, t, dt)
-         implicit none
-         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody_system object
-         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
-         real(DP),                 intent(in)    :: t     !! Simulation time
-         real(DP),                 intent(in)    :: dt    !! Current stepsize
-         return
-      end subroutine swiftest_step_system
 
 
       subroutine swiftest_final_storage(self)

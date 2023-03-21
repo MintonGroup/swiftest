@@ -249,8 +249,6 @@ contains
       ke = 0.5_DP * Vimp**2
       pe = - GC * m1 * m2 / (Mtot * norm2(rh2 - rh1))
 
-      Qmerge = Gc * m1 * m2 / (.mag.(rh2 - rh1)) + 3*m1 / (5*rad1) + 3*m2 / (5*rad1) - U_binding ! Change in energy due to a pure merger
-
       if ((m1 < min_mfrag).or.(m2 < min_mfrag)) then 
          regime = COLLRESOLVE_REGIME_MERGE !perfect merging regime
          call swiftest_io_log_one_message(COLLISION_LOG_OUT, &

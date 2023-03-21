@@ -356,42 +356,39 @@ contains
                tp%lplanetocentric = .false.
                cb%lplanetocentric = .false.
                associate(npl => pl%nbody)
-                  allocate(rmvs_nbody_system :: pl%planetocentric(npl))
-                  select type(planetocentric => pl%planetocentric)
-                  class is (rmvs_nbody_system)
-                     planetocentric(:)%lplanetocentric = .true.
-                     do i = 1, npl
-                        allocate(planetocentric(i)%cb, source=cb)
-                        allocate(rmvs_pl :: planetocentric(i)%pl)
-                        select type(cbenci => planetocentric(i)%cb)
-                        class is (rmvs_cb)
-                           select type(plenci => planetocentric(i)%pl)
-                           class is (rmvs_pl)
-                              cbenci%lplanetocentric = .true.
-                              plenci%lplanetocentric = .true.
-                              call plenci%setup(npl, param)
-                              plenci%status(:) = ACTIVE
-                              plenci%lmask(:) = .true.
-                              ! plind stores the heliocentric index value of a planetocentric planet
-                              ! e.g. Consider an encounter with planet 3.  
-                              ! Then the following will be the values of plind:
-                              ! pl%planetocentric(3)%pl%plind(1) = 0 (central body - never used)  
-                              ! pl%planetocentric(3)%pl%plind(2) = 1  
-                              ! pl%planetocentric(3)%pl%plind(3) = 2
-                              ! pl%planetocentric(3)%pl%plind(4) = 4
-                              ! pl%planetocentric(3)%pl%plind(5) = 5
-                              ! etc.  
-                              allocate(plenci%plind(npl))
-                              plenci%plind(1:npl) = [(j,j=1,npl)] 
-                              plenci%plind(2:npl) = pack(plenci%plind(1:npl), plenci%plind(1:npl) /= i)
-                              plenci%plind(1)     = 0
-                              plenci%Gmass(1)     = cb%Gmass
-                              plenci%Gmass(2:npl) = pl%Gmass(plenci%plind(2:npl))
-                              cbenci%Gmass        = pl%Gmass(i)
-                           end select
+                  allocate(pl%planetocentric(npl))
+                  pl%planetocentric(:)%lplanetocentric = .true.
+                  do i = 1, npl
+                     allocate(pl%planetocentric(i)%cb, source=cb)
+                     allocate(rmvs_pl :: pl%planetocentric(i)%pl)
+                     select type(cbenci => pl%planetocentric(i)%cb)
+                     class is (rmvs_cb)
+                        select type(plenci => pl%planetocentric(i)%pl)
+                        class is (rmvs_pl)
+                           cbenci%lplanetocentric = .true.
+                           plenci%lplanetocentric = .true.
+                           call plenci%setup(npl, param)
+                           plenci%status(:) = ACTIVE
+                           plenci%lmask(:) = .true.
+                           ! plind stores the heliocentric index value of a planetocentric planet
+                           ! e.g. Consider an encounter with planet 3.  
+                           ! Then the following will be the values of plind:
+                           ! pl%planetocentric(3)%pl%plind(1) = 0 (central body - never used)  
+                           ! pl%planetocentric(3)%pl%plind(2) = 1  
+                           ! pl%planetocentric(3)%pl%plind(3) = 2
+                           ! pl%planetocentric(3)%pl%plind(4) = 4
+                           ! pl%planetocentric(3)%pl%plind(5) = 5
+                           ! etc.  
+                           allocate(plenci%plind(npl))
+                           plenci%plind(1:npl) = [(j,j=1,npl)] 
+                           plenci%plind(2:npl) = pack(plenci%plind(1:npl), plenci%plind(1:npl) /= i)
+                           plenci%plind(1)     = 0
+                           plenci%Gmass(1)     = cb%Gmass
+                           plenci%Gmass(2:npl) = pl%Gmass(plenci%plind(2:npl))
+                           cbenci%Gmass        = pl%Gmass(i)
                         end select
-                     end do
-                  end select
+                     end select
+                  end do
                end associate
             end select
          end select

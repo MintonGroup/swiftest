@@ -2703,8 +2703,8 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(base_nbody_system), allocatable, intent(inout) :: nbody_system !! Swiftest nbody_system object
-      class(swiftest_parameters),            intent(inout) :: param        !! Current run configuration parameters
+      class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system !! Swiftest nbody_system object
+      class(swiftest_parameters),                intent(inout) :: param  !! Current run configuration parameters
 
       select case(param%integrator)
       case (INT_BS)
@@ -2767,11 +2767,11 @@ contains
          call base_util_exit(FAILURE)
       end select
 
-      select type(nbody_system)
-      class is (swiftest_nbody_system)
-         allocate(swiftest_particle_info :: nbody_system%cb%info)
-         nbody_system%t = param%tstart
-      end select
+      allocate(swiftest_particle_info :: nbody_system%cb%info)
+
+
+      nbody_system%t = param%tstart
+
 
       return
    end subroutine swiftest_util_setup_construct_system
@@ -3055,7 +3055,7 @@ contains
       real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from nbody_system time
       character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in collision snapshots)
       ! Internals
-      class(base_nbody_system), allocatable :: snapshot
+      class(swiftest_nbody_system), allocatable :: snapshot
 
       ! To allow for runs to be restarted in a bit-identical way, we'll need to run the same coordinate conversion routines we would run upon restarting
       select type(pl => nbody_system%pl)
@@ -3077,63 +3077,60 @@ contains
 
       ! Take a minimal snapshot wihout all of the extra storage objects
       allocate(snapshot, mold=nbody_system)
-      select type(snapshot)
-      class is (swiftest_nbody_system)
-         allocate(snapshot%cb, source=nbody_system%cb )
-         allocate(snapshot%pl, source=nbody_system%pl )
-         allocate(snapshot%tp, source=nbody_system%tp )
-         allocate(snapshot%system_history)
-         allocate(snapshot%system_history%nc, source=nbody_system%system_history%nc)
-         snapshot%system_history%nc%lfile_is_open = .true.
+      allocate(snapshot%cb, source=nbody_system%cb )
+      allocate(snapshot%pl, source=nbody_system%pl )
+      allocate(snapshot%tp, source=nbody_system%tp )
+      allocate(snapshot%system_history)
+      allocate(snapshot%system_history%nc, source=nbody_system%system_history%nc)
+      snapshot%system_history%nc%lfile_is_open = .true.
 
-         snapshot%t                 = nbody_system%t
-         snapshot%GMtot             = nbody_system%GMtot
-         snapshot%ke_orbit          = nbody_system%ke_orbit
-         snapshot%ke_spin           = nbody_system%ke_spin
-         snapshot%pe                = nbody_system%pe
-         snapshot%be                = nbody_system%be
-         snapshot%te                = nbody_system%te
-         snapshot%oblpot            = nbody_system%oblpot
-         snapshot%L_orbit           = nbody_system%L_orbit
-         snapshot%L_spin            = nbody_system%L_spin
-         snapshot%L_total           = nbody_system%L_total
-         snapshot%ke_orbit_orig     = nbody_system%ke_orbit_orig
-         snapshot%ke_spin_orig      = nbody_system%ke_spin_orig
-         snapshot%pe_orig           = nbody_system%pe_orig
-         snapshot%be_orig           = nbody_system%be_orig
-         snapshot%E_orbit_orig      = nbody_system%E_orbit_orig
-         snapshot%GMtot_orig        = nbody_system%GMtot_orig
-         snapshot%L_total_orig      = nbody_system%L_total_orig
-         snapshot%L_orbit_orig      = nbody_system%L_orbit_orig
-         snapshot%L_spin_orig       = nbody_system%L_spin_orig
-         snapshot%L_escape          = nbody_system%L_escape
-         snapshot%GMescape          = nbody_system%GMescape
-         snapshot%E_collisions      = nbody_system%E_collisions
-         snapshot%E_untracked       = nbody_system%E_untracked
-         snapshot%ke_orbit_error    = nbody_system%ke_orbit_error   
-         snapshot%ke_spin_error     = nbody_system%ke_spin_error    
-         snapshot%pe_error          = nbody_system%pe_error         
-         snapshot%be_error          = nbody_system%be_error         
-         snapshot%E_orbit_error     = nbody_system%E_orbit_error    
-         snapshot%Ecoll_error       = nbody_system%Ecoll_error      
-         snapshot%E_untracked_error = nbody_system%E_untracked_error
-         snapshot%te_error          = nbody_system%te_error         
-         snapshot%L_orbit_error     = nbody_system%L_orbit_error    
-         snapshot%L_spin_error      = nbody_system%L_spin_error     
-         snapshot%L_escape_error    = nbody_system%L_escape_error   
-         snapshot%L_total_error     = nbody_system%L_total_error    
-         snapshot%Mtot_error        = nbody_system%Mtot_error       
-         snapshot%Mescape_error     = nbody_system%Mescape_error    
-         snapshot%lbeg              = nbody_system%lbeg
+      snapshot%t                 = nbody_system%t
+      snapshot%GMtot             = nbody_system%GMtot
+      snapshot%ke_orbit          = nbody_system%ke_orbit
+      snapshot%ke_spin           = nbody_system%ke_spin
+      snapshot%pe                = nbody_system%pe
+      snapshot%be                = nbody_system%be
+      snapshot%te                = nbody_system%te
+      snapshot%oblpot            = nbody_system%oblpot
+      snapshot%L_orbit           = nbody_system%L_orbit
+      snapshot%L_spin            = nbody_system%L_spin
+      snapshot%L_total           = nbody_system%L_total
+      snapshot%ke_orbit_orig     = nbody_system%ke_orbit_orig
+      snapshot%ke_spin_orig      = nbody_system%ke_spin_orig
+      snapshot%pe_orig           = nbody_system%pe_orig
+      snapshot%be_orig           = nbody_system%be_orig
+      snapshot%E_orbit_orig      = nbody_system%E_orbit_orig
+      snapshot%GMtot_orig        = nbody_system%GMtot_orig
+      snapshot%L_total_orig      = nbody_system%L_total_orig
+      snapshot%L_orbit_orig      = nbody_system%L_orbit_orig
+      snapshot%L_spin_orig       = nbody_system%L_spin_orig
+      snapshot%L_escape          = nbody_system%L_escape
+      snapshot%GMescape          = nbody_system%GMescape
+      snapshot%E_collisions      = nbody_system%E_collisions
+      snapshot%E_untracked       = nbody_system%E_untracked
+      snapshot%ke_orbit_error    = nbody_system%ke_orbit_error   
+      snapshot%ke_spin_error     = nbody_system%ke_spin_error    
+      snapshot%pe_error          = nbody_system%pe_error         
+      snapshot%be_error          = nbody_system%be_error         
+      snapshot%E_orbit_error     = nbody_system%E_orbit_error    
+      snapshot%Ecoll_error       = nbody_system%Ecoll_error      
+      snapshot%E_untracked_error = nbody_system%E_untracked_error
+      snapshot%te_error          = nbody_system%te_error         
+      snapshot%L_orbit_error     = nbody_system%L_orbit_error    
+      snapshot%L_spin_error      = nbody_system%L_spin_error     
+      snapshot%L_escape_error    = nbody_system%L_escape_error   
+      snapshot%L_total_error     = nbody_system%L_total_error    
+      snapshot%Mtot_error        = nbody_system%Mtot_error       
+      snapshot%Mescape_error     = nbody_system%Mescape_error    
+      snapshot%lbeg              = nbody_system%lbeg
 
 
-         ! Store a snapshot of the nbody_system for posterity
-         call base_util_snapshot_save(self, snapshot)
-         self%nt = self%iframe
-         self%nid = self%nid + 1 ! Central body
-         if (allocated(nbody_system%pl)) self%nid = self%nid + nbody_system%pl%nbody
-         if (allocated(nbody_system%tp)) self%nid = self%nid + nbody_system%tp%nbody
-      end select
+      ! Store a snapshot of the nbody_system for posterity
+      call base_util_snapshot_save(self, snapshot)
+      self%nt = self%iframe
+      self%nid = self%nid + 1 ! Central body
+      if (allocated(nbody_system%pl)) self%nid = self%nid + nbody_system%pl%nbody
+      if (allocated(nbody_system%tp)) self%nid = self%nid + nbody_system%tp%nbody
        
       return
    end subroutine swiftest_util_snapshot_system

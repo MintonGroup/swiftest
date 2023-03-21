@@ -98,7 +98,7 @@ module rmvs
       integer(I4B),             dimension(:), allocatable :: plind                     !! Connects the planetocentric indices back to the heliocentric planet list
       type(rmvs_interp),        dimension(:), allocatable :: outer                     !! interpolated heliocentric central body position for outer encounters
       type(rmvs_interp),        dimension(:), allocatable :: inner                     !! interpolated heliocentric central body position for inner encounters
-      class(base_nbody_system), dimension(:), allocatable :: planetocentric            !! Planetocentric version of the massive body objects (one for each massive body)
+      class(rmvs_nbody_system), dimension(:), allocatable :: planetocentric            !! Planetocentric version of the massive body objects (one for each massive body)
       logical                                             :: lplanetocentric = .false. !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
    contains
       procedure :: setup     => rmvs_util_setup_pl               !! Constructor method - Allocates space for the input number of bodiess

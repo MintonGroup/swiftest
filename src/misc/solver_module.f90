@@ -16,7 +16,7 @@ module solver
    use lambda_function
    use, intrinsic :: ieee_exceptions
    private
-   public :: solve_linear_system, solve_roots
+   public :: solve_linear_system, solve_rkf45, solve_roots
 
    interface solve_linear_system
       module procedure solve_linear_system_dp
