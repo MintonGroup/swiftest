@@ -28,8 +28,7 @@ IF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
 ENDIF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
 
 # Set some options the user may choose
-# Uncomment the below if you want the user to choose a parallelization library
-OPTION(USE_COARRAY "Use Coarray Fortran for parallelization" OFF)
+OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
 OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
 
 IF (USE_COARRAY)
