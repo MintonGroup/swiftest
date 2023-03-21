@@ -25,17 +25,31 @@
 
 INCLUDE (${CMAKE_ROOT}/Modules/FindPackageHandleStandardArgs.cmake)
 
+STRING(TOUPPER "${CMAKE_BUILD_TYPE}" BT)
+IF(BT STREQUAL "DEBUG")
+    SET (Coarray_Fortran_FLAG_CANDIDATES
+        #Intel
+        "-coarray=single"
+        #Intel windows
+        "/Qcoarray:single" 
+        #Gnu
+        "-fcoarray=single"
+        #Empty, if compiler automatically accepts coarray
+        " "
+    )
+ELSE()
+    SET (Coarray_Fortran_FLAG_CANDIDATES
+        #Intel
+        "-coarray=distributed"
+        #Intel windows
+        "/Qcoarray:distributed" 
+        #Gnu
+        "-fcoarray=lib -lcaf_mpi"
+        #Empty, if compiler automatically accepts coarray
+        " "
+    )
+ENDIF()
 
-SET (Coarray_Fortran_FLAG_CANDIDATES
-     #Intel
-     "-coarray=distributed"
-     #Intel windows
-     "/Qcoarray:distributed" 
-     #Gnu
-     "-fcoarray=lib -lcaf_mpi"
-     #Empty, if compiler automatically accepts coarray
-     " "
-)
 
 IF (DEFINED Coarray_Fortran_FLAGS)
     SET (Coarray_Fortran_FLAG_CANDIDATES)
