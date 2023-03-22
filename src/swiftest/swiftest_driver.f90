@@ -124,7 +124,7 @@ program swiftest_driver
                      call nbody_system%dump(param)
                   end if
 
-                  call integration_timer%report(message="Integration steps:", unit=display_unit, nsubsteps=istep_out)
+                  call integration_timer%report(message="Integration steps:", unit=display_unit)
                   call nbody_system%display_run_information(param, integration_timer)
                   call integration_timer%reset()
                   if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
