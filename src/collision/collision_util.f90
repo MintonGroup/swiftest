@@ -299,6 +299,8 @@ contains
       ! Arguments
       class(collision_fragments),  intent(inout) :: self
 
+      self%nbody = 0
+      if (allocated(self%id)) deallocate(self%id)
       if (allocated(self%info)) deallocate(self%info) 
       if (allocated(self%status)) deallocate(self%status) 
       if (allocated(self%rh)) deallocate(self%rh)

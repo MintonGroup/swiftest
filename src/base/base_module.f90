@@ -206,14 +206,6 @@ module base
    end interface
 
 
-   type, abstract, extends(base_object) :: base_multibody
-      integer(I4B)                             :: nbody = 0 !! Number of bodies
-      integer(I4B),  dimension(:), allocatable :: id        !! Identifier
-   contains
-      procedure :: dealloc => base_util_dealloc_multibody
-   end type base_multibody 
-
-
    !> Class definition for the kinship relationships used in bookkeeping multiple collisions bodies in a single time step.
    type, abstract :: base_kinship
    end type base_kinship
@@ -238,21 +230,6 @@ module base
          
          return
       end subroutine base_util_copy_store 
-
-
-      subroutine base_util_dealloc_multibody(self)
-         !! author: David A. Minton
-         !!
-         !! Finalize the multibody body object - deallocates all allocatables
-         implicit none
-         ! Argument
-         class(base_multibody),  intent(inout) :: self
-
-         self%nbody = 0
-         if (allocated(self%id)) deallocate(self%id)
-
-         return
-      end subroutine base_util_dealloc_multibody
 
 
       subroutine base_util_dealloc_param(self)

@@ -727,7 +727,8 @@ contains
       class(swiftest_body),  intent(inout) :: self
 
       self%lfirst = .true.
-
+      self%nbody = 0
+      if (allocated(self%id)) deallocate(self%id)
       if (allocated(self%info)) deallocate(self%info)
       if (allocated(self%status)) deallocate(self%status)
       if (allocated(self%lmask)) deallocate(self%lmask)
@@ -753,8 +754,6 @@ contains
       if (allocated(self%capom)) deallocate(self%capom)
       if (allocated(self%omega)) deallocate(self%omega)
       if (allocated(self%capm)) deallocate(self%capm)
-
-      call base_util_dealloc_multibody(self)
 
       return
    end subroutine swiftest_util_dealloc_body

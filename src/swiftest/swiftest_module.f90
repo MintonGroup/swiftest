@@ -92,9 +92,11 @@ module swiftest
 
 
    !> An abstract class for a generic collection of Swiftest bodies
-   type, abstract, extends(base_multibody) :: swiftest_body
+   type, abstract, extends(base_object) :: swiftest_body
       !! Superclass that defines the generic elements of a Swiftest particle 
       logical                                                    :: lfirst = .true. !! Run the current step as a first
+      integer(I4B)                                               :: nbody = 0       !! Number of bodies
+      integer(I4B),                  dimension(:),   allocatable :: id              !! Identifier 
       type(swiftest_particle_info),  dimension(:),   allocatable :: info            !! Particle metadata information
       logical,                       dimension(:),   allocatable :: lmask           !! Logical mask used to select a subset of bodies when performing certain operations (drift, kick, accel, etc.)
       integer(I4B),                  dimension(:),   allocatable :: status          !! An integrator-specific status indicator 

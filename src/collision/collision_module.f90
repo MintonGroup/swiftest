@@ -97,8 +97,10 @@ module collision
 
 
    !> Class definition for the variables that describe a collection of fragments in barycentric coordinates
-   type, extends(base_multibody) :: collision_fragments
+   type, extends(base_object) :: collision_fragments
+      integer(I4B)                                           :: nbody = 0    !! Number of bodies
       real(DP)                                               :: mtot         !! Total mass of fragments       
+      integer(I4B),              dimension(:),   allocatable :: id           !! Identifier
       class(base_particle_info), dimension(:),   allocatable :: info         !! Particle metadata information
       integer(I4B),              dimension(:),   allocatable :: status       !! An integrator-specific status indicator 
       real(DP),                  dimension(:,:), allocatable :: rh           !! Heliocentric position
