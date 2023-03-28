@@ -20,7 +20,7 @@ program swiftest_driver
    implicit none
 
    class(swiftest_nbody_system), allocatable :: nbody_system      !! Polymorphic object containing the nbody system to be integrated
-   class(swiftest_parameters),   allocatable :: param             !! Run configuration parameters
+   type(swiftest_parameters)                 :: param             !! Run configuration parameters
    character(len=:), allocatable             :: integrator        !! Integrator type code (see globals for symbolic names)
    character(len=:), allocatable             :: param_file_name   !! Name of the file containing user-defined parameters
    character(len=:), allocatable             :: display_style     !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
@@ -34,7 +34,6 @@ program swiftest_driver
    call swiftest_io_get_args(integrator, param_file_name, display_style)
 
    !> Read in the user-defined parameters file and the initial conditions of the nbody_system
-   allocate(swiftest_parameters :: param)
    param%integrator = trim(adjustl(integrator))
    param%display_style = trim(adjustl(display_style))
    call param%read_in(param_file_name)
