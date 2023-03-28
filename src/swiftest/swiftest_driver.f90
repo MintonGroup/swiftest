@@ -85,7 +85,8 @@ program swiftest_driver
    if (this_image() == 1) then
       write(param%display_unit,'(a)')   ' Coarray parameters:'
       write(param%display_unit,'(a)')   ' -------------------'
-      write(param%display_unit,'(a)') ' Number of images = ', num_images()
+      write(param%display_unit,'(a,i3)') ' Number of images = ', num_images()
+      if (param%log_output) write(*,'(a,i3)') ' Coarray: Number of images = ',num_images()
 #endif 
 
       call nbody_system%initialize(param)
