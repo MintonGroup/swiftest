@@ -354,6 +354,65 @@ contains
       return
    end subroutine swiftest_util_append_tp
 
+#ifdef COARRAY
+   module subroutine swiftest_util_coarray_collect_system(self)
+      !! author: David A. Minton
+      !!
+      !! Distributes test particles from image #1 out to all images.
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), codimension[*], intent(inout) :: self
+      ! Internals
+      integer(I4B) :: i,j
+      integer(I4B), dimension(num_images()) :: ntp
+      class(swiftest_tp), allocatable :: tp_img
+
+      ntp(this_image()) = self%tp%nbody
+      sync all
+      if (this_image() == 1) then
+         do i = 2, num_images()
+            allocate(tp_img, source=self[i]%tp)
+            call self%tp%append(tp_img,lsource_mask=[(.true., j = 1, ntp(i))])
+            deallocate(tp_img)
+         end do
+      end if
+
+      return
+   end subroutine swiftest_util_coarray_collect_system
+
+
+   module subroutine swiftest_util_coarray_distribute_system(self)
+      !! author: David A. Minton
+      !!
+      !! Distributes test particles from image #1 out to all images.
+      implicit none
+      ! Arguments
+      class(swiftest_nbody_system), codimension[*], intent(inout) :: self
+      ! Internals
+      integer(I4B) :: i, istart, iend, ntot, num_per_image
+      class(swiftest_tp), allocatable :: tp_orig
+      logical, dimension(:), allocatable :: lspill_list
+
+      sync all
+      ntot = self[1]%tp%nbody 
+      if (ntot == 0) return
+      allocate(lspill_list(ntot))
+      allocate(tp_orig, source=self[1]%tp)
+      if (allocated(self%tp)) deallocate(self%tp)
+      num_per_image = ntot / num_images()
+      istart = (this_image() - 1) * num_per_image + 1
+      if (this_image() == num_images()) then
+         iend = ntot
+      else
+         iend = this_image() * num_per_image
+      end if
+      lspill_list(:) = .false.
+      lspill_list(istart:iend) = .true.
+      call tp_orig%spill(self%tp,lspill_list(:), ldestructive=.false.)
+
+      return
+   end subroutine swiftest_util_coarray_distribute_system
+#endif
 
    module subroutine swiftest_util_coord_h2b_pl(self, cb)
       !! author: David A. Minton
@@ -3065,15 +3124,15 @@ contains
       !! Takes a snapshot of the nbody_system for later file storage
       implicit none
       ! Arguments
-      class(swiftest_storage),      intent(inout) :: self   !! Swiftest storage object
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
+      class(swiftest_storage),      intent(inout)        :: self            !! Swiftest storage object
+      class(swiftest_parameters),   intent(inout)        :: param           !! Current run configuration parameters
 #ifdef COARRAY
-      class(swiftest_nbody_system), intent(inout) :: nbody_system[*] !! Swiftest nbody system object to store
+      class(swiftest_nbody_system), intent(inout)        :: nbody_system[*] !! Swiftest nbody system object to store
 #else
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object to store
+      class(swiftest_nbody_system), intent(inout)        :: nbody_system    !! Swiftest nbody system object to store
 #endif
-      real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from nbody_system time
-      character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in collision snapshots)
+      real(DP),                     intent(in), optional :: t               !! Time of snapshot if different from nbody_system time
+      character(*),                 intent(in), optional :: arg             !! Optional argument (needed for extended storage type used in collision snapshots)
       ! Internals
       class(swiftest_nbody_system), allocatable :: snapshot
 

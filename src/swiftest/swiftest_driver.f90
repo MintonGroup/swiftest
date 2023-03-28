@@ -81,17 +81,17 @@ program swiftest_driver
       !$ write(param%display_unit,'(a)')   ' ------------------'
       !$ write(param%display_unit,'(a,i3,/)') ' Number of threads = ', nthreads 
       !$ if (param%log_output) write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
-#ifdef COARRAY
-   if (this_image() == 1) then
-      write(param%display_unit,'(a)')   ' Coarray parameters:'
-      write(param%display_unit,'(a)')   ' -------------------'
-      write(param%display_unit,'(a,i3)') ' Number of images = ', num_images()
-      if (param%log_output) write(*,'(a,i3)') ' Coarray: Number of images = ',num_images()
+#ifdef COARRAY 
+      ! Only execute file file I/O and reporting on image 1
+      if (this_image() == 1) then
+         write(param%display_unit,'(a)')   ' Coarray parameters:'
+         write(param%display_unit,'(a)')   ' -------------------'
+         write(param%display_unit,'(a,i3)') ' Number of images = ', num_images()
+         if (param%log_output) write(*,'(a,i3)') ' Coarray: Number of images = ',num_images()
 #endif 
 
-      call nbody_system%initialize(param)
+         call nbody_system%initialize(param)
 
-      associate (system_history => nbody_system%system_history)
          ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial conditions to file.
          call nbody_system%display_run_information(param, integration_timer, phase="first")
          if (param%lenergy) then
@@ -102,32 +102,40 @@ program swiftest_driver
             end if
             call nbody_system%conservation_report(param, lterminal=.true.)
          end if
-         call system_history%take_snapshot(param,nbody_system)
+         call nbody_system%system_history%take_snapshot(param,nbody_system)
          call nbody_system%dump(param)
 
-         do iloop = istart, nloops
-            !> Step the nbody_system forward in time
-            call integration_timer%start()
-            call nbody_system%step(param, nbody_system%t, dt)
-            call integration_timer%stop()
+#ifdef COARRAY
+         ! Distribute test particles to the various images
+         call nbody_system%coarray_distribute()
+      end if ! this_image() == 1
+#endif 
+      do iloop = istart, nloops
+         !> Step the nbody_system forward in time
+         call integration_timer%start()
+         call nbody_system%step(param, nbody_system%t, dt)
+         call integration_timer%stop()
 
-            nbody_system%t = t0 + iloop * dt
+         nbody_system%t = t0 + iloop * dt
 
-            !> Evaluate any discards or collisional outcomes
-            call nbody_system%discard(param)
+         !> Evaluate any discards or collisional outcomes
+         call nbody_system%discard(param)
 
-            !> If the loop counter is at the output cadence value, append the data file with a single frame
-            if (istep_out > 0) then
-               iout = iout + 1
-               if ((iout == istep) .or. (iloop == nloops)) then
-                  iout = 0
-                  idump = idump + 1
-                  if (ltstretch) then 
-                     nout = nout + 1
-                     istep = floor(istep_out * fstep_out**nout, kind=I4B)
-                  end if
-
-                  call system_history%take_snapshot(param,nbody_system)
+         !> If the loop counter is at the output cadence value, append the data file with a single frame
+         if (istep_out > 0) then
+            iout = iout + 1
+            if ((iout == istep) .or. (iloop == nloops)) then
+               iout = 0
+               idump = idump + 1
+               if (ltstretch) then 
+                  nout = nout + 1
+                  istep = floor(istep_out * fstep_out**nout, kind=I4B)
+               end if
+#ifdef COARRAY
+               if (this_image() == 1) then
+                  call nbody_system%coarray_collect()
+#endif
+                  call nbody_system%system_history%take_snapshot(param,nbody_system)
 
                   if (idump == dump_cadence) then
                      idump = 0
@@ -138,20 +146,27 @@ program swiftest_driver
                   call nbody_system%display_run_information(param, integration_timer)
                   call integration_timer%reset()
                   if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
-
-               end if
+#ifdef COARRAY
+                  call nbody_system%coarray_distribute()
+               end if 
+               sync all
+#endif
             end if
+         end if
 
-         end do
-         ! Dump any remaining history if it exists
+      end do
+      ! Dump any remaining history if it exists
+#ifdef COARRAY
+      if (this_image() == 1) then
+#endif
+         call nbody_system%coarray_collect()
          call nbody_system%dump(param)
-         call system_history%dump(param)
+         call nbody_system%system_history%dump(param)
          call nbody_system%display_run_information(param, integration_timer, phase="last")
-         
-      end associate
 #ifdef COARRAY
       end if ! this_image() == 1
 #endif
+         
    end associate
 
    call base_util_exit(SUCCESS)

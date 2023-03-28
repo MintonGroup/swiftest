@@ -393,7 +393,11 @@ module swiftest
       procedure :: read_in                 => swiftest_io_read_in_system                           !! Reads the initial conditions for an nbody system
       procedure :: write_frame_system      => swiftest_io_write_frame_system                       !! Write a frame of input data from file
       procedure :: obl_pot                 => swiftest_obl_pot_system                              !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
-      procedure :: dealloc                 => swiftest_util_dealloc_system                           !! Deallocates all allocatables and resets all values to defaults. Acts as a base for a finalizer
+#ifdef COARRAY
+      procedure :: coarray_collect         => swiftest_util_coarray_collect_system                 !! Collects test particles from distributed images into image #1
+      procedure :: coarray_distribute      => swiftest_util_coarray_distribute_system              !! Distributes test particles from image #1 out to all images
+#endif
+      procedure :: dealloc                 => swiftest_util_dealloc_system                         !! Deallocates all allocatables and resets all values to defaults. Acts as a base for a finalizer
       procedure :: get_energy_and_momentum => swiftest_util_get_energy_and_momentum_system         !! Calculates the total nbody_system energy and momentum
       procedure :: get_idvals              => swiftest_util_get_idvalues_system                    !! Returns an array of all id values in use in the nbody_system
       procedure :: rescale                 => swiftest_util_rescale_system                         !! Rescales the nbody_system into a new set of units
@@ -1184,6 +1188,18 @@ module swiftest
          logical, dimension(:), intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine swiftest_util_append_tp
 
+#ifdef COARRAY
+      module subroutine swiftest_util_coarray_collect_system(self)
+         implicit none
+         class(swiftest_nbody_system), codimension[*], intent(inout) :: self
+      end subroutine swiftest_util_coarray_collect_system
+
+      module subroutine swiftest_util_coarray_distribute_system(self)
+         implicit none
+         class(swiftest_nbody_system), codimension[*], intent(inout) :: self
+      end subroutine swiftest_util_coarray_distribute_system
+#endif
+
       module subroutine swiftest_util_coord_b2h_pl(self, cb)
          implicit none
          class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
@@ -1659,18 +1675,17 @@ module swiftest
 
       module subroutine swiftest_util_snapshot_system(self, param, nbody_system, t, arg)
          implicit none
-         class(swiftest_storage),      intent(inout)        :: self   !! Swiftest storage object
-         class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters
+         class(swiftest_storage),      intent(inout)        :: self            !! Swiftest storage object
+         class(swiftest_parameters),   intent(inout)        :: param           !! Current run configuration parameters
 #ifdef COARRAY
          class(swiftest_nbody_system), intent(inout)        :: nbody_system[*] !! Swiftest nbody system object to store
 #else
-         class(swiftest_nbody_system), intent(inout)        :: nbody_system !! Swiftest nbody system object to store
+         class(swiftest_nbody_system), intent(inout)        :: nbody_system    !! Swiftest nbody system object to store
 #endif
-         real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from nbody_system time
-         character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in encounter snapshots)
+         real(DP),                     intent(in), optional :: t               !! Time of snapshot if different from nbody_system time
+         character(*),                 intent(in), optional :: arg             !! Optional argument (needed for extended storage type used in collision snapshots)
       end subroutine swiftest_util_snapshot_system
    end interface
-
 
    interface swiftest_util_sort      
       pure module subroutine swiftest_util_sort_i4b(arr)
