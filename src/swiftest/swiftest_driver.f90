@@ -19,7 +19,11 @@ program swiftest_driver
    use swiftest
    implicit none
 
+#ifdef COARRAY
+   class(swiftest_nbody_system), allocatable :: nbody_system[:]      !! Polymorphic object containing the nbody system to be integrated
+#else
    class(swiftest_nbody_system), allocatable :: nbody_system      !! Polymorphic object containing the nbody system to be integrated
+#endif
    type(swiftest_parameters)                 :: param             !! Run configuration parameters
    character(len=:), allocatable             :: integrator        !! Integrator type code (see globals for symbolic names)
    character(len=:), allocatable             :: param_file_name   !! Name of the file containing user-defined parameters
@@ -77,6 +81,12 @@ program swiftest_driver
       !$ write(param%display_unit,'(a)')   ' ------------------'
       !$ write(param%display_unit,'(a,i3,/)') ' Number of threads = ', nthreads 
       !$ if (param%log_output) write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
+#ifdef COARRAY
+   if (this_image() == 1) then
+      write(param%display_unit,'(a)')   ' Coarray parameters:'
+      write(param%display_unit,'(a)')   ' -------------------'
+      write(param%display_unit,'(a)') ' Number of images = ', num_images()
+#endif 
 
       call nbody_system%initialize(param)
 
@@ -138,6 +148,9 @@ program swiftest_driver
          call nbody_system%display_run_information(param, integration_timer, phase="last")
          
       end associate
+#ifdef COARRAY
+      end if ! this_image() == 1
+#endif
    end associate
 
    call base_util_exit(SUCCESS)

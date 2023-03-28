@@ -1060,8 +1060,12 @@ module swiftest
 
       module subroutine swiftest_util_setup_construct_system(nbody_system, param)
          implicit none
-         class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system !! Swiftest nbody_system object
-         class(swiftest_parameters),                intent(inout) :: param  !! Current run configuration parameters
+#ifdef COARRAY
+         class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system[:] !! Swiftest nbody_system object
+#else
+         class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system    !! Swiftest nbody_system object
+#endif
+         class(swiftest_parameters),                intent(inout) :: param           !! Current run configuration parameters
       end subroutine swiftest_util_setup_construct_system
 
       module subroutine swiftest_util_setup_initialize_particle_info_system(self, param)

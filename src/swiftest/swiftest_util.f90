@@ -2694,7 +2694,6 @@ contains
       return
    end subroutine swiftest_util_set_rhill_approximate
 
-
    module subroutine swiftest_util_setup_construct_system(nbody_system, param)
       !! author: David A. Minton
       !!
@@ -2702,14 +2701,22 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system !! Swiftest nbody_system object
-      class(swiftest_parameters),                intent(inout) :: param  !! Current run configuration parameters
+#ifdef COARRAY
+      class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system[:] !! Swiftest nbody_system object
+#else
+      class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system    !! Swiftest nbody_system object
+#endif
+      class(swiftest_parameters),                intent(inout) :: param           !! Current run configuration parameters
 
       select case(param%integrator)
       case (INT_BS)
          write(*,*) 'Bulirsch-Stoer integrator not yet enabled'
-      case (INT_HELIO)
+       case (INT_HELIO)
+#ifdef COARRAY
+         allocate(helio_nbody_system :: nbody_system[*])
+#else
          allocate(helio_nbody_system :: nbody_system)
+#endif
          select type(nbody_system)
          class is (helio_nbody_system)
             allocate(helio_cb :: nbody_system%cb)
@@ -2723,7 +2730,11 @@ contains
       case (INT_TU4)
          write(*,*) 'INT_TU4 integrator not yet enabled'
       case (INT_WHM)
+#ifdef COARRAY
+         allocate(whm_nbody_system :: nbody_system[*])
+#else
          allocate(whm_nbody_system :: nbody_system)
+#endif
          select type(nbody_system)
          class is (whm_nbody_system)
             allocate(whm_cb :: nbody_system%cb)
@@ -2733,7 +2744,11 @@ contains
          end select
          param%collision_model = "MERGE"
       case (INT_RMVS)
+#ifdef COARRAY
+         allocate(rmvs_nbody_system :: nbody_system[*])
+#else
          allocate(rmvs_nbody_system :: nbody_system)
+#endif
          select type(nbody_system)
          class is (rmvs_nbody_system)
             allocate(rmvs_cb :: nbody_system%cb)
@@ -2743,7 +2758,11 @@ contains
          end select
          param%collision_model = "MERGE"
       case (INT_SYMBA)
+#ifdef COARRAY
+         allocate(symba_nbody_system :: nbody_system[*])
+#else
          allocate(symba_nbody_system :: nbody_system)
+#endif
          select type(nbody_system)
          class is (symba_nbody_system)
             allocate(symba_cb :: nbody_system%cb)
@@ -2768,9 +2787,7 @@ contains
 
       allocate(swiftest_particle_info :: nbody_system%cb%info)
 
-
       nbody_system%t = param%tstart
-
 
       return
    end subroutine swiftest_util_setup_construct_system
