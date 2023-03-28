@@ -1659,11 +1659,15 @@ module swiftest
 
       module subroutine swiftest_util_snapshot_system(self, param, nbody_system, t, arg)
          implicit none
-         class(swiftest_storage),        intent(inout)        :: self   !! Swiftest storage object
-         class(swiftest_parameters),        intent(inout)        :: param  !! Current run configuration parameters
+         class(swiftest_storage),      intent(inout)        :: self   !! Swiftest storage object
+         class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters
+#ifdef COARRAY
+         class(swiftest_nbody_system), intent(inout)        :: nbody_system[*] !! Swiftest nbody system object to store
+#else
          class(swiftest_nbody_system), intent(inout)        :: nbody_system !! Swiftest nbody system object to store
-         real(DP),                          intent(in), optional :: t      !! Time of snapshot if different from nbody_system time
-         character(*),                      intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in encounter snapshots)
+#endif
+         real(DP),                     intent(in), optional :: t      !! Time of snapshot if different from nbody_system time
+         character(*),                 intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in encounter snapshots)
       end subroutine swiftest_util_snapshot_system
    end interface
 
