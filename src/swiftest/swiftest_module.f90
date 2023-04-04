@@ -150,7 +150,6 @@ module swiftest
       procedure :: fill            => swiftest_util_fill_body               !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: get_peri        => swiftest_util_peri_body               !! Determine nbody_system pericenter passages for test particles 
       procedure :: resize          => swiftest_util_resize_body             !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
-
       procedure :: set_ir3         => swiftest_util_set_ir3h                !! Sets the inverse heliocentric radius term (1/rh**3)
       procedure :: sort            => swiftest_util_sort_body               !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => swiftest_util_sort_rearrange_body     !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
@@ -394,8 +393,8 @@ module swiftest
       procedure :: write_frame_system      => swiftest_io_write_frame_system                       !! Write a frame of input data from file
       procedure :: obl_pot                 => swiftest_obl_pot_system                              !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
 #ifdef COARRAY
-      procedure :: coarray_collect         => swiftest_util_coarray_collect_system                 !! Collects test particles from distributed images into image #1
-      procedure :: coarray_distribute      => swiftest_util_coarray_distribute_system              !! Distributes test particles from image #1 out to all images
+      procedure :: coarray_collect         => swiftest_util_coarray_collect_system                 !! Collects all the test particles from other images into the image #1 test particle system
+      procedure :: coarray_distribute      => swiftest_util_coarray_distribute_system           !! Distributes test particles from image #1 out to all images.
 #endif
       procedure :: dealloc                 => swiftest_util_dealloc_system                         !! Deallocates all allocatables and resets all values to defaults. Acts as a base for a finalizer
       procedure :: get_energy_and_momentum => swiftest_util_get_energy_and_momentum_system         !! Calculates the total nbody_system energy and momentum
@@ -1081,7 +1080,7 @@ module swiftest
       module subroutine swiftest_util_setup_initialize_system(self, param)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody_system object
-         class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
+         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       end subroutine swiftest_util_setup_initialize_system
 
       module subroutine swiftest_util_setup_pl(self, n, param)
@@ -1189,14 +1188,14 @@ module swiftest
       end subroutine swiftest_util_append_tp
 
 #ifdef COARRAY
-      module subroutine swiftest_util_coarray_collect_system(self)
+      module subroutine swiftest_util_coarray_collect_system(nbody_system)
          implicit none
-         class(swiftest_nbody_system), codimension[*], intent(inout) :: self
+         class(swiftest_nbody_system), intent(inout) :: nbody_system[*]
       end subroutine swiftest_util_coarray_collect_system
 
-      module subroutine swiftest_util_coarray_distribute_system(self)
+      module subroutine swiftest_util_coarray_distribute_system(nbody_system)
          implicit none
-         class(swiftest_nbody_system), codimension[*], intent(inout) :: self
+         class(swiftest_nbody_system), intent(inout) :: nbody_system[*]
       end subroutine swiftest_util_coarray_distribute_system
 #endif
 
@@ -1677,11 +1676,7 @@ module swiftest
          implicit none
          class(swiftest_storage),      intent(inout)        :: self            !! Swiftest storage object
          class(swiftest_parameters),   intent(inout)        :: param           !! Current run configuration parameters
-#ifdef COARRAY
-         class(swiftest_nbody_system), intent(inout)        :: nbody_system[*] !! Swiftest nbody system object to store
-#else
          class(swiftest_nbody_system), intent(inout)        :: nbody_system    !! Swiftest nbody system object to store
-#endif
          real(DP),                     intent(in), optional :: t               !! Time of snapshot if different from nbody_system time
          character(*),                 intent(in), optional :: arg             !! Optional argument (needed for extended storage type used in collision snapshots)
       end subroutine swiftest_util_snapshot_system

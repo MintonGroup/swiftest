@@ -1882,10 +1882,16 @@ contains
       logical                        :: seed_set = .false.      !! Is the random seed set in the input file?
       character(len=:), allocatable  :: integrator
       real(DP)                       :: tratio, y
-      
-
-      ! Parse the file line by line, extracting tokens then matching them up with known parameters if possible
+      type(swiftest_parameters), codimension[*], save :: coparam
+     
+#ifdef COARRAY
+   if (this_image() == 1) then
+      coparam = self
+      associate(param => coparam) 
+#else
       associate(param => self) 
+#endif
+         ! Parse the file line by line, extracting tokens then matching them up with known parameters if possible
          call random_seed(size = nseeds)
          if (allocated(param%seed)) deallocate(param%seed)
          allocate(param%seed(nseeds))
@@ -2309,11 +2315,22 @@ contains
          iostat = 0
 
          call param%set_display(param%display_style)
-         
          ! Print the contents of the parameter file to standard output
          if (.not.param%lrestart) call param%writer(unit = param%display_unit, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg) 
-
       end associate
+#ifdef COARRAY
+   end if ! this_image() == 1
+      call coparam%cobroadcast()
+      select type(self)
+      type is (swiftest_parameters)
+         self = coparam
+      end select
+
+      write(*,*) "Image: ", this_image(),"tstop: ",self%tstop
+      write(*,*) "Image: ", this_image(),"seed: ",self%seed
+      sync all
+      stop
+#endif
 
       return 
       667 continue

@@ -83,7 +83,15 @@ SET(FAST_MATH_FILES
             ${SRC}/swiftest/swiftest_driver.f90
 )
 
-set(SWIFTEST_src ${FAST_MATH_FILES} ${STRICT_MATH_FILES})
+SET(COARRAY_FILES
+            ${SRC}/coarray/coarray_module.f90
+)
+
+IF(USE_COARRAY)
+    set(SWIFTEST_src ${COARRAY_FILES} ${FAST_MATH_FILES} ${STRICT_MATH_FILES})
+ELSE()
+    set(SWIFTEST_src ${FAST_MATH_FILES} ${STRICT_MATH_FILES})
+ENDIF(USE_COARRAY)
 
 # Define the executable in terms of the source files
 ADD_EXECUTABLE(${SWIFTEST_DRIVER} ${SWIFTEST_src})

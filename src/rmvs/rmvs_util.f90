@@ -413,11 +413,13 @@ contains
       call self%whm_tp%setup(n, param) 
       if (n <= 0) return
 
-      allocate(self%lperi(n))
-      allocate(self%plperP(n))
-      allocate(self%plencP(n))
+      if (allocated(self%lperi)) deallocate(self%lperi); allocate(self%lperi(n))
+      if (allocated(self%plperP)) deallocate(self%plperP); allocate(self%plperP(n))
+      if (allocated(self%plencP)) deallocate(self%plencP); allocate(self%plencP(n))
 
-      if (self%lplanetocentric) allocate(self%rheliocentric(NDIM, n))
+      if (self%lplanetocentric) then
+         if (allocated(self%rheliocentric)) deallocate(self%rheliocentric); allocate(self%rheliocentric(NDIM, n))
+      end if
 
       self%lperi(:)  = .false.
 

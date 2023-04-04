@@ -13,15 +13,17 @@ module base
    !! Base type definitions. This allows the collision and encounter modules to be defined before the swiftest module.
    !!
    use globals
+#ifdef COARRAY
+   use coarray
+#endif
    implicit none
    public
-
 
    !> User defined parameters that are read in from the parameters input file. 
    !>    Each paramter is initialized to a default values. 
    type, abstract :: base_parameters
-      character(len=:), allocatable           :: integrator                             !! Name of the nbody integrator used
-      character(len=:), allocatable           :: param_file_name                        !! The name of the parameter file
+      character(STRMAX)                       :: integrator                             !! Name of the nbody integrator used
+      character(STRMAX)                       :: param_file_name                        !! The name of the parameter file
       real(DP)                                :: t0                   =  0.0_DP         !! Integration reference time
       real(DP)                                :: tstart               = -1.0_DP         !! Integration start time
       real(DP)                                :: tstop                = -1.0_DP         !! Integration stop time
@@ -97,9 +99,9 @@ module base
       logical                   :: lfirstkick   = .true.  !! Initiate the first kick in a symplectic step
       logical                   :: lrestart     = .false. !! Indicates whether or not this is a restarted run
 
-      character(len=:), allocatable :: display_style         !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
-      integer(I4B)                  :: display_unit          !! File unit number for display (either to stdout or to a log file)
-      logical                       :: log_output  = .false. !! Logs the output to file instead of displaying it on the terminal
+      character(NAMELEN)        :: display_style         !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
+      integer(I4B)             :: display_unit          !! File unit number for display (either to stdout or to a log file)
+      logical                  :: log_output  = .false. !! Logs the output to file instead of displaying it on the terminal
 
       ! Future features not implemented or in development
       logical :: lgr        = .false. !! Turn on GR
@@ -111,6 +113,9 @@ module base
       procedure(abstract_io_param_reader),    deferred :: reader
       procedure(abstract_io_param_writer),    deferred :: writer    
       procedure(abstract_io_read_in_param),   deferred :: read_in 
+#ifdef COARRAY
+      procedure :: cobroadcast => base_cobroadcast_param
+#endif
    end type base_parameters
 
    abstract interface
@@ -240,9 +245,6 @@ module base
          ! Arguments
          class(base_parameters),intent(inout)  :: self  !! Collection of parameters
 
-         if (allocated(self%integrator)) deallocate(self%integrator)
-         if (allocated(self%param_file_name)) deallocate(self%param_file_name)
-         if (allocated(self%display_style)) deallocate(self%display_style)
          if (allocated(self%seed)) deallocate(self%seed)
 
          return
@@ -429,6 +431,102 @@ module base
    
          return
       end subroutine base_final_storage_frame
+
+#ifdef COARRAY
+      subroutine base_cobroadcast_param(self)
+         !! author: David A. Minton
+         !!
+         !! Broadcasts the image 1 parameter to all other images in a parameter coarray
+         implicit none
+         ! Arguments
+         class(base_parameters),intent(inout),codimension[*]  :: self  !! Collection of parameters
+         ! Internals
+         integer(I4B) :: i
+
+         call cocopy(self%integrator)
+         call cocopy(self%param_file_name)
+         call cocopy(self%t0)
+         call cocopy(self%tstart)
+         call cocopy(self%tstop)
+         call cocopy(self%dt)
+         call cocopy(self%iloop)
+         call cocopy(self%nloops)
+         call cocopy(self%incbfile)
+         call cocopy(self%inplfile)
+         call cocopy(self%intpfile)
+         call cocopy(self%nc_in)
+         call cocopy(self%in_type)
+         call cocopy(self%in_form)
+         call cocopy(self%istep_out)
+         call cocopy(self%nstep_out)
+         call cocopy(self%fstep_out)
+         call cocopy(self%ltstretch)
+         call cocopy(self%outfile)
+         call cocopy(self%out_type)
+         call cocopy(self%out_form)
+         call cocopy(self%out_stat)
+         call cocopy(self%dump_cadence)
+         call cocopy(self%rmin)
+         call cocopy(self%rmax)
+         call cocopy(self%rmaxu)
+         call cocopy(self%qmin)
+         call cocopy(self%qmin_coord)
+         call cocopy(self%qmin_alo)
+         call cocopy(self%qmin_ahi)
+         call cocopy(self%MU2KG)
+         call cocopy(self%TU2S)
+         call cocopy(self%DU2M)
+         call cocopy(self%GU)
+         call cocopy(self%inv_c2)
+         call cocopy(self%GMTINY)
+         call cocopy(self%min_GMfrag)
+         call cocopy(self%nfrag_reduction)
+         call cocopy(self%lmtiny_pl)
+         call cocopy(self%collision_model)
+         call cocopy(self%encounter_save)
+         call cocopy(self%lenc_save_trajectory)
+         call cocopy(self%lenc_save_closest   )
+         call cocopy(self%interaction_loops   )
+         call cocopy(self%encounter_check_plpl)
+         call cocopy(self%encounter_check_pltp)
+         call cocopy(self%lflatten_interactions)
+         call cocopy(self%lencounter_sas_plpl)
+         call cocopy(self%lencounter_sas_pltp      )
+         call cocopy(self%lrhill_present)
+         call cocopy(self%lextra_force  )
+         call cocopy(self%lbig_discard  )
+         call cocopy(self%lclose        )
+         call cocopy(self%lenergy       )
+         call cocopy(self%loblatecb     )
+         call cocopy(self%lrotation     )
+         call cocopy(self%ltides        )
+         call cocopy(self%E_orbit_orig )
+         call cocopy(self%GMtot_orig  )
+         do i = 1, NDIM
+            call cocopy(self%L_total_orig(i))
+            call cocopy(self%L_orbit_orig(i))
+            call cocopy(self%L_spin_orig(i))
+            call cocopy(self%L_escape(i))
+         end do
+         call cocopy(self%GMescape    )
+         call cocopy(self%E_collisions )
+         call cocopy(self%E_untracked  )
+         call cocopy(self%lfirstenergy)
+         call cocopy(self%lfirstkick  )
+         call cocopy(self%lrestart    )
+         call cocopy(self%display_style)
+         call cocopy(self%display_unit )
+         call cocopy(self%log_output )
+         call cocopy(self%lgr       )
+         call cocopy(self%lyarkovsky)
+         call cocopy(self%lyorp     )
+         call cocopy(self%seed)
+
+         return
+      end subroutine base_cobroadcast_param 
+
+#endif
+    
 
 
 end module base

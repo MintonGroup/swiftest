@@ -20,7 +20,7 @@ program swiftest_driver
    implicit none
 
 #ifdef COARRAY
-   class(swiftest_nbody_system), allocatable :: nbody_system[:]      !! Polymorphic object containing the nbody system to be integrated
+   class(swiftest_nbody_system), allocatable :: nbody_system[:]   !! Polymorphic object containing the nbody system to be integrated
 #else
    class(swiftest_nbody_system), allocatable :: nbody_system      !! Polymorphic object containing the nbody system to be integrated
 #endif
@@ -77,21 +77,25 @@ program swiftest_driver
       !> Define the maximum number of threads
       nthreads = 1            ! In the *serial* case
       !$ nthreads = omp_get_max_threads() ! In the *parallel* case
-      !$ write(param%display_unit,'(a)')   ' OpenMP parameters:'
-      !$ write(param%display_unit,'(a)')   ' ------------------'
-      !$ write(param%display_unit,'(a,i3,/)') ' Number of threads = ', nthreads 
-      !$ if (param%log_output) write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
-#ifdef COARRAY 
-      ! Only execute file file I/O and reporting on image 1
+#ifdef COARRAY
       if (this_image() == 1) then
-         write(param%display_unit,'(a)')   ' Coarray parameters:'
-         write(param%display_unit,'(a)')   ' -------------------'
-         write(param%display_unit,'(a,i3)') ' Number of images = ', num_images()
+#endif 
+         !$ write(param%display_unit,'(a)')   ' OpenMP parameters:'
+         !$ write(param%display_unit,'(a)')   ' ------------------'
+         !$ write(param%display_unit,'(a,i3,/)') ' Number of threads = ', nthreads 
+         !$ if (param%log_output) write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
+#ifdef COARRAY
+         write(param%display_unit,*)   ' Coarray parameters:'
+         write(param%display_unit,*)   ' -------------------'
+         write(param%display_unit,*) ' Number of images = ', num_images()
          if (param%log_output) write(*,'(a,i3)') ' Coarray: Number of images = ',num_images()
+      end if
 #endif 
 
+#ifdef COARRAY
+      if (this_image() == 1) then
+#endif
          call nbody_system%initialize(param)
-
          ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial conditions to file.
          call nbody_system%display_run_information(param, integration_timer, phase="first")
          if (param%lenergy) then
@@ -107,8 +111,8 @@ program swiftest_driver
 
 #ifdef COARRAY
          ! Distribute test particles to the various images
-         call nbody_system%coarray_distribute()
       end if ! this_image() == 1
+      call nbody_system%coarray_distribute()
 #endif 
       do iloop = istart, nloops
          !> Step the nbody_system forward in time
@@ -132,8 +136,8 @@ program swiftest_driver
                   istep = floor(istep_out * fstep_out**nout, kind=I4B)
                end if
 #ifdef COARRAY
+               call nbody_system%coarray_collect()
                if (this_image() == 1) then
-                  call nbody_system%coarray_collect()
 #endif
                   call nbody_system%system_history%take_snapshot(param,nbody_system)
 
@@ -147,9 +151,8 @@ program swiftest_driver
                   call integration_timer%reset()
                   if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
 #ifdef COARRAY
-                  call nbody_system%coarray_distribute()
                end if 
-               sync all
+               call nbody_system%coarray_distribute()
 #endif
             end if
          end if
@@ -157,9 +160,9 @@ program swiftest_driver
       end do
       ! Dump any remaining history if it exists
 #ifdef COARRAY
+      call nbody_system%coarray_collect()
       if (this_image() == 1) then
 #endif
-         call nbody_system%coarray_collect()
          call nbody_system%dump(param)
          call nbody_system%system_history%dump(param)
          call nbody_system%display_run_information(param, integration_timer, phase="last")

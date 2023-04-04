@@ -355,60 +355,81 @@ contains
    end subroutine swiftest_util_append_tp
 
 #ifdef COARRAY
-   module subroutine swiftest_util_coarray_collect_system(self)
+   module subroutine swiftest_util_coarray_collect_system(nbody_system)
       !! author: David A. Minton
       !!
-      !! Distributes test particles from image #1 out to all images.
+      !! Collects all the test particles from other images into the image #1 test particle system
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), codimension[*], intent(inout) :: self
+      class(swiftest_nbody_system), intent(inout) :: nbody_system[*]
       ! Internals
       integer(I4B) :: i,j
       integer(I4B), dimension(num_images()) :: ntp
       class(swiftest_tp), allocatable :: tp_img
 
-      ntp(this_image()) = self%tp%nbody
-      sync all
-      if (this_image() == 1) then
-         do i = 2, num_images()
-            allocate(tp_img, source=self[i]%tp)
-            call self%tp%append(tp_img,lsource_mask=[(.true., j = 1, ntp(i))])
-            deallocate(tp_img)
-         end do
-      end if
+      ! ntp(this_image()) = nbody_system%tp%nbody
+      ! sync all
+      ! if (this_image() == 1) then
+      !    write(*,*) "Collecting test particles"
+      !    write(*,*) "Image ",1," ntp: ",ntp(1)
+      !    do i = 2, num_images()
+      !       write(*,*) "Image ",i," ntp: ",ntp(i)
+      !       allocate(tp_img, source=nbody_system[i]%tp)
+      !       call nbody_system%tp%append(tp_img,lsource_mask=[(.true., j = 1, ntp(i))])
+      !       deallocate(tp_img)
+      !    end do
+      !    write(*,*) "Total test particles: ",nbody_system%tp%nbody
+      ! end if
 
       return
    end subroutine swiftest_util_coarray_collect_system
 
 
-   module subroutine swiftest_util_coarray_distribute_system(self)
+   module subroutine swiftest_util_coarray_distribute_system(nbody_system)
       !! author: David A. Minton
       !!
       !! Distributes test particles from image #1 out to all images.
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), codimension[*], intent(inout) :: self
+      class(swiftest_nbody_system), intent(inout) :: nbody_system[*]
       ! Internals
-      integer(I4B) :: i, istart, iend, ntot, num_per_image
+      integer(I4B) :: i, istart, iend, ntot, num_per_image, ncopy
       class(swiftest_tp), allocatable :: tp_orig
       logical, dimension(:), allocatable :: lspill_list
+      integer(I4B), codimension[*],save :: ntp
+      class(swiftest_nbody_system), allocatable :: tmp_system
+      class(swiftest_tp), allocatable :: tp
 
-      sync all
-      ntot = self[1]%tp%nbody 
-      if (ntot == 0) return
-      allocate(lspill_list(ntot))
-      allocate(tp_orig, source=self[1]%tp)
-      if (allocated(self%tp)) deallocate(self%tp)
-      num_per_image = ntot / num_images()
-      istart = (this_image() - 1) * num_per_image + 1
-      if (this_image() == num_images()) then
-         iend = ntot
-      else
-         iend = this_image() * num_per_image
-      end if
-      lspill_list(:) = .false.
-      lspill_list(istart:iend) = .true.
-      call tp_orig%spill(self%tp,lspill_list(:), ldestructive=.false.)
+      ! ntp = nbody_system%tp%nbody
+      ! sync all
+
+      ! ntot = ntp[1]
+      ! if (ntot == 0) return
+
+      ! allocate(tp, mold=nbody_system%tp)
+
+      ! write(*,*) "Image ",this_image(), "Distributing ",ntot
+      ! allocate(lspill_list(ntot))
+      ! num_per_image = ntot / num_images()
+      ! istart = (this_image() - 1) * num_per_image + 1
+      ! if (this_image() == num_images()) then
+      !    iend = ntot
+      ! else
+      !    iend = this_image() * num_per_image
+      ! end if
+
+      ! if (this_image() == 1) then
+      !    lspill_list(:) = .true.
+      !    lspill_list(istart:iend) = .false.
+      !    call nbody_system%tp%spill(tp,lspill_list(:), ldestructive=.true.)
+      ! else
+      !    lspill_list(:) = .false.
+      !    lspill_list(istart:iend) = .true.
+      !    tp%nbody = ntot
+      !    call nbody_system%tp%spill(tp,lspill_list(:), ldestructive=.true.)
+      ! end if
+
+      ! write(*,*) "Image ",this_image(), "ntp: ",nbody_system%tp%nbody
 
       return
    end subroutine swiftest_util_coarray_distribute_system
@@ -2895,6 +2916,7 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody_system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
 
+      ! Internals
       if (allocated(self%system_history)) then
          call self%system_history%dealloc()
          deallocate(self%system_history)
@@ -2904,6 +2926,7 @@ contains
       allocate(swiftest_netcdf_parameters :: self%system_history%nc)
 
       associate(nbody_system => self, cb => self%cb, pl => self%pl, tp => self%tp, nc => self%system_history%nc)
+         call nbody_system%read_in(param)
          call nbody_system%read_in(param)
          call nbody_system%validate_ids(param)
          call nbody_system%set_msys()
