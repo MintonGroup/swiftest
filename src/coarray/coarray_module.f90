@@ -16,7 +16,7 @@ module coarray
     implicit none
     public
 
-    interface cocopy
+    interface coclone
         module procedure coarray_component_copy_char
         module procedure coarray_component_copy_DP
         module procedure coarray_component_copy_DP_arr1D
