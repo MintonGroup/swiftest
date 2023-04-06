@@ -2320,7 +2320,7 @@ contains
       end associate
 #ifdef COARRAY
    end if ! this_image() == 1
-      call coparam%cobroadcast()
+      call coparam%coclone()
       select type(self)
       type is (swiftest_parameters)
          self = coparam

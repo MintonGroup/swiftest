@@ -43,6 +43,9 @@ module swiftest
    use io_progress_bar
    use netcdf_io
    use solver
+#ifdef COARRAY
+   use coarray
+#endif
    !use advisor_annotate
    !$ use omp_lib
    implicit none
@@ -155,6 +158,9 @@ module swiftest
       procedure :: rearrange       => swiftest_util_sort_rearrange_body     !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill           => swiftest_util_spill_body              !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       generic   :: read_frame      => read_frame_bin                        !! Add the generic read frame for Fortran binary files
+#ifdef COARRAY
+      procedure :: coclone         => swiftest_coarray_coclone_body                 !! Clones the image 1 body object to all other images in the coarray structure.
+#endif
    end type swiftest_body
 
 
@@ -393,8 +399,8 @@ module swiftest
       procedure :: write_frame_system      => swiftest_io_write_frame_system                       !! Write a frame of input data from file
       procedure :: obl_pot                 => swiftest_obl_pot_system                              !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
 #ifdef COARRAY
-      procedure :: coarray_collect         => swiftest_util_coarray_collect_system                 !! Collects all the test particles from other images into the image #1 test particle system
-      procedure :: coarray_distribute      => swiftest_util_coarray_distribute_system           !! Distributes test particles from image #1 out to all images.
+      procedure :: coarray_collect         => swiftest_coarray_collect_system                 !! Collects all the test particles from other images into the image #1 test particle system
+      procedure :: coarray_distribute      => swiftest_coarray_distribute_system           !! Distributes test particles from image #1 out to all images.
 #endif
       procedure :: dealloc                 => swiftest_util_dealloc_system                         !! Deallocates all allocatables and resets all values to defaults. Acts as a base for a finalizer
       procedure :: get_energy_and_momentum => swiftest_util_get_energy_and_momentum_system         !! Calculates the total nbody_system energy and momentum
@@ -447,11 +453,11 @@ module swiftest
       subroutine abstract_step_body(self, nbody_system, param, t, dt)
          import DP, swiftest_body, swiftest_nbody_system, swiftest_parameters
          implicit none
-         class(swiftest_body),              intent(inout) :: self   !! Swiftest body object
+         class(swiftest_body),         intent(inout) :: self         !! Swiftest body object
          class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody_system object
-         class(swiftest_parameters),        intent(inout) :: param  !! Current run configuration parameters 
-         real(DP),                          intent(in)    :: t      !! Simulation time
-         real(DP),                          intent(in)    :: dt     !! Current stepsize
+         class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t            !! Simulation time
+         real(DP),                     intent(in)    :: dt           !! Current stepsize
       end subroutine abstract_step_body
 
       subroutine abstract_step_system(self, param, t, dt)
@@ -463,7 +469,6 @@ module swiftest
          real(DP),                          intent(in)    :: dt    !! Current stepsize
       end subroutine abstract_step_system
    end interface
-
 
    interface
       module subroutine swiftest_discard_pl(self, nbody_system, param)
@@ -1186,18 +1191,6 @@ module swiftest
          class(swiftest_body),  intent(in)    :: source       !! Source object to append
          logical, dimension(:), intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine swiftest_util_append_tp
-
-#ifdef COARRAY
-      module subroutine swiftest_util_coarray_collect_system(nbody_system)
-         implicit none
-         class(swiftest_nbody_system), intent(inout) :: nbody_system[*]
-      end subroutine swiftest_util_coarray_collect_system
-
-      module subroutine swiftest_util_coarray_distribute_system(nbody_system)
-         implicit none
-         class(swiftest_nbody_system), intent(inout) :: nbody_system[*]
-      end subroutine swiftest_util_coarray_distribute_system
-#endif
 
       module subroutine swiftest_util_coord_b2h_pl(self, cb)
          implicit none
@@ -1956,6 +1949,41 @@ module swiftest
          implicit none
       end subroutine swiftest_util_version
    end interface
+
+#ifdef COARRAY
+   interface
+      module subroutine swiftest_coarray_collect_system(nbody_system)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: nbody_system[*]
+      end subroutine swiftest_coarray_collect_system
+
+      module subroutine swiftest_coarray_distribute_system(nbody_system)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: nbody_system[*]
+      end subroutine swiftest_coarray_distribute_system
+   end interface
+
+   interface coclone
+      module subroutine swiftest_coarray_component_copy_info(var,src_img)
+         implicit none
+         type(swiftest_particle_info), intent(inout) :: var
+         integer(I4B), intent(in),optional :: src_img
+      end subroutine swiftest_coarray_component_copy_info
+
+      module subroutine swiftest_coarray_component_copy_info_arr1D(var,src_img)
+         implicit none
+         type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: var
+         integer(I4B), intent(in),optional :: src_img
+      end subroutine swiftest_coarray_component_copy_info_arr1D
+   end interface
+
+   interface 
+      module subroutine swiftest_coarray_coclone_body(self)
+         implicit none
+         class(swiftest_body),intent(inout),codimension[*]  :: self  !! Swiftest body object
+      end subroutine swiftest_coarray_coclone_body
+   end interface
+#endif
 
    contains
       subroutine swiftest_final_kin(self)

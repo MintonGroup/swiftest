@@ -20,10 +20,12 @@ module coarray
         module procedure coarray_component_copy_char
         module procedure coarray_component_copy_DP
         module procedure coarray_component_copy_DP_arr1D
+        module procedure coarray_component_copy_DP_arr2D
         module procedure coarray_component_copy_I4B
         module procedure coarray_component_copy_I4B_arr1D
         module procedure coarray_component_copy_I8B
         module procedure coarray_component_copy_lgt
+        module procedure coarray_component_copy_lgt_arr1D
         module procedure coarray_component_copy_QP
     end interface
 
@@ -97,7 +99,7 @@ module coarray
         !! author: David A. Minton
         !!
         !! Copies a component of a coarray derived type from the specified source image to the current local one. The default source image is 1
-        !! real(DP) allocatable array version
+        !! real(DP) 1D allocatable array version
         implicit none
         ! Arguments
         real(DP), dimension(:), allocatable, intent(inout) :: var
@@ -206,7 +208,7 @@ module coarray
         !! author: David A. Minton
         !!
         !! Copies a component of a coarray derived type from the specified source image to the current local one. The default source image is 1
-        !! integer(I4B) allocatable array version
+        !! integer(I4B) 1D allocatable array version
         implicit none
         ! Arguments
         integer(I4B), dimension(:), allocatable, intent(inout) :: var
@@ -300,6 +302,43 @@ module coarray
   
         return
      end subroutine coarray_component_copy_lgt
+
+
+     subroutine coarray_component_copy_lgt_arr1D(var,src_img)
+        !! author: David A. Minton
+        !!
+        !! Copies a component of a coarray derived type from the specified source image to the current local one. The default source image is 1
+        !! logical 1D allocatable array version
+        implicit none
+        ! Arguments
+        logical, dimension(:), allocatable, intent(inout) :: var
+        integer(I4B), intent(in),optional :: src_img
+        ! Internals
+        logical, dimension(:), codimension[:], allocatable :: tmp
+        integer(I4B) :: img, si
+        integer(I4B), save :: n[*]
+ 
+        if (present(src_img)) then
+            si = src_img
+        else
+            si = 1
+        end if
+
+        n = size(var)
+        sync all
+        allocate(tmp(n[si])[*])
+        if (this_image() == si) then
+            do img = 1, num_images()
+                tmp(:)[img] = var 
+            end do
+        end if
+        sync all
+        if (allocated(var)) deallocate(var)
+        allocate(var, source=tmp)
+  
+        return
+     end subroutine coarray_component_copy_lgt_arr1D
+
 
 
      subroutine coarray_component_copy_QP(var,src_img)

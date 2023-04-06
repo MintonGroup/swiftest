@@ -114,7 +114,7 @@ module base
       procedure(abstract_io_param_writer),    deferred :: writer    
       procedure(abstract_io_read_in_param),   deferred :: read_in 
 #ifdef COARRAY
-      procedure :: cobroadcast => base_cobroadcast_param
+      procedure :: coclone => base_coclone_param
 #endif
    end type base_parameters
 
@@ -433,7 +433,7 @@ module base
       end subroutine base_final_storage_frame
 
 #ifdef COARRAY
-      subroutine base_cobroadcast_param(self)
+      subroutine base_coclone_param(self)
          !! author: David A. Minton
          !!
          !! Broadcasts the image 1 parameter to all other images in a parameter coarray
@@ -523,7 +523,7 @@ module base
          call coclone(self%seed)
 
          return
-      end subroutine base_cobroadcast_param 
+      end subroutine base_coclone_param 
 
 #endif
     
