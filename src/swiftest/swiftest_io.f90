@@ -1882,9 +1882,9 @@ contains
       logical                        :: seed_set = .false.      !! Is the random seed set in the input file?
       character(len=:), allocatable  :: integrator
       real(DP)                       :: tratio, y
+#ifdef COARRAY
       type(swiftest_parameters), codimension[*], save :: coparam
      
-#ifdef COARRAY
    if (this_image() == 1) then
       coparam = self
       associate(param => coparam) 
