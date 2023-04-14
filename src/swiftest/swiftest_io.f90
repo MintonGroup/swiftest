@@ -127,7 +127,7 @@ contains
       integer(I4B), parameter         :: EGYIU = 72
       character(len=*), parameter     :: EGYTERMFMT = '(" DL/L0 = ", ES12.5, "; DE_orbit/|E0| = ", ES12.5, "; DE_total/|E0| = ", ES12.5, "; DM/M0 = ", ES12.5)'
 
-      associate(nbody_system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, display_unit => param%display_unit, nc => self%system_history%nc)
+      associate(nbody_system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, display_unit => param%display_unit)
 
          select type(self)
          class is (helio_nbody_system) ! Don't convert vh to vb for Helio-based integrators, because they are already have that calculated
@@ -189,8 +189,6 @@ contains
             if (abs(nbody_system%Mtot_error) > 100 * epsilon(nbody_system%Mtot_error)) then
                write(*,*) "Severe error! Mass not conserved! Halting!"
                ! Save the frame of data to the bin file in the slot just after the present one for diagnostics
-               call self%write_frame(nc, param)
-               call nc%close()
                call base_util_exit(FAILURE)
             end if
          end if
@@ -239,14 +237,14 @@ contains
 
       if (phase_val == 0) then
          if (param%lrestart) then
-            write(param%display_unit, *) " *************** Swiftest restart " // param%integrator // " *************** "
+            write(param%display_unit, *) " *************** Swiftest restart " // trim(adjustl(param%integrator)) // " *************** "
          else
-            write(param%display_unit, *) " *************** Swiftest start " // param%integrator // " *************** "
+            write(param%display_unit, *) " *************** Swiftest start " // trim(adjustl(param%integrator)) // " *************** "
          end if
          if (param%display_style == "PROGRESS") then
             call pbar%reset(param%nloops)
          else if (param%display_style == "COMPACT") then
-            write(*,*) "SWIFTEST START " // param%integrator
+            write(*,*) "SWIFTEST START " // trim(adjustl(param%integrator))
          end if
       end if
 
@@ -264,8 +262,8 @@ contains
       end if
 
       if (phase_val == -1) then
-         write(param%display_unit, *)" *************** Swiftest stop " // param%integrator // " *************** "
-         if (param%display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // param%integrator
+         write(param%display_unit, *)" *************** Swiftest stop " // trim(adjustl(param%integrator)) // " *************** "
+         if (param%display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // trim(adjustl(param%integrator))
       end if
 
       return
@@ -303,7 +301,7 @@ contains
    end subroutine swiftest_io_dump_param
 
 
-   module subroutine swiftest_io_dump_system(self, param)
+   module subroutine swiftest_io_dump_system(self, param, system_history)
       !! author: David A. Minton
       !!
       !! Dumps the state of the nbody_system to files in case the simulation is interrupted.
@@ -313,6 +311,7 @@ contains
       ! Arguments
       class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody_system object
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
+      class(swiftest_storage),      intent(inout) :: system_history    !! Stores the system history between output dumps
       ! Internals
       class(swiftest_parameters), allocatable :: param_restart !! Local parameters variable used to parameters change input file names 
                                                             !! to dump file-specific values without changing the user-defined values
@@ -324,7 +323,7 @@ contains
       if (allocated(self%collision_history)) call self%collision_history%dump(param)
 
       ! Dump the nbody_system history to file
-      call self%system_history%dump(param)
+      call system_history%dump(param)
 
       allocate(param_restart, source=param)
       param_restart%in_form  = "XV"
@@ -353,7 +352,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_storage),   intent(inout)        :: self   !! Swiftest simulation history storage object
-      class(swiftest_parameters),   intent(inout)        :: param  !! Current run configuration parameters 
+      class(swiftest_parameters),   intent(inout)     :: param  !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: i
 
@@ -366,7 +365,7 @@ contains
             if (allocated(self%frame(i)%item)) then
                select type(nbody_system => self%frame(i)%item)
                class is (swiftest_nbody_system)
-                  call nbody_system%write_frame(param)
+                  call nbody_system%write_frame(nc, param)
                end select
                deallocate(self%frame(i)%item)
             end if
@@ -566,15 +565,16 @@ contains
    end subroutine swiftest_io_netcdf_flush
 
 
-   module subroutine swiftest_io_netcdf_get_t0_values_system(self, param) 
+   module subroutine swiftest_io_netcdf_get_t0_values_system(self, nc, param) 
       !! author: David A. Minton
       !!
       !! Gets the t0 values of various parameters such as energy and momentum
       !!
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: self
-      class(swiftest_parameters),   intent(inout) :: param
+      class(swiftest_nbody_system),      intent(inout) :: self
+      class(swiftest_netcdf_parameters), intent(inout) :: nc     !! Parameters used to identify a particular NetCDF dataset
+      class(swiftest_parameters),        intent(inout) :: param
       ! Internals
       integer(I4B)                              :: itmax, idmax, tslot
       real(DP), dimension(:), allocatable       :: vals
@@ -582,7 +582,7 @@ contains
       real(DP), dimension(NDIM)                 :: rot0, Ip0, L
       real(DP) :: mass0
 
-      associate (nc => self%system_history%nc, cb => self%cb)
+      associate (cb => self%cb)
          call nc%open(param, readonly=.true.)
          call nc%find_tslot(param%t0, tslot)
          call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%time_dimid, len=itmax), "netcdf_io_get_t0_values_system time_dimid" )
@@ -2318,6 +2318,7 @@ contains
          ! Print the contents of the parameter file to standard output
          if (.not.param%lrestart) call param%writer(unit = param%display_unit, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg) 
       end associate
+
 #ifdef COARRAY
    end if ! this_image() == 1
       call coparam%coclone()
@@ -2325,11 +2326,6 @@ contains
       type is (swiftest_parameters)
          self = coparam
       end select
-
-      write(*,*) "Image: ", this_image(),"tstop: ",self%tstop
-      write(*,*) "Image: ", this_image(),"seed: ",self%seed
-      sync all
-      stop
 #endif
 
       return 
@@ -2751,14 +2747,15 @@ contains
    end subroutine swiftest_io_read_in_cb
 
 
-   module subroutine swiftest_io_read_in_system(self, param)
+   module subroutine swiftest_io_read_in_system(self, nc, param)
       !! author: David A. Minton and Carlisle A. Wishard
       !!
       !! Reads in the nbody_system from input files
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: self
-      class(swiftest_parameters),   intent(inout) :: param
+      class(swiftest_nbody_system),      intent(inout) :: self
+      class(swiftest_netcdf_parameters), intent(inout) :: nc     !! Parameters used to identify a particular NetCDF dataset
+      class(swiftest_parameters),        intent(inout) :: param
       ! Internals
       integer(I4B) :: ierr, i
       class(swiftest_parameters), allocatable :: tmp_param
@@ -2781,13 +2778,13 @@ contains
          self%E_untracked = param%E_untracked
       else
          allocate(tmp_param, source=param)
-         self%system_history%nc%file_name = param%nc_in
+         nc%file_name = param%nc_in
          tmp_param%out_form = param%in_form
          if (.not. param%lrestart) then
             ! Turn off energy computation so we don't have to feed it into the initial conditions
             tmp_param%lenergy = .false.
          end if
-         ierr = self%read_frame(self%system_history%nc, tmp_param)
+         ierr = self%read_frame(nc, tmp_param)
          deallocate(tmp_param)
          if (ierr /=0) call base_util_exit(FAILURE)
       end if
@@ -3003,7 +3000,7 @@ contains
    end subroutine swiftest_io_toupper
 
 
-   module subroutine swiftest_io_write_frame_system(self, param)
+   module subroutine swiftest_io_write_frame_system(self, nc, param)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Write a frame (header plus records for each massive body and active test particle) to output binary file
@@ -3013,14 +3010,15 @@ contains
       !! Adapted from Hal Levison's Swift routine io_write_frame.f
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody_system object
-      class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
+      class(swiftest_nbody_system),      intent(inout) :: self   !! Swiftest nbody_system object
+      class(swiftest_netcdf_parameters), intent(inout) :: nc     !! Parameters used to identify a particular NetCDF dataset
+      class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       ! Internals
       logical, save                    :: lfirst = .true. !! Flag to determine if this is the first call of this method
       character(len=STRMAX)            :: errmsg
       logical                          :: fileExists
 
-      associate (nc => self%system_history%nc, pl => self%pl, tp => self%tp, npl => self%pl%nbody, ntp => self%tp%nbody)
+      associate (pl => self%pl, tp => self%tp, npl => self%pl%nbody, ntp => self%tp%nbody)
          nc%file_name = param%outfile
          if (lfirst) then
             inquire(file=param%outfile, exist=fileExists)
@@ -3045,7 +3043,7 @@ contains
             lfirst = .false.
          end if
 
-         call self%write_frame(nc, param)
+         call swiftest_io_netcdf_write_frame_system(self, nc, param)
       end associate
 
       return

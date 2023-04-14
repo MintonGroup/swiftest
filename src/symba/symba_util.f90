@@ -273,7 +273,7 @@ contains
    end subroutine symba_util_set_renc
 
 
-   module subroutine symba_util_setup_initialize_system(self, param)
+   module subroutine symba_util_setup_initialize_system(self, system_history, param)
       !! author: David A. Minton
       !!
       !! Initialize an SyMBA nbody system from files and sets up the planetocentric structures.
@@ -281,8 +281,9 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(symba_nbody_system),  intent(inout) :: self    !! SyMBA nbody_system object
-      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+      class(symba_nbody_system),               intent(inout) :: self           !! SyMBA nbody_system object
+      class(swiftest_storage),    allocatable, intent(inout) :: system_history !! Stores the system history between output dumps
+      class(swiftest_parameters),              intent(inout) :: param          !! Current run configuration parameters 
       ! Internals
       type(encounter_storage)  :: encounter_history
       type(collision_storage)  :: collision_history
@@ -291,7 +292,7 @@ contains
       call collision_history%setup(4096)
       ! Call parent method
       associate(nbody_system => self)
-         call helio_util_setup_initialize_system(nbody_system, param)
+         call helio_util_setup_initialize_system(nbody_system, system_history, param)
          call nbody_system%pltp_encounter%setup(0_I8B)
          call nbody_system%plpl_encounter%setup(0_I8B)
          call nbody_system%plpl_collision%setup(0_I8B)

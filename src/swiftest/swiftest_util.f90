@@ -896,7 +896,6 @@ contains
       if (allocated(self%collider)) deallocate(self%collider)
       if (allocated(self%encounter_history)) deallocate(self%encounter_history)
       if (allocated(self%collision_history)) deallocate(self%collision_history)
-      if (allocated(self%system_history)) deallocate(self%system_history)
 
       self%t = -1.0_DP            
       self%GMtot = 0.0_DP         
@@ -2695,28 +2694,19 @@ contains
    end subroutine swiftest_util_set_rhill_approximate
 
    module subroutine swiftest_util_setup_construct_system(nbody_system, param)
+
       !! author: David A. Minton
       !!
       !! Constructor for a Swiftest nbody system. Creates the nbody system object based on the user-input integrator
       !! 
       implicit none
       ! Arguments
-#ifdef COARRAY
-      class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system[:] !! Swiftest nbody_system object
-#else
-      class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system    !! Swiftest nbody_system object
-#endif
-      class(swiftest_parameters),                intent(inout) :: param           !! Current run configuration parameters
-
+      class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system !! Swiftest nbody_system object
+      class(swiftest_parameters),                intent(inout) :: param        !! Current run configuration parameters
       select case(param%integrator)
       case (INT_BS)
          write(*,*) 'Bulirsch-Stoer integrator not yet enabled'
        case (INT_HELIO)
-#ifdef COARRAY
-         allocate(helio_nbody_system :: nbody_system[*])
-#else
-         allocate(helio_nbody_system :: nbody_system)
-#endif
          select type(nbody_system)
          class is (helio_nbody_system)
             allocate(helio_cb :: nbody_system%cb)
@@ -2730,11 +2720,7 @@ contains
       case (INT_TU4)
          write(*,*) 'INT_TU4 integrator not yet enabled'
       case (INT_WHM)
-#ifdef COARRAY
-         allocate(whm_nbody_system :: nbody_system[*])
-#else
          allocate(whm_nbody_system :: nbody_system)
-#endif
          select type(nbody_system)
          class is (whm_nbody_system)
             allocate(whm_cb :: nbody_system%cb)
@@ -2744,11 +2730,7 @@ contains
          end select
          param%collision_model = "MERGE"
       case (INT_RMVS)
-#ifdef COARRAY
-         allocate(rmvs_nbody_system :: nbody_system[*])
-#else
          allocate(rmvs_nbody_system :: nbody_system)
-#endif
          select type(nbody_system)
          class is (rmvs_nbody_system)
             allocate(rmvs_cb :: nbody_system%cb)
@@ -2758,11 +2740,7 @@ contains
          end select
          param%collision_model = "MERGE"
       case (INT_SYMBA)
-#ifdef COARRAY
-         allocate(symba_nbody_system :: nbody_system[*])
-#else
          allocate(symba_nbody_system :: nbody_system)
-#endif
          select type(nbody_system)
          class is (symba_nbody_system)
             allocate(symba_cb :: nbody_system%cb)
@@ -2826,28 +2804,28 @@ contains
    end subroutine swiftest_util_setup_initialize_particle_info_system
 
 
-   module subroutine swiftest_util_setup_initialize_system(self, param)
+   module subroutine swiftest_util_setup_initialize_system(self, system_history, param)
       !! author: David A. Minton
       !!
       !! Wrapper method to initialize a basic Swiftest nbody system from files
       !!
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody_system object
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
+      class(swiftest_nbody_system),              intent(inout) :: self           !! Swiftest nbody_system object
+      class(swiftest_storage),      allocatable, intent(inout) :: system_history !! Stores the system history between output dumps
+      class(swiftest_parameters),                intent(inout) :: param          !! Current run configuration parameters
 
       ! Internals
-      if (allocated(self%system_history)) then
-         call self%system_history%dealloc()
-         deallocate(self%system_history)
+      if (allocated(system_history)) then
+         call system_history%dealloc()
+         deallocate(system_history)
       end if
-      allocate(swiftest_storage :: self%system_history)
-      call self%system_history%setup(param%dump_cadence)
-      allocate(swiftest_netcdf_parameters :: self%system_history%nc)
+      allocate(swiftest_storage :: system_history)
+      call system_history%setup(param%dump_cadence)
+      allocate(swiftest_netcdf_parameters :: system_history%nc)
 
-      associate(nbody_system => self, cb => self%cb, pl => self%pl, tp => self%tp, nc => self%system_history%nc)
-         call nbody_system%read_in(param)
-         call nbody_system%read_in(param)
+      associate(nbody_system => self, cb => self%cb, pl => self%pl, tp => self%tp, nc => system_history%nc)
+         call nbody_system%read_in(nc, param)
          call nbody_system%validate_ids(param)
          call nbody_system%set_msys()
          call pl%set_mu(cb) 
@@ -2867,7 +2845,7 @@ contains
 
          ! Write initial conditions to file
          nc%file_name = param%outfile
-         call nbody_system%write_frame(param) 
+         call nbody_system%write_frame(nc, param) 
          call nc%close()
       end associate
 
@@ -3069,11 +3047,7 @@ contains
       ! Arguments
       class(swiftest_storage),      intent(inout)        :: self            !! Swiftest storage object
       class(swiftest_parameters),   intent(inout)        :: param           !! Current run configuration parameters
-#ifdef COARRAY
-      class(swiftest_nbody_system), intent(inout)        :: nbody_system[*] !! Swiftest nbody system object to store
-#else
       class(swiftest_nbody_system), intent(inout)        :: nbody_system    !! Swiftest nbody system object to store
-#endif
       real(DP),                     intent(in), optional :: t               !! Time of snapshot if different from nbody_system time
       character(*),                 intent(in), optional :: arg             !! Optional argument (needed for extended storage type used in collision snapshots)
       ! Internals
@@ -3102,9 +3076,6 @@ contains
       allocate(snapshot%cb, source=nbody_system%cb )
       allocate(snapshot%pl, source=nbody_system%pl )
       allocate(snapshot%tp, source=nbody_system%tp )
-      allocate(snapshot%system_history)
-      allocate(snapshot%system_history%nc, source=nbody_system%system_history%nc)
-      snapshot%system_history%nc%lfile_is_open = .true.
 
       snapshot%t                 = nbody_system%t
       snapshot%GMtot             = nbody_system%GMtot

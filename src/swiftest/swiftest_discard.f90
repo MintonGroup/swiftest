@@ -25,7 +25,7 @@ contains
       lpl_check = allocated(self%pl_discards)
       ltp_check = allocated(self%tp_discards)
 
-      associate(nbody_system => self, tp => self%tp, pl => self%pl, tp_discards => self%tp_discards, pl_discards => self%pl_discards, nc => self%system_history%nc)
+      associate(nbody_system => self, tp => self%tp, pl => self%pl, tp_discards => self%tp_discards, pl_discards => self%pl_discards)
          lpl_discards = .false.
          ltp_discards = .false.
          if (lpl_check .and. pl%nbody > 0) then

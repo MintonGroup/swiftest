@@ -243,10 +243,12 @@ module symba
          class(symba_nbody_system), intent(inout) :: self
       end subroutine symba_util_dealloc_system
 
-      module subroutine symba_util_setup_initialize_system(self, param)
+
+      module subroutine symba_util_setup_initialize_system(self, system_history, param)
          implicit none
-         class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody_system object
-         class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+         class(symba_nbody_system),               intent(inout) :: self           !! SyMBA nbody_system object
+         class(swiftest_storage),    allocatable, intent(inout) :: system_history !! Stores the system history between output dumps
+         class(swiftest_parameters),              intent(inout) :: param          !! Current run configuration parameters 
       end subroutine symba_util_setup_initialize_system
 
       module subroutine symba_util_setup_pl(self, n, param)

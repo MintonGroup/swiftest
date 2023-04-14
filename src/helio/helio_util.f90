@@ -11,17 +11,18 @@ submodule(helio) s_helio_util
    use swiftest
 contains
 
-   module subroutine helio_util_setup_initialize_system(self, param)
+      module subroutine helio_util_setup_initialize_system(self, system_history, param)
       !! author: David A. Minton
       !!
       !! Initialize a Helio nbody system from files, converting all heliocentric quantities to barycentric.
       !!
       implicit none
       ! Arguments
-      class(helio_nbody_system),  intent(inout) :: self   !! Helio nbody system object
-      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+      class(helio_nbody_system),               intent(inout) :: self   !! Helio nbody system object
+      class(swiftest_storage),    allocatable, intent(inout) :: system_history !! Stores the system history between output dumps
+      class(swiftest_parameters),              intent(inout) :: param          !! Current run configuration parameters 
 
-      call swiftest_util_setup_initialize_system(self, param)
+      call swiftest_util_setup_initialize_system(self, system_history, param)
       call self%pl%sort("mass", ascending=.false.)
       call self%pl%vh2vb(self%cb)
       call self%tp%h2b(self%cb)

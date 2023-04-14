@@ -159,7 +159,8 @@ module swiftest
       procedure :: spill           => swiftest_util_spill_body              !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       generic   :: read_frame      => read_frame_bin                        !! Add the generic read frame for Fortran binary files
 #ifdef COARRAY
-      procedure :: coclone         => swiftest_coarray_coclone_body                 !! Clones the image 1 body object to all other images in the coarray structure.
+      procedure :: coclone         => swiftest_coarray_coclone_body         !! Clones the image 1 body object to all other images in the coarray structure.
+      procedure :: cocollect       => swiftest_coarray_cocollect_body       !! Collects all body object array components from all images and combines them into the image 1 body object
 #endif
    end type swiftest_body
 
@@ -218,6 +219,10 @@ module swiftest
       procedure :: read_in      => swiftest_io_read_in_cb            !! Read in central body initial conditions from an ASCII file
       procedure :: write_frame  => swiftest_io_netcdf_write_frame_cb !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
       procedure :: write_info   => swiftest_io_netcdf_write_info_cb  !! Dump contents of particle information metadata to file
+
+#ifdef COARRAY
+      procedure :: coclone      => swiftest_coarray_coclone_cb       !! Clones the image 1 body object to all other images in the coarray structure.
+#endif
    end type swiftest_cb
 
 
@@ -277,6 +282,9 @@ module swiftest
       procedure :: rearrange      => swiftest_util_sort_rearrange_pl !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill          => swiftest_util_spill_pl          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       generic   :: set_renc       => set_renc_I4B, set_renc_DP 
+#ifdef COARRAY
+      procedure :: coclone      => swiftest_coarray_coclone_pl       !! Clones the image 1 body object to all other images in the coarray structure.
+#endif
    end type swiftest_pl
 
 
@@ -307,6 +315,10 @@ module swiftest
       procedure :: sort      => swiftest_util_sort_tp           !! Sorts body arrays by a sortable component
       procedure :: rearrange => swiftest_util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill     => swiftest_util_spill_tp          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+#ifdef COARRAY
+      procedure :: coclone      => swiftest_coarray_coclone_tp    !! Clones the image 1 object to all other images in the coarray structure.
+      procedure :: cocollect    => swiftest_coarray_cocollect_tp  !! Collects all object array components from all images and combines them into the image 1 object
+#endif
    end type swiftest_tp
 
 
@@ -330,7 +342,6 @@ module swiftest
       class(collision_basic),     allocatable :: collider          !! Collision system object
       class(encounter_storage),   allocatable :: encounter_history !! Stores encounter history for later retrieval and saving to file
       class(collision_storage),   allocatable :: collision_history !! Stores encounter history for later retrieval and saving to file
-      class(swiftest_storage),    allocatable :: system_history    !! Stores the system history between output dumps
 
       integer(I4B)                    :: maxid = -1             !! The current maximum particle id number 
       real(DP)                        :: t = -1.0_DP            !! Integration current time
@@ -391,17 +402,12 @@ module swiftest
       procedure :: dump                    => swiftest_io_dump_system                              !! Dump the state of the nbody_system to a file
       procedure :: get_t0_values           => swiftest_io_netcdf_get_t0_values_system              !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the netcdf output.
       procedure :: read_frame              => swiftest_io_netcdf_read_frame_system                 !! Read in a frame of input data from file
-      procedure :: write_frame_netcdf      => swiftest_io_netcdf_write_frame_system                !! Write a frame of input data from file
       procedure :: read_hdr                => swiftest_io_netcdf_read_hdr_system                   !! Read a header for an output frame in NetCDF format
       procedure :: write_hdr               => swiftest_io_netcdf_write_hdr_system                  !! Write a header for an output frame in NetCDF format
       procedure :: read_particle_info      => swiftest_io_netcdf_read_particle_info_system         !! Read in particle metadata from file
       procedure :: read_in                 => swiftest_io_read_in_system                           !! Reads the initial conditions for an nbody system
-      procedure :: write_frame_system      => swiftest_io_write_frame_system                       !! Write a frame of input data from file
+      procedure :: write_frame             => swiftest_io_write_frame_system                       !! Write a frame of input data from file
       procedure :: obl_pot                 => swiftest_obl_pot_system                              !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
-#ifdef COARRAY
-      procedure :: coarray_collect         => swiftest_coarray_collect_system                 !! Collects all the test particles from other images into the image #1 test particle system
-      procedure :: coarray_distribute      => swiftest_coarray_distribute_system           !! Distributes test particles from image #1 out to all images.
-#endif
       procedure :: dealloc                 => swiftest_util_dealloc_system                         !! Deallocates all allocatables and resets all values to defaults. Acts as a base for a finalizer
       procedure :: get_energy_and_momentum => swiftest_util_get_energy_and_momentum_system         !! Calculates the total nbody_system energy and momentum
       procedure :: get_idvals              => swiftest_util_get_idvalues_system                    !! Returns an array of all id values in use in the nbody_system
@@ -411,7 +417,11 @@ module swiftest
     ! procedure :: step_spin               => tides_step_spin_system                               !! Steps the spins of the massive & central bodies due to tides.
       procedure :: set_msys                => swiftest_util_set_msys                               !! Sets the value of msys from the masses of nbody_system bodies.
       procedure :: validate_ids            => swiftest_util_valid_id_system                        !! Validate the numerical ids passed to the nbody_system and save the maximum value
-      generic   :: write_frame             => write_frame_system, write_frame_netcdf               !! Generic method call for reading a frame of output data
+#ifdef COARRAY
+      procedure :: coclone                 => swiftest_coarray_coclone_system                      !! Clones the image 1 body object to all other images in the coarray structure.
+      procedure :: coarray_collect         => swiftest_coarray_collect_system                      !! Collects all the test particles from other images into the image #1 test particle system
+      procedure :: coarray_distribute      => swiftest_coarray_distribute_system                   !! Distributes test particles from image #1 out to all images.
+#endif
    end type swiftest_nbody_system
 
 
@@ -602,10 +612,11 @@ module swiftest
          character(len=*),          intent(in)    :: param_file_name !! Parameter input file name (i.e. param.in)
       end subroutine swiftest_io_dump_param
 
-      module subroutine swiftest_io_dump_system(self, param)
+      module subroutine swiftest_io_dump_system(self, param, system_history)
          implicit none
-         class(swiftest_nbody_system),  intent(inout) :: self   !! Swiftest nbody_system object
-         class(swiftest_parameters),         intent(inout) :: param  !! Current run configuration parameters 
+         class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody_system object
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
+         class(swiftest_storage),      intent(inout) :: system_history    !! Stores the system history between output dumps
       end subroutine swiftest_io_dump_system
 
       module subroutine swiftest_io_dump_storage(self, param)
@@ -649,10 +660,11 @@ module swiftest
          class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       end subroutine swiftest_io_netcdf_flush
 
-      module subroutine swiftest_io_netcdf_get_t0_values_system(self, param) 
+      module subroutine swiftest_io_netcdf_get_t0_values_system(self, nc, param) 
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
+         class(swiftest_nbody_system),      intent(inout) :: self  !! Swiftest nbody system object
+         class(swiftest_netcdf_parameters), intent(inout) :: nc     !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       end subroutine swiftest_io_netcdf_get_t0_values_system
 
       module subroutine swiftest_io_netcdf_get_valid_masks(self, plmask, tpmask)
@@ -847,9 +859,10 @@ module swiftest
          character(len=*),           intent(in)    :: param_file_name !! Parameter input file name (i.e. param.in)
       end subroutine swiftest_io_read_in_param
 
-      module subroutine swiftest_io_read_in_system(self, param)
+      module subroutine swiftest_io_read_in_system(self, nc, param)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self
+         class(swiftest_nbody_system),      intent(inout) :: self
+         class(swiftest_netcdf_parameters), intent(inout) :: nc     !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters),        intent(inout) :: param
       end subroutine swiftest_io_read_in_system
 
@@ -880,9 +893,10 @@ module swiftest
          character(*), intent(inout) :: string !! String to make upper case
       end subroutine swiftest_io_toupper
 
-      module subroutine swiftest_io_write_frame_system(self, param)
+      module subroutine swiftest_io_write_frame_system(self, nc, param)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody_system object
+         class(swiftest_nbody_system),      intent(inout) :: self   !! Swiftest nbody_system object
+         class(swiftest_netcdf_parameters), intent(inout) :: nc     !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       end subroutine swiftest_io_write_frame_system
 
@@ -1068,12 +1082,8 @@ module swiftest
 
       module subroutine swiftest_util_setup_construct_system(nbody_system, param)
          implicit none
-#ifdef COARRAY
-         class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system[:] !! Swiftest nbody_system object
-#else
-         class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system    !! Swiftest nbody_system object
-#endif
-         class(swiftest_parameters),                intent(inout) :: param           !! Current run configuration parameters
+         class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system !! Swiftest nbody_system object
+         class(swiftest_parameters),                intent(inout) :: param        !! Current run configuration parameters
       end subroutine swiftest_util_setup_construct_system
 
       module subroutine swiftest_util_setup_initialize_particle_info_system(self, param)
@@ -1082,10 +1092,11 @@ module swiftest
          class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       end subroutine swiftest_util_setup_initialize_particle_info_system
 
-      module subroutine swiftest_util_setup_initialize_system(self, param)
+      module subroutine swiftest_util_setup_initialize_system(self, system_history, param)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody_system object
-         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
+         class(swiftest_nbody_system),              intent(inout) :: self           !! Swiftest nbody_system object
+         class(swiftest_storage),      allocatable, intent(inout) :: system_history !! Stores the system history between output dumps
+         class(swiftest_parameters),                intent(inout) :: param          !! Current run configuration parameters
       end subroutine swiftest_util_setup_initialize_system
 
       module subroutine swiftest_util_setup_pl(self, n, param)
@@ -1952,29 +1963,51 @@ module swiftest
 
 #ifdef COARRAY
    interface
-      module subroutine swiftest_coarray_collect_system(nbody_system)
+      module subroutine swiftest_coarray_collect_system(nbody_system, param)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: nbody_system[*]
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system 
+         class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       end subroutine swiftest_coarray_collect_system
 
-      module subroutine swiftest_coarray_distribute_system(nbody_system)
+      module subroutine swiftest_coarray_distribute_system(nbody_system, param)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: nbody_system[*]
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system 
+         class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       end subroutine swiftest_coarray_distribute_system
+
+      module subroutine swiftest_coarray_initialize_system(nbody_system, param)
+         implicit none
+         class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system !! Swiftest nbody system 
+         class(swiftest_parameters),                intent(inout) :: param        !! Current run configuration parameters 
+      end subroutine swiftest_coarray_initialize_system
    end interface
 
    interface coclone
-      module subroutine swiftest_coarray_component_copy_info(var,src_img)
+      module subroutine swiftest_coarray_component_clone_info(var,src_img)
          implicit none
          type(swiftest_particle_info), intent(inout) :: var
          integer(I4B), intent(in),optional :: src_img
-      end subroutine swiftest_coarray_component_copy_info
+      end subroutine swiftest_coarray_component_clone_info
 
-      module subroutine swiftest_coarray_component_copy_info_arr1D(var,src_img)
+      module subroutine swiftest_coarray_component_clone_info_arr1D(var,src_img)
          implicit none
          type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: var
          integer(I4B), intent(in),optional :: src_img
-      end subroutine swiftest_coarray_component_copy_info_arr1D
+      end subroutine swiftest_coarray_component_clone_info_arr1D
+
+      module subroutine swiftest_coarray_component_clone_kin_arr1D(var,src_img)
+         implicit none
+         type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: var
+         integer(I4B), intent(in),optional :: src_img
+      end subroutine swiftest_coarray_component_clone_kin_arr1D
+   end interface
+
+   interface cocollect
+      module subroutine swiftest_coarray_component_collect_info_arr1D(var,dest_img)
+         implicit none
+         type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: var
+         integer(I4B), intent(in),optional :: dest_img
+      end subroutine
    end interface
 
    interface 
@@ -1982,7 +2015,40 @@ module swiftest
          implicit none
          class(swiftest_body),intent(inout),codimension[*]  :: self  !! Swiftest body object
       end subroutine swiftest_coarray_coclone_body
+
+      module subroutine swiftest_coarray_coclone_cb(self)
+         implicit none
+         class(swiftest_cb),intent(inout),codimension[*]  :: self  !! Swiftest cb object
+      end subroutine swiftest_coarray_coclone_cb
+
+      module subroutine swiftest_coarray_coclone_pl(self)
+         implicit none
+         class(swiftest_pl),intent(inout),codimension[*]  :: self  !! Swiftest pl object
+      end subroutine swiftest_coarray_coclone_pl
+
+      module subroutine swiftest_coarray_coclone_tp(self)
+         implicit none
+         class(swiftest_tp),intent(inout),codimension[*]  :: self  !! Swiftest tp object
+      end subroutine swiftest_coarray_coclone_tp
+
+      module subroutine swiftest_coarray_coclone_system(self)
+         implicit none
+         class(swiftest_nbody_system),intent(inout),codimension[*]  :: self  !! Swiftest nbody system object
+      end subroutine swiftest_coarray_coclone_system
+
+      module subroutine swiftest_coarray_cocollect_body(self)
+         !! Collects all body object array components from all images and combines them into the image 1 body object
+         implicit none
+         class(swiftest_body),intent(inout), codimension[*] :: self !! Swiftest body object
+      end subroutine swiftest_coarray_cocollect_body
+
+      module subroutine swiftest_coarray_cocollect_tp(self)
+         !! Collects all body object array components from all images and combines them into the image 1 body object
+         implicit none
+         class(swiftest_tp),intent(inout), codimension[*] :: self !! Swiftest tp object
+      end subroutine swiftest_coarray_cocollect_tp
    end interface
+
 #endif
 
    contains

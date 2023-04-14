@@ -19,12 +19,9 @@ program swiftest_driver
    use swiftest
    implicit none
 
-#ifdef COARRAY
-   class(swiftest_nbody_system), allocatable :: nbody_system[:]   !! Polymorphic object containing the nbody system to be integrated
-#else
    class(swiftest_nbody_system), allocatable :: nbody_system      !! Polymorphic object containing the nbody system to be integrated
-#endif
    type(swiftest_parameters)                 :: param             !! Run configuration parameters
+   class(swiftest_storage),      allocatable :: system_history    !! Stores the system history between output dumps
    character(len=:), allocatable             :: integrator        !! Integrator type code (see globals for symbolic names)
    character(len=:), allocatable             :: param_file_name   !! Name of the file containing user-defined parameters
    character(len=:), allocatable             :: display_style     !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
@@ -95,24 +92,29 @@ program swiftest_driver
 #ifdef COARRAY
       if (this_image() == 1) then
 #endif
-         call nbody_system%initialize(param)
+         call nbody_system%initialize(system_history, param)
+#ifdef COARRAY
+      end if ! this_image() == 1
+      call swiftest_coarray_initialize_system(nbody_system, param)
+      if (this_image() == 1) then
+#endif
          ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial conditions to file.
          call nbody_system%display_run_information(param, integration_timer, phase="first")
          if (param%lenergy) then
             if (param%lrestart) then
-               call nbody_system%get_t0_values(param)
+               call nbody_system%get_t0_values(system_history%nc, param)
             else
                call nbody_system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
             end if
             call nbody_system%conservation_report(param, lterminal=.true.)
          end if
-         call nbody_system%system_history%take_snapshot(param,nbody_system)
-         call nbody_system%dump(param)
+         call system_history%take_snapshot(param,nbody_system)
+         call nbody_system%dump(param, system_history)
 
 #ifdef COARRAY
-         ! Distribute test particles to the various images
       end if ! this_image() == 1
-      call nbody_system%coarray_distribute()
+      ! Distribute test particles to the various images
+      call nbody_system%coarray_distribute(param)
 #endif 
       do iloop = istart, nloops
          !> Step the nbody_system forward in time
@@ -136,14 +138,14 @@ program swiftest_driver
                   istep = floor(istep_out * fstep_out**nout, kind=I4B)
                end if
 #ifdef COARRAY
-               call nbody_system%coarray_collect()
+               call nbody_system%coarray_collect(param)
                if (this_image() == 1) then
 #endif
-                  call nbody_system%system_history%take_snapshot(param,nbody_system)
+                  call system_history%take_snapshot(param,nbody_system)
 
                   if (idump == dump_cadence) then
                      idump = 0
-                     call nbody_system%dump(param)
+                     call nbody_system%dump(param, system_history)
                   end if
 
                   call integration_timer%report(message="Integration steps:", unit=display_unit)
@@ -152,7 +154,7 @@ program swiftest_driver
                   if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
 #ifdef COARRAY
                end if 
-               call nbody_system%coarray_distribute()
+               call nbody_system%coarray_distribute(param)
 #endif
             end if
          end if
@@ -160,11 +162,10 @@ program swiftest_driver
       end do
       ! Dump any remaining history if it exists
 #ifdef COARRAY
-      call nbody_system%coarray_collect()
+      call nbody_system%coarray_collect(param)
       if (this_image() == 1) then
 #endif
-         call nbody_system%dump(param)
-         call nbody_system%system_history%dump(param)
+         call nbody_system%dump(param, system_history)
          call nbody_system%display_run_information(param, integration_timer, phase="last")
 #ifdef COARRAY
       end if ! this_image() == 1

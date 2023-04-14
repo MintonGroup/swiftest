@@ -323,7 +323,7 @@ contains
    end subroutine rmvs_util_setup_pl 
 
 
-   module subroutine rmvs_util_setup_initialize_system(self, param)
+   module subroutine rmvs_util_setup_initialize_system(self, system_history, param)
       !! author: David A. Minton
       !!
       !! Initialize an RMVS nbody system from files and sets up the planetocentric structures.
@@ -335,13 +335,14 @@ contains
       !! to use during close encounters. 
       implicit none
       ! Arguments
-      class(rmvs_nbody_system),   intent(inout) :: self    !! RMVS system object
-      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+      class(rmvs_nbody_system),                intent(inout) :: self           !! RMVS system object
+      class(swiftest_storage),    allocatable, intent(inout) :: system_history !! Stores the system history between output dumps
+      class(swiftest_parameters),              intent(inout) :: param          !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: i, j
 
       ! Call parent method
-      call whm_util_setup_initialize_system(self, param)
+      call whm_util_setup_initialize_system(self, system_history, param)
 
       ! Set up the pl-tp planetocentric encounter structures for pl and cb. The planetocentric tp structures are 
       ! generated as necessary during close encounter steps.

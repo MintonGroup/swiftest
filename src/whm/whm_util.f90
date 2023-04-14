@@ -200,17 +200,18 @@ contains
    end subroutine whm_util_set_mu_eta_pl
 
 
-   module subroutine whm_util_setup_initialize_system(self, param)
+   module subroutine whm_util_setup_initialize_system(self, system_history, param)
       !! author: David A. Minton
       !!
       !! Initialize a WHM nbody system from files
       !!
       implicit none
       ! Arguments
-      class(whm_nbody_system),    intent(inout) :: self   !! WHM nbody system object
-      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+      class(whm_nbody_system),                 intent(inout) :: self            !! WHM nbody system object
+      class(swiftest_storage),    allocatable, intent(inout) :: system_history  !! Stores the system history between output dumps
+      class(swiftest_parameters),              intent(inout) :: param           !! Current run configuration parameters 
 
-      call swiftest_util_setup_initialize_system(self, param)
+      call swiftest_util_setup_initialize_system(self, system_history, param)
       ! First we need to make sure that the massive bodies are sorted by heliocentric distance before computing jacobies
       call swiftest_util_set_ir3h(self%pl)
       call self%pl%sort("ir3h", ascending=.false.)

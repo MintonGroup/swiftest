@@ -387,7 +387,7 @@ module base
          !! Memory usage grows by a factor of 2 each time it fills up, but no more. 
          implicit none
          ! Arguments
-         class(base_storage), intent(inout) :: self     !! Storage ncounter storage object
+         class(base_storage), intent(inout) :: self     !! Storage encounter storage object
          class(*),            intent(in)    :: snapshot !! Object to snapshot
          ! Internals
          integer(I4B) :: nnew, nold
