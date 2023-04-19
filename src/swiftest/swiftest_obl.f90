@@ -23,12 +23,41 @@ contains
       ! Internals
       real(DP)     :: theta ! angle to rotate it through
       real(DP), dimension(NDIM) :: u ! unit vector about which we rotate
+      real(DP), dimension(NDIM, NDIM) :: rot_matrix ! rotation matrix
+      
+         !! WHAT/WHERE is NDIM?
 
       if (self%nbody == 0) return
 
       associate(n => self%nbody, cb => nbody_system%cb)
-         if (cb%rot(0) == 0 .and. cb%rot(1) == 0)
+         if (cb%rot(0) == 0 .and. cb%rot(1) == 0) then
             return ! rotation axis is about the z-axis
+         end if
+         
+         cb%rot_initial = cb%rot
+         rot_mag = sqrt(dot_product(cb%rot, cb%rot))
+         u = cross_product(cb%rot, [0, 0, 1]) / rot_mag !! WRITE cross-product
+         theta = acos(dot_product(cb%rot, [0, 0, 1]) / rot_mag)
+         
+         rot_matrix = zeros(NDIM, NDIM)
+         S_matrix = [[0, -u[3], u[2]], [u[3], 0, -u[1]], [-u[2], u[1], 0]] ! assume NDIM = 3
+         ! CHECK for a general formula for the skew-symmetric matrix
+
+         do (i = 1, NDIM)
+            do (j = 1, NDIM)
+               if (i == j) then
+                  rot_matrix(i, j) = rot_matrix(i, j) + cos(theta)
+                  continue
+               end if
+
+               rot_matrix(i, j) = rot_matrix(i, j) + u[i] * u[j] * (1 - cos(theta)) + S_matrix(i, j) * sin(theta)
+
+            end do
+         end do
+
+         do concurrent(i = 1:n, self%lmask(i)) !! WHAT is lmask !! DOES this include the CB?
+            self%rh(: ,i) = rot_matrix * self%rh(:, i)
+         end do
       end associate
 
       return
