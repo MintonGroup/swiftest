@@ -9,6 +9,31 @@
 
 submodule (swiftest) s_swiftest_obl
 contains
+
+   module subroutine swiftest_obl_rot_rotate(self, nbody_system)
+      !! author: Kaustub P. Anand
+      !! 
+      !! Rotate the coordiante frame to make the rotation axis along the z axis for correct spin calculation
+      !! 
+
+      implicit none
+      ! Arguments
+      class(swiftest_body),         intent(inout) :: self   !! Swiftest body object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+      ! Internals
+      real(DP)     :: theta ! angle to rotate it through
+      real(DP), dimension(NDIM) :: u ! unit vector about which we rotate
+
+      if (self%nbody == 0) return
+
+      associate(n => self%nbody, cb => nbody_system%cb)
+         if (cb%rot(0) == 0 .and. cb%rot(1) == 0)
+            return ! rotation axis is about the z-axis
+      end associate
+
+      return
+      end subroutine swiftest_obl_rot_rotate
+   
    module subroutine swiftest_obl_acc_body(self, nbody_system)
       !! author: David A. Minton
       !!
