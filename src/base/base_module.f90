@@ -220,7 +220,284 @@ module base
    type, abstract :: base_nbody_system
    end type base_nbody_system
 
+
+   interface util_append
+      module procedure base_util_append_arr_char_string
+      module procedure base_util_append_arr_DP
+      module procedure base_util_append_arr_DPvec
+      module procedure base_util_append_arr_I4B
+      module procedure base_util_append_arr_logical
+   end interface
+
+   interface util_fill
+      module procedure base_util_fill_arr_char_string
+      module procedure base_util_fill_arr_DP
+      module procedure base_util_fill_arr_DPvec
+      module procedure base_util_fill_arr_I4B
+      module procedure base_util_fill_arr_logical
+   end interface
+
+   interface util_resize
+      module procedure base_util_resize_arr_char_string
+      module procedure base_util_resize_arr_DP
+      module procedure base_util_resize_arr_DPvec
+      module procedure base_util_resize_arr_I4B
+      module procedure base_util_resize_arr_logical
+   end interface
+
+   interface util_sort      
+      module procedure base_util_sort_i4b
+      module procedure base_util_sort_index_i4b
+      module procedure base_util_sort_index_I4B_I8Bind
+      module procedure base_util_sort_index_I8B_I8Bind
+      module procedure base_util_sort_sp
+      module procedure base_util_sort_index_sp
+      module procedure base_util_sort_dp
+      module procedure base_util_sort_index_dp
+   end interface 
+
+   interface util_sort_rearrange
+      module procedure base_util_sort_rearrange_arr_char_string
+      module procedure base_util_sort_rearrange_arr_DP
+      module procedure base_util_sort_rearrange_arr_DPvec
+      module procedure base_util_sort_rearrange_arr_I4B
+      module procedure base_util_sort_rearrange_arr_I4B_I8Bind
+      module procedure base_util_sort_rearrange_arr_logical
+      module procedure base_util_sort_rearrange_arr_logical_I8Bind
+   end interface
+
+   interface util_spill
+      module procedure base_util_spill_arr_char_string
+      module procedure base_util_spill_arr_DP
+      module procedure base_util_spill_arr_DPvec
+      module procedure base_util_spill_arr_I4B
+      module procedure base_util_spill_arr_I8B
+      module procedure base_util_spill_arr_logical
+   end interface
+
+   interface util_unique
+      module procedure base_util_unique_DP
+      module procedure base_util_unique_I4B
+   end interface
+
    contains
+
+      subroutine base_util_append_arr_char_string(arr, source, nold, lsource_mask)
+         !! author: David A. Minton
+         !!
+         !! Append a single array of character string type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
+         implicit none
+         ! Arguments
+         character(len=STRMAX), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
+         character(len=STRMAX), dimension(:),              intent(in)           :: source       !! Array to append 
+         integer(I4B),                                     intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
+         logical,               dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
+         ! Internals
+         integer(I4B) :: nnew, nsrc, nend_orig
+
+         if (present(lsource_mask)) then
+            nsrc = count(lsource_mask(:))
+         else
+            nsrc = size(source)
+         end if
+         if (nsrc == 0) return
+
+         if (.not.allocated(arr)) then
+            nend_orig = 0
+            allocate(arr(nsrc))
+         else
+            if (present(nold)) then
+               nend_orig = nold
+            else
+               nend_orig = size(arr)
+            end if
+            call util_resize(arr, nend_orig + nsrc)
+         end if
+         nnew = nend_orig + nsrc
+
+         if (present(lsource_mask)) then
+            arr(nold + 1:nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
+         else
+            arr(nold + 1:nnew) = source(1:nsrc)
+         end if
+
+         return
+      end subroutine base_util_append_arr_char_string
+
+
+      subroutine base_util_append_arr_DP(arr, source, nold, lsource_mask)
+         !! author: David A. Minton
+         !!
+         !! Append a single array of double precision type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
+         implicit none
+         ! Arguments
+         real(DP), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
+         real(DP), dimension(:),              intent(in)           :: source       !! Array to append 
+         integer(I4B),                        intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
+         logical,  dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
+         ! Internals
+         integer(I4B) :: nnew, nsrc, nend_orig
+
+         if (present(lsource_mask)) then
+            nsrc = count(lsource_mask(:))
+         else
+            nsrc = size(source)
+         end if
+         if (nsrc == 0) return
+
+         if (.not.allocated(arr)) then
+            nend_orig = 0
+            allocate(arr(nsrc))
+         else
+            if (present(nold)) then
+               nend_orig = nold
+            else
+               nend_orig = size(arr)
+            end if
+            call util_resize(arr, nend_orig + nsrc)
+         end if
+         nnew = nend_orig + nsrc
+
+         if (present(lsource_mask)) then
+            arr(nold + 1:nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
+         else
+            arr(nold + 1:nnew) = source(1:nsrc)
+         end if
+
+         return
+      end subroutine base_util_append_arr_DP
+
+
+      subroutine base_util_append_arr_DPvec(arr, source, nold, lsource_mask)
+         !! author: David A. Minton
+         !!
+         !! Append a single array of double precision vector type of size (NDIM, n) onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
+         implicit none
+         ! Arguments
+         real(DP), dimension(:,:), allocatable, intent(inout)        :: arr          !! Destination array 
+         real(DP), dimension(:,:),              intent(in)           :: source       !! Array to append 
+         integer(I4B),                          intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
+         logical,  dimension(:),                intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
+         ! Internals
+         integer(I4B) :: nnew, nsrc, nend_orig
+
+         if (present(lsource_mask)) then
+            nsrc = count(lsource_mask(:))
+         else
+            nsrc = size(source,dim=2)
+         end if
+         if (nsrc == 0) return
+
+         if (.not.allocated(arr)) then
+            nend_orig = 0
+            allocate(arr(NDIM,nsrc))
+         else
+            if (present(nold)) then
+               nend_orig = nold
+            else
+               nend_orig = size(arr,dim=2)
+            end if
+            call util_resize(arr, nend_orig + nsrc)
+         end if
+         nnew = nend_orig + nsrc
+
+         if (present(lsource_mask)) then
+            arr(1, nold + 1:nnew) = pack(source(1,1:nsrc), lsource_mask(1:nsrc))
+            arr(2, nold + 1:nnew) = pack(source(2,1:nsrc), lsource_mask(1:nsrc))
+            arr(3, nold + 1:nnew) = pack(source(3,1:nsrc), lsource_mask(1:nsrc))
+         else
+            arr(:,nold + 1:nnew) = source(:,1:nsrc)
+         end if
+
+         return
+      end subroutine base_util_append_arr_DPvec
+
+
+      subroutine base_util_append_arr_I4B(arr, source, nold, lsource_mask)
+         !! author: David A. Minton
+         !!
+         !! Append a single array of integer(I4B) onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
+         implicit none
+         ! Arguments
+         integer(I4B), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
+         integer(I4B), dimension(:),              intent(in)           :: source       !! Array to append 
+         integer(I4B),                            intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
+         logical,      dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
+         ! Internals
+         integer(I4B) :: nnew, nsrc, nend_orig
+
+         if (present(lsource_mask)) then
+            nsrc = count(lsource_mask(:))
+         else
+            nsrc = size(source)
+         end if
+         if (nsrc == 0) return
+
+         if (.not.allocated(arr)) then
+            nend_orig = 0
+            allocate(arr(nsrc))
+         else
+            if (present(nold)) then
+               nend_orig = nold
+            else
+               nend_orig = size(arr)
+            end if
+            call util_resize(arr, nend_orig + nsrc)
+         end if
+         nnew = nend_orig + nsrc
+
+         if (present(lsource_mask)) then
+            arr(nold + 1:nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
+         else
+            arr(nold + 1:nnew) = source(1:nsrc)
+         end if
+
+         return
+      end subroutine base_util_append_arr_I4B
+
+
+      subroutine base_util_append_arr_logical(arr, source, nold, lsource_mask)
+         !! author: David A. Minton
+         !!
+         !! Append a single array of logical type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
+         implicit none
+         ! Arguments
+         logical, dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
+         logical, dimension(:),              intent(in)           :: source       !! Array to append 
+         integer(I4B),                       intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
+         logical, dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
+         ! Internals
+         integer(I4B) :: nnew, nsrc, nend_orig
+
+         if (present(lsource_mask)) then
+            nsrc = count(lsource_mask(:))
+         else
+            nsrc = size(source)
+         end if
+         if (nsrc == 0) return
+
+         if (.not.allocated(arr)) then
+            nend_orig = 0
+            allocate(arr(nsrc))
+         else
+            if (present(nold)) then
+               nend_orig = nold
+            else
+               nend_orig = size(arr)
+            end if
+            call util_resize(arr, nend_orig + nsrc)
+         end if
+         nnew = nend_orig + nsrc
+
+         if (present(lsource_mask)) then
+            arr(nold + 1:nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
+         else
+            arr(nold + 1:nnew) = source(1:nsrc)
+         end if
+
+         return
+      end subroutine base_util_append_arr_logical
+
 
       subroutine base_util_copy_store(self, source)
          !! author: David A. Minton
@@ -303,6 +580,109 @@ module base
       end subroutine base_util_exit
 
 
+      subroutine base_util_fill_arr_char_string(keeps, inserts, lfill_list)
+         !! author: David A. Minton
+         !!
+         !! Performs a fill operation on a single array of type character strings
+         !! This is the inverse of a spill operation
+         implicit none
+         ! Arguments
+         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+         character(len=STRMAX), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+         logical,               dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+   
+         if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
+   
+         keeps(:) = unpack(keeps(:),   .not.lfill_list(:), keeps(:))
+         keeps(:) = unpack(inserts(:),      lfill_list(:), keeps(:))
+   
+         return
+      end subroutine base_util_fill_arr_char_string
+   
+   
+      subroutine base_util_fill_arr_DP(keeps, inserts, lfill_list)
+         !! author: David A. Minton
+         !!
+         !! Performs a fill operation on a single array of type DP
+         !! This is the inverse of a spill operation
+         implicit none
+         ! Arguments
+         real(DP), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+         real(DP), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+         logical,  dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+   
+         if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
+   
+         keeps(:) = unpack(keeps(:),   .not.lfill_list(:), keeps(:))
+         keeps(:) = unpack(inserts(:),      lfill_list(:), keeps(:))
+   
+         return
+      end subroutine base_util_fill_arr_DP
+   
+   
+      subroutine base_util_fill_arr_DPvec(keeps, inserts, lfill_list)
+         !! author: David A. Minton
+         !!
+         !! Performs a fill operation on a single array of DP vectors with shape (NDIM, n)
+         !! This is the inverse of a spill operation
+         implicit none
+         ! Arguments
+         real(DP), dimension(:,:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+         real(DP), dimension(:,:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+         logical,  dimension(:),                intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+         ! Internals
+         integer(I4B) :: i
+   
+         if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
+   
+         do i = 1, NDIM
+            keeps(i,:) = unpack(keeps(i,:),   .not.lfill_list(:), keeps(i,:))
+            keeps(i,:) = unpack(inserts(i,:),      lfill_list(:), keeps(i,:))
+         end do
+   
+         return
+      end subroutine base_util_fill_arr_DPvec
+   
+   
+      subroutine base_util_fill_arr_I4B(keeps, inserts, lfill_list)
+         !! author: David A. Minton
+         !!
+         !! Performs a fill operation on a single array of type I4B
+         !! This is the inverse of a spill operation
+         implicit none
+         ! Arguments
+         integer(I4B), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+         integer(I4B), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+         logical,      dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+   
+         if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
+   
+         keeps(:) = unpack(keeps(:),   .not.lfill_list(:), keeps(:))
+         keeps(:) = unpack(inserts(:),      lfill_list(:), keeps(:))
+   
+         return
+      end subroutine base_util_fill_arr_I4B
+   
+   
+      subroutine base_util_fill_arr_logical(keeps, inserts, lfill_list)
+         !! author: David A. Minton
+         !!
+         !! Performs a fill operation on a single array of logicals
+         !! This is the inverse of a spill operation
+         implicit none
+         ! Arguments
+         logical, dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
+         logical, dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
+         logical, dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+   
+         if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
+   
+         keeps(:) = unpack(keeps(:),   .not.lfill_list(:), keeps(:))
+         keeps(:) = unpack(inserts(:),      lfill_list(:), keeps(:))
+   
+         return
+      end subroutine base_util_fill_arr_logical      
+
       subroutine base_util_reset_storage(self)
          !! author: David A. Minton
          !!
@@ -330,6 +710,237 @@ module base
          return
       end subroutine base_util_reset_storage 
 
+
+      subroutine base_util_resize_arr_char_string(arr, nnew)
+         !! author: David A. Minton
+         !!
+         !! Resizes an array component of type character string. nnew = 0 will deallocate.
+         implicit none
+         ! Arguments
+         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+         integer(I4B),                                     intent(in)    :: nnew !! New size
+         ! Internals
+         character(len=STRMAX), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
+         integer(I4B) :: nold !! Old size
+   
+         if (nnew < 0) return
+   
+         if (nnew == 0) then
+            if (allocated(arr)) deallocate(arr)
+            return
+         end if
+         
+         if (allocated(arr)) then
+            nold = size(arr)
+         else
+            nold = 0
+         end if
+   
+         if (nnew == nold) return
+         
+         allocate(tmp(nnew))
+         if (nold > 0) then
+            if (nnew > nold) then
+               tmp(1:nold) = arr(1:nold)
+               tmp(nold+1:nnew) = ""
+            else
+               tmp(1:nnew) = arr(1:nnew)
+            end if
+         else
+            tmp(1:nnew) = ""
+         end if
+         call move_alloc(tmp, arr)
+   
+         return
+      end subroutine base_util_resize_arr_char_string
+   
+   
+      subroutine base_util_resize_arr_DP(arr, nnew)
+         !! author: David A. Minton
+         !!
+         !! Resizes an array component of double precision type. Passing nnew = 0 will deallocate.
+         implicit none
+         ! Arguments
+         real(DP), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+         integer(I4B),                        intent(in)    :: nnew !! New size
+         ! Internals
+         real(DP), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
+         integer(I4B) :: nold !! Old size
+         real(DP), parameter :: init_val = 0.0_DP
+   
+         if (nnew < 0) return
+   
+         if (nnew == 0) then
+            if (allocated(arr)) deallocate(arr)
+            return
+         end if
+         
+         if (allocated(arr)) then
+            nold = size(arr)
+         else
+            nold = 0
+         end if
+   
+         if (nnew == nold) return
+         
+         allocate(tmp(nnew))
+         if (nold > 0) then
+            if (nnew > nold) then
+               tmp(1:nold) = arr(1:nold)
+               tmp(nold+1:nnew) = init_val
+            else
+               tmp(1:nnew) = arr(1:nnew)
+            end if
+         else
+            tmp(1:nnew) = init_val
+         end if
+         call move_alloc(tmp, arr)
+   
+         return
+      end subroutine base_util_resize_arr_DP
+   
+   
+      subroutine base_util_resize_arr_DPvec(arr, nnew)
+         !! author: David A. Minton
+         !!
+         !! Resizes an array component of double precision vectors of size (NDIM, n). Passing nnew = 0 will deallocate.
+         implicit none
+         ! Arguments
+         real(DP), dimension(:,:), allocatable, intent(inout) :: arr  !! Array to resize
+         integer(I4B),                          intent(in)    :: nnew !! New size
+         ! Internals
+         real(DP), dimension(:,:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
+         integer(I4B) :: nold !! Old size
+         real(DP), dimension(NDIM), parameter :: init_val = 0.0_DP
+         integer(I4B) :: i
+   
+         if (nnew < 0) return
+   
+         if (nnew == 0) then
+            if (allocated(arr)) deallocate(arr)
+            return
+         end if
+         
+         if (allocated(arr)) then
+            nold = size(arr, dim=2)
+         else
+            nold = 0
+         end if
+   
+         if (nnew == nold) return
+         
+         allocate(tmp(NDIM, nnew))
+         if (nold > 0) then
+            if (nnew > nold) then
+               tmp(:,1:nold) = arr(:,1:nold)
+               do i = nold+1, nnew
+                  tmp(:,i) = init_val(:)
+               end do
+            else
+               tmp(:,1:nnew) = arr(:,1:nnew)
+            end if
+         else
+            do i = 1, nnew
+               tmp(:, i) = init_val(:)
+            end do
+         end if
+         call move_alloc(tmp, arr)
+   
+         return
+   
+         return
+      end subroutine base_util_resize_arr_DPvec
+   
+   
+      subroutine base_util_resize_arr_I4B(arr, nnew)
+         !! author: David A. Minton
+         !!
+         !! Resizes an array component of integer type. Passing nnew = 0 will deallocate.
+         implicit none
+         ! Arguments
+         integer(I4B), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+         integer(I4B),                            intent(in)    :: nnew !! New size
+         ! Internals
+         integer(I4B), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
+         integer(I4B) :: nold !! Old size
+         integer(I4B), parameter :: init_val = -1
+   
+         if (nnew < 0) return
+   
+         if (nnew == 0) then
+            if (allocated(arr)) deallocate(arr)
+            return
+         end if
+         
+         if (allocated(arr)) then
+            nold = size(arr)
+         else
+            nold = 0
+         end if
+   
+         if (nnew == nold) return
+         
+         allocate(tmp(nnew))
+         if (nold > 0) then
+            if (nnew > nold) then
+               tmp(1:nold) = arr(1:nold)
+               tmp(nold+1:nnew) = init_val
+            else
+               tmp(1:nnew) = arr(1:nnew)
+            end if
+         else
+            tmp(1:nnew) = init_val
+         end if
+         call move_alloc(tmp, arr)
+   
+         return
+      end subroutine base_util_resize_arr_I4B
+   
+
+      subroutine base_util_resize_arr_logical(arr, nnew)
+         !! author: David A. Minton
+         !!
+         !! Resizes an array component of logical type. Passing nnew = 0 will deallocate.
+         implicit none
+         ! Arguments
+         logical, dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
+         integer(I4B),                       intent(in)    :: nnew !! New size
+         ! Internals
+         logical, dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
+         integer(I4B) :: nold !! Old size
+         logical, parameter :: init_val = .false.
+   
+         if (nnew < 0) return
+   
+         if (nnew == 0) then
+            if (allocated(arr)) deallocate(arr)
+            return
+         end if
+         
+         if (allocated(arr)) then
+            nold = size(arr)
+         else
+            nold = 0
+         end if
+   
+         if (nnew == nold) return
+         
+         allocate(tmp(nnew))
+         if (nold > 0) then
+            if (nnew > nold) then
+               tmp(1:nold) = arr(1:nold)
+               tmp(nold+1:nnew) = init_val
+            else
+               tmp(1:nnew) = arr(1:nnew)
+            end if
+         else
+            tmp(1:nnew) = init_val
+         end if
+         call move_alloc(tmp, arr)
+   
+         return
+      end subroutine base_util_resize_arr_logical
+   
       
       subroutine base_util_resize_storage(self, nnew)
          !! author: David A. Minton
@@ -405,7 +1016,1086 @@ module base
       
          return
       end subroutine base_util_snapshot_save
+
+
+      subroutine base_util_spill_arr_char_string(keeps, discards, lspill_list, ldestructive)
+         !! author: David A. Minton
+         !!
+         !! Performs a spill operation on a single array of type character strings
+         !! This is the inverse of a spill operation
+         implicit none
+         ! Arguments
+         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
+         logical,               dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+         logical,                                          intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+         ! Internals
+         integer(I4B) :: nspill, nkeep, nlist
+         character(len=STRMAX), dimension(:), allocatable                :: tmp          !! Array of values to keep 
+
+         nkeep = count(.not.lspill_list(:))
+         nspill = count(lspill_list(:))
+         nlist = size(lspill_list(:))
+
+         if (.not.allocated(keeps) .or. nspill == 0) return
+         if (.not.allocated(discards)) then
+            allocate(discards(nspill))
+         else if (size(discards) /= nspill) then
+            deallocate(discards)
+            allocate(discards(nspill))
+         end if
+
+         discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
+         if (ldestructive) then
+            if (nkeep > 0) then
+               allocate(tmp(nkeep))
+               tmp(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
+               call move_alloc(tmp, keeps)
+            else
+               deallocate(keeps)
+            end if
+         end if
+
+         return
+      end subroutine base_util_spill_arr_char_string
+      
+
+      subroutine base_util_spill_arr_DP(keeps, discards, lspill_list, ldestructive)
+         !! author: David A. Minton
+         !!
+         !! Performs a spill operation on a single array of type DP
+         !! This is the inverse of a spill operation
+         implicit none
+         ! Arguments
+         real(DP), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+         real(DP), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
+         logical,  dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
+         logical,                             intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+         ! Internals
+         integer(I4B) :: nspill, nkeep, nlist
+         real(DP), dimension(:), allocatable                :: tmp          !! Array of values to keep 
+
+         nkeep = count(.not.lspill_list(:))
+         nspill = count(lspill_list(:))
+         nlist = size(lspill_list(:))
+
+         if (.not.allocated(keeps) .or. nspill == 0) return
+         if (.not.allocated(discards)) then
+            allocate(discards(nspill))
+         else if (size(discards) /= nspill) then
+            deallocate(discards)
+            allocate(discards(nspill))
+         end if
+
+         discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
+         if (ldestructive) then
+            if (nkeep > 0) then
+               allocate(tmp(nkeep))
+               tmp(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
+               call move_alloc(tmp, keeps)
+            else
+               deallocate(keeps)
+            end if
+         end if
+
+         return
+      end subroutine base_util_spill_arr_DP
+
+
+      subroutine base_util_spill_arr_DPvec(keeps, discards, lspill_list, ldestructive)
+         !! author: David A. Minton
+         !!
+         !! Performs a spill operation on a single array of DP vectors with shape (NDIM, n)
+         !! This is the inverse of a spill operation
+         implicit none
+         ! Arguments
+         real(DP), dimension(:,:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+         real(DP), dimension(:,:), allocatable, intent(inout) :: discards     !! Array discards
+         logical,  dimension(:),                intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+         logical,                               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+         ! Internals
+         integer(I4B) :: i, nspill, nkeep, nlist
+         real(DP), dimension(:,:), allocatable                :: tmp          !! Array of values to keep 
+
+         nkeep = count(.not.lspill_list(:))
+         nspill = count(lspill_list(:))
+         nlist = size(lspill_list(:))
+
+         if (.not.allocated(keeps) .or. nspill == 0) return
+         if (.not.allocated(discards)) then
+            allocate(discards(NDIM, nspill))
+         else if (size(discards, dim=2) /= nspill) then
+            deallocate(discards)
+            allocate(discards(NDIM, nspill))
+         end if
+
+         do i = 1, NDIM
+            discards(i,:) = pack(keeps(i,1:nlist), lspill_list(1:nlist))
+         end do
+         if (ldestructive) then
+            if (nkeep > 0) then
+               allocate(tmp(NDIM, nkeep))
+               do i = 1, NDIM
+                  tmp(i, :) = pack(keeps(i, 1:nlist), .not. lspill_list(1:nlist))
+               end do
+               call move_alloc(tmp, keeps)
+            else
+               deallocate(keeps)
+            end if
+         end if
+
+         return
+      end subroutine base_util_spill_arr_DPvec
+
+
+      subroutine base_util_spill_arr_I4B(keeps, discards, lspill_list, ldestructive)
+         !! author: David A. Minton
+         !!
+         !! Performs a spill operation on a single array of type I4B
+         !! This is the inverse of a spill operation
+         implicit none
+         ! Arguments
+         integer(I4B), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+         integer(I4B), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
+         logical,      dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+         logical,                                 intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+         ! Internals
+         integer(I4B) :: nspill, nkeep, nlist
+         integer(I4B), dimension(:), allocatable                :: tmp          !! Array of values to keep 
+
+         nkeep = count(.not.lspill_list(:))
+         nspill = count(lspill_list(:))
+         nlist = size(lspill_list(:))
+
+         if (.not.allocated(keeps) .or. nspill == 0) return
+         if (.not.allocated(discards)) then
+            allocate(discards(nspill))
+         else if (size(discards) /= nspill) then
+            deallocate(discards)
+            allocate(discards(nspill))
+         end if
+
+         discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
+         if (ldestructive) then
+            if (nkeep > 0) then
+               allocate(tmp(nkeep))
+               tmp(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
+               call move_alloc(tmp, keeps)
+            else
+               deallocate(keeps)
+            end if
+         end if
+
+         return
+      end subroutine base_util_spill_arr_I4B
+
+
+      subroutine base_util_spill_arr_I8B(keeps, discards, lspill_list, ldestructive)
+         !! author: David A. Minton
+         !!
+         !! Performs a spill operation on a single array of type I4B
+         !! This is the inverse of a spill operation
+         implicit none
+         ! Arguments
+         integer(I8B), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+         integer(I8B), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
+         logical,      dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+         logical,                                 intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+         ! Internals
+         integer(I4B) :: nspill, nkeep, nlist
+         integer(I8B), dimension(:), allocatable                :: tmp          !! Array of values to keep 
+
+         nkeep = count(.not.lspill_list(:))
+         nspill = count(lspill_list(:))
+         nlist = size(lspill_list(:))
+
+         if (.not.allocated(keeps) .or. nspill == 0) return
+         if (.not.allocated(discards)) then
+            allocate(discards(nspill))
+         else if (size(discards) /= nspill) then
+            deallocate(discards)
+            allocate(discards(nspill))
+         end if
+
+         discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
+         if (ldestructive) then
+            if (nkeep > 0) then
+               allocate(tmp(nkeep))
+               tmp(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
+               call move_alloc(tmp, keeps)
+            else
+               deallocate(keeps)
+            end if
+         end if
+
+         return
+      end subroutine base_util_spill_arr_I8B
+
+
+      subroutine base_util_spill_arr_logical(keeps, discards, lspill_list, ldestructive)
+         !! author: David A. Minton
+         !!
+         !! Performs a spill operation on a single array of logicals
+         !! This is the inverse of a spill operation
+         implicit none
+         ! Arguments
+         logical, dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
+         logical, dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
+         logical, dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
+         logical,                            intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or no
+         ! Internals
+         integer(I4B) :: nspill, nkeep, nlist
+         logical, dimension(:), allocatable                :: tmp          !! Array of values to keep 
+
+         nkeep = count(.not.lspill_list(:))
+         nspill = count(lspill_list(:))
+         nlist = size(lspill_list(:))
+
+         if (.not.allocated(keeps) .or. nspill == 0) return
+         if (.not.allocated(discards)) then
+            allocate(discards(nspill))
+         else if (size(discards) /= nspill) then
+            deallocate(discards)
+            allocate(discards(nspill))
+         end if
+
+         discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
+         if (ldestructive) then
+            if (nkeep > 0) then
+               allocate(tmp(nkeep))
+               tmp(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
+               call move_alloc(tmp, keeps)
+            else
+               deallocate(keeps)
+            end if
+         end if
+
+         return
+      end subroutine base_util_spill_arr_logical
+
+
+      pure subroutine base_util_sort_dp(arr)
+         !! author: David A. Minton
+         !!
+         !! Sort input DP precision array in place into ascending numerical order using quicksort.
+         !!
+         implicit none
+         ! Arguments
+         real(DP), dimension(:), intent(inout) :: arr
+
+         call base_util_sort_qsort_DP(arr)
+
+         return
+      end subroutine base_util_sort_dp
+
+
+      pure subroutine base_util_sort_index_dp(arr, ind)
+         !! author: David A. Minton
+         !!
+         !! Sort input DP precision array by index in ascending numerical order using quick sort.
+         !! This algorithm works well for partially sorted arrays (which is usually the case here).
+         !! If ind is supplied already allocated, we assume it is an existing index array (e.g. a previously
+         !! sorted array). If it is not allocated, this subroutine swiftest_allocates it.
+         !!
+         implicit none
+         ! Arguments
+         real(DP),     dimension(:),              intent(in)    :: arr
+         integer(I4B), dimension(:), allocatable, intent(inout) :: ind
+         ! Internals
+         integer(I4B) :: n, i
+         real(DP), dimension(:), allocatable :: tmparr
+
+         n = size(arr)
+         if (.not.allocated(ind)) then
+            allocate(ind(n))
+            ind = [(i, i=1, n)]
+         end if
+         allocate(tmparr, mold=arr)
+         tmparr(:) = arr(ind(:))
+         call base_util_sort_qsort_DP(tmparr, ind)
+      
+         return
+      end subroutine base_util_sort_index_dp
+
+
+      recursive pure subroutine base_util_sort_qsort_DP(arr, ind)
+         !! author: David A. Minton
+         !!
+         !! Sort input DP precision array by index in ascending numerical order using quicksort sort.
+         !!
+         implicit none
+         ! Arguments
+         real(DP), dimension(:), intent(inout)           :: arr
+         integer(I4B),dimension(:),intent(out), optional :: ind
+         !! Internals
+         integer :: iq
+
+         if (size(arr) > 1) then
+            if (present(ind)) then
+               call base_util_sort_partition_DP(arr, iq, ind)
+               call base_util_sort_qsort_DP(arr(:iq-1),ind(:iq-1))
+               call base_util_sort_qsort_DP(arr(iq:),  ind(iq:))
+            else
+               call base_util_sort_partition_DP(arr, iq)
+               call base_util_sort_qsort_DP(arr(:iq-1))
+               call base_util_sort_qsort_DP(arr(iq:))
+            end if
+         end if
+
+         return
+      end subroutine base_util_sort_qsort_DP
+
    
+      pure subroutine base_util_sort_partition_DP(arr, marker, ind)
+         !! author: David A. Minton
+         !!
+         !! Partition function for quicksort on DP type
+         !!
+         implicit none
+         ! Arguments
+         real(DP),     intent(inout), dimension(:)           :: arr
+         integer(I4B), intent(inout), dimension(:), optional :: ind
+         integer(I4B), intent(out)                           :: marker
+         ! Internals
+         integer(I4B) :: i, j, itmp, narr, ipiv
+         real(DP) :: temp
+         real(DP) :: x   ! pivot point
+
+         narr = size(arr)
+
+         ! Get center as pivot, as this is likely partially sorted
+         ipiv = narr / 2
+         x = arr(ipiv)
+         i = 0
+         j = narr + 1
+      
+         do
+            j = j - 1
+            do
+               if (arr(j) <= x) exit
+               j = j - 1
+            end do
+            i = i + 1
+            do
+               if (arr(i) >= x) exit
+               i = i + 1
+            end do
+            if (i < j) then
+               ! exchange A(i) and A(j)
+               temp = arr(i)
+               arr(i) = arr(j)
+               arr(j) = temp
+               if (present(ind)) then
+                  itmp = ind(i)
+                  ind(i) = ind(j)
+                  ind(j) = itmp
+               end if
+            else if (i == j) then
+               marker = i + 1
+               return
+            else
+               marker = i
+               return
+            endif
+         end do
+   
+         return
+      end subroutine base_util_sort_partition_DP
+   
+
+      pure subroutine base_util_sort_i4b(arr)
+         !! author: David A. Minton
+         !!
+         !! Sort input integer array in place into ascending numerical order using quick sort.
+         !! This algorithm works well for partially sorted arrays (which is usually the case here)
+         !!
+         implicit none
+         ! Arguments
+         integer(I4B), dimension(:), intent(inout) :: arr
+
+         call base_util_sort_qsort_I4B(arr)
+
+         return
+      end subroutine base_util_sort_i4b
+
+
+      pure subroutine base_util_sort_index_I4B(arr, ind)
+         !! author: David A. Minton
+         !!
+         !! Sort input integer array by index in ascending numerical order using quicksort.
+         !! If ind is supplied already allocated, we assume it is an existing index array (e.g. a previously
+         !! sorted array). If it is not allocated, this subroutine swiftest_allocates it.
+         !!
+         implicit none
+         ! Arguments
+         integer(I4B), dimension(:),              intent(in)  :: arr
+         integer(I4B), dimension(:), allocatable, intent(inout) :: ind
+         ! Internals
+         integer(I4B) :: n, i
+         integer(I4B), dimension(:), allocatable :: tmparr
+
+         n = size(arr)
+         if (.not.allocated(ind)) then
+            allocate(ind(n))
+            ind = [(i, i=1, n)]
+         end if
+         allocate(tmparr, mold=arr)
+         tmparr(:) = arr(ind(:))
+         call base_util_sort_qsort_I4B(tmparr, ind)
+
+         return
+      end subroutine base_util_sort_index_I4B
+
+
+      pure subroutine base_util_sort_index_I4B_I8Bind(arr, ind)
+         !! author: David A. Minton
+         !!
+         !! Sort input integer array by index in ascending numerical order using quicksort.
+         !! If ind is supplied already allocated, we assume it is an existing index array (e.g. a previously
+         !! sorted array). If it is not allocated, this subroutine swiftest_allocates it.
+         !!
+         implicit none
+         ! Arguments
+         integer(I4B), dimension(:),              intent(in)  :: arr
+         integer(I8B), dimension(:), allocatable, intent(inout) :: ind
+         ! Internals
+         integer(I8B) :: n, i
+         integer(I4B), dimension(:), allocatable :: tmparr
+
+         n = size(arr)
+         if (.not.allocated(ind)) then
+            allocate(ind(n))
+            ind = [(i, i=1_I8B, n)]
+         end if
+         allocate(tmparr, mold=arr)
+         tmparr(:) = arr(ind(:))
+         call base_util_sort_qsort_I4B_I8Bind(tmparr, ind)
+
+         return
+      end subroutine base_util_sort_index_I4B_I8Bind
+
+
+      pure subroutine base_util_sort_index_I8B_I8Bind(arr, ind)
+         !! author: David A. Minton
+         !!
+         !! Sort input integer array by index in ascending numerical order using quicksort.
+         !! If ind is supplied already allocated, we assume it is an existing index array (e.g. a previously
+         !! sorted array). If it is not allocated, this subroutine swiftest_allocates it.
+         !!
+         implicit none
+         ! Arguments
+         integer(I8B), dimension(:),              intent(in)  :: arr
+         integer(I8B), dimension(:), allocatable, intent(inout) :: ind
+         ! Internals
+         integer(I8B) :: n, i
+         integer(I8B), dimension(:), allocatable :: tmparr
+
+         n = size(arr)
+         if (.not.allocated(ind)) then
+            allocate(ind(n))
+            ind = [(i, i=1_I8B, n)]
+         end if
+         allocate(tmparr, mold=arr)
+         tmparr(:) = arr(ind(:))
+         call base_util_sort_qsort_I8B_I8Bind(tmparr, ind)
+
+         return
+      end subroutine base_util_sort_index_I8B_I8Bind
+
+
+      recursive pure subroutine base_util_sort_qsort_I4B(arr, ind)
+         !! author: David A. Minton
+         !!
+         !! Sort input I4B array by index in ascending numerical order using quicksort.
+         !!
+         implicit none
+         ! Arguments
+         integer(I4B), dimension(:), intent(inout)          :: arr
+         integer(I4B), dimension(:), intent(out),  optional :: ind
+         ! Internals
+         integer(I4B) :: iq
+
+         if (size(arr) > 1) then
+            if (present(ind)) then
+               call base_util_sort_partition_I4B(arr, iq, ind)
+               call base_util_sort_qsort_I4B(arr(:iq-1),ind(:iq-1))
+               call base_util_sort_qsort_I4B(arr(iq:),  ind(iq:))
+            else
+               call base_util_sort_partition_I4B(arr, iq)
+               call base_util_sort_qsort_I4B(arr(:iq-1))
+               call base_util_sort_qsort_I4B(arr(iq:))
+            end if
+         end if
+
+         return
+      end subroutine base_util_sort_qsort_I4B
+
+
+      recursive pure subroutine base_util_sort_qsort_I4B_I8Bind(arr, ind)
+         !! author: David A. Minton
+         !!
+         !! Sort input I4B array by index in ascending numerical order using quicksort.
+         !!
+         implicit none
+         ! Arguments
+         integer(I4B), dimension(:), intent(inout)          :: arr
+         integer(I8B), dimension(:), intent(out),  optional :: ind
+         ! Internals
+         integer(I8B) :: iq
+
+         if (size(arr) > 1_I8B) then
+            if (present(ind)) then
+               call base_util_sort_partition_I4B_I8Bind(arr, iq, ind)
+               call base_util_sort_qsort_I4B_I8Bind(arr(:iq-1_I8B),ind(:iq-1_I8B))
+               call base_util_sort_qsort_I4B_I8Bind(arr(iq:),  ind(iq:))
+            else
+               call base_util_sort_partition_I4B_I8Bind(arr, iq)
+               call base_util_sort_qsort_I4B_I8Bind(arr(:iq-1_I8B))
+               call base_util_sort_qsort_I4B_I8Bind(arr(iq:))
+            end if
+         end if
+
+         return
+      end subroutine base_util_sort_qsort_I4B_I8Bind
+
+
+      recursive pure subroutine base_util_sort_qsort_I8B_I8Bind(arr, ind)
+         !! author: David A. Minton
+         !!
+         !! Sort input I8B array by index in ascending numerical order using quicksort.
+         !!
+         implicit none
+         ! Arguments
+         integer(I8B), dimension(:), intent(inout)          :: arr
+         integer(I8B), dimension(:), intent(out),  optional :: ind
+         ! Internals
+         integer(I8B) :: iq
+
+         if (size(arr) > 1_I8B) then
+            if (present(ind)) then
+               call base_util_sort_partition_I8B_I8Bind(arr, iq, ind)
+               call base_util_sort_qsort_I8B_I8Bind(arr(:iq-1_I8B),ind(:iq-1_I8B))
+               call base_util_sort_qsort_I8B_I8Bind(arr(iq:),  ind(iq:))
+            else
+               call base_util_sort_partition_I8B_I8Bind(arr, iq)
+               call base_util_sort_qsort_I8B_I8Bind(arr(:iq-1_I8B))
+               call base_util_sort_qsort_I8B_I8Bind(arr(iq:))
+            end if
+         end if
+
+         return
+      end subroutine base_util_sort_qsort_I8B_I8Bind
+
+   
+      pure subroutine base_util_sort_partition_I4B(arr, marker, ind)
+         !! author: David A. Minton
+         !!
+         !! Partition function for quicksort on I4B type
+         !!
+         implicit none
+         ! Arguments
+         integer(I4B), intent(inout), dimension(:)           :: arr
+         integer(I4B), intent(inout), dimension(:), optional :: ind
+         integer(I4B), intent(out)                           :: marker
+         ! Internals
+         integer(I4B) :: i, j, itmp, narr, ipiv
+         integer(I4B) :: temp
+         integer(I4B) :: x   ! pivot point
+
+         narr = size(arr)
+
+         ! Get center as pivot, as this is likely partially sorted
+         ipiv = narr / 2
+         x = arr(ipiv)
+         i = 0
+         j = narr + 1
+      
+         do
+            j = j - 1
+            do
+               if (arr(j) <= x) exit
+               j = j - 1
+            end do
+            i = i + 1
+            do
+               if (arr(i) >= x) exit
+               i = i + 1
+            end do
+            if (i < j) then
+               ! exchange A(i) and A(j)
+               temp = arr(i)
+               arr(i) = arr(j)
+               arr(j) = temp
+               if (present(ind)) then
+                  itmp = ind(i)
+                  ind(i) = ind(j)
+                  ind(j) = itmp
+               end if
+            else if (i == j) then
+               marker = i + 1
+               return
+            else
+               marker = i
+               return
+            endif
+         end do
+   
+         return
+      end subroutine base_util_sort_partition_I4B
+
+
+      pure subroutine base_util_sort_partition_I4B_I8Bind(arr, marker, ind)
+         !! author: David A. Minton
+         !!
+         !! Partition function for quicksort on I4B type
+         !!
+         implicit none
+         ! Arguments
+         integer(I4B), intent(inout), dimension(:)           :: arr
+         integer(I8B), intent(inout), dimension(:), optional :: ind
+         integer(I8B), intent(out)                           :: marker
+         ! Internals
+         integer(I8B) :: i, j, itmp, narr, ipiv
+         integer(I4B) :: temp
+         integer(I8B) :: x   ! pivot point
+
+         narr = size(arr)
+
+         ! Get center as pivot, as this is likely partially sorted
+         ipiv = narr / 2_I8B
+         x = arr(ipiv)
+         i = 0_I8B
+         j = narr + 1_I8B
+      
+         do
+            j = j - 1_I8B
+            do
+               if (arr(j) <= x) exit
+               j = j - 1_I8B
+            end do
+            i = i + 1_I8B
+            do
+               if (arr(i) >= x) exit
+               i = i + 1_I8B
+            end do
+            if (i < j) then
+               ! exchange A(i) and A(j)
+               temp = arr(i)
+               arr(i) = arr(j)
+               arr(j) = temp
+               if (present(ind)) then
+                  itmp = ind(i)
+                  ind(i) = ind(j)
+                  ind(j) = itmp
+               end if
+            else if (i == j) then
+               marker = i + 1_I8B
+               return
+            else
+               marker = i
+               return
+            endif
+         end do
+   
+         return
+      end subroutine base_util_sort_partition_I4B_I8Bind
+
+
+      pure subroutine base_util_sort_partition_I8B_I8Bind(arr, marker, ind)
+         !! author: David A. Minton
+         !!
+         !! Partition function for quicksort on I8B type with I8B index
+         !!
+         implicit none
+         ! Arguments
+         integer(I8B), intent(inout), dimension(:)           :: arr
+         integer(I8B), intent(inout), dimension(:), optional :: ind
+         integer(I8B), intent(out)                           :: marker
+         ! Internals
+         integer(I8B) :: i, j, itmp, narr, ipiv
+         integer(I8B) :: temp
+         integer(I8B) :: x   ! pivot point
+
+         narr = size(arr)
+
+         ! Get center as pivot, as this is likely partially sorted
+         ipiv = narr / 2_I8B
+         x = arr(ipiv)
+         i = 0_I8B
+         j = narr + 1_I8B
+      
+         do
+            j = j - 1_I8B
+            do
+               if (arr(j) <= x) exit
+               j = j - 1_I8B
+            end do
+            i = i + 1_I8B
+            do
+               if (arr(i) >= x) exit
+               i = i + 1_I8B
+            end do
+            if (i < j) then
+               ! exchange A(i) and A(j)
+               temp = arr(i)
+               arr(i) = arr(j)
+               arr(j) = temp
+               if (present(ind)) then
+                  itmp = ind(i)
+                  ind(i) = ind(j)
+                  ind(j) = itmp
+               end if
+            else if (i == j) then
+               marker = i + 1_I8B
+               return
+            else
+               marker = i
+               return
+            endif
+         end do
+   
+         return
+      end subroutine base_util_sort_partition_I8B_I8Bind
+
+
+      pure subroutine base_util_sort_sp(arr)
+         !! author: David A. Minton
+         !!
+         !! Sort input DP precision array in place into ascending numerical order using quicksort.
+         !!
+         implicit none
+         ! Arguments
+         real(SP), dimension(:), intent(inout) :: arr
+
+         call base_util_sort_qsort_SP(arr)
+
+         return
+      end subroutine base_util_sort_sp
+
+
+      pure subroutine base_util_sort_index_sp(arr, ind)
+         !! author: David A. Minton
+         !!
+         !! Sort input DP precision array by index in ascending numerical order using quicksort.
+         !! If ind is supplied already allocated, we assume it is an existing index array (e.g. a previously
+         !! sorted array). If it is not allocated, this subroutine swiftest_allocates it.
+         !!
+         implicit none
+         ! Arguments
+         real(SP),     dimension(:),              intent(in)    :: arr
+         integer(I4B), dimension(:), allocatable, intent(inout) :: ind
+         ! Internals
+         integer(I4B) :: n, i
+         real(SP), dimension(:), allocatable :: tmparr
+
+         n = size(arr)
+         if (.not.allocated(ind)) then
+            allocate(ind(n))
+            ind = [(i, i=1, n)]
+         end if
+         allocate(tmparr, mold=arr)
+         tmparr(:) = arr(ind(:))
+         call base_util_sort_qsort_SP(tmparr, ind)
+      
+         return
+      end subroutine base_util_sort_index_sp
+
+
+      recursive pure subroutine base_util_sort_qsort_SP(arr, ind)
+         !! author: David A. Minton
+         !!
+         !! Sort input DP precision array by index in ascending numerical order using quicksort.
+         !!
+         implicit none
+         ! Arguments
+         real(SP), dimension(:), intent(inout)           :: arr
+         integer(I4B),dimension(:),intent(out), optional :: ind
+         !! Internals
+         integer :: iq
+
+         if (size(arr) > 1) then
+            if (present(ind)) then
+               call base_util_sort_partition_SP(arr, iq, ind)
+               call base_util_sort_qsort_SP(arr(:iq-1),ind(:iq-1))
+               call base_util_sort_qsort_SP(arr(iq:),  ind(iq:))
+            else
+               call base_util_sort_partition_SP(arr, iq)
+               call base_util_sort_qsort_SP(arr(:iq-1))
+               call base_util_sort_qsort_SP(arr(iq:))
+            end if
+         end if
+
+         return
+      end subroutine base_util_sort_qsort_SP
+
+
+      pure subroutine base_util_sort_partition_SP(arr, marker, ind)
+         !! author: David A. Minton
+         !!
+         !! Partition function for quicksort on SP type
+         !!
+         implicit none
+         ! Arguments
+         real(SP),     intent(inout), dimension(:)           :: arr
+         integer(I4B), intent(inout), dimension(:), optional :: ind
+         integer(I4B), intent(out)                           :: marker
+         ! Internals
+         integer(I4B) :: i, j, itmp, narr, ipiv
+         real(SP) :: temp
+         real(SP) :: x   ! pivot point
+
+         narr = size(arr)
+
+         ! Get center as pivot, as this is likely partially sorted
+         ipiv = narr / 2
+         x = arr(ipiv)
+         i = 0
+         j = narr + 1
+      
+         do
+            j = j - 1
+            do
+               if (arr(j) <= x) exit
+               j = j - 1
+            end do
+            i = i + 1
+            do
+               if (arr(i) >= x) exit
+               i = i + 1
+            end do
+            if (i < j) then
+               ! exchange A(i) and A(j)
+               temp = arr(i)
+               arr(i) = arr(j)
+               arr(j) = temp
+               if (present(ind)) then
+                  itmp = ind(i)
+                  ind(i) = ind(j)
+                  ind(j) = itmp
+               end if
+            else if (i == j) then
+               marker = i + 1
+               return
+            else
+               marker = i
+               return
+            endif
+         end do
+   
+         return
+      end subroutine base_util_sort_partition_SP
+
+      
+      pure subroutine base_util_sort_rearrange_arr_char_string(arr, ind, n)
+         !! author: David A. Minton
+         !!
+         !! Rearrange a single array of character string in-place from an index list.
+         implicit none
+         ! Arguments
+         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I4B),          dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I4B),                                     intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+         ! Internals
+         character(len=STRMAX), dimension(:), allocatable                :: tmp !! Temporary copy of arry used during rearrange operation
+
+         if (.not. allocated(arr) .or. n <= 0) return
+         allocate(tmp, mold=arr)
+         tmp(1:n) = arr(ind)
+         call move_alloc(tmp, arr)
+
+         return
+      end subroutine base_util_sort_rearrange_arr_char_string
+
+
+      pure subroutine base_util_sort_rearrange_arr_DP(arr, ind, n)
+         !! author: David A. Minton
+         !!
+         !! Rearrange a single array of DP type in-place from an index list.
+         implicit none
+         ! Arguments
+         real(DP),     dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I4B), dimension(:),              intent(in)  :: ind !! Index to rearrange against
+         integer(I4B),                            intent(in)  :: n   !! Number of elements in arr and ind to rearrange
+         ! Internals
+         real(DP), dimension(:), allocatable :: tmp !! Temporary copy of array used during rearrange operation
+
+         if (.not. allocated(arr) .or. n <= 0) return
+         allocate(tmp, mold=arr)
+         tmp(1:n) = arr(ind)
+         call move_alloc(tmp, arr)
+
+         return
+      end subroutine base_util_sort_rearrange_arr_DP
+
+
+      pure subroutine base_util_sort_rearrange_arr_DPvec(arr, ind, n)
+         !! author: David A. Minton
+         !!
+         !! Rearrange a single array of (NDIM,n) DP-type vectors in-place from an index list.
+         implicit none
+         ! Arguments
+         real(DP),     dimension(:,:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I4B), dimension(:),                intent(in)    :: ind !! Index to rearrange against
+         integer(I4B),                              intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+         ! Internals
+         real(DP), dimension(:,:), allocatable :: tmp !! Temporary copy of array used during rearrange operation
+
+         if (.not. allocated(arr) .or. n <= 0) return
+         allocate(tmp, mold=arr)
+         tmp(:,1:n) = arr(:, ind)
+         call move_alloc(tmp, arr)
+
+         return
+      end subroutine base_util_sort_rearrange_arr_DPvec
+
+
+      pure subroutine base_util_sort_rearrange_arr_I4B(arr, ind, n)
+         !! author: David A. Minton
+         !!
+         !! Rearrange a single array of integers in-place from an index list.
+         implicit none
+         ! Arguments
+         integer(I4B), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I4B),                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+         ! Internals
+         integer(I4B), dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
+
+         if (.not. allocated(arr) .or. n <= 0) return
+         allocate(tmp, mold=arr)
+         tmp(1:n) = arr(ind)
+         call move_alloc(tmp, arr)
+
+         return
+      end subroutine base_util_sort_rearrange_arr_I4B
+
+      pure subroutine base_util_sort_rearrange_arr_I4B_I8Bind(arr, ind, n)
+         !! author: David A. Minton
+         !!
+         !! Rearrange a single array of integers in-place from an index list.
+         implicit none
+         ! Arguments
+         integer(I4B), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I8B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I8B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+         ! Internals
+         integer(I4B), dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
+
+         if (.not. allocated(arr) .or. n <= 0_I8B) return
+         allocate(tmp, mold=arr)
+         tmp(1:n) = arr(ind)
+         call move_alloc(tmp, arr)
+
+         return
+      end subroutine base_util_sort_rearrange_arr_I4B_I8Bind
+
+
+      pure subroutine base_util_sort_rearrange_arr_logical_I8Bind(arr, ind, n)
+         !! author: David A. Minton
+         !!
+         !! Rearrange a single array of logicals in-place from an index list.
+         implicit none
+         ! Arguments
+         logical,      dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I8B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I8B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+         ! Internals
+         logical, dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
+
+         if (.not. allocated(arr) .or. n <= 0) return
+         allocate(tmp, mold=arr)
+         tmp(1:n) = arr(ind)
+         call move_alloc(tmp, arr)
+
+         return
+      end subroutine base_util_sort_rearrange_arr_logical_I8Bind
+
+
+      pure subroutine base_util_sort_rearrange_arr_logical(arr, ind, n)
+         !! author: David A. Minton
+         !!
+         !! Rearrange a single array of logicals in-place from an index list.
+         implicit none
+         ! Arguments
+         logical,      dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
+         integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+         ! Internals
+         logical, dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
+
+         if (.not. allocated(arr) .or. n <= 0) return
+         allocate(tmp, mold=arr)
+         tmp(1:n) = arr(ind)
+         call move_alloc(tmp, arr)
+
+         return
+      end subroutine base_util_sort_rearrange_arr_logical
+
+
+      subroutine base_util_unique_DP(input_array, output_array, index_map)
+         !! author: David A. Minton
+         !!
+         !! Takes an input unsorted integer array and returns a new array of sorted, unique values (DP version)
+         implicit none
+         ! Arguments
+         real(DP),     dimension(:),              intent(in)  :: input_array  !! Unsorted input array 
+         real(DP),     dimension(:), allocatable, intent(out) :: output_array !! Sorted array of unique values 
+         integer(I4B), dimension(:), allocatable, intent(out) :: index_map    !! An array of the same size as input_array that such that any for any index i, output_array(index_map(i)) = input_array(i)       
+         ! Internals
+         real(DP), dimension(:), allocatable :: unique_array
+         integer(I4B) :: n
+         real(DP) :: lo, hi
+   
+         allocate(unique_array, mold=input_array)
+         allocate(index_map(size(input_array)))
+         lo = minval(input_array) - 1
+         hi = maxval(input_array)
+   
+         n = 0
+         do 
+            n = n + 1
+            lo = minval(input_array(:), mask=input_array(:) > lo)
+            unique_array(n) = lo
+            where(input_array(:) == lo) index_map(:) = n
+            if (lo >= hi) exit
+         enddo
+         allocate(output_array(n), source=unique_array(1:n)) 
+   
+         return
+      end subroutine base_util_unique_DP
+   
+
+      subroutine base_util_unique_I4B(input_array, output_array, index_map)
+         !! author: David A. Minton
+         !!
+         !! Takes an input unsorted integer array and returns a new array of sorted, unique values (I4B version)
+         implicit none
+         ! Arguments
+         integer(I4B), dimension(:),              intent(in)  :: input_array  !! Unsorted input array 
+         integer(I4B), dimension(:), allocatable, intent(out) :: output_array !! Sorted array of unique values
+         integer(I4B), dimension(:), allocatable, intent(out) :: index_map    !! An array of the same size as input_array that such that any for any index i, output_array(index_map(i)) = input_array(i)     
+         ! Internals
+         integer(I4B), dimension(:), allocatable :: unique_array
+         integer(I4B) :: n, lo, hi
+   
+         allocate(unique_array, mold=input_array)
+         allocate(index_map, mold=input_array)
+         lo = minval(input_array) - 1
+         hi = maxval(input_array)
+   
+         n = 0
+         do 
+            n = n + 1
+            lo = minval(input_array(:), mask=input_array(:) > lo)
+            unique_array(n) = lo
+            where(input_array(:) == lo) index_map(:) = n
+            if (lo >= hi) exit
+         enddo
+         allocate(output_array(n), source=unique_array(1:n)) 
+   
+         return
+      end subroutine base_util_unique_I4B
+
 
       subroutine base_final_storage(self)
          !! author: David A. Minton
@@ -524,7 +2214,6 @@ module base
 
          return
       end subroutine base_coclone_param 
-
 #endif
     
 

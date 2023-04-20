@@ -15,221 +15,96 @@ submodule (swiftest) s_swiftest_util
    use fraggle
 contains
 
-   module subroutine swiftest_util_append_arr_char_string(arr, source, nold, nsrc, lsource_mask)
-      !! author: David A. Minton
-      !!
-      !! Append a single array of character string type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
-      implicit none
-      ! Arguments
-      character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-      character(len=STRMAX), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-      integer(I4B),                                     intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-      logical,               dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      ! Internals
-      integer(I4B) :: nnew
 
-      if (.not. allocated(source)) return
-
-      nnew = count(lsource_mask(1:nsrc))
-      if (nnew == 0) return
-
-      if (.not.allocated(arr)) then
-         allocate(arr(nold+nnew))
-      else
-         call swiftest_util_resize(arr, nold + nnew)
-      end if
-
-      arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
-
-      return
-   end subroutine swiftest_util_append_arr_char_string
-
-
-   module subroutine swiftest_util_append_arr_DP(arr, source, nold, nsrc, lsource_mask)
-      !! author: David A. Minton
-      !!
-      !! Append a single array of double precision type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
-      implicit none
-      ! Arguments
-      real(DP), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-      real(DP), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-      integer(I4B),                        intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-      logical,  dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      ! Internals
-      integer(I4B) :: nnew
-
-      if (.not. allocated(source)) return
-
-      nnew = count(lsource_mask(1:nsrc))
-      if (nnew == 0) return
-
-      if (.not.allocated(arr)) then
-         allocate(arr(nold+nnew))
-      else
-         call swiftest_util_resize(arr, nold + nnew)
-      end if
-
-      arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
-
-      return
-   end subroutine swiftest_util_append_arr_DP
-
-
-   module subroutine swiftest_util_append_arr_DPvec(arr, source, nold, nsrc, lsource_mask)
-      !! author: David A. Minton
-      !!
-      !! Append a single array of double precision vector type of size (NDIM, n) onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
-      implicit none
-      ! Arguments
-      real(DP), dimension(:,:), allocatable, intent(inout) :: arr          !! Destination array 
-      real(DP), dimension(:,:), allocatable, intent(in)    :: source       !! Array to append 
-      integer(I4B),                          intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-      logical,  dimension(:),                intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      ! Internals
-      integer(I4B) :: nnew
-
-      if (.not. allocated(source)) return
-
-      nnew = count(lsource_mask(1:nsrc))
-      if (nnew == 0) return
-
-      if (.not.allocated(arr)) then
-         allocate(arr(NDIM,nold+nnew))
-      else
-         call swiftest_util_resize(arr, nold + nnew)
-      end if
-
-      arr(1, nold + 1:nold + nnew) = pack(source(1,1:nsrc), lsource_mask(1:nsrc))
-      arr(2, nold + 1:nold + nnew) = pack(source(2,1:nsrc), lsource_mask(1:nsrc))
-      arr(3, nold + 1:nold + nnew) = pack(source(3,1:nsrc), lsource_mask(1:nsrc))
-
-      return
-   end subroutine swiftest_util_append_arr_DPvec
-
-
-   module subroutine swiftest_util_append_arr_I4B(arr, source, nold, nsrc, lsource_mask)
-      !! author: David A. Minton
-      !!
-      !! Append a single array of integer(I4B) onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
-      implicit none
-      ! Arguments
-      integer(I4B), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-      integer(I4B), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-      integer(I4B),                            intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-      logical,      dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      ! Internals
-      integer(I4B) :: nnew
-
-      if (.not. allocated(source)) return
-
-      nnew = count(lsource_mask(1:nsrc))
-      if (nnew == 0) return
-
-      if (.not.allocated(arr)) then
-         allocate(arr(nold+nnew))
-      else
-         call swiftest_util_resize(arr, nold + nnew)
-      end if
-
-      arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
-
-      return
-   end subroutine swiftest_util_append_arr_I4B
-
-
-   module subroutine swiftest_util_append_arr_info(arr, source, nold, nsrc, lsource_mask)
+   module subroutine swiftest_util_append_arr_info(arr, source, nold, lsource_mask)
       !! author: David A. Minton
       !!
       !! Append a single array of particle information type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
       implicit none
       ! Arguments
-      type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-      type(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-      integer(I4B),                                            intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-      logical,                       dimension(:),             intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      type(swiftest_particle_info), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
+      type(swiftest_particle_info), dimension(:),              intent(in)           :: source       !! Array to append 
+      integer(I4B),                                            intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
+      logical,                      dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
-      integer(I4B) :: nnew, i
+      integer(I4B) :: nnew, nsrc, nend_orig, i
       integer(I4B), dimension(:), allocatable :: idx
 
-      if (.not. allocated(source)) return
-
-      nnew = count(lsource_mask(1:nsrc))
-      if (nnew == 0) return
+      if (present(lsource_mask)) then
+         nsrc = count(lsource_mask(:))
+      else
+         nsrc = size(source)
+      end if
+      if (nsrc == 0) return
 
       if (.not.allocated(arr)) then
-         allocate(arr(nold+nnew))
+         nend_orig = 0
+         allocate(arr(nsrc))
       else
-         call swiftest_util_resize(arr, nold + nnew)
+         if (present(nold)) then
+            nend_orig = nold
+         else
+            nend_orig = size(arr)
+         end if
+         call util_resize(arr, nend_orig + nsrc)
       end if
+      nnew = nend_orig + nsrc
 
-      allocate(idx(nnew))
+      allocate(idx(nsrc))
+      if (present(lsource_mask)) then
+         idx = pack([(i, i = 1, size(lsource_mask))], lsource_mask(:))
+      else
+         idx = [(i, i = 1,nsrc)]
+      end  if
 
-      idx = pack([(i, i = 1, nsrc)], lsource_mask(1:nsrc))
-
-      call swiftest_util_copy_particle_info_arr(source(1:nsrc), arr(nold+1:nold+nnew), idx)
+      call swiftest_util_copy_particle_info_arr(source(:), arr(nold+1:nnew), idx)
 
       return
    end subroutine swiftest_util_append_arr_info
 
 
-   module subroutine swiftest_util_append_arr_kin(arr, source, nold, nsrc, lsource_mask)
+   module subroutine swiftest_util_append_arr_kin(arr, source, nold, lsource_mask)
       !! author: David A. Minton
       !!
       !! Append a single array of kinship type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
       implicit none
       ! Arguments
-      type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-      type(swiftest_kinship), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-      integer(I4B),                                   intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-      logical,             dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      type(swiftest_kinship), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
+      type(swiftest_kinship), dimension(:),              intent(in)           :: source       !! Array to append 
+      integer(I4B),                                      intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
+      logical,                dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
-      integer(I4B) :: nnew
+      integer(I4B) :: nnew, nsrc, nend_orig
 
-      if (.not. allocated(source)) return
-
-      nnew = count(lsource_mask(1:nsrc))
-      if (nnew == 0) return
+      if (present(lsource_mask)) then
+         nsrc = count(lsource_mask(:))
+      else
+         nsrc = size(source)
+      end if
+      if (nsrc == 0) return
 
       if (.not.allocated(arr)) then
-         allocate(arr(nold+nnew))
+         nend_orig = 0
+         allocate(arr(nsrc))
       else
-         call swiftest_util_resize(arr, nold + nnew)
+         if (present(nold)) then
+            nend_orig = nold
+         else
+            nend_orig = size(arr)
+         end if
+         call util_resize(arr, nend_orig + nsrc)
       end if
+      nnew = nend_orig + nsrc
 
-      arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
+      if (present(lsource_mask)) then
+         arr(nold + 1:nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
+      else
+         arr(nold + 1:nnew) = source(1:nsrc)
+      end if
 
       return
    end subroutine swiftest_util_append_arr_kin
 
-
-   module subroutine swiftest_util_append_arr_logical(arr, source, nold, nsrc, lsource_mask)
-      !! author: David A. Minton
-      !!
-      !! Append a single array of logical type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
-      implicit none
-      ! Arguments
-      logical, dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-      logical, dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-      integer(I4B),                       intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-      logical, dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      ! Internals
-      integer(I4B) :: nnew
-
-      if (.not. allocated(source)) return
-
-      nnew = count(lsource_mask(1:nsrc))
-      if (nnew == 0) return
-
-      if (.not.allocated(arr)) then
-         allocate(arr(nold+nnew))
-      else
-         call swiftest_util_resize(arr, nold + nnew)
-      end if
-
-      arr(nold + 1:nold + nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
-
-      return
-   end subroutine swiftest_util_append_arr_logical
 
 
    module subroutine swiftest_util_append_body(self, source, lsource_mask)
@@ -243,40 +118,36 @@ contains
       class(swiftest_body),  intent(in)    :: source       !! Source object to append
       logical, dimension(:), intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
-      integer(I4B) :: nold, nsrc, nnew
 
-      nold = self%nbody
-      nsrc = source%nbody
-      nnew = count(lsource_mask(1:nsrc))
 
-      call swiftest_util_append(self%id, source%id, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%info, source%info, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%lmask, source%lmask, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%status, source%status, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%ldiscard, source%ldiscard, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%lencounter, source%lencounter, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%lcollision, source%lcollision, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%mu, source%mu, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%rh, source%rh, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%vh, source%vh, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%rb, source%rb, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%vb, source%vb, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%ah, source%ah, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%aobl, source%aobl, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%atide, source%atide, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%agr, source%agr, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%ir3h, source%ir3h, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%isperi, source%isperi, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%peri, source%peri, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%atp, source%atp, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%a, source%a, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%e, source%e, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%inc, source%inc, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%capom, source%capom, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%omega, source%omega, nold, nsrc, lsource_mask)
-      call swiftest_util_append(self%capm, source%capm, nold, nsrc, lsource_mask)
+      call util_append(self%id, source%id, lsource_mask=lsource_mask)
+      call util_append(self%info, source%info, lsource_mask=lsource_mask)
+      call util_append(self%lmask, source%lmask, lsource_mask=lsource_mask)
+      call util_append(self%status, source%status, lsource_mask=lsource_mask)
+      call util_append(self%ldiscard, source%ldiscard, lsource_mask=lsource_mask)
+      call util_append(self%lencounter, source%lencounter, lsource_mask=lsource_mask)
+      call util_append(self%lcollision, source%lcollision, lsource_mask=lsource_mask)
+      call util_append(self%mu, source%mu, lsource_mask=lsource_mask)
+      call util_append(self%rh, source%rh, lsource_mask=lsource_mask)
+      call util_append(self%vh, source%vh, lsource_mask=lsource_mask)
+      call util_append(self%rb, source%rb, lsource_mask=lsource_mask)
+      call util_append(self%vb, source%vb, lsource_mask=lsource_mask)
+      call util_append(self%ah, source%ah, lsource_mask=lsource_mask)
+      call util_append(self%aobl, source%aobl, lsource_mask=lsource_mask)
+      call util_append(self%atide, source%atide, lsource_mask=lsource_mask)
+      call util_append(self%agr, source%agr, lsource_mask=lsource_mask)
+      call util_append(self%ir3h, source%ir3h, lsource_mask=lsource_mask)
+      call util_append(self%isperi, source%isperi, lsource_mask=lsource_mask)
+      call util_append(self%peri, source%peri, lsource_mask=lsource_mask)
+      call util_append(self%atp, source%atp, lsource_mask=lsource_mask)
+      call util_append(self%a, source%a, lsource_mask=lsource_mask)
+      call util_append(self%e, source%e, lsource_mask=lsource_mask)
+      call util_append(self%inc, source%inc, lsource_mask=lsource_mask)
+      call util_append(self%capom, source%capom, lsource_mask=lsource_mask)
+      call util_append(self%omega, source%omega, lsource_mask=lsource_mask)
+      call util_append(self%capm, source%capm, lsource_mask=lsource_mask)
 
-      self%nbody = nold + nnew
+      self%nbody = self%nbody + count(lsource_mask(:))
 
       return
    end subroutine swiftest_util_append_body
@@ -295,30 +166,28 @@ contains
 
       select type(source)
       class is (swiftest_pl)
-         associate(nold => self%nbody, nsrc => source%nbody)
-            call swiftest_util_append(self%mass, source%mass, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%Gmass, source%Gmass, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%rhill, source%rhill, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%renc, source%renc, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%radius, source%radius, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%density, source%density, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%rbeg, source%rbeg, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%rend, source%rend, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%vbeg, source%vbeg, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%Ip, source%Ip, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%rot, source%rot, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%k2, source%k2, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%Q, source%Q, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%tlag, source%tlag, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%kin, source%kin, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%lmtiny, source%lmtiny, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%nplenc, source%nplenc, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%ntpenc, source%ntpenc, nold, nsrc, lsource_mask)
+         call util_append(self%mass, source%mass, lsource_mask=lsource_mask)
+         call util_append(self%Gmass, source%Gmass, lsource_mask=lsource_mask)
+         call util_append(self%rhill, source%rhill, lsource_mask=lsource_mask)
+         call util_append(self%renc, source%renc, lsource_mask=lsource_mask)
+         call util_append(self%radius, source%radius, lsource_mask=lsource_mask)
+         call util_append(self%density, source%density, lsource_mask=lsource_mask)
+         call util_append(self%rbeg, source%rbeg, lsource_mask=lsource_mask)
+         call util_append(self%rend, source%rend, lsource_mask=lsource_mask)
+         call util_append(self%vbeg, source%vbeg, lsource_mask=lsource_mask)
+         call util_append(self%Ip, source%Ip, lsource_mask=lsource_mask)
+         call util_append(self%rot, source%rot, lsource_mask=lsource_mask)
+         call util_append(self%k2, source%k2, lsource_mask=lsource_mask)
+         call util_append(self%Q, source%Q, lsource_mask=lsource_mask)
+         call util_append(self%tlag, source%tlag, lsource_mask=lsource_mask)
+         call util_append(self%kin, source%kin, lsource_mask=lsource_mask)
+         call util_append(self%lmtiny, source%lmtiny, lsource_mask=lsource_mask)
+         call util_append(self%nplenc, source%nplenc, lsource_mask=lsource_mask)
+         call util_append(self%ntpenc, source%ntpenc, lsource_mask=lsource_mask)
 
-            if (allocated(self%k_plpl)) deallocate(self%k_plpl)
+         if (allocated(self%k_plpl)) deallocate(self%k_plpl)
 
-            call swiftest_util_append_body(self, source, lsource_mask)
-         end associate
+         call swiftest_util_append_body(self, source, lsource_mask)
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class swiftest_pl or its descendents"
          call base_util_exit(FAILURE)
@@ -341,11 +210,9 @@ contains
 
       select type(source)
       class is (swiftest_tp)
-         associate(nold => self%nbody, nsrc => source%nbody)
-            call swiftest_util_append(self%nplenc, source%nplenc, nold, nsrc, lsource_mask)
+         call util_append(self%nplenc, source%nplenc, lsource_mask=lsource_mask)
 
-            call swiftest_util_append_body(self, source, lsource_mask)
-         end associate
+         call swiftest_util_append_body(self, source, lsource_mask)
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class swiftest_tp or its descendents"
          call base_util_exit(FAILURE)
@@ -958,89 +825,6 @@ contains
    end subroutine swiftest_util_dealloc_tp
 
 
-   module subroutine swiftest_util_fill_arr_char_string(keeps, inserts, lfill_list)
-      !! author: David A. Minton
-      !!
-      !! Performs a fill operation on a single array of type character strings
-      !! This is the inverse of a spill operation
-      implicit none
-      ! Arguments
-      character(len=STRMAX), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-      character(len=STRMAX), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-      logical,               dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-
-      if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
-
-      keeps(:) = unpack(keeps(:),   .not.lfill_list(:), keeps(:))
-      keeps(:) = unpack(inserts(:),      lfill_list(:), keeps(:))
-
-      return
-   end subroutine swiftest_util_fill_arr_char_string
-
-
-   module subroutine swiftest_util_fill_arr_DP(keeps, inserts, lfill_list)
-      !! author: David A. Minton
-      !!
-      !! Performs a fill operation on a single array of type DP
-      !! This is the inverse of a spill operation
-      implicit none
-      ! Arguments
-      real(DP), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-      real(DP), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-      logical,  dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-
-      if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
-
-      keeps(:) = unpack(keeps(:),   .not.lfill_list(:), keeps(:))
-      keeps(:) = unpack(inserts(:),      lfill_list(:), keeps(:))
-
-      return
-   end subroutine swiftest_util_fill_arr_DP
-
-
-   module subroutine swiftest_util_fill_arr_DPvec(keeps, inserts, lfill_list)
-      !! author: David A. Minton
-      !!
-      !! Performs a fill operation on a single array of DP vectors with shape (NDIM, n)
-      !! This is the inverse of a spill operation
-      implicit none
-      ! Arguments
-      real(DP), dimension(:,:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-      real(DP), dimension(:,:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-      logical,  dimension(:),                intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-      ! Internals
-      integer(I4B) :: i
-
-      if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
-
-      do i = 1, NDIM
-         keeps(i,:) = unpack(keeps(i,:),   .not.lfill_list(:), keeps(i,:))
-         keeps(i,:) = unpack(inserts(i,:),      lfill_list(:), keeps(i,:))
-      end do
-
-      return
-   end subroutine swiftest_util_fill_arr_DPvec
-
-
-   module subroutine swiftest_util_fill_arr_I4B(keeps, inserts, lfill_list)
-      !! author: David A. Minton
-      !!
-      !! Performs a fill operation on a single array of type I4B
-      !! This is the inverse of a spill operation
-      implicit none
-      ! Arguments
-      integer(I4B), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-      integer(I4B), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-      logical,      dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-
-      if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
-
-      keeps(:) = unpack(keeps(:),   .not.lfill_list(:), keeps(:))
-      keeps(:) = unpack(inserts(:),      lfill_list(:), keeps(:))
-
-      return
-   end subroutine swiftest_util_fill_arr_I4B
-
 
    module subroutine swiftest_util_fill_arr_info(keeps, inserts, lfill_list)
       !! author: David A. Minton
@@ -1068,26 +852,6 @@ contains
 
       return
    end subroutine swiftest_util_fill_arr_info
-
-
-   module subroutine swiftest_util_fill_arr_logical(keeps, inserts, lfill_list)
-      !! author: David A. Minton
-      !!
-      !! Performs a fill operation on a single array of logicals
-      !! This is the inverse of a spill operation
-      implicit none
-      ! Arguments
-      logical, dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-      logical, dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-      logical, dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-
-      if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
-
-      keeps(:) = unpack(keeps(:),   .not.lfill_list(:), keeps(:))
-      keeps(:) = unpack(inserts(:),      lfill_list(:), keeps(:))
-
-      return
-   end subroutine swiftest_util_fill_arr_logical
 
 
    module subroutine swiftest_util_fill_arr_kin(keeps, inserts, lfill_list)
@@ -1124,32 +888,32 @@ contains
       ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
       !> Fill all the common components
       associate(keeps => self)
-         call swiftest_util_fill(keeps%id,         inserts%id,         lfill_list)
-         call swiftest_util_fill(keeps%info,       inserts%info,       lfill_list)
-         call swiftest_util_fill(keeps%lmask,      inserts%lmask,      lfill_list)
-         call swiftest_util_fill(keeps%status,     inserts%status,     lfill_list)
-         call swiftest_util_fill(keeps%ldiscard,   inserts%ldiscard,   lfill_list)
-         call swiftest_util_fill(keeps%lcollision, inserts%lcollision, lfill_list)
-         call swiftest_util_fill(keeps%lencounter, inserts%lencounter, lfill_list)
-         call swiftest_util_fill(keeps%mu,         inserts%mu,         lfill_list)
-         call swiftest_util_fill(keeps%rh,         inserts%rh,         lfill_list)
-         call swiftest_util_fill(keeps%vh,         inserts%vh,         lfill_list)
-         call swiftest_util_fill(keeps%rb,         inserts%rb,         lfill_list)
-         call swiftest_util_fill(keeps%vb,         inserts%vb,         lfill_list)
-         call swiftest_util_fill(keeps%ah,         inserts%ah,         lfill_list)
-         call swiftest_util_fill(keeps%aobl,       inserts%aobl,       lfill_list)
-         call swiftest_util_fill(keeps%agr,        inserts%agr,        lfill_list)
-         call swiftest_util_fill(keeps%atide,      inserts%atide,      lfill_list)
-         call swiftest_util_fill(keeps%ir3h,       inserts%ir3h,       lfill_list)
-         call swiftest_util_fill(keeps%isperi,     inserts%isperi,     lfill_list)
-         call swiftest_util_fill(keeps%peri,       inserts%peri,       lfill_list)
-         call swiftest_util_fill(keeps%atp,        inserts%atp,        lfill_list)
-         call swiftest_util_fill(keeps%a,          inserts%a,          lfill_list)
-         call swiftest_util_fill(keeps%e,          inserts%e,          lfill_list)
-         call swiftest_util_fill(keeps%inc,        inserts%inc,        lfill_list)
-         call swiftest_util_fill(keeps%capom,      inserts%capom,      lfill_list)
-         call swiftest_util_fill(keeps%omega,      inserts%omega,      lfill_list)
-         call swiftest_util_fill(keeps%capm,       inserts%capm,       lfill_list)
+         call util_fill(keeps%id,         inserts%id,         lfill_list)
+         call util_fill(keeps%info,       inserts%info,       lfill_list)
+         call util_fill(keeps%lmask,      inserts%lmask,      lfill_list)
+         call util_fill(keeps%status,     inserts%status,     lfill_list)
+         call util_fill(keeps%ldiscard,   inserts%ldiscard,   lfill_list)
+         call util_fill(keeps%lcollision, inserts%lcollision, lfill_list)
+         call util_fill(keeps%lencounter, inserts%lencounter, lfill_list)
+         call util_fill(keeps%mu,         inserts%mu,         lfill_list)
+         call util_fill(keeps%rh,         inserts%rh,         lfill_list)
+         call util_fill(keeps%vh,         inserts%vh,         lfill_list)
+         call util_fill(keeps%rb,         inserts%rb,         lfill_list)
+         call util_fill(keeps%vb,         inserts%vb,         lfill_list)
+         call util_fill(keeps%ah,         inserts%ah,         lfill_list)
+         call util_fill(keeps%aobl,       inserts%aobl,       lfill_list)
+         call util_fill(keeps%agr,        inserts%agr,        lfill_list)
+         call util_fill(keeps%atide,      inserts%atide,      lfill_list)
+         call util_fill(keeps%ir3h,       inserts%ir3h,       lfill_list)
+         call util_fill(keeps%isperi,     inserts%isperi,     lfill_list)
+         call util_fill(keeps%peri,       inserts%peri,       lfill_list)
+         call util_fill(keeps%atp,        inserts%atp,        lfill_list)
+         call util_fill(keeps%a,          inserts%a,          lfill_list)
+         call util_fill(keeps%e,          inserts%e,          lfill_list)
+         call util_fill(keeps%inc,        inserts%inc,        lfill_list)
+         call util_fill(keeps%capom,      inserts%capom,      lfill_list)
+         call util_fill(keeps%omega,      inserts%omega,      lfill_list)
+         call util_fill(keeps%capm,       inserts%capm,       lfill_list)
            
          ! This is the base class, so will be the last to be called in the cascade. 
          keeps%nbody = size(keeps%id(:))
@@ -1175,23 +939,23 @@ contains
       select type (inserts) ! The standard requires us to select the type of both arguments in order to access all the components
          class is (swiftest_pl)
             !> Fill components specific to the massive body class
-            call swiftest_util_fill(keeps%mass,    inserts%mass,    lfill_list)
-            call swiftest_util_fill(keeps%Gmass,   inserts%Gmass,   lfill_list)
-            call swiftest_util_fill(keeps%rhill,   inserts%rhill,   lfill_list)
-            call swiftest_util_fill(keeps%renc,    inserts%renc,    lfill_list)
-            call swiftest_util_fill(keeps%radius,  inserts%radius,  lfill_list)
-            call swiftest_util_fill(keeps%density, inserts%density, lfill_list)
-            call swiftest_util_fill(keeps%rbeg,    inserts%rbeg,    lfill_list)
-            call swiftest_util_fill(keeps%rend,    inserts%rend,    lfill_list)
-            call swiftest_util_fill(keeps%vbeg,    inserts%vbeg,    lfill_list)
-            call swiftest_util_fill(keeps%Ip,      inserts%Ip,      lfill_list)
-            call swiftest_util_fill(keeps%rot,     inserts%rot,     lfill_list)
-            call swiftest_util_fill(keeps%k2,      inserts%k2,      lfill_list)
-            call swiftest_util_fill(keeps%Q,       inserts%Q,       lfill_list)
-            call swiftest_util_fill(keeps%tlag,    inserts%tlag,    lfill_list)
-            call swiftest_util_fill(keeps%kin,     inserts%kin,     lfill_list)
-            call swiftest_util_fill(keeps%nplenc,  inserts%nplenc,  lfill_list)
-            call swiftest_util_fill(keeps%ntpenc,  inserts%ntpenc,  lfill_list)
+            call util_fill(keeps%mass,    inserts%mass,    lfill_list)
+            call util_fill(keeps%Gmass,   inserts%Gmass,   lfill_list)
+            call util_fill(keeps%rhill,   inserts%rhill,   lfill_list)
+            call util_fill(keeps%renc,    inserts%renc,    lfill_list)
+            call util_fill(keeps%radius,  inserts%radius,  lfill_list)
+            call util_fill(keeps%density, inserts%density, lfill_list)
+            call util_fill(keeps%rbeg,    inserts%rbeg,    lfill_list)
+            call util_fill(keeps%rend,    inserts%rend,    lfill_list)
+            call util_fill(keeps%vbeg,    inserts%vbeg,    lfill_list)
+            call util_fill(keeps%Ip,      inserts%Ip,      lfill_list)
+            call util_fill(keeps%rot,     inserts%rot,     lfill_list)
+            call util_fill(keeps%k2,      inserts%k2,      lfill_list)
+            call util_fill(keeps%Q,       inserts%Q,       lfill_list)
+            call util_fill(keeps%tlag,    inserts%tlag,    lfill_list)
+            call util_fill(keeps%kin,     inserts%kin,     lfill_list)
+            call util_fill(keeps%nplenc,  inserts%nplenc,  lfill_list)
+            call util_fill(keeps%ntpenc,  inserts%ntpenc,  lfill_list)
 
             if (allocated(keeps%k_plpl)) deallocate(keeps%k_plpl)
             
@@ -1220,7 +984,7 @@ contains
          select type(inserts)
          class is (swiftest_tp)
             !> Spill components specific to the test particle class
-            call swiftest_util_fill(keeps%nplenc,  inserts%nplenc,  lfill_list)
+            call util_fill(keeps%nplenc,  inserts%nplenc,  lfill_list)
 
             call swiftest_util_fill_body(keeps, inserts, lfill_list)
          class default
@@ -1706,10 +1470,10 @@ contains
  
       call swiftest_util_get_vals_storage(self, idvals, tvals)
 
-      call swiftest_util_unique(idvals,self%idvals,self%idmap)
+      call util_unique(idvals,self%idvals,self%idmap)
       self%nid = size(self%idvals)
 
-      call swiftest_util_unique(tvals,self%tvals,self%tmap)
+      call util_unique(tvals,self%tvals,self%tmap)
       self%nt = size(self%tvals)
 
       return
@@ -2044,192 +1808,6 @@ contains
    end subroutine swiftest_util_reset_kinship_pl
 
 
-   module subroutine swiftest_util_resize_arr_char_string(arr, nnew)
-      !! author: David A. Minton
-      !!
-      !! Resizes an array component of type character string. nnew = 0 will deallocate.
-      implicit none
-      ! Arguments
-      character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
-      integer(I4B),                                     intent(in)    :: nnew !! New size
-      ! Internals
-      character(len=STRMAX), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
-      integer(I4B) :: nold !! Old size
-
-      if (nnew < 0) return
-
-      if (nnew == 0) then
-         if (allocated(arr)) deallocate(arr)
-         return
-      end if
-      
-      if (allocated(arr)) then
-         nold = size(arr)
-      else
-         nold = 0
-      end if
-
-      if (nnew == nold) return
-      
-      allocate(tmp(nnew))
-      if (nold > 0) then
-         if (nnew > nold) then
-            tmp(1:nold) = arr(1:nold)
-            tmp(nold+1:nnew) = ""
-         else
-            tmp(1:nnew) = arr(1:nnew)
-         end if
-      else
-         tmp(1:nnew) = ""
-      end if
-      call move_alloc(tmp, arr)
-
-      return
-   end subroutine swiftest_util_resize_arr_char_string
-
-
-   module subroutine swiftest_util_resize_arr_DP(arr, nnew)
-      !! author: David A. Minton
-      !!
-      !! Resizes an array component of double precision type. Passing nnew = 0 will deallocate.
-      implicit none
-      ! Arguments
-      real(DP), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
-      integer(I4B),                        intent(in)    :: nnew !! New size
-      ! Internals
-      real(DP), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
-      integer(I4B) :: nold !! Old size
-      real(DP), parameter :: init_val = 0.0_DP
-
-      if (nnew < 0) return
-
-      if (nnew == 0) then
-         if (allocated(arr)) deallocate(arr)
-         return
-      end if
-      
-      if (allocated(arr)) then
-         nold = size(arr)
-      else
-         nold = 0
-      end if
-
-      if (nnew == nold) return
-      
-      allocate(tmp(nnew))
-      if (nold > 0) then
-         if (nnew > nold) then
-            tmp(1:nold) = arr(1:nold)
-            tmp(nold+1:nnew) = init_val
-         else
-            tmp(1:nnew) = arr(1:nnew)
-         end if
-      else
-         tmp(1:nnew) = init_val
-      end if
-      call move_alloc(tmp, arr)
-
-      return
-   end subroutine swiftest_util_resize_arr_DP
-
-
-   module subroutine swiftest_util_resize_arr_DPvec(arr, nnew)
-      !! author: David A. Minton
-      !!
-      !! Resizes an array component of double precision vectors of size (NDIM, n). Passing nnew = 0 will deallocate.
-      implicit none
-      ! Arguments
-      real(DP), dimension(:,:), allocatable, intent(inout) :: arr  !! Array to resize
-      integer(I4B),                          intent(in)    :: nnew !! New size
-      ! Internals
-      real(DP), dimension(:,:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
-      integer(I4B) :: nold !! Old size
-      real(DP), dimension(NDIM), parameter :: init_val = 0.0_DP
-      integer(I4B) :: i
-
-      if (nnew < 0) return
-
-      if (nnew == 0) then
-         if (allocated(arr)) deallocate(arr)
-         return
-      end if
-      
-      if (allocated(arr)) then
-         nold = size(arr, dim=2)
-      else
-         nold = 0
-      end if
-
-      if (nnew == nold) return
-      
-      allocate(tmp(NDIM, nnew))
-      if (nold > 0) then
-         if (nnew > nold) then
-            tmp(:,1:nold) = arr(:,1:nold)
-            do i = nold+1, nnew
-               tmp(:,i) = init_val(:)
-            end do
-         else
-            tmp(:,1:nnew) = arr(:,1:nnew)
-         end if
-      else
-         do i = 1, nnew
-            tmp(:, i) = init_val(:)
-         end do
-      end if
-      call move_alloc(tmp, arr)
-
-      return
-
-      return
-   end subroutine swiftest_util_resize_arr_DPvec
-
-
-   module subroutine swiftest_util_resize_arr_I4B(arr, nnew)
-      !! author: David A. Minton
-      !!
-      !! Resizes an array component of integer type. Passing nnew = 0 will deallocate.
-      implicit none
-      ! Arguments
-      integer(I4B), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
-      integer(I4B),                            intent(in)    :: nnew !! New size
-      ! Internals
-      integer(I4B), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
-      integer(I4B) :: nold !! Old size
-      integer(I4B), parameter :: init_val = -1
-
-      if (nnew < 0) return
-
-      if (nnew == 0) then
-         if (allocated(arr)) deallocate(arr)
-         return
-      end if
-      
-      if (allocated(arr)) then
-         nold = size(arr)
-      else
-         nold = 0
-      end if
-
-      if (nnew == nold) return
-      
-      allocate(tmp(nnew))
-      if (nold > 0) then
-         if (nnew > nold) then
-            tmp(1:nold) = arr(1:nold)
-            tmp(nold+1:nnew) = init_val
-         else
-            tmp(1:nnew) = arr(1:nnew)
-         end if
-      else
-         tmp(1:nnew) = init_val
-      end if
-      call move_alloc(tmp, arr)
-
-      return
-   end subroutine swiftest_util_resize_arr_I4B
-
-
    module subroutine swiftest_util_resize_arr_info(arr, nnew)
       !! author: David A. Minton
       !!
@@ -2307,51 +1885,6 @@ contains
    end subroutine swiftest_util_resize_arr_kin
 
 
-   module subroutine swiftest_util_resize_arr_logical(arr, nnew)
-      !! author: David A. Minton
-      !!
-      !! Resizes an array component of logical type. Passing nnew = 0 will deallocate.
-      implicit none
-      ! Arguments
-      logical, dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
-      integer(I4B),                       intent(in)    :: nnew !! New size
-      ! Internals
-      logical, dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
-      integer(I4B) :: nold !! Old size
-      logical, parameter :: init_val = .false.
-
-      if (nnew < 0) return
-
-      if (nnew == 0) then
-         if (allocated(arr)) deallocate(arr)
-         return
-      end if
-      
-      if (allocated(arr)) then
-         nold = size(arr)
-      else
-         nold = 0
-      end if
-
-      if (nnew == nold) return
-      
-      allocate(tmp(nnew))
-      if (nold > 0) then
-         if (nnew > nold) then
-            tmp(1:nold) = arr(1:nold)
-            tmp(nold+1:nnew) = init_val
-         else
-            tmp(1:nnew) = arr(1:nnew)
-         end if
-      else
-         tmp(1:nnew) = init_val
-      end if
-      call move_alloc(tmp, arr)
-
-      return
-   end subroutine swiftest_util_resize_arr_logical
-
-
    module subroutine swiftest_util_resize_body(self, nnew)
       !! author: David A. Minton
       !!
@@ -2361,29 +1894,29 @@ contains
       class(swiftest_body), intent(inout) :: self  !! Swiftest body object
       integer(I4B),         intent(in)    :: nnew  !! New size neded
 
-      call swiftest_util_resize(self%info, nnew)
-      call swiftest_util_resize(self%id, nnew)
-      call swiftest_util_resize(self%status, nnew)
-      call swiftest_util_resize(self%lcollision, nnew)
-      call swiftest_util_resize(self%lencounter, nnew)
-      call swiftest_util_resize(self%ldiscard, nnew)
-      call swiftest_util_resize(self%lmask, nnew)
-      call swiftest_util_resize(self%mu, nnew)
-      call swiftest_util_resize(self%rh, nnew)
-      call swiftest_util_resize(self%vh, nnew)
-      call swiftest_util_resize(self%rb, nnew)
-      call swiftest_util_resize(self%vb, nnew)
-      call swiftest_util_resize(self%ah, nnew)
-      call swiftest_util_resize(self%aobl, nnew)
-      call swiftest_util_resize(self%atide, nnew)
-      call swiftest_util_resize(self%agr, nnew)
-      call swiftest_util_resize(self%ir3h, nnew)
-      call swiftest_util_resize(self%a, nnew)
-      call swiftest_util_resize(self%e, nnew)
-      call swiftest_util_resize(self%inc, nnew)
-      call swiftest_util_resize(self%capom, nnew)
-      call swiftest_util_resize(self%omega, nnew)
-      call swiftest_util_resize(self%capm, nnew)
+      call util_resize(self%info, nnew)
+      call util_resize(self%id, nnew)
+      call util_resize(self%status, nnew)
+      call util_resize(self%lcollision, nnew)
+      call util_resize(self%lencounter, nnew)
+      call util_resize(self%ldiscard, nnew)
+      call util_resize(self%lmask, nnew)
+      call util_resize(self%mu, nnew)
+      call util_resize(self%rh, nnew)
+      call util_resize(self%vh, nnew)
+      call util_resize(self%rb, nnew)
+      call util_resize(self%vb, nnew)
+      call util_resize(self%ah, nnew)
+      call util_resize(self%aobl, nnew)
+      call util_resize(self%atide, nnew)
+      call util_resize(self%agr, nnew)
+      call util_resize(self%ir3h, nnew)
+      call util_resize(self%a, nnew)
+      call util_resize(self%e, nnew)
+      call util_resize(self%inc, nnew)
+      call util_resize(self%capom, nnew)
+      call util_resize(self%omega, nnew)
+      call util_resize(self%capm, nnew)
       self%nbody = count(self%status(1:nnew) /= INACTIVE)
 
       return
@@ -2401,24 +1934,24 @@ contains
 
       call swiftest_util_resize_body(self, nnew)
 
-      call swiftest_util_resize(self%mass, nnew)
-      call swiftest_util_resize(self%Gmass, nnew)
-      call swiftest_util_resize(self%rhill, nnew)
-      call swiftest_util_resize(self%renc, nnew)
-      call swiftest_util_resize(self%radius, nnew)
-      call swiftest_util_resize(self%rbeg, nnew)
-      call swiftest_util_resize(self%rend, nnew)
-      call swiftest_util_resize(self%vbeg, nnew)
-      call swiftest_util_resize(self%density, nnew)
-      call swiftest_util_resize(self%Ip, nnew)
-      call swiftest_util_resize(self%rot, nnew)
-      call swiftest_util_resize(self%k2, nnew)
-      call swiftest_util_resize(self%Q, nnew)
-      call swiftest_util_resize(self%tlag, nnew)
-      call swiftest_util_resize(self%kin, nnew)
-      call swiftest_util_resize(self%lmtiny, nnew)
-      call swiftest_util_resize(self%nplenc, nnew)
-      call swiftest_util_resize(self%ntpenc, nnew)
+      call util_resize(self%mass, nnew)
+      call util_resize(self%Gmass, nnew)
+      call util_resize(self%rhill, nnew)
+      call util_resize(self%renc, nnew)
+      call util_resize(self%radius, nnew)
+      call util_resize(self%rbeg, nnew)
+      call util_resize(self%rend, nnew)
+      call util_resize(self%vbeg, nnew)
+      call util_resize(self%density, nnew)
+      call util_resize(self%Ip, nnew)
+      call util_resize(self%rot, nnew)
+      call util_resize(self%k2, nnew)
+      call util_resize(self%Q, nnew)
+      call util_resize(self%tlag, nnew)
+      call util_resize(self%kin, nnew)
+      call util_resize(self%lmtiny, nnew)
+      call util_resize(self%nplenc, nnew)
+      call util_resize(self%ntpenc, nnew)
 
 
 
@@ -2439,10 +1972,10 @@ contains
 
       call swiftest_util_resize_body(self, nnew)
 
-      call swiftest_util_resize(self%nplenc, nnew)
-      call swiftest_util_resize(self%isperi, nnew)
-      call swiftest_util_resize(self%peri, nnew)
-      call swiftest_util_resize(self%atp, nnew)
+      call util_resize(self%nplenc, nnew)
+      call util_resize(self%isperi, nnew)
+      call util_resize(self%peri, nnew)
+      call util_resize(self%atp, nnew)
 
       return
    end subroutine swiftest_util_resize_tp
@@ -3154,25 +2687,25 @@ contains
       associate(body => self, n => self%nbody)
          select case(sortby)
          case("id")
-            call swiftest_util_sort(direction * body%id(1:n), ind)
+            call util_sort(direction * body%id(1:n), ind)
          case("status")
-            call swiftest_util_sort(direction * body%status(1:n), ind)
+            call util_sort(direction * body%status(1:n), ind)
          case("ir3h")
-            call swiftest_util_sort(direction * body%ir3h(1:n), ind)
+            call util_sort(direction * body%ir3h(1:n), ind)
          case("a")
-            call swiftest_util_sort(direction * body%a(1:n), ind)
+            call util_sort(direction * body%a(1:n), ind)
          case("e")
-            call swiftest_util_sort(direction * body%e(1:n), ind)
+            call util_sort(direction * body%e(1:n), ind)
          case("inc")
-            call swiftest_util_sort(direction * body%inc(1:n), ind)
+            call util_sort(direction * body%inc(1:n), ind)
          case("capom")
-            call swiftest_util_sort(direction * body%capom(1:n), ind)
+            call util_sort(direction * body%capom(1:n), ind)
          case("mu")
-            call swiftest_util_sort(direction * body%mu(1:n), ind)
+            call util_sort(direction * body%mu(1:n), ind)
          case("peri")
-            call swiftest_util_sort(direction * body%peri(1:n), ind)
+            call util_sort(direction * body%peri(1:n), ind)
          case("atp")
-            call swiftest_util_sort(direction * body%atp(1:n), ind)
+            call util_sort(direction * body%atp(1:n), ind)
          case("info", "lfirst", "nbody", "ldiscard", "lcollision", "lencounter", "rh", "vh", "rb", "vb", "ah", "aobl", "atide", "agr","isperi")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default
@@ -3186,590 +2719,6 @@ contains
 
       return
    end subroutine swiftest_util_sort_body
-
-
-   pure module subroutine swiftest_util_sort_dp(arr)
-      !! author: David A. Minton
-      !!
-      !! Sort input DP precision array in place into ascending numerical order using quicksort.
-      !!
-      implicit none
-      ! Arguments
-      real(DP), dimension(:), intent(inout) :: arr
-
-      call swiftest_util_sort_qsort_DP(arr)
-
-      return
-   end subroutine swiftest_util_sort_dp
-
-
-   pure module subroutine swiftest_util_sort_index_dp(arr, ind)
-      !! author: David A. Minton
-      !!
-      !! Sort input DP precision array by index in ascending numerical order using quick sort.
-      !! This algorithm works well for partially sorted arrays (which is usually the case here).
-      !! If ind is supplied already allocated, we assume it is an existing index array (e.g. a previously
-      !! sorted array). If it is not allocated, this subroutine swiftest_allocates it.
-      !!
-      implicit none
-      ! Arguments
-      real(DP),     dimension(:),              intent(in)    :: arr
-      integer(I4B), dimension(:), allocatable, intent(inout) :: ind
-      ! Internals
-      integer(I4B) :: n, i
-      real(DP), dimension(:), allocatable :: tmparr
-
-      n = size(arr)
-      if (.not.allocated(ind)) then
-         allocate(ind(n))
-         ind = [(i, i=1, n)]
-      end if
-      allocate(tmparr, mold=arr)
-      tmparr(:) = arr(ind(:))
-      call swiftest_util_sort_qsort_DP(tmparr, ind)
-   
-      return
-   end subroutine swiftest_util_sort_index_dp
-
-
-   recursive pure subroutine swiftest_util_sort_qsort_DP(arr, ind)
-      !! author: David A. Minton
-      !!
-      !! Sort input DP precision array by index in ascending numerical order using quicksort sort.
-      !!
-      implicit none
-      ! Arguments
-      real(DP), dimension(:), intent(inout)           :: arr
-      integer(I4B),dimension(:),intent(out), optional :: ind
-      !! Internals
-      integer :: iq
-
-      if (size(arr) > 1) then
-         if (present(ind)) then
-            call swiftest_util_sort_partition_DP(arr, iq, ind)
-            call swiftest_util_sort_qsort_DP(arr(:iq-1),ind(:iq-1))
-            call swiftest_util_sort_qsort_DP(arr(iq:),  ind(iq:))
-         else
-            call swiftest_util_sort_partition_DP(arr, iq)
-            call swiftest_util_sort_qsort_DP(arr(:iq-1))
-            call swiftest_util_sort_qsort_DP(arr(iq:))
-         end if
-      end if
-
-      return
-   end subroutine swiftest_util_sort_qsort_DP
-
- 
-   pure subroutine swiftest_util_sort_partition_DP(arr, marker, ind)
-      !! author: David A. Minton
-      !!
-      !! Partition function for quicksort on DP type
-      !!
-      implicit none
-      ! Arguments
-      real(DP),     intent(inout), dimension(:)           :: arr
-      integer(I4B), intent(inout), dimension(:), optional :: ind
-      integer(I4B), intent(out)                           :: marker
-      ! Internals
-      integer(I4B) :: i, j, itmp, narr, ipiv
-      real(DP) :: temp
-      real(DP) :: x   ! pivot point
-
-      narr = size(arr)
-
-      ! Get center as pivot, as this is likely partially sorted
-      ipiv = narr / 2
-      x = arr(ipiv)
-      i = 0
-      j = narr + 1
-   
-      do
-         j = j - 1
-         do
-            if (arr(j) <= x) exit
-            j = j - 1
-         end do
-         i = i + 1
-         do
-            if (arr(i) >= x) exit
-            i = i + 1
-         end do
-         if (i < j) then
-            ! exchange A(i) and A(j)
-            temp = arr(i)
-            arr(i) = arr(j)
-            arr(j) = temp
-            if (present(ind)) then
-               itmp = ind(i)
-               ind(i) = ind(j)
-               ind(j) = itmp
-            end if
-         else if (i == j) then
-            marker = i + 1
-            return
-         else
-            marker = i
-            return
-         endif
-      end do
-  
-      return
-   end subroutine swiftest_util_sort_partition_DP
- 
-
-   pure module subroutine swiftest_util_sort_i4b(arr)
-      !! author: David A. Minton
-      !!
-      !! Sort input integer array in place into ascending numerical order using quick sort.
-      !! This algorithm works well for partially sorted arrays (which is usually the case here)
-      !!
-      implicit none
-      ! Arguments
-      integer(I4B), dimension(:), intent(inout) :: arr
-
-      call swiftest_util_sort_qsort_I4B(arr)
-
-      return
-   end subroutine swiftest_util_sort_i4b
-
-
-   pure module subroutine swiftest_util_sort_index_I4B(arr, ind)
-      !! author: David A. Minton
-      !!
-      !! Sort input integer array by index in ascending numerical order using quicksort.
-      !! If ind is supplied already allocated, we assume it is an existing index array (e.g. a previously
-      !! sorted array). If it is not allocated, this subroutine swiftest_allocates it.
-      !!
-      implicit none
-      ! Arguments
-      integer(I4B), dimension(:),              intent(in)  :: arr
-      integer(I4B), dimension(:), allocatable, intent(inout) :: ind
-      ! Internals
-      integer(I4B) :: n, i
-      integer(I4B), dimension(:), allocatable :: tmparr
-
-      n = size(arr)
-      if (.not.allocated(ind)) then
-         allocate(ind(n))
-         ind = [(i, i=1, n)]
-      end if
-      allocate(tmparr, mold=arr)
-      tmparr(:) = arr(ind(:))
-      call swiftest_util_sort_qsort_I4B(tmparr, ind)
-
-      return
-   end subroutine swiftest_util_sort_index_I4B
-
-
-   pure module subroutine swiftest_util_sort_index_I4B_I8Bind(arr, ind)
-      !! author: David A. Minton
-      !!
-      !! Sort input integer array by index in ascending numerical order using quicksort.
-      !! If ind is supplied already allocated, we assume it is an existing index array (e.g. a previously
-      !! sorted array). If it is not allocated, this subroutine swiftest_allocates it.
-      !!
-      implicit none
-      ! Arguments
-      integer(I4B), dimension(:),              intent(in)  :: arr
-      integer(I8B), dimension(:), allocatable, intent(inout) :: ind
-      ! Internals
-      integer(I8B) :: n, i
-      integer(I4B), dimension(:), allocatable :: tmparr
-
-      n = size(arr)
-      if (.not.allocated(ind)) then
-         allocate(ind(n))
-         ind = [(i, i=1_I8B, n)]
-      end if
-      allocate(tmparr, mold=arr)
-      tmparr(:) = arr(ind(:))
-      call swiftest_util_sort_qsort_I4B_I8Bind(tmparr, ind)
-
-      return
-   end subroutine swiftest_util_sort_index_I4B_I8Bind
-
-
-   recursive pure subroutine swiftest_util_sort_qsort_I4B(arr, ind)
-      !! author: David A. Minton
-      !!
-      !! Sort input I4B array by index in ascending numerical order using quicksort.
-      !!
-      implicit none
-      ! Arguments
-      integer(I4B), dimension(:), intent(inout)          :: arr
-      integer(I4B), dimension(:), intent(out),  optional :: ind
-      ! Internals
-      integer(I4B) :: iq
-
-      if (size(arr) > 1) then
-         if (present(ind)) then
-            call swiftest_util_sort_partition_I4B(arr, iq, ind)
-            call swiftest_util_sort_qsort_I4B(arr(:iq-1),ind(:iq-1))
-            call swiftest_util_sort_qsort_I4B(arr(iq:),  ind(iq:))
-         else
-            call swiftest_util_sort_partition_I4B(arr, iq)
-            call swiftest_util_sort_qsort_I4B(arr(:iq-1))
-            call swiftest_util_sort_qsort_I4B(arr(iq:))
-         end if
-      end if
-
-      return
-   end subroutine swiftest_util_sort_qsort_I4B
-
-
-   recursive pure subroutine swiftest_util_sort_qsort_I4B_I8Bind(arr, ind)
-      !! author: David A. Minton
-      !!
-      !! Sort input I4B array by index in ascending numerical order using quicksort.
-      !!
-      implicit none
-      ! Arguments
-      integer(I4B), dimension(:), intent(inout)          :: arr
-      integer(I8B), dimension(:), intent(out),  optional :: ind
-      ! Internals
-      integer(I8B) :: iq
-
-      if (size(arr) > 1_I8B) then
-         if (present(ind)) then
-            call swiftest_util_sort_partition_I4B_I8Bind(arr, iq, ind)
-            call swiftest_util_sort_qsort_I4B_I8Bind(arr(:iq-1_I8B),ind(:iq-1_I8B))
-            call swiftest_util_sort_qsort_I4B_I8Bind(arr(iq:),  ind(iq:))
-         else
-            call swiftest_util_sort_partition_I4B_I8Bind(arr, iq)
-            call swiftest_util_sort_qsort_I4B_I8Bind(arr(:iq-1_I8B))
-            call swiftest_util_sort_qsort_I4B_I8Bind(arr(iq:))
-         end if
-      end if
-
-      return
-   end subroutine swiftest_util_sort_qsort_I4B_I8Bind
-
-
-   recursive pure subroutine swiftest_util_sort_qsort_I8B_I8Bind(arr, ind)
-      !! author: David A. Minton
-      !!
-      !! Sort input I8B array by index in ascending numerical order using quicksort.
-      !!
-      implicit none
-      ! Arguments
-      integer(I8B), dimension(:), intent(inout)          :: arr
-      integer(I8B), dimension(:), intent(out),  optional :: ind
-      ! Internals
-      integer(I8B) :: iq
-
-      if (size(arr) > 1_I8B) then
-         if (present(ind)) then
-            call swiftest_util_sort_partition_I8B_I8Bind(arr, iq, ind)
-            call swiftest_util_sort_qsort_I8B_I8Bind(arr(:iq-1_I8B),ind(:iq-1_I8B))
-            call swiftest_util_sort_qsort_I8B_I8Bind(arr(iq:),  ind(iq:))
-         else
-            call swiftest_util_sort_partition_I8B_I8Bind(arr, iq)
-            call swiftest_util_sort_qsort_I8B_I8Bind(arr(:iq-1_I8B))
-            call swiftest_util_sort_qsort_I8B_I8Bind(arr(iq:))
-         end if
-      end if
-
-      return
-   end subroutine swiftest_util_sort_qsort_I8B_I8Bind
-
- 
-   pure subroutine swiftest_util_sort_partition_I4B(arr, marker, ind)
-      !! author: David A. Minton
-      !!
-      !! Partition function for quicksort on I4B type
-      !!
-      implicit none
-      ! Arguments
-      integer(I4B), intent(inout), dimension(:)           :: arr
-      integer(I4B), intent(inout), dimension(:), optional :: ind
-      integer(I4B), intent(out)                           :: marker
-      ! Internals
-      integer(I4B) :: i, j, itmp, narr, ipiv
-      integer(I4B) :: temp
-      integer(I4B) :: x   ! pivot point
-
-      narr = size(arr)
-
-      ! Get center as pivot, as this is likely partially sorted
-      ipiv = narr / 2
-      x = arr(ipiv)
-      i = 0
-      j = narr + 1
-   
-      do
-         j = j - 1
-         do
-            if (arr(j) <= x) exit
-            j = j - 1
-         end do
-         i = i + 1
-         do
-            if (arr(i) >= x) exit
-            i = i + 1
-         end do
-         if (i < j) then
-            ! exchange A(i) and A(j)
-            temp = arr(i)
-            arr(i) = arr(j)
-            arr(j) = temp
-            if (present(ind)) then
-               itmp = ind(i)
-               ind(i) = ind(j)
-               ind(j) = itmp
-            end if
-         else if (i == j) then
-            marker = i + 1
-            return
-         else
-            marker = i
-            return
-         endif
-      end do
-  
-      return
-   end subroutine swiftest_util_sort_partition_I4B
-
-
-   pure subroutine swiftest_util_sort_partition_I4B_I8Bind(arr, marker, ind)
-      !! author: David A. Minton
-      !!
-      !! Partition function for quicksort on I4B type
-      !!
-      implicit none
-      ! Arguments
-      integer(I4B), intent(inout), dimension(:)           :: arr
-      integer(I8B), intent(inout), dimension(:), optional :: ind
-      integer(I8B), intent(out)                           :: marker
-      ! Internals
-      integer(I8B) :: i, j, itmp, narr, ipiv
-      integer(I4B) :: temp
-      integer(I8B) :: x   ! pivot point
-
-      narr = size(arr)
-
-      ! Get center as pivot, as this is likely partially sorted
-      ipiv = narr / 2_I8B
-      x = arr(ipiv)
-      i = 0_I8B
-      j = narr + 1_I8B
-   
-      do
-         j = j - 1_I8B
-         do
-            if (arr(j) <= x) exit
-            j = j - 1_I8B
-         end do
-         i = i + 1_I8B
-         do
-            if (arr(i) >= x) exit
-            i = i + 1_I8B
-         end do
-         if (i < j) then
-            ! exchange A(i) and A(j)
-            temp = arr(i)
-            arr(i) = arr(j)
-            arr(j) = temp
-            if (present(ind)) then
-               itmp = ind(i)
-               ind(i) = ind(j)
-               ind(j) = itmp
-            end if
-         else if (i == j) then
-            marker = i + 1_I8B
-            return
-         else
-            marker = i
-            return
-         endif
-      end do
-  
-      return
-   end subroutine swiftest_util_sort_partition_I4B_I8Bind
-
-
-   pure subroutine swiftest_util_sort_partition_I8B_I8Bind(arr, marker, ind)
-      !! author: David A. Minton
-      !!
-      !! Partition function for quicksort on I8B type with I8B index
-      !!
-      implicit none
-      ! Arguments
-      integer(I8B), intent(inout), dimension(:)           :: arr
-      integer(I8B), intent(inout), dimension(:), optional :: ind
-      integer(I8B), intent(out)                           :: marker
-      ! Internals
-      integer(I8B) :: i, j, itmp, narr, ipiv
-      integer(I8B) :: temp
-      integer(I8B) :: x   ! pivot point
-
-      narr = size(arr)
-
-      ! Get center as pivot, as this is likely partially sorted
-      ipiv = narr / 2_I8B
-      x = arr(ipiv)
-      i = 0_I8B
-      j = narr + 1_I8B
-   
-      do
-         j = j - 1_I8B
-         do
-            if (arr(j) <= x) exit
-            j = j - 1_I8B
-         end do
-         i = i + 1_I8B
-         do
-            if (arr(i) >= x) exit
-            i = i + 1_I8B
-         end do
-         if (i < j) then
-            ! exchange A(i) and A(j)
-            temp = arr(i)
-            arr(i) = arr(j)
-            arr(j) = temp
-            if (present(ind)) then
-               itmp = ind(i)
-               ind(i) = ind(j)
-               ind(j) = itmp
-            end if
-         else if (i == j) then
-            marker = i + 1_I8B
-            return
-         else
-            marker = i
-            return
-         endif
-      end do
-  
-      return
-   end subroutine swiftest_util_sort_partition_I8B_I8Bind
-
-
-   pure module subroutine swiftest_util_sort_sp(arr)
-      !! author: David A. Minton
-      !!
-      !! Sort input DP precision array in place into ascending numerical order using quicksort.
-      !!
-      implicit none
-      ! Arguments
-      real(SP), dimension(:), intent(inout) :: arr
-
-      call swiftest_util_sort_qsort_SP(arr)
-
-      return
-   end subroutine swiftest_util_sort_sp
-
-
-   pure module subroutine swiftest_util_sort_index_sp(arr, ind)
-      !! author: David A. Minton
-      !!
-      !! Sort input DP precision array by index in ascending numerical order using quicksort.
-      !! If ind is supplied already allocated, we assume it is an existing index array (e.g. a previously
-      !! sorted array). If it is not allocated, this subroutine swiftest_allocates it.
-      !!
-      implicit none
-      ! Arguments
-      real(SP),     dimension(:),              intent(in)    :: arr
-      integer(I4B), dimension(:), allocatable, intent(inout) :: ind
-      ! Internals
-      integer(I4B) :: n, i
-      real(SP), dimension(:), allocatable :: tmparr
-
-      n = size(arr)
-      if (.not.allocated(ind)) then
-         allocate(ind(n))
-         ind = [(i, i=1, n)]
-      end if
-      allocate(tmparr, mold=arr)
-      tmparr(:) = arr(ind(:))
-      call swiftest_util_sort_qsort_SP(tmparr, ind)
-   
-      return
-   end subroutine swiftest_util_sort_index_sp
-
-
-   recursive pure subroutine swiftest_util_sort_qsort_SP(arr, ind)
-      !! author: David A. Minton
-      !!
-      !! Sort input DP precision array by index in ascending numerical order using quicksort.
-      !!
-      implicit none
-      ! Arguments
-      real(SP), dimension(:), intent(inout)           :: arr
-      integer(I4B),dimension(:),intent(out), optional :: ind
-      !! Internals
-      integer :: iq
-
-      if (size(arr) > 1) then
-         if (present(ind)) then
-            call swiftest_util_sort_partition_SP(arr, iq, ind)
-            call swiftest_util_sort_qsort_SP(arr(:iq-1),ind(:iq-1))
-            call swiftest_util_sort_qsort_SP(arr(iq:),  ind(iq:))
-         else
-            call swiftest_util_sort_partition_SP(arr, iq)
-            call swiftest_util_sort_qsort_SP(arr(:iq-1))
-            call swiftest_util_sort_qsort_SP(arr(iq:))
-         end if
-      end if
-
-      return
-   end subroutine swiftest_util_sort_qsort_SP
-
-
-   pure subroutine swiftest_util_sort_partition_SP(arr, marker, ind)
-      !! author: David A. Minton
-      !!
-      !! Partition function for quicksort on SP type
-      !!
-      implicit none
-      ! Arguments
-      real(SP),     intent(inout), dimension(:)           :: arr
-      integer(I4B), intent(inout), dimension(:), optional :: ind
-      integer(I4B), intent(out)                           :: marker
-      ! Internals
-      integer(I4B) :: i, j, itmp, narr, ipiv
-      real(SP) :: temp
-      real(SP) :: x   ! pivot point
-
-      narr = size(arr)
-
-      ! Get center as pivot, as this is likely partially sorted
-      ipiv = narr / 2
-      x = arr(ipiv)
-      i = 0
-      j = narr + 1
-   
-      do
-         j = j - 1
-         do
-            if (arr(j) <= x) exit
-            j = j - 1
-         end do
-         i = i + 1
-         do
-            if (arr(i) >= x) exit
-            i = i + 1
-         end do
-         if (i < j) then
-            ! exchange A(i) and A(j)
-            temp = arr(i)
-            arr(i) = arr(j)
-            arr(j) = temp
-            if (present(ind)) then
-               itmp = ind(i)
-               ind(i) = ind(j)
-               ind(j) = itmp
-            end if
-         else if (i == j) then
-            marker = i + 1
-            return
-         else
-            marker = i
-            return
-         endif
-      end do
-  
-      return
-   end subroutine swiftest_util_sort_partition_SP
 
 
    module subroutine swiftest_util_sort_pl(self, sortby, ascending)
@@ -3797,25 +2746,25 @@ contains
       associate(pl => self, npl => self%nbody)
          select case(sortby)
          case("Gmass","mass")
-            call swiftest_util_sort(direction * pl%Gmass(1:npl), ind)
+            call util_sort(direction * pl%Gmass(1:npl), ind)
          case("rhill")
-            call swiftest_util_sort(direction * pl%rhill(1:npl), ind)
+            call util_sort(direction * pl%rhill(1:npl), ind)
          case("renc")
-            call swiftest_util_sort(direction * pl%renc(1:npl), ind)
+            call util_sort(direction * pl%renc(1:npl), ind)
          case("radius")
-            call swiftest_util_sort(direction * pl%radius(1:npl), ind)
+            call util_sort(direction * pl%radius(1:npl), ind)
          case("density")
-            call swiftest_util_sort(direction * pl%density(1:npl), ind)
+            call util_sort(direction * pl%density(1:npl), ind)
          case("k2")
-            call swiftest_util_sort(direction * pl%k2(1:npl), ind)
+            call util_sort(direction * pl%k2(1:npl), ind)
          case("Q")
-            call swiftest_util_sort(direction * pl%Q(1:npl), ind)
+            call util_sort(direction * pl%Q(1:npl), ind)
          case("tlag")
-            call swiftest_util_sort(direction * pl%tlag(1:npl), ind)
+            call util_sort(direction * pl%tlag(1:npl), ind)
          case("nplenc")
-            call swiftest_util_sort(direction * pl%nplenc(1:npl), ind)
+            call util_sort(direction * pl%nplenc(1:npl), ind)
          case("ntpenc")
-            call swiftest_util_sort(direction * pl%ntpenc(1:npl), ind)
+            call util_sort(direction * pl%ntpenc(1:npl), ind)
          case("lmtiny", "nplm", "nplplm", "kin", "rbeg", "rend", "vbeg", "Ip", "rot", "k_plpl", "nplpl")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default ! Look for components in the parent class
@@ -3856,7 +2805,7 @@ contains
       associate(tp => self, ntp => self%nbody)
          select case(sortby)
          case("nplenc")
-            call swiftest_util_sort(direction * tp%nplenc(1:ntp), ind)
+            call util_sort(direction * tp%nplenc(1:ntp), ind)
          case default ! Look for components in the parent class
             call swiftest_util_sort_body(tp, sortby, ascending)
             return
@@ -3869,7 +2818,6 @@ contains
       return
    end subroutine swiftest_util_sort_tp
 
-
    module subroutine swiftest_util_sort_rearrange_body(self, ind)
       !! author: David A. Minton
       !!
@@ -3881,140 +2829,36 @@ contains
       integer(I4B),         dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
 
       associate(n => self%nbody)
-         call swiftest_util_sort_rearrange(self%id,       ind, n)
-         call swiftest_util_sort_rearrange(self%lmask,    ind, n)
-         call swiftest_util_sort_rearrange(self%info,     ind, n)
-         call swiftest_util_sort_rearrange(self%status,   ind, n)
-         call swiftest_util_sort_rearrange(self%ldiscard, ind, n)
-         call swiftest_util_sort_rearrange(self%lcollision, ind, n)
-         call swiftest_util_sort_rearrange(self%lencounter, ind, n)
-         call swiftest_util_sort_rearrange(self%rh,       ind, n)
-         call swiftest_util_sort_rearrange(self%vh,       ind, n)
-         call swiftest_util_sort_rearrange(self%rb,       ind, n)
-         call swiftest_util_sort_rearrange(self%vb,       ind, n)
-         call swiftest_util_sort_rearrange(self%ah,       ind, n)
-         call swiftest_util_sort_rearrange(self%aobl,     ind, n)
-         call swiftest_util_sort_rearrange(self%agr,      ind, n)
-         call swiftest_util_sort_rearrange(self%atide,    ind, n)
-         call swiftest_util_sort_rearrange(self%ir3h,     ind, n)
-         call swiftest_util_sort_rearrange(self%isperi,   ind, n)
-         call swiftest_util_sort_rearrange(self%peri,     ind, n)
-         call swiftest_util_sort_rearrange(self%atp,      ind, n)
-         call swiftest_util_sort_rearrange(self%mu,       ind, n)
-         call swiftest_util_sort_rearrange(self%a,        ind, n)
-         call swiftest_util_sort_rearrange(self%e,        ind, n)
-         call swiftest_util_sort_rearrange(self%inc,      ind, n)
-         call swiftest_util_sort_rearrange(self%capom,    ind, n)
-         call swiftest_util_sort_rearrange(self%omega,    ind, n)
-         call swiftest_util_sort_rearrange(self%capm,     ind, n)
+         call util_sort_rearrange(self%id,       ind, n)
+         call util_sort_rearrange(self%lmask,    ind, n)
+         call util_sort_rearrange(self%info,     ind, n)
+         call util_sort_rearrange(self%status,   ind, n)
+         call util_sort_rearrange(self%ldiscard, ind, n)
+         call util_sort_rearrange(self%lcollision, ind, n)
+         call util_sort_rearrange(self%lencounter, ind, n)
+         call util_sort_rearrange(self%rh,       ind, n)
+         call util_sort_rearrange(self%vh,       ind, n)
+         call util_sort_rearrange(self%rb,       ind, n)
+         call util_sort_rearrange(self%vb,       ind, n)
+         call util_sort_rearrange(self%ah,       ind, n)
+         call util_sort_rearrange(self%aobl,     ind, n)
+         call util_sort_rearrange(self%agr,      ind, n)
+         call util_sort_rearrange(self%atide,    ind, n)
+         call util_sort_rearrange(self%ir3h,     ind, n)
+         call util_sort_rearrange(self%isperi,   ind, n)
+         call util_sort_rearrange(self%peri,     ind, n)
+         call util_sort_rearrange(self%atp,      ind, n)
+         call util_sort_rearrange(self%mu,       ind, n)
+         call util_sort_rearrange(self%a,        ind, n)
+         call util_sort_rearrange(self%e,        ind, n)
+         call util_sort_rearrange(self%inc,      ind, n)
+         call util_sort_rearrange(self%capom,    ind, n)
+         call util_sort_rearrange(self%omega,    ind, n)
+         call util_sort_rearrange(self%capm,     ind, n)
       end associate
 
       return
    end subroutine swiftest_util_sort_rearrange_body
-
-
-   pure module subroutine swiftest_util_sort_rearrange_arr_char_string(arr, ind, n)
-      !! author: David A. Minton
-      !!
-      !! Rearrange a single array of character string in-place from an index list.
-      implicit none
-      ! Arguments
-      character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-      integer(I4B),          dimension(:),              intent(in)    :: ind !! Index to rearrange against
-      integer(I4B),                                     intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      ! Internals
-      character(len=STRMAX), dimension(:), allocatable                :: tmp !! Temporary copy of arry used during rearrange operation
-
-      if (.not. allocated(arr) .or. n <= 0) return
-      allocate(tmp, mold=arr)
-      tmp(1:n) = arr(ind)
-      call move_alloc(tmp, arr)
-
-      return
-   end subroutine swiftest_util_sort_rearrange_arr_char_string
-
-
-   pure module subroutine swiftest_util_sort_rearrange_arr_DP(arr, ind, n)
-      !! author: David A. Minton
-      !!
-      !! Rearrange a single array of DP type in-place from an index list.
-      implicit none
-      ! Arguments
-      real(DP),     dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-      integer(I4B), dimension(:),              intent(in)  :: ind !! Index to rearrange against
-      integer(I4B),                            intent(in)  :: n   !! Number of elements in arr and ind to rearrange
-      ! Internals
-      real(DP), dimension(:), allocatable :: tmp !! Temporary copy of array used during rearrange operation
-
-      if (.not. allocated(arr) .or. n <= 0) return
-      allocate(tmp, mold=arr)
-      tmp(1:n) = arr(ind)
-      call move_alloc(tmp, arr)
-
-      return
-   end subroutine swiftest_util_sort_rearrange_arr_DP
-
-
-   pure module subroutine swiftest_util_sort_rearrange_arr_DPvec(arr, ind, n)
-      !! author: David A. Minton
-      !!
-      !! Rearrange a single array of (NDIM,n) DP-type vectors in-place from an index list.
-      implicit none
-      ! Arguments
-      real(DP),     dimension(:,:), allocatable, intent(inout) :: arr !! Destination array 
-      integer(I4B), dimension(:),                intent(in)    :: ind !! Index to rearrange against
-      integer(I4B),                              intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      ! Internals
-      real(DP), dimension(:,:), allocatable :: tmp !! Temporary copy of array used during rearrange operation
-
-      if (.not. allocated(arr) .or. n <= 0) return
-      allocate(tmp, mold=arr)
-      tmp(:,1:n) = arr(:, ind)
-      call move_alloc(tmp, arr)
-
-      return
-   end subroutine swiftest_util_sort_rearrange_arr_DPvec
-
-
-   pure module subroutine swiftest_util_sort_rearrange_arr_I4B(arr, ind, n)
-      !! author: David A. Minton
-      !!
-      !! Rearrange a single array of integers in-place from an index list.
-      implicit none
-      ! Arguments
-      integer(I4B), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-      integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
-      integer(I4B),                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      ! Internals
-      integer(I4B), dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
-
-      if (.not. allocated(arr) .or. n <= 0) return
-      allocate(tmp, mold=arr)
-      tmp(1:n) = arr(ind)
-      call move_alloc(tmp, arr)
-
-      return
-   end subroutine swiftest_util_sort_rearrange_arr_I4B
-
-   pure module subroutine swiftest_util_sort_rearrange_arr_I4B_I8Bind(arr, ind, n)
-      !! author: David A. Minton
-      !!
-      !! Rearrange a single array of integers in-place from an index list.
-      implicit none
-      ! Arguments
-      integer(I4B), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-      integer(I8B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
-      integer(I8B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      ! Internals
-      integer(I4B), dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
-
-      if (.not. allocated(arr) .or. n <= 0_I8B) return
-      allocate(tmp, mold=arr)
-      tmp(1:n) = arr(ind)
-      call move_alloc(tmp, arr)
-
-      return
-   end subroutine swiftest_util_sort_rearrange_arr_I4B_I8Bind
 
 
    module subroutine swiftest_util_sort_rearrange_arr_info(arr, ind, n)
@@ -4037,7 +2881,7 @@ contains
 
       return
    end subroutine swiftest_util_sort_rearrange_arr_info
-
+ 
 
    pure module subroutine swiftest_util_sort_rearrange_arr_kin(arr, ind, n)
       !! author: David A. Minton
@@ -4067,48 +2911,6 @@ contains
    end subroutine swiftest_util_sort_rearrange_arr_kin
 
 
-   pure module subroutine swiftest_util_sort_rearrange_arr_logical(arr, ind, n)
-      !! author: David A. Minton
-      !!
-      !! Rearrange a single array of logicals in-place from an index list.
-      implicit none
-      ! Arguments
-      logical,      dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-      integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
-      integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      ! Internals
-      logical, dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
-
-      if (.not. allocated(arr) .or. n <= 0) return
-      allocate(tmp, mold=arr)
-      tmp(1:n) = arr(ind)
-      call move_alloc(tmp, arr)
-
-      return
-   end subroutine swiftest_util_sort_rearrange_arr_logical
-
-
-   pure module subroutine swiftest_util_sort_rearrange_arr_logical_I8Bind(arr, ind, n)
-      !! author: David A. Minton
-      !!
-      !! Rearrange a single array of logicals in-place from an index list.
-      implicit none
-      ! Arguments
-      logical,      dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-      integer(I8B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
-      integer(I8B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      ! Internals
-      logical, dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
-
-      if (.not. allocated(arr) .or. n <= 0) return
-      allocate(tmp, mold=arr)
-      tmp(1:n) = arr(ind)
-      call move_alloc(tmp, arr)
-
-      return
-   end subroutine swiftest_util_sort_rearrange_arr_logical_I8Bind
-
-
    module subroutine swiftest_util_sort_rearrange_pl(self, ind)
       !! author: David A. Minton
       !!
@@ -4119,23 +2921,23 @@ contains
       integer(I4B),       dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
 
       associate(pl => self, npl => self%nbody)
-         call swiftest_util_sort_rearrange(pl%mass,    ind, npl)
-         call swiftest_util_sort_rearrange(pl%Gmass,   ind, npl)
-         call swiftest_util_sort_rearrange(pl%rhill,   ind, npl)
-         call swiftest_util_sort_rearrange(pl%renc,    ind, npl)
-         call swiftest_util_sort_rearrange(pl%radius,  ind, npl)
-         call swiftest_util_sort_rearrange(pl%density, ind, npl)
-         call swiftest_util_sort_rearrange(pl%rbeg,    ind, npl)
-         call swiftest_util_sort_rearrange(pl%vbeg,    ind, npl)
-         call swiftest_util_sort_rearrange(pl%Ip,      ind, npl)
-         call swiftest_util_sort_rearrange(pl%rot,     ind, npl)
-         call swiftest_util_sort_rearrange(pl%k2,      ind, npl)
-         call swiftest_util_sort_rearrange(pl%Q,       ind, npl)
-         call swiftest_util_sort_rearrange(pl%tlag,    ind, npl)
-         call swiftest_util_sort_rearrange(pl%kin,        ind, npl)
-         call swiftest_util_sort_rearrange(pl%lmtiny,     ind, npl)
-         call swiftest_util_sort_rearrange(pl%nplenc,     ind, npl)
-         call swiftest_util_sort_rearrange(pl%ntpenc,     ind, npl)
+         call util_sort_rearrange(pl%mass,    ind, npl)
+         call util_sort_rearrange(pl%Gmass,   ind, npl)
+         call util_sort_rearrange(pl%rhill,   ind, npl)
+         call util_sort_rearrange(pl%renc,    ind, npl)
+         call util_sort_rearrange(pl%radius,  ind, npl)
+         call util_sort_rearrange(pl%density, ind, npl)
+         call util_sort_rearrange(pl%rbeg,    ind, npl)
+         call util_sort_rearrange(pl%vbeg,    ind, npl)
+         call util_sort_rearrange(pl%Ip,      ind, npl)
+         call util_sort_rearrange(pl%rot,     ind, npl)
+         call util_sort_rearrange(pl%k2,      ind, npl)
+         call util_sort_rearrange(pl%Q,       ind, npl)
+         call util_sort_rearrange(pl%tlag,    ind, npl)
+         call util_sort_rearrange(pl%kin,        ind, npl)
+         call util_sort_rearrange(pl%lmtiny,     ind, npl)
+         call util_sort_rearrange(pl%nplenc,     ind, npl)
+         call util_sort_rearrange(pl%ntpenc,     ind, npl)
 
          if (allocated(pl%k_plpl)) deallocate(pl%k_plpl)
 
@@ -4157,7 +2959,7 @@ contains
       integer(I4B),         dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
 
       associate(tp => self, ntp => self%nbody)
-         call swiftest_util_sort_rearrange(tp%nplenc,  ind, ntp)
+         call util_sort_rearrange(tp%nplenc,  ind, ntp)
 
          if (allocated(tp%k_pltp)) deallocate(tp%k_pltp)
 
@@ -4166,220 +2968,6 @@ contains
 
       return
    end subroutine swiftest_util_sort_rearrange_tp
-
-
-   module subroutine swiftest_util_spill_arr_char_string(keeps, discards, lspill_list, ldestructive)
-      !! author: David A. Minton
-      !!
-      !! Performs a spill operation on a single array of type character strings
-      !! This is the inverse of a spill operation
-      implicit none
-      ! Arguments
-      character(len=STRMAX), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-      character(len=STRMAX), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-      logical,               dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-      logical,                                          intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      ! Internals
-      integer(I4B) :: nspill, nkeep, nlist
-      character(len=STRMAX), dimension(:), allocatable                :: tmp          !! Array of values to keep 
-
-      nkeep = count(.not.lspill_list(:))
-      nspill = count(lspill_list(:))
-      nlist = size(lspill_list(:))
-
-      if (.not.allocated(keeps) .or. nspill == 0) return
-      if (.not.allocated(discards)) then
-         allocate(discards(nspill))
-      else if (size(discards) /= nspill) then
-         deallocate(discards)
-         allocate(discards(nspill))
-      end if
-
-      discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
-      if (ldestructive) then
-         if (nkeep > 0) then
-            allocate(tmp(nkeep))
-            tmp(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
-            call move_alloc(tmp, keeps)
-         else
-            deallocate(keeps)
-         end if
-      end if
-
-      return
-   end subroutine swiftest_util_spill_arr_char_string
-   
-
-   module subroutine swiftest_util_spill_arr_DP(keeps, discards, lspill_list, ldestructive)
-      !! author: David A. Minton
-      !!
-      !! Performs a spill operation on a single array of type DP
-      !! This is the inverse of a spill operation
-      implicit none
-      ! Arguments
-      real(DP), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-      real(DP), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-      logical,  dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
-      logical,                             intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      ! Internals
-      integer(I4B) :: nspill, nkeep, nlist
-      real(DP), dimension(:), allocatable                :: tmp          !! Array of values to keep 
-
-      nkeep = count(.not.lspill_list(:))
-      nspill = count(lspill_list(:))
-      nlist = size(lspill_list(:))
-
-      if (.not.allocated(keeps) .or. nspill == 0) return
-      if (.not.allocated(discards)) then
-         allocate(discards(nspill))
-      else if (size(discards) /= nspill) then
-         deallocate(discards)
-         allocate(discards(nspill))
-      end if
-
-      discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
-      if (ldestructive) then
-         if (nkeep > 0) then
-            allocate(tmp(nkeep))
-            tmp(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
-            call move_alloc(tmp, keeps)
-         else
-            deallocate(keeps)
-         end if
-      end if
-
-      return
-   end subroutine swiftest_util_spill_arr_DP
-
-
-   module subroutine swiftest_util_spill_arr_DPvec(keeps, discards, lspill_list, ldestructive)
-      !! author: David A. Minton
-      !!
-      !! Performs a spill operation on a single array of DP vectors with shape (NDIM, n)
-      !! This is the inverse of a spill operation
-      implicit none
-      ! Arguments
-      real(DP), dimension(:,:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-      real(DP), dimension(:,:), allocatable, intent(inout) :: discards     !! Array discards
-      logical,  dimension(:),                intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-      logical,                               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      ! Internals
-      integer(I4B) :: i, nspill, nkeep, nlist
-      real(DP), dimension(:,:), allocatable                :: tmp          !! Array of values to keep 
-
-      nkeep = count(.not.lspill_list(:))
-      nspill = count(lspill_list(:))
-      nlist = size(lspill_list(:))
-
-      if (.not.allocated(keeps) .or. nspill == 0) return
-      if (.not.allocated(discards)) then
-         allocate(discards(NDIM, nspill))
-      else if (size(discards, dim=2) /= nspill) then
-         deallocate(discards)
-         allocate(discards(NDIM, nspill))
-      end if
-
-      do i = 1, NDIM
-         discards(i,:) = pack(keeps(i,1:nlist), lspill_list(1:nlist))
-      end do
-      if (ldestructive) then
-         if (nkeep > 0) then
-            allocate(tmp(NDIM, nkeep))
-            do i = 1, NDIM
-               tmp(i, :) = pack(keeps(i, 1:nlist), .not. lspill_list(1:nlist))
-            end do
-            call move_alloc(tmp, keeps)
-         else
-            deallocate(keeps)
-         end if
-      end if
-
-      return
-   end subroutine swiftest_util_spill_arr_DPvec
-
-
-   module subroutine swiftest_util_spill_arr_I4B(keeps, discards, lspill_list, ldestructive)
-      !! author: David A. Minton
-      !!
-      !! Performs a spill operation on a single array of type I4B
-      !! This is the inverse of a spill operation
-      implicit none
-      ! Arguments
-      integer(I4B), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-      integer(I4B), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-      logical,      dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-      logical,                                 intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      ! Internals
-      integer(I4B) :: nspill, nkeep, nlist
-      integer(I4B), dimension(:), allocatable                :: tmp          !! Array of values to keep 
-
-      nkeep = count(.not.lspill_list(:))
-      nspill = count(lspill_list(:))
-      nlist = size(lspill_list(:))
-
-      if (.not.allocated(keeps) .or. nspill == 0) return
-      if (.not.allocated(discards)) then
-         allocate(discards(nspill))
-      else if (size(discards) /= nspill) then
-         deallocate(discards)
-         allocate(discards(nspill))
-      end if
-
-      discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
-      if (ldestructive) then
-         if (nkeep > 0) then
-            allocate(tmp(nkeep))
-            tmp(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
-            call move_alloc(tmp, keeps)
-         else
-            deallocate(keeps)
-         end if
-      end if
-
-      return
-   end subroutine swiftest_util_spill_arr_I4B
-
-
-   module subroutine swiftest_util_spill_arr_I8B(keeps, discards, lspill_list, ldestructive)
-      !! author: David A. Minton
-      !!
-      !! Performs a spill operation on a single array of type I4B
-      !! This is the inverse of a spill operation
-      implicit none
-      ! Arguments
-      integer(I8B), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-      integer(I8B), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-      logical,      dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-      logical,                                 intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      ! Internals
-      integer(I4B) :: nspill, nkeep, nlist
-      integer(I8B), dimension(:), allocatable                :: tmp          !! Array of values to keep 
-
-      nkeep = count(.not.lspill_list(:))
-      nspill = count(lspill_list(:))
-      nlist = size(lspill_list(:))
-
-      if (.not.allocated(keeps) .or. nspill == 0) return
-      if (.not.allocated(discards)) then
-         allocate(discards(nspill))
-      else if (size(discards) /= nspill) then
-         deallocate(discards)
-         allocate(discards(nspill))
-      end if
-
-      discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
-      if (ldestructive) then
-         if (nkeep > 0) then
-            allocate(tmp(nkeep))
-            tmp(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
-            call move_alloc(tmp, keeps)
-         else
-            deallocate(keeps)
-         end if
-      end if
-
-      return
-   end subroutine swiftest_util_spill_arr_I8B
 
 
    module subroutine swiftest_util_spill_arr_info(keeps, discards, lspill_list, ldestructive)
@@ -4472,48 +3060,6 @@ contains
    end subroutine swiftest_util_spill_arr_kin
 
 
-   module subroutine swiftest_util_spill_arr_logical(keeps, discards, lspill_list, ldestructive)
-      !! author: David A. Minton
-      !!
-      !! Performs a spill operation on a single array of logicals
-      !! This is the inverse of a spill operation
-      implicit none
-      ! Arguments
-      logical, dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-      logical, dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-      logical, dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-      logical,                            intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or no
-      ! Internals
-      integer(I4B) :: nspill, nkeep, nlist
-      logical, dimension(:), allocatable                :: tmp          !! Array of values to keep 
-
-      nkeep = count(.not.lspill_list(:))
-      nspill = count(lspill_list(:))
-      nlist = size(lspill_list(:))
-
-      if (.not.allocated(keeps) .or. nspill == 0) return
-      if (.not.allocated(discards)) then
-         allocate(discards(nspill))
-      else if (size(discards) /= nspill) then
-         deallocate(discards)
-         allocate(discards(nspill))
-      end if
-
-      discards(:) = pack(keeps(1:nlist), lspill_list(1:nlist))
-      if (ldestructive) then
-         if (nkeep > 0) then
-            allocate(tmp(nkeep))
-            tmp(:) = pack(keeps(1:nlist), .not. lspill_list(1:nlist))
-            call move_alloc(tmp, keeps)
-         else
-            deallocate(keeps)
-         end if
-      end if
-
-      return
-   end subroutine swiftest_util_spill_arr_logical
-
-
    module subroutine swiftest_util_spill_body(self, discards, lspill_list, ldestructive)
       !! author: David A. Minton
       !!
@@ -4532,32 +3078,32 @@ contains
       !> Spill all the common components
       associate(keeps => self)
          
-         call swiftest_util_spill(keeps%id,         discards%id,         lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%info,       discards%info,       lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%lmask,      discards%lmask,      lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%status,     discards%status,     lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%ldiscard,   discards%ldiscard,   lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%lcollision, discards%lcollision, lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%lencounter, discards%lencounter, lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%mu,         discards%mu,         lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%rh,         discards%rh,         lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%vh,         discards%vh,         lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%rb,         discards%rb,         lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%vb,         discards%vb,         lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%ah,         discards%ah,         lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%aobl,       discards%aobl,       lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%agr,        discards%agr,        lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%atide,      discards%atide,      lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%ir3h,       discards%ir3h,       lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%isperi,     discards%isperi,     lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%peri,       discards%peri,       lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%atp,        discards%atp,        lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%a,          discards%a,          lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%e,          discards%e,          lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%inc,        discards%inc,        lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%capom,      discards%capom,      lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%omega,      discards%omega,      lspill_list, ldestructive)
-         call swiftest_util_spill(keeps%capm,       discards%capm,       lspill_list, ldestructive)
+         call util_spill(keeps%id,         discards%id,         lspill_list, ldestructive)
+         call util_spill(keeps%info,       discards%info,       lspill_list, ldestructive)
+         call util_spill(keeps%lmask,      discards%lmask,      lspill_list, ldestructive)
+         call util_spill(keeps%status,     discards%status,     lspill_list, ldestructive)
+         call util_spill(keeps%ldiscard,   discards%ldiscard,   lspill_list, ldestructive)
+         call util_spill(keeps%lcollision, discards%lcollision, lspill_list, ldestructive)
+         call util_spill(keeps%lencounter, discards%lencounter, lspill_list, ldestructive)
+         call util_spill(keeps%mu,         discards%mu,         lspill_list, ldestructive)
+         call util_spill(keeps%rh,         discards%rh,         lspill_list, ldestructive)
+         call util_spill(keeps%vh,         discards%vh,         lspill_list, ldestructive)
+         call util_spill(keeps%rb,         discards%rb,         lspill_list, ldestructive)
+         call util_spill(keeps%vb,         discards%vb,         lspill_list, ldestructive)
+         call util_spill(keeps%ah,         discards%ah,         lspill_list, ldestructive)
+         call util_spill(keeps%aobl,       discards%aobl,       lspill_list, ldestructive)
+         call util_spill(keeps%agr,        discards%agr,        lspill_list, ldestructive)
+         call util_spill(keeps%atide,      discards%atide,      lspill_list, ldestructive)
+         call util_spill(keeps%ir3h,       discards%ir3h,       lspill_list, ldestructive)
+         call util_spill(keeps%isperi,     discards%isperi,     lspill_list, ldestructive)
+         call util_spill(keeps%peri,       discards%peri,       lspill_list, ldestructive)
+         call util_spill(keeps%atp,        discards%atp,        lspill_list, ldestructive)
+         call util_spill(keeps%a,          discards%a,          lspill_list, ldestructive)
+         call util_spill(keeps%e,          discards%e,          lspill_list, ldestructive)
+         call util_spill(keeps%inc,        discards%inc,        lspill_list, ldestructive)
+         call util_spill(keeps%capom,      discards%capom,      lspill_list, ldestructive)
+         call util_spill(keeps%omega,      discards%omega,      lspill_list, ldestructive)
+         call util_spill(keeps%capm,       discards%capm,       lspill_list, ldestructive)
 
          nbody_old = keeps%nbody
 
@@ -4587,24 +3133,24 @@ contains
          select type (discards) ! The standard requires us to select the type of both arguments in order to access all the components
          class is (swiftest_pl)
             !> Spill components specific to the massive body class
-            call swiftest_util_spill(keeps%mass,    discards%mass,    lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%Gmass,   discards%Gmass,   lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%rhill,   discards%rhill,   lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%renc,    discards%renc,    lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%radius,  discards%radius,  lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%density, discards%density, lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%rbeg,    discards%rbeg,    lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%rend,    discards%rend,    lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%vbeg,    discards%vbeg,    lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%Ip,      discards%Ip,      lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%rot,     discards%rot,     lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%k2,      discards%k2,      lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%Q,       discards%Q,       lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%tlag,    discards%tlag,    lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%kin,     discards%kin,     lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%lmtiny,  discards%lmtiny,  lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%nplenc,  discards%nplenc,  lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%ntpenc,  discards%ntpenc,  lspill_list, ldestructive)
+            call util_spill(keeps%mass,    discards%mass,    lspill_list, ldestructive)
+            call util_spill(keeps%Gmass,   discards%Gmass,   lspill_list, ldestructive)
+            call util_spill(keeps%rhill,   discards%rhill,   lspill_list, ldestructive)
+            call util_spill(keeps%renc,    discards%renc,    lspill_list, ldestructive)
+            call util_spill(keeps%radius,  discards%radius,  lspill_list, ldestructive)
+            call util_spill(keeps%density, discards%density, lspill_list, ldestructive)
+            call util_spill(keeps%rbeg,    discards%rbeg,    lspill_list, ldestructive)
+            call util_spill(keeps%rend,    discards%rend,    lspill_list, ldestructive)
+            call util_spill(keeps%vbeg,    discards%vbeg,    lspill_list, ldestructive)
+            call util_spill(keeps%Ip,      discards%Ip,      lspill_list, ldestructive)
+            call util_spill(keeps%rot,     discards%rot,     lspill_list, ldestructive)
+            call util_spill(keeps%k2,      discards%k2,      lspill_list, ldestructive)
+            call util_spill(keeps%Q,       discards%Q,       lspill_list, ldestructive)
+            call util_spill(keeps%tlag,    discards%tlag,    lspill_list, ldestructive)
+            call util_spill(keeps%kin,     discards%kin,     lspill_list, ldestructive)
+            call util_spill(keeps%lmtiny,  discards%lmtiny,  lspill_list, ldestructive)
+            call util_spill(keeps%nplenc,  discards%nplenc,  lspill_list, ldestructive)
+            call util_spill(keeps%ntpenc,  discards%ntpenc,  lspill_list, ldestructive)
 
             if (ldestructive .and. allocated(keeps%k_plpl)) deallocate(keeps%k_plpl)
 
@@ -4634,7 +3180,7 @@ contains
          select type(discards)
          class is (swiftest_tp)
             !> Spill components specific to the test particle class
-            call swiftest_util_spill(keeps%nplenc,  discards%nplenc,  lspill_list, ldestructive)
+            call util_spill(keeps%nplenc,  discards%nplenc,  lspill_list, ldestructive)
             call swiftest_util_spill_body(keeps, discards, lspill_list, ldestructive)
          class default
             write(*,*) 'Error! spill method called for incompatible return type on swiftest_tp'
@@ -4644,70 +3190,6 @@ contains
       return
    end subroutine swiftest_util_spill_tp
 
-
-   module subroutine swiftest_util_unique_DP(input_array, output_array, index_map)
-      !! author: David A. Minton
-      !!
-      !! Takes an input unsorted integer array and returns a new array of sorted, unique values (DP version)
-      implicit none
-      ! Arguments
-      real(DP),     dimension(:),              intent(in)  :: input_array  !! Unsorted input array 
-      real(DP),     dimension(:), allocatable, intent(out) :: output_array !! Sorted array of unique values 
-      integer(I4B), dimension(:), allocatable, intent(out) :: index_map    !! An array of the same size as input_array that such that any for any index i, output_array(index_map(i)) = input_array(i)       
-      ! Internals
-      real(DP), dimension(:), allocatable :: unique_array
-      integer(I4B) :: n
-      real(DP) :: lo, hi
-
-      allocate(unique_array, mold=input_array)
-      allocate(index_map(size(input_array)))
-      lo = minval(input_array) - 1
-      hi = maxval(input_array)
-
-      n = 0
-      do 
-         n = n + 1
-         lo = minval(input_array(:), mask=input_array(:) > lo)
-         unique_array(n) = lo
-         where(input_array(:) == lo) index_map(:) = n
-         if (lo >= hi) exit
-      enddo
-      allocate(output_array(n), source=unique_array(1:n)) 
-
-      return
-   end subroutine swiftest_util_unique_DP
-
-
-   module subroutine swiftest_util_unique_I4B(input_array, output_array, index_map)
-      !! author: David A. Minton
-      !!
-      !! Takes an input unsorted integer array and returns a new array of sorted, unique values (I4B version)
-      implicit none
-      ! Arguments
-      integer(I4B), dimension(:),              intent(in)  :: input_array  !! Unsorted input array 
-      integer(I4B), dimension(:), allocatable, intent(out) :: output_array !! Sorted array of unique values
-      integer(I4B), dimension(:), allocatable, intent(out) :: index_map    !! An array of the same size as input_array that such that any for any index i, output_array(index_map(i)) = input_array(i)     
-      ! Internals
-      integer(I4B), dimension(:), allocatable :: unique_array
-      integer(I4B) :: n, lo, hi
-
-      allocate(unique_array, mold=input_array)
-      allocate(index_map, mold=input_array)
-      lo = minval(input_array) - 1
-      hi = maxval(input_array)
-
-      n = 0
-      do 
-         n = n + 1
-         lo = minval(input_array(:), mask=input_array(:) > lo)
-         unique_array(n) = lo
-         where(input_array(:) == lo) index_map(:) = n
-         if (lo >= hi) exit
-      enddo
-      allocate(output_array(n), source=unique_array(1:n)) 
-
-      return
-   end subroutine swiftest_util_unique_I4B
 
 
    module subroutine swiftest_util_valid_id_system(self, param)
@@ -4740,11 +3222,11 @@ contains
          maxid = maxval(idarr)
 
          ! Check to see if the ids are unique
-         call swiftest_util_unique(idarr, unique_idarr, idmap)
+         call util_unique(idarr, unique_idarr, idmap)
          if (size(unique_idarr) == nid) return ! All id values are unique
 
          ! Fix any duplicate id values and update the maxid
-         call swiftest_util_sort(idmap)
+         call util_sort(idmap)
          do i = 2, size(idmap)
             if (idmap(i) == idmap(i-1)) then
                maxid = maxid + 1

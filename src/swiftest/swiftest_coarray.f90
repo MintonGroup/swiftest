@@ -78,21 +78,19 @@ contains
         call coclone(self%R0)
         call coclone(self%dR)
 
-        do i = 1, NDIM
-            call coclone(self%aobl(i))
-            call coclone(self%atide(i))
-            call coclone(self%aoblbeg(i))
-            call coclone(self%aoblend(i))
-            call coclone(self%atidebeg(i))
-            call coclone(self%atideend(i))
-            call coclone(self%rb(i))
-            call coclone(self%vb(i))
-            call coclone(self%agr(i))
-            call coclone(self%Ip(i))
-            call coclone(self%rot(i))
-            call coclone(self%L0(i))
-            call coclone(self%dL(i))
-        end do
+        call coclonevec(self%aobl)
+        call coclonevec(self%atide)
+        call coclonevec(self%aoblbeg)
+        call coclonevec(self%aoblend)
+        call coclonevec(self%atidebeg)
+        call coclonevec(self%atideend)
+        call coclonevec(self%rb)
+        call coclonevec(self%vb)
+        call coclonevec(self%agr)
+        call coclonevec(self%Ip)
+        call coclonevec(self%rot)
+        call coclonevec(self%L0)
+        call coclonevec(self%dL)
 
         return
     end subroutine swiftest_coarray_coclone_cb
@@ -120,8 +118,6 @@ contains
         call coclone(self%k2)
         call coclone(self%Q )
         call coclone(self%tlag)
-        call coclone(self%k_plpl)
-        call coclone(self%nplpl)
         call coclone(self%kin)
         call coclone(self%lmtiny)
         call coclone(self%nplm)
@@ -143,8 +139,6 @@ contains
         ! Arguments
         class(swiftest_tp),intent(inout),codimension[*]  :: self  !! Swiftest body object
 
-        call coclone(self%k_pltp)
-        call coclone(self%npltp)
         call coclone(self%nplenc)
         call swiftest_coarray_coclone_body(self)
 
@@ -214,7 +208,8 @@ contains
         return
     end subroutine swiftest_coarray_coclone_system
 
-
+  
+  
     module subroutine swiftest_coarray_component_clone_info(var,src_img)
         !! author: David A. Minton
         !!
@@ -225,30 +220,31 @@ contains
         type(swiftest_particle_info), intent(inout) :: var
         integer(I4B), intent(in),optional :: src_img
         ! Internals
-        type(swiftest_particle_info),save :: tmp[*]
+        type(swiftest_particle_info),allocatable :: tmp[:]
         integer(I4B) :: img, si
     
+        allocate(tmp[*])
         if (present(src_img)) then
-            si = src_img
+           si = src_img
         else
-            si = 1
+           si = 1
         end if
-
+    
         sync all
         if (this_image() == si) then
-            do img = 1, num_images()
-                tmp[img] = var 
-            end do
-            sync images(*)
+           do img = 1, num_images()
+             tmp[img] = var 
+           end do
+           sync images(*)
         else
-            sync images(si)
-            var = tmp[si]
+           sync images(si)
+           var = tmp[si]
         end if
-
+    
         return
     end subroutine swiftest_coarray_component_clone_info
-
-
+    
+    
     module subroutine swiftest_coarray_component_clone_info_arr1D(var,src_img)
         !! author: David A. Minton
         !!
@@ -261,33 +257,35 @@ contains
         ! Internals
         type(swiftest_particle_info), dimension(:), codimension[:], allocatable :: tmp
         integer(I4B) :: img, si
-        integer(I4B), save :: n[*]
-        logical, save :: isalloc[*]
- 
+        integer(I4B), allocatable :: n[:]
+        logical, allocatable :: isalloc[:]
+    
+        allocate(isalloc[*])
+        allocate(n[*])
+    
         if (present(src_img)) then
-            si = src_img
+           si = src_img
         else
-            si = 1
+           si = 1
         end if
-
-        sync all
+    
         isalloc = allocated(var)
         if (isalloc) n = size(var)
         sync all 
         if (.not. isalloc[si]) return
-
+    
         allocate(tmp(n[si])[*])
         if (this_image() == si) then
-            do img = 1, num_images()
-                tmp(:)[img] = var 
-            end do
-            sync images(*)
+           do img = 1, num_images()
+             tmp(:)[img] = var 
+           end do
+           sync images(*)
         else
-            sync images(si)
-            if (allocated(var)) deallocate(var)
-            allocate(var, source=tmp)
+           sync images(si)
+           if (allocated(var)) deallocate(var)
+           allocate(var, source=tmp)
         end if
-
+    
         return
     end subroutine swiftest_coarray_component_clone_info_arr1D
 
@@ -400,6 +398,8 @@ contains
         return
     end subroutine swiftest_coarray_component_collect_info_arr1D
 
+    
+
 
     module subroutine swiftest_coarray_cocollect_body(self)
         !! author: David A. Minton
@@ -410,6 +410,9 @@ contains
         class(swiftest_body),intent(inout), codimension[*] :: self !! Swiftest body object
         integer(I4B) :: i
 
+        if (this_image() == 1) write(*,*) "Before collect " 
+        sync all
+        if (allocated(self%id)) write(*,*) "Image: ",this_image(), "id: ",self%id
         call cocollect(self%nbody)
         call cocollect(self%id)
         call cocollect(self%info)
@@ -438,6 +441,10 @@ contains
         call cocollect(self%omega)
         call cocollect(self%capm)
 
+        if (this_image() == 1) write(*,*) "after collect " 
+        sync all
+        if (allocated(self%id)) write(*,*) "Image: ",this_image(), "id: ",self%id
+
         return
     end subroutine swiftest_coarray_cocollect_body
 
@@ -450,7 +457,6 @@ contains
         ! Arguments
         class(swiftest_tp),intent(inout),codimension[*]  :: self  !! Swiftest body object
 
-        call cocollect(self%k_pltp)
         call cocollect(self%npltp)
         call cocollect(self%nplenc)
         call swiftest_coarray_cocollect_body(self)
@@ -488,9 +494,6 @@ contains
 
         if (this_image() == 1) then
             write(param%display_unit,*) " Done collecting"
-            do i = 1, nbody_system%tp%nbody
-                write(*,*) i,"mu ",nbody_system%tp%mu(i)
-            end do
         end if
 
         return
@@ -520,6 +523,10 @@ contains
             write(param%display_unit,*) " Distributing test particles across " // trim(adjustl(image_num_char)) // " images."
         end if
 
+        if (this_image() == 1) write(*,*) "Before distribute " 
+        sync all
+        if (allocated(nbody_system%tp%id)) write(*,*) "Image: ",this_image(), "id: ",nbody_system%tp%id
+
         ntp = nbody_system%tp%nbody
         sync all
         ntot = ntp[1]
@@ -547,12 +554,15 @@ contains
         call nbody_system%tp%spill(tmp, lspill_list(:), ldestructive=.true.)
 
         deallocate(tmp, cotp)
+
+
+        if (this_image() == 1) write(*,*) "After distribute " 
+        sync all
+        if (allocated(nbody_system%tp%id)) write(*,*) "Image: ",this_image(), "id: ",nbody_system%tp%id
+
         
         if (this_image() == 1) then
             write(param%display_unit,*) " Done distributing"
-            do i = 1, nbody_system%tp%nbody
-                write(*,*) i,"mu ",nbody_system%tp%mu(i)
-            end do
         end if
 
         return
@@ -584,7 +594,7 @@ contains
         end if
  
         return
-     end subroutine swiftest_coarray_initialize_system
+    end subroutine swiftest_coarray_initialize_system
 
 
 end submodule s_swiftest_coarray

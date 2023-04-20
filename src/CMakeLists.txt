@@ -85,6 +85,8 @@ SET(FAST_MATH_FILES
 
 SET(COARRAY_FILES
             ${SRC}/coarray/coarray_module.f90
+            ${SRC}/coarray/coarray_clone.f90
+            ${SRC}/coarray/coarray_collect.f90
             ${SRC}/swiftest/swiftest_coarray.f90
             ${SRC}/whm/whm_coarray.f90
             ${SRC}/rmvs/rmvs_coarray.f90

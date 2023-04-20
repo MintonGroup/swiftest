@@ -1123,62 +1123,22 @@ module swiftest
       end subroutine swiftest_user_kick_getacch_body
    end interface
 
-   interface swiftest_util_append
-      module subroutine swiftest_util_append_arr_char_string(arr, source, nold, nsrc, lsource_mask)
+   interface util_append
+      module subroutine swiftest_util_append_arr_info(arr, source, nold, lsource_mask)
          implicit none
-         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-         character(len=STRMAX), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         integer(I4B),                                     intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-         logical,               dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      end subroutine swiftest_util_append_arr_char_string
-
-      module subroutine swiftest_util_append_arr_DP(arr, source, nold, nsrc, lsource_mask)
-         implicit none
-         real(DP), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-         real(DP), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         integer(I4B),                        intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-         logical,  dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      end subroutine swiftest_util_append_arr_DP
-
-      module subroutine swiftest_util_append_arr_DPvec(arr, source, nold, nsrc, lsource_mask)
-         implicit none
-         real(DP), dimension(:,:), allocatable, intent(inout) :: arr          !! Destination array 
-         real(DP), dimension(:,:), allocatable, intent(in)    :: source       !! Array to append 
-         integer(I4B),                          intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-         logical,  dimension(:),                intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      end subroutine swiftest_util_append_arr_DPvec
-
-      module subroutine swiftest_util_append_arr_I4B(arr, source, nold, nsrc, lsource_mask)
-         implicit none
-         integer(I4B), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-         integer(I4B), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         integer(I4B),                            intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-         logical,      dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      end subroutine swiftest_util_append_arr_I4B
-
-      module subroutine swiftest_util_append_arr_info(arr, source, nold, nsrc, lsource_mask)
-         implicit none
-         type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-         type(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         integer(I4B),                                            intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-         logical,                      dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         type(swiftest_particle_info), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
+         type(swiftest_particle_info), dimension(:),              intent(in)           :: source       !! Array to append 
+         integer(I4B),                                            intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
+         logical,                      dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine swiftest_util_append_arr_info
 
-      module subroutine swiftest_util_append_arr_kin(arr, source, nold, nsrc, lsource_mask)
+      module subroutine swiftest_util_append_arr_kin(arr, source, nold, lsource_mask)
          implicit none
-         type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-         type(swiftest_kinship), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         integer(I4B),                                      intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-         logical,                dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         type(swiftest_kinship), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
+         type(swiftest_kinship), dimension(:),              intent(in)           :: source       !! Array to append 
+         integer(I4B),                                      intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
+         logical,                dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine swiftest_util_append_arr_kin
-
-      module subroutine swiftest_util_append_arr_logical(arr, source, nold, nsrc, lsource_mask)
-         implicit none
-         logical, dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-         logical, dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         integer(I4B),                       intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-         logical, dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      end subroutine swiftest_util_append_arr_logical
    end interface
 
    interface
@@ -1333,40 +1293,12 @@ module swiftest
       end subroutine swiftest_util_fill_tp
    end interface
 
-   interface swiftest_util_fill
-      module subroutine swiftest_util_fill_arr_char_string(keeps, inserts, lfill_list)
-         implicit none
-         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-         character(len=STRMAX), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-         logical,               dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-      end subroutine swiftest_util_fill_arr_char_string
-
-      module subroutine swiftest_util_fill_arr_DP(keeps, inserts, lfill_list)
-         implicit none
-         real(DP), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-         real(DP), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-         logical,  dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-      end subroutine swiftest_util_fill_arr_DP
-
-      module subroutine swiftest_util_fill_arr_DPvec(keeps, inserts, lfill_list)
-         implicit none
-         real(DP), dimension(:,:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-         real(DP), dimension(:,:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-         logical,  dimension(:),                intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-      end subroutine swiftest_util_fill_arr_DPvec
-
-      module subroutine swiftest_util_fill_arr_I4B(keeps, inserts, lfill_list)
-         implicit none
-         integer(I4B), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-         integer(I4B), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-         logical,      dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-      end subroutine swiftest_util_fill_arr_I4B
-
+   interface util_fill
       module subroutine swiftest_util_fill_arr_info(keeps, inserts, lfill_list)
          implicit none
          type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
          type(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-         logical,             dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+         logical,                      dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine swiftest_util_fill_arr_info
 
       module subroutine swiftest_util_fill_arr_kin(keeps, inserts, lfill_list)
@@ -1375,13 +1307,6 @@ module swiftest
          type(swiftest_kinship), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
          logical,                dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine swiftest_util_fill_arr_kin
-
-      module subroutine swiftest_util_fill_arr_logical(keeps, inserts, lfill_list)
-         implicit none
-         logical, dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-         logical, dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-         logical, dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-      end subroutine swiftest_util_fill_arr_logical
    end interface
 
    interface
@@ -1526,31 +1451,7 @@ module swiftest
    end interface
 
 
-   interface swiftest_util_resize
-      module subroutine swiftest_util_resize_arr_char_string(arr, nnew)
-         implicit none
-         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
-         integer(I4B),                                     intent(in)    :: nnew !! New size
-      end subroutine swiftest_util_resize_arr_char_string
-
-      module subroutine swiftest_util_resize_arr_DP(arr, nnew)
-         implicit none
-         real(DP), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
-         integer(I4B),                        intent(in)    :: nnew !! New size
-      end subroutine swiftest_util_resize_arr_DP
-
-      module subroutine swiftest_util_resize_arr_DPvec(arr, nnew)
-         implicit none
-         real(DP), dimension(:,:), allocatable, intent(inout) :: arr  !! Array to resize
-         integer(I4B),                          intent(in)    :: nnew !! New size
-      end subroutine swiftest_util_resize_arr_DPvec
-
-      module subroutine swiftest_util_resize_arr_I4B(arr, nnew)
-         implicit none
-         integer(I4B), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
-         integer(I4B),                            intent(in)    :: nnew !! New size
-      end subroutine swiftest_util_resize_arr_I4B
-
+   interface util_resize
       module subroutine swiftest_util_resize_arr_info(arr, nnew)
          implicit none
          type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
@@ -1562,12 +1463,6 @@ module swiftest
          type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
          integer(I4B),                                       intent(in)    :: nnew !! New size
       end subroutine swiftest_util_resize_arr_kin
-
-      module subroutine swiftest_util_resize_arr_logical(arr, nnew)
-         implicit none
-         logical, dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
-         integer(I4B),                       intent(in)    :: nnew !! New size
-      end subroutine swiftest_util_resize_arr_logical
    end interface
 
    interface
@@ -1686,89 +1581,8 @@ module swiftest
       end subroutine swiftest_util_snapshot_system
    end interface
 
-   interface swiftest_util_sort      
-      pure module subroutine swiftest_util_sort_i4b(arr)
-         implicit none
-         integer(I4B), dimension(:), intent(inout) :: arr
-      end subroutine swiftest_util_sort_i4b
 
-      pure module subroutine swiftest_util_sort_index_i4b(arr,ind)
-         implicit none
-         integer(I4B), dimension(:), intent(in)  :: arr
-         integer(I4B), dimension(:), allocatable, intent(inout) :: ind
-      end subroutine swiftest_util_sort_index_i4b
-
-      pure module subroutine swiftest_util_sort_index_I4B_I8Bind(arr,ind)
-         implicit none
-         integer(I4B), dimension(:), intent(in)  :: arr
-         integer(I8B), dimension(:), allocatable, intent(inout) :: ind
-      end subroutine swiftest_util_sort_index_I4b_I8Bind
-
-      pure module subroutine swiftest_util_sort_index_I8B_I8Bind(arr,ind)
-         implicit none
-         integer(I8B), dimension(:), intent(in)  :: arr
-         integer(I8B), dimension(:), allocatable, intent(inout) :: ind
-      end subroutine swiftest_util_sort_index_I8B_I8Bind
-
-      pure module subroutine swiftest_util_sort_sp(arr)
-         implicit none
-         real(SP), dimension(:), intent(inout) :: arr
-      end subroutine swiftest_util_sort_sp
-
-      pure module subroutine swiftest_util_sort_index_sp(arr,ind)
-         implicit none
-         real(SP), dimension(:), intent(in)  :: arr
-         integer(I4B), dimension(:), allocatable, intent(inout) :: ind
-      end subroutine swiftest_util_sort_index_sp
-
-      pure module subroutine swiftest_util_sort_dp(arr)
-         implicit none
-         real(DP), dimension(:), intent(inout) :: arr
-      end subroutine swiftest_util_sort_dp
-
-      pure module subroutine swiftest_util_sort_index_dp(arr,ind)
-         implicit none
-         real(DP), dimension(:), intent(in)  :: arr
-         integer(I4B), dimension(:), allocatable, intent(inout) :: ind
-      end subroutine swiftest_util_sort_index_dp
-   end interface swiftest_util_sort
-
-   interface swiftest_util_sort_rearrange
-      pure module subroutine swiftest_util_sort_rearrange_arr_char_string(arr, ind, n)
-         implicit none
-         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-         integer(I4B),          dimension(:),              intent(in)    :: ind !! Index to rearrange against
-         integer(I4B),                                     intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      end subroutine swiftest_util_sort_rearrange_arr_char_string
-
-      pure module subroutine swiftest_util_sort_rearrange_arr_DP(arr, ind, n)
-         implicit none
-         real(DP),     dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-         integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
-         integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      end subroutine swiftest_util_sort_rearrange_arr_DP
-
-      pure module subroutine swiftest_util_sort_rearrange_arr_DPvec(arr, ind, n)
-         implicit none
-         real(DP),     dimension(:,:), allocatable, intent(inout) :: arr !! Destination array 
-         integer(I4B), dimension(:),                intent(in)    :: ind !! Index to rearrange against
-         integer(I4B),                              intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      end subroutine swiftest_util_sort_rearrange_arr_DPvec
-
-      pure module subroutine swiftest_util_sort_rearrange_arr_I4B(arr, ind, n)
-         implicit none
-         integer(I4B), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-         integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
-         integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      end subroutine swiftest_util_sort_rearrange_arr_I4B
-
-      pure module subroutine swiftest_util_sort_rearrange_arr_I4B_I8Bind(arr, ind, n)
-         implicit none
-         integer(I4B), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-         integer(I8B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
-         integer(I8B),                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      end subroutine swiftest_util_sort_rearrange_arr_I4B_I8Bind
-
+   interface util_sort_rearrange
       module subroutine swiftest_util_sort_rearrange_arr_info(arr, ind, n)
          implicit none
          type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
@@ -1783,20 +1597,7 @@ module swiftest
          integer(I4B),                                      intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine swiftest_util_sort_rearrange_arr_kin
 
-      pure module subroutine swiftest_util_sort_rearrange_arr_logical(arr, ind, n)
-         implicit none
-         logical,      dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-         integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
-         integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      end subroutine swiftest_util_sort_rearrange_arr_logical
-
-      pure module subroutine swiftest_util_sort_rearrange_arr_logical_I8Bind(arr, ind, n)
-         implicit none
-         logical,      dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-         integer(I8B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
-         integer(I8B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      end subroutine swiftest_util_sort_rearrange_arr_logical_I8Bind
-   end interface swiftest_util_sort_rearrange
+   end interface util_sort_rearrange
 
    interface
       module subroutine swiftest_util_sort_rearrange_body(self, ind)
@@ -1840,47 +1641,7 @@ module swiftest
 
    end interface
 
-   interface swiftest_util_spill
-      module subroutine swiftest_util_spill_arr_char_string(keeps, discards, lspill_list, ldestructive)
-         implicit none
-         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-         logical,               dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
-         logical,                                          intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      end subroutine swiftest_util_spill_arr_char_string
-
-      module subroutine swiftest_util_spill_arr_DP(keeps, discards, lspill_list, ldestructive)
-         implicit none
-         real(DP), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-         real(DP), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-         logical,  dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-         logical,                             intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      end subroutine swiftest_util_spill_arr_DP
-
-      module subroutine swiftest_util_spill_arr_DPvec(keeps, discards, lspill_list, ldestructive)
-         implicit none
-         real(DP), dimension(:,:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-         real(DP), dimension(:,:), allocatable, intent(inout) :: discards     !! Array discards
-         logical,  dimension(:),                intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-         logical,                               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      end subroutine swiftest_util_spill_arr_DPvec
-
-      module subroutine swiftest_util_spill_arr_I4B(keeps, discards, lspill_list, ldestructive)
-         implicit none
-         integer(I4B), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-         integer(I4B), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-         logical,      dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
-         logical,                                 intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      end subroutine swiftest_util_spill_arr_I4B
-
-      module subroutine swiftest_util_spill_arr_I8B(keeps, discards, lspill_list, ldestructive)
-         implicit none
-         integer(I8B), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-         integer(I8B), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-         logical,      dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
-         logical,                                 intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      end subroutine swiftest_util_spill_arr_I8B
-
+   interface util_spill
       module subroutine swiftest_util_spill_arr_info(keeps, discards, lspill_list, ldestructive)
          implicit none
          type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
@@ -1896,14 +1657,6 @@ module swiftest
          logical,                dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
          logical,                                           intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine swiftest_util_spill_arr_kin
-
-      module subroutine swiftest_util_spill_arr_logical(keeps, discards, lspill_list, ldestructive)
-         implicit none
-         logical, dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-         logical, dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-         logical, dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
-         logical,                            intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      end subroutine swiftest_util_spill_arr_logical
    end interface
 
    interface 
@@ -1932,22 +1685,6 @@ module swiftest
       end subroutine swiftest_util_spill_tp
 
    end interface
-
-   interface swiftest_util_unique
-      module subroutine swiftest_util_unique_DP(input_array, output_array, index_map)
-         implicit none
-         real(DP),     dimension(:),              intent(in)  :: input_array  !! Unsorted input array
-         real(DP),     dimension(:), allocatable, intent(out) :: output_array !! Sorted array of unique values
-         integer(I4B), dimension(:), allocatable, intent(out) :: index_map    !! An array of the same size as input_array that such that any for any index i, output_array(index_map(i)) = input_array(i)     
-      end subroutine swiftest_util_unique_DP
-
-      module subroutine swiftest_util_unique_I4B(input_array, output_array, index_map)
-         implicit none
-         integer(I4B), dimension(:),              intent(in)  :: input_array  !! Unsorted input array
-         integer(I4B), dimension(:), allocatable, intent(out) :: output_array !! Sorted array of unique values
-         integer(I4B), dimension(:), allocatable, intent(out) :: index_map    !! An array of the same size as input_array that such that any for any index i, output_array(index_map(i)) = input_array(i)     
-      end subroutine swiftest_util_unique_I4B
-   end interface swiftest_util_unique
 
    interface
       module subroutine swiftest_util_valid_id_system(self, param)

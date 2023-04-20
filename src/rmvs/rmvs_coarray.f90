@@ -31,6 +31,23 @@ contains
     end subroutine rmvs_coarray_coclone_cb
 
 
+    module subroutine rmvs_coarray_coclone_interp(self)
+        !! author: David A. Minton
+        !!
+        !! Broadcasts the image 1 object to all other images in a coarray 
+        implicit none
+        ! Arguments
+        class(rmvs_interp),intent(inout),codimension[*]  :: self  !! RMVS pl object
+
+        call coclone(self%x)
+        call coclone(self%v) 
+        call coclone(self%aobl)
+        call coclone(self%atide)
+
+        return
+    end subroutine rmvs_coarray_coclone_interp
+
+
     module subroutine rmvs_coarray_coclone_pl(self)
         !! author: David A. Minton
         !!
@@ -50,6 +67,26 @@ contains
         return
     end subroutine rmvs_coarray_coclone_pl
 
+
+
+    module subroutine rmvs_coarray_coclone_system(self)
+        !! author: David A. Minton
+         !!
+         !! Broadcasts the image 1 object to all other images in a coarray 
+        implicit none
+        ! Arguments
+        class(rmvs_nbody_system),intent(inout),codimension[*]  :: self  !! Swiftest body object
+        ! Internals
+        integer(I4B) :: i, img
+
+        call coclone(self%lplanetocentric)
+        call coclone(self%rts)
+        call coclone(self%vbeg)
+
+        call swiftest_coarray_coclone_system(self)
+
+        return
+    end subroutine rmvs_coarray_coclone_system
 
 
     module subroutine rmvs_coarray_coclone_tp(self)
@@ -84,10 +121,9 @@ contains
         integer(I4B), intent(in),optional :: src_img
         ! Internals
         type(rmvs_interp), dimension(:), codimension[:], allocatable :: tmp
-        integer(I4B) :: img, si
+        integer(I4B) :: i,img, si
         integer(I4B), save :: n[*]
         logical, save :: isalloc[*]
- 
     
         if (present(src_img)) then
             si = src_img
@@ -102,10 +138,14 @@ contains
         if (.not. isalloc[si]) return
 
         allocate(tmp(n[si])[*])
+        do i = 1, n[si]
+            call tmp(i)%coclone()
+        end do
         if (this_image() == si) then
             do img = 1, num_images()
-                tmp(:)[img] = var 
+                tmp(:)[img] = var(:)
             end do
+
             sync images(*)
         else
             sync images(si)
@@ -128,8 +168,6 @@ contains
         call cocollect(self%lperi)
         call cocollect(self%plperP) 
         call cocollect(self%plencP)
-        call cocollect(self%index)
-        call cocollect(self%ipleP)
 
         call swiftest_coarray_cocollect_tp(self)
 

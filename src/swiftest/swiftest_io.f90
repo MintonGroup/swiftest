@@ -1556,7 +1556,7 @@ contains
          associate(n => self%nbody, tslot => nc%tslot)
             if (n == 0) return
 
-            call swiftest_util_sort(self%id(1:n), ind)
+            call util_sort(self%id(1:n), ind)
 
             do i = 1, n
                j = ind(i)
@@ -1750,7 +1750,7 @@ contains
          class is (swiftest_body)
          associate(n => self%nbody, tslot => nc%tslot)
             if (n == 0) return
-            call swiftest_util_sort(self%id(1:n), ind)
+            call util_sort(self%id(1:n), ind)
             call nc%get_idvals()
 
             do i = 1, n
@@ -1871,7 +1871,7 @@ contains
       integer(I4B),               intent(out)   :: iostat     !! IO status code
       character(len=*),           intent(inout) :: iomsg      !! Message to pass if iostat /= 0
       ! Internals
-      logical                        :: tstart_set = .false.               !! Is the final time set in the input file?
+      logical                        :: tstart_set = .false.              !! Is the final time set in the input file?
       logical                        :: tstop_set = .false.               !! Is the final time set in the input file?
       logical                        :: dt_set = .false.                  !! Is the step size set in the input file?
       integer(I4B)                   :: ilength, ifirst, ilast, i         !! Variables used to parse input file

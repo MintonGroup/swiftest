@@ -89,35 +89,47 @@ program swiftest_driver
       end if
 #endif 
 
-#ifdef COARRAY
-      if (this_image() == 1) then
-#endif
-         call nbody_system%initialize(system_history, param)
-#ifdef COARRAY
-      end if ! this_image() == 1
-      call swiftest_coarray_initialize_system(nbody_system, param)
+#ifdef COARRAY  
+      ! The following line lets us read in the input files one image at a time
+      if (this_image() /= 1) sync images(this_image() - 1)
+#endif 
+      call nbody_system%initialize(system_history, param)
+#ifdef COARRAY  
+
       if (this_image() == 1) then
 #endif
          ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial conditions to file.
          call nbody_system%display_run_information(param, integration_timer, phase="first")
-         if (param%lenergy) then
-            if (param%lrestart) then
-               call nbody_system%get_t0_values(system_history%nc, param)
-            else
-               call nbody_system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
-            end if
-            call nbody_system%conservation_report(param, lterminal=.true.)
-         end if
-         call system_history%take_snapshot(param,nbody_system)
-         call nbody_system%dump(param, system_history)
 
-#ifdef COARRAY
+#ifdef COARRAY  
       end if ! this_image() == 1
+#endif
+      if (param%lenergy) then
+         if (param%lrestart) then
+            call nbody_system%get_t0_values(system_history%nc, param)
+         else
+            call nbody_system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
+         end if
+         call nbody_system%conservation_report(param, lterminal=.true.)
+      end if
+      call system_history%take_snapshot(param,nbody_system)
+      
+#ifdef COARRAY  
+      if (this_image() == 1) then
+#endif      
+         call nbody_system%dump(param, system_history)
+#ifdef COARRAY  
+      end if ! this_image() == 1
+#endif      
+
+#ifdef COARRAY  
+      if (this_image() < num_images()) sync images(this_image() + 1)
       ! Distribute test particles to the various images
       call nbody_system%coarray_distribute(param)
 #endif 
       do iloop = istart, nloops
          !> Step the nbody_system forward in time
+         if (this_image() == 1) write(*,*) "Image: ", this_image(), "ntp: ",nbody_system%tp%nbody
          call integration_timer%start()
          call nbody_system%step(param, nbody_system%t, dt)
          call integration_timer%stop()

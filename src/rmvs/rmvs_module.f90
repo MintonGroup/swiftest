@@ -35,6 +35,9 @@ module rmvs
       procedure :: dealloc    => rmvs_util_dealloc_system           !! Performs RMVS-specific deallocation
       procedure :: initialize => rmvs_util_setup_initialize_system  !! Performs RMVS-specific initilization steps, including generating the close encounter planetocentric structures
       procedure :: step       => rmvs_step_system                   !! Advance the RMVS nbody system forward in time by one step
+#ifdef COARRAY
+      procedure :: coclone                 => rmvs_coarray_coclone_system  !! Clones the image 1 body object to all other images in the coarray structure.
+#endif
    end type rmvs_nbody_system
 
    type, private :: rmvs_interp
@@ -45,6 +48,9 @@ module rmvs
    contains
       procedure :: dealloc => rmvs_util_dealloc_interp !! Deallocates all allocatable arrays
       final     ::            rmvs_final_interp   !! Finalizes the RMVS interpolated nbody_system variables object - deallocates all allocatables
+#ifdef COARRAY
+      procedure :: coclone => rmvs_coarray_coclone_interp
+#endif
    end type rmvs_interp
 
 
@@ -93,6 +99,7 @@ module rmvs
       final     ::                    rmvs_final_tp          !! Finalizes the RMVS test particle object - deallocates all allocatables
 #ifdef COARRAY
       procedure :: coclone   => rmvs_coarray_coclone_tp      !! Clones the image 1 body object to all other images in the coarray structure.
+      procedure :: cocollect => rmvs_coarray_cocollect_tp      !! Clones the image 1 body object to all other images in the coarray structure.
 #endif 
    end type rmvs_tp
 
@@ -308,10 +315,20 @@ module rmvs
          class(rmvs_cb),intent(inout),codimension[*]  :: self  !! RMVS tp object
       end subroutine rmvs_coarray_coclone_cb
 
+      module subroutine rmvs_coarray_coclone_interp(self)
+         implicit none
+         class(rmvs_interp),intent(inout),codimension[*]  :: self  !! RMVS tp object
+      end subroutine rmvs_coarray_coclone_interp
+
       module subroutine rmvs_coarray_coclone_pl(self)
          implicit none
          class(rmvs_pl),intent(inout),codimension[*]  :: self  !! RMVS pl object
       end subroutine rmvs_coarray_coclone_pl
+
+      module subroutine rmvs_coarray_coclone_system(self)
+         implicit none
+         class(rmvs_nbody_system),intent(inout),codimension[*]  :: self  !! RMVS nbody system object
+      end subroutine rmvs_coarray_coclone_system
 
       module subroutine rmvs_coarray_coclone_tp(self)
          implicit none
