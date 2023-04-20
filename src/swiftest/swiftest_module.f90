@@ -185,7 +185,7 @@ module swiftest
       real(DP)                                    :: radius   = 0.0_DP !! Central body radius (units DU)
       real(DP)                                    :: density  = 1.0_DP !! Central body mass density - calculated internally (units MU / DU**3)
       real(DP)                                    :: j2rp2    = 0.0_DP !! J2*R^2 term for central body
-      real(DP)                                    :: j4rp4    = 0.0_DP !! J4*R^2 term for central body
+      real(DP)                                    :: j4rp4    = 0.0_DP !! J4*R^4 term for central body
       real(DP), dimension(NDIM)                   :: aobl     = 0.0_DP !! Barycentric acceleration due to central body oblatenes
       real(DP), dimension(NDIM)                   :: atide    = 0.0_DP !! Barycentric acceleration due to central body oblatenes
       real(DP), dimension(NDIM)                   :: aoblbeg  = 0.0_DP !! Barycentric acceleration due to central body oblatenes at beginning of step
@@ -965,6 +965,14 @@ module swiftest
          real(DP), intent(in)  :: Gmpl         !! G*mass of massive body
          real(DP), intent(inout) :: ax, ay, az !! Acceleration vector components of test particle
       end subroutine swiftest_kick_getacch_int_one_tp
+
+      module subroutine swiftest_obl_rot_matrix(self, nbody_system, rot_matrix, rot_matrix_inv)
+         implicit none
+         class(swiftest_body),              intent(inout) :: self   !! Swiftest body object 
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         real(DP), dimension(NDIM, NDIM), intent(out) :: rot_matrix ! rotation matrix and its inverse
+         real(DP), dimension(NDIM, NDIM), intent(out) :: rot_matrix_inv ! inverse of the rotation matrix
+      end subroutine swiftest_obl_rot_matrix
 
       module subroutine swiftest_obl_acc_body(self, nbody_system)
          implicit none

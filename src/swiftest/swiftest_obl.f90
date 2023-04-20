@@ -10,37 +10,70 @@
 submodule (swiftest) s_swiftest_obl
 contains
 
-   module subroutine swiftest_obl_rot_rotate(self, nbody_system)
+   pure function matinv3(A) result(B)
+   !! Performs a direct calculation of the inverse of a 3×3 matrix.
+   !! from https://fortranwiki.org/fortran/show/Matrix+inversion
+   !!
+
+      complex(wp), intent(in) :: A(3,3)   !! Matrix
+      complex(wp)             :: B(3,3)   !! Inverse matrix
+      complex(wp)             :: detinv
+
+      ! Calculate the inverse determinant of the matrix
+      detinv = 1/(A(1,1)*A(2,2)*A(3,3) - A(1,1)*A(2,3)*A(3,2)&
+               - A(1,2)*A(2,1)*A(3,3) + A(1,2)*A(2,3)*A(3,1)&
+               + A(1,3)*A(2,1)*A(3,2) - A(1,3)*A(2,2)*A(3,1))
+
+      ! Calculate the inverse of the matrix
+      B(1,1) = +detinv * (A(2,2)*A(3,3) - A(2,3)*A(3,2))
+      B(2,1) = -detinv * (A(2,1)*A(3,3) - A(2,3)*A(3,1))
+      B(3,1) = +detinv * (A(2,1)*A(3,2) - A(2,2)*A(3,1))
+      B(1,2) = -detinv * (A(1,2)*A(3,3) - A(1,3)*A(3,2))
+      B(2,2) = +detinv * (A(1,1)*A(3,3) - A(1,3)*A(3,1))
+      B(3,2) = -detinv * (A(1,1)*A(3,2) - A(1,2)*A(3,1))
+      B(1,3) = +detinv * (A(1,2)*A(2,3) - A(1,3)*A(2,2))
+      B(2,3) = -detinv * (A(1,1)*A(2,3) - A(1,3)*A(2,1))
+      B(3,3) = +detinv * (A(1,1)*A(2,2) - A(1,2)*A(2,1))
+   end function
+
+   module subroutine swiftest_obl_rot_matrix(self, nbody_system, rot_matrix, rot_matrix_inv)
       !! author: Kaustub P. Anand
       !! 
-      !! Rotate the coordiante frame to make the rotation axis along the z axis for correct spin calculation
+      !! Generate a rotation matrix and its inverse to rotate the coordinate frame to align the rotation axis along the z axis for correct spin calculation
       !! 
 
       implicit none
       ! Arguments
       class(swiftest_body),         intent(inout) :: self   !! Swiftest body object
       class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+      real(DP), dimension(NDIM, NDIM), intent(out) :: rot_matrix ! rotation matrix and its inverse
+      real(DP), dimension(NDIM, NDIM), intent(out) :: rot_matrix_inv ! inverse of the rotation matrix
+
       ! Internals
       real(DP)     :: theta ! angle to rotate it through
       real(DP), dimension(NDIM) :: u ! unit vector about which we rotate
-      real(DP), dimension(NDIM, NDIM) :: rot_matrix ! rotation matrix
       
-         !! WHAT/WHERE is NDIM?
+      rot_matrix(:, :) = 0.0_DP
+      rot_matrix_inv(:, :) = 0.0_DP
 
       if (self%nbody == 0) return
 
       associate(n => self%nbody, cb => nbody_system%cb)
          if (cb%rot(0) == 0 .and. cb%rot(1) == 0) then
+            do (i = 1, NDIM)
+                  rot_matrix(i, i) = 1.0
+                  rot_matrix_inv(i, i) = 1.0
+            end do
+
             return ! rotation axis is about the z-axis
          end if
          
-         cb%rot_initial = cb%rot
          rot_mag = sqrt(dot_product(cb%rot, cb%rot))
          u = cross_product(cb%rot, [0, 0, 1]) / rot_mag !! WRITE cross-product
          theta = acos(dot_product(cb%rot, [0, 0, 1]) / rot_mag)
          
-         rot_matrix = zeros(NDIM, NDIM)
-         S_matrix = [[0, -u[3], u[2]], [u[3], 0, -u[1]], [-u[2], u[1], 0]] ! assume NDIM = 3
+         S_matrix = [[0, -u[3], u[2]], [u[3], 0, -u[1]], [-u[2], u[1], 0]] ! skew-symmetric matrix
+         ! assuming NDIM = 3
          ! CHECK for a general formula for the skew-symmetric matrix
 
          do (i = 1, NDIM)
@@ -55,9 +88,8 @@ contains
             end do
          end do
 
-         do concurrent(i = 1:n, self%lmask(i)) !! WHAT is lmask !! DOES this include the CB?
-            self%rh(: ,i) = rot_matrix * self%rh(:, i)
-         end do
+         rot_matrix_inv = matinv3(rot_matrix)
+
       end associate
 
       return
@@ -78,13 +110,21 @@ contains
       ! Internals
       integer(I4B) :: i
       real(DP)     :: r2, irh, rinv2, t0, t1, t2, t3, fac1, fac2
+      real(DP), dimension(NDIM)       :: rh_transformed ! rotated position vector
+      real(DP), dimension(NDIM, NDIM) :: rot_matrix, rot_matrix_inv ! rotation matrix and its inverse
 
       if (self%nbody == 0) return
+
+      ! generate the rotation matrix
+      call swiftest_obl_rot_matrix(self, nbody_system, rot_matrix, rot_matrix_inv)
 
       associate(n => self%nbody, cb => nbody_system%cb)
          self%aobl(:,:) = 0.0_DP
          do concurrent(i = 1:n, self%lmask(i))
-            r2 = dot_product(self%rh(:, i), self%rh(:, i))
+            ! rotate the position vectors
+            rh_transformed = MATMUL(self%rot_matrix, self%rh(:, i)) ! 3x3 matrix * 3:1 vector
+
+            r2 = dot_product(rh_transformed, rh_transformed)
             irh = 1.0_DP / sqrt(r2)
             rinv2 = irh**2
             t0 = -cb%Gmass * rinv2 * rinv2 * irh
@@ -95,6 +135,10 @@ contains
             fac2 = 2 * t0 * (t1 - (2.0_DP - (14.0_DP * t2 / 3.0_DP)) * t3)
             self%aobl(:, i) = fac1 * self%rh(:, i)
             self%aobl(3, i) = fac2 * self%rh(3, i) + self%aobl(3, i)
+
+            ! rotate the acceleration and position vectors back to the original coordinate frame
+            self%aobl(:, i) = MATMUL(self%rot_matrix_inv, self%aobl(:, i))
+
          end do
       end associate
       return
