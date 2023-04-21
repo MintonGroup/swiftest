@@ -38,6 +38,7 @@ program swiftest_driver
    param%integrator = trim(adjustl(integrator))
    param%display_style = trim(adjustl(display_style))
    call param%read_in(param_file_name)
+   if (.not.param%lcoarray .and. (this_image() /= 1)) stop ! Single image mode
 
    associate(t0       => param%t0, &
       tstart          => param%tstart, &
@@ -96,7 +97,7 @@ program swiftest_driver
 
 #ifdef COARRAY  
       ! The following line lets us read in the input files one image at a time
-      if (this_image() /= 1) sync images(this_image() - 1)
+      if (param%lcoarray .and. (this_image() /= 1)) sync images(this_image() - 1)
 #endif 
       call nbody_system%initialize(system_history, param)
 #ifdef COARRAY  
@@ -128,7 +129,7 @@ program swiftest_driver
 #endif      
 
 #ifdef COARRAY  
-      if (this_image() < num_images()) sync images(this_image() + 1)
+      if (param%lcoarray .and. (this_image() < num_images())) sync images(this_image() + 1)
       ! Distribute test particles to the various images
       call nbody_system%coarray_distribute(param)
 #endif 
