@@ -2349,7 +2349,7 @@ contains
 
 #ifdef COARRAY
    end if ! this_image() == 1
-      if (self%lcoarray) call coparam%coclone()
+      call coparam%coclone()
       select type(self)
       type is (swiftest_parameters)
          self = coparam
