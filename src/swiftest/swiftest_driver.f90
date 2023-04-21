@@ -82,10 +82,15 @@ program swiftest_driver
          !$ write(param%display_unit,'(a,i3,/)') ' Number of threads = ', nthreads 
          !$ if (param%log_output) write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
 #ifdef COARRAY
-         write(param%display_unit,*)   ' Coarray parameters:'
-         write(param%display_unit,*)   ' -------------------'
-         write(param%display_unit,*) ' Number of images = ', num_images()
-         if (param%log_output) write(*,'(a,i3)') ' Coarray: Number of images = ',num_images()
+         if (param%lcoarray) then
+            write(param%display_unit,*)   ' Coarray parameters:'
+            write(param%display_unit,*)   ' -------------------'
+            write(param%display_unit,*) ' Number of images = ', num_images()
+            if (param%log_output) write(*,'(a,i3)') ' Coarray: Number of images = ',num_images()
+         else
+            write(param%display_unit,*)   ' Coarrays disabled.'
+            if (param%log_output) write(*,*)   ' Coarrays disabled.'
+         end if
       end if
 #endif 
 
