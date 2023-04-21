@@ -65,25 +65,26 @@ contains
                   rot_matrix_inv(i, i) = 1.0
             end do
 
-            return ! rotation axis is about the z-axis
+            return ! rotation axis is about the z-axis, no need to change
          end if
          
          rot_mag = sqrt(dot_product(cb%rot, cb%rot))
-         u = cross_product(cb%rot, [0, 0, 1]) / rot_mag !! WRITE cross-product
-         theta = acos(dot_product(cb%rot, [0, 0, 1]) / rot_mag)
+         ! u = cross_product(cb%rot, (0, 0, 1)) / rot_mag !! WRITE cross-product
+         u(:) = cb%rot(:) .cross. (0, 0, 1) / rot_mag
+         theta = acos(dot_product(cb%rot(:), (0, 0, 1)) / rot_mag)
          
-         S_matrix = [[0, -u[3], u[2]], [u[3], 0, -u[1]], [-u[2], u[1], 0]] ! skew-symmetric matrix
+         S_matrix = ((0, -u(3), u(2)), (u(3), 0, -u(1)), (-u(2), u(1), 0)) ! skew-symmetric matrix
          ! assuming NDIM = 3
          ! CHECK for a general formula for the skew-symmetric matrix
 
          do (i = 1, NDIM)
             do (j = 1, NDIM)
                if (i == j) then
-                  rot_matrix(i, j) = rot_matrix(i, j) + cos(theta)
+                  rot_matrix(i, j) = rot_matrix(i, j) + cos(theta) ! identity matrix
                   continue
                end if
 
-               rot_matrix(i, j) = rot_matrix(i, j) + u[i] * u[j] * (1 - cos(theta)) + S_matrix(i, j) * sin(theta)
+               rot_matrix(i, j) = rot_matrix(i, j) + u(i) * u(j) * (1 - cos(theta)) + S_matrix(i, j) * sin(theta) ! Skew-symmetric matrix + Tensor product matrix
 
             end do
          end do

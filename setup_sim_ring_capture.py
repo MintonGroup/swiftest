@@ -96,7 +96,7 @@ ring_mass_tot = np.sum(random_mass)
 print(f'Total ring mass = {ring_mass_tot} M_Haumea')
 print(f'sim.GU = {sim.GU}')
 
-sim.add_body(name = 'Centaur', id = 0, mass = mass, rot = rot, radius = radius, rh=[np.array([0,0,0])], vh = [np.array([0,0,0])], J2 = J2, J4 = J4)
+sim.add_body(name = 'Centaur', id = 0, mass = mass, rot = rot, radius = radius, rh=[np.array([0,0,0])], vh = [np.array([0,0,0])], J2 = J2 * radius**2, J4 = J4 * radius**4)
 sim.add_body(name = np.arange(id_start, n_bodies + id_start, step = 1), id = np.arange(id_start, n_bodies + id_start, step = 1), mass = random_mass, radius = random_radius, rh = random_pos_vec, vh = random_vel_vec)#, rot = random_rot)
 
 # check that dt < dt_max
