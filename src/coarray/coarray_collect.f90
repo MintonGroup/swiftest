@@ -55,7 +55,7 @@ contains
       if (this_image() == di) then
          do img = 1, num_images()
          if (img /= di) then
-               call util_append(var, tmp(:)[img])
+               call util_append(var, tmp(1:n[img])[img])
                n = n + n[img]
          end if
          end do
@@ -231,7 +231,7 @@ contains
       if (this_image() == di) then
          do img = 1, num_images()
          if (img /= di) then
-            call util_append(var, tmp(:)[img])
+            call util_append(var, tmp(1:n[img])[img])
             n = n + n[img]
          end if
          end do
@@ -252,7 +252,7 @@ contains
       integer(I4B), intent(in),optional :: dest_img
       ! Internals
       logical, dimension(:), codimension[:], allocatable :: tmp
-      integer(I4B) :: i,img, ti, di, ntot, istart, iend
+      integer(I4B) :: i,img, ti, di, ntot, istart, iend, nmax
       integer(I4B), allocatable :: n[:]
       logical, allocatable :: isalloc[:]
 
@@ -271,13 +271,19 @@ contains
       else
          n = 0
       end if
-      allocate(tmp[*],source=var)
       sync all
+      nmax = 0
+      do img = 1, num_images()
+         if (n[img] > nmax) nmax = n[img]
+      end do
+
+      allocate(tmp(nmax)[*])
+      if (isalloc) tmp(1:n) = var(1:n)
 
       if (this_image() == di) then
          do img = 1, num_images()
             if (img /= di) then
-               call util_append(var, tmp(:)[img])
+               call util_append(var, tmp(1:n[img])[img])
                n = n + n[img]
             end if
          end do

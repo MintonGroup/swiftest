@@ -209,7 +209,6 @@ contains
     end subroutine swiftest_coarray_coclone_system
 
   
-  
     module subroutine swiftest_coarray_component_clone_info(var,src_img)
         !! author: David A. Minton
         !!
@@ -344,63 +343,47 @@ contains
         integer(I4B), intent(in),optional :: dest_img
         ! Internals
         type(swiftest_particle_info), dimension(:), codimension[:], allocatable :: tmp
-        integer(I4B) :: img, ti, di, ntot, istart, iend
-        integer(I4B), save :: n[*]
-        logical, save :: isalloc[*]
-
+        integer(I4B) :: i,img, ti, di, ntot, istart, iend, nmax
+        integer(I4B), allocatable :: n[:]
+        logical, allocatable :: isalloc[:]
+  
+        allocate(isalloc[*])
+        allocate(n[*])
+  
         if (present(dest_img)) then
-            di = dest_img
+           di = dest_img
         else
-            di = 1
+           di = 1
         end if
-
-        sync all
+  
         isalloc = allocated(var)
         if (isalloc) then
-            n = size(var)
+           n = size(var)
         else
-            n = 0
+           n = 0
         end if
         sync all
-        ntot = 0
+        nmax = 0
         do img = 1, num_images()
-            ntot = ntot + n[img]
+           if (n[img] > nmax) nmax = n[img]
         end do
-
-        allocate(tmp(ntot)[*])
-
-        ti = this_image()
-
-        istart = 1
-        iend = n
-        do img = 1, this_image() - 1 
-            istart = istart + n[img]
-            iend = iend + n[img]
-        end do
-
-        if (isalloc) then
-            tmp(istart:iend) = var(:)
-            deallocate(var)
-        end if
-
-        sync all
+  
+        allocate(tmp(nmax)[*])
+        if (isalloc) tmp(1:n) = var(1:n)
+  
         if (this_image() == di) then
-            allocate(var(ntot))
-            istart = 1
-            iend = n
-            do img = 1, num_images()
-                var(istart:iend) = tmp[img](istart:iend)
-                istart = istart + n[img]
-                iend = iend + n[img]
-            end do
+           do img = 1, num_images()
+              if (img /= di) then
+                 call util_append(var, tmp(1:n[img])[img])
+                 n = n + n[img]
+              end if
+           end do
         end if
-
+  
         return
     end subroutine swiftest_coarray_component_collect_info_arr1D
 
     
-
-
     module subroutine swiftest_coarray_cocollect_body(self)
         !! author: David A. Minton
         !!
@@ -473,6 +456,8 @@ contains
         character(len=NAMELEN) :: image_num_char
 
         sync all
+        if (allocated(nbody_system%tp%id)) write(*,*) "Image: ",this_image(), "before collecting ids: ",nbody_system%tp%id
+        sync all
         if (this_image() == 1) then
             write(image_num_char,*) num_images()
             write(param%display_unit,*) " Collecting test particles from " // trim(adjustl(image_num_char)) // " images."
@@ -484,6 +469,8 @@ contains
         allocate(nbody_system%tp, source=cotp)
 
         deallocate(cotp)
+
+        if (this_image() == 1) write(*,*) "Image: ",this_image(), "After collecting ids: ",nbody_system%tp%id
 
         return
     end subroutine swiftest_coarray_collect_system
@@ -518,7 +505,7 @@ contains
         if (ntot == 0) return
     
         allocate(lspill_list(ntot))
-        num_per_image = ntot / num_images()
+        num_per_image = ceiling(1.0_DP * ntot / num_images())
         istart = (this_image() - 1) * num_per_image + 1
         if (this_image() == num_images()) then
             iend = ntot

@@ -57,7 +57,7 @@ contains
          idx = [(i, i = 1,nsrc)]
       end  if
 
-      call swiftest_util_copy_particle_info_arr(source(:), arr(nold+1:nnew), idx)
+      call swiftest_util_copy_particle_info_arr(source(:), arr(nend_orig+1:nnew), idx)
 
       return
    end subroutine swiftest_util_append_arr_info

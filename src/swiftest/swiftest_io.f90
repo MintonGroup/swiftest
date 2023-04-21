@@ -183,8 +183,13 @@ contains
             nbody_system%L_total_error = norm2(L_total_now(:) - nbody_system%L_total_orig(:)) / norm2(nbody_system%L_total_orig(:))
 
             nbody_system%Mescape_error = nbody_system%GMescape / nbody_system%GMtot_orig
-
+#ifdef COARRAY
+   if (this_image() == 1) then
+#endif 
             if (lterminal) write(display_unit, EGYTERMFMT) nbody_system%L_total_error, nbody_system%E_orbit_error, nbody_system%te_error,nbody_system%Mtot_error
+#ifdef COARRAY
+   end if ! (this_image() == 1) then
+#endif 
 
             if (abs(nbody_system%Mtot_error) > 100 * epsilon(nbody_system%Mtot_error)) then
                write(*,*) "Severe error! Mass not conserved! Halting!"
