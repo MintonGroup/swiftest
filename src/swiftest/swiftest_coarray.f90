@@ -410,9 +410,6 @@ contains
         class(swiftest_body),intent(inout), codimension[*] :: self !! Swiftest body object
         integer(I4B) :: i
 
-        if (this_image() == 1) write(*,*) "Before collect " 
-        sync all
-        if (allocated(self%id)) write(*,*) "Image: ",this_image(), "id: ",self%id
         call cocollect(self%nbody)
         call cocollect(self%id)
         call cocollect(self%info)
@@ -440,10 +437,6 @@ contains
         call cocollect(self%capom)
         call cocollect(self%omega)
         call cocollect(self%capm)
-
-        if (this_image() == 1) write(*,*) "after collect " 
-        sync all
-        if (allocated(self%id)) write(*,*) "Image: ",this_image(), "id: ",self%id
 
         return
     end subroutine swiftest_coarray_cocollect_body
@@ -492,10 +485,6 @@ contains
 
         deallocate(cotp)
 
-        if (this_image() == 1) then
-            write(param%display_unit,*) " Done collecting"
-        end if
-
         return
     end subroutine swiftest_coarray_collect_system
  
@@ -522,10 +511,6 @@ contains
             write(image_num_char,*) num_images()
             write(param%display_unit,*) " Distributing test particles across " // trim(adjustl(image_num_char)) // " images."
         end if
-
-        if (this_image() == 1) write(*,*) "Before distribute " 
-        sync all
-        if (allocated(nbody_system%tp%id)) write(*,*) "Image: ",this_image(), "id: ",nbody_system%tp%id
 
         ntp = nbody_system%tp%nbody
         sync all
@@ -554,16 +539,6 @@ contains
         call nbody_system%tp%spill(tmp, lspill_list(:), ldestructive=.true.)
 
         deallocate(tmp, cotp)
-
-
-        if (this_image() == 1) write(*,*) "After distribute " 
-        sync all
-        if (allocated(nbody_system%tp%id)) write(*,*) "Image: ",this_image(), "id: ",nbody_system%tp%id
-
-        
-        if (this_image() == 1) then
-            write(param%display_unit,*) " Done distributing"
-        end if
 
         return
     end subroutine swiftest_coarray_distribute_system

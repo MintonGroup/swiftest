@@ -50,9 +50,8 @@ contains
       end do
 
       allocate(tmp(nmax)[*])
-      tmp(1:n) = var(1:n)
+      if (isalloc) tmp(1:n) = var(1:n)
 
-      !sync all 
       if (this_image() == di) then
          do img = 1, num_images()
          if (img /= di) then
@@ -107,9 +106,8 @@ contains
       end do
 
       allocate(tmp(NDIM,nmax)[*])
-      tmp(:,1:n2) = var(:,1:n2)
+      if (isalloc) tmp(:,1:n2) = var(:,1:n2)
 
-      !sync all
       if (this_image() == di) then
          do img = 1, num_images()
          if (img /= di) then
@@ -144,7 +142,6 @@ contains
 
       allocate(tmp[*], source=var)
       
-      !sync all
       if (this_image() == di) then
          var = 0
          do img = 1, num_images()
@@ -179,7 +176,6 @@ contains
 
       allocate(tmp[*], source=var)
       
-      !sync all
       if (this_image() == di) then
          var = 0
          do img = 1, num_images()
@@ -230,9 +226,8 @@ contains
       end do
 
       allocate(tmp(nmax)[*])
-      tmp(1:n) = var(1:n)
+      if (isalloc) tmp(1:n) = var(1:n)
 
-      !sync all
       if (this_image() == di) then
          do img = 1, num_images()
          if (img /= di) then

@@ -97,9 +97,9 @@ contains
       nnew = nend_orig + nsrc
 
       if (present(lsource_mask)) then
-         arr(nold + 1:nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
+         arr(nend_orig + 1:nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
       else
-         arr(nold + 1:nnew) = source(1:nsrc)
+         arr(nend_orig + 1:nnew) = source(1:nsrc)
       end if
 
       return

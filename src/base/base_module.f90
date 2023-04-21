@@ -316,9 +316,9 @@ module base
          nnew = nend_orig + nsrc
 
          if (present(lsource_mask)) then
-            arr(nold + 1:nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
+            arr(nend_orig + 1:nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
          else
-            arr(nold + 1:nnew) = source(1:nsrc)
+            arr(nend_orig + 1:nnew) = source(1:nsrc)
          end if
 
          return
@@ -359,9 +359,9 @@ module base
          nnew = nend_orig + nsrc
 
          if (present(lsource_mask)) then
-            arr(nold + 1:nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
+            arr(nend_orig + 1:nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
          else
-            arr(nold + 1:nnew) = source(1:nsrc)
+            arr(nend_orig + 1:nnew) = source(1:nsrc)
          end if
 
          return
@@ -402,11 +402,11 @@ module base
          nnew = nend_orig + nsrc
 
          if (present(lsource_mask)) then
-            arr(1, nold + 1:nnew) = pack(source(1,1:nsrc), lsource_mask(1:nsrc))
-            arr(2, nold + 1:nnew) = pack(source(2,1:nsrc), lsource_mask(1:nsrc))
-            arr(3, nold + 1:nnew) = pack(source(3,1:nsrc), lsource_mask(1:nsrc))
+            arr(1, nend_orig + 1:nnew) = pack(source(1,1:nsrc), lsource_mask(1:nsrc))
+            arr(2, nend_orig + 1:nnew) = pack(source(2,1:nsrc), lsource_mask(1:nsrc))
+            arr(3, nend_orig + 1:nnew) = pack(source(3,1:nsrc), lsource_mask(1:nsrc))
          else
-            arr(:,nold + 1:nnew) = source(:,1:nsrc)
+            arr(:,nend_orig + 1:nnew) = source(:,1:nsrc)
          end if
 
          return
@@ -447,9 +447,9 @@ module base
          nnew = nend_orig + nsrc
 
          if (present(lsource_mask)) then
-            arr(nold + 1:nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
+            arr(nend_orig + 1:nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
          else
-            arr(nold + 1:nnew) = source(1:nsrc)
+            arr(nend_orig + 1:nnew) = source(1:nsrc)
          end if
 
          return
@@ -488,11 +488,11 @@ module base
             call util_resize(arr, nend_orig + nsrc)
          end if
          nnew = nend_orig + nsrc
-
+         
          if (present(lsource_mask)) then
-            arr(nold + 1:nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
+            arr(nend_orig + 1:nnew) = pack(source(1:nsrc), lsource_mask(1:nsrc))
          else
-            arr(nold + 1:nnew) = source(1:nsrc)
+            arr(nend_orig + 1:nnew) = source(:)
          end if
 
          return
@@ -909,7 +909,7 @@ module base
          logical, dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
          integer(I4B) :: nold !! Old size
          logical, parameter :: init_val = .false.
-   
+ 
          if (nnew < 0) return
    
          if (nnew == 0) then
@@ -934,7 +934,7 @@ module base
                tmp(1:nnew) = arr(1:nnew)
             end if
          else
-            tmp(1:nnew) = init_val
+            tmp = init_val
          end if
          call move_alloc(tmp, arr)
    
@@ -1885,7 +1885,7 @@ module base
          return
       end subroutine base_util_sort_partition_SP
 
-      
+
       pure subroutine base_util_sort_rearrange_arr_char_string(arr, ind, n)
          !! author: David A. Minton
          !!

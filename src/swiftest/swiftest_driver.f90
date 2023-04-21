@@ -129,7 +129,6 @@ program swiftest_driver
 #endif 
       do iloop = istart, nloops
          !> Step the nbody_system forward in time
-         if (this_image() == 1) write(*,*) "Image: ", this_image(), "ntp: ",nbody_system%tp%nbody
          call integration_timer%start()
          call nbody_system%step(param, nbody_system%t, dt)
          call integration_timer%stop()
