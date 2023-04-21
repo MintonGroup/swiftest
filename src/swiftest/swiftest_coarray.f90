@@ -455,8 +455,8 @@ contains
         class(swiftest_tp), allocatable, codimension[:] :: cotp
         character(len=NAMELEN) :: image_num_char
 
-        sync all
-        if (allocated(nbody_system%tp%id)) write(*,*) "Image: ",this_image(), "before collecting ids: ",nbody_system%tp%id
+        if (.not.param%lcoarray) return
+
         sync all
         if (this_image() == 1) then
             write(image_num_char,*) num_images()
@@ -469,8 +469,6 @@ contains
         allocate(nbody_system%tp, source=cotp)
 
         deallocate(cotp)
-
-        if (this_image() == 1) write(*,*) "Image: ",this_image(), "After collecting ids: ",nbody_system%tp%id
 
         return
     end subroutine swiftest_coarray_collect_system
@@ -493,6 +491,7 @@ contains
         class(swiftest_tp), allocatable, codimension[:] :: cotp
         class(swiftest_tp), allocatable :: tmp
 
+        if (.not.param%lcoarray) return
         sync all
         if (this_image() == 1) then
             write(image_num_char,*) num_images()
@@ -542,6 +541,8 @@ contains
         ! Internals
         class(swiftest_nbody_system), allocatable, codimension[:] :: tmp_system
         character(len=NAMELEN) :: image_num_char
+
+        if (.not.param%lcoarray) return
 
         sync all
         if (this_image() == 1) then

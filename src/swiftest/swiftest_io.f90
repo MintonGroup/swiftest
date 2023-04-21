@@ -2071,6 +2071,9 @@ contains
                case ("ENCOUNTER_SAVE")
                   call swiftest_io_toupper(param_value)
                   read(param_value, *) param%encounter_save
+               case ("COARRAY")
+                  call swiftest_io_toupper(param_value)
+                  if (param_value == "YES" .or. param_value == 'T') param%lcoarray = .true. 
                case("SEED")
                   read(param_value, *) nseeds_from_file
                   ! Because the number of seeds can vary between compilers/systems, we need to make sure we can handle cases in which the input file has a different
@@ -2316,6 +2319,26 @@ contains
             param%encounter_check_pltp = "TRIANGULAR"
             param%lencounter_sas_pltp = .false.
          end select
+
+
+         if (param%lcoarray) then
+#ifdef COARRAY
+            if (num_images() == 1) then
+               write(iomsg, *) "Only one Coarray image detected. Coarrays will not be used."
+               param%lcoarray = .false.
+            end if
+
+            select case(param%integrator)
+            case(INT_WHM, INT_RMVS, INT_HELIO)
+            case default   
+               write(iomsg, *) "Coarray-based parallelization of test particles are not compatible with this integrator. This parameter will be ignored."
+               param%lcoarray = .false.
+            end select
+#else
+            write(iomsg,*) "Coarray capability not detected. Swiftest must be compiled with Coarrays enabled. to use this feature."
+            param%lcoarray = .false.
+#endif
+         end if
 
          iostat = 0
 

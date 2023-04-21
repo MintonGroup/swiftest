@@ -69,6 +69,7 @@ module base
       character(NAMELEN)                      :: interaction_loops    = "ADAPTIVE"      !! Method used to compute interaction loops. Options are "TRIANGULAR", "FLAT", or "ADAPTIVE" 
       character(NAMELEN)                      :: encounter_check_plpl = "ADAPTIVE"      !! Method used to compute pl-pl encounter checks. Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
       character(NAMELEN)                      :: encounter_check_pltp = "ADAPTIVE"      !! Method used to compute pl-tp encounter checks. Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
+      logical                                 :: lcoarray             = .false.         !! Use Coarrays for test particle parallelization.
 
       ! The following are used internally, and are not set by the user, but instead are determined by the input value of INTERACTION_LOOPS
       logical :: lflatten_interactions     = .false. !! Use the flattened upper triangular matrix for pl-pl interaction loops
@@ -2131,7 +2132,6 @@ module base
          ! Arguments
          class(base_parameters),intent(inout),codimension[*]  :: self  !! Collection of parameters
          ! Internals
-         integer(I4B) :: i
 
          call coclone(self%integrator)
          call coclone(self%param_file_name)
@@ -2192,12 +2192,10 @@ module base
          call coclone(self%ltides        )
          call coclone(self%E_orbit_orig )
          call coclone(self%GMtot_orig  )
-         do i = 1, NDIM
-            call coclone(self%L_total_orig(i))
-            call coclone(self%L_orbit_orig(i))
-            call coclone(self%L_spin_orig(i))
-            call coclone(self%L_escape(i))
-         end do
+         call coclonevec(self%L_total_orig)
+         call coclonevec(self%L_orbit_orig)
+         call coclonevec(self%L_spin_orig)
+         call coclonevec(self%L_escape)
          call coclone(self%GMescape    )
          call coclone(self%E_collisions )
          call coclone(self%E_untracked  )
@@ -2211,6 +2209,7 @@ module base
          call coclone(self%lyarkovsky)
          call coclone(self%lyorp     )
          call coclone(self%seed)
+         call coclone(self%lcoarray)
 
          return
       end subroutine base_coclone_param 
