@@ -529,35 +529,4 @@ contains
         return
     end subroutine swiftest_coarray_distribute_system
 
-
-    module subroutine swiftest_coarray_initialize_system(nbody_system, param)
-        !! author: David A. Minton
-        !!
-        !! Distributes test particles from image #1 out to all images.
-        implicit none
-        ! Arguments
-        class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system !! Swiftest nbody system 
-        class(swiftest_parameters),                intent(inout) :: param        !! Current run configuration parameters 
-        ! Internals
-        class(swiftest_nbody_system), allocatable, codimension[:] :: tmp_system
-        character(len=NAMELEN) :: image_num_char
-
-        if (.not.param%lcoarray) return
-
-        sync all
-        if (this_image() == 1) then
-            write(image_num_char,*) num_images()
-            write(param%display_unit,*) " Cloning nbody system to " // trim(adjustl(image_num_char)) // " images."
-        end if
-        allocate(tmp_system[*], source=nbody_system)
-        call tmp_system%coclone()
-        if (this_image() /= 1) then
-           if (allocated(nbody_system)) deallocate(nbody_system)
-           allocate(nbody_system, source=tmp_system)
-        end if
- 
-        return
-    end subroutine swiftest_coarray_initialize_system
-
-
 end submodule s_swiftest_coarray

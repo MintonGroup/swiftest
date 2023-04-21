@@ -1711,12 +1711,6 @@ module swiftest
          class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system 
          class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       end subroutine swiftest_coarray_distribute_system
-
-      module subroutine swiftest_coarray_initialize_system(nbody_system, param)
-         implicit none
-         class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system !! Swiftest nbody system 
-         class(swiftest_parameters),                intent(inout) :: param        !! Current run configuration parameters 
-      end subroutine swiftest_coarray_initialize_system
    end interface
 
    interface coclone

@@ -2450,6 +2450,7 @@ contains
          call io_param_writer_one("ENCOUNTER_CHECK_PLPL", param%encounter_check_plpl, unit)
          call io_param_writer_one("ENCOUNTER_CHECK_PLTP", param%encounter_check_pltp, unit)
          call io_param_writer_one("ENCOUNTER_SAVE", param%encounter_save, unit)
+         call io_param_writer_one("COARRAY", param%lcoarray, unit)
 
          if (param%lenergy) then
             call io_param_writer_one("FIRSTENERGY", param%lfirstenergy, unit)
