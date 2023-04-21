@@ -17,5 +17,5 @@
 | ```rhill```     | Hill Radius value(s) of bodies. Only for massive bodies.                                                                                | float or array-like of floats
 | ```rot```       | Rotation rate vector(s) of bodies in radians/sec. Only for massive bodies. Only used if ```rotation``` is set to ```True```.                           | (n,3) array-like of floats
 | ```Ip```        | Principal axes moments of inertia vector(s) of bodies. Only for massive bodies. Only used if ```rotation``` is set to ```True```.       | (n,3) array-like of floats
-| ```J2```        | The unitless value equal to J2*R^2 where R is the radius of the central body.                                                                                                     | float or array-like of floats
-| ```J4```        | The unitless value equal to J4*R^4 where R is the radius of the central body.                                                                                                     | float or array-like of floats
+| ```J2```        | The unitless value of the spherical harmonic term equal to J2*R^2 where R is the radius of the central body.                                                                                                     | float or array-like of floats
+| ```J4```        | The unitless value of the spherical harmonic term equal to J4*R^4 where R is the radius of the central body.                                                                                                     | float or array-like of floats
