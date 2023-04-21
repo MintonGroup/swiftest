@@ -190,5 +190,11 @@ program swiftest_driver
          
    end associate
 
-   call base_util_exit(SUCCESS)
+#ifdef COARRAY
+   if (this_image() == 1) then
+#endif
+      call base_util_exit(SUCCESS)
+#ifdef COARRAY
+   end if ! (this_image() == 1) 
+#endif
 end program swiftest_driver
