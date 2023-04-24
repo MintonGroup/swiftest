@@ -558,7 +558,9 @@ contains
 
         write(image_num_char,*) this_image()
         write(ntp_num_char,*) nbody_system%tp%nbody
+        if (this_image() /= 1) sync images(this_image() - 1)
         write(param%display_unit,*) "Image " // trim(adjustl(image_num_char)) // " ntp: " // trim(adjustl(ntp_num_char))
+        if (this_image() < num_images()) sync images(this_image() + 1)
 
         deallocate(tmp, cotp)
 
