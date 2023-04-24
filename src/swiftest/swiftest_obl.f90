@@ -12,6 +12,7 @@ contains
 
    pure function matinv3(A) result(B)
    !! Performs a direct calculation of the inverse of a 3×3 matrix.
+   !!
    !! from https://fortranwiki.org/fortran/show/Matrix+inversion
    !!
 
@@ -68,9 +69,8 @@ contains
             return ! rotation axis is about the z-axis, no need to change
          end if
          
-         unit_rot = .unit. cb%rot(:)
-         u(:) = unit_rot .cross. (0, 0, 1)
-         theta = acos(dot_product(unit_rot, (0, 0, 1)))
+         u(:) = .unit. (cb%rot(:) .cross. (0, 0, 1))
+         theta = acos(dot_product((.unit. cb%rot(:)), (0, 0, 1)))
          
          S_matrix = ((0, -u(3), u(2)), (u(3), 0, -u(1)), (-u(2), u(1), 0)) ! skew-symmetric matrix
          ! assuming NDIM = 3
