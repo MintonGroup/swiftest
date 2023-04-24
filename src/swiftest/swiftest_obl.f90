@@ -68,10 +68,9 @@ contains
             return ! rotation axis is about the z-axis, no need to change
          end if
          
-         rot_mag = sqrt(dot_product(cb%rot, cb%rot))
-         ! u = cross_product(cb%rot, (0, 0, 1)) / rot_mag !! WRITE cross-product
-         u(:) = cb%rot(:) .cross. (0, 0, 1) / rot_mag
-         theta = acos(dot_product(cb%rot(:), (0, 0, 1)) / rot_mag)
+         unit_rot = .unit. cb%rot(:)
+         u(:) = unit_rot .cross. (0, 0, 1)
+         theta = acos(dot_product(unit_rot, (0, 0, 1)))
          
          S_matrix = ((0, -u(3), u(2)), (u(3), 0, -u(1)), (-u(2), u(1), 0)) ! skew-symmetric matrix
          ! assuming NDIM = 3
@@ -94,7 +93,7 @@ contains
       end associate
 
       return
-      end subroutine swiftest_obl_rot_rotate
+      end subroutine swiftest_obl_rot_matrix
    
    module subroutine swiftest_obl_acc_body(self, nbody_system)
       !! author: David A. Minton
