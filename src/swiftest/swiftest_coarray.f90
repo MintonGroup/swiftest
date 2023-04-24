@@ -516,22 +516,25 @@ contains
         class(swiftest_tp), allocatable :: tp
         logical, dimension(:), allocatable :: lspill_list
         integer(I4B), codimension[:], allocatable  :: ntp
-        character(len=NAMELEN) :: image_num_char
+        character(len=NAMELEN) :: image_num_char, ntp_num_char
         class(swiftest_tp), allocatable, codimension[:] :: cotp
         class(swiftest_tp), allocatable :: tmp
 
         if (.not.param%lcoarray) return
-        if (this_image() == 1) then
-            write(image_num_char,*) num_images()
-            write(param%display_unit,*) " Distributing test particles across " // trim(adjustl(image_num_char)) // " images."
-        end if
 
         allocate(ntp[*])
         ntp = nbody_system%tp%nbody
         sync all
         ntot = ntp[1]
         if (ntot == 0) return
-    
+
+        write(image_num_char,*) num_images()
+
+        if (this_image() == 1) then
+            write(ntp_num_char,*) ntot
+            write(param%display_unit,*) " Distributing " // trim(adjustl(ntp_num_char)) // " test particles across " // trim(adjustl(image_num_char)) // " images."
+        end if
+
         allocate(lspill_list(ntot))
         num_per_image = ceiling(1.0_DP * ntot / num_images())
         istart = (this_image() - 1) * num_per_image + 1
@@ -552,6 +555,9 @@ contains
         end if
         allocate(tmp, mold=nbody_system%tp)
         call nbody_system%tp%spill(tmp, lspill_list(:), ldestructive=.true.)
+
+        write(ntp_num_char,*) nbody_system%tp%nbody
+        write(param%display_unit,*) "Image " // trim(adjustl(image_num_char)) // " ntp: " // trim(adjustl(ntp_num_char))
 
         deallocate(tmp, cotp)
 
