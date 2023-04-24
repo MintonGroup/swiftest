@@ -421,6 +421,7 @@ module swiftest
       procedure :: coclone                 => swiftest_coarray_coclone_system                      !! Clones the image 1 body object to all other images in the coarray structure.
       procedure :: coarray_collect         => swiftest_coarray_collect_system                      !! Collects all the test particles from other images into the image #1 test particle system
       procedure :: coarray_distribute      => swiftest_coarray_distribute_system                   !! Distributes test particles from image #1 out to all images.
+      procedure :: coarray_balance         => swiftest_coarray_balance_system                      !! Checks whether or not the test particle coarrays need to be rebalanced.
 #endif
    end type swiftest_nbody_system
 
@@ -1700,6 +1701,17 @@ module swiftest
 
 #ifdef COARRAY
    interface
+      module subroutine swiftest_coarray_balance_system(nbody_system, param)
+         !! author: David A. Minton
+         !!
+         !! Checks whether or not the system needs to be rebalance. Rebalancing occurs when the image with the smallest number of test particles 
+         !! has <90% of that of the image with the largest number of test particles.
+         implicit none
+         ! Arguments
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system 
+         class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+      end subroutine swiftest_coarray_balance_system
+
       module subroutine swiftest_coarray_collect_system(nbody_system, param)
          implicit none
          class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system 

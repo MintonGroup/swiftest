@@ -11,6 +11,37 @@ submodule (swiftest) s_swiftest_coarray
     use coarray
 contains
 
+
+    module subroutine swiftest_coarray_balance_system(nbody_system, param)
+        !! author: David A. Minton
+        !!
+        !! Checks whether or not the system needs to be rebalance. Rebalancing occurs when the difference between the number of test particles between the
+        !! image with the smallest and largest number of test particles is larger than the number of images
+        implicit none
+        ! Arguments
+        class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system 
+        class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+        ! Internals
+        integer(I4B), codimension[:], allocatable :: ntp
+        integer(I4B) :: img,ntp_min, ntp_max
+
+        allocate(ntp[*])
+        ntp = nbody_system%tp%nbody
+        sync all
+        ntp_min = huge(1)
+        ntp_max = 0
+        do img = 1, num_images()
+            if (ntp[img] < ntp_min) ntp_min = ntp[img]
+            if (ntp[img] > ntp_max) ntp_max = ntp[img]
+        end do
+        if (ntp_max - ntp_min >= num_images()) then
+            call nbody_system%coarray_collect(param)
+            call nbody_system%coarray_distribute(param)
+        end if
+
+        return
+    end subroutine swiftest_coarray_balance_system
+
     module subroutine swiftest_coarray_coclone_body(self)
         !! author: David A. Minton
          !!
@@ -451,13 +482,11 @@ contains
         class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
         ! Internals
         integer(I4B) :: i,j
-        integer(I4B), codimension[*], save :: ntp
         class(swiftest_tp), allocatable, codimension[:] :: cotp
         character(len=NAMELEN) :: image_num_char
 
         if (.not.param%lcoarray) return
 
-        sync all
         if (this_image() == 1) then
             write(image_num_char,*) num_images()
             write(param%display_unit,*) " Collecting test particles from " // trim(adjustl(image_num_char)) // " images."
@@ -486,18 +515,18 @@ contains
         integer(I4B) :: i, istart, iend, ntot, num_per_image, ncopy
         class(swiftest_tp), allocatable :: tp
         logical, dimension(:), allocatable :: lspill_list
-        integer(I4B), codimension[*], save  :: ntp
+        integer(I4B), codimension[:], allocatable  :: ntp
         character(len=NAMELEN) :: image_num_char
         class(swiftest_tp), allocatable, codimension[:] :: cotp
         class(swiftest_tp), allocatable :: tmp
 
         if (.not.param%lcoarray) return
-        sync all
         if (this_image() == 1) then
             write(image_num_char,*) num_images()
             write(param%display_unit,*) " Distributing test particles across " // trim(adjustl(image_num_char)) // " images."
         end if
 
+        allocate(ntp[*])
         ntp = nbody_system%tp%nbody
         sync all
         ntot = ntp[1]
@@ -528,5 +557,6 @@ contains
 
         return
     end subroutine swiftest_coarray_distribute_system
+
 
 end submodule s_swiftest_coarray

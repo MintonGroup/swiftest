@@ -223,12 +223,26 @@ contains
       type(progress_bar), save                       :: pbar              !! Object used to print out a progress bar
       character(len=64)                              :: pbarmessage
       character(*), parameter                        :: symbacompactfmt = '(";NPLM",ES22.15,$)'
+#ifdef COARRAY
+      character(*), parameter :: statusfmt = '("Image: ",I4, "; Time = ", ES12.5, "; fraction done = ", F6.3, ' // & 
+                                             '"; Number of active pl, tp = ", I6, ", ", I6)'
+      character(*), parameter :: symbastatfmt = '("Image: ",I4, "; Image: Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
+                                                '"; Number of active pl, plm, tp = ", I6, ", ", I6, ", ", I6)'
+#else
       character(*), parameter :: statusfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // & 
                                              '"; Number of active pl, tp = ", I6, ", ", I6)'
       character(*), parameter :: symbastatfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
                                                 '"; Number of active pl, plm, tp = ", I6, ", ", I6, ", ", I6)'
+#endif
       character(*), parameter :: pbarfmt = '("Time = ", ES12.5," of ",ES12.5)'
 
+! The following will syncronize the images so that they report in order, and only write to file one at at ime
+
+
+#ifdef COARRAY
+      ! The following line lets us read in the input files one image at a time
+      if (param%lcoarray .and. (this_image() /= 1)) sync images(this_image() - 1)
+#endif
       phase_val = 1
       if (present(phase)) then
          if (phase == "first") then
@@ -240,36 +254,68 @@ contains
 
       tfrac = (self%t - param%t0) / (param%tstop - param%t0)
 
-      if (phase_val == 0) then
-         if (param%lrestart) then
-            write(param%display_unit, *) " *************** Swiftest restart " // trim(adjustl(param%integrator)) // " *************** "
-         else
-            write(param%display_unit, *) " *************** Swiftest start " // trim(adjustl(param%integrator)) // " *************** "
+#ifdef COARRAY
+         if (this_image() == 1) then
+#endif
+         if (phase_val == 0) then
+            if (param%lrestart) then
+               write(param%display_unit, *) " *************** Swiftest restart " // trim(adjustl(param%integrator)) // " *************** "
+            else
+               write(param%display_unit, *) " *************** Swiftest start " // trim(adjustl(param%integrator)) // " *************** "
+            end if
+            if (param%display_style == "PROGRESS") then
+               call pbar%reset(param%nloops)
+            else if (param%display_style == "COMPACT") then
+               write(param%display_unit,*) "SWIFTEST START " // trim(adjustl(param%integrator))
+            end if
          end if
-         if (param%display_style == "PROGRESS") then
-            call pbar%reset(param%nloops)
-         else if (param%display_style == "COMPACT") then
-            write(*,*) "SWIFTEST START " // trim(adjustl(param%integrator))
-         end if
-      end if
+#ifdef COARRAY
+         end if !(this_image() == 1)
+#endif
 
       if (param%display_style == "PROGRESS") then
-         write(pbarmessage,fmt=pbarfmt) self%t, param%tstop
-         call pbar%update(1_I8B,message=pbarmessage)
+#ifdef COARRAY
+         if (this_image() == 1) then
+#endif
+            write(pbarmessage,fmt=pbarfmt) self%t, param%tstop
+            call pbar%update(1_I8B,message=pbarmessage)
+#ifdef COARRAY
+         end if !(this_image() == 1)
+#endif
       else if (param%display_style == "COMPACT") then
          call self%compact_output(param,integration_timer)
       end if
 
       if (self%pl%nplm > 0) then
+#ifdef COARRAY
+         write(param%display_unit, symbastatfmt) this_image(),self%t, tfrac, self%pl%nbody, self%pl%nplm, self%tp%nbody
+#else
          write(param%display_unit, symbastatfmt) self%t, tfrac, self%pl%nbody, self%pl%nplm, self%tp%nbody
+#endif
       else
+#ifdef COARRAY
+         write(param%display_unit, statusfmt) this_image(),self%t, tfrac, self%pl%nbody, self%tp%nbody
+#else
          write(param%display_unit, statusfmt) self%t, tfrac, self%pl%nbody, self%tp%nbody
+#endif
       end if
 
-      if (phase_val == -1) then
-         write(param%display_unit, *)" *************** Swiftest stop " // trim(adjustl(param%integrator)) // " *************** "
-         if (param%display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // trim(adjustl(param%integrator))
-      end if
+#ifdef COARRAY
+      if (this_image() == num_images()) then
+#endif
+         if (phase_val == -1) then
+            write(param%display_unit, *)" *************** Swiftest stop " // trim(adjustl(param%integrator)) // " *************** "
+            if (param%display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // trim(adjustl(param%integrator))
+         end if
+#ifdef COARRAY
+      end if ! this_image() == num_images()
+
+      ! Allow the other images to report
+      if (param%lcoarray .and. (this_image() < num_images())) sync images(this_image() + 1)
+
+      ! Wait for everyone to catch up
+      sync all
+#endif
 
       return
    end subroutine swiftest_io_display_run_information
@@ -330,19 +376,24 @@ contains
       ! Dump the nbody_system history to file
       call system_history%dump(param)
 
-      allocate(param_restart, source=param)
-      param_restart%in_form  = "XV"
-      param_restart%out_stat = 'APPEND'
-      param_restart%in_type = "NETCDF_DOUBLE"
-      param_restart%nc_in = param%outfile
-      param_restart%lrestart = .true.
-      param_restart%tstart = self%t
-      param_file_name    = trim(adjustl(PARAM_RESTART_FILE))
-      call param_restart%dump(param_file_name)
-      write(time_text,'(I0.20)') param%iloop
-      param_file_name = "param." // trim(adjustl(time_text)) // ".in"
-      call param_restart%dump(param_file_name)
-
+#ifdef COARRAY
+      if (this_image() == 1) then
+#endif 
+         allocate(param_restart, source=param)
+         param_restart%in_form  = "XV"
+         param_restart%out_stat = 'APPEND'
+         param_restart%in_type = "NETCDF_DOUBLE"
+         param_restart%nc_in = param%outfile
+         param_restart%lrestart = .true.
+         param_restart%tstart = self%t
+         param_file_name    = trim(adjustl(PARAM_RESTART_FILE))
+         call param_restart%dump(param_file_name)
+         write(time_text,'(I0.20)') param%iloop
+         param_file_name = "param." // trim(adjustl(time_text)) // ".in"
+         call param_restart%dump(param_file_name)
+#ifdef COARRAY
+      end if ! (this_image() == 1) 
+#endif 
       return
    end subroutine swiftest_io_dump_system
 
@@ -360,22 +411,53 @@ contains
       class(swiftest_parameters),   intent(inout)     :: param  !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: i
+#ifdef COARRAY
+      integer(I4B) :: img, tslot
+      integer(I4B), dimension(self%iframe) :: ntp_tot
+      integer(I4B), codimension[:], allocatable :: ntp
+#endif
 
       if (self%iframe == 0) return
       call self%make_index_map()
       associate(nc => self%nc)
-         call nc%open(param)
+#ifdef COARRAY
+         ! Get the sum of all test particles across snapshots from all images
+         allocate(ntp[*])
+         ntp_tot(:) = 0
+         do i = 1, self%iframe
+            if (allocated(self%frame(i)%item)) then
+               select type(nbody_system => self%frame(i)%item)
+               class is (swiftest_nbody_system)
+                  ntp = nbody_system%tp%nbody
+                  sync all
+                  do img = 1, num_images()
+                     ntp_tot(i) = ntp_tot(i) + ntp[img]
+                  end do
+               end select
+            end if
+         end do   
 
+         critical 
+#endif
+         call nc%open(param)
          do i = 1, self%iframe
             if (allocated(self%frame(i)%item)) then
                select type(nbody_system => self%frame(i)%item)
                class is (swiftest_nbody_system)
                   call nbody_system%write_frame(nc, param)
+#ifdef COARRAY
+                  ! Record the correct number of test particles from all images
+                  call nc%find_tslot(nbody_system%t, tslot)
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%ntp_varid, ntp_tot(i), start=[tslot]), "swiftest_io_dump_storage nf90_put_var ntp_varid"  )
+#endif COARRAY
                end select
                deallocate(self%frame(i)%item)
             end if
          end do
          call nc%close()
+#ifdef COARRAY
+         end critical
+#endif
       end associate
       call self%reset()
       return
