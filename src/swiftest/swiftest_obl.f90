@@ -130,12 +130,12 @@ contains
             rinv2 = irh**2
             t0 = -cb%Gmass * rinv2 * rinv2 * irh
             t1 = 1.5_DP * cb%j2rp2
-            t2 = self%rh(3, i) * self%rh(3, i) * rinv2
+            t2 = rh_transformed(3) * rh_transformed(3) * rinv2
             t3 = 1.875_DP * cb%j4rp4 * rinv2
             fac1 = t0 * (t1 - t3 - (5 * t1 - (14.0_DP - 21.0_DP * t2) * t3) * t2)
             fac2 = 2 * t0 * (t1 - (2.0_DP - (14.0_DP * t2 / 3.0_DP)) * t3)
-            self%aobl(:, i) = fac1 * self%rh(:, i)
-            self%aobl(3, i) = fac2 * self%rh(3, i) + self%aobl(3, i)
+            self%aobl(:, i) = fac1 * rh_transformed(:)
+            self%aobl(3, i) = fac2 * rh_transformed(3) + self%aobl(3, i)
 
             ! rotate the acceleration and position vectors back to the original coordinate frame
             self%aobl(:, i) = MATMUL(self%rot_matrix_inv, self%aobl(:, i))
