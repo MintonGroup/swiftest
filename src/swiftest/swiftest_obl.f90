@@ -47,8 +47,8 @@ contains
       ! Arguments
       class(swiftest_body),         intent(inout) :: self   !! Swiftest body object
       class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      real(DP), dimension(NDIM, NDIM), intent(out) :: rot_matrix ! rotation matrix and its inverse
-      real(DP), dimension(NDIM, NDIM), intent(out) :: rot_matrix_inv ! inverse of the rotation matrix
+      real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix ! rotation matrix and its inverse
+      real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix_inv ! inverse of the rotation matrix
 
       ! Internals
       real(DP)     :: theta ! angle to rotate it through
@@ -122,8 +122,7 @@ contains
          self%aobl(:,:) = 0.0_DP
          do concurrent(i = 1:n, self%lmask(i))
             ! rotate the position vectors
-            rh_transformed = MATMUL(self%rot_matrix, self%rh(:, i)) ! 3x3 matrix * 3:1 vector
-
+            rh_transformed = MATMUL(self%rh(:, i), self%rot_matrix) ! 1x3 vector * 3x3 matrix
             r2 = dot_product(rh_transformed, rh_transformed)
             irh = 1.0_DP / sqrt(r2)
             rinv2 = irh**2
@@ -137,7 +136,7 @@ contains
             self%aobl(3, i) = fac2 * rh_transformed(3) + self%aobl(3, i)
 
             ! rotate the acceleration and position vectors back to the original coordinate frame
-            self%aobl(:, i) = MATMUL(self%rot_matrix_inv, self%aobl(:, i))
+            self%aobl(:, i) = MATMUL(self%aobl(:, i), self%rot_matrix_inv)
 
          end do
       end associate

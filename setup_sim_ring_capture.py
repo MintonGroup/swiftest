@@ -3,20 +3,21 @@ import swiftest
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d
 import pandas as pd
+from astropy import constants as const
 
 seed = None
 rng = np.random.default_rng(seed=seed)
-n_bodies = int(2e1) # number of planet bodies
+n_bodies = int(1e4) # number of planet bodies
 array_shift = np.random.randint(0, n_bodies)
 tstop = 50 # rotation periods
-dt = 1.0e-5
+dt = 1.0e-4
 dt_unit = 'Haumea_rot_period'
 # dt_unit = 'd'
 dt_max = 0
 G = 6.6743e-11 # SI Units
 scratch_dr = '/scratch/bell/anand43/swiftest_runs/'
 body_dr = 'Haumea/'
-simdir = 'test' # '2e3_part_radial'
+simdir = 'moons' # '2e3_part_radial'
 simdir = scratch_dr + body_dr + simdir
 
 # initial central body parameters
@@ -38,6 +39,20 @@ J2 = 0.305
 J4 = -0.216
 print(f'R_min = {rmin}')
 
+# moons parameters
+# values taken from JPL Horizons
+
+moon_name = ['Hi\'iaka', 'Namaka']
+moon_id = np.arange(10, len(moon_name) + 10, step = 1)
+moon_mass = np.array([1.151e9, 0.036e9]) / const.G / cb_mass
+moon_radius = np.array([160e3, 85e3]) / cb_radius   
+moon_rh = np.array([[-2.3446616e7, -3.6088243e7, -2.9864834e7], [-8.6355596e6, 1.5824178e7, 2.4140061e7]]) / cb_radius
+moon_vh = np.array([[-5.6613699e1, 3.5390515e0, 3.8830064e1], [6.6949687e1, 5.157315e1, -1.0614025e1]]) / cb_radius * T_rotation
+moon_T_rotation = np.array([9.8, np.inf]) * 60 * 60 # h to seconds
+moon_rot = []
+for i in range(len(moon_T_rotation)):
+    moon_rot.append([0, 0, 2 * np.pi / moon_T_rotation[i]]) # rad/s
+
 # set up swiftest simulation
 
 sim = swiftest.Simulation(simdir = simdir, integrator = "symba", tstop = tstop, dt = dt, istep_out = 1e4, dump_cadence = 10, rotation = True, collision_model = "FRAGGLE", rmin = rmin, rmax = 50 * rmin, MU2KG = cb_mass, DU2M = cb_radius, TU2S = T_rotation, init_cond_format = 'XV') # TU = dt_unit, MU_name = 'M_Haumea', DU_name = 'R_Haumea'
@@ -53,7 +68,7 @@ random_mass = np.power(random_radius, 3) * 4.0 * np.pi / 3.0 * density # randomi
 z_sign = rng.random(n_bodies) - 0.5 # randomize the sign of the z-component
 
 # set up the position vectors
-random_pos_mag = (rng.random(n_bodies) * (2 - 1.65) + 1.65) # randomize the distance/position vector(s) between 1.65 and 3 (R_Haumea)
+random_pos_mag = (rng.random(n_bodies) * (3 - 1.65) + 1.65) # randomize the distance/position vector(s) between 1.65 and 3 (R_Haumea)
 random_phi = np.deg2rad((rng.random(n_bodies)) * 60.0) # cone of spilled regolith
 random_theta = np.deg2rad((rng.random(n_bodies)) * (120.0 - 60) + 60) # equatorial zone
 x = random_pos_mag * np.sin(random_theta) * np.cos(random_phi)
@@ -66,7 +81,7 @@ random_pos_vec = np.array([x, y, z]).T
 # random_vel_mag = np.sqrt(mass * sim.GU / random_pos_mag) * (rng.random(n_bodies) * (1.15 - 0.85) + 0.85) # randomize the velocity by 0.9 - 1.1 times the keplerian velocity
 
 v_escape = np.sqrt(2 * sim.GU * mass / radius)
-alpha = rng.random(n_bodies) * (0.90 - 0.80) + 0.80 # numerical scaling for initial velocity
+alpha = rng.random(n_bodies) * (0.90 - 0.75) + 0.75 # numerical scaling for initial velocity
 random_vel_mag = np.sqrt(alpha * v_escape**2 + 2 * sim.GU * mass * (1 / random_pos_mag - 1 / radius)) # scale the velocity with distance
 
 x = x * random_vel_mag / random_pos_mag
@@ -75,7 +90,7 @@ z = z * random_vel_mag / random_pos_mag
 
 # rotate the velocity vectors (degrees)
 # 85 - 95 degrees to represent orbiting particles for tangential motion
-rot_angle = np.deg2rad(rng.random(n_bodies) * (5 - (-5)) + (-5)) # rotate by <<range>> degrees randomly
+rot_angle = np.deg2rad(rng.random(n_bodies) * (10 - (-10)) + (-10)) # rotate by <<range>> degrees randomly
 
 x_tmp = x
 y_tmp = y
@@ -97,6 +112,7 @@ print(f'Total ring mass = {ring_mass_tot} M_Haumea')
 print(f'sim.GU = {sim.GU}')
 
 sim.add_body(name = 'Centaur', id = 0, mass = mass, rot = rot, radius = radius, rh=[np.array([0,0,0])], vh = [np.array([0,0,0])], J2 = J2 * radius**2, J4 = J4 * radius**4)
+sim.add_body(name = moon_name, id = moon_id, mass = moon_mass, rot = moon_rot, radius = moon_radius, rh = moon_rh, vh = moon_vh)
 sim.add_body(name = np.arange(id_start, n_bodies + id_start, step = 1), id = np.arange(id_start, n_bodies + id_start, step = 1), mass = random_mass, radius = random_radius, rh = random_pos_vec, vh = random_vel_vec)#, rot = random_rot)
 
 # check that dt < dt_max
