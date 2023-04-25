@@ -1155,10 +1155,14 @@ contains
 
          if (npl_check /= npl) then
             write(*,*) "Error reading in NetCDF file: The recorded value of npl does not match the number of active massive bodies"
+            write(*,*) "Recorded: ",npl
+            write(*,*) "Active  : ",npl_check
          end if
 
          if (ntp_check /= ntp) then
             write(*,*) "Error reading in NetCDF file: The recorded value of ntp does not match the number of active test particles"
+            write(*,*) "Recorded: ",ntp
+            write(*,*) "Active  : ",ntp_check
             call base_util_exit(failure)
          end if
 
