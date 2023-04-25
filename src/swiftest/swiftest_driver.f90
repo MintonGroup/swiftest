@@ -31,6 +31,7 @@ program swiftest_driver
    integer(I4B)                              :: nout              !! Current output step
    integer(I4B)                              :: istep             !! Current value of istep (used for time stretching)
    type(walltimer)                           :: integration_timer !! Object used for computing elapsed wall time
+   type(walltimer)                           :: t1, t2, t3, t4
 
    call swiftest_io_get_args(integrator, param_file_name, display_style)
 
@@ -105,7 +106,7 @@ program swiftest_driver
       if (param%lcoarray .and. (this_image() < num_images())) sync images(this_image() + 1)
 
       ! Distribute test particles to the various images
-      call nbody_system%coarray_distribute(param)
+      if (param%lcoarray) call nbody_system%coarray_distribute(param)
 #endif
 
       ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial conditions to file.
@@ -132,7 +133,9 @@ program swiftest_driver
          nbody_system%t = t0 + iloop * dt
 
          !> Evaluate any discards or collisional outcomes
+         call t1%start()
          call nbody_system%discard(param)
+         call t1%stop()
 
          !> If the loop counter is at the output cadence value, append the data file with a single frame
          if (istep_out > 0) then
@@ -145,11 +148,17 @@ program swiftest_driver
                   istep = floor(istep_out * fstep_out**nout, kind=I4B)
                end if
 
+               call t2%start()
                call system_history%take_snapshot(param,nbody_system)
+               call t2%stop()
 
                if (idump == dump_cadence) then
                   idump = 0
+                  call t3%start()
                   call nbody_system%dump(param, system_history)
+                  call t3%stop()
+                  call t3%report(message="Dump", unit=display_unit)
+                  call t3%reset()
                end if
 #ifdef COARRAY
                if (this_image() == 1 .or. param%log_output) then
@@ -166,7 +175,16 @@ program swiftest_driver
                   if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
 #ifdef COARRAY
                end if ! (this_image() == 1)
-               call nbody_system%coarray_balance(param)
+               call t4%start()
+               if (param%lcoarray) call nbody_system%coarray_balance(param)
+               call t4%stop()
+
+               call t1%report(message="Discard", unit=display_unit)
+               call t2%report(message="Snapshot", unit=display_unit)
+               call t4%report(message="Balance", unit=display_unit)
+               call t1%reset()
+               call t2%reset()
+               call t4%reset()
 #endif
             end if
          end if

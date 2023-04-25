@@ -228,16 +228,15 @@ contains
       character(len=64)                              :: pbarmessage
       character(*), parameter                        :: symbacompactfmt = '(";NPLM",ES22.15,$)'
 #ifdef COARRAY
-      character(*), parameter :: statusfmt = '("Image: ",I4, "; Time = ", ES12.5, "; fraction done = ", F6.3, ' // & 
+      character(*), parameter :: co_statusfmt = '("Image: ",I4, "; Time = ", ES12.5, "; fraction done = ", F6.3, ' // & 
                                              '"; Number of active pl, tp = ", I6, ", ", I6)'
-      character(*), parameter :: symbastatfmt = '("Image: ",I4, "; Image: Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
+      character(*), parameter :: co_symbastatfmt = '("Image: ",I4, "; Image: Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
                                                 '"; Number of active pl, plm, tp = ", I6, ", ", I6, ", ", I6)'
-#else
+#endif
       character(*), parameter :: statusfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // & 
                                              '"; Number of active pl, tp = ", I6, ", ", I6)'
       character(*), parameter :: symbastatfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
                                                 '"; Number of active pl, plm, tp = ", I6, ", ", I6, ", ", I6)'
-#endif
       character(*), parameter :: pbarfmt = '("Time = ", ES12.5," of ",ES12.5)'
 
 ! The following will syncronize the images so that they report in order, and only write to file one at at ime
@@ -292,15 +291,23 @@ contains
 
       if (self%pl%nplm > 0) then
 #ifdef COARRAY
-         write(param%display_unit, symbastatfmt) this_image(),self%t, tfrac, self%pl%nbody, self%pl%nplm, self%tp%nbody
-#else
-         write(param%display_unit, symbastatfmt) self%t, tfrac, self%pl%nbody, self%pl%nplm, self%tp%nbody
+         if (param%lcoarray) then
+            write(param%display_unit, co_symbastatfmt) this_image(),self%t, tfrac, self%pl%nbody, self%pl%nplm, self%tp%nbody
+         else
+#endif
+            write(param%display_unit, symbastatfmt) self%t, tfrac, self%pl%nbody, self%pl%nplm, self%tp%nbody
+#ifdef COARRAY
+         end if
 #endif
       else
 #ifdef COARRAY
-         write(param%display_unit, statusfmt) this_image(),self%t, tfrac, self%pl%nbody, self%tp%nbody
-#else
-         write(param%display_unit, statusfmt) self%t, tfrac, self%pl%nbody, self%tp%nbody
+         if (param%lcoarray) then
+            write(param%display_unit, co_statusfmt) this_image(),self%t, tfrac, self%pl%nbody, self%tp%nbody
+         else
+#endif
+            write(param%display_unit, statusfmt) self%t, tfrac, self%pl%nbody, self%tp%nbody
+#ifdef COARRAY
+         end if
 #endif
       end if
 
@@ -3086,7 +3093,11 @@ contains
          self%log_output = .false.
       case ('COMPACT', 'PROGRESS')
 #ifdef COARRAY
-         write(SWIFTEST_LOG_FILE,'("swiftest_coimage",I0.3,".log")') this_image()
+         if (self%lcoarray) then
+            write(SWIFTEST_LOG_FILE,'("swiftest_coimage",I0.3,".log")') this_image()
+         else
+            write(SWIFTEST_LOG_FILE,'("swiftest.log")')
+         end if 
 #endif
          inquire(file=SWIFTEST_LOG_FILE, exist=fileExists)
          if (self%lrestart.and.fileExists) then
