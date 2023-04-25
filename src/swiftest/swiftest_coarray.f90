@@ -487,9 +487,10 @@ contains
 
         if (.not.param%lcoarray) return
 
-        if (this_image() == 1) then
+        if (this_image() == 1 .or. param%log_output) then
             write(image_num_char,*) num_images()
             write(param%display_unit,*) " Collecting test particles from " // trim(adjustl(image_num_char)) // " images."
+            if (param%log_output) flush(param%display_unit)
         end if
 
         allocate(cotp[*], source=nbody_system%tp) 
@@ -530,9 +531,10 @@ contains
 
         write(image_num_char,*) num_images()
 
-        if (this_image() == 1) then
+        if (this_image() == 1 .or. param%log_output) then
             write(ntp_num_char,*) ntot
             write(param%display_unit,*) " Distributing " // trim(adjustl(ntp_num_char)) // " test particles across " // trim(adjustl(image_num_char)) // " images."
+            if (param%log_output) flush(param%display_unit)
         end if
 
         allocate(lspill_list(ntot))
@@ -560,6 +562,7 @@ contains
         write(ntp_num_char,*) nbody_system%tp%nbody
         if (this_image() /= 1) sync images(this_image() - 1)
         write(param%display_unit,*) "Image " // trim(adjustl(image_num_char)) // " ntp: " // trim(adjustl(ntp_num_char))
+        if (param%log_output) flush(param%display_unit)
         if (this_image() < num_images()) sync images(this_image() + 1)
 
         deallocate(tmp, cotp)

@@ -76,7 +76,7 @@ program swiftest_driver
       nthreads = 1            ! In the *serial* case
       !$ nthreads = omp_get_max_threads() ! In the *parallel* case
 #ifdef COARRAY
-      if (this_image() == 1) then
+      if (this_image() == 1 .or. param%log_output) then
 #endif 
          !$ write(param%display_unit,'(a)')   ' OpenMP parameters:'
          !$ write(param%display_unit,'(a)')   ' ------------------'
@@ -87,13 +87,14 @@ program swiftest_driver
             write(param%display_unit,*)   ' Coarray parameters:'
             write(param%display_unit,*)   ' -------------------'
             write(param%display_unit,*) ' Number of images = ', num_images()
-            if (param%log_output) write(*,'(a,i3)') ' Coarray: Number of images = ',num_images()
+            if (param%log_output .and. this_image() == 1) write(*,'(a,i3)') ' Coarray: Number of images = ',num_images()
          else
             write(param%display_unit,*)   ' Coarrays disabled.'
             if (param%log_output) write(*,*)   ' Coarrays disabled.'
          end if
       end if
 #endif 
+      if (param%log_output) flush(param%display_unit)
 
 #ifdef COARRAY  
       ! The following line lets us read in the input files one image at a time. Letting each image read the input in is faster than broadcasting all of the data
@@ -151,7 +152,7 @@ program swiftest_driver
                   call nbody_system%dump(param, system_history)
                end if
 #ifdef COARRAY
-               if (this_image() == 1) then
+               if (this_image() == 1 .or. param%log_output) then
 #endif
                   call integration_timer%report(message="Integration steps:", unit=display_unit)
 #ifdef COARRAY  
@@ -160,7 +161,7 @@ program swiftest_driver
                call nbody_system%display_run_information(param, integration_timer)
                call integration_timer%reset()
 #ifdef COARRAY
-               if (this_image() == 1) then
+               if (this_image() == 1 .or. param%log_output) then
 #endif
                   if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
 #ifdef COARRAY

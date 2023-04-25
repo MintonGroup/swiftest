@@ -184,9 +184,13 @@ contains
 
             nbody_system%Mescape_error = nbody_system%GMescape / nbody_system%GMtot_orig
 #ifdef COARRAY
-   if (this_image() == 1) then
+   if (this_image() == 1 .or. param%log_output) then
 #endif 
-            if (lterminal) write(display_unit, EGYTERMFMT) nbody_system%L_total_error, nbody_system%E_orbit_error, nbody_system%te_error,nbody_system%Mtot_error
+            if (lterminal) then
+               write(display_unit, EGYTERMFMT) nbody_system%L_total_error, nbody_system%E_orbit_error, nbody_system%te_error,nbody_system%Mtot_error
+               if (param%log_output) flush(display_unit)
+            end if
+
 #ifdef COARRAY
    end if ! (this_image() == 1) then
 #endif 
@@ -255,7 +259,7 @@ contains
       tfrac = (self%t - param%t0) / (param%tstop - param%t0)
 
 #ifdef COARRAY
-         if (this_image() == 1) then
+         if (this_image() == 1 .or. param%log_output) then
 #endif
          if (phase_val == 0) then
             if (param%lrestart) then
@@ -301,14 +305,16 @@ contains
       end if
 
 #ifdef COARRAY
-      if (this_image() == num_images()) then
+      if (this_image() == num_images() .or. param%log_output) then
 #endif
          if (phase_val == -1) then
             write(param%display_unit, *)" *************** Swiftest stop " // trim(adjustl(param%integrator)) // " *************** "
             if (param%display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // trim(adjustl(param%integrator))
          end if
+
 #ifdef COARRAY
       end if ! this_image() == num_images()
+      if (param%log_output) flush(param%display_unit)
 
       ! Allow the other images to report
       if (param%lcoarray .and. (this_image() < num_images())) sync images(this_image() + 1)
@@ -2443,9 +2449,10 @@ contains
 
          if (.not.param%lrestart) then
 #ifdef COARRAY
-            if (this_image() == 1) then
+            if (this_image() == 1 .or. param%log_output) then
 #endif
-               call param%writer(unit = param%display_unit, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg) 
+               call param%writer(unit = param%display_unit, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg)
+               if (param%log_output) flush(param%display_unit) 
 #ifdef COARRAY
             end if !(this_image() == 1)
 #endif
@@ -3078,6 +3085,9 @@ contains
          self%display_unit = OUTPUT_UNIT !! stdout from iso_fortran_env
          self%log_output = .false.
       case ('COMPACT', 'PROGRESS')
+#ifdef COARRAY
+         write(SWIFTEST_LOG_FILE,'("swiftest_coimage",I0.3,".log")') this_image()
+#endif
          inquire(file=SWIFTEST_LOG_FILE, exist=fileExists)
          if (self%lrestart.and.fileExists) then
             open(unit=SWIFTEST_LOG_OUT, file=SWIFTEST_LOG_FILE, status="OLD", position="APPEND", err = 667, iomsg = errmsg)
