@@ -2428,19 +2428,30 @@ contains
 
          iostat = 0
 
-         call param%set_display(param%display_style)
-         ! Print the contents of the parameter file to standard output
-         if (.not.param%lrestart) call param%writer(unit = param%display_unit, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg) 
       end associate
 
 #ifdef COARRAY
    end if ! this_image() == 1
       call coparam%coclone()
-      select type(self)
-      type is (swiftest_parameters)
-         self = coparam
-      end select
 #endif
+      select type(param => self)
+      type is (swiftest_parameters)
+#ifdef COARRAY
+         param = coparam
+#endif
+         call param%set_display(param%display_style)
+
+         if (.not.param%lrestart) then
+#ifdef COARRAY
+            if (this_image() == 1) then
+#endif
+               call param%writer(unit = param%display_unit, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg) 
+#ifdef COARRAY
+            end if !(this_image() == 1)
+#endif
+         end if
+         ! Print the contents of the parameter file to standard output
+      end select
 
       return 
       667 continue
