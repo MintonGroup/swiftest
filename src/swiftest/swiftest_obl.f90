@@ -76,8 +76,8 @@ contains
          ! assuming NDIM = 3
          ! CHECK for a general formula for the skew-symmetric matrix
 
-         do (i = 1, NDIM)
-            do (j = 1, NDIM)
+         do i = 1, NDIM
+            do j = 1, NDIM
                if (i == j) then
                   rot_matrix(i, j) = rot_matrix(i, j) + cos(theta) ! identity matrix
                   continue
