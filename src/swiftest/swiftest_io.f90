@@ -3158,6 +3158,9 @@ contains
          nc%file_name = param%outfile
          if (lfirst) then
             inquire(file=param%outfile, exist=fileExists)
+#ifdef COARRAY
+            if (this_image() /= 1) param%out_stat = 'APPEND'
+#endif
             
             select case(param%out_stat)
             case('APPEND')
