@@ -242,10 +242,6 @@ contains
 ! The following will syncronize the images so that they report in order, and only write to file one at at ime
 
 
-#ifdef COARRAY
-      ! The following line lets us read in the input files one image at a time
-      if (param%lcoarray .and. (this_image() /= 1)) sync images(this_image() - 1)
-#endif
       phase_val = 1
       if (present(phase)) then
          if (phase == "first") then
@@ -322,12 +318,6 @@ contains
 #ifdef COARRAY
       end if ! this_image() == num_images()
       if (param%log_output) flush(param%display_unit)
-
-      ! Allow the other images to report
-      if (param%lcoarray .and. (this_image() < num_images())) sync images(this_image() + 1)
-
-      ! Wait for everyone to catch up
-      sync all
 #endif
 
       return
@@ -427,7 +417,7 @@ contains
 #ifdef COARRAY
       integer(I4B) :: img, tslot
       integer(I4B), dimension(self%iframe) :: ntp_tot
-      integer(I4B), codimension[:], allocatable :: ntp
+      integer(I4B), codimension[*], save :: ntp
 #endif
 
       if (self%iframe == 0) return
@@ -435,7 +425,6 @@ contains
       associate(nc => self%nc)
 #ifdef COARRAY
          ! Get the sum of all test particles across snapshots from all images
-         allocate(ntp[*])
          ntp_tot(:) = 0
          do i = 1, self%iframe
             if (allocated(self%frame(i)%item)) then

@@ -22,10 +22,9 @@ contains
         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system 
         class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
         ! Internals
-        integer(I4B), codimension[:], allocatable :: ntp
+        integer(I4B), codimension[*], save :: ntp
         integer(I4B) :: img,ntp_min, ntp_max
 
-        allocate(ntp[*])
         ntp = nbody_system%tp%nbody
         sync all
         ntp_min = huge(1)
