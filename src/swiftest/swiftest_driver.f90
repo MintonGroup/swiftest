@@ -150,6 +150,9 @@ program swiftest_driver
                if (idump == dump_cadence) then
                   idump = 0
                   call nbody_system%dump(param, system_history)
+#ifdef COARRAY
+                  if (param%lcoarray) call nbody_system%coarray_balance(param)
+#endif
                end if
 #ifdef COARRAY
                if (this_image() == 1 .or. param%log_output) then
@@ -166,7 +169,6 @@ program swiftest_driver
                   if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
 #ifdef COARRAY
                end if ! (this_image() == 1)
-               if (param%lcoarray) call nbody_system%coarray_balance(param)
 #endif
             end if
          end if
