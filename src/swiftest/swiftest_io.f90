@@ -2300,9 +2300,6 @@ contains
          ! Calculate the G for the nbody_system units
          param%GU = GC / (param%DU2M**3 / (param%MU2KG * param%TU2S**2))
 
-         ! A minimal log of collision outcomes is stored in the following log file
-         ! More complete data on collisions is stored in the NetCDF output files
-         call swiftest_io_log_start(param, COLLISION_LOG_OUT, "Collision logfile")
 
          if ((param%encounter_save /= "NONE")       .and. &
              (param%encounter_save /= "TRAJECTORY") .and. &
@@ -2451,7 +2448,11 @@ contains
                if (param%log_output) flush(param%display_unit) 
 #ifdef COARRAY
             end if !(this_image() == 1)
+            write(COLLISION_LOG_OUT,'("collision_coimage",I0.3,".log")') this_image()
 #endif
+            ! A minimal log of collision outcomes is stored in the following log file
+            ! More complete data on collisions is stored in the NetCDF output files
+            call swiftest_io_log_start(param, COLLISION_LOG_OUT, "Collision logfile")
          end if
          ! Print the contents of the parameter file to standard output
       end select

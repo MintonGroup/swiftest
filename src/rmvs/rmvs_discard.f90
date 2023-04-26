@@ -54,6 +54,9 @@ contains
          call swiftest_discard_tp(tp, nbody_system, param)
       end associate
 
+
+      return
+
    end subroutine rmvs_discard_tp
 
 end submodule s_rmvs_discard

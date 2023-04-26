@@ -521,11 +521,11 @@ module swiftest
          real(DP),                          intent(in)    :: dt     !! Stepsize
       end subroutine swiftest_drift_body
 
-      pure elemental module subroutine swiftest_drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag)
+      pure elemental module subroutine swiftest_drift_one(mu, rx, ry, rz, vx, vy, vz, dt, iflag)
          !$omp declare simd(swiftest_drift_one)
          implicit none
          real(DP),     intent(in)       :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
-         real(DP),     intent(inout)    :: px, py, pz, vx, vy, vz  !! Position and velocity of body to drift
+         real(DP),     intent(inout)    :: rx, ry, rz, vx, vy, vz  !! Position and velocity of body to drift
          real(DP),     intent(in)       :: dt    !! Step size
          integer(I4B), intent(out)      :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine swiftest_drift_one
@@ -1027,22 +1027,22 @@ module swiftest
          real(DP), intent(out) :: sx, cx
       end subroutine swiftest_orbel_scget
 
-      pure elemental module subroutine swiftest_orbel_xv2aeq(mu, px, py, pz, vx, vy, vz, a, e, q)
+      pure elemental module subroutine swiftest_orbel_xv2aeq(mu, rx, ry, rz, vx, vy, vz, a, e, q)
          !$omp declare simd(swiftest_orbel_xv2aeq)
          implicit none
          real(DP), intent(in)  :: mu       !! Gravitational constant
-         real(DP), intent(in)  :: px,py,pz !! Position vector
+         real(DP), intent(in)  :: rx,ry,rz !! Position vector
          real(DP), intent(in)  :: vx,vy,vz !! Velocity vector
          real(DP), intent(out) :: a        !! semimajor axis
          real(DP), intent(out) :: e        !! eccentricity
          real(DP), intent(out) :: q        !! periapsis
       end subroutine swiftest_orbel_xv2aeq
 
-      pure module subroutine swiftest_orbel_xv2aqt(mu, px, py, pz, vx, vy, vz, a, q, capm, tperi)
+      pure module subroutine swiftest_orbel_xv2aqt(mu, rx, ry, rz, vx, vy, vz, a, q, capm, tperi)
          !$omp declare simd(swiftest_orbel_xv2aqt)
          implicit none
          real(DP), intent(in)  :: mu       !! Gravitational constant
-         real(DP), intent(in)  :: px,py,pz !! Position vector
+         real(DP), intent(in)  :: rx,ry,rz !! Position vector
          real(DP), intent(in)  :: vx,vy,vz !! Velocity vector
          real(DP), intent(out) :: a        !! semimajor axis
          real(DP), intent(out) :: q        !! periapsis
@@ -1050,10 +1050,10 @@ module swiftest
          real(DP), intent(out) :: tperi    !! time of pericenter passage
       end subroutine swiftest_orbel_xv2aqt
 
-      pure module subroutine swiftest_orbel_xv2el(mu, px, py, pz, vx, vy, vz, a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf)
+      pure module subroutine swiftest_orbel_xv2el(mu, rx, ry, rz, vx, vy, vz, a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf)
          implicit none
          real(DP), intent(in)  :: mu    !! Gravitational constant
-         real(DP), intent(in)  :: px,py,pz !! Position vector
+         real(DP), intent(in)  :: rx,ry,rz !! Position vector
          real(DP), intent(in)  :: vx,vy,vz !! Velocity vector
          real(DP), intent(out) :: a     !! semimajor axis
          real(DP), intent(out) :: e     !! eccentricity

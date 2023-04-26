@@ -30,6 +30,11 @@ module base
       real(DP)                                :: dt                   = -1.0_DP         !! Time step
       integer(I8B)                            :: iloop                = 0_I8B           !! Main loop counter
       integer(I8B)                            :: nloops               = 0_I8B           !! Total number of loops to execute
+      integer(I8B)                            :: istart               = 0_I8B           !! Starting index for loop counter
+      integer(I4B)                            :: iout                 = 0               !! Output cadence counter
+      integer(I4B)                            :: idump                = 0               !! Dump cadence counter
+      integer(I4B)                            :: nout                 = 0               !! Current output step
+      integer(I4B)                            :: istep                = 0               !! Current value of istep (used for time stretching)
       character(STRMAX)                       :: incbfile             = CB_INFILE       !! Name of input file for the central body
       character(STRMAX)                       :: inplfile             = PL_INFILE       !! Name of input file for massive bodies
       character(STRMAX)                       :: intpfile             = TP_INFILE       !! Name of input file for test particles

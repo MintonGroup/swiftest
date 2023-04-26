@@ -1514,8 +1514,9 @@ contains
       integer(I4B) :: i
       real(DP), dimension(n) :: e !! Temporary, just to make use of the xv2aeq subroutine
       real(DP) :: vdotr
+      character(len=NAMELEN) :: message
 
-      do concurrent(i = 1:n)
+      do i = 1,n
          vdotr = dot_product(r(:,i),v(:,i))
          if (isperi(i) == -1) then
             if (vdotr >= 0.0) then
