@@ -1710,6 +1710,17 @@ contains
                   !    call netcdf_io_check( nf90_put_var(nc%id, nc%k2_varid, self%k2(j), start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body k2_varid"  )
                   !    call netcdf_io_check( nf90_put_var(nc%id, nc%Q_varid, self%Q(j), start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body Q_varid"  )
                   ! end if
+               class is (swiftest_tp)
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid, 0.0_DP, start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body Gmass_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%mass_varid, 0.0_DP, start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body mass_varid"  )
+                  if (param%lrhill_present) then
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%rhill_varid, 0.0_DP, start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body rhill_varid"  )
+                  end if
+                  if (param%lclose) call netcdf_io_check( nf90_put_var(nc%id, nc%radius_varid, 0.0_DP, start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body radius_varid"  )
+                  if (param%lrotation) then
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid, [0.0_DP,0.0_DP,0.0_DP], start=[1,idslot, tslot], count=[NDIM,1,1]), "netcdf_io_write_frame_body nf90_put_var body Ip_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, [0.0_DP,0.0_DP,0.0_DP], start=[1,idslot, tslot], count=[NDIM,1,1]), "netcdf_io_write_frame_body nf90_put_var body rotx_varid"  )
+                  end if
 
                end select
             end do
