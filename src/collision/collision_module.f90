@@ -19,7 +19,11 @@ module collision
    public
 
    character(len=*), parameter :: COLLISION_OUTFILE = 'collisions.nc'  !! Name of NetCDF output file for collision information
+#ifdef COARRAY
+   character(len=STRMAX) :: COLLISION_LOG_OUT !! Name of log file for collision diagnostic information (each co-image gets its own)
+#else
    character(len=*), parameter :: COLLISION_LOG_OUT = "collisions.log" !! Name of log file for collision diagnostic information
+#endif
 
    !>Symbolic names for collisional outcomes from collresolve_resolve:
    integer(I4B), parameter :: COLLRESOLVE_REGIME_MERGE              =  1

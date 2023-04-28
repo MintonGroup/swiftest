@@ -25,11 +25,6 @@ program swiftest_driver
    character(len=:), allocatable             :: integrator        !! Integrator type code (see globals for symbolic names)
    character(len=:), allocatable             :: param_file_name   !! Name of the file containing user-defined parameters
    character(len=:), allocatable             :: display_style     !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
-   integer(I8B)                              :: istart            !! Starting index for loop counter
-   integer(I4B)                              :: iout              !! Output cadence counter
-   integer(I4B)                              :: idump             !! Dump cadence counter
-   integer(I4B)                              :: nout              !! Current output step
-   integer(I4B)                              :: istep             !! Current value of istep (used for time stretching)
    type(walltimer)                           :: integration_timer !! Object used for computing elapsed wall time
 
    call swiftest_io_get_args(integrator, param_file_name, display_style)
@@ -45,6 +40,11 @@ program swiftest_driver
       dt              => param%dt, &
       tstop           => param%tstop, &
       iloop           => param%iloop, &
+      istart          => param%istart, &
+      iout            => param%iout, &
+      idump           => param%idump, &
+      nout            => param%nout, &
+      istep           => param%istep, &
       nloops          => param%nloops, &
       istep_out       => param%istep_out, &
       fstep_out       => param%fstep_out, &
