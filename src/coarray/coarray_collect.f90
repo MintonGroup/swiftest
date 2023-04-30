@@ -54,12 +54,14 @@ contains
 
       if (this_image() == di) then
          do img = 1, num_images()
-         if (img /= di) then
-               call util_append(var, tmp(1:n[img])[img])
-               n = n + n[img]
-         end if
+            if (img /= di) then
+                  call util_append(var, tmp(1:n[img])[img])
+                  n = n + n[img]
+            end if
          end do
       end if
+
+      deallocate(isalloc,n,tmp)
 
       return
    end subroutine coarray_component_collect_DP_arr1D
@@ -117,6 +119,8 @@ contains
          end do
       end if
 
+      deallocate(isalloc,n1,n2,tmp)
+
       return
    end subroutine coarray_component_collect_DP_arr2D
 
@@ -151,6 +155,8 @@ contains
          var = 0
       end if
 
+      deallocate(tmp)
+
       return
    end subroutine coarray_component_collect_I4B
 
@@ -184,6 +190,8 @@ contains
       else
          var = 0
       end if
+
+      deallocate(tmp)
 
       return
    end subroutine coarray_component_collect_I8B
@@ -230,12 +238,14 @@ contains
 
       if (this_image() == di) then
          do img = 1, num_images()
-         if (img /= di) then
-            call util_append(var, tmp(1:n[img])[img])
-            n = n + n[img]
-         end if
+            if (img /= di) then
+               call util_append(var, tmp(1:n[img])[img])
+               n = n + n[img]
+            end if
          end do
       end if
+
+      deallocate(isalloc,n,tmp)
 
       return
    end subroutine coarray_component_collect_I4B_arr1D
@@ -288,6 +298,8 @@ contains
             end if
          end do
       end if
+
+      deallocate(isalloc,n,tmp)
 
       return
    end subroutine coarray_component_collect_lgt_arr1D

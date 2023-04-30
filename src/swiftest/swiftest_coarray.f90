@@ -258,8 +258,7 @@ contains
         else
            si = 1
         end if
-    
-        sync all
+   
         if (this_image() == si) then
            do img = 1, num_images()
              tmp[img] = var 
@@ -269,6 +268,8 @@ contains
            sync images(si)
            var = tmp[si]
         end if
+
+        deallocate(tmp)
     
         return
     end subroutine swiftest_coarray_component_clone_info
@@ -314,6 +315,8 @@ contains
            if (allocated(var)) deallocate(var)
            allocate(var, source=tmp)
         end if
+
+        deallocate(isalloc,n,tmp)
     
         return
     end subroutine swiftest_coarray_component_clone_info_arr1D
@@ -331,8 +334,8 @@ contains
         ! Internals
         type(swiftest_kinship), dimension(:), codimension[:], allocatable :: tmp
         integer(I4B) :: img, si
-        integer(I4B), save :: n[*]
-        logical, save :: isalloc[*]
+        integer(I4B), allocatable :: n[:]
+        logical, allocatable :: isalloc[:]
 
         if (present(src_img)) then
             si = src_img
@@ -340,7 +343,8 @@ contains
             si = 1
         end if
 
-        sync all
+        allocate(isalloc[*])
+        allocate(n[*])
         isalloc = allocated(var)
         if (isalloc) n = size(var)
         sync all 
@@ -357,6 +361,8 @@ contains
             if (allocated(var)) deallocate(var)
             allocate(var, source=tmp)
         end if
+
+        deallocate(isalloc,n,tmp)
   
         return
     end subroutine swiftest_coarray_component_clone_kin_arr1D
@@ -409,6 +415,8 @@ contains
               end if
            end do
         end if
+
+        deallocate(isalloc,n,tmp)
   
         return
     end subroutine swiftest_coarray_component_collect_info_arr1D
@@ -564,7 +572,7 @@ contains
         if (param%log_output) flush(param%display_unit)
         if (this_image() < num_images()) sync images(this_image() + 1)
 
-        deallocate(tmp, cotp)
+        deallocate(ntp, lspill_list, tmp, cotp)
 
         return
     end subroutine swiftest_coarray_distribute_system

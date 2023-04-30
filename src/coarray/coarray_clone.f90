@@ -41,6 +41,7 @@ contains
          sync images(si)
          var = tmp[si]
       end if
+      deallocate(tmp)
 
       return
    end subroutine coarray_component_clone_char
@@ -78,6 +79,7 @@ contains
          var = tmp[si]
       end if
 
+      deallocate(tmp)
 
       return
    end subroutine coarray_component_clone_DP 
@@ -123,6 +125,7 @@ contains
          if (allocated(var)) deallocate(var)
          allocate(var, source=tmp)
       end if
+      deallocate(isalloc,n,tmp)
 
       return
    end subroutine coarray_component_clone_DP_arr1D
@@ -173,6 +176,8 @@ contains
          allocate(var, source=tmp)
       end if
 
+      deallocate(isalloc,n1,n2,tmp)
+
       return
    end subroutine coarray_component_clone_DP_arr2D
 
@@ -199,10 +204,9 @@ contains
       end if
 
       allocate(tmp(NDIM)[*])
-      sync all
       if (this_image() == si) then
          do img = 1, num_images()
-         tmp(:)[img] = var(:)
+            tmp(:)[img] = var(:)
          end do
          sync images(*)
       else
@@ -257,6 +261,8 @@ contains
          allocate(var, source=tmp)
       end if
 
+      deallocate(isalloc,n,tmp)
+
       return
    end subroutine coarray_component_clone_DP_vec2D
 
@@ -282,16 +288,17 @@ contains
          si = 1
       end if
 
-      sync all
       if (this_image() == si) then
          do img = 1, num_images()
-         tmp[img] = var 
+            tmp[img] = var 
          end do
          sync images(*)
       else
          sync images(si)
          var = tmp[si]
       end if
+
+      deallocate(tmp)
 
       return
    end subroutine coarray_component_clone_I4B
@@ -328,7 +335,7 @@ contains
       allocate(tmp(n[si])[*])
       if (this_image() == si) then
          do img = 1, num_images()
-         tmp(:)[img] = var 
+            tmp(:)[img] = var 
          end do
          sync images(*)
       else
@@ -336,6 +343,8 @@ contains
          if (allocated(var)) deallocate(var)
          allocate(var, source=tmp)
       end if
+
+      deallocate(isalloc,n,tmp)
 
       return
    end subroutine coarray_component_clone_I4B_arr1D
@@ -361,16 +370,17 @@ contains
          si = 1
       end if
 
-      sync all
       if (this_image() == si) then
          do img = 1, num_images()
-         tmp[img] = var 
+            tmp[img] = var 
          end do
          sync images(*)
       else
          sync images(si)
          var = tmp[si]
       end if
+
+      deallocate(tmp)
 
       return
    end subroutine coarray_component_clone_I8B
@@ -397,10 +407,9 @@ contains
          si = 1
       end if
 
-      sync all
       if (this_image() == si) then
          do img = 1, num_images()
-         tmp[img] = var 
+            tmp[img] = var 
          end do
          sync images(*)
       else
@@ -408,6 +417,7 @@ contains
          var = tmp[si]
       end if
 
+      deallocate(tmp)
 
       return
    end subroutine coarray_component_clone_lgt
@@ -444,7 +454,7 @@ contains
       allocate(tmp(n[si])[*])
       if (this_image() == si) then
          do img = 1, num_images()
-         tmp(:)[img] = var 
+            tmp(:)[img] = var 
          end do
          sync images(*)
       else
@@ -452,6 +462,8 @@ contains
          if (allocated(var)) deallocate(var)
          allocate(var, source=tmp)
       end if
+
+      deallocate(isalloc,n,tmp)
 
       return
    end subroutine coarray_component_clone_lgt_arr1D
@@ -477,16 +489,17 @@ contains
          si = 1
       end if
 
-      !sync all
       if (this_image() == si) then
          do img = 1, num_images()
-         tmp[img] = var 
+            tmp[img] = var 
          end do
          sync images(*)
       else
          sync images(si)
          var = tmp[si]
       end if
+
+      deallocate(tmp)
 
       return
    end subroutine coarray_component_clone_QP 
