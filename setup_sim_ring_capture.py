@@ -9,8 +9,8 @@ seed = None
 rng = np.random.default_rng(seed=seed)
 n_bodies = int(1e4) # number of planet bodies
 array_shift = np.random.randint(0, n_bodies)
-tstop = 50 # rotation periods
-dt = 1.0e-4
+tstop = 10 # rotation periods
+dt = 1.0e-5
 dt_unit = 'Haumea_rot_period'
 # dt_unit = 'd'
 dt_max = 0
@@ -69,7 +69,7 @@ z_sign = rng.random(n_bodies) - 0.5 # randomize the sign of the z-component
 
 # set up the position vectors
 random_pos_mag = (rng.random(n_bodies) * (3 - 1.65) + 1.65) # randomize the distance/position vector(s) between 1.65 and 3 (R_Haumea)
-random_phi = np.deg2rad((rng.random(n_bodies)) * 60.0) # cone of spilled regolith
+random_phi = np.deg2rad((rng.random(n_bodies)) * (60.0) + 90.0) # cone of spilled regolith
 random_theta = np.deg2rad((rng.random(n_bodies)) * (120.0 - 60) + 60) # equatorial zone
 x = random_pos_mag * np.sin(random_theta) * np.cos(random_phi)
 y = random_pos_mag * np.sin(random_theta) * np.sin(random_phi)
@@ -81,7 +81,7 @@ random_pos_vec = np.array([x, y, z]).T
 # random_vel_mag = np.sqrt(mass * sim.GU / random_pos_mag) * (rng.random(n_bodies) * (1.15 - 0.85) + 0.85) # randomize the velocity by 0.9 - 1.1 times the keplerian velocity
 
 v_escape = np.sqrt(2 * sim.GU * mass / radius)
-alpha = rng.random(n_bodies) * (0.90 - 0.75) + 0.75 # numerical scaling for initial velocity
+alpha = rng.random(n_bodies) * (0.95 - 0.8) + 0.8 # numerical scaling for initial velocity
 random_vel_mag = np.sqrt(alpha * v_escape**2 + 2 * sim.GU * mass * (1 / random_pos_mag - 1 / radius)) # scale the velocity with distance
 
 x = x * random_vel_mag / random_pos_mag
@@ -90,7 +90,8 @@ z = z * random_vel_mag / random_pos_mag
 
 # rotate the velocity vectors (degrees)
 # 85 - 95 degrees to represent orbiting particles for tangential motion
-rot_angle = np.deg2rad(rng.random(n_bodies) * (10 - (-10)) + (-10)) # rotate by <<range>> degrees randomly
+angle = 20
+rot_angle = np.deg2rad(rng.random(n_bodies) * (angle - (-1.0 * angle)) + (-1.0 * angle)) # rotate by <<range>> degrees randomly
 
 x_tmp = x
 y_tmp = y

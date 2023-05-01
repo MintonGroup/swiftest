@@ -2414,7 +2414,7 @@ class Simulation(object):
         Hill's radius values if these are massive bodies
         rot: (3) or (n,3) array-like of float, optional
         Rotation rate vectors if these are massive bodies with rotation enabled.
-        Ip: (3) or (n,3) array-like of flaot, optional
+        Ip: (3) or (n,3) array-like of float, optional
         Principal axes moments of inertia vectors if these are massive bodies with rotation enabled.
 
         Returns
