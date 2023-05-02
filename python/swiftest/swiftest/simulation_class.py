@@ -2203,9 +2203,9 @@ class Simulation(object):
             values = list(np.hsplit(np.array(body_list[0],dtype=np.dtype(object)),17))
         else:
             values = list(np.squeeze(np.hsplit(np.array(body_list,np.dtype(object)),17)))
-        keys = ["id","name","a","e","inc","capom","omega","capm","rh","vh","Gmass","radius","rhill","Ip","rot","J2","J4"]
+        keys = ["id","name","a","e","inc","capom","omega","capm","rh","vh","Gmass","radius","rhill","Ip","rot","j2rp2","j4rp4"]
         kwargs = dict(zip(keys,values))
-        scalar_floats = ["a","e","inc","capom","omega","capm","Gmass","radius","rhill","J2","J4"]
+        scalar_floats = ["a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4"]
         vector_floats = ["rh","vh","Ip","rot"]
         scalar_ints = ["id"]
 
@@ -2531,7 +2531,7 @@ class Simulation(object):
                 Gmass = self.GU * mass
 
         dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
-                                 Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, J2=J2, J4=J4, time=time)
+                                 Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, time=time)
 
         dsnew = self._combine_and_fix_dsnew(dsnew)
         self.save(verbose=False)

@@ -277,8 +277,8 @@ def vec2xr(param: Dict, **kwargs: Any):
     space_coords = np.array(["x","y","z"])
 
     vector_vars = ["rh","vh","Ip","rot"]
-    scalar_vars = ["name","a","e","inc","capom","omega","capm","Gmass","radius","rhill","J2","J4"]
-    time_vars =  ["rh","vh","Ip","rot","a","e","inc","capom","omega","capm","Gmass","radius","rhill","J2","J4"]
+    scalar_vars = ["name","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4"]
+    time_vars =  ["rh","vh","Ip","rot","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4"]
 
     # Check for valid keyword arguments
     kwargs = {k:kwargs[k] for k,v in kwargs.items() if v is not None}
