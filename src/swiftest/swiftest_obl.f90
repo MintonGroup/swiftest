@@ -8,6 +8,9 @@
 !! If not, see: https://www.gnu.org/licenses. 
 
 submodule (swiftest) s_swiftest_obl
+   use swiftest
+   use operators
+
 contains
 
    pure function matinv3(A) result(B)
@@ -16,9 +19,9 @@ contains
    !! from https://fortranwiki.org/fortran/show/Matrix+inversion
    !!
 
-      complex(wp), intent(in) :: A(3,3)   !! Matrix
-      complex(wp)             :: B(3,3)   !! Inverse matrix
-      complex(wp)             :: detinv
+      real(DP), intent(in) :: A(3,3)   !! Matrix
+      real(DP)             :: B(3,3)   !! Inverse matrix
+      real(DP)             :: detinv
 
       ! Calculate the inverse determinant of the matrix
       detinv = 1/(A(1,1)*A(2,2)*A(3,3) - A(1,1)*A(2,3)*A(3,2)&
@@ -52,16 +55,21 @@ contains
 
       ! Internals
       real(DP)     :: theta ! angle to rotate it through
-      real(DP), dimension(NDIM) :: u ! unit vector about which we rotate
+      real(DP), dimension(3) :: u, z_hat ! unit vector about which we rotate and z_hat
+      real(DP), dimension(3, 3) :: S_matrix ! rotation matrices
+      integer        :: i, j ! dummy variable
+
+      ! Assumed that NDIM = 3
       
       rot_matrix(:, :) = 0.0_DP
       rot_matrix_inv(:, :) = 0.0_DP
+      z_hat(:) = [0, 0, 1]
 
       if (self%nbody == 0) return
 
       associate(n => self%nbody, cb => nbody_system%cb)
          if (cb%rot(0) == 0 .and. cb%rot(1) == 0) then
-            do (i = 1, NDIM)
+            do i = 1, NDIM
                   rot_matrix(i, i) = 1.0
                   rot_matrix_inv(i, i) = 1.0
             end do
@@ -69,10 +77,14 @@ contains
             return ! rotation axis is about the z-axis, no need to change
          end if
          
-         u(:) = .unit. (cb%rot(:) .cross. (0, 0, 1))
-         theta = acos(dot_product((.unit. cb%rot(:)), (0, 0, 1)))
+         u(:) = cb%rot(:) .cross. z_hat(:)
+         u(:) = .unit. u(:)
+         theta = acos(dot_product((.unit. cb%rot(:)), z_hat(:)))
          
-         S_matrix = ((0, -u(3), u(2)), (u(3), 0, -u(1)), (-u(2), u(1), 0)) ! skew-symmetric matrix
+         ! S_matrix(:, :) = [[0.0_DP, -u(3), u(2)], [u(3), 0.0_DP, -u(1)], [-u(2), u(1), 0.0_DP]] ! skew-symmetric matrix
+         S_matrix(1, :) = [0.0_DP, -u(3), u(2)]
+         S_matrix(2, :) = [u(3), 0.0_DP, -u(1)]
+         S_matrix(3, :) = [-u(2), u(1), 0.0_DP]
          ! assuming NDIM = 3
          ! CHECK for a general formula for the skew-symmetric matrix
 
@@ -122,7 +134,7 @@ contains
          self%aobl(:,:) = 0.0_DP
          do concurrent(i = 1:n, self%lmask(i))
             ! rotate the position vectors
-            rh_transformed = MATMUL(self%rh(:, i), self%rot_matrix) ! 1x3 vector * 3x3 matrix
+            rh_transformed = MATMUL(self%rh(:, i), rot_matrix) ! 1x3 vector * 3x3 matrix
             r2 = dot_product(rh_transformed, rh_transformed)
             irh = 1.0_DP / sqrt(r2)
             rinv2 = irh**2
@@ -136,7 +148,7 @@ contains
             self%aobl(3, i) = fac2 * rh_transformed(3) + self%aobl(3, i)
 
             ! rotate the acceleration and position vectors back to the original coordinate frame
-            self%aobl(:, i) = MATMUL(self%aobl(:, i), self%rot_matrix_inv)
+            self%aobl(:, i) = MATMUL(self%aobl(:, i), rot_matrix_inv)
 
          end do
       end associate

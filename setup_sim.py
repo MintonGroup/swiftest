@@ -103,6 +103,8 @@ sim.save()
 # sim.run()
 
 print(f'total number of steps ={int(tstop / dt)}')
+J2 = sim.init_cond.isel(name = 0)['J2'].values
+print(f'J2 in init_cond = {J2}')
 d = sim.data.isel(name = 0)
 J2 = d['J2'].values
 print(f'J2 for central body = {J2}')

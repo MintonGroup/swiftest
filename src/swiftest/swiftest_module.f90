@@ -970,8 +970,8 @@ module swiftest
          implicit none
          class(swiftest_body),              intent(inout) :: self   !! Swiftest body object 
          class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-         real(DP), dimension(NDIM, NDIM), intent(out) :: rot_matrix ! rotation matrix and its inverse
-         real(DP), dimension(NDIM, NDIM), intent(out) :: rot_matrix_inv ! inverse of the rotation matrix
+         real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix ! rotation matrix and its inverse
+         real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix_inv ! inverse of the rotation matrix
       end subroutine swiftest_obl_rot_matrix
 
       module subroutine swiftest_obl_acc_body(self, nbody_system)
