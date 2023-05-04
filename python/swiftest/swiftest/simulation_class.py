@@ -2431,7 +2431,7 @@ class Simulation(object):
             elif t == "i":
                 t = np.int64
             elif t == "s":
-                t = np.str
+                t = str
 
             if val is None:
                 return None, n

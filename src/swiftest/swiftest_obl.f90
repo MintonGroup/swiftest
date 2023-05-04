@@ -68,7 +68,7 @@ contains
       if (self%nbody == 0) return
 
       associate(n => self%nbody, cb => nbody_system%cb)
-         if (cb%rot(0) == 0 .and. cb%rot(1) == 0) then
+         if (cb%rot(1) == 0 .and. cb%rot(2) == 0) then
             do i = 1, NDIM
                   rot_matrix(i, i) = 1.0
                   rot_matrix_inv(i, i) = 1.0
