@@ -439,10 +439,10 @@ contains
             end if
 #ifdef COARRAY  
             if (param%lcoarray .and. (this_image() < num_images())) sync images(this_image() + 1)
+            sync all
 #endif
          end do
 #ifdef COARRAY
-         sync all
          if (this_image() == 1) then
 #endif
             call nc%close()
