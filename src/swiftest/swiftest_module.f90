@@ -57,6 +57,9 @@ module swiftest
       procedure :: get_valid_masks => swiftest_io_netcdf_get_valid_masks   !! Gets logical masks indicating which bodies are valid pl and tp type at the current time
       procedure :: open            => swiftest_io_netcdf_open              !! Opens a NetCDF file and does the variable inquiries to activate variable ids
       procedure :: flush           => swiftest_io_netcdf_flush             !! Flushes a NetCDF file by closing it then opening it again
+#ifdef COARRAY
+      procedure :: coclone   => swiftest_coarray_coclone_nc
+#endif
    end type swiftest_netcdf_parameters
 
 
@@ -406,12 +409,13 @@ module swiftest
       procedure :: write_hdr               => swiftest_io_netcdf_write_hdr_system                  !! Write a header for an output frame in NetCDF format
       procedure :: read_particle_info      => swiftest_io_netcdf_read_particle_info_system         !! Read in particle metadata from file
       procedure :: read_in                 => swiftest_io_read_in_system                           !! Reads the initial conditions for an nbody system
-      procedure :: write_frame             => swiftest_io_write_frame_system                       !! Write a frame of input data from file
+      procedure :: write_frame             => swiftest_io_netcdf_write_frame_system                !! Write a frame of input data from file
       procedure :: obl_pot                 => swiftest_obl_pot_system                              !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
       procedure :: dealloc                 => swiftest_util_dealloc_system                         !! Deallocates all allocatables and resets all values to defaults. Acts as a base for a finalizer
       procedure :: get_energy_and_momentum => swiftest_util_get_energy_and_momentum_system         !! Calculates the total nbody_system energy and momentum
       procedure :: get_idvals              => swiftest_util_get_idvalues_system                    !! Returns an array of all id values in use in the nbody_system
       procedure :: rescale                 => swiftest_util_rescale_system                         !! Rescales the nbody_system into a new set of units
+      procedure :: initialize_output_file  => swiftest_io_initialize_output_file_system                  !! Write a frame of input data from file
       procedure :: initialize              => swiftest_util_setup_initialize_system                !! Initialize the nbody_system from input files
       procedure :: init_particle_info      => swiftest_util_setup_initialize_particle_info_system  !! Initialize the nbody_system from input files
     ! procedure :: step_spin               => tides_step_spin_system                               !! Steps the spins of the massive & central bodies due to tides.
@@ -894,12 +898,12 @@ module swiftest
          character(*), intent(inout) :: string !! String to make upper case
       end subroutine swiftest_io_toupper
 
-      module subroutine swiftest_io_write_frame_system(self, nc, param)
+      module subroutine swiftest_io_initialize_output_file_system(self, nc, param)
          implicit none
          class(swiftest_nbody_system),      intent(inout) :: self   !! Swiftest nbody_system object
          class(swiftest_netcdf_parameters), intent(inout) :: nc     !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
-      end subroutine swiftest_io_write_frame_system
+      end subroutine swiftest_io_initialize_output_file_system
 
       module subroutine swiftest_kick_getacch_int_pl(self, param)
          implicit none
@@ -1763,6 +1767,11 @@ module swiftest
          implicit none
          class(swiftest_cb),intent(inout),codimension[*]  :: self  !! Swiftest cb object
       end subroutine swiftest_coarray_coclone_cb
+
+      module subroutine swiftest_coarray_coclone_nc(self)
+         implicit none
+         class(swiftest_netcdf_parameters),intent(inout),codimension[*]  :: self  !! Swiftest body object
+      end subroutine swiftest_coarray_coclone_nc
 
       module subroutine swiftest_coarray_coclone_pl(self)
          implicit none

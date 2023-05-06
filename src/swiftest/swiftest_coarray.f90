@@ -81,6 +81,134 @@ contains
         return
     end subroutine swiftest_coarray_coclone_body
 
+    module subroutine swiftest_coarray_coclone_nc(self)
+        !! author: David A. Minton
+        !!
+        !! Broadcasts the image 1 object to all other images in a coarray 
+        implicit none
+        ! Arguments
+        class(swiftest_netcdf_parameters),intent(inout),codimension[*]  :: self  !! Swiftest body object
+
+        call coclone(self%file_name)
+        call coclone(self%lfile_is_open)
+        call coclone(self%out_type)
+        call coclone(self%id)
+        call coclone(self%tslot)
+        call coclone(self%max_tslot)
+        call coclone(self%idvals)
+        call coclone(self%idslot)
+        call coclone(self%max_idslot)
+        call coclone(self%str_dimname)
+        call coclone(self%str_dimid)
+        call coclone(self%time_dimname)
+        call coclone(self%time_dimid)
+        call coclone(self%time_varid)
+        call coclone(self%name_dimname)
+        call coclone(self%name_dimid)
+        call coclone(self%name_varid)
+        call coclone(self%space_dimname)
+        call coclone(self%space_dimid)
+        call coclone(self%space_varid)
+        call coclone(self%id_varname)
+        call coclone(self%id_varid)
+        call coclone(self%status_varname)
+        call coclone(self%status_varid)
+        call coclone(self%ptype_varname)
+        call coclone(self%ptype_varid)
+        call coclone(self%npl_varname)
+        call coclone(self%npl_varid)
+        call coclone(self%ntp_varname)
+        call coclone(self%ntp_varid)
+        call coclone(self%nplm_varname)
+        call coclone(self%nplm_varid)
+        call coclone(self%a_varname)
+        call coclone(self%a_varid)
+        call coclone(self%e_varname)
+        call coclone(self%e_varid)
+        call coclone(self%inc_varname)
+        call coclone(self%inc_varid)
+        call coclone(self%capom_varname)
+        call coclone(self%capom_varid)
+        call coclone(self%omega_varname)
+        call coclone(self%omega_varid)
+        call coclone(self%capm_varname)
+        call coclone(self%capm_varid)
+        call coclone(self%varpi_varname)
+        call coclone(self%varpi_varid)
+        call coclone(self%lam_varname)
+        call coclone(self%lam_varid)
+        call coclone(self%f_varname)
+        call coclone(self%f_varid)
+        call coclone(self%cape_varname)
+        call coclone(self%cape_varid)
+        call coclone(self%rh_varname)
+        call coclone(self%rh_varid)
+        call coclone(self%vh_varname)
+        call coclone(self%vh_varid)
+        call coclone(self%gr_pseudo_vh_varname)
+        call coclone(self%gr_pseudo_vh_varid)
+        call coclone(self%Gmass_varname)
+        call coclone(self%Gmass_varid)
+        call coclone(self%mass_varname)
+        call coclone(self%mass_varid)
+        call coclone(self%rhill_varname)
+        call coclone(self%rhill_varid)
+        call coclone(self%radius_varname)
+        call coclone(self%radius_varid)
+        call coclone(self%Ip_varname)
+        call coclone(self%Ip_varid)
+        call coclone(self%rot_varname)
+        call coclone(self%rot_varid)
+        call coclone(self%j2rp2_varname)
+        call coclone(self%j2rp2_varid)
+        call coclone(self%j4rp4_varname)
+        call coclone(self%j4rp4_varid)
+        call coclone(self%k2_varname)
+        call coclone(self%k2_varid)
+        call coclone(self%q_varname)
+        call coclone(self%Q_varid)
+        call coclone(self%ke_orb_varname)
+        call coclone(self%KE_orb_varid)
+        call coclone(self%ke_spin_varname)
+        call coclone(self%KE_spin_varid)
+        call coclone(self%pe_varname)
+        call coclone(self%PE_varid)
+        call coclone(self%be_varname)
+        call coclone(self%BE_varid)
+        call coclone(self%te_varname)
+        call coclone(self%TE_varid)
+        call coclone(self%L_orbit_varname)
+        call coclone(self%L_orbit_varid)
+        call coclone(self%L_spin_varname)
+        call coclone(self%L_spin_varid)
+        call coclone(self%L_escape_varname)
+        call coclone(self%L_escape_varid)
+        call coclone(self%E_collisions_varname)
+        call coclone(self%E_collisions_varid)
+        call coclone(self%E_untracked_varname)
+        call coclone(self%E_untracked_varid)
+        call coclone(self%GMescape_varname)
+        call coclone(self%GMescape_varid)
+        call coclone(self%origin_type_varname)
+        call coclone(self%origin_type_varid)
+        call coclone(self%origin_time_varname)
+        call coclone(self%origin_time_varid)
+        call coclone(self%collision_id_varname)
+        call coclone(self%collision_id_varid)
+        call coclone(self%origin_rh_varname)
+        call coclone(self%origin_rh_varid)
+        call coclone(self%origin_vh_varname)
+        call coclone(self%origin_vh_varid)
+        call coclone(self%discard_time_varname)
+        call coclone(self%discard_time_varid)
+        call coclone(self%discard_rh_varname)
+        call coclone(self%discard_rh_varid)
+        call coclone(self%discard_vh_varname)
+        call coclone(self%discard_vh_varid)
+        call coclone(self%discard_body_id_varname)
+        call coclone(self%lpseudo_vel_exists)
+        return
+    end subroutine swiftest_coarray_coclone_nc
 
     module subroutine swiftest_coarray_coclone_cb(self)
         !! author: David A. Minton
@@ -178,13 +306,13 @@ contains
 
     module subroutine swiftest_coarray_coclone_system(self)
         !! author: David A. Minton
-         !!
-         !! Broadcasts the image 1 object to all other images in a coarray 
+        !!
+        !! Broadcasts the image 1 object to all other images in a coarray 
         implicit none
         ! Arguments
         class(swiftest_nbody_system),intent(inout),codimension[*]  :: self  !! Swiftest body object
         ! Internals
-        integer(I4B) :: i, img
+        integer(I4B) :: i
 
         call self%cb%coclone()
         call self%pl%coclone()
@@ -414,6 +542,10 @@ contains
                  n = n + n[img]
               end if
            end do
+           sync images(*)
+        else
+           sync images(di)
+           if (allocated(var)) deallocate(var)
         end if
 
         deallocate(isalloc,n,tmp)
@@ -520,8 +652,7 @@ contains
         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system 
         class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
         ! Internals
-        integer(I4B) :: i, istart, iend, ntot, num_per_image, ncopy
-        class(swiftest_tp), allocatable :: tp
+        integer(I4B) :: istart, iend, ntot, num_per_image, ncopy
         logical, dimension(:), allocatable :: lspill_list
         integer(I4B), codimension[:], allocatable  :: ntp
         character(len=NAMELEN) :: image_num_char, ntp_num_char

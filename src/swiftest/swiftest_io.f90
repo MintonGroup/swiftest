@@ -414,53 +414,45 @@ contains
       class(swiftest_parameters),   intent(inout)     :: param  !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: i
-#ifdef COARRAY
-      integer(I4B) :: img, tslot
-      integer(I4B), dimension(self%iframe) :: ntp_tot
-      integer(I4B), codimension[*], save :: ntp
-#endif
 
       if (self%iframe == 0) return
       call self%make_index_map()
       associate(nc => self%nc)
 #ifdef COARRAY
-         ! Get the sum of all test particles across snapshots from all images
-         ntp_tot(:) = 0
-         do i = 1, self%iframe
-            if (allocated(self%frame(i)%item)) then
-               select type(nbody_system => self%frame(i)%item)
-               class is (swiftest_nbody_system)
-                  ntp = nbody_system%tp%nbody
-                  sync all
-                  do img = 1, num_images()
-                     ntp_tot(i) = ntp_tot(i) + ntp[img]
-                  end do
-               end select
-            end if
-         end do   
-
-         critical 
+         critical
 #endif
          call nc%open(param)
+#ifdef COARRAY
+         end critical
+#endif
          do i = 1, self%iframe
+            ! Writing files is more efficient if we write out the common frames from each image before going to the next frame
+#ifdef COARRAY  
+            if (param%lcoarray .and. (this_image() /= 1)) sync images(this_image() - 1)
+#endif 
             if (allocated(self%frame(i)%item)) then
                select type(nbody_system => self%frame(i)%item)
                class is (swiftest_nbody_system)
                   call nbody_system%write_frame(nc, param)
-#ifdef COARRAY
-                  ! Record the correct number of test particles from all images
-                  call nc%find_tslot(nbody_system%t, tslot)
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%ntp_varid, ntp_tot(i), start=[tslot]), "swiftest_io_dump_storage nf90_put_var ntp_varid"  )
-#endif COARRAY
                end select
                deallocate(self%frame(i)%item)
             end if
+#ifdef COARRAY  
+            if (param%lcoarray .and. (this_image() < num_images())) sync images(this_image() + 1)
+#endif
          end do
-         call nc%close()
 #ifdef COARRAY
-         end critical
+         sync all
+         if (this_image() == 1) then
+#endif
+            call nc%close()
+#ifdef COARRAY
+         else
+            nc%lfile_is_open = .false.
+         end if 
 #endif
       end associate
+
       call self%reset()
       return
    end subroutine swiftest_io_dump_storage
@@ -938,7 +930,6 @@ contains
       end if
 
       associate(nc => self)
-
          write(errmsg,*) "swiftest_io_netcdf_open nf90_open ",trim(adjustl(nc%file_name))
          call netcdf_io_check( nf90_open(nc%file_name, mode, nc%id), errmsg)
          self%lfile_is_open = .true.
@@ -1061,7 +1052,7 @@ contains
       real(DP), dimension(:,:), allocatable :: rh
       integer(I4B), dimension(:), allocatable :: body_status 
       logical, dimension(:), allocatable :: lvalid
-      integer(I4B) :: idmax, status
+      integer(I4B) :: idmax, status,i
 
       call netcdf_io_check( nf90_inquire_dimension(self%id, self%name_dimid, len=idmax), "swiftest_io_netcdf_get_valid_masks nf90_inquire_dimension name_dimid"  )
 
@@ -1069,7 +1060,6 @@ contains
       allocate(tpmask(idmax))
       allocate(plmask(idmax))
       allocate(lvalid(idmax))
-
       associate(tslot => self%tslot)
 
          call netcdf_io_check( nf90_get_var(self%id, self%Gmass_varid, Gmass, start=[1,tslot], count=[idmax,1]), "swiftest_io_netcdf_get_valid_masks nf90_getvar Gmass_varid"  )
@@ -1097,7 +1087,8 @@ contains
             end if
          end if
 
-         plmask(:) = Gmass(:) == Gmass(:)
+         plmask(:) = (Gmass(:) == Gmass(:)) 
+         where(plmask(:)) plmask(:) = Gmass(:) > 0.0_DP
          tpmask(:) = .not. plmask(:)
          plmask(1) = .false. ! This is the central body
 
@@ -1634,10 +1625,11 @@ contains
       class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       ! Internals
-      integer(I4B)                              :: i, j, idslot, old_mode
+      integer(I4B)                              :: i, j, idslot, old_mode, ntp
       integer(I4B), dimension(:), allocatable   :: ind
       real(DP), dimension(NDIM)                 :: vh !! Temporary variable to store heliocentric velocity values when converting from pseudovelocity in GR-enabled runs
       real(DP)                                  :: a, e, inc, omega, capom, capm, varpi, lam, f, cape, capf
+      logical, dimension(:), allocatable        :: tpmask, plmask
 
       call self%write_info(nc, param)
 
@@ -1721,12 +1713,20 @@ contains
                      call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid, [0.0_DP,0.0_DP,0.0_DP], start=[1,idslot, tslot], count=[NDIM,1,1]), "netcdf_io_write_frame_body nf90_put_var body Ip_varid"  )
                      call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, [0.0_DP,0.0_DP,0.0_DP], start=[1,idslot, tslot], count=[NDIM,1,1]), "netcdf_io_write_frame_body nf90_put_var body rotx_varid"  )
                   end if
-
                end select
             end do
          end associate
       end select
       end select
+#ifdef COARRAY
+      select type(self)
+      class is (swiftest_tp)
+         call nc%get_valid_masks(plmask, tpmask)
+         ntp = count(tpmask(:))  
+         call netcdf_io_check( nf90_put_var(nc%id, nc%ntp_varid, ntp, start=[nc%tslot]), "netcdf_io_write_frame_body nf90_put_var ntp_varid"  )
+      end select
+#endif   
+
       call netcdf_io_check( nf90_set_fill(nc%id, old_mode, old_mode), "netcdf_io_write_frame_body nf90_set_fill old_mode"  )
 
       return
@@ -1782,8 +1782,14 @@ contains
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
 
       call self%write_hdr(nc, param)
-      call self%cb%write_frame(nc, param)
-      call self%pl%write_frame(nc, param)
+#ifdef COARRAY
+      if (this_image() == 1) then
+#endif
+         call self%cb%write_frame(nc, param)
+         call self%pl%write_frame(nc, param)
+#ifdef COARRAY
+      end if ! this_image() == 1
+#endif
       call self%tp%write_frame(nc, param)
 
       return
@@ -1802,13 +1808,15 @@ contains
       class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       ! Internals
-      integer(I4B) :: i,tslot, idmax
-      integer(I4B), dimension(:), allocatable :: body_status
+      logical, dimension(:), allocatable        :: tpmask, plmask
+      integer(I4B) :: tslot
 
       call nc%find_tslot(self%t, tslot)
       call netcdf_io_check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var time_varid"  )
       call netcdf_io_check( nf90_put_var(nc%id, nc%npl_varid, self%pl%nbody, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var npl_varid"  )
+#ifndef COARRAY
       call netcdf_io_check( nf90_put_var(nc%id, nc%ntp_varid, self%tp%nbody, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var ntp_varid"  )
+#endif
       if (param%lmtiny_pl) call netcdf_io_check( nf90_put_var(nc%id, nc%nplm_varid, self%pl%nplm, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var nplm_varid"  )
 
       if (param%lenergy) then
@@ -1824,10 +1832,6 @@ contains
          call netcdf_io_check( nf90_put_var(nc%id, nc%E_untracked_varid, self%E_untracked, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var E_untracked_varid"  )
          call netcdf_io_check( nf90_put_var(nc%id, nc%GMescape_varid, self%GMescape, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var GMescape_varid"  )
       end if
-
-      ! Set the status flag to INACTIVE by default
-      call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%name_dimid, len=idmax), "netcdf_io_get_t0_values_system name_dimid" )
-      call netcdf_io_check( nf90_put_var(nc%id, nc%status_varid, [(INACTIVE, i=1,idmax)], start=[1,tslot], count=[idmax,1]), "netcdf_io_write_info_body nf90_put_var status_varid"  )
 
       return
    end subroutine swiftest_io_netcdf_write_hdr_system
@@ -3148,7 +3152,7 @@ contains
    end subroutine swiftest_io_toupper
 
 
-   module subroutine swiftest_io_write_frame_system(self, nc, param)
+   module subroutine swiftest_io_initialize_output_file_system(self, nc, param)
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Write a frame (header plus records for each massive body and active test particle) to output binary file
@@ -3194,7 +3198,6 @@ contains
             lfirst = .false.
          end if
 
-         call swiftest_io_netcdf_write_frame_system(self, nc, param)
       end associate
 
       return
@@ -3202,6 +3205,6 @@ contains
       667 continue
       write(*,*) "Error writing nbody_system frame: " // trim(adjustl(errmsg))
       call base_util_exit(FAILURE)
-   end subroutine swiftest_io_write_frame_system
+   end subroutine swiftest_io_initialize_output_file_system
 
 end submodule s_swiftest_io

@@ -320,9 +320,9 @@ SET_COMPILE_FLAG(FASTMATH_FLAGS "${FASTMATH_FLAGS}"
 #####################
 # Enables the optimization reports to be generated
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_PROFILE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                 Fortran "-pg -qopt-report=5 -traceback -p -g3" # Intel
-                         "/Qopt-report:5 /traceback -g3" # Windows Intel
-                         "-pg -fbacktrace"
+                 Fortran "-O2 -pg -qopt-report=5 -traceback -p -g3" # Intel
+                         "/O2 /Qopt-report:5 /traceback -g3" # Windows Intel
+                         "-O2 -pg -fbacktrace"
                 )
 
 # Sanitize

@@ -14,7 +14,7 @@ contains
    module subroutine coarray_component_collect_DP_arr1D(var,dest_img)
       !! author: David A. Minton
       !!
-      !! Collects components of a coarray derived type from all images and combines them into destination image component . The default destination image is 1
+      !! Collects components of a coarray derived type from all images and combines them into destination image component. The default destination image is 1
       !! real(DP) 1D allocatable array version
       implicit none
       ! Arguments
@@ -55,10 +55,14 @@ contains
       if (this_image() == di) then
          do img = 1, num_images()
             if (img /= di) then
-                  call util_append(var, tmp(1:n[img])[img])
-                  n = n + n[img]
+               call util_append(var, tmp(1:n[img])[img])
+               n = n + n[img]
             end if
          end do
+         sync images(*)
+      else
+         sync images(di)
+         if (allocated(var)) deallocate(var)
       end if
 
       deallocate(isalloc,n,tmp)
@@ -112,11 +116,15 @@ contains
 
       if (this_image() == di) then
          do img = 1, num_images()
-         if (img /= di) then
-            call util_append(var, tmp(:,:)[img])
-            n2 = n2 + n2[img]
-         end if
+            if (img /= di) then
+               call util_append(var, tmp(:,:)[img])
+               n2 = n2 + n2[img]
+            end if
          end do
+         sync images(*)
+      else
+         sync images(di)
+         if (allocated(var)) deallocate(var)
       end if
 
       deallocate(isalloc,n1,n2,tmp)
@@ -149,7 +157,7 @@ contains
       if (this_image() == di) then
          var = 0
          do img = 1, num_images()
-         var = var + tmp[img]
+            var = var + tmp[img]
          end do
       else
          var = 0
@@ -185,7 +193,7 @@ contains
       if (this_image() == di) then
          var = 0
          do img = 1, num_images()
-         var = var + tmp[img]
+            var = var + tmp[img]
          end do
       else
          var = 0
@@ -243,6 +251,10 @@ contains
                n = n + n[img]
             end if
          end do
+         sync images(*)
+      else
+         sync images(di)
+         if (allocated(var)) deallocate(var)
       end if
 
       deallocate(isalloc,n,tmp)
@@ -297,6 +309,10 @@ contains
                n = n + n[img]
             end if
          end do
+         sync images(*)
+      else
+         sync images(di)
+         if (allocated(var)) deallocate(var)
       end if
 
       deallocate(isalloc,n,tmp)

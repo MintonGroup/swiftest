@@ -2379,7 +2379,7 @@ contains
 
          ! Write initial conditions to file
          nc%file_name = param%outfile
-         call nbody_system%write_frame(nc, param) 
+         call nbody_system%initialize_output_file(nc, param) 
          call nc%close()
       end associate
 
