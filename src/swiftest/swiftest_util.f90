@@ -23,12 +23,14 @@ contains
       implicit none
       ! Arguments
       type(swiftest_particle_info), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
-      type(swiftest_particle_info), dimension(:),              intent(in)           :: source       !! Array to append 
+      type(swiftest_particle_info), dimension(:), allocatable, intent(in)           :: source       !! Array to append 
       integer(I4B),                                            intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
       logical,                      dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
       integer(I4B) :: nnew, nsrc, nend_orig, i
       integer(I4B), dimension(:), allocatable :: idx
+
+      if (.not.allocated(source)) return
 
       if (present(lsource_mask)) then
          nsrc = count(lsource_mask(:))
@@ -70,11 +72,13 @@ contains
       implicit none
       ! Arguments
       type(swiftest_kinship), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
-      type(swiftest_kinship), dimension(:),              intent(in)           :: source       !! Array to append 
+      type(swiftest_kinship), dimension(:), allocatable, intent(in)           :: source       !! Array to append 
       integer(I4B),                                      intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
       logical,                dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
       integer(I4B) :: nnew, nsrc, nend_orig
+
+      if (.not.allocated(source)) return
 
       if (present(lsource_mask)) then
          nsrc = count(lsource_mask(:))

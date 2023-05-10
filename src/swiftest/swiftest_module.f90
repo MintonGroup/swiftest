@@ -1132,7 +1132,7 @@ module swiftest
       module subroutine swiftest_util_append_arr_info(arr, source, nold, lsource_mask)
          implicit none
          type(swiftest_particle_info), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
-         type(swiftest_particle_info), dimension(:),              intent(in)           :: source       !! Array to append 
+         type(swiftest_particle_info), dimension(:), allocatable, intent(in)           :: source       !! Array to append 
          integer(I4B),                                            intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
          logical,                      dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine swiftest_util_append_arr_info
@@ -1140,7 +1140,7 @@ module swiftest
       module subroutine swiftest_util_append_arr_kin(arr, source, nold, lsource_mask)
          implicit none
          type(swiftest_kinship), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
-         type(swiftest_kinship), dimension(:),              intent(in)           :: source       !! Array to append 
+         type(swiftest_kinship), dimension(:), allocatable, intent(in)           :: source       !! Array to append 
          integer(I4B),                                      intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
          logical,                dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine swiftest_util_append_arr_kin

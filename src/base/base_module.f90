@@ -295,11 +295,13 @@ module base
          implicit none
          ! Arguments
          character(len=STRMAX), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
-         character(len=STRMAX), dimension(:),              intent(in)           :: source       !! Array to append 
+         character(len=STRMAX), dimension(:), allocatable, intent(in)           :: source       !! Array to append 
          integer(I4B),                                     intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
          logical,               dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
          ! Internals
          integer(I4B) :: nnew, nsrc, nend_orig
+
+         if (.not.allocated(source)) return
 
          if (present(lsource_mask)) then
             nsrc = count(lsource_mask(:))
@@ -338,11 +340,13 @@ module base
          implicit none
          ! Arguments
          real(DP), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
-         real(DP), dimension(:),              intent(in)           :: source       !! Array to append 
+         real(DP), dimension(:), allocatable, intent(in)           :: source       !! Array to append 
          integer(I4B),                        intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
          logical,  dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
          ! Internals
          integer(I4B) :: nnew, nsrc, nend_orig
+
+         if (.not.allocated(source)) return
 
          if (present(lsource_mask)) then
             nsrc = count(lsource_mask(:))
@@ -381,11 +385,13 @@ module base
          implicit none
          ! Arguments
          real(DP), dimension(:,:), allocatable, intent(inout)        :: arr          !! Destination array 
-         real(DP), dimension(:,:),              intent(in)           :: source       !! Array to append 
+         real(DP), dimension(:,:), allocatable, intent(in)           :: source       !! Array to append 
          integer(I4B),                          intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
          logical,  dimension(:),                intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
          ! Internals
          integer(I4B) :: nnew, nsrc, nend_orig
+
+         if (.not.allocated(source)) return
 
          if (present(lsource_mask)) then
             nsrc = count(lsource_mask(:))
@@ -426,11 +432,13 @@ module base
          implicit none
          ! Arguments
          integer(I4B), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
-         integer(I4B), dimension(:),              intent(in)           :: source       !! Array to append 
+         integer(I4B), dimension(:), allocatable, intent(in)           :: source       !! Array to append 
          integer(I4B),                            intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
          logical,      dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
          ! Internals
          integer(I4B) :: nnew, nsrc, nend_orig
+
+         if (.not.allocated(source)) return
 
          if (present(lsource_mask)) then
             nsrc = count(lsource_mask(:))
@@ -469,11 +477,13 @@ module base
          implicit none
          ! Arguments
          logical, dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
-         logical, dimension(:),              intent(in)           :: source       !! Array to append 
+         logical, dimension(:), allocatable, intent(in)           :: source       !! Array to append 
          integer(I4B),                       intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
          logical, dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
          ! Internals
          integer(I4B) :: nnew, nsrc, nend_orig
+
+         if (.not.allocated(source)) return
 
          if (present(lsource_mask)) then
             nsrc = count(lsource_mask(:))
