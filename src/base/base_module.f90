@@ -1054,6 +1054,7 @@ module base
          nlist = size(lspill_list(:))
 
          if (.not.allocated(keeps) .or. nspill == 0) return
+         if (size(keeps) < nkeep) return
          if (.not.allocated(discards)) then
             allocate(discards(nspill))
          else if (size(discards) /= nspill) then
@@ -1096,6 +1097,7 @@ module base
          nlist = size(lspill_list(:))
 
          if (.not.allocated(keeps) .or. nspill == 0) return
+         if (size(keeps) < nkeep) return
          if (.not.allocated(discards)) then
             allocate(discards(nspill))
          else if (size(discards) /= nspill) then
@@ -1138,6 +1140,7 @@ module base
          nlist = size(lspill_list(:))
 
          if (.not.allocated(keeps) .or. nspill == 0) return
+         if (size(keeps) < nkeep) return
          if (.not.allocated(discards)) then
             allocate(discards(NDIM, nspill))
          else if (size(discards, dim=2) /= nspill) then
@@ -1184,6 +1187,7 @@ module base
          nlist = size(lspill_list(:))
 
          if (.not.allocated(keeps) .or. nspill == 0) return
+         if (size(keeps) < nkeep) return
          if (.not.allocated(discards)) then
             allocate(discards(nspill))
          else if (size(discards) /= nspill) then
@@ -1226,6 +1230,7 @@ module base
          nlist = size(lspill_list(:))
 
          if (.not.allocated(keeps) .or. nspill == 0) return
+         if (size(keeps) < nkeep) return
          if (.not.allocated(discards)) then
             allocate(discards(nspill))
          else if (size(discards) /= nspill) then
@@ -1268,6 +1273,7 @@ module base
          nlist = size(lspill_list(:))
 
          if (.not.allocated(keeps) .or. nspill == 0) return
+         if (size(keeps) < nkeep) return
          if (.not.allocated(discards)) then
             allocate(discards(nspill))
          else if (size(discards) /= nspill) then

@@ -2426,7 +2426,6 @@ contains
       allocate(self%vb(NDIM, n))
       allocate(self%ah(NDIM, n))
       allocate(self%ir3h(n))
-      allocate(self%aobl(NDIM, n))
       allocate(self%isperi(n))
       allocate(self%peri(n))
       allocate(self%atp(n))
@@ -2465,11 +2464,14 @@ contains
       self%vb(:,:)   = 0.0_DP
       self%ah(:,:)   = 0.0_DP
       self%ir3h(:)   = 0.0_DP
-      self%aobl(:,:) = 0.0_DP
       self%isperi(:) = 1
       self%peri(:)   = 0.0_DP
       self%atp(:)    = 0.0_DP
 
+      if (param%loblatecb) then
+         allocate(self%aobl(NDIM, n))
+         self%aobl(:,:) = 0.0_DP
+      end if
       if (param%ltides) then
          allocate(self%atide(NDIM, n))
          self%atide(:,:) = 0.0_DP
@@ -2996,6 +2998,7 @@ contains
       nlist = size(lspill_list(:))
 
       if (.not.allocated(keeps) .or. nspill == 0) return
+      if (size(keeps) < nkeep) return
       if (.not.allocated(discards)) then
          allocate(discards(nspill))
       else if (size(discards) /= nspill) then
@@ -3043,6 +3046,7 @@ contains
       nlist = size(lspill_list(:))
 
       if (.not.allocated(keeps) .or. nspill == 0) return
+      if (size(keeps) < nkeep) return
       if (.not.allocated(discards)) then
          allocate(discards(nspill))
       else if (size(discards) /= nspill) then
