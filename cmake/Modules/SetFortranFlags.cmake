@@ -79,8 +79,8 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                  Fortran "-xhost"        # Intel
                          "/QxHost"       # Intel Windows
                          ${GNUNATIVE}    # GNU
-                         "-ta=host"      # Portland Group
                 )
+
 
 ###################
 ### DEBUG FLAGS ###
@@ -99,12 +99,11 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                  Fortran "-warn all" # Intel
                          "/warn:all" # Intel Windows
                          "-Wall"     # GNU
-                                     # Portland Group (on by default)
                 )
 
 # Traceback
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
-                 Fortran "-traceback"   # Intel/Portland Group
+                 Fortran "-traceback"   # Intel Group
                          "/traceback"   # Intel Windows
                          "-fbacktrace"  # GNU (gfortran)
                          "-ftrace=full" # GNU (g95)
@@ -233,7 +232,6 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
                  Fortran "-unroll"        # Intel
                          "/unroll"        # Intel Windows
                          "-funroll-loops" # GNU
-                         "-Munroll"       # Portland Group
                 )
 
 # Inline functions
@@ -241,7 +239,6 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
                  Fortran "-inline"            # Intel
                          "/Qinline"           # Intel Windows
                          "-finline-functions" # GNU
-                         "-Minline"           # Portland Group
                 )
 
 
@@ -323,9 +320,9 @@ SET_COMPILE_FLAG(FASTMATH_FLAGS "${FASTMATH_FLAGS}"
 #####################
 # Enables the optimization reports to be generated
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_PROFILE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                 Fortran "-pg -qopt-report=5 -traceback -p -g3" # Intel
-                         "/Qopt-report:5 /traceback -g3" # Windows Intel
-                         "-pg -fbacktrace"
+                 Fortran "-O2 -pg -qopt-report=5 -traceback -p -g3" # Intel
+                         "/O2 /Qopt-report:5 /traceback -g3" # Windows Intel
+                         "-O2 -pg -fbacktrace"
                 )
 
 # Sanitize

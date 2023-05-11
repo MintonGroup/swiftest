@@ -299,6 +299,11 @@ class Simulation(object):
             Parameter input file equivalent: `ENCOUNTER_CHECK`
         dask : bool, default False
             Use Dask to lazily load data (useful for very large datasets)
+        coarray : bool, default False
+            If true, will employ Coarrays on test particle structures to run in single program/multiple data parallel mode. 
+            *Note" In order to use this capability, Swiftest must be compiled for Coarray support. Only certain integrators
+            can use Coarrays: RMVS, WHM, Helio are all compatible, but SyMBA is not, due to the way tp-pl close encounters 
+            are handeled.
         verbose : bool, default True
             If set to True, then more information is printed by Simulation methods as they are executed. Setting to
             False suppresses most messages other than errors.
@@ -824,6 +829,7 @@ class Simulation(object):
             "ephemeris_date": "MBCL",
             "restart": False,
             "encounter_save" : "NONE",
+            "coarray" : False,
             "simdir" : self.simdir
         }
         param_file = kwargs.pop("param_file",None)
@@ -1065,6 +1071,7 @@ class Simulation(object):
                     interaction_loops: Literal["TRIANGULAR", "FLAT"] | None = None,
                     encounter_check_loops: Literal["TRIANGULAR", "SORTSWEEP"] | None = None,
                     encounter_save: Literal["NONE", "TRAJECTORY", "CLOSEST", "BOTH"] | None = None,
+                    coarray: bool | None = None,
                     verbose: bool | None = None,
                     simdir: str | os.PathLike = None, 
                     **kwargs: Any
@@ -1130,6 +1137,11 @@ class Simulation(object):
             * "SORTSWEEP" : A Sort-Sweep algorithm is used to reduce the population of potential close encounter bodies.
               This algorithm is still in development, and does not necessarily speed up the encounter checking.
               Use with caution.
+        coarray : bool, default False
+            If true, will employ Coarrays on test particle structures to run in single program/multiple data parallel mode. 
+            *Note" In order to use this capability, Swiftest must be compiled for Coarray support. Only certain integrators
+            can use Coarrays: RMVS, WHM, Helio are all compatible, but SyMBA is not, due to the way tp-pl close encounters 
+            are handeled.           
         tides: bool, optional
             Turns on tidal model (IN DEVELOPMENT - IGNORED)
         Yarkovsky: bool, optional
@@ -1279,7 +1291,14 @@ class Simulation(object):
             self.driver_executable = self.binary_path / "swiftest_driver"
             self.param_file = Path(kwargs.pop("param_file","param.in"))
 
+        if coarray is not None:
+            if self.codename == "Swiftest":
+                self.param["COARRAY"] = coarray
+                update_list.append("coarray")
+
+
         self.param["TIDES"] = False
+        
 
         feature_dict = self.get_feature(update_list, verbose)
         return feature_dict
@@ -1321,6 +1340,7 @@ class Simulation(object):
                      "big_discard": "BIG_DISCARD",
                      "interaction_loops": "INTERACTION_LOOPS",
                      "encounter_check_loops": "ENCOUNTER_CHECK",
+                     "coarray" : "COARRAY",
                      "restart": "RESTART"
                      }
 

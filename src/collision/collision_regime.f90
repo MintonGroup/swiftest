@@ -281,19 +281,12 @@ contains
          Mlr = max((1.0_DP - Qr / Qrd_pstar / 2.0_DP) * Mtot, min_mfrag) ! [kg] # LS12 eq (5)
       end if
       Mbig = max(m1,Mlr)
-      Msmall = Mtot - Mbig
-      if (Msmall < min_mfrag) then
-         regime = COLLRESOLVE_REGIME_MERGE
-         Mbig = Mtot
-         Mslr = 0.0_DP
-         Mslr_hitandrun = 0.0_DP
+      Msmall = mtot - Mbig
+      Mslr_hitandrun = max(calc_Qrd_rev(Msmall, Mbig, Mint, den1, den2, Vimp, c_star), min_mfrag)
+      if (regime == COLLRESOLVE_REGIME_HIT_AND_RUN ) then
+         Mslr = Mslr_hitandrun
       else
-         Mslr_hitandrun = max(calc_Qrd_rev(Msmall, Mbig, Mint, den1, den2, Vimp, c_star), min_mfrag)
-         if (regime == COLLRESOLVE_REGIME_HIT_AND_RUN ) then
-            Mslr = Mslr_hitandrun
-         else
-            Mslr = max(Mtot * (3.0_DP - BETA) * (1.0_DP - N1 * Mlr / Mtot) / (N2 * BETA), min_mfrag)  !LS12 eq (37)
-         end if
+         Mslr = max(Mtot * (3.0_DP - BETA) * (1.0_DP - N1 * Mlr / Mtot) / (N2 * BETA), min_mfrag)  !LS12 eq (37)
       end if
 
       Mresidual = Mtot - Mlr - Mslr

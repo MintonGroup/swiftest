@@ -227,7 +227,7 @@ contains
       call self%get_index_values(idvals, tvals)
 
       ! Consolidate ids to only unique values
-      call swiftest_util_unique(idvals,self%idvals,self%idmap)
+      call util_unique(idvals,self%idvals,self%idmap)
       self%nid = size(self%idvals)
 
       ! Don't consolidate time values (multiple collisions can happen in a single time step)
@@ -299,6 +299,8 @@ contains
       ! Arguments
       class(collision_fragments),  intent(inout) :: self
 
+      self%nbody = 0
+      if (allocated(self%id)) deallocate(self%id)
       if (allocated(self%info)) deallocate(self%info) 
       if (allocated(self%status)) deallocate(self%status) 
       if (allocated(self%rh)) deallocate(self%rh)

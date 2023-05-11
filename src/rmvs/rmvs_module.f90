@@ -35,6 +35,9 @@ module rmvs
       procedure :: dealloc    => rmvs_util_dealloc_system           !! Performs RMVS-specific deallocation
       procedure :: initialize => rmvs_util_setup_initialize_system  !! Performs RMVS-specific initilization steps, including generating the close encounter planetocentric structures
       procedure :: step       => rmvs_step_system                   !! Advance the RMVS nbody system forward in time by one step
+#ifdef COARRAY
+      procedure :: coclone                 => rmvs_coarray_coclone_system  !! Clones the image 1 body object to all other images in the coarray structure.
+#endif
    end type rmvs_nbody_system
 
    type, private :: rmvs_interp
@@ -45,6 +48,9 @@ module rmvs
    contains
       procedure :: dealloc => rmvs_util_dealloc_interp !! Deallocates all allocatable arrays
       final     ::            rmvs_final_interp   !! Finalizes the RMVS interpolated nbody_system variables object - deallocates all allocatables
+#ifdef COARRAY
+      procedure :: coclone => rmvs_coarray_coclone_interp
+#endif
    end type rmvs_interp
 
 
@@ -56,6 +62,9 @@ module rmvs
    contains
       procedure :: dealloc => rmvs_util_dealloc_cb !! Deallocates all allocatable arrays
       final     ::            rmvs_final_cb   !! Finalizes the RMVS central body object - deallocates all allocatables
+#ifdef COARRAY
+      procedure :: coclone   => rmvs_coarray_coclone_cb      !! Clones the image 1 body object to all other images in the coarray structure.
+#endif 
    end type rmvs_cb
 
 
@@ -88,6 +97,10 @@ module rmvs
       procedure :: rearrange       => rmvs_util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill           => rmvs_util_spill_tp          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       final     ::                    rmvs_final_tp          !! Finalizes the RMVS test particle object - deallocates all allocatables
+#ifdef COARRAY
+      procedure :: coclone   => rmvs_coarray_coclone_tp      !! Clones the image 1 body object to all other images in the coarray structure.
+      procedure :: cocollect => rmvs_coarray_cocollect_tp      !! Clones the image 1 body object to all other images in the coarray structure.
+#endif 
    end type rmvs_tp
 
  
@@ -101,7 +114,7 @@ module rmvs
       class(rmvs_nbody_system), dimension(:), allocatable :: planetocentric            !! Planetocentric version of the massive body objects (one for each massive body)
       logical                                             :: lplanetocentric = .false. !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
    contains
-      procedure :: setup     => rmvs_util_setup_pl               !! Constructor method - Allocates space for the input number of bodiess
+      procedure :: setup     => rmvs_util_setup_pl          !! Constructor method - Allocates space for the input number of bodiess
       procedure :: append    => rmvs_util_append_pl         !! Appends elements from one structure to another
       procedure :: dealloc   => rmvs_util_dealloc_pl        !! Deallocates all allocatable arrays
       procedure :: fill      => rmvs_util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
@@ -109,7 +122,10 @@ module rmvs
       procedure :: sort      => rmvs_util_sort_pl           !! Sorts body arrays by a sortable componen
       procedure :: rearrange => rmvs_util_sort_rearrange_pl !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill     => rmvs_util_spill_pl          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      final     ::              rmvs_final_pl          !! Finalizes the RMVS massive body object - deallocates all allocatables
+      final     ::              rmvs_final_pl               !! Finalizes the RMVS massive body object - deallocates all allocatables
+#ifdef COARRAY
+      procedure :: coclone   => rmvs_coarray_coclone_pl      !! Clones the image 1 body object to all other images in the coarray structure.
+#endif 
    end type rmvs_pl
 
    interface
@@ -145,10 +161,11 @@ module rmvs
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine rmvs_util_setup_pl
 
-      module subroutine rmvs_util_setup_initialize_system(self, param)
+      module subroutine rmvs_util_setup_initialize_system(self, system_history, param)
          implicit none
-         class(rmvs_nbody_system),   intent(inout) :: self    !! RMVS system object
-         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+         class(rmvs_nbody_system),                intent(inout) :: self           !! RMVS system object
+         class(swiftest_storage),    allocatable, intent(inout) :: system_history !! Stores the system history between output dumps
+         class(swiftest_parameters),              intent(inout) :: param          !! Current run configuration parameters 
       end subroutine rmvs_util_setup_initialize_system
 
       module subroutine rmvs_util_setup_tp(self, n, param)
@@ -274,6 +291,51 @@ module rmvs
       end subroutine rmvs_step_system
 
    end interface
+
+
+#ifdef COARRAY
+   interface coclone
+      module subroutine rmvs_coarray_component_clone_interp_arr1D(var,src_img)
+         implicit none
+         type(rmvs_interp), dimension(:), allocatable, intent(inout) :: var
+         integer(I4B), intent(in),optional :: src_img
+      end subroutine rmvs_coarray_component_clone_interp_arr1D
+   end interface
+
+   interface cocollect
+      module subroutine rmvs_coarray_cocollect_tp(self)
+         implicit none
+         class(rmvs_tp),intent(inout),codimension[*]  :: self  !! RMVS pl object
+      end subroutine rmvs_coarray_cocollect_tp
+   end interface
+
+   interface
+      module subroutine rmvs_coarray_coclone_cb(self)
+         implicit none
+         class(rmvs_cb),intent(inout),codimension[*]  :: self  !! RMVS tp object
+      end subroutine rmvs_coarray_coclone_cb
+
+      module subroutine rmvs_coarray_coclone_interp(self)
+         implicit none
+         class(rmvs_interp),intent(inout),codimension[*]  :: self  !! RMVS tp object
+      end subroutine rmvs_coarray_coclone_interp
+
+      module subroutine rmvs_coarray_coclone_pl(self)
+         implicit none
+         class(rmvs_pl),intent(inout),codimension[*]  :: self  !! RMVS pl object
+      end subroutine rmvs_coarray_coclone_pl
+
+      module subroutine rmvs_coarray_coclone_system(self)
+         implicit none
+         class(rmvs_nbody_system),intent(inout),codimension[*]  :: self  !! RMVS nbody system object
+      end subroutine rmvs_coarray_coclone_system
+
+      module subroutine rmvs_coarray_coclone_tp(self)
+         implicit none
+         class(rmvs_tp),intent(inout),codimension[*]  :: self  !! RMVS tp object
+      end subroutine rmvs_coarray_coclone_tp
+   end interface
+#endif
 
    contains
 

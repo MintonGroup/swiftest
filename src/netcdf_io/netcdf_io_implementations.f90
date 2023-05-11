@@ -37,9 +37,12 @@ contains
       implicit none
       ! Arguments
       class(netcdf_parameters),   intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
+      character(namelen) :: message
 
       if (self%lfile_is_open) then
-         call netcdf_io_check( nf90_close(self%id), "netcdf_io_close" )
+         write(message,*) this_image()
+         message = "netcdf_io_close on image " // trim(adjustl(message))
+         call netcdf_io_check( nf90_close(self%id), message)
          self%lfile_is_open = .false.
       end if
 
@@ -59,6 +62,7 @@ contains
       integer(I4B),             intent(out)   :: tslot !! The index of the time slot where this data belongs
       ! Internals
       real(DP), dimension(:), allocatable :: tvals
+      integer(I4B) :: i
 
 
       if (.not.self%lfile_is_open) return
@@ -68,13 +72,18 @@ contains
       if (self%max_tslot > 0) then
          allocate(tvals(self%max_tslot))
          call netcdf_io_check( nf90_get_var(self%id, self%time_varid, tvals(:), start=[1]), "netcdf_io_find_tslot get_var"  )
+         where(tvals(:) /= tvals(:)) tvals(:) = huge(1.0_DP)
       else
          allocate(tvals(1))
-         tvals(1) = -huge(1.0_DP)
+         tvals(1) = huge(1.0_DP)
+         self%max_tslot = 1
       end if
 
-      tslot = findloc(tvals, t, dim=1)
-      if (tslot == 0) tslot = self%max_tslot + 1
+      tslot = 1
+      do i = 1, self%max_tslot
+         if (t <= tvals(tslot)) exit
+         tslot = tslot + 1
+      end do
       self%max_tslot = max(self%max_tslot, tslot)
       self%tslot = tslot
 
@@ -99,16 +108,16 @@ contains
 
       if (.not.allocated(self%idvals)) call self%get_idvals()
       self%max_idslot = size(self%idvals)
-      idslot = findloc(self%idvals, id, dim=1)
-      if (idslot == 0) then
-         self%max_idslot = self%max_idslot + 1
-         idslot = self%max_idslot
+      idslot = id + 1 
+      if (idslot > self%max_idslot) then
 
          ! Update the idvals array
          allocate(idvals(idslot))
-         idvals(1:idslot-1) = self%idvals(1:idslot-1)
+         idvals(:) = NF90_FILL_INT 
+         idvals(1:self%max_idslot) = self%idvals(1:self%max_idslot)
          idvals(idslot) = id
          call move_alloc(idvals, self%idvals) 
+         self%max_idslot = idslot
       end if
 
       self%idslot = idslot
