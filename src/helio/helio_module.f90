@@ -165,10 +165,11 @@ module helio
          logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       end subroutine helio_kick_vb_tp
 
-      module subroutine helio_util_setup_initialize_system(self, param)
+      module subroutine helio_util_setup_initialize_system(self, system_history, param)
          implicit none
-         class(helio_nbody_system),  intent(inout) :: self   !! Helio nbody system object
-         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+         class(helio_nbody_system),               intent(inout) :: self           !! Helio nbody system object
+         class(swiftest_storage),    allocatable, intent(inout) :: system_history !! Stores the system history between output dumps
+         class(swiftest_parameters),              intent(inout) :: param          !! Current run configuration parameters 
       end subroutine helio_util_setup_initialize_system
 
       module subroutine helio_step_pl(self, nbody_system, param, t, dt)

@@ -43,6 +43,9 @@ module swiftest
    use io_progress_bar
    use netcdf_io
    use solver
+#ifdef COARRAY
+   use coarray
+#endif
    !use advisor_annotate
    !$ use omp_lib
    implicit none
@@ -54,6 +57,9 @@ module swiftest
       procedure :: get_valid_masks => swiftest_io_netcdf_get_valid_masks   !! Gets logical masks indicating which bodies are valid pl and tp type at the current time
       procedure :: open            => swiftest_io_netcdf_open              !! Opens a NetCDF file and does the variable inquiries to activate variable ids
       procedure :: flush           => swiftest_io_netcdf_flush             !! Flushes a NetCDF file by closing it then opening it again
+#ifdef COARRAY
+      procedure :: coclone   => swiftest_coarray_coclone_nc
+#endif
    end type swiftest_netcdf_parameters
 
 
@@ -92,9 +98,11 @@ module swiftest
 
 
    !> An abstract class for a generic collection of Swiftest bodies
-   type, abstract, extends(base_multibody) :: swiftest_body
+   type, abstract, extends(base_object) :: swiftest_body
       !! Superclass that defines the generic elements of a Swiftest particle 
       logical                                                    :: lfirst = .true. !! Run the current step as a first
+      integer(I4B)                                               :: nbody = 0       !! Number of bodies
+      integer(I4B),                  dimension(:),   allocatable :: id              !! Identifier 
       type(swiftest_particle_info),  dimension(:),   allocatable :: info            !! Particle metadata information
       logical,                       dimension(:),   allocatable :: lmask           !! Logical mask used to select a subset of bodies when performing certain operations (drift, kick, accel, etc.)
       integer(I4B),                  dimension(:),   allocatable :: status          !! An integrator-specific status indicator 
@@ -148,12 +156,15 @@ module swiftest
       procedure :: fill            => swiftest_util_fill_body               !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
       procedure :: get_peri        => swiftest_util_peri_body               !! Determine nbody_system pericenter passages for test particles 
       procedure :: resize          => swiftest_util_resize_body             !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
-
       procedure :: set_ir3         => swiftest_util_set_ir3h                !! Sets the inverse heliocentric radius term (1/rh**3)
       procedure :: sort            => swiftest_util_sort_body               !! Sorts body arrays by a sortable componen
       procedure :: rearrange       => swiftest_util_sort_rearrange_body     !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill           => swiftest_util_spill_body              !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       generic   :: read_frame      => read_frame_bin                        !! Add the generic read frame for Fortran binary files
+#ifdef COARRAY
+      procedure :: coclone         => swiftest_coarray_coclone_body         !! Clones the image 1 body object to all other images in the coarray structure.
+      procedure :: cocollect       => swiftest_coarray_cocollect_body       !! Collects all body object array components from all images and combines them into the image 1 body object
+#endif
    end type swiftest_body
 
 
@@ -211,6 +222,10 @@ module swiftest
       procedure :: read_in      => swiftest_io_read_in_cb            !! Read in central body initial conditions from an ASCII file
       procedure :: write_frame  => swiftest_io_netcdf_write_frame_cb !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
       procedure :: write_info   => swiftest_io_netcdf_write_info_cb  !! Dump contents of particle information metadata to file
+
+#ifdef COARRAY
+      procedure :: coclone      => swiftest_coarray_coclone_cb       !! Clones the image 1 body object to all other images in the coarray structure.
+#endif
    end type swiftest_cb
 
 
@@ -270,6 +285,9 @@ module swiftest
       procedure :: rearrange      => swiftest_util_sort_rearrange_pl !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill          => swiftest_util_spill_pl          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       generic   :: set_renc       => set_renc_I4B, set_renc_DP 
+#ifdef COARRAY
+      procedure :: coclone      => swiftest_coarray_coclone_pl       !! Clones the image 1 body object to all other images in the coarray structure.
+#endif
    end type swiftest_pl
 
 
@@ -300,6 +318,10 @@ module swiftest
       procedure :: sort      => swiftest_util_sort_tp           !! Sorts body arrays by a sortable component
       procedure :: rearrange => swiftest_util_sort_rearrange_tp !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill     => swiftest_util_spill_tp          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+#ifdef COARRAY
+      procedure :: coclone      => swiftest_coarray_coclone_tp    !! Clones the image 1 object to all other images in the coarray structure.
+      procedure :: cocollect    => swiftest_coarray_cocollect_tp  !! Collects all object array components from all images and combines them into the image 1 object
+#endif
    end type swiftest_tp
 
 
@@ -323,7 +345,6 @@ module swiftest
       class(collision_basic),     allocatable :: collider          !! Collision system object
       class(encounter_storage),   allocatable :: encounter_history !! Stores encounter history for later retrieval and saving to file
       class(collision_storage),   allocatable :: collision_history !! Stores encounter history for later retrieval and saving to file
-      class(swiftest_storage),    allocatable :: system_history    !! Stores the system history between output dumps
 
       integer(I4B)                    :: maxid = -1             !! The current maximum particle id number 
       real(DP)                        :: t = -1.0_DP            !! Integration current time
@@ -384,23 +405,28 @@ module swiftest
       procedure :: dump                    => swiftest_io_dump_system                              !! Dump the state of the nbody_system to a file
       procedure :: get_t0_values           => swiftest_io_netcdf_get_t0_values_system              !! Validates the dump file to check whether the dump file initial conditions duplicate the last frame of the netcdf output.
       procedure :: read_frame              => swiftest_io_netcdf_read_frame_system                 !! Read in a frame of input data from file
-      procedure :: write_frame_netcdf      => swiftest_io_netcdf_write_frame_system                !! Write a frame of input data from file
       procedure :: read_hdr                => swiftest_io_netcdf_read_hdr_system                   !! Read a header for an output frame in NetCDF format
       procedure :: write_hdr               => swiftest_io_netcdf_write_hdr_system                  !! Write a header for an output frame in NetCDF format
       procedure :: read_particle_info      => swiftest_io_netcdf_read_particle_info_system         !! Read in particle metadata from file
       procedure :: read_in                 => swiftest_io_read_in_system                           !! Reads the initial conditions for an nbody system
-      procedure :: write_frame_system      => swiftest_io_write_frame_system                       !! Write a frame of input data from file
+      procedure :: write_frame             => swiftest_io_netcdf_write_frame_system                !! Write a frame of input data from file
       procedure :: obl_pot                 => swiftest_obl_pot_system                              !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
-      procedure :: dealloc                 => swiftest_util_dealloc_system                           !! Deallocates all allocatables and resets all values to defaults. Acts as a base for a finalizer
+      procedure :: dealloc                 => swiftest_util_dealloc_system                         !! Deallocates all allocatables and resets all values to defaults. Acts as a base for a finalizer
       procedure :: get_energy_and_momentum => swiftest_util_get_energy_and_momentum_system         !! Calculates the total nbody_system energy and momentum
       procedure :: get_idvals              => swiftest_util_get_idvalues_system                    !! Returns an array of all id values in use in the nbody_system
       procedure :: rescale                 => swiftest_util_rescale_system                         !! Rescales the nbody_system into a new set of units
+      procedure :: initialize_output_file  => swiftest_io_initialize_output_file_system                  !! Write a frame of input data from file
       procedure :: initialize              => swiftest_util_setup_initialize_system                !! Initialize the nbody_system from input files
       procedure :: init_particle_info      => swiftest_util_setup_initialize_particle_info_system  !! Initialize the nbody_system from input files
     ! procedure :: step_spin               => tides_step_spin_system                               !! Steps the spins of the massive & central bodies due to tides.
       procedure :: set_msys                => swiftest_util_set_msys                               !! Sets the value of msys from the masses of nbody_system bodies.
       procedure :: validate_ids            => swiftest_util_valid_id_system                        !! Validate the numerical ids passed to the nbody_system and save the maximum value
-      generic   :: write_frame             => write_frame_system, write_frame_netcdf               !! Generic method call for reading a frame of output data
+#ifdef COARRAY
+      procedure :: coclone                 => swiftest_coarray_coclone_system                      !! Clones the image 1 body object to all other images in the coarray structure.
+      procedure :: coarray_collect         => swiftest_coarray_collect_system                      !! Collects all the test particles from other images into the image #1 test particle system
+      procedure :: coarray_distribute      => swiftest_coarray_distribute_system                   !! Distributes test particles from image #1 out to all images.
+      procedure :: coarray_balance         => swiftest_coarray_balance_system                      !! Checks whether or not the test particle coarrays need to be rebalanced.
+#endif
    end type swiftest_nbody_system
 
 
@@ -442,11 +468,11 @@ module swiftest
       subroutine abstract_step_body(self, nbody_system, param, t, dt)
          import DP, swiftest_body, swiftest_nbody_system, swiftest_parameters
          implicit none
-         class(swiftest_body),              intent(inout) :: self   !! Swiftest body object
+         class(swiftest_body),         intent(inout) :: self         !! Swiftest body object
          class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody_system object
-         class(swiftest_parameters),        intent(inout) :: param  !! Current run configuration parameters 
-         real(DP),                          intent(in)    :: t      !! Simulation time
-         real(DP),                          intent(in)    :: dt     !! Current stepsize
+         class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t            !! Simulation time
+         real(DP),                     intent(in)    :: dt           !! Current stepsize
       end subroutine abstract_step_body
 
       subroutine abstract_step_system(self, param, t, dt)
@@ -458,7 +484,6 @@ module swiftest
          real(DP),                          intent(in)    :: dt    !! Current stepsize
       end subroutine abstract_step_system
    end interface
-
 
    interface
       module subroutine swiftest_discard_pl(self, nbody_system, param)
@@ -500,11 +525,11 @@ module swiftest
          real(DP),                          intent(in)    :: dt     !! Stepsize
       end subroutine swiftest_drift_body
 
-      pure elemental module subroutine swiftest_drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag)
+      pure elemental module subroutine swiftest_drift_one(mu, rx, ry, rz, vx, vy, vz, dt, iflag)
          !$omp declare simd(swiftest_drift_one)
          implicit none
          real(DP),     intent(in)       :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
-         real(DP),     intent(inout)    :: px, py, pz, vx, vy, vz  !! Position and velocity of body to drift
+         real(DP),     intent(inout)    :: rx, ry, rz, vx, vy, vz  !! Position and velocity of body to drift
          real(DP),     intent(in)       :: dt    !! Step size
          integer(I4B), intent(out)      :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine swiftest_drift_one
@@ -592,10 +617,11 @@ module swiftest
          character(len=*),          intent(in)    :: param_file_name !! Parameter input file name (i.e. param.in)
       end subroutine swiftest_io_dump_param
 
-      module subroutine swiftest_io_dump_system(self, param)
+      module subroutine swiftest_io_dump_system(self, param, system_history)
          implicit none
-         class(swiftest_nbody_system),  intent(inout) :: self   !! Swiftest nbody_system object
-         class(swiftest_parameters),         intent(inout) :: param  !! Current run configuration parameters 
+         class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody_system object
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
+         class(swiftest_storage),      intent(inout) :: system_history    !! Stores the system history between output dumps
       end subroutine swiftest_io_dump_system
 
       module subroutine swiftest_io_dump_storage(self, param)
@@ -639,10 +665,11 @@ module swiftest
          class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       end subroutine swiftest_io_netcdf_flush
 
-      module subroutine swiftest_io_netcdf_get_t0_values_system(self, param) 
+      module subroutine swiftest_io_netcdf_get_t0_values_system(self, nc, param) 
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
+         class(swiftest_nbody_system),      intent(inout) :: self  !! Swiftest nbody system object
+         class(swiftest_netcdf_parameters), intent(inout) :: nc     !! Parameters used to identify a particular NetCDF dataset
+         class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       end subroutine swiftest_io_netcdf_get_t0_values_system
 
       module subroutine swiftest_io_netcdf_get_valid_masks(self, plmask, tpmask)
@@ -837,9 +864,10 @@ module swiftest
          character(len=*),           intent(in)    :: param_file_name !! Parameter input file name (i.e. param.in)
       end subroutine swiftest_io_read_in_param
 
-      module subroutine swiftest_io_read_in_system(self, param)
+      module subroutine swiftest_io_read_in_system(self, nc, param)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self
+         class(swiftest_nbody_system),      intent(inout) :: self
+         class(swiftest_netcdf_parameters), intent(inout) :: nc     !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters),        intent(inout) :: param
       end subroutine swiftest_io_read_in_system
 
@@ -870,11 +898,12 @@ module swiftest
          character(*), intent(inout) :: string !! String to make upper case
       end subroutine swiftest_io_toupper
 
-      module subroutine swiftest_io_write_frame_system(self, param)
+      module subroutine swiftest_io_initialize_output_file_system(self, nc, param)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody_system object
+         class(swiftest_nbody_system),      intent(inout) :: self   !! Swiftest nbody_system object
+         class(swiftest_netcdf_parameters), intent(inout) :: nc     !! Parameters used to identify a particular NetCDF dataset
          class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
-      end subroutine swiftest_io_write_frame_system
+      end subroutine swiftest_io_initialize_output_file_system
 
       module subroutine swiftest_kick_getacch_int_pl(self, param)
          implicit none
@@ -1010,22 +1039,22 @@ module swiftest
          real(DP), intent(out) :: sx, cx
       end subroutine swiftest_orbel_scget
 
-      pure elemental module subroutine swiftest_orbel_xv2aeq(mu, px, py, pz, vx, vy, vz, a, e, q)
+      pure elemental module subroutine swiftest_orbel_xv2aeq(mu, rx, ry, rz, vx, vy, vz, a, e, q)
          !$omp declare simd(swiftest_orbel_xv2aeq)
          implicit none
          real(DP), intent(in)  :: mu       !! Gravitational constant
-         real(DP), intent(in)  :: px,py,pz !! Position vector
+         real(DP), intent(in)  :: rx,ry,rz !! Position vector
          real(DP), intent(in)  :: vx,vy,vz !! Velocity vector
          real(DP), intent(out) :: a        !! semimajor axis
          real(DP), intent(out) :: e        !! eccentricity
          real(DP), intent(out) :: q        !! periapsis
       end subroutine swiftest_orbel_xv2aeq
 
-      pure module subroutine swiftest_orbel_xv2aqt(mu, px, py, pz, vx, vy, vz, a, q, capm, tperi)
+      pure module subroutine swiftest_orbel_xv2aqt(mu, rx, ry, rz, vx, vy, vz, a, q, capm, tperi)
          !$omp declare simd(swiftest_orbel_xv2aqt)
          implicit none
          real(DP), intent(in)  :: mu       !! Gravitational constant
-         real(DP), intent(in)  :: px,py,pz !! Position vector
+         real(DP), intent(in)  :: rx,ry,rz !! Position vector
          real(DP), intent(in)  :: vx,vy,vz !! Velocity vector
          real(DP), intent(out) :: a        !! semimajor axis
          real(DP), intent(out) :: q        !! periapsis
@@ -1033,10 +1062,10 @@ module swiftest
          real(DP), intent(out) :: tperi    !! time of pericenter passage
       end subroutine swiftest_orbel_xv2aqt
 
-      pure module subroutine swiftest_orbel_xv2el(mu, px, py, pz, vx, vy, vz, a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf)
+      pure module subroutine swiftest_orbel_xv2el(mu, rx, ry, rz, vx, vy, vz, a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf)
          implicit none
          real(DP), intent(in)  :: mu    !! Gravitational constant
-         real(DP), intent(in)  :: px,py,pz !! Position vector
+         real(DP), intent(in)  :: rx,ry,rz !! Position vector
          real(DP), intent(in)  :: vx,vy,vz !! Velocity vector
          real(DP), intent(out) :: a     !! semimajor axis
          real(DP), intent(out) :: e     !! eccentricity
@@ -1067,7 +1096,7 @@ module swiftest
       module subroutine swiftest_util_setup_construct_system(nbody_system, param)
          implicit none
          class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system !! Swiftest nbody_system object
-         class(swiftest_parameters),                intent(inout) :: param  !! Current run configuration parameters
+         class(swiftest_parameters),                intent(inout) :: param        !! Current run configuration parameters
       end subroutine swiftest_util_setup_construct_system
 
       module subroutine swiftest_util_setup_initialize_particle_info_system(self, param)
@@ -1076,10 +1105,11 @@ module swiftest
          class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       end subroutine swiftest_util_setup_initialize_particle_info_system
 
-      module subroutine swiftest_util_setup_initialize_system(self, param)
+      module subroutine swiftest_util_setup_initialize_system(self, system_history, param)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: self  !! Swiftest nbody_system object
-         class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
+         class(swiftest_nbody_system),              intent(inout) :: self           !! Swiftest nbody_system object
+         class(swiftest_storage),      allocatable, intent(inout) :: system_history !! Stores the system history between output dumps
+         class(swiftest_parameters),                intent(inout) :: param          !! Current run configuration parameters
       end subroutine swiftest_util_setup_initialize_system
 
       module subroutine swiftest_util_setup_pl(self, n, param)
@@ -1106,62 +1136,22 @@ module swiftest
       end subroutine swiftest_user_kick_getacch_body
    end interface
 
-   interface swiftest_util_append
-      module subroutine swiftest_util_append_arr_char_string(arr, source, nold, nsrc, lsource_mask)
+   interface util_append
+      module subroutine swiftest_util_append_arr_info(arr, source, nold, lsource_mask)
          implicit none
-         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-         character(len=STRMAX), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         integer(I4B),                                     intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-         logical,               dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      end subroutine swiftest_util_append_arr_char_string
-
-      module subroutine swiftest_util_append_arr_DP(arr, source, nold, nsrc, lsource_mask)
-         implicit none
-         real(DP), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-         real(DP), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         integer(I4B),                        intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-         logical,  dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      end subroutine swiftest_util_append_arr_DP
-
-      module subroutine swiftest_util_append_arr_DPvec(arr, source, nold, nsrc, lsource_mask)
-         implicit none
-         real(DP), dimension(:,:), allocatable, intent(inout) :: arr          !! Destination array 
-         real(DP), dimension(:,:), allocatable, intent(in)    :: source       !! Array to append 
-         integer(I4B),                          intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-         logical,  dimension(:),                intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      end subroutine swiftest_util_append_arr_DPvec
-
-      module subroutine swiftest_util_append_arr_I4B(arr, source, nold, nsrc, lsource_mask)
-         implicit none
-         integer(I4B), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-         integer(I4B), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         integer(I4B),                            intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-         logical,      dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      end subroutine swiftest_util_append_arr_I4B
-
-      module subroutine swiftest_util_append_arr_info(arr, source, nold, nsrc, lsource_mask)
-         implicit none
-         type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-         type(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         integer(I4B),                                            intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-         logical,                      dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         type(swiftest_particle_info), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
+         type(swiftest_particle_info), dimension(:), allocatable, intent(in)           :: source       !! Array to append 
+         integer(I4B),                                            intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
+         logical,                      dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine swiftest_util_append_arr_info
 
-      module subroutine swiftest_util_append_arr_kin(arr, source, nold, nsrc, lsource_mask)
+      module subroutine swiftest_util_append_arr_kin(arr, source, nold, lsource_mask)
          implicit none
-         type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-         type(swiftest_kinship), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         integer(I4B),                                      intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-         logical,                dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         type(swiftest_kinship), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
+         type(swiftest_kinship), dimension(:), allocatable, intent(in)           :: source       !! Array to append 
+         integer(I4B),                                      intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
+         logical,                dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine swiftest_util_append_arr_kin
-
-      module subroutine swiftest_util_append_arr_logical(arr, source, nold, nsrc, lsource_mask)
-         implicit none
-         logical, dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
-         logical, dimension(:), allocatable, intent(in)    :: source       !! Array to append 
-         integer(I4B),                       intent(in)    :: nold, nsrc   !! Extend of the old array and the source array, respectively
-         logical, dimension(:),              intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      end subroutine swiftest_util_append_arr_logical
    end interface
 
    interface
@@ -1316,40 +1306,12 @@ module swiftest
       end subroutine swiftest_util_fill_tp
    end interface
 
-   interface swiftest_util_fill
-      module subroutine swiftest_util_fill_arr_char_string(keeps, inserts, lfill_list)
-         implicit none
-         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-         character(len=STRMAX), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-         logical,               dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-      end subroutine swiftest_util_fill_arr_char_string
-
-      module subroutine swiftest_util_fill_arr_DP(keeps, inserts, lfill_list)
-         implicit none
-         real(DP), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-         real(DP), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-         logical,  dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-      end subroutine swiftest_util_fill_arr_DP
-
-      module subroutine swiftest_util_fill_arr_DPvec(keeps, inserts, lfill_list)
-         implicit none
-         real(DP), dimension(:,:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-         real(DP), dimension(:,:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-         logical,  dimension(:),                intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-      end subroutine swiftest_util_fill_arr_DPvec
-
-      module subroutine swiftest_util_fill_arr_I4B(keeps, inserts, lfill_list)
-         implicit none
-         integer(I4B), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-         integer(I4B), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-         logical,      dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-      end subroutine swiftest_util_fill_arr_I4B
-
+   interface util_fill
       module subroutine swiftest_util_fill_arr_info(keeps, inserts, lfill_list)
          implicit none
          type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
          type(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-         logical,             dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+         logical,                      dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine swiftest_util_fill_arr_info
 
       module subroutine swiftest_util_fill_arr_kin(keeps, inserts, lfill_list)
@@ -1358,13 +1320,6 @@ module swiftest
          type(swiftest_kinship), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
          logical,                dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
       end subroutine swiftest_util_fill_arr_kin
-
-      module subroutine swiftest_util_fill_arr_logical(keeps, inserts, lfill_list)
-         implicit none
-         logical, dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
-         logical, dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-         logical, dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
-      end subroutine swiftest_util_fill_arr_logical
    end interface
 
    interface
@@ -1509,31 +1464,7 @@ module swiftest
    end interface
 
 
-   interface swiftest_util_resize
-      module subroutine swiftest_util_resize_arr_char_string(arr, nnew)
-         implicit none
-         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
-         integer(I4B),                                     intent(in)    :: nnew !! New size
-      end subroutine swiftest_util_resize_arr_char_string
-
-      module subroutine swiftest_util_resize_arr_DP(arr, nnew)
-         implicit none
-         real(DP), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
-         integer(I4B),                        intent(in)    :: nnew !! New size
-      end subroutine swiftest_util_resize_arr_DP
-
-      module subroutine swiftest_util_resize_arr_DPvec(arr, nnew)
-         implicit none
-         real(DP), dimension(:,:), allocatable, intent(inout) :: arr  !! Array to resize
-         integer(I4B),                          intent(in)    :: nnew !! New size
-      end subroutine swiftest_util_resize_arr_DPvec
-
-      module subroutine swiftest_util_resize_arr_I4B(arr, nnew)
-         implicit none
-         integer(I4B), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
-         integer(I4B),                            intent(in)    :: nnew !! New size
-      end subroutine swiftest_util_resize_arr_I4B
-
+   interface util_resize
       module subroutine swiftest_util_resize_arr_info(arr, nnew)
          implicit none
          type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
@@ -1545,12 +1476,6 @@ module swiftest
          type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
          integer(I4B),                                       intent(in)    :: nnew !! New size
       end subroutine swiftest_util_resize_arr_kin
-
-      module subroutine swiftest_util_resize_arr_logical(arr, nnew)
-         implicit none
-         logical, dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
-         integer(I4B),                       intent(in)    :: nnew !! New size
-      end subroutine swiftest_util_resize_arr_logical
    end interface
 
    interface
@@ -1661,98 +1586,16 @@ module swiftest
 
       module subroutine swiftest_util_snapshot_system(self, param, nbody_system, t, arg)
          implicit none
-         class(swiftest_storage),        intent(inout)        :: self   !! Swiftest storage object
-         class(swiftest_parameters),        intent(inout)        :: param  !! Current run configuration parameters
-         class(swiftest_nbody_system), intent(inout)        :: nbody_system !! Swiftest nbody system object to store
-         real(DP),                          intent(in), optional :: t      !! Time of snapshot if different from nbody_system time
-         character(*),                      intent(in), optional :: arg    !! Optional argument (needed for extended storage type used in encounter snapshots)
+         class(swiftest_storage),      intent(inout)        :: self            !! Swiftest storage object
+         class(swiftest_parameters),   intent(inout)        :: param           !! Current run configuration parameters
+         class(swiftest_nbody_system), intent(inout)        :: nbody_system    !! Swiftest nbody system object to store
+         real(DP),                     intent(in), optional :: t               !! Time of snapshot if different from nbody_system time
+         character(*),                 intent(in), optional :: arg             !! Optional argument (needed for extended storage type used in collision snapshots)
       end subroutine swiftest_util_snapshot_system
    end interface
 
 
-   interface swiftest_util_sort      
-      pure module subroutine swiftest_util_sort_i4b(arr)
-         implicit none
-         integer(I4B), dimension(:), intent(inout) :: arr
-      end subroutine swiftest_util_sort_i4b
-
-      pure module subroutine swiftest_util_sort_index_i4b(arr,ind)
-         implicit none
-         integer(I4B), dimension(:), intent(in)  :: arr
-         integer(I4B), dimension(:), allocatable, intent(inout) :: ind
-      end subroutine swiftest_util_sort_index_i4b
-
-      pure module subroutine swiftest_util_sort_index_I4B_I8Bind(arr,ind)
-         implicit none
-         integer(I4B), dimension(:), intent(in)  :: arr
-         integer(I8B), dimension(:), allocatable, intent(inout) :: ind
-      end subroutine swiftest_util_sort_index_I4b_I8Bind
-
-      pure module subroutine swiftest_util_sort_index_I8B_I8Bind(arr,ind)
-         implicit none
-         integer(I8B), dimension(:), intent(in)  :: arr
-         integer(I8B), dimension(:), allocatable, intent(inout) :: ind
-      end subroutine swiftest_util_sort_index_I8B_I8Bind
-
-      pure module subroutine swiftest_util_sort_sp(arr)
-         implicit none
-         real(SP), dimension(:), intent(inout) :: arr
-      end subroutine swiftest_util_sort_sp
-
-      pure module subroutine swiftest_util_sort_index_sp(arr,ind)
-         implicit none
-         real(SP), dimension(:), intent(in)  :: arr
-         integer(I4B), dimension(:), allocatable, intent(inout) :: ind
-      end subroutine swiftest_util_sort_index_sp
-
-      pure module subroutine swiftest_util_sort_dp(arr)
-         implicit none
-         real(DP), dimension(:), intent(inout) :: arr
-      end subroutine swiftest_util_sort_dp
-
-      pure module subroutine swiftest_util_sort_index_dp(arr,ind)
-         implicit none
-         real(DP), dimension(:), intent(in)  :: arr
-         integer(I4B), dimension(:), allocatable, intent(inout) :: ind
-      end subroutine swiftest_util_sort_index_dp
-   end interface swiftest_util_sort
-
-   interface swiftest_util_sort_rearrange
-      pure module subroutine swiftest_util_sort_rearrange_arr_char_string(arr, ind, n)
-         implicit none
-         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-         integer(I4B),          dimension(:),              intent(in)    :: ind !! Index to rearrange against
-         integer(I4B),                                     intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      end subroutine swiftest_util_sort_rearrange_arr_char_string
-
-      pure module subroutine swiftest_util_sort_rearrange_arr_DP(arr, ind, n)
-         implicit none
-         real(DP),     dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-         integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
-         integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      end subroutine swiftest_util_sort_rearrange_arr_DP
-
-      pure module subroutine swiftest_util_sort_rearrange_arr_DPvec(arr, ind, n)
-         implicit none
-         real(DP),     dimension(:,:), allocatable, intent(inout) :: arr !! Destination array 
-         integer(I4B), dimension(:),                intent(in)    :: ind !! Index to rearrange against
-         integer(I4B),                              intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      end subroutine swiftest_util_sort_rearrange_arr_DPvec
-
-      pure module subroutine swiftest_util_sort_rearrange_arr_I4B(arr, ind, n)
-         implicit none
-         integer(I4B), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-         integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
-         integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      end subroutine swiftest_util_sort_rearrange_arr_I4B
-
-      pure module subroutine swiftest_util_sort_rearrange_arr_I4B_I8Bind(arr, ind, n)
-         implicit none
-         integer(I4B), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-         integer(I8B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
-         integer(I8B),                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      end subroutine swiftest_util_sort_rearrange_arr_I4B_I8Bind
-
+   interface util_sort_rearrange
       module subroutine swiftest_util_sort_rearrange_arr_info(arr, ind, n)
          implicit none
          type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
@@ -1767,20 +1610,7 @@ module swiftest
          integer(I4B),                                      intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       end subroutine swiftest_util_sort_rearrange_arr_kin
 
-      pure module subroutine swiftest_util_sort_rearrange_arr_logical(arr, ind, n)
-         implicit none
-         logical,      dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-         integer(I4B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
-         integer(I4B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      end subroutine swiftest_util_sort_rearrange_arr_logical
-
-      pure module subroutine swiftest_util_sort_rearrange_arr_logical_I8Bind(arr, ind, n)
-         implicit none
-         logical,      dimension(:), allocatable, intent(inout) :: arr !! Destination array 
-         integer(I8B), dimension(:),              intent(in)    :: ind !! Index to rearrange against
-         integer(I8B),                            intent(in)    :: n   !! Number of elements in arr and ind to rearrange
-      end subroutine swiftest_util_sort_rearrange_arr_logical_I8Bind
-   end interface swiftest_util_sort_rearrange
+   end interface util_sort_rearrange
 
    interface
       module subroutine swiftest_util_sort_rearrange_body(self, ind)
@@ -1824,47 +1654,7 @@ module swiftest
 
    end interface
 
-   interface swiftest_util_spill
-      module subroutine swiftest_util_spill_arr_char_string(keeps, discards, lspill_list, ldestructive)
-         implicit none
-         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-         logical,               dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
-         logical,                                          intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      end subroutine swiftest_util_spill_arr_char_string
-
-      module subroutine swiftest_util_spill_arr_DP(keeps, discards, lspill_list, ldestructive)
-         implicit none
-         real(DP), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-         real(DP), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-         logical,  dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-         logical,                             intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      end subroutine swiftest_util_spill_arr_DP
-
-      module subroutine swiftest_util_spill_arr_DPvec(keeps, discards, lspill_list, ldestructive)
-         implicit none
-         real(DP), dimension(:,:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-         real(DP), dimension(:,:), allocatable, intent(inout) :: discards     !! Array discards
-         logical,  dimension(:),                intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-         logical,                               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      end subroutine swiftest_util_spill_arr_DPvec
-
-      module subroutine swiftest_util_spill_arr_I4B(keeps, discards, lspill_list, ldestructive)
-         implicit none
-         integer(I4B), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-         integer(I4B), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-         logical,      dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
-         logical,                                 intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      end subroutine swiftest_util_spill_arr_I4B
-
-      module subroutine swiftest_util_spill_arr_I8B(keeps, discards, lspill_list, ldestructive)
-         implicit none
-         integer(I8B), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-         integer(I8B), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-         logical,      dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
-         logical,                                 intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      end subroutine swiftest_util_spill_arr_I8B
-
+   interface util_spill
       module subroutine swiftest_util_spill_arr_info(keeps, discards, lspill_list, ldestructive)
          implicit none
          type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
@@ -1880,14 +1670,6 @@ module swiftest
          logical,                dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
          logical,                                           intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine swiftest_util_spill_arr_kin
-
-      module subroutine swiftest_util_spill_arr_logical(keeps, discards, lspill_list, ldestructive)
-         implicit none
-         logical, dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-         logical, dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-         logical, dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
-         logical,                            intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
-      end subroutine swiftest_util_spill_arr_logical
    end interface
 
    interface 
@@ -1917,22 +1699,6 @@ module swiftest
 
    end interface
 
-   interface swiftest_util_unique
-      module subroutine swiftest_util_unique_DP(input_array, output_array, index_map)
-         implicit none
-         real(DP),     dimension(:),              intent(in)  :: input_array  !! Unsorted input array
-         real(DP),     dimension(:), allocatable, intent(out) :: output_array !! Sorted array of unique values
-         integer(I4B), dimension(:), allocatable, intent(out) :: index_map    !! An array of the same size as input_array that such that any for any index i, output_array(index_map(i)) = input_array(i)     
-      end subroutine swiftest_util_unique_DP
-
-      module subroutine swiftest_util_unique_I4B(input_array, output_array, index_map)
-         implicit none
-         integer(I4B), dimension(:),              intent(in)  :: input_array  !! Unsorted input array
-         integer(I4B), dimension(:), allocatable, intent(out) :: output_array !! Sorted array of unique values
-         integer(I4B), dimension(:), allocatable, intent(out) :: index_map    !! An array of the same size as input_array that such that any for any index i, output_array(index_map(i)) = input_array(i)     
-      end subroutine swiftest_util_unique_I4B
-   end interface swiftest_util_unique
-
    interface
       module subroutine swiftest_util_valid_id_system(self, param)
          implicit none
@@ -1944,6 +1710,106 @@ module swiftest
          implicit none
       end subroutine swiftest_util_version
    end interface
+
+#ifdef COARRAY
+   interface
+      module subroutine swiftest_coarray_balance_system(nbody_system, param)
+         !! author: David A. Minton
+         !!
+         !! Checks whether or not the system needs to be rebalance. Rebalancing occurs when the image with the smallest number of test particles 
+         !! has <90% of that of the image with the largest number of test particles.
+         implicit none
+         ! Arguments
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system 
+         class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+      end subroutine swiftest_coarray_balance_system
+
+      module subroutine swiftest_coarray_collect_system(nbody_system, param)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system 
+         class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+      end subroutine swiftest_coarray_collect_system
+
+      module subroutine swiftest_coarray_distribute_system(nbody_system, param)
+         implicit none
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system 
+         class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+      end subroutine swiftest_coarray_distribute_system
+   end interface
+
+   interface coclone
+      module subroutine swiftest_coarray_component_clone_info(var,src_img)
+         implicit none
+         type(swiftest_particle_info), intent(inout) :: var
+         integer(I4B), intent(in),optional :: src_img
+      end subroutine swiftest_coarray_component_clone_info
+
+      module subroutine swiftest_coarray_component_clone_info_arr1D(var,src_img)
+         implicit none
+         type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: var
+         integer(I4B), intent(in),optional :: src_img
+      end subroutine swiftest_coarray_component_clone_info_arr1D
+
+      module subroutine swiftest_coarray_component_clone_kin_arr1D(var,src_img)
+         implicit none
+         type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: var
+         integer(I4B), intent(in),optional :: src_img
+      end subroutine swiftest_coarray_component_clone_kin_arr1D
+   end interface
+
+   interface cocollect
+      module subroutine swiftest_coarray_component_collect_info_arr1D(var,dest_img)
+         implicit none
+         type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: var
+         integer(I4B), intent(in),optional :: dest_img
+      end subroutine
+   end interface
+
+   interface 
+      module subroutine swiftest_coarray_coclone_body(self)
+         implicit none
+         class(swiftest_body),intent(inout),codimension[*]  :: self  !! Swiftest body object
+      end subroutine swiftest_coarray_coclone_body
+
+      module subroutine swiftest_coarray_coclone_cb(self)
+         implicit none
+         class(swiftest_cb),intent(inout),codimension[*]  :: self  !! Swiftest cb object
+      end subroutine swiftest_coarray_coclone_cb
+
+      module subroutine swiftest_coarray_coclone_nc(self)
+         implicit none
+         class(swiftest_netcdf_parameters),intent(inout),codimension[*]  :: self  !! Swiftest body object
+      end subroutine swiftest_coarray_coclone_nc
+
+      module subroutine swiftest_coarray_coclone_pl(self)
+         implicit none
+         class(swiftest_pl),intent(inout),codimension[*]  :: self  !! Swiftest pl object
+      end subroutine swiftest_coarray_coclone_pl
+
+      module subroutine swiftest_coarray_coclone_tp(self)
+         implicit none
+         class(swiftest_tp),intent(inout),codimension[*]  :: self  !! Swiftest tp object
+      end subroutine swiftest_coarray_coclone_tp
+
+      module subroutine swiftest_coarray_coclone_system(self)
+         implicit none
+         class(swiftest_nbody_system),intent(inout),codimension[*]  :: self  !! Swiftest nbody system object
+      end subroutine swiftest_coarray_coclone_system
+
+      module subroutine swiftest_coarray_cocollect_body(self)
+         !! Collects all body object array components from all images and combines them into the image 1 body object
+         implicit none
+         class(swiftest_body),intent(inout), codimension[*] :: self !! Swiftest body object
+      end subroutine swiftest_coarray_cocollect_body
+
+      module subroutine swiftest_coarray_cocollect_tp(self)
+         !! Collects all body object array components from all images and combines them into the image 1 body object
+         implicit none
+         class(swiftest_tp),intent(inout), codimension[*] :: self !! Swiftest tp object
+      end subroutine swiftest_coarray_cocollect_tp
+   end interface
+
+#endif
 
    contains
       subroutine swiftest_final_kin(self)

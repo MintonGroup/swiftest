@@ -1,10 +1,10 @@
-!! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+!! Coryright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
 !! This file is part of Swiftest.
 !! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 !! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 !! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
 !! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-!! You should have received a copy of the GNU General Public License along with Swiftest. 
+!! You should have received a cory of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
 submodule (swiftest) s_swiftest_drift
@@ -104,7 +104,7 @@ contains
    end subroutine swiftest_drift_all
 
 
-   pure elemental module subroutine swiftest_drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag) 
+   pure elemental module subroutine swiftest_drift_one(mu, rx, ry, rz, vx, vy, vz, dt, iflag) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Perform Danby drift for one body, redoing drift with smaller substeps if original accuracy is insufficient
@@ -114,18 +114,18 @@ contains
       implicit none
       ! Arguments
       real(DP), intent(in)      :: mu                     !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
-      real(DP), intent(inout)   :: px, py, pz, vx, vy, vz !! Position and velocity of body to drift
+      real(DP), intent(inout)   :: rx, ry, rz, vx, vy, vz !! Position and velocity of body to drift
       real(DP), intent(in)      :: dt                     !! Step size
       integer(I4B), intent(out) :: iflag                  !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       ! Internals
       integer(I4B) :: i
       real(DP)   :: dttmp
 
-      call swiftest_drift_dan(mu, px, py, pz, vx, vy, vz, dt, iflag)
+      call swiftest_drift_dan(mu, rx, ry, rz, vx, vy, vz, dt, iflag)
       if (iflag /= 0) then
          dttmp = 0.1_DP * dt
          do i = 1, 10
-            call swiftest_drift_dan(mu, px, py, pz, vx, vy, vz, dttmp, iflag)
+            call swiftest_drift_dan(mu, rx, ry, rz, vx, vy, vz, dttmp, iflag)
             if (iflag /= 0) exit
          end do
       end if
@@ -134,7 +134,7 @@ contains
    end subroutine swiftest_drift_one
 
 
-   pure subroutine swiftest_drift_dan(mu, px0, py0, pz0, vx0, vy0, vz0, dt0, iflag)
+   pure subroutine swiftest_drift_dan(mu, rx0, ry0, rz0, vx0, vy0, vz0, dt0, iflag)
       !! author: David A. Minton
       !!
       !! Perform Kepler drift, solving Kepler's equation in appropriate variables
@@ -144,23 +144,21 @@ contains
       implicit none
       ! Arguments
       real(DP),     intent(in)    :: mu            !! G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift
-      real(DP),     intent(inout) :: px0, py0, pz0 !! position of body to drift
+      real(DP),     intent(inout) :: rx0, ry0, rz0 !! position of body to drift
       real(DP),     intent(inout) :: vx0, vy0, vz0 !! velocity of body to drift     
       real(DP),     intent(in)    :: dt0           !! time step
       integer(I4B), intent(out)   :: iflag         !! error status flag for Kepler drift (0 = OK, nonzero = NO CONVERGENCE)
       ! Internals
-      real(DP)        :: dt, f, g, fdot, gdot, c1, c2, c3, u, alpha, fp, r0
+      real(DP)        :: rx, ry, rz, vx, vy, vz, dt
+      real(DP)        :: f, g, fdot, gdot, c1, c2, c3, u, alpha, fp, r0
       real(DP)        :: v0s, a, asq, en, dm, ec, es, esq, xkep, fchk, s, c
-      real(DP), dimension(NDIM) :: x, v, x0, v0
 
       ! Executable code
       iflag = 0
       dt = dt0
-      x0 = [px0, py0, pz0]
-      v0 = [vx0, vy0, vz0]
-      r0 = sqrt(dot_product(x0(:), x0(:))) 
-      v0s = dot_product(v0(:), v0(:))
-      u = dot_product(x0(:),  v0(:))
+      r0 = sqrt(rx0*rx0 + ry0*ry0 + rz0*rz0)
+      v0s = vx0*vx0 + vy0*vy0 + vz0*vz0
+      u = rx0*vx0 + ry0*vy0 + rz0*vz0
       alpha = 2 * mu / r0 - v0s
       if (alpha > 0.0_DP) then
          a = mu / alpha
@@ -186,10 +184,19 @@ contains
             g = dt + (s - xkep) / en
             fdot = -(a / (r0 * fp)) * en * s
             gdot = (c - 1.0_DP) / fp + 1.0_DP
-            x(:) = x0(:) * f + v0(:) * g
-            v(:) = x0(:) * fdot + v0(:) * gdot
-            px0 = x(1); py0 = x(2); pz0 = x(3)
-            vx0 = v(1); vy0 = v(2); vz0 = v(3)
+            rx = rx0 * f + vx0 * g
+            ry = ry0 * f + vy0 * g
+            rz = rz0 * f + vz0 * g
+            vx = rx0 * fdot + vx0 * gdot
+            vy = ry0 * fdot + vy0 * gdot
+            vz = rz0 * fdot + vz0 * gdot
+
+            rx0 = rx
+            ry0 = ry
+            rz0 = rz
+            vx0 = vx
+            vy0 = vy
+            vz0 = vz
             iflag = 0
             return
          end if
@@ -201,10 +208,19 @@ contains
          g = dt - mu * c3
          fdot = -mu / (fp * r0) * c1
          gdot = 1.0_DP - mu / fp * c2
-         x(:) = x0(:) * f + v0(:) * g
-         v(:) = x0(:) * fdot + v0(:) * gdot
-         px0 = x(1); py0 = x(2); pz0 = x(3)
-         vx0 = v(1); vy0 = v(2); vz0 = v(3)
+         rx = rx0 * f + vx0 * g
+         ry = ry0 * f + vy0 * g
+         rz = rz0 * f + vz0 * g
+         vx = rx0 * fdot + vx0 * gdot
+         vy = ry0 * fdot + vy0 * gdot
+         vz = rz0 * fdot + vz0 * gdot
+
+         rx0 = rx
+         ry0 = ry
+         rz0 = rz
+         vx0 = vx
+         vy0 = vy
+         vz0 = vz
       end if
 
       return

@@ -32,7 +32,8 @@ newfeaturelist = ("RESTART",
                   "ENCOUNTER_CHECK",
                   "TSTART",
                   "DUMP_CADENCE",
-                  "ENCOUNTER_SAVE")
+                  "ENCOUNTER_SAVE",
+                  "COARRAY")
 
 # This list defines features that are booleans, so must be converted to/from string when writing/reading from file
 bool_param = ["RESTART",
@@ -46,7 +47,8 @@ bool_param = ["RESTART",
               "ENERGY",
               "GR",
               "YARKOVSKY",
-              "YORP"]
+              "YORP",
+              "COARRAY"]
 
 int_param = ["ISTEP_OUT", "DUMP_CADENCE"]
 float_param = ["T0", "TSTART", "TSTOP", "DT", "CHK_RMIN", "CHK_RMAX", "CHK_EJECT", "CHK_QMIN", "DU2M", "MU2KG",
@@ -59,7 +61,7 @@ param_keys = ['! VERSION'] + int_param + float_param + upper_str_param + lower_s
 
 # This defines Xarray Dataset variables that are strings, which must be processed due to quirks in how NetCDF-Fortran
 # handles strings differently than Python's Xarray.
-string_varnames = ["name", "particle_type", "status", "origin_type", "stage", "regime"]
+string_varnames = ["name", "particle_type", "origin_type", "stage", "regime"]
 char_varnames = ["space"]
 int_varnames = ["id", "ntp", "npl", "nplm", "discard_body_id", "collision_id", "status"]
 

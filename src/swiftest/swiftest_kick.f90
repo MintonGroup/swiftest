@@ -22,7 +22,9 @@ contains
       class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
       ! Internals
       logical, save :: lfirst = .true.
-
+#ifdef PROFILE
+      type(walltimer), save :: timer 
+#endif
 
       if (param%lflatten_interactions) then
          if (param%lclose) then

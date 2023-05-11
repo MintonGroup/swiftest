@@ -102,7 +102,11 @@ module globals
    !> Standard file names
    integer(I4B), parameter :: NDUMPFILES = 2
    character(*), parameter :: PARAM_RESTART_FILE = "param.restart.in"
-   character(*), parameter :: SWIFTEST_LOG_FILE = "swiftest.log" !! Name of file to use to log output when using "COMPACT" display style
+#ifdef COARRAY
+   character(STRMAX)       :: SWIFTEST_LOG_FILE                  !! Name of file to use to log output when using "COMPACT" or "PROGRESS" display style (each co-image gets its own log file)
+#else
+   character(*), parameter :: SWIFTEST_LOG_FILE = "swiftest.log" !! Name of file to use to log output when using "COMPACT" or "PROGRESS" display style
+#endif
    integer(I4B), parameter :: SWIFTEST_LOG_OUT = 33 !! File unit for log file when using "COMPACT" display style 
 
    !> Default file names that can be changed by the user in the parameters file

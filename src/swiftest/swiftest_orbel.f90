@@ -690,7 +690,7 @@ contains
    end function swiftest_orbel_fhybrid
    
 
-   pure elemental module subroutine swiftest_orbel_xv2aeq(mu, px, py, pz, vx, vy, vz, a, e, q)
+   pure elemental module subroutine swiftest_orbel_xv2aeq(mu, rx, ry, rz, vx, vy, vz, a, e, q)
       !! author: David A. Minton
       !!
       !! Compute semimajor axis, eccentricity, and pericentric distance from relative Cartesian position and velocity
@@ -700,25 +700,27 @@ contains
       implicit none
       !! Arguments
       real(DP), intent(in)  :: mu !! Gravitational constant
-      real(DP), intent(in)  :: px,py,pz  !! Position vector
+      real(DP), intent(in)  :: rx,ry,rz  !! Position vector
       real(DP), intent(in)  :: vx,vy,vz  !! Velocity vector
       real(DP), intent(out) :: a  !! semimajor axis
       real(DP), intent(out) :: e  !! eccentricity
       real(DP), intent(out) :: q  !! periapsis
       ! Internals
       integer(I4B) :: iorbit_type
-      real(DP)   :: r, v2, h2, energy, fac
-      real(DP), dimension(NDIM) :: hvec, x, v
+      real(DP)   :: hx, hy, hz, r, v2, h2, energy, fac
 
       a = 0.0_DP
       e = 0.0_DP
       q = 0.0_DP
-      x = [px, py, pz]
-      v = [vx, vy, vz]
-      r = .mag.x(:)
-      v2 = dot_product(v(:), v(:))
-      hvec(:) = x(:) .cross. v(:)
-      h2 = dot_product(hvec(:), hvec(:))
+
+      r = sqrt(rx*rx + ry*ry + rz*rz)
+      v2 = vx*vx + vy*vy + vz*vz
+
+      hx = ry*vz - rz*vy
+      hy = rz*vx - rx*vz
+      hz = rx*vy - ry*vx
+      h2 = hx*hx + hy*hy + hz*hz
+
       if (h2 == 0.0_DP) return
       energy = 0.5_DP * v2 - mu / r
       if (abs(energy * r / mu) < sqrt(TINYVALUE)) then
@@ -755,7 +757,7 @@ contains
    end subroutine swiftest_orbel_xv2aeq
 
 
-   pure module subroutine swiftest_orbel_xv2aqt(mu, px, py, pz, vx, vy, vz, a, q, capm, tperi)
+   pure module subroutine swiftest_orbel_xv2aqt(mu, rx, ry, rz, vx, vy, vz, a, q, capm, tperi)
       !! author: David A. Minton
       !!
       !! Compute semimajor axis, pericentric distance, mean anomaly, and time to nearest pericenter passage from
@@ -767,7 +769,7 @@ contains
       implicit none
       ! Arguments
       real(DP), intent(in)  :: mu    !! Gravitational constant
-      real(DP), intent(in)  :: px,py,pz !! Position vector
+      real(DP), intent(in)  :: rx,ry,rz !! Position vector
       real(DP), intent(in)  :: vx,vy,vz !! Velocity vector
       real(DP), intent(out) :: a     !! semimajor axis
       real(DP), intent(out) :: q     !! periapsis
@@ -775,21 +777,21 @@ contains
       real(DP), intent(out) :: tperi !! time of pericenter passage
       ! Internals
       integer(I4B) :: iorbit_type
-      real(DP)   :: r, v2, h2, rdotv, energy, fac, w, face, cape, e, tmpf, capf, mm
-      real(DP), dimension(NDIM) :: hvec, x, v
+      real(DP)   :: hx, hy, hz, r, v2, h2, rdotv, energy, fac, w, face, cape, e, tmpf, capf, mm
 
       a = 0.0_DP
       q = 0.0_DP
       capm = 0.0_DP
       tperi = 0.0_DP
-      x = [px, py, pz]
-      v = [vx, vy, vz]
-      r = sqrt(dot_product(x(:), x(:)))
-      v2 = dot_product(v(:), v(:))
-      hvec(:) = x(:) .cross. v(:)
-      h2 = dot_product(hvec(:), hvec(:))
+      hx = ry*vz - rz*vy
+      hy = rz*vx - rx*vz
+      hz = rx*vy - ry*vx
+      h2 = hx*hx + hy*hy + hz*hz
       if (h2 == 0.0_DP) return
-      rdotv = dot_product(x(:), v(:))
+
+      r = sqrt(rx*rx + ry*ry + rz*rz)
+      v2 = vx*vx + vy*vy + vz*vz
+      rdotv = rx*vx + ry*vy + rz*vz 
       energy = 0.5_DP * v2 - mu / r
       if (abs(energy * r / mu) < sqrt(TINYVALUE)) then
          iorbit_type = PARABOLA
@@ -897,7 +899,7 @@ contains
    end subroutine swiftest_orbel_xv2el_vec 
 
 
-   pure module subroutine swiftest_orbel_xv2el(mu, px, py, pz, vx, vy, vz, a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf)
+   pure module subroutine swiftest_orbel_xv2el(mu, rx, ry, rz, vx, vy, vz, a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf)
       !! author: David A. Minton
       !!
       !! Compute osculating orbital elements from relative Cartesian position and velocity
@@ -915,7 +917,7 @@ contains
       implicit none
       ! Arguments
       real(DP), intent(in)  :: mu    !! Gravitational constant
-      real(DP), intent(in)  :: px,py,pz    !! Position vector
+      real(DP), intent(in)  :: rx,ry,rz    !! Position vector
       real(DP), intent(in)  :: vx,vy,vz !! Velocity vector
       real(DP), intent(out) :: a     !! semimajor axis
       real(DP), intent(out) :: e     !! eccentricity
@@ -930,8 +932,7 @@ contains
       real(DP), intent(out) :: capf  !! hyperbolic anomaly (hyperbolic orbits)
       ! Internals
       integer(I4B) :: iorbit_type
-      real(DP)   :: r, v2, h2, h, rdotv, energy, fac, u, w, cw, sw, face, tmpf, sf, cf, rdot, h_over_r2
-      real(DP), dimension(NDIM) :: hvec, x, v
+      real(DP)   :: hx, hy, hz, r, v2, h2, h, rdotv, energy, fac, u, w, cw, sw, face, tmpf, sf, cf, rdot, h_over_r2
 
       a = 0.0_DP
       e = 0.0_DP
@@ -944,29 +945,37 @@ contains
       f = 0.0_DP
       cape = 0.0_DP
       capf = 0.0_DP
-      x = [px, py, pz]
-      v = [vx, vy, vz]
-      r = .mag. x(:)
-      v2 = dot_product(v(:), v(:))
-      hvec = x(:) .cross. v(:)
-      h2 = dot_product(hvec(:), hvec(:)) 
-      h = .mag. hvec(:)
+
+      hx = ry*vz - rz*vy
+      hy = rz*vx - rx*vz
+      hz = rx*vy - ry*vx
+      h2 = hx*hx + hy*hy +hz*hz
+      h  = sqrt(h2)
+      if(hz>h) then                 ! Hal's fix
+         hz = h
+         hx = 0.0_DP
+         hy = 0.0_DP
+      endif
       if (h2 <= 10 * tiny(0.0_DP)) return
-      rdotv = dot_product(x(:), v(:))
+      h = SQRT(h2)
+
+      r = sqrt(rx*rx + ry*ry + rz*rz)
+      v2 = vx*vx + vy*vy + vz*vz
+      rdotv = rx*vx + ry*vy + rz*vz
       energy = 0.5_DP * v2 - mu / r
-      fac = hvec(3) / h
+      fac = hz / h
       if (fac < -1.0_DP) then
          inc = PI
       else if (fac < 1.0_DP) then
          inc = acos(fac)
       end if
-      fac = sqrt(hvec(1)**2 + hvec(2)**2) / h
+      fac = sqrt(hx**2 + hy**2) / h
       if (fac**2 < TINYVALUE) then
-         u = atan2(py, px)
-         if (hvec(3) < 0.0_DP) u = -u
+         u = atan2(ry, rx)
+         if (hz < 0.0_DP) u = -u
       else
-         capom = atan2(hvec(1), -hvec(2))
-         u = atan2(pz / sin(inc), px * cos(capom) + py * sin(capom))
+         capom = atan2(hx, -hy)
+         u = atan2(rz / sin(inc), rx * cos(capom) + ry * sin(capom))
       end if
       if (capom < 0.0_DP) capom = capom + TWOPI
       if (u < 0.0_DP) u = u + TWOPI
