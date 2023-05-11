@@ -19,7 +19,11 @@ module collision
    public
 
    character(len=*), parameter :: COLLISION_OUTFILE = 'collisions.nc'  !! Name of NetCDF output file for collision information
+#ifdef COARRAY
+   character(len=STRMAX) :: COLLISION_LOG_OUT !! Name of log file for collision diagnostic information (each co-image gets its own)
+#else
    character(len=*), parameter :: COLLISION_LOG_OUT = "collisions.log" !! Name of log file for collision diagnostic information
+#endif
 
    !>Symbolic names for collisional outcomes from collresolve_resolve:
    integer(I4B), parameter :: COLLRESOLVE_REGIME_MERGE              =  1
@@ -97,8 +101,10 @@ module collision
 
 
    !> Class definition for the variables that describe a collection of fragments in barycentric coordinates
-   type, extends(base_multibody) :: collision_fragments
+   type, extends(base_object) :: collision_fragments
+      integer(I4B)                                           :: nbody = 0    !! Number of bodies
       real(DP)                                               :: mtot         !! Total mass of fragments       
+      integer(I4B),              dimension(:),   allocatable :: id           !! Identifier
       class(base_particle_info), dimension(:),   allocatable :: info         !! Particle metadata information
       integer(I4B),              dimension(:),   allocatable :: status       !! An integrator-specific status indicator 
       real(DP),                  dimension(:,:), allocatable :: rh           !! Heliocentric position

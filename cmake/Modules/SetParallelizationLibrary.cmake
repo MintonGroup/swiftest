@@ -7,11 +7,6 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 
-# Turns on either OpenMP or MPI
-# If both are requested, the other is disabled
-# When one is turned on, the other is turned off
-# If both are off, we explicitly disable them just in case
-
 IF (USE_OPENMP)
     # Find OpenMP
     IF (NOT OpenMP_Fortran_FLAGS)
@@ -20,23 +15,22 @@ IF (USE_OPENMP)
             MESSAGE (FATAL_ERROR "Fortran compiler does not support OpenMP")
         ENDIF (NOT OpenMP_Fortran_FLAGS)
     ENDIF (NOT OpenMP_Fortran_FLAGS)
-    # Turn of MPI
 ENDIF (USE_OPENMP)
 
-IF (USE_MPI)
-    # Find MPI
-    IF (NOT MPI_Fortran_FOUND)
-        FIND_PACKAGE (MPI REQUIRED)
-    ENDIF (NOT MPI_Fortran_FOUND)
-ENDIF (USE_MPI)
+IF (USE_COARRAY)
+    IF (NOT Coarray_Fortran_FLAGS)
+        FIND_PACKAGE (Coarray_Fortran)
+        IF (NOT Coarray_Fortran_FLAGS)
+            MESSAGE (FATAL_ERROR "Fortran compiler does not support Coarrays")
+        ENDIF (NOT Coarray_Fortran_FLAGS)
+    ENDIF (NOT Coarray_Fortran_FLAGS)
+ENDIF (USE_COARRAY)
 
-IF (NOT USE_OPENMP AND NOT USE_MPI)
-    # Turn off both OpenMP and MPI
+IF (NOT USE_OPENMP AND NOT USE_COARRAY)
+    # Turn off both OpenMP and CAF
     SET (OMP_NUM_PROCS 0 CACHE
          STRING "Number of processors OpenMP may use" FORCE)
     UNSET (OpenMP_Fortran_FLAGS CACHE)
+    UNSET (Coarray_Fortran_FLAGS CACHE)
     UNSET (GOMP_Fortran_LINK_FLAGS CACHE)
-    UNSET (MPI_FOUND CACHE)
-    UNSET (MPI_COMPILER CACHE)
-    UNSET (MPI_LIBRARY CACHE)
-ENDIF (NOT USE_OPENMP AND NOT USE_MPI)
+ENDIF (NOT USE_OPENMP AND NOT USE_COARRAY)

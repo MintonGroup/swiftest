@@ -48,10 +48,13 @@ module whm
       procedure :: set_mu      => whm_util_set_mu_eta_pl     !! Sets the Jacobi mass value for all massive bodies.
       procedure :: sort        => whm_util_sort_pl           !! Sort a WHM massive body object in-place. 
       procedure :: rearrange   => whm_util_sort_rearrange_pl !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
-      procedure :: spill       => whm_util_spill_pl          !!"Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      procedure :: setup       => whm_util_setup_pl               !! Constructor method - Allocates space for the input number of bodiess
+      procedure :: spill       => whm_util_spill_pl          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: setup       => whm_util_setup_pl          !! Constructor method - Allocates space for the input number of bodiess
       procedure :: step        => whm_step_pl                !! Steps the body forward one stepsize
-      final     ::                whm_final_pl          !! Finalizes the WHM massive body object - deallocates all allocatables
+      final     ::                whm_final_pl               !! Finalizes the WHM massive body object - deallocates all allocatables
+#ifdef COARRAY
+      procedure :: coclone      => whm_coarray_coclone_pl       !! Clones the image 1 body object to all other images in the coarray structure.
+#endif 
    end type whm_pl
 
 
@@ -180,10 +183,11 @@ module whm
          class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
       end subroutine whm_util_setup_pl
 
-      module subroutine whm_util_setup_initialize_system(self, param)
+      module subroutine whm_util_setup_initialize_system(self, system_history, param)
          implicit none
-         class(whm_nbody_system),    intent(inout) :: self   !! WHM nbody system object
-         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+         class(whm_nbody_system),                 intent(inout) :: self            !! WHM nbody system object
+         class(swiftest_storage),    allocatable, intent(inout) :: system_history  !! Stores the system history between output dumps
+         class(swiftest_parameters),              intent(inout) :: param           !! Current run configuration parameters 
       end subroutine whm_util_setup_initialize_system
 
       module subroutine whm_step_pl(self, nbody_system, param, t, dt)
@@ -269,6 +273,15 @@ module whm
          integer(I4B),  dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
       end subroutine whm_util_sort_rearrange_pl
    end interface
+
+#ifdef COARRAY
+   interface
+      module subroutine whm_coarray_coclone_pl(self)
+         implicit none
+         class(whm_pl),intent(inout),codimension[*]  :: self  !! WHM pl object
+      end subroutine whm_coarray_coclone_pl
+   end interface
+#endif
 
    contains
 

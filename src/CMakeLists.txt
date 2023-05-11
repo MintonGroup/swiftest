@@ -83,10 +83,26 @@ SET(FAST_MATH_FILES
             ${SRC}/swiftest/swiftest_driver.f90
 )
 
-set(SWIFTEST_src ${FAST_MATH_FILES} ${STRICT_MATH_FILES})
+SET(COARRAY_FILES
+            ${SRC}/coarray/coarray_module.f90
+            ${SRC}/coarray/coarray_clone.f90
+            ${SRC}/coarray/coarray_collect.f90
+            ${SRC}/swiftest/swiftest_coarray.f90
+            ${SRC}/whm/whm_coarray.f90
+            ${SRC}/rmvs/rmvs_coarray.f90
+)
+
+IF(USE_COARRAY)
+    set(SWIFTEST_src ${COARRAY_FILES} ${FAST_MATH_FILES} ${STRICT_MATH_FILES})
+ELSE()
+    set(SWIFTEST_src ${FAST_MATH_FILES} ${STRICT_MATH_FILES})
+ENDIF(USE_COARRAY)
 
 # Define the executable in terms of the source files
 ADD_EXECUTABLE(${SWIFTEST_DRIVER} ${SWIFTEST_src})
+
+# Turn preprocessor on for all files
+SET_SOURCE_FILES_PROPERTIES(${SWIFTEST_src} PROPERTIES Fortran_PREPROCESS ON)
 
 #####################################################
 # Add the needed libraries and special compiler flags
@@ -99,13 +115,13 @@ IF(USE_OPENMP)
     SET_TARGET_PROPERTIES(${SWIFTEST_DRIVER} PROPERTIES
                           COMPILE_FLAGS "${OpenMP_Fortran_FLAGS}"
                           LINK_FLAGS "${OpenMP_Fortran_FLAGS}")
-ELSEIF(USE_MPI)
-    SET_TARGET_PROPERTIES(${SWIFTEST_DRIVER} PROPERTIES
-                          COMPILE_FLAGS "${MPI_Fortran_COMPILE_FLAGS}"
-                          LINK_FLAGS "${MPI_Fortran_LINK_FLAGS}")
-    INCLUDE_DIRECTORIES(${MPI_Fortran_INCLUDE_PATH})
-    TARGET_LINK_LIBRARIES(${SWIFTEST_DRIVER} ${MPI_Fortran_LIBRARIES})
 ENDIF(USE_OPENMP)
+
+IF(USE_COARRAY)
+    SET_TARGET_PROPERTIES(${SWIFTEST_DRIVER} PROPERTIES
+                          COMPILE_FLAGS "${Coarray_Fortran_FLAGS}"
+                          LINK_FLAGS "${Coarray_Fortran_FLAGS}")
+ENDIF(USE_COARRAY)
 
 
 #####################################
@@ -127,3 +143,8 @@ IF(BT STREQUAL "RELEASE" OR BT STREQUAL "PROFILE")
    SET_PROPERTY(SOURCE ${FAST_MATH_FILES} APPEND_STRING PROPERTY COMPILE_FLAGS "${FASTMATH_FLAGS}")
 ENDIF()
 
+IF(BT STREQUAL "DEBUG")
+   ADD_DEFINITIONS(-DDEBUG)
+ELSEIF(BT STREQUAL "PROFILE")
+   ADD_DEFINITIONS(-DPROFILE)
+ENDIF()

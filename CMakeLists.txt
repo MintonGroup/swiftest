@@ -28,10 +28,12 @@ IF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
 ENDIF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
 
 # Set some options the user may choose
-# Uncomment the below if you want the user to choose a parallelization library
-OPTION(USE_MPI "Use the MPI library for parallelization" ON)
+OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
 OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
 
+IF (USE_COARRAY)
+  ADD_DEFINITIONS(-DCOARRAY)
+ENDIF()
 
 # Locate and set parallelization libraries.  There are some CMake peculiarities
 # taken care of here, such as the fact that the FindOpenMP routine doesn't know

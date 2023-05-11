@@ -188,8 +188,8 @@ contains
             end if
 
             ! Sort the distribution in descending order by mass so that the largest fragment is always the first
-            call swiftest_util_sort(-mass, ind)
-            call swiftest_util_sort_rearrange(mass, ind, nfrag)
+            call util_sort(-mass, ind)
+            call util_sort_rearrange(mass, ind, nfrag)
             call move_alloc(mass, fragments%mass)
 
             fragments%Gmass(:) = G * fragments%mass(:)
