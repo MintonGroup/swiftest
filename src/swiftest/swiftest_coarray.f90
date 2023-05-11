@@ -510,6 +510,7 @@ contains
         integer(I4B) :: i,img, ti, di, ntot, istart, iend, nmax
         integer(I4B), allocatable :: n[:]
         logical, allocatable :: isalloc[:]
+        type(swiftest_particle_info), dimension(:), allocatable :: vari1
   
         allocate(isalloc[*])
         allocate(n[*])
@@ -538,7 +539,8 @@ contains
         if (this_image() == di) then
            do img = 1, num_images()
               if (img /= di) then
-                 call util_append(var, tmp(1:n[img])[img])
+                allocate(vari1, source=tmp(1:n[img])[img])
+                call util_append(var, vari1)
                  n = n + n[img]
               end if
            end do
