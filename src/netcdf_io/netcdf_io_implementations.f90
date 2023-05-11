@@ -62,6 +62,7 @@ contains
       integer(I4B),             intent(out)   :: tslot !! The index of the time slot where this data belongs
       ! Internals
       real(DP), dimension(:), allocatable :: tvals
+      integer(I4B) :: i
 
 
       if (.not.self%lfile_is_open) return
@@ -75,11 +76,12 @@ contains
       else
          allocate(tvals(1))
          tvals(1) = huge(1.0_DP)
+         self%max_tslot = 1
       end if
 
       tslot = 1
-      do 
-         if ((t <= tvals(tslot)) .or. (tslot > self%max_tslot)) exit
+      do i = 1, self%max_tslot
+         if (t <= tvals(tslot)) exit
          tslot = tslot + 1
       end do
       self%max_tslot = max(self%max_tslot, tslot)
