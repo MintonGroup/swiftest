@@ -414,22 +414,20 @@ contains
       class(swiftest_parameters),   intent(inout)     :: param  !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: i
+      type(walltimer) :: iotimer
 
       if (self%iframe == 0) return
       call self%make_index_map()
       associate(nc => self%nc)
 #ifdef COARRAY
-         critical
+         sync all
+         if (param%lcoarray .and. (this_image() /= 1)) sync images(this_image() - 1)
+         write(param%display_unit,*) "File output started"
+         call iotimer%start()
 #endif
          call nc%open(param)
-#ifdef COARRAY
-         end critical
-#endif
          do i = 1, self%iframe
             ! Writing files is more efficient if we write out the common frames from each image before going to the next frame
-#ifdef COARRAY  
-            if (param%lcoarray .and. (this_image() /= 1)) sync images(this_image() - 1)
-#endif 
             if (allocated(self%frame(i)%item)) then
                select type(nbody_system => self%frame(i)%item)
                class is (swiftest_nbody_system)
@@ -437,19 +435,13 @@ contains
                end select
                deallocate(self%frame(i)%item)
             end if
-#ifdef COARRAY  
-            if (param%lcoarray .and. (this_image() < num_images())) sync images(this_image() + 1)
-            sync all
-#endif
          end do
-#ifdef COARRAY
-         if (this_image() == 1) then
-#endif
-            call nc%close()
-#ifdef COARRAY
-         else
-            nc%lfile_is_open = .false.
-         end if 
+         call nc%close()
+#ifdef COARRAY  
+         if (param%lcoarray .and. (this_image() < num_images())) sync images(this_image() + 1)
+         call iotimer%stop()
+         call iotimer%report(message="File output :", unit=param%display_unit)
+         sync all
 #endif
       end associate
 
