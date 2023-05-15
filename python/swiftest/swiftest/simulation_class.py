@@ -2223,9 +2223,9 @@ class Simulation(object):
             values = list(np.hsplit(np.array(body_list[0],dtype=np.dtype(object)),17))
         else:
             values = list(np.squeeze(np.hsplit(np.array(body_list,np.dtype(object)),17)))
-        keys = ["id","name","a","e","inc","capom","omega","capm","rh","vh","Gmass","radius","rhill","Ip","rot","J2","J4"]
+        keys = ["id","name","a","e","inc","capom","omega","capm","rh","vh","Gmass","radius","rhill","Ip","rot","j2rp2","j4rp4"]
         kwargs = dict(zip(keys,values))
-        scalar_floats = ["a","e","inc","capom","omega","capm","Gmass","radius","rhill","J2","J4"]
+        scalar_floats = ["a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4"]
         vector_floats = ["rh","vh","Ip","rot"]
         scalar_ints = ["id"]
 
@@ -2434,7 +2434,7 @@ class Simulation(object):
         Hill's radius values if these are massive bodies
         rot: (3) or (n,3) array-like of float, optional
         Rotation rate vectors if these are massive bodies with rotation enabled.
-        Ip: (3) or (n,3) array-like of flaot, optional
+        Ip: (3) or (n,3) array-like of float, optional
         Principal axes moments of inertia vectors if these are massive bodies with rotation enabled.
 
         Returns
@@ -2451,7 +2451,7 @@ class Simulation(object):
             elif t == "i":
                 t = np.int64
             elif t == "s":
-                t = np.str
+                t = str
 
             if val is None:
                 return None, n
@@ -2551,7 +2551,7 @@ class Simulation(object):
                 Gmass = self.GU * mass
 
         dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
-                                 Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, J2=J2, J4=J4, time=time)
+                                 Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, time=time)
 
         dsnew = self._combine_and_fix_dsnew(dsnew)
         self.save(verbose=False)
