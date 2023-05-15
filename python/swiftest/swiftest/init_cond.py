@@ -233,7 +233,7 @@ def vec2xr(param: Dict, **kwargs: Any):
     Parameters
     ----------
     param : dict
-        Swiftest paramuration parameters.
+        Swiftest simulation parameters.
     name : str or array-like of str, optional
         Name or names of Bodies. If none passed, name will be "Body<id>"
     id : int or array-like of int, optional
@@ -252,9 +252,9 @@ def vec2xr(param: Dict, **kwargs: Any):
     capm : float or array-like of float, optional
         mean anomaly for param['IN_FORM'] == "EL"
     rh : (n,3) array-like of float, optional
-        Position vector array. This can be used instead of passing v1, v2, and v3 sepearately for "XV" input format
+        Position vector array.
     vh : (n,3) array-like of float, optional
-        Velocity vector array. This can be used instead of passing v4, v5, and v6 sepearately for "XV" input format
+        Velocity vector array. 
     Gmass : float or array-like of float, optional
         G*mass values if these are massive bodies (only one of mass or Gmass can be passed)
     radius : float or array-like of float, optional
