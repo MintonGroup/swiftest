@@ -1441,13 +1441,19 @@ class Simulation(object):
             if "IN_FORM" in self.param:
                 init_cond_format = self.param['IN_FORM']
             else:
-                init_cond_format = "EL"
+                if self.codename.title() == "Swiftest":
+                    init_cond_format = "EL"
+                else:
+                    init_cond_format = "XV"
 
         if init_cond_file_type is None:
             if "IN_TYPE" in self.param:
                 init_cond_file_type = self.param['IN_TYPE']
             else:
-                init_cond_file_type = "NETCDF_DOUBLE"
+                if self.codename.title() == "Swiftest":
+                    init_cond_file_type = "NETCDF_DOUBLE"
+                else:
+                    init_cond_file_type = "ASCII"
 
         if self.codename.title() == "Swiftest":
             init_cond_keys = ["CB", "PL", "TP"]
@@ -1664,10 +1670,11 @@ class Simulation(object):
         else:
             self.param['BIN_OUT'] = output_file_name
 
-        if output_format != "XV" and self.codename != "Swiftest":
-            warnings.warn(f"{output_format} is not compatible with {self.codename}. Setting to XV",stacklevel=2)
-            output_format = "XV"
-        self.param["OUT_FORM"] = output_format
+        if output_format is not None:
+            if output_format != "XV" and self.codename != "Swiftest":
+                warnings.warn(f"{output_format} is not compatible with {self.codename}. Setting to XV",stacklevel=2)
+                output_format = "XV"
+            self.param["OUT_FORM"] = output_format
 
         if self.restart:
             self.param["OUT_STAT"] = "APPEND"
