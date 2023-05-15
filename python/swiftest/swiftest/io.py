@@ -16,6 +16,7 @@ import xarray as xr
 import sys
 import tempfile
 import re
+import os
 
 # This defines features that are new in Swiftest and not in Swifter (for conversion between param.in files)
 newfeaturelist = ("RESTART",
@@ -30,9 +31,14 @@ newfeaturelist = ("RESTART",
                   "SEED",
                   "INTERACTION_LOOPS",
                   "ENCOUNTER_CHECK",
+                  "ENCOUNTER_CHECK_PLPL",
+                  "ENCOUNTER_CHECK_PLTP",
                   "TSTART",
                   "DUMP_CADENCE",
                   "ENCOUNTER_SAVE",
+                  "MIN_GMFRAG",
+                  "NFRAG_REDUCTION",
+                  "COLLISION_MODEL",
                   "COARRAY")
 
 # This list defines features that are booleans, so must be converted to/from string when writing/reading from file
@@ -1227,7 +1233,7 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
         print(f"{in_type} is an unknown file type")
 
 
-def swifter_xr2infile(ds, param, framenum=-1):
+def swifter_xr2infile(ds, param, simdir=os.getcwd, framenum=-1):
     """
     Writes a set of Swifter input files from a single frame of a Swiftest xarray dataset
 
@@ -1266,7 +1272,7 @@ def swifter_xr2infile(ds, param, framenum=-1):
     
     if param['IN_TYPE'] == 'ASCII':
         # Swiftest Central body file
-        plfile = open(param['PL_IN'], 'w')
+        plfile = open(os.path.join(simdir,param['PL_IN']), 'w')
         print(pl.id.count().values + 1, file=plfile)
         print(cb.id.values[0], GMSun, file=plfile)
         print('0.0 0.0 0.0', file=plfile)
@@ -1279,21 +1285,20 @@ def swifter_xr2infile(ds, param, framenum=-1):
                 print(i.values, pli['Gmass'].values, file=plfile)
             if param['CHK_CLOSE']:
                 print(pli['radius'].values, file=plfile)
-            print(pli['rh'].values[0,0], pli['ry'].values[0,1], pli['rh'].values[0,2], file=plfile)
-            print(pli['vh'].values[0,0], pli['vh'].values[0,1], pli['vh'].values[0,2], file=plfile)
+            print(pli['rh'].values[0], pli['rh'].values[1], pli['rh'].values[2], file=plfile)
+            print(pli['vh'].values[0], pli['vh'].values[1], pli['vh'].values[2], file=plfile)
         plfile.close()
         
         # TP file
-        tpfile = open(param['TP_IN'], 'w')
+        tpfile = open(os.path.join(simdir,param['TP_IN']), 'w')
         print(tp.id.count().values, file=tpfile)
         for i in tp.id:
             tpi = tp.sel(id=i)
             print(i.values, file=tpfile)
-            print(tpi['rh'].values[0,0], tpi['ry'].values[0,1], tpi['rh'].values[0,2], file=tpfile)
-            print(tpi['vh'].values[0,0], tpi['vh'].values[0,1], tpi['vh'].values[0,2], file=tpfile)
+            print(tpi['rh'].values[0], tpi['rh'].values[1], tpi['rh'].values[2], file=tpfile)
+            print(tpi['vh'].values[0], tpi['vh'].values[1], tpi['vh'].values[2], file=tpfile)
         tpfile.close()
     else:
-        # Now make Swiftest files
         print(f"{param['IN_TYPE']} is an unknown input file type")
 
     return
@@ -1848,6 +1853,8 @@ def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
            swifter_param['C'] =  swiftest.einsteinC * np.longdouble(TU2S) / np.longdouble(DU2M)
     for key in newfeaturelist:
        tmp = swifter_param.pop(key, None)
+    if "ISTEP_DUMP" not in swifter_param:
+        swifter_param["ISTEP_DUMP"] = swifter_param["ISTEP_OUT"]
     swifter_param['J2'] = J2
     swifter_param['J4'] = J4
     if swifter_param['OUT_STAT'] == "REPLACE":
@@ -1858,11 +1865,6 @@ def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
        swifter_param['OUT_TYPE'] = 'REAL4'
     if swifter_param['OUT_FORM'] == 'XVEL':
        swifter_param['OUT_FORM'] = 'XV'
-    IN_FORM = swifter_param.pop("IN_FORM", None)
-    INTERACTION_LOOPS = swifter_param.pop("INTERACTION_LOOPS", None)
-    ENCOUNTER_CHECK = swifter_param.pop("ENCOUNTER_CHECK", None)
-    ENCOUNTER_CHECK_PLPL = swifter_param.pop("ENCOUNTER_CHECK_PLPL", None)
-    ENCOUNTER_CHECK_PLTP = swifter_param.pop("ENCOUNTER_CHECK_PLTP", None)
     swifter_param['! VERSION'] = "Swifter parameter file converted from Swiftest"
 
     return swifter_param

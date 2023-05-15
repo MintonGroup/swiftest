@@ -2984,12 +2984,11 @@ class Simulation(object):
             else:
                 shutil.copy2(self.binary_source, self.driver_executable)  
         elif codename == "Swifter":
-            if codename == "Swiftest":
-                swifter_param = io.swiftest2swifter_param(param)
-            else:
-                swifter_param = param
-            io.swifter_xr2infile(self.data, swifter_param, framenum)
-            self.write_param(param_file, param=swifter_param,**kwargs)
+            swifter_param = io.swiftest2swifter_param(param)
+            if "rhill" in self.data:
+                swifter_param['RHILL_PRESENT'] = 'YES'
+            io.swifter_xr2infile(self.data, swifter_param, self.simdir, framenum)
+            self.write_param(codename=codename,param_file=param_file,param=swifter_param,**kwargs)
         else:
             warnings.warn(f'Saving to {codename} not supported',stacklevel=2)
 
