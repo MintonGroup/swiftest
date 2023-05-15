@@ -573,37 +573,26 @@ def swifter2xr(param, verbose=True):
     dims = ['time', 'id','vec']
     pl = []
     tp = []
-    ds = []
     with FortranFile(param['BIN_OUT'], 'r') as f:
         for t, npl, pvec, plab, \
             ntp, tvec, tlab in swifter_stream(f, param):
             
-            pvec_args = dict(zip(plab,pvec))
-            plds = swiftest.init_cond.vec2xr(param,**pvec_args)
-            if ntp > 0:
-                tvec_args = dict(zip(tlab,tvec))
-            
-            # Prepare frames by adding an extra axis for the time coordinate
-            plframe = np.expand_dims(pvec, axis=0)
-            tpframe = np.expand_dims(tvec, axis=0)
-
-            # Create xarray DataArrays out of each body type
-            plxr = xr.DataArray(plframe, dims=dims, coords={'time': t, 'id': plid, 'vec': plab})
-            tpxr = xr.DataArray(tpframe, dims=dims, coords={'time': t, 'id': tpid, 'vec': tlab})
-            
-            pl.append(plxr)
-            tp.append(tpxr)
             sys.stdout.write('\r' + f"Reading in time {t[0]:.3e}")
             sys.stdout.flush()
+            
+            pvec_args = dict(zip(plab,pvec))
+            pl.append(swiftest.init_cond.vec2xr(param,time=t,**pvec_args))
+            if ntp > 0:
+                tvec_args = dict(zip(tlab,tvec))
+                tp.append(swiftest.init_cond.vec2xr(param,time=t,**tvec_args))
+            
+        plds = xr.concat(pl, dim='time')
+        if len(tp) > 0: 
+            tpds = xr.concat(tp, dim='time')
         
-        plda = xr.concat(pl, dim='time')
-        tpda = xr.concat(tp, dim='time')
-        
-        plds = plda.to_dataset(dim='vec')
-        tpds = tpda.to_dataset(dim='vec')
         if verbose: print('\nCreating Dataset')
-        ds = xr.combine_by_coords([plds, tpds])
-        #if param['OUT_FORM'] = 'XV':
+        if len(tp) > 0:
+            ds = xr.combine_by_coords([plds, tpds])
         if verbose: print(f"Successfully converted {ds.sizes['time']} output frames.")
     return ds
 
