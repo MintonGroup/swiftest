@@ -2930,6 +2930,15 @@ contains
       if (.not.param%loblatecb) then
          if (allocated(self%pl%aobl)) deallocate(self%pl%aobl)
          if (allocated(self%tp%aobl)) deallocate(self%tp%aobl)
+      else
+         if (self%pl%nbody > 0) then
+            if (.not. allocated(self%pl%aobl)) allocate(self%pl%aobl(NDIM,self%pl%nbody))
+            self%pl%aobl(:,:) = 0.0_DP
+         end if
+         if (self%tp%nbody > 0) then
+            if (.not. allocated(self%tp%aobl)) allocate(self%tp%aobl(NDIM,self%tp%nbody))
+            self%tp%aobl(:,:) = 0.0_DP
+         end if
       end if
 
       return
