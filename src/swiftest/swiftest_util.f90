@@ -110,7 +110,6 @@ contains
    end subroutine swiftest_util_append_arr_kin
 
 
-
    module subroutine swiftest_util_append_body(self, source, lsource_mask)
       !! author: David A. Minton
       !!
@@ -827,7 +826,6 @@ contains
 
       return
    end subroutine swiftest_util_dealloc_tp
-
 
 
    module subroutine swiftest_util_fill_arr_info(keeps, inserts, lfill_list)
@@ -2825,6 +2823,7 @@ contains
       return
    end subroutine swiftest_util_sort_tp
 
+
    module subroutine swiftest_util_sort_rearrange_body(self, ind)
       !! author: David A. Minton
       !!
@@ -3198,7 +3197,6 @@ contains
 
       return
    end subroutine swiftest_util_spill_tp
-
 
 
    module subroutine swiftest_util_valid_id_system(self, param)
