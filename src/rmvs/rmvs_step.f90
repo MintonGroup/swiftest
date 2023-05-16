@@ -202,6 +202,10 @@ contains
                call tp%step(nbody_system, param, outer_time, dto)
                tp%lfirst = lfirsttp
             else
+               if (param%loblatecb) then
+                  call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rbeg, pl%lmask, pl%outer(outer_index-1)%aobl, pl%Gmass, cb%aoblbeg)
+                  call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rend, pl%lmask, pl%outer(outer_index)%aobl, pl%Gmass, cb%aoblend)
+               end if
                call tp%step(nbody_system, param, outer_time, dto)
             end if
             do j = 1, npl
