@@ -124,14 +124,13 @@ contains
       ! Result
       real(DP), dimension(NDIM)                    :: ah0
       ! Internals
-      real(DP)                                     :: fac, r2, ir3h, irh
+      real(DP)                                     :: fac, r2, ir3h
       integer(I4B)                                 :: i
 
       ah0(:) = 0.0_DP
       do i = 1, n
          r2 = dot_product(rhp(:, i), rhp(:, i))
-         irh = 1.0_DP / sqrt(r2)
-         ir3h = irh / r2
+         ir3h = 1.0_DP / (r2 * sqrt(r2)) 
          fac = mu(i) * ir3h 
          ah0(:) = ah0(:) - fac * rhp(:, i)
       end do
