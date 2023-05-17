@@ -983,7 +983,6 @@ contains
          ! Optional variables The User Doesn't Need to Know About
          status = nf90_inq_varid(nc%id, nc%mass_varname, nc%mass_varid)
          status = nf90_inq_varid(nc%id, nc%rhill_varname, nc%rhill_varid)
-         param%lrhill_present = (status == NF90_NOERR)
          status = nf90_inq_varid(nc%id, nc%npl_varname, nc%npl_varid)
          status = nf90_inq_varid(nc%id, nc%status_varname, nc%status_varid)
          status = nf90_inq_varid(nc%id, nc%ntp_varname, nc%ntp_varid)
@@ -1232,7 +1231,6 @@ contains
             status = nf90_get_var(nc%id, nc%rhill_varid, rtemp, start=[1, tslot], count=[idmax,1])
             if (status == NF90_NOERR) then
                pl%rhill(:) = pack(rtemp, plmask)
-               param%lrhill_present = .true.
             end if
          end if
 
@@ -2930,6 +2928,15 @@ contains
       if (.not.param%loblatecb) then
          if (allocated(self%pl%aobl)) deallocate(self%pl%aobl)
          if (allocated(self%tp%aobl)) deallocate(self%tp%aobl)
+      else
+         if (self%pl%nbody > 0) then
+            if (.not. allocated(self%pl%aobl)) allocate(self%pl%aobl(NDIM,self%pl%nbody))
+            self%pl%aobl(:,:) = 0.0_DP
+         end if
+         if (self%tp%nbody > 0) then
+            if (.not. allocated(self%tp%aobl)) allocate(self%tp%aobl(NDIM,self%tp%nbody))
+            self%tp%aobl(:,:) = 0.0_DP
+         end if
       end if
 
       return

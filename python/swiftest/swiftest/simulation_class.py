@@ -345,7 +345,6 @@ class Simulation(object):
 
         # Parameters are set in reverse priority order. First the defaults, then values from a pre-existing input file,
         # then using the arguments passed via **kwargs.
-
         #--------------------------
         # Lowest Priority: Defaults:
         #--------------------------
@@ -371,7 +370,7 @@ class Simulation(object):
             self.read_encounters = read_encounters
             
         if read_param or read_data:
-            if self.read_param(read_init_cond = True, dask=dask):
+            if self.read_param(read_init_cond = True, dask=dask, **kwargs):
                 # We will add the parameter file to the kwarg list. This will keep the set_parameter method from
                 # overriding everything with defaults when there are no arguments passed to Simulation()
                 kwargs['param_file'] = self.param_file
@@ -851,8 +850,8 @@ class Simulation(object):
 
         # Setters returning parameter dictionary values
         param_dict = {}
-        param_dict.update(self.set_unit_system(**kwargs))
         param_dict.update(self.set_integrator(**kwargs))
+        param_dict.update(self.set_unit_system(**kwargs))
         param_dict.update(self.set_simulation_time(**kwargs))
         param_dict.update(self.set_init_cond_files(**kwargs))
         param_dict.update(self.set_output_files(**kwargs))
@@ -955,6 +954,11 @@ class Simulation(object):
                 self.binary_path = "NOT IMPLEMENTED FOR THIS CODE"
                 self.driver_executable = None
             update_list.append("driver_executable")
+        
+        if self.codename == "Swifter":
+            J2 = self.param.pop("J2",0.0)
+            J4 = self.param.pop("J4",0.0)
+            self.param = io.swiftest2swifter_param(self.param, J2, J4) 
 
         if integrator is not None:
             valid_integrator = ["symba","rmvs","whm","helio"]
@@ -1172,113 +1176,21 @@ class Simulation(object):
         if close_encounter_check is not None:
             self.param["CHK_CLOSE"] = close_encounter_check
             update_list.append("close_encounter_check")
-
-        if general_relativity is not None:
-            self.param["GR"] = general_relativity
-            update_list.append("general_relativity")
-
-        fragmentation_models = ["FRAGGLE"]
-        if collision_model is not None:
-            collision_model = collision_model.upper()
-            fragmentation = collision_model in fragmentation_models
-            if self.codename != "Swiftest" and self.integrator != "symba" and fragmentation:
-                warnings.warn("Fragmentation is only available on Swiftest SyMBA.",stacklevel=2)
-                self.param['COLLISION_MODEL'] = "MERGE"
-            else:
-                self.param['COLLISION_MODEL'] = collision_model
-                update_list.append("collision_model")
-                if fragmentation:
-                    if "MIN_GMFRAG" not in self.param and minimum_fragment_mass is None and minimum_fragment_gmass is None:
-                        warnings.warn("Minimum fragment mass is not set. Set it using minimum_fragment_gmass or minimum_fragment_mass",stacklevel=2)
-                    else:
-                        update_list.append("minimum_fragment_gmass")
-
-        if minimum_fragment_gmass is not None and minimum_fragment_mass is not None:
-            warnings.warn("Only set either minimum_fragment_mass or minimum_fragment_gmass, but not both!",stacklevel=2)
-
-        if minimum_fragment_gmass is not None:
-            self.param["MIN_GMFRAG"] = minimum_fragment_gmass
-            if "minmum_fragment_gmass" not in update_list:
-                update_list.append("minimum_fragment_gmass")
-        elif minimum_fragment_mass is not None:
-            self.param["MIN_GMFRAG"] = minimum_fragment_mass * self.GU
-            if "minimum_fragment_gmass" not in update_list:
-                update_list.append("minimum_fragment_gmass")
-                
-        if nfrag_reduction is not None:
-            self.param["NFRAG_REDUCTION"] = nfrag_reduction
-            update_list.append("nfrag_reduction")
-
-        if rotation is not None:
-            self.param['ROTATION'] = rotation
-            update_list.append("rotation")
-
-        if self.param['COLLISION_MODEL'] == "FRAGGLE" and not self.param['ROTATION']:
-            self.param['ROTATION'] = True
-            update_list.append("rotation")
-
-        if compute_conservation_values is not None:
-            self.param["ENERGY"] = compute_conservation_values
-            update_list.append("compute_conservation_values")
-
+            
+        if rhill_present is not None:
+            self.param["RHILL_PRESENT"] = rhill_present
+            update_list.append("rhill_present")            
+            
         if extra_force is not None:
             self.param["EXTRA_FORCE"] = extra_force
             update_list.append("extra_force")
-        
 
         if big_discard is not None:
             if self.codename != "Swifter":
                 self.param["BIG_DISCARD"] = False
             else:
                 self.param["BIG_DISCARD"] = big_discard
-                update_list.append("big_discard")
-
-        if rhill_present is not None:
-            self.param["RHILL_PRESENT"] = rhill_present
-            update_list.append("rhill_present")
-
-        if restart is not None:
-            self.param["RESTART"] = restart
-            update_list.append("restart")
-
-        if interaction_loops is not None:
-            valid_vals = ["TRIANGULAR", "FLAT"]
-            interaction_loops = interaction_loops.upper()
-            if interaction_loops not in valid_vals:
-                msg = f"{interaction_loops} is not a valid option for interaction loops."
-                msg += f"\nMust be one of {valid_vals}"
-                warnings.warn(msg,stacklevel=2)
-                if "INTERACTION_LOOPS" not in self.param:
-                    self.param["INTERACTION_LOOPS"] = valid_vals[0]
-            else:
-                self.param["INTERACTION_LOOPS"] = interaction_loops
-                update_list.append("interaction_loops")
-
-        if encounter_check_loops is not None:
-            valid_vals = ["TRIANGULAR", "SORTSWEEP"]
-            encounter_check_loops = encounter_check_loops.upper()
-            if encounter_check_loops not in valid_vals:
-                msg = f"{encounter_check_loops} is not a valid option for interaction loops."
-                msg += f"\nMust be one of {valid_vals}"
-                warnings.warn(msg,stacklevel=2)
-                if "ENCOUNTER_CHECK" not in self.param:
-                    self.param["ENCOUNTER_CHECK"] = valid_vals[0]
-            else:
-                self.param["ENCOUNTER_CHECK"] = encounter_check_loops
-                update_list.append("encounter_check_loops")
-
-        if encounter_save is not None:
-            valid_vals = ["NONE", "TRAJECTORY", "CLOSEST", "BOTH"]
-            encounter_save = encounter_save.upper()
-            if encounter_save not in valid_vals:
-                msg = f"{encounter_save} is not a valid option for encounter_save."
-                msg += f"\nMust be one of {valid_vals}"
-                warnings.warn(msg,stacklevel=2)
-                if "ENCOUNTER_SAVE" not in self.param:
-                    self.param["ENCOUNTER_SAVE"] = valid_vals[0]
-            else:
-                self.param["ENCOUNTER_SAVE"] = encounter_save
-                update_list.append("encounter_save")
+                update_list.append("big_discard")     
                 
         if simdir is not None:
             self.simdir = Path(simdir)
@@ -1291,15 +1203,106 @@ class Simulation(object):
             self.driver_executable = self.binary_path / "swiftest_driver"
             self.param_file = Path(kwargs.pop("param_file","param.in"))
 
-        if coarray is not None:
-            if self.codename == "Swiftest":
-                self.param["COARRAY"] = coarray
-                update_list.append("coarray")
+        if self.codename == "Swiftest": 
+            if general_relativity is not None:
+                self.param["GR"] = general_relativity
+                update_list.append("general_relativity")
 
+            fragmentation_models = ["FRAGGLE"]
+            if collision_model is not None:
+                collision_model = collision_model.upper()
+                fragmentation = collision_model in fragmentation_models
+                if self.codename != "Swiftest" and self.integrator != "symba" and fragmentation:
+                    warnings.warn("Fragmentation is only available on Swiftest SyMBA.",stacklevel=2)
+                    self.param['COLLISION_MODEL'] = "MERGE"
+                else:
+                    self.param['COLLISION_MODEL'] = collision_model
+                    update_list.append("collision_model")
+                    if fragmentation:
+                        if "MIN_GMFRAG" not in self.param and minimum_fragment_mass is None and minimum_fragment_gmass is None:
+                            warnings.warn("Minimum fragment mass is not set. Set it using minimum_fragment_gmass or minimum_fragment_mass",stacklevel=2)
+                        else:
+                            update_list.append("minimum_fragment_gmass")
 
-        self.param["TIDES"] = False
+            if minimum_fragment_gmass is not None and minimum_fragment_mass is not None:
+                warnings.warn("Only set either minimum_fragment_mass or minimum_fragment_gmass, but not both!",stacklevel=2)
+
+            if minimum_fragment_gmass is not None:
+                self.param["MIN_GMFRAG"] = minimum_fragment_gmass
+                if "minmum_fragment_gmass" not in update_list:
+                    update_list.append("minimum_fragment_gmass")
+            elif minimum_fragment_mass is not None:
+                self.param["MIN_GMFRAG"] = minimum_fragment_mass * self.GU
+                if "minimum_fragment_gmass" not in update_list:
+                    update_list.append("minimum_fragment_gmass")
+                    
+            if nfrag_reduction is not None:
+                self.param["NFRAG_REDUCTION"] = nfrag_reduction
+                update_list.append("nfrag_reduction")
+
+            if rotation is not None:
+                self.param['ROTATION'] = rotation
+                update_list.append("rotation")
+
+            if self.param['COLLISION_MODEL'] == "FRAGGLE" and not self.param['ROTATION']:
+                self.param['ROTATION'] = True
+                update_list.append("rotation")
+
+            if compute_conservation_values is not None:
+                self.param["ENERGY"] = compute_conservation_values
+                update_list.append("compute_conservation_values")
+
+            if restart is not None:
+                self.param["RESTART"] = restart
+                update_list.append("restart")
+
+            if interaction_loops is not None:
+                valid_vals = ["TRIANGULAR", "FLAT"]
+                interaction_loops = interaction_loops.upper()
+                if interaction_loops not in valid_vals:
+                    msg = f"{interaction_loops} is not a valid option for interaction loops."
+                    msg += f"\nMust be one of {valid_vals}"
+                    warnings.warn(msg,stacklevel=2)
+                    if "INTERACTION_LOOPS" not in self.param:
+                        self.param["INTERACTION_LOOPS"] = valid_vals[0]
+                else:
+                    self.param["INTERACTION_LOOPS"] = interaction_loops
+                    update_list.append("interaction_loops")
+
+            if encounter_check_loops is not None:
+                valid_vals = ["TRIANGULAR", "SORTSWEEP"]
+                encounter_check_loops = encounter_check_loops.upper()
+                if encounter_check_loops not in valid_vals:
+                    msg = f"{encounter_check_loops} is not a valid option for interaction loops."
+                    msg += f"\nMust be one of {valid_vals}"
+                    warnings.warn(msg,stacklevel=2)
+                    if "ENCOUNTER_CHECK" not in self.param:
+                        self.param["ENCOUNTER_CHECK"] = valid_vals[0]
+                else:
+                    self.param["ENCOUNTER_CHECK"] = encounter_check_loops
+                    update_list.append("encounter_check_loops")
+
+            if encounter_save is not None:
+                valid_vals = ["NONE", "TRAJECTORY", "CLOSEST", "BOTH"]
+                encounter_save = encounter_save.upper()
+                if encounter_save not in valid_vals:
+                    msg = f"{encounter_save} is not a valid option for encounter_save."
+                    msg += f"\nMust be one of {valid_vals}"
+                    warnings.warn(msg,stacklevel=2)
+                    if "ENCOUNTER_SAVE" not in self.param:
+                        self.param["ENCOUNTER_SAVE"] = valid_vals[0]
+                else:
+                    self.param["ENCOUNTER_SAVE"] = encounter_save
+                    update_list.append("encounter_save")
         
-
+            if coarray is not None:
+                if self.codename == "Swiftest":
+                    self.param["COARRAY"] = coarray
+                    update_list.append("coarray")     
+                    
+            self.param["TIDES"] = False
+                
+                    
         feature_dict = self.get_feature(update_list, verbose)
         return feature_dict
 
@@ -1438,13 +1441,19 @@ class Simulation(object):
             if "IN_FORM" in self.param:
                 init_cond_format = self.param['IN_FORM']
             else:
-                init_cond_format = "EL"
+                if self.codename.title() == "Swiftest":
+                    init_cond_format = "EL"
+                else:
+                    init_cond_format = "XV"
 
         if init_cond_file_type is None:
             if "IN_TYPE" in self.param:
                 init_cond_file_type = self.param['IN_TYPE']
             else:
-                init_cond_file_type = "NETCDF_DOUBLE"
+                if self.codename.title() == "Swiftest":
+                    init_cond_file_type = "NETCDF_DOUBLE"
+                else:
+                    init_cond_file_type = "ASCII"
 
         if self.codename.title() == "Swiftest":
             init_cond_keys = ["CB", "PL", "TP"]
@@ -1661,10 +1670,11 @@ class Simulation(object):
         else:
             self.param['BIN_OUT'] = output_file_name
 
-        if output_format != "XV" and self.codename != "Swiftest":
-            warnings.warn(f"{output_format} is not compatible with {self.codename}. Setting to XV",stacklevel=2)
-            output_format = "XV"
-        self.param["OUT_FORM"] = output_format
+        if output_format is not None:
+            if output_format != "XV" and self.codename != "Swiftest":
+                warnings.warn(f"{output_format} is not compatible with {self.codename}. Setting to XV",stacklevel=2)
+                output_format = "XV"
+            self.param["OUT_FORM"] = output_format
 
         if self.restart:
             self.param["OUT_STAT"] = "APPEND"
@@ -1902,11 +1912,12 @@ class Simulation(object):
         if all(key in self.param for key in ["MU2KG","DU2M","TU2S"]):
             self.GU = constants.GC * self.param["TU2S"] ** 2 * self.param["MU2KG"] / self.param["DU2M"] ** 3
 
-        if recompute_unit_values and \
-                MU2KG_old != self.param['MU2KG'] or \
-                DU2M_old != self.param['DU2M'] or \
-                TU2S_old != self.param['TU2S']:
-            self.update_param_units(MU2KG_old, DU2M_old, TU2S_old)
+        if "MU2KG" in self.param and "DU2M" in self.param and "TU2S" in self.param:
+            if recompute_unit_values and \
+                    MU2KG_old != self.param['MU2KG'] or \
+                    DU2M_old != self.param['DU2M'] or \
+                    TU2S_old != self.param['TU2S']:
+                self.update_param_units(MU2KG_old, DU2M_old, TU2S_old)
 
         unit_dict = self.get_unit_system(update_list, verbose)
 
@@ -2223,9 +2234,9 @@ class Simulation(object):
             values = list(np.hsplit(np.array(body_list[0],dtype=np.dtype(object)),17))
         else:
             values = list(np.squeeze(np.hsplit(np.array(body_list,np.dtype(object)),17)))
-        keys = ["id","name","a","e","inc","capom","omega","capm","rh","vh","Gmass","radius","rhill","Ip","rot","J2","J4"]
+        keys = ["id","name","a","e","inc","capom","omega","capm","rh","vh","Gmass","radius","rhill","Ip","rot","j2rp2","j4rp4"]
         kwargs = dict(zip(keys,values))
-        scalar_floats = ["a","e","inc","capom","omega","capm","Gmass","radius","rhill","J2","J4"]
+        scalar_floats = ["a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4"]
         vector_floats = ["rh","vh","Ip","rot"]
         scalar_ints = ["id"]
 
@@ -2348,14 +2359,14 @@ class Simulation(object):
         Parameters
         ----------
         arg_list: str | List[str]
-        A single string or list of strings containing the names of the the instance variable to get.
+            A single string or list of strings containing the names of the the instance variable to get.
         valid_arg: dict
-        A dictionary where the key is the parameter argument and the value is the equivalent instance variable value.
+            A dictionary where the key is the parameter argument and the value is the equivalent instance variable value.
         verbose: bool, optional
-        If passed, it will override the Simulation object's verbose flag
+            If passed, it will override the Simulation object's verbose flag
         **kwargs
-        A dictionary of additional keyword argument. This allows this method to be called by the more general
-        get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
+            A dictionary of additional keyword argument. This allows this method to be called by the more general
+            get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
@@ -2434,7 +2445,7 @@ class Simulation(object):
         Hill's radius values if these are massive bodies
         rot: (3) or (n,3) array-like of float, optional
         Rotation rate vectors if these are massive bodies with rotation enabled.
-        Ip: (3) or (n,3) array-like of flaot, optional
+        Ip: (3) or (n,3) array-like of float, optional
         Principal axes moments of inertia vectors if these are massive bodies with rotation enabled.
 
         Returns
@@ -2451,7 +2462,7 @@ class Simulation(object):
             elif t == "i":
                 t = np.int64
             elif t == "s":
-                t = np.str
+                t = str
 
             if val is None:
                 return None, n
@@ -2551,7 +2562,7 @@ class Simulation(object):
                 Gmass = self.GU * mass
 
         dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
-                                 Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, J2=J2, J4=J4, time=time)
+                                 Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, time=time)
 
         dsnew = self._combine_and_fix_dsnew(dsnew)
         self.save(verbose=False)
@@ -2622,7 +2633,8 @@ class Simulation(object):
                    codename: Literal["Swiftest", "Swifter", "Swift"] | None = None,
                    read_init_cond : bool | None = None,
                    verbose: bool | None = None,
-                   dask: bool = False):
+                   dask: bool = False, 
+                   **kwargs : Any):
         """
         Reads in an input parameter file and stores the values in the param dictionary.
         
@@ -2984,12 +2996,11 @@ class Simulation(object):
             else:
                 shutil.copy2(self.binary_source, self.driver_executable)  
         elif codename == "Swifter":
-            if codename == "Swiftest":
-                swifter_param = io.swiftest2swifter_param(param)
-            else:
-                swifter_param = param
-            io.swifter_xr2infile(self.data, swifter_param, framenum)
-            self.write_param(param_file, param=swifter_param,**kwargs)
+            swifter_param = io.swiftest2swifter_param(param)
+            if "rhill" in self.data:
+                swifter_param['RHILL_PRESENT'] = 'YES'
+            io.swifter_xr2infile(self.data, swifter_param, self.simdir, framenum)
+            self.write_param(codename=codename,param_file=param_file,param=swifter_param,**kwargs)
         else:
             warnings.warn(f'Saving to {codename} not supported',stacklevel=2)
 

@@ -265,11 +265,7 @@ contains
                regime = COLLRESOLVE_REGIME_HIT_AND_RUN !hit and run
             end if 
          else if (Vimp > Verosion .and. Vimp < Vsupercat) then
-            if (m2 < 0.001_DP * m1) then 
-               regime = COLLRESOLVE_REGIME_MERGE !cratering regime"
-            else 
-               regime = COLLRESOLVE_REGIME_DISRUPTION !disruption
-            end if 
+            regime = COLLRESOLVE_REGIME_DISRUPTION !disruption
          else if (Vimp > Vsupercat) then 
             regime = COLLRESOLVE_REGIME_SUPERCATASTROPHIC ! supercatastrophic
          else 
