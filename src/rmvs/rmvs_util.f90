@@ -298,13 +298,15 @@ contains
                allocate(pl%outer(i)%v(NDIM, n))
                pl%outer(i)%x(:,:) = 0.0_DP
                pl%outer(i)%v(:,:) = 0.0_DP
+               allocate(pl%outer(i)%aobl(NDIM, n))
+               pl%outer(i)%aobl(:,:) = 0.0_DP
             end do
             do i = 0, NTPHENC
                allocate(pl%inner(i)%x(NDIM, n))
                allocate(pl%inner(i)%v(NDIM, n))
-               allocate(pl%inner(i)%aobl(NDIM, n))
                pl%inner(i)%x(:,:) = 0.0_DP
                pl%inner(i)%v(:,:) = 0.0_DP
+               allocate(pl%inner(i)%aobl(NDIM, n))
                pl%inner(i)%aobl(:,:) = 0.0_DP
             end do
             ! if (param%ltides) then

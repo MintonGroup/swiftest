@@ -16,6 +16,7 @@ import xarray as xr
 import sys
 import tempfile
 import re
+import os
 
 # This defines features that are new in Swiftest and not in Swifter (for conversion between param.in files)
 newfeaturelist = ("RESTART",
@@ -27,12 +28,18 @@ newfeaturelist = ("RESTART",
                   "YARKOVSKY",
                   "YORP",
                   "IN_FORM",
+                  "NC_IN",
                   "SEED",
                   "INTERACTION_LOOPS",
                   "ENCOUNTER_CHECK",
+                  "ENCOUNTER_CHECK_PLPL",
+                  "ENCOUNTER_CHECK_PLTP",
                   "TSTART",
                   "DUMP_CADENCE",
                   "ENCOUNTER_SAVE",
+                  "MIN_GMFRAG",
+                  "NFRAG_REDUCTION",
+                  "COLLISION_MODEL",
                   "COARRAY")
 
 # This list defines features that are booleans, so must be converted to/from string when writing/reading from file
@@ -477,6 +484,7 @@ def swifter_stream(f, param):
     tlab : string list
         Labels for the tvec data
     """
+    
     while True:  # Loop until you read the end of file
         try:
             # Read single-line header
@@ -486,32 +494,52 @@ def swifter_stream(f, param):
         t = record[0]
         npl = record[1][0] - 1
         ntp = record[2][0]
-        
-        pvec = np.empty((6, npl))
+       
+        if param['OUT_FORM'] == 'XV':
+            rpvec = np.empty((npl,3))
+            vpvec = np.empty((npl,3))
+            rtvec = np.empty((ntp,3))
+            vtvec = np.empty((ntp,3))
+        elif param['OUT_FORM'] == 'EL': 
+            elempvec = np.empty((npl,6))
+            elemtvec = np.empty((ntp,6))
         plid = np.empty(npl, dtype='int')
-        tvec = np.empty((6, ntp))
         tpid = np.empty(ntp, dtype='int')
         if npl > 0:
             GMpl = np.empty(npl)
             Rpl = np.empty(npl)
             for i in range(npl):
                 # Read single-line pl frame for
-                record = f.read_record('<i4', '<f8', '<f8', '(6,)<f8')
+                if param['OUT_FORM'] == 'XV':
+                    record = f.read_record('<i4', '<f8', '<f8', '(3,)<f8', '(3,)<f8')
+                elif param['OUT_FORM'] == 'EL':
+                    record = f.read_record('<i4', '<f8', '<f8', '(6,)<f8')
                 plid[i] = record[0]
                 GMpl[i] = record[1]
                 Rpl[i] = record[2]
-                pvec[:, i] = record[3]
+                if param['OUT_FORM'] == 'XV':
+                    rpvec[i,:] = record[3]
+                    vpvec[i,:] = record[4]
+                elif param['OUT_FORM'] == 'EL':
+                    elempvec[i,:] = record[3]
         if ntp > 0:
             for i in range(ntp):
-                record = f.read_record('<i4', '(6,)<f8')
+                if param['OUT_FORM'] == 'XV':
+                    record = f.read_record('<i4', '(3,)<f8', '(3,)<f8')
+                elif param['OUT_FORM'] == 'EL':
+                    record = f.read_record('<i4', '(6,)<f8')
                 tpid[i] = record[0]
-                tvec[:, i] = record[1]
+                if param['OUT_FORM'] == 'XV':
+                    rtvec[i,:] = record[1]
+                    vtvec[i,:] = record[2]
+                elif param['OUT_FORM'] == 'EL':
+                    elemtvec[i,:] = record[1]
         
-        tlab = []
-        if param['OUT_FORM'] == 'XV' or param['OUT_FORM'] == 'XVEL':
+        tlab = ['id']
+        if param['OUT_FORM'] == 'XV': 
             tlab.append('rh')
             tlab.append('vh')
-        if param['OUT_FORM'] == 'EL' or param['OUT_FORM'] == 'XVEL':
+        elif param['OUT_FORM'] == 'EL':
             tlab.append('a')
             tlab.append('e')
             tlab.append('inc')
@@ -521,245 +549,13 @@ def swifter_stream(f, param):
         plab = tlab.copy()
         plab.append('Gmass')
         plab.append('radius')
-        pvec = np.vstack([pvec, GMpl, Rpl])
         
-        yield t, npl, plid, pvec.T, plab, \
-              ntp, tpid, tvec.T, tlab
-
-
-def make_swiftest_labels(param):
-    """
-    Creates the lables for the variables to be included in the output file.
-
-    Parameters
-    ----------
-    param : dictionary
-        The entries in the user parameter file
-
-    Returns
-    -------
-    clab : string list
-        Labels for the cvec data
-    plab : string list
-        Labels for the pvec data
-    tlab : string list
-        Labels for the tvec data
-    infolab_float : string list
-        Labels for floating point data
-    infolab_int : 
-        Labels for integer data
-    infolab_str :   
-        Labels for string data
-    """
-    tlab = []
-    if param['OUT_FORM'] == 'XV' or param['OUT_FORM'] == 'XVEL':
-        tlab.append('rh')
-        tlab.append('vh')
-   
-    if param['OUT_FORM'] == 'EL' or param['OUT_FORM'] == 'XVEL':
-        tlab.append('a')
-        tlab.append('e')
-        tlab.append('inc')
-        tlab.append('capom')
-        tlab.append('omega')
-        tlab.append('capm')
-    plab = tlab.copy()
-    plab.append('Gmass')
-    if param['CHK_CLOSE']:
-       plab.append('radius')
-    if param['RHILL_PRESENT']:
-        plab.append('rhill')
-    clab = ['Gmass', 'radius', 'j2rp2', 'j4rp4']
-    if param['ROTATION']:
-        clab.append('Ip')
-        clab.append('rot')
-        plab.append('Ip')
-        plab.append('rot')
-    if param['TIDES']:
-        clab.append('k2')
-        clab.append('Q')
-        plab.append('k2')
-        plab.append('Q')
-
-    infolab_float = [
-        "origin_time",
-        "origin_rh",
-        "origin_vh",
-        "discard_time",
-        "discard_rh",
-        "discard_vh",
-        ]
-    infolab_int = [
-        "collision_id",
-        "discard_body_id"
-        ]
-    infolab_str = [
-        "particle_type",
-        "origin_type",
-        "status",
-        ]
-
-    return clab, plab, tlab, infolab_float, infolab_int, infolab_str
-
-
-def swiftest_stream(f, param):
-    """
-    Reads in a Swifter bin.dat file and returns a single frame of data as a datastream
-
-    Parameters
-    ----------
-    f : file object
-    param : dict
-
-    Yields
-    -------
-    t    : float
-        Time of this frame
-    cbid : int array
-        ID of central body (always returns 0)
-    cvec : float array
-        (npl,1) - vector of quantities for the massive body (Gmass, radius, J2, J4, etc)
-    npl  : int
-        Number of massive bodies
-    plid : int array
-        IDs of massive bodies
-    pvec : float array
-        (npl,N) - vector of N quantities or each particle (6 of XV/EL + Gmass, radius, etc)
-    plab : string list
-        Labels for the pvec data
-    ntp  : int
-        Number of test particles
-    tpid : int array
-        Ids of test particles
-    tvec : float array
-        (ntp,N) - vector of N quantities for each particle (6 of XV/EL, etc.)
-    tlab : string list
-        Labels for the tvec data
-    """
-    NAMELEN = 32
-    while True:  # Loop until you read the end of file
-        try:
-            # Read multi-line header
-            t = f.read_reals(np.float64)  # Try first part of the header
-        except:
-            break
-        npl = f.read_ints()
-        ntp = f.read_ints()
-        iout_form = f.read_reals('c')
-        cbid = f.read_ints()
-        dtstr = f'a{NAMELEN}'
-        cbnames = f.read_record(dtstr)
-        cbnames = [np.char.strip(str(cbnames[0], encoding='utf-8'))]
-        Mcb = f.read_reals(np.float64)
-        Rcb = f.read_reals(np.float64)
-        J2cb = f.read_reals(np.float64)
-        J4cb = f.read_reals(np.float64)
-        if param['ROTATION']:
-            Ipcbx = f.read_reals(np.float64)
-            Ipcby = f.read_reals(np.float64)
-            Ipcbz = f.read_reals(np.float64)
-            rotcbx = f.read_reals(np.float64)
-            rotcby = f.read_reals(np.float64)
-            rotcbz = f.read_reals(np.float64)
-        if param['TIDES']:
-            k2cb = f.read_reals(np.float64)
-            Qcb = f.read_reals(np.float64)
-        if npl[0] > 0:
-            plid = f.read_ints()
-            dtstr = f'({npl[0]},)a{NAMELEN}'
-            names = f.read_record(np.dtype(dtstr))
-            plnames = []
-            for i in range(npl[0]):
-               plnames.append(np.char.strip(str(names[i], encoding='utf-8')))
-            p1 = f.read_reals(np.float64)
-            p2 = f.read_reals(np.float64)
-            p3 = f.read_reals(np.float64)
-            p4 = f.read_reals(np.float64)
-            p5 = f.read_reals(np.float64)
-            p6 = f.read_reals(np.float64)
-            if param['OUT_FORM'] == 'XVEL':
-               p7 = f.read_reals(np.float64)
-               p8 = f.read_reals(np.float64)
-               p9 = f.read_reals(np.float64)
-               p10 = f.read_reals(np.float64)
-               p11 = f.read_reals(np.float64)
-               p12 = f.read_reals(np.float64) 
-            GMpl = f.read_reals(np.float64)
-            if param['RHILL_PRESENT']:
-                rhill = f.read_reals(np.float64)
-            Rpl = f.read_reals(np.float64)
-            if param['ROTATION']:
-                Ipplx = f.read_reals(np.float64)
-                Ipply = f.read_reals(np.float64)
-                Ipplz = f.read_reals(np.float64)
-                rotplx = f.read_reals(np.float64)
-                rotply = f.read_reals(np.float64)
-                rotplz = f.read_reals(np.float64)
-            if param['TIDES']:
-                k2pl = f.read_reals(np.float64)
-                Qpl = f.read_reals(np.float64)
-        if ntp[0] > 0:
-            tpid = f.read_ints()
-            dtstr = f'({ntp[0]},)a{NAMELEN}'
-            names = f.read_record(np.dtype(dtstr))
-            tpnames = []
-            for i in range(npl[0]):
-               tpnames.append(np.char.strip(str(names[i], encoding='utf-8')))
-            t1 = f.read_reals(np.float64)
-            t2 = f.read_reals(np.float64)
-            t3 = f.read_reals(np.float64)
-            t4 = f.read_reals(np.float64)
-            t5 = f.read_reals(np.float64)
-            t6 = f.read_reals(np.float64)
-            if param['OUT_FORM'] == 'XVEL':
-               t7 = f.read_reals(np.float64)
-               t8 = f.read_reals(np.float64)
-               t9 = f.read_reals(np.float64)
-               t10 = f.read_reals(np.float64)
-               t11 = f.read_reals(np.float64)
-               t12 = f.read_reals(np.float64) 
-        
-        clab, plab, tlab, infolab_float, infolab_int, infolab_str = make_swiftest_labels(param)
-
-        if npl > 0:
-            pvec = np.vstack([p1, p2, p3, p4, p5, p6])
-            if param['OUT_FORM'] == 'XVEL':
-               pvec = np.vstack([pvec, p7, p8, p9, p10, p11, p12])
-            pvec = np.vstack([pvec, GMpl, Rpl])
-        else:
-            if param['OUT_FORM'] == 'XVEL':
-               pvec = np.empty((14, 0))
-            else:
-               pvec = np.empty((8, 0))
-            plid = np.empty(0)
-            plnames = np.empty(0)
-        if ntp > 0:
-            tvec = np.vstack([t1, t2, t3, t4, t5, t6])
-            if param['OUT_FORM'] == 'XVEL':
-               tvec = np.vstack([tvec, t7, t8, t9, t10, t11, t12])
-        else:
-            if param['OUT_FORM'] == 'XVEL':
-               tvec = np.empty((12, 0))
-            else:
-               tvec = np.empty((6, 0))
-            tpid = np.empty(0)
-            tpnames = np.empty(0)
-        cvec = np.array([Mcb, Rcb, J2cb, J4cb])
-        if param['RHILL_PRESENT']:
-           if npl > 0:
-              pvec = np.vstack([pvec, rhill])
-        if param['ROTATION']:
-            cvec = np.vstack([cvec, Ipcbx, Ipcby, Ipcbz, rotcbx, rotcby, rotcbz])
-            if npl > 0:
-                pvec = np.vstack([pvec, Ipplx, Ipply, Ipplz, rotplx, rotply, rotplz])
-        if param['TIDES']:
-            cvec = np.vstack([cvec, k2cb, Qcb])
-            if npl > 0:
-                pvec = np.vstack([pvec, k2pl, Qpl])
-        yield t, cbid, cbnames, cvec.T, clab, \
-              npl, plid, plnames, pvec.T, plab, \
-              ntp, tpid, tpnames, tvec.T, tlab
-
+        if param['OUT_FORM'] == 'XV':
+            yield t, npl, [plid, rpvec, vpvec, GMpl, Rpl], plab, \
+                  ntp, [tpid, rtvec, vtvec], tlab
+        elif param['OUT_FORM'] == 'EL':
+            yield t, npl, [plid, elempvec, GMpl, Rpl], plab, \
+                  ntp, [tpid, elemtvec], tlab
 
 def swifter2xr(param, verbose=True):
     """
@@ -778,28 +574,25 @@ def swifter2xr(param, verbose=True):
     pl = []
     tp = []
     with FortranFile(param['BIN_OUT'], 'r') as f:
-        for t, npl, plid, pvec, plab, \
-            ntp, tpid, tvec, tlab in swifter_stream(f, param):
-            # Prepare frames by adding an extra axis for the time coordinate
-            plframe = np.expand_dims(pvec, axis=0)
-            tpframe = np.expand_dims(tvec, axis=0)
-
-            # Create xarray DataArrays out of each body type
-            plxr = xr.DataArray(plframe, dims=dims, coords={'time': t, 'id': plid, 'vec': plab})
-            tpxr = xr.DataArray(tpframe, dims=dims, coords={'time': t, 'id': tpid, 'vec': tlab})
+        for t, npl, pvec, plab, \
+            ntp, tvec, tlab in swifter_stream(f, param):
             
-            pl.append(plxr)
-            tp.append(tpxr)
             sys.stdout.write('\r' + f"Reading in time {t[0]:.3e}")
             sys.stdout.flush()
+            
+            pvec_args = dict(zip(plab,pvec))
+            pl.append(swiftest.init_cond.vec2xr(param,time=t,**pvec_args))
+            if ntp > 0:
+                tvec_args = dict(zip(tlab,tvec))
+                tp.append(swiftest.init_cond.vec2xr(param,time=t,**tvec_args))
+            
+        plds = xr.concat(pl, dim='time')
+        if len(tp) > 0: 
+            tpds = xr.concat(tp, dim='time')
         
-        plda = xr.concat(pl, dim='time')
-        tpda = xr.concat(tp, dim='time')
-        
-        plds = plda.to_dataset(dim='vec')
-        tpds = tpda.to_dataset(dim='vec')
         if verbose: print('\nCreating Dataset')
-        ds = xr.combine_by_coords([plds, tpds])
+        if len(tp) > 0:
+            ds = xr.combine_by_coords([plds, tpds])
         if verbose: print(f"Successfully converted {ds.sizes['time']} output frames.")
     return ds
 
@@ -1227,7 +1020,7 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
         print(f"{in_type} is an unknown file type")
 
 
-def swifter_xr2infile(ds, param, framenum=-1):
+def swifter_xr2infile(ds, param, simdir=os.getcwd, framenum=-1):
     """
     Writes a set of Swifter input files from a single frame of a Swiftest xarray dataset
 
@@ -1266,7 +1059,7 @@ def swifter_xr2infile(ds, param, framenum=-1):
     
     if param['IN_TYPE'] == 'ASCII':
         # Swiftest Central body file
-        plfile = open(param['PL_IN'], 'w')
+        plfile = open(os.path.join(simdir,param['PL_IN']), 'w')
         print(pl.id.count().values + 1, file=plfile)
         print(cb.id.values[0], GMSun, file=plfile)
         print('0.0 0.0 0.0', file=plfile)
@@ -1279,21 +1072,20 @@ def swifter_xr2infile(ds, param, framenum=-1):
                 print(i.values, pli['Gmass'].values, file=plfile)
             if param['CHK_CLOSE']:
                 print(pli['radius'].values, file=plfile)
-            print(pli['rh'].values[0,0], pli['ry'].values[0,1], pli['rh'].values[0,2], file=plfile)
-            print(pli['vh'].values[0,0], pli['vh'].values[0,1], pli['vh'].values[0,2], file=plfile)
+            print(pli['rh'].values[0], pli['rh'].values[1], pli['rh'].values[2], file=plfile)
+            print(pli['vh'].values[0], pli['vh'].values[1], pli['vh'].values[2], file=plfile)
         plfile.close()
         
         # TP file
-        tpfile = open(param['TP_IN'], 'w')
+        tpfile = open(os.path.join(simdir,param['TP_IN']), 'w')
         print(tp.id.count().values, file=tpfile)
         for i in tp.id:
             tpi = tp.sel(id=i)
             print(i.values, file=tpfile)
-            print(tpi['rh'].values[0,0], tpi['ry'].values[0,1], tpi['rh'].values[0,2], file=tpfile)
-            print(tpi['vh'].values[0,0], tpi['vh'].values[0,1], tpi['vh'].values[0,2], file=tpfile)
+            print(tpi['rh'].values[0], tpi['rh'].values[1], tpi['rh'].values[2], file=tpfile)
+            print(tpi['vh'].values[0], tpi['vh'].values[1], tpi['vh'].values[2], file=tpfile)
         tpfile.close()
     else:
-        # Now make Swiftest files
         print(f"{param['IN_TYPE']} is an unknown input file type")
 
     return
@@ -1843,11 +1635,13 @@ def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
     DU2M = swifter_param.pop("DU2M", 1.0)
     TU2S = swifter_param.pop("TU2S", 1.0)
     GR = swifter_param.pop("GR", None)
-    if GR is not None:
-        if GR:
-           swifter_param['C'] =  swiftest.einsteinC * np.longdouble(TU2S) / np.longdouble(DU2M)
+    # if GR is not None:
+    #     if GR:
+    #        swifter_param['C'] =  swiftest.einsteinC * np.longdouble(TU2S) / np.longdouble(DU2M)
     for key in newfeaturelist:
        tmp = swifter_param.pop(key, None)
+    if "ISTEP_DUMP" not in swifter_param:
+        swifter_param["ISTEP_DUMP"] = swifter_param["ISTEP_OUT"]
     swifter_param['J2'] = J2
     swifter_param['J4'] = J4
     if swifter_param['OUT_STAT'] == "REPLACE":
@@ -1858,11 +1652,6 @@ def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
        swifter_param['OUT_TYPE'] = 'REAL4'
     if swifter_param['OUT_FORM'] == 'XVEL':
        swifter_param['OUT_FORM'] = 'XV'
-    IN_FORM = swifter_param.pop("IN_FORM", None)
-    INTERACTION_LOOPS = swifter_param.pop("INTERACTION_LOOPS", None)
-    ENCOUNTER_CHECK = swifter_param.pop("ENCOUNTER_CHECK", None)
-    ENCOUNTER_CHECK_PLPL = swifter_param.pop("ENCOUNTER_CHECK_PLPL", None)
-    ENCOUNTER_CHECK_PLTP = swifter_param.pop("ENCOUNTER_CHECK_PLTP", None)
     swifter_param['! VERSION'] = "Swifter parameter file converted from Swiftest"
 
     return swifter_param

@@ -146,7 +146,6 @@ module swiftest
       procedure :: read_in         => swiftest_io_read_in_body              !! Read in body initial conditions from an ascii file
       procedure :: write_frame     => swiftest_io_netcdf_write_frame_body   !! I/O routine for writing out a single frame of time-series data for all bodies in the nbody_system in NetCDF format  
       procedure :: write_info      => swiftest_io_netcdf_write_info_body    !! Dump contents of particle information metadata to file
-      procedure :: accel_obl       => swiftest_obl_acc_body                 !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure :: el2xv           => swiftest_orbel_el2xv_vec              !! Convert orbital elements to position and velocity vectors
       procedure :: xv2el           => swiftest_orbel_xv2el_vec              !! Convert position and velocity vectors to orbital elements 
       procedure :: setup           => swiftest_util_setup_body              !! A constructor that sets the number of bodies and allocates all allocatable arrays
@@ -1003,11 +1002,18 @@ module swiftest
          real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix_inv ! inverse of the rotation matrix
       end subroutine swiftest_obl_rot_matrix
 
-      module subroutine swiftest_obl_acc_body(self, nbody_system)
+      module subroutine swiftest_obl_acc(n, GMcb, j2rp2, j4rp4, rh, lmask, aobl, GMpl, aoblcb)
          implicit none
-         class(swiftest_body),              intent(inout) :: self   !! Swiftest body object 
-         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      end subroutine swiftest_obl_acc_body
+         integer(I4B),             intent(in)            :: n      !! Number of bodies
+         real(DP),                 intent(in)            :: GMcb   !! Central body G*Mass
+         real(DP),                 intent(in)            :: j2rp2  !! J2 * R**2 for the central body
+         real(DP),                 intent(in)            :: j4rp4  !! J4 * R**4 for the central body
+         real(DP), dimension(:,:), intent(in)            :: rh     !! Heliocentric positions of bodies
+         logical,  dimension(:),   intent(in)            :: lmask  !! Logical mask of bodies to compute aobl
+         real(DP), dimension(:,:), intent(out)           :: aobl   !! Barycentric acceleration of bodies due to central body oblateness
+         real(DP), dimension(:),   intent(in),  optional :: GMpl   !! Masses of input bodies if they are not test particles
+         real(DP), dimension(:),   intent(out), optional :: aoblcb !! Barycentric acceleration of central body (only needed if input bodies are massive)
+      end subroutine swiftest_obl_acc
 
       module subroutine swiftest_obl_acc_pl(self, nbody_system)
          implicit none
