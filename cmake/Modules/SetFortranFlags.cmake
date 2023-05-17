@@ -158,7 +158,7 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
 
 # Strict model for floating-point calculations (precise and except)
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
-                 Fortran "-fp-model strict" # Intel
+                 Fortran "-fp-model=strict" # Intel
                 )
 
 # Enables floating-point invalid, divide-by-zero, and overflow exceptions
@@ -273,11 +273,6 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
                  Fortran "-align all" # Intel
                 )
 
-# Assume all objects are contiguous in memory
-SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                 Fortran "-assume contiguous_assumed_shape" # Intel
-                )
-
 # Generate an extended set of vector functions
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
                  Fortran "-vecabi=cmdtarget" # Intel
@@ -289,17 +284,17 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
                 )
 
 # Generate fused multiply-add instructions
-SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                 Fortran "-fma" # Intel
-                )
+ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
+                  Fortran "-fma" # Intel
+                 )
 
 # Generate fused multiply-add instructions
-SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                 Fortran "-qmkl=cluster" # Intel
-                 Fortran "-qmkl" # Intel
-                 Fortran "-mkl" # Old Intel
-                ) 
-
+ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
+                  Fortran "-qmkl=cluster" # Intel
+                  Fortran "-qmkl" # Intel
+                  Fortran "-mkl" # Old Intel
+                 ) 
+ 
 #####################
 ### MATH FLAGS ###
 #####################
