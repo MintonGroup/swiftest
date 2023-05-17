@@ -9,7 +9,7 @@
 
 submodule (swiftest) s_swiftest_obl
 contains
-   module subroutine swiftest_obl_acc_body(self, nbody_system)
+   module subroutine swiftest_obl_acc(n, GMcb, j2rp2, j4rp4, rh, lmask, aobl, GMpl, aoblcb)
       !! author: David A. Minton
       !!
       !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
@@ -19,33 +19,46 @@ contains
       !! Adapted from Hal Levison's Swift routine obl_acc.f and obl_acc_tp.f
       implicit none
       ! Arguments
-      class(swiftest_body),         intent(inout) :: self   !! Swiftest body object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+      integer(I4B),             intent(in)            :: n      !! Number of bodies
+      real(DP),                 intent(in)            :: GMcb   !! Central body G*Mass
+      real(DP),                 intent(in)            :: j2rp2  !! J2 * R**2 for the central body
+      real(DP),                 intent(in)            :: j4rp4  !! J4 * R**4 for the central body
+      real(DP), dimension(:,:), intent(in)            :: rh     !! Heliocentric positions of bodies
+      logical,  dimension(:),   intent(in)            :: lmask  !! Logical mask of bodies to compute aobl
+      real(DP), dimension(:,:), intent(out)           :: aobl   !! Barycentric acceleration of bodies due to central body oblateness
+      real(DP), dimension(:),   intent(in),  optional :: GMpl   !! Masses of input bodies if they are not test particles
+      real(DP), dimension(:),   intent(out), optional :: aoblcb !! Barycentric acceleration of central body (only needed if input bodies are massive)
       ! Internals
       integer(I4B) :: i
       real(DP)     :: r2, irh, rinv2, t0, t1, t2, t3, fac1, fac2
 
-      if (self%nbody == 0) return
+      if (n == 0) return
 
-      associate(n => self%nbody, cb => nbody_system%cb)
-         self%aobl(:,:) = 0.0_DP
-         do concurrent(i = 1:n, self%lmask(i))
-            r2 = dot_product(self%rh(:, i), self%rh(:, i))
-            irh = 1.0_DP / sqrt(r2)
-            rinv2 = irh**2
-            t0 = -cb%Gmass * rinv2 * rinv2 * irh
-            t1 = 1.5_DP * cb%j2rp2
-            t2 = self%rh(3, i) * self%rh(3, i) * rinv2
-            t3 = 1.875_DP * cb%j4rp4 * rinv2
-            fac1 = t0 * (t1 - t3 - (5 * t1 - (14.0_DP - 21.0_DP * t2) * t3) * t2)
-            fac2 = 2 * t0 * (t1 - (2.0_DP - (14.0_DP * t2 / 3.0_DP)) * t3)
-            self%aobl(:, i) = fac1 * self%rh(:, i)
-            self%aobl(3, i) = fac2 * self%rh(3, i) + self%aobl(3, i)
+      aobl(:,:) = 0.0_DP
+      do concurrent(i = 1:n, lmask(i))
+         r2 = dot_product(rh(:, i), rh(:, i))
+         irh = 1.0_DP / sqrt(r2)
+         rinv2 = irh**2
+         t0 = -GMcb * rinv2 * rinv2 * irh
+         t1 = 1.5_DP * j2rp2
+         t2 = rh(3, i) * rh(3, i) * rinv2
+         t3 = 1.875_DP * j4rp4 * rinv2
+         fac1 = t0 * (t1 - t3 - (5 * t1 - (14.0_DP - 21.0_DP * t2) * t3) * t2)
+         fac2 = 2 * t0 * (t1 - (2.0_DP - (14.0_DP * t2 / 3.0_DP)) * t3)
+         aobl(:, i) = fac1 * rh(:, i)
+         aobl(3, i) = fac2 * rh(3, i) + aobl(3, i)
+      end do
+
+      if (present(GMpl) .and. present(aoblcb)) then
+         aoblcb(:) = 0.0_DP
+         do i = n, 1, -1
+            if (lmask(i)) aoblcb(:) = aoblcb(:) - GMpl(i) * aobl(:, i) / GMcb
          end do
-      end associate
+      end if
+
       return
 
-   end subroutine swiftest_obl_acc_body
+   end subroutine swiftest_obl_acc
 
 
    module subroutine swiftest_obl_acc_pl(self, nbody_system)
@@ -65,11 +78,7 @@ contains
       if (self%nbody == 0) return
 
       associate(pl => self, npl => self%nbody, cb => nbody_system%cb)
-         call swiftest_obl_acc_body(pl, nbody_system)
-         cb%aobl(:) = 0.0_DP
-         do i = npl, 1, -1
-            if (pl%lmask(i)) cb%aobl(:) = cb%aobl(:) - pl%Gmass(i) * pl%aobl(:, i) / cb%Gmass
-         end do
+         call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rh, pl%lmask, pl%aobl, pl%Gmass, cb%aobl)
 
          do concurrent(i = 1:npl, pl%lmask(i))
             pl%ah(:, i) = pl%ah(:, i) + pl%aobl(:, i) - cb%aobl(:)
@@ -99,7 +108,7 @@ contains
       if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody, cb => nbody_system%cb)
-         call swiftest_obl_acc_body(tp, nbody_system)
+         call swiftest_obl_acc(ntp, cb%Gmass, cb%j2rp2, cb%j4rp4, tp%rh, tp%lmask, tp%aobl)
          if (nbody_system%lbeg) then
             aoblcb = cb%aoblbeg
          else

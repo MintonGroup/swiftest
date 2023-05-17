@@ -110,7 +110,6 @@ contains
    end subroutine swiftest_util_append_arr_kin
 
 
-
    module subroutine swiftest_util_append_body(self, source, lsource_mask)
       !! author: David A. Minton
       !!
@@ -827,7 +826,6 @@ contains
 
       return
    end subroutine swiftest_util_dealloc_tp
-
 
 
    module subroutine swiftest_util_fill_arr_info(keeps, inserts, lfill_list)
@@ -2609,7 +2607,7 @@ contains
       end select
       end select
 
-      call nbody_system%pl%set_rhill(nbody_system%cb)
+      if (.not.param%lrhill_present) call nbody_system%pl%set_rhill(nbody_system%cb)
 
       ! Take a minimal snapshot wihout all of the extra storage objects
       allocate(snapshot, mold=nbody_system)
@@ -2824,6 +2822,7 @@ contains
 
       return
    end subroutine swiftest_util_sort_tp
+
 
    module subroutine swiftest_util_sort_rearrange_body(self, ind)
       !! author: David A. Minton
@@ -3198,7 +3197,6 @@ contains
 
       return
    end subroutine swiftest_util_spill_tp
-
 
 
    module subroutine swiftest_util_valid_id_system(self, param)
