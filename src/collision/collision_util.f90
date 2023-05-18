@@ -21,14 +21,15 @@ contains
       class(base_nbody_system), intent(inout) :: nbody_system    !! Swiftest nbody system object
       class(base_parameters),   intent(in)    :: param     !! Current Swiftest run configuration parameters
       ! Internals
-      integer(I4B) :: i, npl_before, npl_after
+      integer(I4B) :: i, npl_before, npl_after, nfrag
       logical, dimension(:), allocatable :: lexclude
 
       select type(nbody_system)
       class is (swiftest_nbody_system)
-         associate(fragments => self%fragments, impactors => self%impactors, nfrag => self%fragments%nbody, pl => nbody_system%pl, cb => nbody_system%cb)
+         associate(fragments => self%fragments, impactors => self%impactors, pl => nbody_system%pl, cb => nbody_system%cb)
             npl_after = pl%nbody
             npl_before = npl_after - nfrag
+            nfrag = self%fragments%nbody
             allocate(lexclude(npl_after))
 
             pl%status(npl_before+1:npl_after) = ACTIVE
