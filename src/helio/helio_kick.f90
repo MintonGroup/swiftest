@@ -104,11 +104,12 @@ contains
       real(DP),                     intent(in)    :: dt     !! Stepsize
       logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, npl
 
       if (self%nbody == 0) return
 
-      associate(pl => self, npl => self%nbody)
+      associate(pl => self)
+         npl = self%nbody
          pl%ah(:, 1:npl) = 0.0_DP
          call pl%accel(nbody_system, param, t, lbeg)
          if (lbeg) then
@@ -143,11 +144,12 @@ contains
       real(DP),                     intent(in)    :: dt    !! Stepsize
       logical,                      intent(in)    :: lbeg  !! Logical flag indicating whether this is the beginning of the half step or not. 
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, ntp
 
       if (self%nbody == 0) return
 
-      associate(tp => self, ntp => self%nbody)
+      associate(tp => self)
+         ntp = self%nbody
          tp%ah(:, 1:ntp) = 0.0_DP
          call tp%accel(nbody_system, param, t, lbeg)
          do concurrent(i = 1:ntp, tp%lmask(i)) 

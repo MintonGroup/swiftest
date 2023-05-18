@@ -350,7 +350,7 @@ contains
       real(DP), dimension(2) :: fragment_cloud_radius
       logical, dimension(collider%fragments%nbody) :: loverlap
       real(DP), dimension(collider%fragments%nbody) :: mass_rscale, phi, theta, u
-      integer(I4B) :: i, j, loop, istart
+      integer(I4B) :: i, j, loop, istart, nfrag, npl, ntp
       logical :: lsupercat, lhitandrun
       integer(I4B), parameter :: MAXLOOP = 10000
       real(DP), parameter :: cloud_size_scale_factor = 3.0_DP ! Scale factor to apply to the size of the cloud relative to the distance from the impact point. 
@@ -358,8 +358,10 @@ contains
       real(DP), parameter :: rbuffer = 1.01_DP ! Body radii are inflated by this scale factor to prevent secondary collisions 
       real(DP), parameter :: pack_density = 0.5236_DP ! packing density of loose spheres
 
-      associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody, &
-         pl => nbody_system%pl, tp => nbody_system%tp, npl => nbody_system%pl%nbody, ntp => nbody_system%tp%nbody)
+      associate(fragments => collider%fragments, impactors => collider%impactors, pl => nbody_system%pl, tp => nbody_system%tp)
+         nfrag = collider%fragments%nbody
+         npl = nbody_system%pl%nbody
+         ntp = nbody_system%tp%nbody
          lsupercat = (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) 
          lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
 
@@ -508,7 +510,7 @@ contains
       class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, nfrag
       real(DP), parameter :: frag_rot_fac = 0.1_DP ! Fraction of projectile rotation magnitude to add as random noise to fragment rotation
       real(DP), parameter :: hitandrun_momentum_transfer = 0.01_DP ! Fraction of projectile momentum transfered to target in a hit and run
       real(DP) :: mass_fac
@@ -516,7 +518,8 @@ contains
       integer(I4B), parameter :: MAXLOOP = 10
       logical :: lhitandrun
 
-      associate(fragments => collider%fragments, impactors => collider%impactors, nfrag => collider%fragments%nbody)
+      associate(fragments => collider%fragments, impactors => collider%impactors)
+         nfrag = collider%fragments%nbody
          lhitandrun = (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) 
 
          ! Initialize fragment rotations and velocities to be pre-impact rotation for body 1, and randomized for bodies >1 and scaled to the original rotation. 
@@ -805,7 +808,7 @@ contains
             L_residual(:) = (collider%L_total(:,2) - collider%L_total(:,1))
             call collision_util_velocity_torque(-L_residual(:), collider%fragments%mtot, impactors%rbcom, impactors%vbcom)
 
-            do concurrent(i = 1:collider%fragments%nbody)
+            do concurrent(i = 1:nfrag)
                collider%fragments%vb(:,i) = collider%fragments%vc(:,i) + impactors%vbcom(:)
             end do
 

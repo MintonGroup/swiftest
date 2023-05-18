@@ -277,10 +277,11 @@ contains
       class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
       class(swiftest_cb), intent(in) :: cb   !! Swiftest central body object
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, ntp
 
       if (self%nbody == 0) return
-      associate(tp => self, ntp => self%nbody)
+      associate(tp => self)
+         ntp = self%nbody
          do concurrent (i = 1:ntp, tp%status(i) /= INACTIVE)
             tp%rb(:, i) = tp%rh(:, i) + cb%rb(:)
             tp%vb(:, i) = tp%vh(:, i) + cb%vb(:)
@@ -303,11 +304,12 @@ contains
       class(swiftest_pl),     intent(inout) :: self !! Swiftest massive body object
       class(swiftest_cb),  intent(inout) :: cb   !! Swiftest central body object
       ! Internals
-      integer(I4B)          :: i
+      integer(I4B)          :: i, npl
 
       if (self%nbody == 0) return
 
-      associate(pl => self, npl => self%nbody)
+      associate(pl => self)
+         npl = self%nbody
          do concurrent (i = 1:npl, pl%status(i) /= INACTIVE)
             pl%rh(:, i) = pl%rb(:, i) - cb%rb(:)
             pl%vh(:, i) = pl%vb(:, i) - cb%vb(:)
@@ -330,11 +332,12 @@ contains
       class(swiftest_tp),     intent(inout) :: self !! Swiftest massive body object
       class(swiftest_cb),  intent(in)    :: cb   !! Swiftest central body object
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, ntp
 
       if (self%nbody == 0) return
 
-      associate(tp => self, ntp => self%nbody)
+      associate(tp => self)
+         ntp = self%nbody
          do concurrent(i = 1:ntp, tp%status(i) /= INACTIVE)
             tp%rh(:, i) = tp%rb(:, i) - cb%rb(:)
             tp%vh(:, i) = tp%vb(:, i) - cb%vb(:)
@@ -357,11 +360,12 @@ contains
       class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
       class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       ! Internals
-      integer(I4B)              :: i
+      integer(I4B)              :: i, npl
 
       if (self%nbody == 0) return
 
-      associate(pl => self, npl => self%nbody)
+      associate(pl => self)
+         npl = self%nbody
          cb%vb(:) = 0.0_DP
          do i = npl, 1, -1
             if (pl%status(i) /= INACTIVE) cb%vb(:) = cb%vb(:) - pl%Gmass(i) * pl%vb(:, i) / cb%Gmass
@@ -413,12 +417,13 @@ contains
       class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
       class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       ! Internals
-      integer(I4B)  :: i
+      integer(I4B)  :: i, npl
       real(DP)      :: Gmtot
 
       if (self%nbody == 0) return
 
-      associate(pl => self, npl => self%nbody)
+      associate(pl => self)
+         npl = self%nbody
          Gmtot = cb%Gmass + sum(pl%Gmass(1:npl))
          cb%vb(:) = 0.0_DP
          do i = 1, npl
@@ -508,10 +513,11 @@ contains
       class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
       class(swiftest_cb), intent(in) :: cb      !! Swiftest central body object
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, ntp
 
       if (self%nbody == 0) return
-      associate(tp => self, ntp => self%nbody)
+      associate(tp => self)
+         ntp = self%nbody
          do concurrent (i = 1:ntp, tp%status(i) /= INACTIVE)
             tp%rb(:, i) = tp%rh(:, i) + cb%rb(:)
          end do
@@ -1145,7 +1151,7 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters
       ! Internals
-      integer(I4B) :: i,j
+      integer(I4B) :: i,j, npl
       real(DP) :: kecb, kespincb
       real(DP), dimension(self%pl%nbody) :: kepl, kespinpl
       real(DP), dimension(NDIM,self%pl%nbody) :: Lplorbit
@@ -1153,7 +1159,8 @@ contains
       real(DP), dimension(NDIM) :: Lcborbit, Lcbspin
       real(DP), dimension(NDIM) :: h
 
-      associate(nbody_system => self, pl => self%pl, npl => self%pl%nbody, cb => self%cb)
+      associate(nbody_system => self, pl => self%pl, cb => self%cb)
+         npl = self%pl%nbody
          nbody_system%L_orbit(:) = 0.0_DP
          nbody_system%L_spin(:) = 0.0_DP
          nbody_system%L_total(:) = 0.0_DP

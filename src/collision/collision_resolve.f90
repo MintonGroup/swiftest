@@ -350,7 +350,7 @@ contains
       class is (swiftest_nbody_system)
       select type(param)
       class is (swiftest_parameters)
-         associate(pl => nbody_system%pl, pl_discards => nbody_system%pl_discards, info => nbody_system%pl%info, pl_adds => nbody_system%pl_adds, cb => nbody_system%cb, npl => nbody_system%pl%nbody, &
+         associate(pl => nbody_system%pl, pl_discards => nbody_system%pl_discards, info => nbody_system%pl%info, pl_adds => nbody_system%pl_adds, cb => nbody_system%cb, &
             collider => nbody_system%collider, impactors => nbody_system%collider%impactors,fragments => nbody_system%collider%fragments)
 
             ! Add the impactors%id bodies to the subtraction list

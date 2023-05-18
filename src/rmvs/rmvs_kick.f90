@@ -29,11 +29,13 @@ contains
       class(swiftest_parameters), allocatable   :: param_planetocen
       real(DP), dimension(:, :), allocatable    :: rh_original
       real(DP)                                  :: GMcb_original
-      integer(I4B)                              :: i
+      integer(I4B)                              :: i, ntp, inner_index
 
       if (self%nbody == 0) return
 
-      associate(tp => self, ntp => self%nbody, ipleP => self%ipleP, inner_index => self%index)
+      associate(tp => self, ipleP => self%ipleP)
+         ntp = self%nbody
+         inner_index = self%index
          select type(nbody_system)
          class is (rmvs_nbody_system)
             if (nbody_system%lplanetocentric) then  ! This is a close encounter step, so any accelerations requiring heliocentric position values

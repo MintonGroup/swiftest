@@ -84,10 +84,12 @@ contains
       class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt     !! Step size
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, npl
 
-      associate(pl => self, npl => self%nbody)
-         if (npl == 0) return
+      if (self%nbody == 0) return
+
+      associate(pl => self)
+         npl = self%nbody
          do concurrent(i = 1:npl, pl%lmask(i))
             call swiftest_gr_p4_pos_kick(param, pl%xj(:, i), pl%vj(:, i), dt)
          end do
@@ -111,9 +113,10 @@ contains
       class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt    !! Step size
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, ntp
 
-      associate(tp => self, ntp => self%nbody)
+      associate(tp => self)
+         ntp = self%nbody
          if (ntp == 0) return
          do concurrent(i = 1:ntp, tp%lmask(i))
             call swiftest_gr_p4_pos_kick(param, tp%rh(:, i), tp%vh(:, i), dt)

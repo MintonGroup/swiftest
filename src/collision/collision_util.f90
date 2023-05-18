@@ -536,7 +536,7 @@ contains
       ! Arguments
       class(collision_basic),    intent(inout) :: self      !! Collisional nbody_system
 
-      associate(fragments => self%fragments, impactors => self%impactors, nfrag => self%fragments%nbody)
+      associate(fragments => self%fragments, impactors => self%impactors)
          call impactors%set_coordinate_system() 
 
          if (.not.allocated(self%fragments)) return
