@@ -45,6 +45,7 @@ FUNCTION(SET_COMPILE_FLAG FLAGVAR FLAGVAL LANG)
         SET(FAIL_REGEX
             "ignoring unknown option"             # Intel
             "invalid argument"                    # Intel
+            "not supported"                       # Intel ifx
             "unrecognized .*option"               # GNU
             "[Uu]nknown switch"                   # Portland Group
             "ignoring unknown option"             # MSVC
