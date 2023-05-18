@@ -150,7 +150,7 @@ contains
       class(base_parameters),   intent(inout) :: param        !! Current Swiftest run configuration parameters
       character(len=*),         intent(in)    :: phase        !! One of "before" or "after", indicating which phase of the calculation this needs to be done
       ! Internals
-      integer(I4B) :: i, phase_val
+      integer(I4B) :: i, phase_val, nfrag
 
       select case(phase)
       case("before")
@@ -166,7 +166,8 @@ contains
       class is (swiftest_nbody_system)
       select type(param)
       class is (swiftest_parameters)
-         associate(fragments => self%fragments, impactors => self%impactors, nfrag => self%fragments%nbody, pl => nbody_system%pl, cb => nbody_system%cb)
+         associate(fragments => self%fragments, impactors => self%impactors, pl => nbody_system%pl, cb => nbody_system%cb)
+            nfrag = self%fragments%nbody
             if (phase_val == 1) then
                do concurrent(i = 1:2)
                   impactors%ke_orbit(i) = 0.5_DP * impactors%mass(i) * dot_product(impactors%vc(:,i), impactors%vc(:,i))
