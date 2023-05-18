@@ -40,8 +40,12 @@ contains
       character(namelen) :: message
 
       if (self%lfile_is_open) then
+#ifdef COARRAY
          write(message,*) this_image()
          message = "netcdf_io_close on image " // trim(adjustl(message))
+#else
+         message = "netcdf_io_close"
+#endif
          call netcdf_io_check( nf90_close(self%id), message)
          self%lfile_is_open = .false.
       end if
