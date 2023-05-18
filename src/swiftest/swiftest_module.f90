@@ -248,7 +248,7 @@ module swiftest
       integer(I8B)                                         :: nplpl   !! Number of body-body comparisons in the flattened upper triangular matrix
       type(swiftest_kinship),  dimension(:),   allocatable :: kin        !! Array of merger relationship structures that can account for multiple pairwise mergers in a single step
       logical,                 dimension(:),   allocatable :: lmtiny     !! flag indicating whether this body is below the GMTINY cutoff value
-      integer(I4B)                                         :: nplm       !! number of bodies above the GMTINY limit
+      integer(I4B)                                         :: nplm = 0   !! number of bodies above the GMTINY limit
       integer(I8B)                                         :: nplplm     !! Number of body (all massive)-body (only those above GMTINY) comparisons in the flattened upper triangular matrix 
       integer(I4B),            dimension(:),   allocatable :: nplenc     !! number of encounters with other planets this time step
       integer(I4B),            dimension(:),   allocatable :: ntpenc     !! number of encounters with test particles this time step

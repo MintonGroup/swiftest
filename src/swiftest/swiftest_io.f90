@@ -285,7 +285,7 @@ contains
          call self%compact_output(param,integration_timer)
       end if
 
-      if (self%pl%nplm > 0) then
+      if (param%lmtiny_pl) then
 #ifdef COARRAY
          if (param%lcoarray) then
             write(param%display_unit, co_symbastatfmt) this_image(),self%t, tfrac, self%pl%nbody, self%pl%nplm, self%tp%nbody
