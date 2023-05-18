@@ -31,10 +31,6 @@ ENDIF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
 OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
 OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
 
-IF (USE_COARRAY)
-  ADD_DEFINITIONS(-DCOARRAY)
-ENDIF()
-
 # Locate and set parallelization libraries.  There are some CMake peculiarities
 # taken care of here, such as the fact that the FindOpenMP routine doesn't know
 # about Fortran.
