@@ -147,7 +147,11 @@ contains
       associate(nbody_system => self, pl => self%pl, cb => self%cb)
          npl = self%pl%nbody
          if (.not. any(pl%lmask(1:npl))) return
+#ifdef DOCONLOC
+         do concurrent (i = 1:npl, pl%lmask(i)) shared(oblpot_arr)
+#else
          do concurrent (i = 1:npl, pl%lmask(i))
+#endif
             oblpot_arr(i) = swiftest_obl_pot_one(cb%Gmass, pl%Gmass(i), cb%j2rp2, cb%j4rp4, pl%rh(3,i), 1.0_DP / norm2(pl%rh(:,i)))
          end do
          nbody_system%oblpot = sum(oblpot_arr, pl%lmask(1:npl))

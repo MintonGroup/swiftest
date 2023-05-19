@@ -1178,7 +1178,11 @@ contains
          nbody_system%be_cb = -3*cb%Gmass * cb%mass / (5 * cb%radius) 
          Lcborbit(:) = cb%mass * (cb%rb(:) .cross. cb%vb(:))
 
+#ifdef DOCONLOC
+         do concurrent (i = 1:npl, pl%lmask(i)) local(h) shared(Lplorbit, kepl)
+#else
          do concurrent (i = 1:npl, pl%lmask(i))
+#endif
             h(:) = pl%rb(:,i) .cross. pl%vb(:,i)
 
             ! Angular momentum from orbit 
@@ -1194,7 +1198,11 @@ contains
             ! For simplicity, we always assume that the rotation pole is the 3rd principal axis
             Lcbspin(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
 
+#ifdef DOCONLOC
+            do concurrent (i = 1:npl, pl%lmask(i)) shared(Lplspin, kespinpl)
+#else
             do concurrent (i = 1:npl, pl%lmask(i))
+#endif
                ! Currently we assume that the rotation pole is the 3rd principal axis
                ! Angular momentum from spin
                Lplspin(:,i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(:,i)
@@ -1226,7 +1234,7 @@ contains
          end if
 
          nbody_system%ke_orbit = 0.5_DP * (kecb + sum(kepl(1:npl), pl%lmask(1:npl)))
-   
+  
          do concurrent (j = 1:NDIM)
             nbody_system%L_orbit(j) = Lcborbit(j) + sum(Lplorbit(j,1:npl), pl%lmask(1:npl)) 
          end do
@@ -1271,7 +1279,11 @@ contains
          pecb(1:npl) = 0.0_DP
       end where
 
+#ifdef DOCONLOC
+      do concurrent(i = 1:npl, lmask(i)) shared(pecb)
+#else
       do concurrent(i = 1:npl, lmask(i))
+#endif
          pecb(i) = -GMcb * mass(i) / norm2(rb(:,i)) 
       end do
 
@@ -1318,7 +1330,11 @@ contains
          pecb(1:npl) = 0.0_DP
       end where
 
+#ifdef DOCONLOC
+      do concurrent(i = 1:npl, lmask(i)) shared(pecb)
+#else
       do concurrent(i = 1:npl, lmask(i))
+#endif
          pecb(i) = -GMcb * mass(i) / norm2(rb(:,i)) 
       end do
 
@@ -1329,7 +1345,11 @@ contains
       !$omp reduction(+:pe) 
       do i = 1, npl
          if (lmask(i)) then
+#ifdef DOCONLOC
+            do concurrent(j = i+1:npl, lmask(i) .and. lmask(j)) shared(pepl)
+#else
             do concurrent(j = i+1:npl, lmask(i) .and. lmask(j))
+#endif
                pepl(j) = - (Gmass(i) * mass(j)) / norm2(rb(:, i) - rb(:, j))
             end do
             pe = pe + sum(pepl(i+1:npl), lmask(i+1:npl))
@@ -1523,7 +1543,6 @@ contains
       integer(I4B) :: i
       real(DP), dimension(n) :: e !! Temporary, just to make use of the xv2aeq subroutine
       real(DP) :: vdotr
-      character(len=NAMELEN) :: message
 
       do i = 1,n
          vdotr = dot_product(r(:,i),v(:,i))

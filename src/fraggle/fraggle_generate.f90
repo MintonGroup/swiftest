@@ -299,7 +299,7 @@ contains
       real(DP),                 intent(in)    :: t            !! The time of the collision
 
       ! Internals
-      integer(I4B)                              :: i, j
+      integer(I4B)                              :: i
       real(DP), dimension(NDIM)                 :: L_spin_new, Ip, rot
       real(DP)                                  :: rotmag, mass, volume, radius
 
@@ -413,7 +413,11 @@ contains
             end do
 
             ! Randomly place the n>2 fragments inside their cloud until none are overlapping
+#ifdef DOCONLOC
+            do concurrent(i = istart:nfrag, loverlap(i)) shared(loverlap, mass_rscale, u, phi, theta, lhitandrun) local(j, direction)
+#else
             do concurrent(i = istart:nfrag, loverlap(i))
+#endif
                j = fragments%origin_body(i)
 
                ! Scale the cloud size
@@ -452,7 +456,11 @@ contains
             ! Because body 1 and 2 are initialized near the original impactor positions, then if these bodies are still overlapping
             ! when the rest are not, we will randomly walk their position in space so as not to move them too far from their starting  position
             if (all(.not.loverlap(istart:nfrag)) .and. any(loverlap(1:istart-1))) then
+#ifdef DOCONLOC
+               do concurrent(i = 1:istart-1,loverlap(i)) shared(loverlap, u, theta, i) local(rwalk, dis)
+#else
                do concurrent(i = 1:istart-1,loverlap(i))
+#endif
                   dis = 0.1_DP * fragments%radius(i) * u(i)**(THIRD)
                   rwalk(1) = fragments%rmag(i) * sin(theta(i)) * cos(phi(i))
                   rwalk(2) = fragments%rmag(i) * sin(theta(i)) * sin(phi(i))
