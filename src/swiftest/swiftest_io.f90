@@ -265,7 +265,7 @@ contains
             if (param%display_style == "PROGRESS") then
                call pbar%reset(param%nloops)
             else if (param%display_style == "COMPACT") then
-               write(param%display_unit,*) "SWIFTEST START " // trim(adjustl(param%integrator))
+               write(*,*) "SWIFTEST START " // trim(adjustl(param%integrator))
             end if
          end if
 #ifdef COARRAY
