@@ -46,7 +46,6 @@ contains
       real(DP),                 intent(in)    :: t            !! The time of the collision
       ! Internals
       integer(I4B) :: i,j,nimp
-      real(DP), dimension(NDIM) :: rcom, vcom, rnorm
       logical, dimension(:), allocatable :: lmask
 
       select type(nbody_system)

@@ -25,8 +25,6 @@ contains
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(NDIM)                    :: suma
-      real(DP), dimension(:, :), allocatable       :: aj
-      real(DP)                                     :: beta, rjmag4
       
       if (self%nbody == 0) return
 
@@ -56,8 +54,6 @@ contains
       class(whm_tp),              intent(inout) :: self   !! WHM massive body particle data structure
       class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters 
       ! Internals
-      integer(I4B)                                 :: i
-      real(DP)                                     :: rjmag4, beta
       
       if (self%nbody == 0) return
 
