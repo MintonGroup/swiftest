@@ -61,11 +61,6 @@ contains
       integer(I4B), dimension(:), allocatable, intent(out)   :: index2 !! List of indices for body 2 in each encounter
       logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
       ! Internals
-      ! type(interaction_timer), save :: itimer
-      logical, save :: lfirst = .true.
-      logical, save :: skipit = .false.
-      integer(I8B) :: nplplm = 0_I8B
-      integer(I4B) :: npl
       logical,      dimension(:), allocatable :: plmplt_lvdotr !! Logical flag indicating the sign of v .dot. x in the plm-plt group
       integer(I4B), dimension(:), allocatable :: plmplt_index1 !! List of indices for body 1 in each encounter in the plm-plt group
       integer(I4B), dimension(:), allocatable :: plmplt_index2 !! List of indices for body 2 in each encounter in the plm-lt group
@@ -387,7 +382,11 @@ contains
       real(DP) :: xr, yr, zr, vxr, vyr, vzr, renc12
       logical, dimension(n) :: lencounteri, lvdotri
 
+#ifdef DOCONLOC
+      do concurrent(j = i+1:n) shared(lencounteri, lvdotri)
+#else
       do concurrent(j = i+1:n)
+#endif
          xr = x(j) - xi
          yr = y(j) - yi
          zr = z(j) - zi
@@ -605,11 +604,11 @@ contains
       implicit none
       ! Arguments
       class(encounter_list), dimension(:),              intent(in)            :: ragged_list !! The ragged encounter list
-      integer(I4B),                                    intent(in)            :: n1          !! Number of bodies 1
-      integer(I8B),                                    intent(out)           :: nenc        !! Total number of encountersj 
-      integer(I4B),         dimension(:), allocatable, intent(out)           :: index1      !! Array of indices for body 1
-      integer(I4B),         dimension(:), allocatable, intent(out)           :: index2      !! Array of indices for body 1
-      logical,              dimension(:), allocatable, intent(out), optional :: lvdotr      !! Array indicating which bodies are approaching
+      integer(I4B),                                     intent(in)            :: n1          !! Number of bodies 1
+      integer(I8B),                                     intent(out)           :: nenc        !! Total number of encountersj 
+      integer(I4B),          dimension(:), allocatable, intent(out)           :: index1      !! Array of indices for body 1
+      integer(I4B),          dimension(:), allocatable, intent(out)           :: index2      !! Array of indices for body 1
+      logical,               dimension(:), allocatable, intent(out), optional :: lvdotr      !! Array indicating which bodies are approaching
       ! Internals
       integer(I4B) :: i
       integer(I8B) :: j1, j0, nenci

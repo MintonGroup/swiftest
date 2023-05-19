@@ -151,3 +151,24 @@ IF(BT STREQUAL "DEBUG")
 ELSEIF(BT STREQUAL "PROFILE")
    ADD_DEFINITIONS(-DPROFILE)
 ENDIF()
+
+# Check to see if the compiler allows for local-spec in do concurrent statements. Set a preprocessor variable if it does
+IF (USE_OPENMP)
+    SET(TESTFILE "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}")
+    SET(TESTFILE "${TESTFILE}/CMakeTmp/testFortranDoConcurrentLoc.f90")
+    FILE(WRITE "${TESTFILE}"
+"
+program TestDoConcurrentLoc
+integer :: i
+real,dimension(10) :: a
+do concurrent(i = 1:10) shared(a)
+   a(i) = i 
+end do
+end program TestDoConcurrentLoc
+")
+    TRY_COMPILE(DOCONLOC_WORKS ${CMAKE_BINARY_DIR} ${TESTFILE}
+    COMPILE_DEFINITIONS "${CMAKE_Fortran_FLAGS}" OUTPUT_VARIABLE OUTPUT)
+    IF (DOCONLOC_WORKS)
+        TARGET_COMPILE_DEFINITIONS(${SWIFTEST_DRIVER} PRIVATE -DDOCONLOC)
+    ENDIF (DOCONLOC_WORKS)
+ENDIF (USE_OPENMP)
