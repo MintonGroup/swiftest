@@ -277,7 +277,7 @@ contains
          if (this_image() == 1) then
 #endif
             write(pbarmessage,fmt=pbarfmt) self%t, param%tstop
-            call pbar%update(1_I8B,message=pbarmessage)
+            call pbar%update(param%iloop,message=pbarmessage)
 #ifdef COARRAY
          end if !(this_image() == 1)
 #endif
