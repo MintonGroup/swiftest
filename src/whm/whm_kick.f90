@@ -93,13 +93,21 @@ contains
 
          if (lbeg) then
             ah0(:) = whm_kick_getacch_ah0(pl%Gmass(1:npl), pl%rbeg(:, 1:npl), npl)
+#ifdef DOCONLOC
+            do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp,ah0)
+#else
             do concurrent(i = 1:ntp, tp%lmask(i))
+#endif
                tp%ah(:, i) = tp%ah(:, i) + ah0(:)
             end do
             call tp%accel_int(param, pl%Gmass(1:npl), pl%rbeg(:, 1:npl), npl)
          else
             ah0(:) = whm_kick_getacch_ah0(pl%Gmass(1:npl), pl%rend(:, 1:npl), npl)
+#ifdef DOCONLOC
+            do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp,ah0)
+#else
             do concurrent(i = 1:ntp, tp%lmask(i))
+#endif
                tp%ah(:, i) = tp%ah(:, i) + ah0(:)
             end do
             call tp%accel_int(param, pl%Gmass(1:npl), pl%rend(:, 1:npl), npl)
@@ -157,7 +165,11 @@ contains
       real(DP), dimension(NDIM)    :: ah1h, ah1j
 
       npl = pl%nbody
+#ifdef DOCONLOC
+      do concurrent (i = 2:npl, pl%lmask(i)) shared(pl,cb) local(ah1j,ah1h)
+#else
       do concurrent (i = 2:npl, pl%lmask(i))
+#endif
          ah1j(:) = pl%xj(:, i) * pl%ir3j(i)
          ah1h(:) = pl%rh(:, i) * pl%ir3h(i)
          pl%ah(:, i) = pl%ah(:, i) + cb%Gmass * (ah1j(:) - ah1h(:))
@@ -187,10 +199,14 @@ contains
       ah2(:) = 0.0_DP
       ah2o(:) = 0.0_DP
       etaj = cb%Gmass
+#ifdef DOCONLOC
+      do concurrent(i = 2:npl, pl%lmask(i)) shared(pl,cb,ah2,ah2o) local(etaj,fac)
+#else
       do concurrent(i = 2:npl, pl%lmask(i))
+#endif
          etaj = etaj + pl%Gmass(i - 1)
          fac = pl%Gmass(i) * cb%Gmass * pl%ir3j(i) / etaj
-         ah2(:) = ah2o + fac * pl%xj(:, i)
+         ah2(:) = ah2o(:) + fac * pl%xj(:, i)
          pl%ah(:,i) = pl%ah(:, i) + ah2(:)
          ah2o(:) = ah2(:)
       end do
@@ -233,7 +249,11 @@ contains
             call pl%accel(nbody_system, param, t, lbeg)
             call pl%set_beg_end(rend = pl%rh)
          end if
+#ifdef DOCONLOC
+         do concurrent(i = 1:npl, pl%lmask(i)) shared(pl,dt)
+#else
          do concurrent(i = 1:npl, pl%lmask(i))
+#endif
             pl%vh(:, i) = pl%vh(:, i) + pl%ah(:, i) * dt
          end do
       end associate
@@ -265,19 +285,31 @@ contains
       associate(tp => self)
          ntp = self%nbody
          if (tp%lfirst) then
+#ifdef DOCONLOC
+            do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp)
+#else
             do concurrent(i = 1:ntp, tp%lmask(i))
+#endif
                tp%ah(:, i) = 0.0_DP
             end do
             call tp%accel(nbody_system, param, t, lbeg=.true.)
             tp%lfirst = .false.
          end if
          if (.not.lbeg) then
+#ifdef DOCONLOC
+            do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp)
+#else
             do concurrent(i = 1:ntp, tp%lmask(i))
+#endif
                tp%ah(:, i) = 0.0_DP
             end do
             call tp%accel(nbody_system, param, t, lbeg)
          end if
+#ifdef DOCONLOC
+         do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp)
+#else
          do concurrent(i = 1:ntp, tp%lmask(i))
+#endif
             tp%vh(:, i) = tp%vh(:, i) + tp%ah(:, i) * dt
          end do
       end associate

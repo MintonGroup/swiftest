@@ -26,7 +26,11 @@ contains
       if (self%nbody == 0) return
 
       call self%set_mu(cb)
+#ifdef DOCONLOC
+      do concurrent (i = 1:self%nbody) shared(self)
+#else
       do concurrent (i = 1:self%nbody)
+#endif
          call swiftest_orbel_el2xv(self%mu(i), self%a(i), self%e(i), self%inc(i), self%capom(i), &
                            self%omega(i), self%capm(i), self%rh(:, i), self%vh(:, i))
       end do
@@ -887,7 +891,11 @@ contains
       if (allocated(self%capom)) deallocate(self%capom); allocate(self%capom(self%nbody))
       if (allocated(self%omega)) deallocate(self%omega); allocate(self%omega(self%nbody))
       if (allocated(self%capm)) deallocate(self%capm);  allocate(self%capm(self%nbody))
+#ifdef DOCONLOC
+      do concurrent (i = 1:self%nbody) shared(self) local(varpi,lam,f,cape,capf)
+#else
       do concurrent (i = 1:self%nbody)
+#endif
          call swiftest_orbel_xv2el(self%mu(i), self%rh(1,i), self%rh(2,i), self%rh(3,i), &
                                       self%vh(1,i), self%vh(2,i), self%vh(3,i), &
                                       self%a(i), self%e(i), self%inc(i),  &
@@ -932,7 +940,7 @@ contains
       real(DP), intent(out) :: capf  !! hyperbolic anomaly (hyperbolic orbits)
       ! Internals
       integer(I4B) :: iorbit_type
-      real(DP)   :: hx, hy, hz, r, v2, h2, h, rdotv, energy, fac, u, w, cw, sw, face, tmpf, sf, cf, rdot, h_over_r2
+      real(DP)   :: hx, hy, hz, r, v2, h2, h, rdotv, energy, fac, u, w, cw, sw, face, tmpf, sf, cf, rdot
 
       a = 0.0_DP
       e = 0.0_DP

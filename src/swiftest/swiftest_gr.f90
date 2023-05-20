@@ -73,7 +73,11 @@ contains
       real(DP)                                  :: beta, rjmag4
      
       agr(:,:) = 0.0_DP
+#ifdef DOCONLOC
+      do concurrent (i = 1:n, lmask(i)) shared(lmask,x,mu,agr,inv_c2) local(rjmag4,beta)
+#else
       do concurrent (i = 1:n, lmask(i))
+#endif
          rjmag4 = (dot_product(x(:, i), x(:, i)))**2
          beta = -mu(i)**2 * inv_c2 
          agr(:, i) = 2 * beta * x(:, i) / rjmag4

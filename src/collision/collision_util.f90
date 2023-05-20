@@ -36,7 +36,11 @@ contains
             pl%mass(npl_before+1:npl_after) = fragments%mass(1:nfrag)
             pl%Gmass(npl_before+1:npl_after) = fragments%mass(1:nfrag) * param%GU
             pl%radius(npl_before+1:npl_after) = fragments%radius(1:nfrag)
+#ifdef DOCONLOC
+            do concurrent (i = 1:nfrag) shared(cb,pl,fragments)
+#else
             do concurrent (i = 1:nfrag)
+#endif
                pl%rb(:,npl_before+i) =  fragments%rb(:,i) 
                pl%vb(:,npl_before+i) =  fragments%vb(:,i) 
                pl%rh(:,npl_before+i) =  fragments%rb(:,i) - cb%rb(:)
@@ -169,7 +173,11 @@ contains
          associate(fragments => self%fragments, impactors => self%impactors, pl => nbody_system%pl, cb => nbody_system%cb)
             nfrag = self%fragments%nbody
             if (phase_val == 1) then
+#ifdef DOCONLOC
+               do concurrent(i = 1:2) shared(impactors)
+#else
                do concurrent(i = 1:2)
+#endif
                   impactors%ke_orbit(i) = 0.5_DP * impactors%mass(i) * dot_product(impactors%vc(:,i), impactors%vc(:,i))
                   impactors%ke_spin(i) = 0.5_DP * impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i) * dot_product(impactors%rot(:,i), impactors%rot(:,i))
                   impactors%be(i) = -3 * impactors%Gmass(i) * impactors%mass(i) / (5 * impactors%radius(i))
@@ -185,7 +193,11 @@ contains
                call swiftest_util_get_potential_energy(2, [(.true., i = 1, 2)], 0.0_DP, impactors%Gmass, impactors%mass, impactors%rb, self%pe(phase_val))
                self%te(phase_val) = self%ke_orbit(phase_val) + self%ke_spin(phase_val) + self%be(phase_val) + self%pe(phase_val)
             else if (phase_val == 2) then
+#ifdef DOCONLOC
+               do concurrent(i = 1:nfrag) shared(fragments)
+#else
                do concurrent(i = 1:nfrag)
+#endif
                   fragments%ke_orbit(i) = 0.5_DP * fragments%mass(i) * dot_product(fragments%vc(:,i), fragments%vc(:,i))
                   fragments%ke_spin(i) = 0.5_DP * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) * dot_product(fragments%rot(:,i), fragments%rot(:,i))
                   fragments%L_orbit(:,i) = fragments%mass(i) * fragments%rc(:,i) .cross. fragments%vc(:,i)
@@ -918,7 +930,11 @@ contains
          impactors%L_orbit   = impactors%L_orbit   * collider%Lscale
          impactors%ke_orbit  = impactors%ke_orbit  * collider%Escale
          impactors%ke_spin   = impactors%ke_spin   * collider%Escale
+#ifdef DOCONLOC
+         do concurrent(i = 1:2) shared(impactors)
+#else
          do concurrent(i = 1:2)
+#endif
             impactors%rot(:,i) = impactors%L_spin(:,i) * (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i))
          end do
    

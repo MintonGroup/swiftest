@@ -68,7 +68,11 @@ contains
                ! Get the energy and momentum of the system before and after the collision
                call self%get_energy_and_momentum(nbody_system, param, phase="before")
                nfrag = fragments%nbody
+#ifdef DOCONLOC
+               do concurrent(i = 1:2) shared(fragments,impactors)
+#else
                do concurrent(i = 1:2)
+#endif
                   fragments%rc(:,i) = fragments%rb(:,i) - impactors%rbcom(:)
                   fragments%vc(:,i) = fragments%vb(:,i) - impactors%vbcom(:)
                end do
@@ -309,7 +313,11 @@ contains
             mass = sum(impactors%mass(:))
             volume = 4._DP / 3._DP * PI * sum(impactors%radius(:)**3)
             radius = (3._DP * volume / (4._DP * PI))**(THIRD)
+#ifdef DOCONLOC
+            do concurrent(i = 1:NDIM) shared(impactors, Ip, L_spin_new)
+#else
             do concurrent(i = 1:NDIM)
+#endif
                Ip(i) = sum(impactors%mass(:) * impactors%Ip(i,:)) 
                L_spin_new(i) = sum(impactors%L_orbit(i,:) + impactors%L_spin(i,:))
             end do
@@ -414,7 +422,7 @@ contains
 
             ! Randomly place the n>2 fragments inside their cloud until none are overlapping
 #ifdef DOCONLOC
-            do concurrent(i = istart:nfrag, loverlap(i)) shared(loverlap, mass_rscale, u, phi, theta, lhitandrun) local(j, direction)
+            do concurrent(i = istart:nfrag, loverlap(i)) shared(fragments, impactors, fragment_cloud_radius, fragment_cloud_center, loverlap, mass_rscale, u, phi, theta, lhitandrun) local(j, direction)
 #else
             do concurrent(i = istart:nfrag, loverlap(i))
 #endif
@@ -457,7 +465,7 @@ contains
             ! when the rest are not, we will randomly walk their position in space so as not to move them too far from their starting  position
             if (all(.not.loverlap(istart:nfrag)) .and. any(loverlap(1:istart-1))) then
 #ifdef DOCONLOC
-               do concurrent(i = 1:istart-1,loverlap(i)) shared(loverlap, u, theta, i) local(rwalk, dis)
+               do concurrent(i = 1:istart-1,loverlap(i)) shared(fragments,loverlap, u, theta, i) local(rwalk, dis)
 #else
                do concurrent(i = 1:istart-1,loverlap(i))
 #endif
@@ -519,7 +527,7 @@ contains
       class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: i, nfrag
-      real(DP), parameter :: frag_rot_fac = 0.1_DP ! Fraction of projectile rotation magnitude to add as random noise to fragment rotation
+      real(DP), parameter :: FRAG_ROT_FAC = 0.1_DP ! Fraction of projectile rotation magnitude to add as random noise to fragment rotation
       real(DP), parameter :: hitandrun_momentum_transfer = 0.01_DP ! Fraction of projectile momentum transfered to target in a hit and run
       real(DP) :: mass_fac
       real(DP), dimension(NDIM) :: drot, dL
@@ -568,9 +576,13 @@ contains
          end if   
 
          call random_number(fragments%rot(:,2:nfrag))
+#ifdef DOCONLOC
+         do concurrent (i = 2:nfrag) shared(fragments,impactors) local(mass_fac)
+#else
          do concurrent (i = 2:nfrag)
+#endif
             mass_fac = fragments%mass(i) / impactors%mass(2)
-            fragments%rot(:,i) = mass_fac**(5.0_DP/3.0_DP) * impactors%rot(:,2) + 2 * (fragments%rot(:,i) - 1.0_DP) * frag_rot_fac * .mag.impactors%rot(:,2)
+            fragments%rot(:,i) = mass_fac**(5.0_DP/3.0_DP) * impactors%rot(:,2) + 2 * (fragments%rot(:,i) - 1.0_DP) * FRAG_ROT_FAC * .mag.impactors%rot(:,2)
          end do
          fragments%rotmag(:) = .mag.fragments%rot(:,:)
 
@@ -662,7 +674,11 @@ contains
 
                ! Scale the magnitude of the velocity by the distance from the impact point
                ! This will reduce the chances of fragments colliding with each other immediately, and is more physically correct  
-               do concurrent(i = 1:fragments%nbody)
+#ifdef DOCONLOC
+               do concurrent(i = 1:fragments%nbody) shared(fragments,impactors,vscale) local(rimp)
+#else
+               do concurrent(i = 1:fragments%nbody) 
+#endif
                   rimp(:) = fragments%rc(:,i) - impactors%rcimp(:) 
                   vscale(i) = .mag. rimp(:) / sum(impactors%radius(1:2))
                end do
@@ -673,7 +689,11 @@ contains
 
                ! Set the velocities of all fragments using all of the scale factors determined above
                if (istart > 1) fragments%vc(:,1) = impactors%vc(:,1) * impactors%mass(1) / fragments%mass(1)
+#ifdef DOCONLOC
+               do concurrent(i = istart:fragments%nbody) shared(fragments,impactors,lhitandrun, vscale, vesc, vsign) local(j,vrot,vmag,vdisp,rimp,vimp_unit)
+#else
                do concurrent(i = istart:fragments%nbody)
+#endif
                   j = fragments%origin_body(i)
                   vrot(:) = impactors%rot(:,j) .cross. (fragments%rc(:,i) - impactors%rc(:,j))
                   if (lhitandrun) then
@@ -704,7 +724,11 @@ contains
                   if (nsteps == 1) L_residual_best(:) = L_residual(:)
 
                   ! Use equipartition of spin kinetic energy to distribution spin angular momentum
+#ifdef DOCONLOC
+                  do concurrent(i = istart:fragments%nbody) shared(DLi_mag, fragments)
+#else
                   do concurrent(i = istart:fragments%nbody)
+#endif
                      dLi_mag(i) = ((fragments%mass(i) / fragments%mass(istart)) * &
                                    (fragments%radius(i) / fragments%radius(istart))**2 * &
                                    (fragments%Ip(3,i) / fragments%Ip(3,istart)))**(1.5_DP)
@@ -816,7 +840,11 @@ contains
             L_residual(:) = (collider%L_total(:,2) - collider%L_total(:,1))
             call collision_util_velocity_torque(-L_residual(:), collider%fragments%mtot, impactors%rbcom, impactors%vbcom)
 
+#ifdef DOCONLOC
+            do concurrent(i = 1:nfrag) shared(collider, impactors)
+#else
             do concurrent(i = 1:nfrag)
+#endif
                collider%fragments%vb(:,i) = collider%fragments%vc(:,i) + impactors%vbcom(:)
             end do
 

@@ -282,7 +282,11 @@ contains
       if (self%nbody == 0) return
       associate(tp => self)
          ntp = self%nbody
+#ifdef DOCONLOC
+         do concurrent (i = 1:ntp, tp%status(i) /= INACTIVE) shared(cb,tp)
+#else
          do concurrent (i = 1:ntp, tp%status(i) /= INACTIVE)
+#endif
             tp%rb(:, i) = tp%rh(:, i) + cb%rb(:)
             tp%vb(:, i) = tp%vh(:, i) + cb%vb(:)
          end do
@@ -310,7 +314,11 @@ contains
 
       associate(pl => self)
          npl = self%nbody
+#ifdef DOCONLOC
+         do concurrent (i = 1:npl, pl%status(i) /= INACTIVE) shared(cb,pl)
+#else
          do concurrent (i = 1:npl, pl%status(i) /= INACTIVE)
+#endif
             pl%rh(:, i) = pl%rb(:, i) - cb%rb(:)
             pl%vh(:, i) = pl%vb(:, i) - cb%vb(:)
          end do
@@ -338,7 +346,11 @@ contains
 
       associate(tp => self)
          ntp = self%nbody
+#ifdef DOCONLOC
+         do concurrent(i = 1:ntp, tp%status(i) /= INACTIVE) shared(cb,tp)
+#else
          do concurrent(i = 1:ntp, tp%status(i) /= INACTIVE)
+#endif
             tp%rh(:, i) = tp%rb(:, i) - cb%rb(:)
             tp%vh(:, i) = tp%vb(:, i) - cb%vb(:)
          end do
@@ -370,7 +382,11 @@ contains
          do i = npl, 1, -1
             if (pl%status(i) /= INACTIVE) cb%vb(:) = cb%vb(:) - pl%Gmass(i) * pl%vb(:, i) / cb%Gmass
          end do
+#ifdef DOCONLOC
+         do concurrent(i = 1:npl) shared(cb,pl)
+#else
          do concurrent(i = 1:npl)
+#endif
             pl%vh(:, i) = pl%vb(:, i) - cb%vb(:)
          end do
       end associate
@@ -430,7 +446,11 @@ contains
             cb%vb(:) = cb%vb(:) - pl%Gmass(i) * pl%vh(:, i) 
          end do
          cb%vb(:) = cb%vb(:) / Gmtot
+#ifdef DOCONLOC
+         do concurrent(i = 1:npl) shared(cb,pl)
+#else
          do concurrent(i = 1:npl)
+#endif
             pl%vb(:, i) = pl%vh(:, i) + cb%vb(:)
          end do
       end associate
@@ -518,7 +538,11 @@ contains
       if (self%nbody == 0) return
       associate(tp => self)
          ntp = self%nbody
+#ifdef DOCONLOC
+         do concurrent (i = 1:ntp, tp%status(i) /= INACTIVE) shared(cb,tp)
+#else
          do concurrent (i = 1:ntp, tp%status(i) /= INACTIVE)
+#endif
             tp%rb(:, i) = tp%rh(:, i) + cb%rb(:)
          end do
       end associate
@@ -1089,7 +1113,11 @@ contains
             if (err /=0) then ! An error occurred trying to allocate this big array. This probably means it's too big to fit in memory, and so we will force the run back into triangular mode
                param%lflatten_interactions = .false.
             else
+#ifdef DOCONLOC
+               do concurrent (i=1:npl, j=1:npl, j>i) shared(self) local(k)
+#else
                do concurrent (i=1:npl, j=1:npl, j>i)
+#endif
                   call swiftest_util_flatten_eucl_ij_to_k(self%nbody, i, j, k)
                   self%k_plpl(1, k) = i
                   self%k_plpl(2, k) = j
@@ -1179,7 +1207,7 @@ contains
          Lcborbit(:) = cb%mass * (cb%rb(:) .cross. cb%vb(:))
 
 #ifdef DOCONLOC
-         do concurrent (i = 1:npl, pl%lmask(i)) local(h) shared(Lplorbit, kepl)
+         do concurrent (i = 1:npl, pl%lmask(i)) shared(pl,Lplorbit,kepl) local(h) 
 #else
          do concurrent (i = 1:npl, pl%lmask(i))
 #endif
@@ -1199,7 +1227,7 @@ contains
             Lcbspin(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
 
 #ifdef DOCONLOC
-            do concurrent (i = 1:npl, pl%lmask(i)) shared(Lplspin, kespinpl)
+            do concurrent (i = 1:npl, pl%lmask(i)) shared(pl,Lplspin,kespinpl)
 #else
             do concurrent (i = 1:npl, pl%lmask(i))
 #endif
@@ -1213,7 +1241,11 @@ contains
 
             nbody_system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), pl%lmask(1:npl)))
 
+#ifdef DOCONLOC
+            do concurrent (j = 1:NDIM) shared(nbody_system,pl,Lplspin,Lcbspin)
+#else
             do concurrent (j = 1:NDIM)
+#endif
                nbody_system%L_spin(j) = Lcbspin(j) + sum(Lplspin(j,1:npl), pl%lmask(1:npl))
             end do
          else
@@ -1234,8 +1266,11 @@ contains
          end if
 
          nbody_system%ke_orbit = 0.5_DP * (kecb + sum(kepl(1:npl), pl%lmask(1:npl)))
-  
+#ifdef DOCONLOC
+         do concurrent (j = 1:NDIM) shared(nbody_system,pl,Lcborbit,Lplorbit)
+#else  
          do concurrent (j = 1:NDIM)
+#endif
             nbody_system%L_orbit(j) = Lcborbit(j) + sum(Lplorbit(j,1:npl), pl%lmask(1:npl)) 
          end do
 
@@ -1280,7 +1315,7 @@ contains
       end where
 
 #ifdef DOCONLOC
-      do concurrent(i = 1:npl, lmask(i)) shared(pecb)
+      do concurrent(i = 1:npl, lmask(i)) shared(lmask,pecb,GMcb,mass,rb)
 #else
       do concurrent(i = 1:npl, lmask(i))
 #endif
@@ -1331,7 +1366,7 @@ contains
       end where
 
 #ifdef DOCONLOC
-      do concurrent(i = 1:npl, lmask(i)) shared(pecb)
+      do concurrent(i = 1:npl, lmask(i)) shared(lmask, pecb, GMcb, mass, rb, lmask)
 #else
       do concurrent(i = 1:npl, lmask(i))
 #endif
@@ -1346,7 +1381,7 @@ contains
       do i = 1, npl
          if (lmask(i)) then
 #ifdef DOCONLOC
-            do concurrent(j = i+1:npl, lmask(i) .and. lmask(j)) shared(pepl)
+            do concurrent(j = i+1:npl, lmask(i) .and. lmask(j)) shared(lmask, pepl, rb, mass, Gmass, lmask) 
 #else
             do concurrent(j = i+1:npl, lmask(i) .and. lmask(j))
 #endif

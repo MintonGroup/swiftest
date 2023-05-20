@@ -174,7 +174,11 @@ contains
          npl_last = npl
       end if
 
+#ifdef DOCONLOC
+      do concurrent (i = 1:npl) shared(r,renc,rmin,rmax) local(rmag)
+#else
       do concurrent (i = 1:npl)
+#endif
          rmag = .mag.r(:,i)
          rmax(i) = rmag + RSWEEP_FACTOR * renc(i)
          rmin(i) = rmag - RSWEEP_FACTOR * renc(i)
@@ -227,12 +231,20 @@ contains
          ntot_last = ntot
       end if
 
+#ifdef DOCONLOC
+      do concurrent (i = 1:nplm) shared(rmin,rmax,rplm,rencm) local(rmag)
+#else
       do concurrent (i = 1:nplm)
+#endif
          rmag = .mag.rplm(:,i)
          rmax(i) = rmag + RSWEEP_FACTOR * rencm(i)
          rmin(i) = rmag - RSWEEP_FACTOR * rencm(i)
       end do
+#ifdef DOCONLOC
+      do concurrent (i = 1:nplt) shared(rmin,rmax,rplt,renct) local(rmag)
+#else
       do concurrent (i = 1:nplt)
+#endif
          rmag = .mag.rplt(:,i)
          rmax(nplm+i) = rmag + RSWEEP_FACTOR * renct(i)
          rmin(nplm+i) = rmag - RSWEEP_FACTOR * renct(i)
@@ -287,12 +299,20 @@ contains
 
       renctp(:) = 0.0_DP
 
+#ifdef DOCONLOC
+      do concurrent (i = 1:npl) shared(rmin,rmax,rpl,rencpl) local(rmag)
+#else
       do concurrent (i = 1:npl)
+#endif
          rmag = .mag.rpl(:,i)
          rmax(i) = rmag + RSWEEP_FACTOR * rencpl(i)
          rmin(i) = rmag - RSWEEP_FACTOR * rencpl(i)
       end do
-      do concurrent (i = 1:ntp)
+#ifdef DOCONLOC
+      do concurrent (i = 1:ntp) shared(rmin,rmax,rtp,renctp) local(rmag)
+#else
+      do concurrent (i = 1:ntp) 
+#endif
          rmag = .mag.rtp(:,i)
          rmax(npl+i) = rmag + RSWEEP_FACTOR * renctp(i)
          rmin(npl+i) = rmag - RSWEEP_FACTOR * renctp(i)
@@ -335,7 +355,11 @@ contains
       logical, dimension(n) :: lencounteri, lvdotri
 
       lencounteri(:) = .false.
+#ifdef DOCONLOC
+      do concurrent(j = 1:n, lgood(j)) shared(lgood,lencounteri,lvdotri,x,y,z,vx,vy,vz,renci,renc) local(xr,yr,zr,vxr,vyr,vzr,renc12)
+#else
       do concurrent(j = 1:n, lgood(j))
+#endif
          xr = x(j) - xi
          yr = y(j) - yi
          zr = z(j) - zi
@@ -383,7 +407,7 @@ contains
       logical, dimension(n) :: lencounteri, lvdotri
 
 #ifdef DOCONLOC
-      do concurrent(j = i+1:n) shared(lencounteri, lvdotri)
+      do concurrent(j = i+1:n) shared(lencounteri, lvdotri, renci, renc) local(xr,yr,zr,vxr,vyr,vzr,renc12)
 #else
       do concurrent(j = i+1:n)
 #endif
@@ -700,7 +724,11 @@ contains
       ! Sort on the second index and remove duplicates 
       if (allocated(itmp)) deallocate(itmp)
       allocate(itmp, source=index2)
+#ifdef DOCONLOC
+      do concurrent(i = 1:n, iend(i) - ibeg(i) > 0_I8B) shared(iend,ibeg,index2,lencounter,itmp) local(klo,khi,nenci,j)
+#else
       do concurrent(i = 1:n, iend(i) - ibeg(i) > 0_I8B)
+#endif
          klo = ibeg(i)
          khi = iend(i)
          nenci = khi - klo + 1_I8B
@@ -747,7 +775,11 @@ contains
 
       call util_sort(extent_arr, self%ind)
 
+#ifdef DOCONLOC
+      do concurrent(k = 1_I8B:2_I8B * n) shared(self,n) local(i)
+#else
       do concurrent(k = 1_I8B:2_I8B * n)
+#endif
          i = self%ind(k)
          if (i <= n) then
             self%ibeg(i) = k
@@ -940,7 +972,11 @@ contains
       call encounter_check_collapse_ragged_list(lenc, n, nenc, index1, index2, lvdotr)
 
       ! By convention, we always assume that index1 < index2, and so we must swap any that are out of order
+#ifdef DOCONLOC
+      do concurrent(k = 1_I8B:nenc, index1(k) > index2(k)) shared(index1,index2) local(itmp)
+#else
       do concurrent(k = 1_I8B:nenc, index1(k) > index2(k))
+#endif
          itmp = index1(k)
          index1(k) = index2(k)
          index2(k) = itmp

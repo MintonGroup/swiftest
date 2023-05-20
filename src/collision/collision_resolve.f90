@@ -387,7 +387,11 @@ contains
             !    plnew%tlag = pl%tlag(ibiggest)
             ! end if
 
+#ifdef DOCONLOC
+            do concurrent(i = 1:nfrag) shared(plnew,fragments) local(volume)
+#else
             do concurrent(i = 1:nfrag)
+#endif
                volume = 4.0_DP/3.0_DP * PI * plnew%radius(i)**3
                plnew%density(i) = fragments%mass(i) / volume
             end do

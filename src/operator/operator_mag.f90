@@ -44,7 +44,11 @@ contains
       if (allocated(B)) deallocate(B)
       allocate(B(n))
       call ieee_set_halting_mode(ieee_underflow, .false.)
-      do concurrent (i=1:n)
+#ifdef DOCONLOC
+      do concurrent (i = 1:n)  shared(A,B)
+#else
+      do concurrent (i = 1:n) 
+#endif
          B(i) = norm2(A(:, i)) 
       end do
       return
@@ -59,7 +63,11 @@ contains
       if (allocated(B)) deallocate(B)
       allocate(B(n))
       call ieee_set_halting_mode(ieee_underflow, .false.)
-      do concurrent (i=1:n)
+#ifdef DOCONLOC
+      do concurrent (i = 1:n)  shared(A,B)
+#else
+      do concurrent (i = 1:n) 
+#endif
          B(i) = norm2(A(:, i)) 
       end do
       return 
@@ -74,7 +82,11 @@ contains
       if (allocated(B)) deallocate(B)
       allocate(B(n))
       call ieee_set_halting_mode(ieee_underflow, .false.)
-      do concurrent (i=1:n)
+#ifdef DOCONLOC
+      do concurrent (i = 1:n)  shared(A,B)
+#else
+      do concurrent (i = 1:n) 
+#endif
          B(i) = norm2(A(:, i)) 
       end do
       return 

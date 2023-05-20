@@ -82,7 +82,11 @@ contains
 
       allocate(dtp(n))
       if (param%lgr) then
+#ifdef DOCONLOC
+         do concurrent(i = 1:n, lmask(i)) shared(param,lmask,x,v,mu,dtp,dt) local(rmag,vmag2,energy)
+#else
          do concurrent(i = 1:n, lmask(i))
+#endif
             rmag = norm2(x(:, i))
             vmag2 = dot_product(v(:, i), v(:, i))
             energy = 0.5_DP * vmag2 - mu(i) / rmag

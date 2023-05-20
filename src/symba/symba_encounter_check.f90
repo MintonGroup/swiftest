@@ -119,7 +119,11 @@ contains
          eidx(:) = pack([(k, k = 1, self%nenc)], lencmask(:))
          lencounter(:) = .false.
 
+#ifdef DOCONLOC
+         do concurrent(lidx = 1:nenc_enc) shared(self,pl,eidx,lencounter,dt) local(i,j,k,xr,vr,rcrit12,rlim2,rji2)
+#else
          do concurrent(lidx = 1:nenc_enc)
+#endif
             k = eidx(lidx)
             i = self%index1(k)
             j = self%index2(k)
@@ -188,8 +192,11 @@ contains
          allocate(lencounter(nenc_enc))
          eidx(:) = pack([(k, k = 1, self%nenc)], lencmask(:))
          lencounter(:) = .false.
-
+#ifdef DOCONLOC
+         do concurrent(lidx = 1:nenc_enc) shared(self,pl,tp,eidx,lencounter,dt) local(i,j,k,xr,vr,rlim2,rji2)
+#else
          do concurrent(lidx = 1:nenc_enc)
+#endif
             k = eidx(lidx)
             i = self%index1(k)
             j = self%index2(k)

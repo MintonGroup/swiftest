@@ -35,7 +35,11 @@ contains
       if (n == 0) return
 
       aobl(:,:) = 0.0_DP
+#ifdef DOCONLOC
+      do concurrent(i = 1:n, lmask(i)) shared(lmask,rh,aobl) local(r2,irh,rinv2,t0,t1,t2,t3,fac1,fac2)
+#else
       do concurrent(i = 1:n, lmask(i))
+#endif
          r2 = dot_product(rh(:, i), rh(:, i))
          irh = 1.0_DP / sqrt(r2)
          rinv2 = irh**2
@@ -81,7 +85,11 @@ contains
          npl = self%nbody
          call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rh, pl%lmask, pl%aobl, pl%Gmass, cb%aobl)
 
+#ifdef DOCONLOC
+         do concurrent(i = 1:npl, pl%lmask(i)) shared(cb,pl)
+#else
          do concurrent(i = 1:npl, pl%lmask(i))
+#endif
             pl%ah(:, i) = pl%ah(:, i) + pl%aobl(:, i) - cb%aobl(:)
          end do
       end associate
@@ -117,7 +125,11 @@ contains
             aoblcb = cb%aoblend
          end if
 
+#ifdef DOCONLOC
+         do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp,aoblcb)
+#else
          do concurrent(i = 1:ntp, tp%lmask(i))
+#endif
             tp%ah(:, i) = tp%ah(:, i) + tp%aobl(:, i) - aoblcb(:)
          end do
 
@@ -148,7 +160,7 @@ contains
          npl = self%pl%nbody
          if (.not. any(pl%lmask(1:npl))) return
 #ifdef DOCONLOC
-         do concurrent (i = 1:npl, pl%lmask(i)) shared(oblpot_arr)
+         do concurrent (i = 1:npl, pl%lmask(i)) shared(cb,pl,oblpot_arr)
 #else
          do concurrent (i = 1:npl, pl%lmask(i))
 #endif

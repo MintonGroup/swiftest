@@ -61,17 +61,29 @@ contains
 
                         ! Now compute any heliocentric values of acceleration 
                         if (tp%lfirst) then
+#ifdef DOCONLOC
+                           do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp)
+#else
                            do concurrent(i = 1:ntp, tp%lmask(i))
+#endif
                               tp%rheliocentric(:,i) = tp%rh(:,i) + cb%inner(inner_index - 1)%x(:,1)
                            end do
                         else
+#ifdef DOCONLOC
+                           do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp)
+#else
                            do concurrent(i = 1:ntp, tp%lmask(i))
+#endif
                               tp%rheliocentric(:,i) = tp%rh(:,i) + cb%inner(inner_index    )%x(:,1)
                            end do
                         end if
 
                         ! Swap the planetocentric and heliocentric position vectors and central body masses
+#ifdef DOCONLOC
+                        do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp)
+#else
                         do concurrent(i = 1:ntp, tp%lmask(i))
+#endif
                            tp%rh(:, i) = tp%rheliocentric(:, i)
                         end do
                         GMcb_original = cb%Gmass

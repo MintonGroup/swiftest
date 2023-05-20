@@ -86,7 +86,11 @@ contains
 
       associate(pl => self)
          npl = self%nbody
+#ifdef DOCONLOC
+         do concurrent(i = 1:npl, pl%lmask(i)) shared(pl,dt)
+#else
          do concurrent(i = 1:npl, pl%lmask(i))
+#endif
             call swiftest_gr_p4_pos_kick(param, pl%xj(:, i), pl%vj(:, i), dt)
          end do
       end associate
@@ -114,7 +118,11 @@ contains
       associate(tp => self)
          ntp = self%nbody
          if (ntp == 0) return
+#ifdef DOCONLOC
+         do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp,dt)
+#else
          do concurrent(i = 1:ntp, tp%lmask(i))
+#endif
             call swiftest_gr_p4_pos_kick(param, tp%rh(:, i), tp%vh(:, i), dt)
          end do
       end associate

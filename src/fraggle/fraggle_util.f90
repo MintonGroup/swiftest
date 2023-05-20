@@ -44,7 +44,11 @@ contains
          new_fragments%Gmass(1) =sum(old_fragments%Gmass(1:2))
          new_fragments%density(1) = new_fragments%mass(1) / volume
          new_fragments%radius(1) = (3._DP * volume / (4._DP * PI))**(THIRD)
+#ifdef DOCONLOC
+         do concurrent(i = 1:NDIM) shared(old_fragments, new_fragments)
+#else
          do concurrent(i = 1:NDIM)
+#endif
             new_fragments%Ip(i,1) = sum(old_fragments%mass(1:2) * old_fragments%Ip(i,1:2)) 
          end do
          new_fragments%Ip(:,1) = new_fragments%Ip(:,1) / new_fragments%mass(1)
@@ -55,7 +59,11 @@ contains
          new_fragments%Gmass(2:nnew) = old_fragments%Gmass(3:nold)
          new_fragments%density(2:nnew) = old_fragments%density(3:nold)
          new_fragments%radius(2:nnew) = old_fragments%radius(3:nold)
+#ifdef DOCONLOC
+         do concurrent(i = 1:NDIM) shared(old_fragments,new_fragments)
+#else
          do concurrent(i = 1:NDIM)
+#endif
             new_fragments%Ip(i,2:nnew) = old_fragments%Ip(i,3:nold) 
          end do
          new_fragments%origin_body(2:nnew) = old_fragments%origin_body(3:nold)
@@ -87,10 +95,10 @@ contains
       class(collision_fraggle),   intent(inout) :: self  !! Fraggle collision system object
       class(swiftest_parameters), intent(in)    :: param !! Current Swiftest run configuration parameters
       ! Internals
-      integer(I4B)              :: i, j, k, jproj, jtarg, nfrag, istart, nfragmax, nrem
+      integer(I4B)              :: i, j, jproj, jtarg, nfrag, istart, nfragmax
       real(DP), dimension(2)    :: volume
       real(DP), dimension(NDIM) :: Ip_avg
-      real(DP) ::  mremaining, mtot, mcumul, G, mass_noise, Mslr, x0, x1, ymid, y0, y1, y, yp, eps, Mrat
+      real(DP) ::  mremaining, mtot, mcumul, G, mass_noise, Mslr, Mrat
       real(DP), dimension(:), allocatable :: mass
       real(DP)  :: beta 
       integer(I4B), parameter :: MASS_NOISE_FACTOR = 5  !! The number of digits of random noise that get added to the minimum mass value to prevent identical masses from being generated in a single run 
@@ -207,7 +215,11 @@ contains
 
             fragments%density(istart:nfrag) = fragments%mtot / sum(volume(:))
             fragments%radius(istart:nfrag) = (3 * fragments%mass(istart:nfrag) / (4 * PI * fragments%density(istart:nfrag)))**(1.0_DP / 3.0_DP)
+#ifdef DOCONLOC
+            do concurrent(i = istart:nfrag) shared(fragments,Ip_avg)
+#else
             do concurrent(i = istart:nfrag)
+#endif
                fragments%Ip(:, i) = Ip_avg(:)
             end do
 

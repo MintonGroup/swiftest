@@ -101,7 +101,11 @@ contains
             lcollision(:) = .false.
             self%lclosest(:) = .false.
 
+#ifdef DOCONLOC
+            do concurrent(k = 1:nenc, lmask(k)) shared(self,pl,lmask, dt, lcollision) local(i,j,xr,vr,rlim,Gmtot)
+#else
             do concurrent(k = 1:nenc, lmask(k))
+#endif
                i = self%index1(k)
                j = self%index2(k)
                xr(:) = pl%rh(:, i) - pl%rh(:, j) 
@@ -204,8 +208,11 @@ contains
             lcollision(:) = .false.
             self%lclosest(:) = .false.
 
-
+#ifdef DOCONLOC
+            do concurrent(k = 1:nenc, lmask(k)) shared(self,pl,tp,lmask, dt, lcollision) local(i,j,xr,vr)
+#else
             do concurrent(k = 1:nenc, lmask(k))
+#endif
                i = self%index1(k)
                j = self%index2(k)
                xr(:) = pl%rh(:, i) - tp%rh(:, j) 

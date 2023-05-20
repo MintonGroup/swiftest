@@ -172,7 +172,11 @@ contains
                allocate(good_idx(ngood))
                good_idx(:) = pack([(i, i = 1, nenc)], lgoodlevel(:))
 
+#ifdef DOCONLOC
+               do concurrent (k = 1:ngood) shared(self,pl,good_idx) local(i,j)
+#else
                do concurrent (k = 1:ngood)
+#endif
                   i = self%index1(good_idx(k))
                   j = self%index2(good_idx(k))
                   pl%ah(:,i) = 0.0_DP
@@ -282,8 +286,11 @@ contains
                allocate(good_idx(ngood))
                good_idx(:) = pack([(i, i = 1, nenc)], lgoodlevel(:))
 
-
+#ifdef DOCONLOC
+               do concurrent (k = 1_I8B:ngood) shared(self,tp,good_idx) local(j)
+#else
                do concurrent (k = 1_I8B:ngood)
+#endif
                   j = self%index2(good_idx(k))
                   tp%ah(:,j) = 0.0_DP
                end do
