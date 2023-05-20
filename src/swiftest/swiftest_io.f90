@@ -414,7 +414,9 @@ contains
       class(swiftest_parameters),   intent(inout)     :: param  !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: i
+#ifdef COARRAY
       type(walltimer) :: iotimer
+#endif
 
       if (self%iframe == 0) return
       call self%make_index_map()
@@ -1043,7 +1045,7 @@ contains
       real(DP), dimension(:,:), allocatable :: rh
       integer(I4B), dimension(:), allocatable :: body_status 
       logical, dimension(:), allocatable :: lvalid
-      integer(I4B) :: idmax, status,i
+      integer(I4B) :: idmax, status
 
       call netcdf_io_check( nf90_inquire_dimension(self%id, self%name_dimid, len=idmax), "swiftest_io_netcdf_get_valid_masks nf90_inquire_dimension name_dimid"  )
 
@@ -1615,11 +1617,14 @@ contains
       class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       ! Internals
-      integer(I4B)                              :: i, j, idslot, old_mode, ntp
+      integer(I4B)                              :: i, j, idslot, old_mode
       integer(I4B), dimension(:), allocatable   :: ind
       real(DP), dimension(NDIM)                 :: vh !! Temporary variable to store heliocentric velocity values when converting from pseudovelocity in GR-enabled runs
       real(DP)                                  :: a, e, inc, omega, capom, capm, varpi, lam, f, cape, capf
+#ifdef COARRAY
+      integer(I4B) :: ntp
       logical, dimension(:), allocatable        :: tpmask, plmask
+#endif
 
       call self%write_info(nc, param)
 
@@ -1798,7 +1803,6 @@ contains
       class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       ! Internals
-      logical, dimension(:), allocatable        :: tpmask, plmask
       integer(I4B) :: tslot
 
       call nc%find_tslot(self%t, tslot)
