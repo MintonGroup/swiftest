@@ -30,6 +30,11 @@ dump*
 !docs/*/*/*
 !README_figs/*
 
+#Docker and Singularity files
+!Dockerfile
+!swiftest.def
+
 bin/
 build/*
-disruption_headon/swiftest_driver.sh
+
+
