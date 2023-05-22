@@ -22,13 +22,13 @@ RUN . /opt/intel/oneapi/setvars.sh
 # Build the NetCDF libraries
 RUN mkdir -p /opt/build && mkdir -p /opt/dist
 ENV INDIR="/opt/dist//usr/local"
-ENV INTEL_DIR="/opt/intel/oneapi/compiler/latest/linux"
-ENV CC="${INTEL_DIR}/bin/icx-cc"
+ENV INTEL_DIR="/opt/intel/oneapi"
+ENV CC="${INTEL_DIR}/compiler/latest/linux/bin/icx-cc"
 ENV FC="${INTEL_DIR}/mpi/latest/bin/mpiifort"
 
 RUN apt-get update && apt-get upgrade -y && \
   DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-  libhdf5-dev hdf5-tools zlib1g zlib1g-dev libxml2-dev libcurl-dev && \
+  libhdf5-dev hdf5-tools zlib1g zlib1g-dev libxml2-dev libcurl4-gnutls-dev m4 && \
   rm -rf /var/lib/apt/lists/*
 
 
