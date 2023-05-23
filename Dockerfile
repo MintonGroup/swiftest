@@ -3,7 +3,7 @@ FROM debian:stable-slim as build
 # kick everything off
 RUN apt-get update && apt-get upgrade -y && \
   DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-  ca-certificates curl git wget gpg-agent software-properties-common build-essential gnupg pkg-config libaec-dev && \
+  ca-certificates curl git wget gpg-agent software-properties-common build-essential gnupg pkg-config libaec-dev procps && \
   rm -rf /var/lib/apt/lists/*
 
 # Get CMAKE and install it
@@ -47,21 +47,21 @@ RUN cd netcdf-fortran && mkdir build && cd build && \
    cmake .. -DCMAKE_INSTALL_PREFIX="${INDIR}"  && \
    make && make install
 
-# #Swiftest
-# RUN git clone -b debug https://github.com/carlislewishard/swiftest.git
-# RUN cd swiftest && cmake -P distclean.cmake && mkdir build && cd build && \
-#    cmake .. -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX="${INDIR}" && \ 
-#    make && make install
+#Swiftest
+RUN git clone -b debug https://github.com/carlislewishard/swiftest.git
+RUN cd swiftest && cmake -P distclean.cmake && mkdir build && cd build && \
+   FC="${INTEL_DIR}/mpi/latest/bin/mpiifort" cmake .. -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX="${INDIR}" && \ 
+   make && make install
 
-# #Production container
-# FROM debian:stable-slim
-# COPY --from=build /opt/dist /
+#Production container
+FROM debian:stable-slim
+COPY --from=build /opt/dist /
 
-# # Get the Intel runtime libraries
-# RUN curl -fsSL https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB | apt-key add -
-# RUN deb [trusted=yes] https://apt.repos.intel.com/oneapi all main " > /etc/apt/sources.list.d/oneAPI.list
-# RUN apt-get -y update && apt-get upgrade -y
-# RUN apt-get install -y intel-oneapi-runtime-openmp intel-oneapi-runtime-mkl intel-oneapi-runtime-mpi intel-oneapi-runtime-fortran 
-# RUN . /opt/intel/oneapi/setvars.sh
+# Get the Intel runtime libraries
+RUN curl -fsSL https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB | apt-key add -
+RUN deb [trusted=yes] https://apt.repos.intel.com/oneapi all main " > /etc/apt/sources.list.d/oneAPI.list
+RUN apt-get -y update && apt-get upgrade -y
+RUN apt-get install -y intel-oneapi-runtime-openmp intel-oneapi-runtime-mkl intel-oneapi-runtime-mpi intel-oneapi-runtime-fortran 
+RUN . /opt/intel/oneapi/setvars.sh
 
-# ENTRYPOINT ["/usr/bin/swiftest_driver"]
+ENTRYPOINT ["/usr/bin/swiftest_driver"]
