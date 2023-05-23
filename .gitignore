@@ -31,6 +31,8 @@ dump*
 !README_figs/*
 
 #Docker and Singularity files
+!docker/
+!singularity/
 !Dockerfile
 !swiftest.def
 

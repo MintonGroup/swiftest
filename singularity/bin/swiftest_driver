@@ -1,0 +1,2 @@
+#!/bin/sh --
+docker run -v $(pwd):$(pwd) -w $(pwd) -t -e OMP_NUM_THREADS -e FOR_COARRAY_NUM_IMAGES swiftest:latest 

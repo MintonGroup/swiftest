@@ -19,38 +19,40 @@ INCLUDE(${CMAKE_MODULE_PATH}/SetCompileFlag.cmake)
 # Make sure the build type is uppercase
 STRING(TOUPPER "${CMAKE_BUILD_TYPE}" BT)
 
+SET(BUILD_TYPE_MSG "Choose the type of build, options are DEBUG, RELEASE, PROFILE, or TESTING.")
+
 IF(BT STREQUAL "RELEASE")
     SET(CMAKE_BUILD_TYPE RELEASE CACHE STRING
-      "Choose the type of build, options are DEBUG, RELEASE, PROFILE, or TESTING."
+      ${BUILD_TYPE_MSG}
       FORCE)
 ELSEIF(BT STREQUAL "DEBUG")
     SET (CMAKE_BUILD_TYPE DEBUG CACHE STRING
-      "Choose the type of build, options are DEBUG, RELEASE, PROFILE, or TESTING."
+      ${BUILD_TYPE_MSG}
       FORCE)
 ELSEIF(BT STREQUAL "TESTING")
     SET (CMAKE_BUILD_TYPE TESTING CACHE STRING
-      "Choose the type of build, options are DEBUG, RELEASE, PROFILE, or TESTING."
+      ${BUILD_TYPE_MSG}
       FORCE)
 ELSEIF(BT STREQUAL "PROFILE")
     SET (CMAKE_BUILD_TYPE PROFILE CACHE STRING
-      "Choose the type of build, options are DEBUG, RELEASE, PROFILE, or TESTING."
-      FORCE)      
+      ${BUILD_TYPE_MSG}
+      FORCE)
 ELSEIF(NOT BT)
     SET(CMAKE_BUILD_TYPE RELEASE CACHE STRING
-      "Choose the type of build, options are DEBUG, RELEASE, PROFILE, or TESTING."
+      ${BUILD_TYPE_MSG}
       FORCE)
     MESSAGE(STATUS "CMAKE_BUILD_TYPE not given, defaulting to RELEASE")
 ELSE()
-    MESSAGE(FATAL_ERROR "CMAKE_BUILD_TYPE not valid, choices are DEBUG, RELEASE, PROFILE, or TESTING")
+    MESSAGE(FATAL_ERROR "CMAKE_BUILD_TYPE not valid! ${BUILD_TYPE_MSG}")
 ENDIF(BT STREQUAL "RELEASE")
 
 #########################################################
 # If the compiler flags have already been set, return now
 #########################################################
 
-IF(CMAKE_Fortran_FLAGS_RELEASE AND CMAKE_Fortran_FLAGS_TESTING AND CMAKE_Fortran_FLAGS_DEBUG AND CMAKE_Fortran_FLAGS_PROFILE)
+IF(CMAKE_Fortran_FLAGS_RELEASE AND CMAKE_Fortran_FLAGS_TESTING AND CMAKE_Fortran_FLAGS_DEBUG AND CMAKE_Fortran_FLAGS_PROFILE AND CMAKE_Fortran_FLAGS_CONTAINER)
     RETURN ()
-ENDIF(CMAKE_Fortran_FLAGS_RELEASE AND CMAKE_Fortran_FLAGS_TESTING AND CMAKE_Fortran_FLAGS_DEBUG AND CMAKE_Fortran_FLAGS_PROFILE)
+ENDIF(CMAKE_Fortran_FLAGS_RELEASE AND CMAKE_Fortran_FLAGS_TESTING AND CMAKE_Fortran_FLAGS_DEBUG AND CMAKE_Fortran_FLAGS_PROFILE AND CMAKE_Fortran_FLAGS_CONTAINER)
 
 ########################################################################
 # Determine the appropriate flags for this compiler for each build type.
@@ -110,12 +112,57 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                         "/Qpad" # Intel Windows
                 )
 
-# There is some bug where -march=native doesn't work on Mac
-IF(APPLE)
-    SET(GNUNATIVE "-mtune=CORE-AVX2 -xCORE-AVX2")
-ELSE()
-    SET(GNUNATIVE "-march=CORE-AVX2 -axCORE-AVX2")
-ENDIF()
+
+
+IF (USE_SIMD)
+        # Enables OpenMP SIMD compilation when OpenMP parallelization is disabled. 
+        IF (NOT USE_OPENMP)
+                SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
+                        Fortran "-qno-openmp -qopenmp-simd" # Intel
+                        Fortran "/Qopenmp- /Qopenmp-simd" # Intel Windows
+                        )     
+        ENDIF (NOT USE_OPENMP)
+
+        IF (CONTAINERIZE)
+                # Optimize for an old enough processor that it should run on most computers
+                SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
+                                Fortran "-xSANDYBRIDGE"        # Intel
+                                        "/QxSANDYBRIDGE"       # Intel Windows
+                                        ${GNUNATIVE}    # GNU
+                                )
+        ELSE
+                # Optimize for the host's architecture
+                SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
+                                Fortran "-xhost"        # Intel
+                                        "/QxHost"       # Intel Windows
+                                        ${GNUNATIVE}    # GNU
+                                )
+        ENDIF (CONTAINERIZE)
+
+        # Generate an extended set of vector functions
+        SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
+                        Fortran "-vecabi=cmdtarget" # Intel
+                        Fortran "/Qvecabi:cmdtarget" # Intel Windows
+                        )
+ENDIF (USE_SIMD)                
+
+IF (CONTAINERIZE)
+        # There is some bug where -march=native doesn't work on Mac
+        IF(APPLE)
+                SET(GNUNATIVE "-mtune=sandybridge")
+        ELSE()
+                SET(GNUNATIVE "-march=sandybridge")
+        ENDIF()
+ELSE ()
+        # There is some bug where -march=native doesn't work on Mac
+        IF(APPLE)
+                SET(GNUNATIVE "-mtune=native")
+        ELSE()
+                SET(GNUNATIVE "-march=native")
+        ENDIF()
+ENDIF (CONTAINERIZE)
+
+
 
 ###################
 ### DEBUG FLAGS ###
@@ -340,19 +387,3 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_PROFILE "${CMAKE_Fortran_FLAGS_RELEASE}"
                         "/O2 /Qopt-report:5 /traceback /Z7"        # Intel Windows
                         "-O2 -pg -fbacktrace"                      # GNU
                 )
-
-IF (USE_SIMD)
-        # Enables OpenMP SIMD compilation when OpenMP parallelization is disabled. 
-        IF (NOT USE_OPENMP)
-                SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
-                        Fortran "-qno-openmp -qopenmp-simd" # Intel
-                        Fortran "/Qopenmp- /Qopenmp-simd" # Intel Windows
-                        )     
-        ENDIF (NOT USE_OPENMP)
-
-        # Generate an extended set of vector functions
-        SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
-                        Fortran "-vecabi=cmdtarget" # Intel
-                        Fortran "/Qvecabi:cmdtarget" # Intel Windows
-                        )
-ENDIF (USE_SIMD)
