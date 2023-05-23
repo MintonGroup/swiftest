@@ -1,2 +1,2 @@
 Bootstrap: docker
-From: daminton:swiftest:latest
+From: daminton/swiftest:latest
