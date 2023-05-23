@@ -20,7 +20,6 @@ RUN wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRO
 RUN echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list
 RUN apt-get -y update && apt-get upgrade -y
 RUN apt-get install -y intel-hpckit
-RUN . /opt/intel/oneapi/setvars.sh
 
 # Build the NetCDF libraries
 RUN mkdir -p /opt/build && mkdir -p /opt/dist
@@ -47,11 +46,65 @@ RUN cd netcdf-fortran && mkdir build && cd build && \
    cmake .. -DCMAKE_INSTALL_PREFIX="${INDIR}"  && \
    make && make install
 
-#Swiftest
+# #Swiftest
 RUN git clone -b debug https://github.com/carlislewishard/swiftest.git
-RUN cd swiftest && cmake -P distclean.cmake && mkdir build && cd build && \
-   FC="${INTEL_DIR}/mpi/latest/bin/mpiifort" cmake .. -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX="${INDIR}" && \ 
-   make && make install
+ENV FC="${INTEL_DIR}/mpi/latest/bin/mpiifort"
+ENV NETCDF_HOME="${INDIR}"
+ENV NETCDF_FORTRAN_HOME="${INDIR}"
+ENV LANG=C.UTF-8
+ENV ACL_BOARD_VENDOR_PATH='/opt/Intel/OpenCLFPGA/oneAPI/Boards'
+ENV ADVISOR_2023_DIR='/opt/intel/oneapi/advisor/2023.1.0'
+ENV APM='/opt/intel/oneapi/advisor/2023.1.0/perfmodels'
+ENV CCL_CONFIGURATION='cpu_gpu_dpcpp'
+ENV CCL_ROOT='/opt/intel/oneapi/ccl/2021.9.0'
+ENV CLASSPATH='/opt/intel/oneapi/mpi/2021.9.0//lib/mpi.jar:/opt/intel/oneapi/dal/2023.1.0/lib/onedal.jar'
+ENV CLCK_ROOT='/opt/intel/oneapi/clck/2021.7.3'
+ENV CMAKE_PREFIX_PATH='/opt/intel/oneapi/tbb/2021.9.0/env/..:/opt/intel/oneapi/dnnl/2023.1.0/cpu_dpcpp_gpu_dpcpp/../lib/cmake:/opt/intel/oneapi/dal/2023.1.0:/opt/intel/oneapi/compiler/2023.1.0/linux/IntelDPCPP:/opt/intel/oneapi/ccl/2021.9.0/lib/cmake/oneCCL'
+ENV CMPLR_ROOT='/opt/intel/oneapi/compiler/2023.1.0'
+ENV CPATH='/opt/intel/oneapi/tbb/2021.9.0/env/../include:/opt/intel/oneapi/mpi/2021.9.0//include:/opt/intel/oneapi/mkl/2023.1.0/include:/opt/intel/oneapi/ippcp/2021.7.0/include:/opt/intel/oneapi/ipp/2021.8.0/include:/opt/intel/oneapi/dpl/2022.1.0/linux/include:/opt/intel/oneapi/dnnl/2023.1.0/cpu_dpcpp_gpu_dpcpp/include:/opt/intel/oneapi/dev-utilities/2021.9.0/include:/opt/intel/oneapi/dal/2023.1.0/include:/opt/intel/oneapi/ccl/2021.9.0/include/cpu_gpu_dpcpp'
+ENV CPLUS_INCLUDE_PATH='/opt/intel/oneapi/clck/2021.7.3/include'
+ENV DAALROOT='/opt/intel/oneapi/dal/2023.1.0'
+ENV DALROOT='/opt/intel/oneapi/dal/2023.1.0'
+ENV DAL_MAJOR_BINARY='1'
+ENV DAL_MINOR_BINARY='1'
+ENV DIAGUTIL_PATH='/opt/intel/oneapi/vtune/2023.1.0/sys_check/vtune_sys_check.py:/opt/intel/oneapi/debugger/2023.1.0/sys_check/debugger_sys_check.py:/opt/intel/oneapi/compiler/2023.1.0/sys_check/sys_check.sh:/opt/intel/oneapi/advisor/2023.1.0/sys_check/advisor_sys_check.py:'
+ENV DNNLROOT='/opt/intel/oneapi/dnnl/2023.1.0/cpu_dpcpp_gpu_dpcpp'
+ENV DPL_ROOT='/opt/intel/oneapi/dpl/2022.1.0'
+ENV FI_PROVIDER_PATH='/opt/intel/oneapi/mpi/2021.9.0//libfabric/lib/prov:/usr/lib64/libfabric'
+ENV FPGA_VARS_ARGS=''
+ENV FPGA_VARS_DIR='/opt/intel/oneapi/compiler/2023.1.0/linux/lib/oclfpga'
+ENV GDB_INFO='/opt/intel/oneapi/debugger/2023.1.0/documentation/info/'
+ENV INFOPATH='/opt/intel/oneapi/debugger/2023.1.0/gdb/intel64/lib'
+ENV INSPECTOR_2023_DIR='/opt/intel/oneapi/inspector/2023.1.0'
+ENV INTELFPGAOCLSDKROOT='/opt/intel/oneapi/compiler/2023.1.0/linux/lib/oclfpga'
+ENV INTEL_LICENSE_FILE='/opt/intel/licenses:/root/intel/licenses:/opt/intel/oneapi/clck/2021.7.3/licensing:/opt/intel/licenses:/root/intel/licenses:/Users/Shared/Library/Application Support/Intel/Licenses'
+ENV INTEL_PYTHONHOME='/opt/intel/oneapi/debugger/2023.1.0/dep'
+ENV IPPCP_TARGET_ARCH='intel64'
+ENV IPPCRYPTOROOT='/opt/intel/oneapi/ippcp/2021.7.0'
+ENV IPPROOT='/opt/intel/oneapi/ipp/2021.8.0'
+ENV IPP_TARGET_ARCH='intel64'
+ENV I_MPI_ROOT='/opt/intel/oneapi/mpi/2021.9.0'
+ENV LD_LIBRARY_PATH='/opt/intel/oneapi/tbb/2021.9.0/env/../lib/intel64/gcc4.8:/opt/intel/oneapi/mpi/2021.9.0//libfabric/lib:/opt/intel/oneapi/mpi/2021.9.0//lib/release:/opt/intel/oneapi/mpi/2021.9.0//lib:/opt/intel/oneapi/mkl/2023.1.0/lib/intel64:/opt/intel/oneapi/itac/2021.9.0/slib:/opt/intel/oneapi/ippcp/2021.7.0/lib/intel64:/opt/intel/oneapi/ipp/2021.8.0/lib/intel64:/opt/intel/oneapi/dnnl/2023.1.0/cpu_dpcpp_gpu_dpcpp/lib:/opt/intel/oneapi/debugger/2023.1.0/gdb/intel64/lib:/opt/intel/oneapi/debugger/2023.1.0/libipt/intel64/lib:/opt/intel/oneapi/debugger/2023.1.0/dep/lib:/opt/intel/oneapi/dal/2023.1.0/lib/intel64:/opt/intel/oneapi/compiler/2023.1.0/linux/lib:/opt/intel/oneapi/compiler/2023.1.0/linux/lib/x64:/opt/intel/oneapi/compiler/2023.1.0/linux/lib/oclfpga/host/linux64/lib:/opt/intel/oneapi/compiler/2023.1.0/linux/compiler/lib/intel64_lin:/opt/intel/oneapi/ccl/2021.9.0/lib/cpu_gpu_dpcpp'
+ENV LIBRARY_PATH='/opt/intel/oneapi/tbb/2021.9.0/env/../lib/intel64/gcc4.8:/opt/intel/oneapi/mpi/2021.9.0//libfabric/lib:/opt/intel/oneapi/mpi/2021.9.0//lib/release:/opt/intel/oneapi/mpi/2021.9.0//lib:/opt/intel/oneapi/mkl/2023.1.0/lib/intel64:/opt/intel/oneapi/ippcp/2021.7.0/lib/intel64:/opt/intel/oneapi/ipp/2021.8.0/lib/intel64:/opt/intel/oneapi/dnnl/2023.1.0/cpu_dpcpp_gpu_dpcpp/lib:/opt/intel/oneapi/dal/2023.1.0/lib/intel64:/opt/intel/oneapi/compiler/2023.1.0/linux/compiler/lib/intel64_lin:/opt/intel/oneapi/compiler/2023.1.0/linux/lib:/opt/intel/oneapi/clck/2021.7.3/lib/intel64:/opt/intel/oneapi/ccl/2021.9.0/lib/cpu_gpu_dpcpp'
+ENV MANPATH='/opt/intel/oneapi/mpi/2021.9.0/man:/opt/intel/oneapi/itac/2021.9.0/man:/opt/intel/oneapi/debugger/2023.1.0/documentation/man:/opt/intel/oneapi/compiler/2023.1.0/documentation/en/man/common:/opt/intel/oneapi/clck/2021.7.3/man::'
+ENV MKLROOT='/opt/intel/oneapi/mkl/2023.1.0'
+ENV NLSPATH='/opt/intel/oneapi/mkl/2023.1.0/lib/intel64/locale/%l_%t/%N:/opt/intel/oneapi/compiler/2023.1.0/linux/compiler/lib/intel64_lin/locale/%l_%t/%N'
+ENV OCL_ICD_FILENAMES='libintelocl_emu.so:libalteracl.so:/opt/intel/oneapi/compiler/2023.1.0/linux/lib/x64/libintelocl.so'
+ENV ONEAPI_ROOT='/opt/intel/oneapi'
+ENV PATH='/opt/intel/oneapi/vtune/2023.1.0/bin64:/opt/intel/oneapi/mpi/2021.9.0//libfabric/bin:/opt/intel/oneapi/mpi/2021.9.0//bin:/opt/intel/oneapi/mkl/2023.1.0/bin/intel64:/opt/intel/oneapi/itac/2021.9.0/bin:/opt/intel/oneapi/inspector/2023.1.0/bin64:/opt/intel/oneapi/dev-utilities/2021.9.0/bin:/opt/intel/oneapi/debugger/2023.1.0/gdb/intel64/bin:/opt/intel/oneapi/compiler/2023.1.0/linux/lib/oclfpga/bin:/opt/intel/oneapi/compiler/2023.1.0/linux/bin/intel64:/opt/intel/oneapi/compiler/2023.1.0/linux/bin:/opt/intel/oneapi/clck/2021.7.3/bin/intel64:/opt/intel/oneapi/advisor/2023.1.0/bin64:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+ENV PKG_CONFIG_PATH='/opt/intel/oneapi/vtune/2023.1.0/include/pkgconfig/lib64:/opt/intel/oneapi/tbb/2021.9.0/env/../lib/pkgconfig:/opt/intel/oneapi/mpi/2021.9.0/lib/pkgconfig:/opt/intel/oneapi/mkl/2023.1.0/lib/pkgconfig:/opt/intel/oneapi/ippcp/2021.7.0/lib/pkgconfig:/opt/intel/oneapi/inspector/2023.1.0/include/pkgconfig/lib64:/opt/intel/oneapi/dpl/2022.1.0/lib/pkgconfig:/opt/intel/oneapi/dnnl/2023.1.0/cpu_dpcpp_gpu_dpcpp/../lib/pkgconfig:/opt/intel/oneapi/dal/2023.1.0/lib/pkgconfig:/opt/intel/oneapi/compiler/2023.1.0/lib/pkgconfig:/opt/intel/oneapi/ccl/2021.9.0/lib/pkgconfig:/opt/intel/oneapi/advisor/2023.1.0/include/pkgconfig/lib64:'
+ENV PYTHONPATH='/opt/intel/oneapi/advisor/2023.1.0/pythonapi'
+ENV SETVARS_COMPLETED='1'
+ENV TBBROOT='/opt/intel/oneapi/tbb/2021.9.0/env/..'
+ENV VTUNE_PROFILER_2023_DIR='/opt/intel/oneapi/vtune/2023.1.0'
+ENV VTUNE_PROFILER_DIR='/opt/intel/oneapi/vtune/2023.1.0'
+ENV VT_ADD_LIBS='-ldwarf -lelf -lvtunwind -lm -lpthread'
+ENV VT_LIB_DIR='/opt/intel/oneapi/itac/2021.9.0/lib'
+ENV VT_MPI='impi4'
+ENV VT_ROOT='/opt/intel/oneapi/itac/2021.9.0'
+ENV VT_SLIB_DIR='/opt/intel/oneapi/itac/2021.9.0/slib'
+
+RUN cd swiftest && cmake -P distclean.cmake && mkdir build && cd build && cmake .. -DCMAKE_PREFIX_PATH="${INDIR}" -DCMAKE_INSTALL_PREFIX="${INDIR}" -DCMAKE_BUILD_TYPE=release && make && make install
 
 #Production container
 FROM debian:stable-slim
@@ -62,6 +115,8 @@ RUN curl -fsSL https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-P
 RUN deb [trusted=yes] https://apt.repos.intel.com/oneapi all main " > /etc/apt/sources.list.d/oneAPI.list
 RUN apt-get -y update && apt-get upgrade -y
 RUN apt-get install -y intel-oneapi-runtime-openmp intel-oneapi-runtime-mkl intel-oneapi-runtime-mpi intel-oneapi-runtime-fortran 
-RUN . /opt/intel/oneapi/setvars.sh
+ENV NETCDF_HOME="/usr/local"
+ENV LANG=C.UTF-8
+ENV LD_LIBRARY_PATH=/opt/intel/oneapi/lib
 
 ENTRYPOINT ["/usr/bin/swiftest_driver"]
