@@ -91,6 +91,8 @@ class Simulation(object):
         integrator : {"symba","rmvs","whm","helio"}, default "symba"
             Name of the n-body integrator that will be used when executing a run.
             Parameter input file equivalent: None
+        container : {"docker", "singularity"}, default None
+            Specify whether the driver exectuable is run from a Docker or Singularity container. Setting to `None` 
         read_param : bool, default False
             Read the parameter file given by `param_file`.
         param_file : str, path-like, or file-lke, default "param.in"
@@ -338,6 +340,7 @@ class Simulation(object):
         self.init_cond = xr.Dataset()
         self.encounters = xr.Dataset()
         self.collisions = xr.Dataset()
+        self.container = None
 
         # Set the location of the parameter input file, choosing the default if it isn't specified.
         self.simdir = Path.cwd() / Path(simdir)
@@ -404,9 +407,11 @@ class Simulation(object):
         """
 
         # Get current environment variables
-
         env = os.environ.copy()
+        if self.container == "SINGULARITY" and "SWIFTEST_SIF" not in env:
+            env['SWIFTEST_SIF'] = Path(self.binary_source).parent.parent / "swiftest.sif"
         cmd = f"{env['SHELL']} -l {self.driver_script}"
+        
 
         def _type_scrub(output_data):
             int_vars = ["ILOOP","NPL","NTP","NPLM"]
@@ -829,7 +834,8 @@ class Simulation(object):
             "restart": False,
             "encounter_save" : "NONE",
             "coarray" : False,
-            "simdir" : self.simdir
+            "simdir" : self.simdir,
+            "container" : None,
         }
         param_file = kwargs.pop("param_file",None)
 
@@ -891,8 +897,9 @@ class Simulation(object):
         return param_dict
 
     def set_integrator(self,
-                       codename: Literal["Swiftest", "Swifter", "Swift"] | None = None,
+                       codename: None | Literal["Swiftest", "Swifter", "Swift"]  = "Swiftest",
                        integrator: Literal["symba","rmvs","whm","helio"] | None = None,
+                       container: Literal["docker", "singularity"] | None = None,
                        mtiny: float | None = None,
                        gmtiny: float | None = None,
                        verbose: bool | None = None,
@@ -905,6 +912,10 @@ class Simulation(object):
         codename : {"swiftest", "swifter", "swift"}, optional
         integrator : {"symba","rmvs","whm","helio"}, optional
             Name of the n-body integrator that will be used when executing a run.
+        container : {"docker", "singularity"}, default None
+            Specify whether the driver exectuable is run from a Docker or Singularity container. 
+            Setting to `None` uses the local executable.
+            *Note*: Only valid for Swiftest.
         mtiny : float, optional
             The minimum mass of fully interacting bodies. Bodies below this mass interact with the larger bodies,
             but not each other (SyMBA only). *Note.* Only mtiny or gmtiny is accepted, not both.
@@ -926,7 +937,15 @@ class Simulation(object):
         # TODO: Improve how it finds the executable binary
 
         update_list = []
-
+        
+        if container is not None:
+            valid_container = ["DOCKER", "SINGULARITY"]
+            if container.upper() not in valid_container:
+                warnings.warn(f"{container} is not a valid container type. Valid options are None, ",",".join(valid_container),stacklevel=2)
+                self.container = None
+            else:
+                self.container = container.upper()
+        
         if codename is not None:
             valid_codename = ["Swiftest", "Swifter", "Swift"]
             if codename.title() not in valid_codename:
@@ -941,7 +960,13 @@ class Simulation(object):
             self.param['! VERSION'] = f"{self.codename} input file"
             update_list.append("codename")
             if self.codename == "Swiftest":
-                self.binary_source = Path(_pyfile).parent.parent.parent.parent / "bin" / "swiftest_driver"
+                if self.container is None:
+                    self.binary_source = Path(_pyfile).parent.parent.parent.parent / "bin" / "swiftest_driver"
+                elif self.container == "DOCKER":
+                    self.binary_source = Path(_pyfile).parent.parent.parent.parent / "docker" / "bin" / "swiftest_driver"
+                elif self.container == "SINGULARITY":
+                    self.binary_source = Path(_pyfile).parent.parent.parent.parent / "singularity" / "bin" / "swiftest_driver"
+                    
                 self.binary_path = self.simdir.resolve()
                 self.driver_executable = self.binary_path / "swiftest_driver"
                 if not self.binary_source.exists():
@@ -1016,7 +1041,8 @@ class Simulation(object):
         valid_instance_vars = {"codename": self.codename,
                                "integrator": self.integrator,
                                "param_file": str(self.param_file),
-                               "driver_executable": str(self.driver_executable)}
+                               "driver_executable": str(self.driver_executable),
+                               "container": self.container}
 
         try:
             self.integrator

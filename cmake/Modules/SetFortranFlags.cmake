@@ -130,7 +130,7 @@ IF (USE_SIMD)
                                         "/QxSANDYBRIDGE"       # Intel Windows
                                         ${GNUNATIVE}    # GNU
                                 )
-        ELSE
+        ELSE ()
                 # Optimize for the host's architecture
                 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                                 Fortran "-xhost"        # Intel

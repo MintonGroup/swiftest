@@ -104,7 +104,7 @@ ENV VT_MPI='impi4'
 ENV VT_ROOT='/opt/intel/oneapi/itac/2021.9.0'
 ENV VT_SLIB_DIR='/opt/intel/oneapi/itac/2021.9.0/slib'
 
-RUN cd swiftest && cmake -P distclean.cmake && mkdir build && cd build && cmake .. -DCMAKE_PREFIX_PATH="${INDIR}" -DCMAKE_INSTALL_PREFIX="${INDIR}" -DCMAKE_BUILD_TYPE=release && make && make install
+RUN cd swiftest && cmake -P distclean.cmake && mkdir build && cd build && cmake .. -DCMAKE_PREFIX_PATH="${INDIR}" -DCMAKE_INSTALL_PREFIX="${INDIR}" -DCONTAINERIZE=ON -DCMAKE_BUILD_TYPE=release && make && make install
 
 #Production container
 FROM debian:stable-slim
