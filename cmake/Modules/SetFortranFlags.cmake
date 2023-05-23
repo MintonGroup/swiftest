@@ -110,7 +110,23 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                 Fortran "-pad"  # Intel
                         "/Qpad" # Intel Windows
+
                 )
+IF (CONTAINERIZE)
+        # There is some bug where -march=native doesn't work on Mac
+        IF(APPLE)
+                SET(GNUNATIVE "-mtune=generic")
+        ELSE()
+                SET(GNUNATIVE "-march=generic")
+        ENDIF()
+ELSE ()
+        # There is some bug where -march=native doesn't work on Mac
+        IF(APPLE)
+                SET(GNUNATIVE "-mtune=native")
+        ELSE()
+                SET(GNUNATIVE "-march=native")
+        ENDIF()
+ENDIF (CONTAINERIZE)
 
 
 
@@ -126,9 +142,7 @@ IF (USE_SIMD)
         IF (CONTAINERIZE)
                 # Optimize for an old enough processor that it should run on most computers
                 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
-                                Fortran "-xSANDYBRIDGE"        # Intel
-                                        "/QxSANDYBRIDGE"       # Intel Windows
-                                        ${GNUNATIVE}    # GNU
+                                Fortran ${GNUNATIVE}    # GNU
                                 )
         ELSE ()
                 # Optimize for the host's architecture
@@ -146,21 +160,6 @@ IF (USE_SIMD)
                         )
 ENDIF (USE_SIMD)                
 
-IF (CONTAINERIZE)
-        # There is some bug where -march=native doesn't work on Mac
-        IF(APPLE)
-                SET(GNUNATIVE "-mtune=sandybridge")
-        ELSE()
-                SET(GNUNATIVE "-march=sandybridge")
-        ENDIF()
-ELSE ()
-        # There is some bug where -march=native doesn't work on Mac
-        IF(APPLE)
-                SET(GNUNATIVE "-mtune=native")
-        ELSE()
-                SET(GNUNATIVE "-march=native")
-        ENDIF()
-ENDIF (CONTAINERIZE)
 
 
 
