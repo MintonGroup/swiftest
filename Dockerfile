@@ -111,6 +111,11 @@ FROM debian:stable-slim
 COPY --from=build /opt/dist /
 
 # Get the Intel runtime libraries
+RUN apt-get update && apt-get upgrade -y && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+  ca-certificates curl gpg-agent software-properties-common gnupg pkg-config procps && \
+  rm -rf /var/lib/apt/lists/*
+
 RUN curl -fsSL https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB | apt-key add -
 RUN deb [trusted=yes] https://apt.repos.intel.com/oneapi all main " > /etc/apt/sources.list.d/oneAPI.list
 RUN apt-get -y update && apt-get upgrade -y
