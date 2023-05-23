@@ -123,5 +123,7 @@ RUN apt-get install -y intel-oneapi-runtime-openmp intel-oneapi-runtime-mkl inte
 ENV NETCDF_HOME="/usr/local"
 ENV LANG=C.UTF-8
 ENV LD_LIBRARY_PATH=/opt/intel/oneapi/lib
+RUN apt-get -y update && apt-get upgrade -y
+RUN apt-get install -y libhdf5-dev libxml2-dev 
 
-ENTRYPOINT ["/usr/bin/swiftest_driver"]
+ENTRYPOINT ["/usr/local/bin/swiftest_driver"]
