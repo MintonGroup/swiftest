@@ -1,0 +1,2 @@
+#!/bin/sh --
+docker pull daminton/swiftest:latest
