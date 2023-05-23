@@ -3,7 +3,7 @@ FROM debian:stable-slim as build
 # kick everything off
 RUN apt-get update && apt-get upgrade -y && \
   DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-  ca-certificates curl git gpg-agent software-properties-common build-essential gnupg pkg-config libaec-dev && \
+  ca-certificates curl git wget gpg-agent software-properties-common build-essential gnupg pkg-config libaec-dev && \
   rm -rf /var/lib/apt/lists/*
 
 # Get CMAKE and install it
@@ -13,10 +13,13 @@ RUN mkdir -p cmake/build && \
    /bin/bash cmake-3.26.2-linux-x86_64.sh --prefix=/usr/local --skip-license
 
 # Get the Intel compilers
-RUN curl -fsSL https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB | apt-key add -
-RUN echo "deb [trusted=yes] https://apt.repos.intel.com/oneapi all main " > /etc/apt/sources.list.d/oneAPI.list
+# download the key to system keyring
+RUN wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
+| gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
+# add signed entry to apt sources and configure the APT client to use Intel repository:
+RUN echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list
 RUN apt-get -y update && apt-get upgrade -y
-RUN apt-get install -y intel-oneapi-dev-utilities  intel-oneapi-compiler-dpcpp-cpp intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic intel-oneapi-compiler-fortran intel-oneapi-mkl-devel intel-oneapi-mpi-devel
+RUN apt-get install -y intel-hpckit
 RUN . /opt/intel/oneapi/setvars.sh
 
 # Build the NetCDF libraries
@@ -24,7 +27,7 @@ RUN mkdir -p /opt/build && mkdir -p /opt/dist
 ENV INDIR="/opt/dist//usr/local"
 ENV INTEL_DIR="/opt/intel/oneapi"
 ENV CC="${INTEL_DIR}/compiler/latest/linux/bin/icx-cc"
-ENV FC="${INTEL_DIR}/mpi/latest/bin/mpiifort"
+ENV FC="${INTEL_DIR}/compiler/latest/linux/bin/ifx"
 
 RUN apt-get update && apt-get upgrade -y && \
   DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -44,21 +47,21 @@ RUN cd netcdf-fortran && mkdir build && cd build && \
    cmake .. -DCMAKE_INSTALL_PREFIX="${INDIR}"  && \
    make && make install
 
-#Swiftest
-RUN git clone -b debug https://github.com/carlislewishard/swiftest.git
-RUN cd swiftest && cmake -P distclean.cmake && mkdir build && cd build && \
-   cmake .. -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX="${INDIR}" && \ 
-   make && make install
+# #Swiftest
+# RUN git clone -b debug https://github.com/carlislewishard/swiftest.git
+# RUN cd swiftest && cmake -P distclean.cmake && mkdir build && cd build && \
+#    cmake .. -DCMAKE_BUILD_TYPE=release -DCMAKE_INSTALL_PREFIX="${INDIR}" && \ 
+#    make && make install
 
-#Production container
-FROM debian:stable-slim
-COPY --from=build /opt/dist /
+# #Production container
+# FROM debian:stable-slim
+# COPY --from=build /opt/dist /
 
-# Get the Intel runtime libraries
-RUN curl -fsSL https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB | apt-key add -
-RUN deb [trusted=yes] https://apt.repos.intel.com/oneapi all main " > /etc/apt/sources.list.d/oneAPI.list
-RUN apt-get -y update && apt-get upgrade -y
-RUN apt-get install -y intel-oneapi-runtime-openmp intel-oneapi-runtime-mkl intel-oneapi-runtime-mpi intel-oneapi-runtime-fortran 
-RUN . /opt/intel/oneapi/setvars.sh
+# # Get the Intel runtime libraries
+# RUN curl -fsSL https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB | apt-key add -
+# RUN deb [trusted=yes] https://apt.repos.intel.com/oneapi all main " > /etc/apt/sources.list.d/oneAPI.list
+# RUN apt-get -y update && apt-get upgrade -y
+# RUN apt-get install -y intel-oneapi-runtime-openmp intel-oneapi-runtime-mkl intel-oneapi-runtime-mpi intel-oneapi-runtime-fortran 
+# RUN . /opt/intel/oneapi/setvars.sh
 
-CMD ["/usr/bin/swiftest_driver"]
+# ENTRYPOINT ["/usr/bin/swiftest_driver"]
