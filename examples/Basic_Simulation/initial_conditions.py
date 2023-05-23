@@ -37,7 +37,7 @@ from numpy.random import default_rng
 
 # Initialize the simulation object as a variable. Arguments may be defined here or through the sim.run() method.
 #sim = swiftest.Simulation(fragmentation=True, minimum_fragment_mass = 2.5e-11, mtiny=2.5e-8)
-sim = swiftest.Simulation()
+sim = swiftest.Simulation(container="docker")
 sim.clean()
 
 # Add the modern planets and the Sun using the JPL Horizons Database.
