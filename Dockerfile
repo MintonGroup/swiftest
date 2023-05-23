@@ -122,7 +122,7 @@ RUN apt-get -y update && apt-get upgrade -y
 RUN apt-get install -y intel-oneapi-runtime-openmp intel-oneapi-runtime-mkl intel-oneapi-runtime-mpi intel-oneapi-runtime-fortran 
 ENV NETCDF_HOME="/usr/local"
 ENV LANG=C.UTF-8
-ENV LD_LIBRARY_PATH=/opt/intel/oneapi/lib
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/intel/oneapi/lib"
 RUN apt-get -y update && apt-get upgrade -y
 RUN apt-get install -y libhdf5-dev libxml2-dev 
 

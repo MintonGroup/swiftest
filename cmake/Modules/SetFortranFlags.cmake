@@ -112,9 +112,9 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
 
 # There is some bug where -march=native doesn't work on Mac
 IF(APPLE)
-    SET(GNUNATIVE "-mtune=native")
+    SET(GNUNATIVE "-mtune=CORE-AVX2 -xCORE-AVX2")
 ELSE()
-    SET(GNUNATIVE "-march=native")
+    SET(GNUNATIVE "-march=CORE-AVX2 -axCORE-AVX2")
 ENDIF()
 
 ###################
@@ -349,13 +349,6 @@ IF (USE_SIMD)
                         Fortran "/Qopenmp- /Qopenmp-simd" # Intel Windows
                         )     
         ENDIF (NOT USE_OPENMP)
-
-        # Optimize for the host's architecture
-        SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
-                        Fortran "-xhost"        # Intel
-                                "/QxHost"       # Intel Windows
-                                ${GNUNATIVE}    # GNU
-                        )
 
         # Generate an extended set of vector functions
         SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
