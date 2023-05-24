@@ -97,6 +97,25 @@ module swiftest
    end type swiftest_kinship
 
 
+   type, extends(base_particle_info) :: swiftest_particle_info
+      character(len=NAMELEN)    :: name            !! Non-unique name
+      character(len=NAMELEN)    :: particle_type   !! String containing a description of the particle type (e.g. Central Body, Massive Body, Test Particle)
+      character(len=NAMELEN)    :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
+      real(DP)                  :: origin_time     !! The time of the particle's formation
+      integer(I4B)              :: collision_id    !! The ID of the collision that formed the particle
+      real(DP), dimension(NDIM) :: origin_rh       !! The heliocentric distance vector at the time of the particle's formation
+      real(DP), dimension(NDIM) :: origin_vh       !! The heliocentric velocity vector at the time of the particle's formation
+      real(DP)                  :: discard_time    !! The time of the particle's discard
+      character(len=NAMELEN)    :: status          !! Particle status description: Active, Merged, Fragmented, etc.
+      real(DP), dimension(NDIM) :: discard_rh      !! The heliocentric distance vector at the time of the particle's discard
+      real(DP), dimension(NDIM) :: discard_vh      !! The heliocentric velocity vector at the time of the particle's discard
+      integer(I4B)              :: discard_body_id !! The id of the other body involved in the discard (0 if no other body involved)
+   contains
+      procedure :: copy      => swiftest_util_copy_particle_info  !! Copies one set of information object components into another, component-by-component
+      procedure :: set_value => swiftest_util_set_particle_info   !! Sets one or more values of the particle information metadata object
+   end type swiftest_particle_info
+
+
    !> An abstract class for a generic collection of Swiftest bodies
    type, abstract, extends(base_object) :: swiftest_body
       !! Superclass that defines the generic elements of a Swiftest particle 
@@ -165,25 +184,6 @@ module swiftest
       procedure :: cocollect       => swiftest_coarray_cocollect_body       !! Collects all body object array components from all images and combines them into the image 1 body object
 #endif
    end type swiftest_body
-
-
-   type, extends(base_particle_info) :: swiftest_particle_info
-      character(len=NAMELEN)    :: name            !! Non-unique name
-      character(len=NAMELEN)    :: particle_type   !! String containing a description of the particle type (e.g. Central Body, Massive Body, Test Particle)
-      character(len=NAMELEN)    :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
-      real(DP)                  :: origin_time     !! The time of the particle's formation
-      integer(I4B)              :: collision_id    !! The ID of the collision that formed the particle
-      real(DP), dimension(NDIM) :: origin_rh       !! The heliocentric distance vector at the time of the particle's formation
-      real(DP), dimension(NDIM) :: origin_vh       !! The heliocentric velocity vector at the time of the particle's formation
-      real(DP)                  :: discard_time    !! The time of the particle's discard
-      character(len=NAMELEN)    :: status          !! Particle status description: Active, Merged, Fragmented, etc.
-      real(DP), dimension(NDIM) :: discard_rh      !! The heliocentric distance vector at the time of the particle's discard
-      real(DP), dimension(NDIM) :: discard_vh      !! The heliocentric velocity vector at the time of the particle's discard
-      integer(I4B)              :: discard_body_id !! The id of the other body involved in the discard (0 if no other body involved)
-   contains
-      procedure :: copy      => swiftest_util_copy_particle_info  !! Copies one set of information object components into another, component-by-component
-      procedure :: set_value => swiftest_util_set_particle_info   !! Sets one or more values of the particle information metadata object
-   end type swiftest_particle_info
 
 
    type, abstract, extends(base_object) :: swiftest_cb
