@@ -1,0 +1,3 @@
+#!/bin/sh --
+singularity pull swiftest.sif docker://daminton/swiftest:latest
+source ./setenv.sh
