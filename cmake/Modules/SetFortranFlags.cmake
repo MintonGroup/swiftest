@@ -75,6 +75,12 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                 Fortran "-fno-underscoring" # GNU
                 ) 
+# Compile code assuming that IEEE signaling NaNs may generate user-visible traps during floating-point operations. 
+# Setting this option disables optimizations that may change the number of exceptions visible with signaling NaNs. 
+SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
+                Fortran "-fsignaling-nans " # GNU
+                ) 
+               
 
 # Determines whether the current Fortran Standard behavior of the compiler is fully implemented. 
 SET_COMPILE_FLAG(CMAKE_Fortran_Flags "${CMAKE_Fortran_FLAGS}"
@@ -208,6 +214,7 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                 Fortran "-init=snan,arrays"  # Intel
                         "/Qinit:snan,arrays" # Intel Windows
+                        "-finit-real=snan"   # GNU
                 )
 
 # Does not generate an interface block for each routine in a source file
@@ -342,6 +349,11 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
 SET_COMPILE_FLAG(STRICTMATH_FLAGS "${STRICTMATH_FLAGS}"
                 Fortran "-fp-model=precise" # Intel
                          "/fp:precise" # Intel Windows 
+                         "-fno-unsafe-math-optimizations" # GNU
+                )
+# Disable transformations and optimizations that assume default floating-point rounding behavior. 
+SET_COMPILE_FLAG(STRICTMATH_FLAGS "${STRICTMATH_FLAGS}"
+                Fortran "-frounding-math"
                 )
 
 SET_COMPILE_FLAG(STRICTMATH_FLAGS "${STRICTMATH_FLAGS}"

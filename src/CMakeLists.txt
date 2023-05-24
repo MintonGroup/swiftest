@@ -14,6 +14,8 @@
 # Add the source files
 SET(STRICT_MATH_FILES
             ${SRC}/collision/collision_generate.f90
+            ${SRC}/collision/collision_io.f90     
+            ${SRC}/collision/collision_util.f90
             ${SRC}/fraggle/fraggle_generate.f90
             ${SRC}/fraggle/fraggle_util.f90
             ${SRC}/fraggle/fraggle_module.f90
@@ -31,6 +33,7 @@ SET(STRICT_MATH_FILES
             ${SRC}/rmvs/rmvs_step.f90
             ${SRC}/swiftest/swiftest_drift.f90    
             ${SRC}/swiftest/swiftest_gr.f90       
+            ${SRC}/swiftest/swiftest_io.f90         
             ${SRC}/swiftest/swiftest_kick.f90 
             ${SRC}/swiftest/swiftest_user.f90
             ${SRC}/swiftest/swiftest_obl.f90    
@@ -60,10 +63,8 @@ SET(FAST_MATH_FILES
             ${SRC}/helio/helio_module.f90
             ${SRC}/symba/symba_module.f90
             ${SRC}/collision/collision_check.f90  
-            ${SRC}/collision/collision_io.f90     
             ${SRC}/collision/collision_regime.f90   
             ${SRC}/collision/collision_resolve.f90  
-            ${SRC}/collision/collision_util.f90
             ${SRC}/encounter/encounter_check.f90
             ${SRC}/encounter/encounter_io.f90
             ${SRC}/encounter/encounter_util.f90
@@ -73,7 +74,6 @@ SET(FAST_MATH_FILES
             ${SRC}/rmvs/rmvs_encounter_check.f90
             ${SRC}/rmvs/rmvs_util.f90
             ${SRC}/swiftest/swiftest_discard.f90  
-            ${SRC}/swiftest/swiftest_io.f90         
             ${SRC}/swiftest/swiftest_util.f90
             ${SRC}/symba/symba_discard.f90
             ${SRC}/symba/symba_encounter_check.f90

@@ -1067,7 +1067,7 @@ contains
          if (status == NF90_NOERR) then
             allocate(body_status(idmax))
             call netcdf_io_check( nf90_get_var(self%id, self%status_varid, body_status, start=[1, tslot], count=[idmax,1]), "swiftest_io_netcdf_get_valid_masks nf90_getvar status_varid"  )
-            lvalid(:) = body_status /= INACTIVE
+            lvalid(:) = body_status(:) /= INACTIVE
          else
             status = nf90_inq_varid(self%id, self%rh_varname, self%rh_varid) 
             if (status == NF90_NOERR) then
