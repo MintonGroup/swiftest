@@ -1035,6 +1035,8 @@ contains
       !!
       !! Given an open NetCDF, returns logical masks indicating which bodies in the body arrays are active pl and tp type at the current time.
       !! Uses the value of tslot stored in the NetCDF parameter object as the definition of current time
+      use, intrinsic :: ieee_exceptions
+      use, intrinsic :: ieee_arithmetic
       implicit none
       ! Arguments
       class(swiftest_netcdf_parameters),  intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
@@ -1045,7 +1047,11 @@ contains
       real(DP), dimension(:,:), allocatable :: rh
       integer(I4B), dimension(:), allocatable :: body_status 
       logical, dimension(:), allocatable :: lvalid
-      integer(I4B) :: idmax, status
+      integer(I4B) :: idmax, status, i
+      logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
+
+      call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
+      call ieee_set_halting_mode(IEEE_ALL,.false.)
 
       call netcdf_io_check( nf90_inquire_dimension(self%id, self%name_dimid, len=idmax), "swiftest_io_netcdf_get_valid_masks nf90_inquire_dimension name_dimid"  )
 
@@ -1067,20 +1073,20 @@ contains
             if (status == NF90_NOERR) then
                allocate(rh(NDIM,idmax))
                call netcdf_io_check( nf90_get_var(self%id, self%rh_varid, rh, start=[1, 1, tslot], count=[NDIM,idmax,1]), "swiftest_io_netcdf_get_valid_masks nf90_getvar rh_varid"  )
-               lvalid(:) = rh(1,:) == rh(1,:)
+               lvalid(:) = ieee_is_normal(rh(1,:)) 
             else
                status = nf90_inq_varid(self%id, self%a_varname, self%a_varid) 
                if (status == NF90_NOERR) then
                   allocate(a(idmax))
                   call netcdf_io_check( nf90_get_var(self%id, self%a_varid, a, start=[1, tslot], count=[idmax,1]), "swiftest_io_netcdf_get_valid_masks nf90_getvar a_varid"  )
-                  lvalid(:) = a(:) == a(:)
+                  lvalid(:) = ieee_is_normal(a(:))
                else
                   lvalid(:) = .false.
                end if
             end if
          end if
 
-         plmask(:) = (Gmass(:) == Gmass(:)) 
+         plmask(:) = ieee_is_normal(Gmass(:))
          where(plmask(:)) plmask(:) = Gmass(:) > 0.0_DP
          tpmask(:) = .not. plmask(:)
          plmask(1) = .false. ! This is the central body
@@ -1088,6 +1094,7 @@ contains
          ! Select only active bodies
          plmask(:) = plmask(:) .and. lvalid(:)
          tpmask(:) = tpmask(:) .and. lvalid(:)
+         call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)
 
       end associate
 
