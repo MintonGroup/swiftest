@@ -601,7 +601,7 @@ contains
 
                      call collision_history%take_snapshot(param,nbody_system, t, "after") 
 
-                     plpl_collision%status(i) = collider%status
+                     plpl_collision%status(k) = collider%status
                      call impactors%dealloc()
                   end do
 
