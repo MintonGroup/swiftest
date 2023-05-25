@@ -54,13 +54,13 @@ inc_pl      = default_rng().uniform(0.0, 90, npl)
 capom_pl    = default_rng().uniform(0.0, 360.0, npl)
 omega_pl    = default_rng().uniform(0.0, 360.0, npl)
 capm_pl     = default_rng().uniform(0.0, 360.0, npl)
-GM_pl       = (np.array([6e23, 8e23, 1e24, 3e24, 5e24]) / sim.param['MU2KG']) * sim.GU
-R_pl        = np.full(npl, (3 * (GM_pl / sim.GU) / (4 * np.pi * density_pl)) ** (1.0 / 3.0))
-Rh_pl       = a_pl * ((GM_pl) / (3 * sim.GU)) ** (1.0 / 3.0)
+M_pl       = np.array([6e23, 8e23, 1e24, 3e24, 5e24]) * sim.KG2MU
+R_pl        = np.full(npl, (3 * M_pl/ (4 * np.pi * density_pl)) ** (1.0 / 3.0))
 Ip_pl      = np.full((npl,3),0.4,)
 rot_pl     = np.zeros((npl,3))
+mtiny = 1.01 * np.max(M_pl)
 
-sim.add_body(name=name_pl, a=a_pl, e=e_pl, inc=inc_pl, capom=capom_pl, omega=omega_pl, capm=capm_pl, Gmass=GM_pl, radius=R_pl, rhill=Rh_pl, Ip=Ip_pl, rot=rot_pl)
+sim.add_body(name=name_pl, a=a_pl, e=e_pl, inc=inc_pl, capom=capom_pl, omega=omega_pl, capm=capm_pl, mass=M_pl, radius=R_pl,  Ip=Ip_pl, rot=rot_pl)
 
 # Add 10 user-defined test particles.
 ntp = 10
@@ -74,7 +74,7 @@ omega_tp    = default_rng().uniform(0.0, 360.0, ntp)
 capm_tp     = default_rng().uniform(0.0, 360.0, ntp)
 
 sim.add_body(name=name_tp, a=a_tp, e=e_tp, inc=inc_tp, capom=capom_tp, omega=omega_tp, capm=capm_tp)
-sim.set_parameter(tstart=0.0, tstop=1.0e3, dt=0.01, istep_out=100, dump_cadence=0)
+sim.set_parameter(tstart=0.0, tstop=1.0e3, dt=0.01, istep_out=100, dump_cadence=0, compute_conservation_values=True, mtiny=mtiny)
 # Display the run configuration parameters.
 sim.get_parameter()
 sim.save()
