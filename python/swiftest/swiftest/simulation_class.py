@@ -2779,7 +2779,7 @@ class Simulation(object):
         self.driver_script = os.path.join(self.simdir, "swiftest_driver.sh")
         with open(self.driver_script, 'w') as f:
             f.write(f"#{self._shell_full}\n")
-            f.write(f"source ~/.{self._shell}rc\n")
+            #f.write(f"source ~/.{self._shell}rc\n")
             f.write(f"cd {self.simdir}\n")
             f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} compact\n")
             
