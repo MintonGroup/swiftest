@@ -59,6 +59,8 @@ contains
       !! 
       !! Given an open NetCDF file and a value of time t, finds the index of the time value (aka the time slot) to place a new set of data.
       !! The returned value of tslot will correspond to the first index value where the value of t is greater than or equal to the saved time value.
+      use, intrinsic :: ieee_exceptions
+      use, intrinsic :: ieee_arithmetic
       implicit none
       ! Arguments
       class(netcdf_parameters), intent(inout) :: self  !! Parameters used to identify a particular NetCDF dataset
@@ -67,7 +69,10 @@ contains
       ! Internals
       real(DP), dimension(:), allocatable :: tvals
       integer(I4B) :: i
+      logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
 
+      call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
+      call ieee_set_halting_mode(IEEE_ALL,.false.)
 
       if (.not.self%lfile_is_open) return
       tslot = 0
@@ -76,7 +81,7 @@ contains
       if (self%max_tslot > 0) then
          allocate(tvals(self%max_tslot))
          call netcdf_io_check( nf90_get_var(self%id, self%time_varid, tvals(:), start=[1]), "netcdf_io_find_tslot get_var"  )
-         where(tvals(:) /= tvals(:)) tvals(:) = huge(1.0_DP)
+         where(.not.ieee_is_normal(tvals(:))) tvals(:) = huge(1.0_DP)
       else
          allocate(tvals(1))
          tvals(1) = huge(1.0_DP)
@@ -90,6 +95,8 @@ contains
       end do
       self%max_tslot = max(self%max_tslot, tslot)
       self%tslot = tslot
+
+      call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)
 
       return
    end subroutine netcdf_io_find_tslot
