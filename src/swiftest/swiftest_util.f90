@@ -1101,12 +1101,12 @@ contains
       class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       ! Internals
-      integer(I4B) :: i, j, err
-      integer(I8B) :: k, npl
+      integer(I4B) :: err, i, j
+      integer(I8B) :: k, npl8
 
-      npl = int(self%nbody, kind=I8B)
-      associate(nplpl => self%nplpl)
-         nplpl = npl * (npl - 1_I8B) / 2_I8B ! number of entries in a strict lower triangle, npl x npl
+      associate(npl => self%nbody, nplpl => self%nplpl)
+         npl8 = int(npl, kind=I8B)
+         nplpl = npl8 * (npl8 - 1_I8B) / 2_I8B ! number of entries in a strict lower triangle, npl x npl
          if (param%lflatten_interactions) then
             if (allocated(self%k_plpl)) deallocate(self%k_plpl) ! Reset the index array if it's been set previously
             allocate(self%k_plpl(2, nplpl), stat=err)
@@ -1118,7 +1118,7 @@ contains
 #else
                do concurrent (i=1:npl, j=1:npl, j>i)
 #endif
-                  call swiftest_util_flatten_eucl_ij_to_k(self%nbody, i, j, k)
+                  call swiftest_util_flatten_eucl_ij_to_k(npl, i, j, k)
                   self%k_plpl(1, k) = i
                   self%k_plpl(2, k) = j
                end do
@@ -1145,17 +1145,18 @@ contains
       class(swiftest_pl),         intent(in)    :: pl    !! Swiftest massive body object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       ! Internals
-      integer(I8B) :: i, j, counter, npl, ntp
+      integer(I4B) :: i, j
+      integer(I8B) :: counter, npl8, ntp8
 
-      ntp = int(self%nbody, kind=I8B)
-      npl = int(pl%nbody, kind=I8B)
-      associate(npltp => self%npltp)
-         npltp = npl * ntp
+      associate(ntp => self%nbody, npl => pl%nbody, npltp => self%npltp)
+         npl8 = int(npl, kind=I8B)
+         ntp8 = int(ntp, kind=I8B)
+         npltp = npl8 * ntp8 
          if (allocated(self%k_pltp)) deallocate(self%k_pltp) ! Reset the index array if it's been set previously
          allocate(self%k_pltp(2, npltp))
-         do i = 1_I8B, npl
-            counter = (i - 1_I8B) * npl + 1_I8B
-            do j = 1_I8B,  ntp
+         counter = 1_I8B
+         do i = 1, npl
+            do j = 1,  ntp
                self%k_pltp(1, counter) = i
                self%k_pltp(2, counter) = j
                counter = counter + 1_I8B
@@ -1643,7 +1644,8 @@ contains
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
       ! Internals
       class(swiftest_pl), allocatable :: tmp !! The discarded body list.
-      integer(I4B) :: i, k, npl, nadd, nencmin, nenc_old, idnew1, idnew2, idold1, idold2
+      integer(I4B) :: i, npl, nadd, idnew1, idnew2, idold1, idold2
+      integer(I8B) :: k, nenc_old, nencmin
       logical, dimension(:), allocatable :: lmask
       class(encounter_list), allocatable :: plplenc_old
       logical :: lencounter
@@ -1708,7 +1710,7 @@ contains
          if (allocated(nbody_system%plpl_encounter)) then
             ! Store the original plplenc list so we don't remove any of the original encounters
             nenc_old = nbody_system%plpl_encounter%nenc
-            if (nenc_old > 0) then 
+            if (nenc_old > 0_I8B) then 
                allocate(plplenc_old, source=nbody_system%plpl_encounter)
                call plplenc_old%copy(nbody_system%plpl_encounter)
             end if
@@ -1730,10 +1732,10 @@ contains
             end select
 
             ! Re-index the encounter list as the index values may have changed
-            if (nenc_old > 0) then
+            if (nenc_old > 0_I8B) then
                nencmin = min(nbody_system%plpl_encounter%nenc, plplenc_old%nenc) 
                nbody_system%plpl_encounter%nenc = nencmin
-               do k = 1, nencmin
+               do k = 1_I8B, nencmin
                   idnew1 = nbody_system%plpl_encounter%id1(k)
                   idnew2 = nbody_system%plpl_encounter%id2(k)
                   idold1 = plplenc_old%id1(k)
@@ -1774,7 +1776,7 @@ contains
                end if
                nencmin = count(lmask(:))
                nbody_system%plpl_encounter%nenc = nencmin
-               if (nencmin > 0) then
+               if (nencmin > 0_I8B) then
                   nbody_system%plpl_encounter%index1(1:nencmin) = pack(nbody_system%plpl_encounter%index1(1:nenc_old), lmask(1:nenc_old))
                   nbody_system%plpl_encounter%index2(1:nencmin) = pack(nbody_system%plpl_encounter%index2(1:nenc_old), lmask(1:nenc_old))
                   nbody_system%plpl_encounter%id1(1:nencmin) = pack(nbody_system%plpl_encounter%id1(1:nenc_old), lmask(1:nenc_old))
@@ -3325,9 +3327,7 @@ contains
             "Authors:", //,                                                      &
             "    The Purdue University Swiftest Development team ", /,           &
             "    Lead by David A. Minton ", /,                                   &
-            "    Single loop blocking by Jacob R. Elliott", /,                   &
-            "    Fragmentation by Carlisle A. Wishard and", //,                  &
-            "    Jennifer L. L. Poutplin                 ", //,                  &
+            "    Carlisle Wishard, Jennifer Pouplin, Jacob Elliott, Dana Singh." &
             "Please address comments and questions to:", //,                     &
             "    David A. Minton", /,                                            &
             "    Department Earth, Atmospheric, & Planetary Sciences ",/,        &
@@ -3340,22 +3340,6 @@ contains
             "SWIFTER and SWIFT codes that made this possible.", //,              &
             "************************************************", /)
 
-
-      100 FORMAT(/,  "************* SWIFTER: Version ", F3.1, " *************", //, &
-                  "Authors:", //,                                                &
-                  "    Martin Duncan: Queen's University", /,                    &
-                  "    Hal Levison  : Southwest Research Institute", //,         &
-                  "Please address comments and questions to:", //,               &
-                  "    Hal Levison or David Kaufmann", /,                        &
-                  "    Department of Space Studies", /,                          &
-                  "    Southwest Research Institute", /,                         &
-                  "    1050 Walnut Street, Suite 400", /,                        &
-                  "    Boulder, Colorado  80302", /,                             &
-                  "    303-546-0290 (HFL), 720-240-0119 (DEK)", /,               &
-                  "    303-546-9687 (fax)", /,                                   &
-                  "    hal@gort.boulder.swri.edu (HFL)", /,                      &
-                  "    kaufmann@boulder.swri.edu (DEK)", //,                     &
-                  "************************************************", /)
 
       return
    end subroutine swiftest_util_version
