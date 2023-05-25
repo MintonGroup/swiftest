@@ -186,6 +186,20 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                          "/warn:all" # Intel Windows
                          "-Wall"     # GNU
                 )
+# This enables some extra warning flags that are not enabled by -Wall
+SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
+                 Fortran "-Wextra" # GNU
+                )
+
+# Disable the warning that arrays may be uninitialized, which comes up due to a known bug in gfortran
+SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
+                 Fortran "-Wno-maybe-uninitialized" # GNU
+                )
+# Disable the warning about unused dummy arguments. These primarily occur due to interface rules for type-bound procedures used in extendable types.
+SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
+                 Fortran "-Wno-unused-dummy-argument" # GNU
+                )
+
 
 # Traceback
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
@@ -239,6 +253,11 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                  Fortran "-fpe-all=0"                         # Intel
                          "/fpe-all:0"                         # Intel Windows
                          "-ffpe-trap=zero,overflow,underflow" # GNU
+                )
+
+# List of floating-point exceptions, whose flag status is printed to ERROR_UNIT when invoking STOP and ERROR STOP
+SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
+                 Fortran "-ffpe-summary=all" # GNU
                 )
 
 # Enables floating-point invalid, divide-by-zero, and overflow exceptions
