@@ -1678,7 +1678,10 @@ contains
             npl = pl%nbody
          end if
 
-         if (npl == 0) return
+         if (npl == 0) then
+            if (param%lmtiny_pl) pl%nplm = 0
+            return
+         end if
 
          ! Reset all of the status flags for this body
          pl%status(1:npl) = ACTIVE
@@ -1696,6 +1699,7 @@ contains
             elsewhere
                pl%info(1:npl)%particle_type = PL_TYPE_NAME 
             end where
+            pl%nplm = count(.not.pl%lmtiny(1:npl))
          end if
 
          ! Reindex the new list of bodies 
