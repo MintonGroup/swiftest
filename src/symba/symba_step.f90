@@ -27,7 +27,6 @@ contains
       real(DP),                   intent(in)    :: dt     !! Current stepsize
       ! Internals
       logical :: lencounter
-      type(walltimer)        :: timer1,timer2,timer3 !! Object used for computing elapsed wall time
      
       select type(pl => self%pl)
       class is (symba_pl)

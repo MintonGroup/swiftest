@@ -96,11 +96,12 @@ contains
       integer(I4B),               intent(in)    :: irec           !! Current recursion level 
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter  
       ! Internals
-      integer(I4B)              :: i, j, k, lidx, nenc_enc
+      integer(I4B)              :: i, j, nenc_enc
+      integer(I8B)              :: k, lidx
       real(DP), dimension(NDIM) :: xr, vr
       real(DP)                  :: rlim2, rji2, rcrit12
       logical, dimension(:), allocatable :: lencmask, lencounter
-      integer(I4B), dimension(:), allocatable :: eidx
+      integer(I8B), dimension(:), allocatable :: eidx
 
       lany_encounter = .false.
       if (self%nenc == 0) return
@@ -116,13 +117,13 @@ contains
 
          allocate(eidx(nenc_enc))
          allocate(lencounter(nenc_enc))
-         eidx(:) = pack([(k, k = 1, self%nenc)], lencmask(:))
+         eidx(:) = pack([(k, k = 1_I8B, self%nenc)], lencmask(:))
          lencounter(:) = .false.
 
 #ifdef DOCONLOC
-         do concurrent(lidx = 1:nenc_enc) shared(self,pl,eidx,lencounter,dt) local(i,j,k,xr,vr,rcrit12,rlim2,rji2)
+         do concurrent(lidx = 1_I8B:nenc_enc) shared(self,pl,eidx,lencounter,dt) local(i,j,k,xr,vr,rcrit12,rlim2,rji2)
 #else
-         do concurrent(lidx = 1:nenc_enc)
+         do concurrent(lidx = 1_I8B:nenc_enc)
 #endif
             k = eidx(lidx)
             i = self%index1(k)
@@ -141,8 +142,8 @@ contains
          lany_encounter = any(lencounter(:))
          if (lany_encounter) then
             nenc_enc = count(lencounter(:))
-            eidx(1:nenc_enc) = pack(eidx(:), lencounter(:))
-            do lidx = 1, nenc_enc
+            eidx(1_I8B:nenc_enc) = pack(eidx(:), lencounter(:))
+            do lidx = 1_I8B, nenc_enc
                k = eidx(lidx)
                i = self%index1(k)
                j = self%index2(k)
@@ -168,11 +169,12 @@ contains
       integer(I4B),               intent(in)    :: irec           !! Current recursion level 
       logical                                   :: lany_encounter !! Returns true if there is at least one close encounter     
       ! Internals
-      integer(I4B)              :: i, j, k, lidx, nenc_enc
+      integer(I4B)              :: i, j, nenc_enc
+      integer(I8B)              :: k, lidx
       real(DP), dimension(NDIM) :: xr, vr
       real(DP)                  :: rlim2, rji2
       logical, dimension(:), allocatable :: lencmask, lencounter
-      integer(I4B), dimension(:), allocatable :: eidx
+      integer(I8B), dimension(:), allocatable :: eidx
 
       lany_encounter = .false.
       if (self%nenc == 0) return
@@ -190,12 +192,12 @@ contains
 
          allocate(eidx(nenc_enc))
          allocate(lencounter(nenc_enc))
-         eidx(:) = pack([(k, k = 1, self%nenc)], lencmask(:))
+         eidx(:) = pack([(k, k = 1_I8B, self%nenc)], lencmask(:))
          lencounter(:) = .false.
 #ifdef DOCONLOC
-         do concurrent(lidx = 1:nenc_enc) shared(self,pl,tp,eidx,lencounter,dt) local(i,j,k,xr,vr,rlim2,rji2)
+         do concurrent(lidx = 1_I8B:nenc_enc) shared(self,pl,tp,eidx,lencounter,dt) local(i,j,k,xr,vr,rlim2,rji2)
 #else
-         do concurrent(lidx = 1:nenc_enc)
+         do concurrent(lidx = 1_I8B:nenc_enc)
 #endif
             k = eidx(lidx)
             i = self%index1(k)
@@ -214,8 +216,8 @@ contains
          lany_encounter = any(lencounter(:))
          if (lany_encounter) then
             nenc_enc = count(lencounter(:))
-            eidx(1:nenc_enc) = pack(eidx(:), lencounter(:))
-            do lidx = 1, nenc_enc
+            eidx(1_I8B:nenc_enc) = pack(eidx(:), lencounter(:))
+            do lidx = 1_I8B, nenc_enc
                k = eidx(lidx)
                i = self%index1(k)
                j = self%index2(k)

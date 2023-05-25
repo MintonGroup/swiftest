@@ -126,7 +126,7 @@ module collision
       real(DP),                  dimension(:),   allocatable :: rmag         !! Array of radial distance magnitudes of individual fragments in the collisional coordinate frame 
       real(DP),                  dimension(:),   allocatable :: vmag         !! Array of radial distance magnitudes of individual fragments in the collisional coordinate frame 
       real(DP),                  dimension(:),   allocatable :: rotmag       !! Array of rotation magnitudes of individual fragments 
-      integer(I1B),              dimension(:),   allocatable :: origin_body  !! Array of indices indicating which impactor body (1 or 2) the fragment originates from
+      integer(I4B),              dimension(:),   allocatable :: origin_body  !! Array of indices indicating which impactor body (1 or 2) the fragment originates from
       real(DP),                  dimension(NDIM)             :: L_orbit_tot  !! Orbital angular momentum vector of all fragments
       real(DP),                  dimension(NDIM)             :: L_spin_tot   !! Spin angular momentum vector of all fragments
       real(DP),                  dimension(:,:), allocatable :: L_orbit      !! Orbital angular momentum vector of each individual fragment

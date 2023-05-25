@@ -170,7 +170,8 @@ contains
       class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       real(DP),                 intent(in)    :: t            !! The time of the collision
       ! Internals
-      integer(I4B)                              :: i, j, k, ibiggest
+      integer(I4B)                              :: i, j, ibiggest
+      integer(I8B)                              :: k
       real(DP), dimension(NDIM)                 :: L_spin_new, L_residual
       real(DP)                                  :: volume
       character(len=STRMAX) :: message
@@ -231,7 +232,7 @@ contains
                   call collision_util_velocity_torque(-L_residual(:), fragments%mass(1), fragments%rb(:,1), fragments%vb(:,1))
 
                   ! Update any encounter lists that have the removed bodies in them so that they instead point to the new body
-                  do k = 1, nbody_system%plpl_encounter%nenc
+                  do k = 1_I8B, nbody_system%plpl_encounter%nenc
                      do j = 1, impactors%ncoll
                         i = impactors%id(j)
                         if (i == ibiggest) cycle

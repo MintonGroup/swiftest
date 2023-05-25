@@ -91,7 +91,8 @@ contains
       real(DP),                     intent(in)    :: t      !! Current time
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
-      integer(I4B)              :: i, j, k
+      integer(I4B)              :: i, j
+      integer(I8B)              :: k
       real(DP)                  :: rjj, fac
       real(DP), dimension(NDIM) :: dx
 
@@ -142,7 +143,7 @@ contains
       real(DP)                  :: r, rr, ri, ris, rim1, r2, ir3, fac, faci, facj
       real(DP), dimension(NDIM) :: dx
       logical, dimension(:), allocatable :: lgoodlevel
-      integer(I4B), dimension(:), allocatable :: good_idx
+      integer(I8B), dimension(:), allocatable :: good_idx
 
       if (self%nenc == 0) return
 
@@ -170,7 +171,7 @@ contains
             ngood = count(lgoodlevel(:))
             if (ngood > 0_I8B) then
                allocate(good_idx(ngood))
-               good_idx(:) = pack([(i, i = 1, nenc)], lgoodlevel(:))
+               good_idx(:) = pack([(k, k = 1_I8B, nenc)], lgoodlevel(:))
 
 #ifdef DOCONLOC
                do concurrent (k = 1:ngood) shared(self,pl,good_idx) local(i,j)
@@ -212,7 +213,7 @@ contains
                end do
                ngood = count(lgoodlevel(:))
                if (ngood == 0_I8B) return
-               good_idx(1:ngood) = pack([(i, i = 1, nenc)], lgoodlevel(:))
+               good_idx(1:ngood) = pack([(k, k = 1_I8B, nenc)], lgoodlevel(:))
 
                do k = 1, ngood
                   i = self%index1(good_idx(k))
@@ -251,7 +252,7 @@ contains
       real(DP)                  :: r, rr, ri, ris, rim1, r2, ir3, fac, faci
       real(DP), dimension(NDIM) :: dx
       logical, dimension(:), allocatable :: lgoodlevel
-      integer(I4B), dimension(:), allocatable :: good_idx
+      integer(I8B), dimension(:), allocatable :: good_idx
 
       if (self%nenc == 0) return
 
@@ -284,7 +285,7 @@ contains
 
             if (ngood > 0_I8B) then
                allocate(good_idx(ngood))
-               good_idx(:) = pack([(i, i = 1, nenc)], lgoodlevel(:))
+               good_idx(:) = pack([(k, k = 1_I8B, nenc)], lgoodlevel(:))
 
 #ifdef DOCONLOC
                do concurrent (k = 1_I8B:ngood) shared(self,tp,good_idx) local(j)
@@ -323,7 +324,7 @@ contains
                end do
                ngood = count(lgoodlevel(:))
                if (ngood == 0_I8B) return
-               good_idx(1:ngood) = pack([(i, i = 1, nenc)], lgoodlevel(:))
+               good_idx(1:ngood) = pack([(k, k = 1_I8B, nenc)], lgoodlevel(:))
 
                do k = 1, ngood
                   j = self%index2(good_idx(k))

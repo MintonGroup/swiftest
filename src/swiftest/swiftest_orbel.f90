@@ -236,7 +236,6 @@ contains
       real(DP), parameter :: a5 = 51891840._DP,  a3 = 1037836800._DP
       real(DP), parameter :: b11 = 11 * a11, b9 = 9 * a9, b7 = 7 * a7
       real(DP), parameter :: b5 = 5 * a5, b3 = 3 * a3
-      real(DP), parameter :: THIRD = 1._DP / 3._DP
 
       ! Function to solve "Kepler's eqn" for F (here called
       ! x) for given e and CAPN. Only good for smallish CAPN
@@ -725,7 +724,7 @@ contains
       hz = rx*vy - ry*vx
       h2 = hx*hx + hy*hy + hz*hz
 
-      if (h2 == 0.0_DP) return
+      if (h2 < tiny(h2)) return
       energy = 0.5_DP * v2 - mu / r
       if (abs(energy * r / mu) < sqrt(TINYVALUE)) then
          iorbit_type = PARABOLA
@@ -791,7 +790,7 @@ contains
       hy = rz*vx - rx*vz
       hz = rx*vy - ry*vx
       h2 = hx*hx + hy*hy + hz*hz
-      if (h2 == 0.0_DP) return
+      if (h2 < tiny(h2)) return
 
       r = sqrt(rx*rx + ry*ry + rz*rz)
       v2 = vx*vx + vy*vy + vz*vz

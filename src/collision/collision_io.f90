@@ -365,7 +365,7 @@ contains
       class(encounter_storage), intent(inout) :: history !! Collision history object
       class(base_parameters),      intent(inout) :: param   !! Current run configuration parameters
       ! Internals
-      integer(I4B)           :: i, idslot, old_mode, npl, stage
+      integer(I4B)           :: i, idslot, old_mode, npl, stage, tmp
       character(len=NAMELEN) :: charstring
       class(swiftest_pl), allocatable :: pl
 
@@ -427,7 +427,7 @@ contains
                call netcdf_io_check( nf90_put_var(nc%id, nc%L_spin_varid,   collider%L_spin(:,:),  start=[1, 1, eslot], count=[NDIM, 2, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var L_spin_varid before" )
             end if
       
-            call netcdf_io_check( nf90_set_fill(nc%id, old_mode, old_mode) )
+            call netcdf_io_check( nf90_set_fill(nc%id, old_mode, tmp) )
          end associate
       end select
       return

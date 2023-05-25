@@ -636,7 +636,7 @@ contains
       ! Internals
       integer(I4B) :: i
       integer(I8B) :: j1, j0, nenci
-      integer(I4B), dimension(n1) :: ibeg
+      integer(I8B), dimension(n1) :: ibeg
 
       associate(nenc_arr => ragged_list(:)%nenc)
          nenc = sum(nenc_arr(:))
@@ -865,7 +865,7 @@ contains
          if (loverlap(i)) then
             ibeg =  self%aabb%ibeg(i) + 1_I8B
             iend =  self%aabb%iend(i) - 1_I8B
-            nbox = iend - ibeg + 1
+            nbox = int(iend - ibeg, kind=I4B) + 1
             call encounter_check_all_sweep_one(i, nbox, r1(1,i), r1(2,i), r1(3,i), v1(1,i), v1(2,i), v1(3,i), &
                                                          xind(ibeg:iend), yind(ibeg:iend), zind(ibeg:iend),&
                                                          vxind(ibeg:iend), vyind(ibeg:iend), vzind(ibeg:iend), &
@@ -881,7 +881,7 @@ contains
          if (loverlap(i)) then
             ibeg =  self%aabb%ibeg(i) + 1_I8B
             iend =  self%aabb%iend(i) - 1_I8B
-            nbox = iend - ibeg + 1
+            nbox = int(iend - ibeg, kind=I4B) + 1
             ii = i - n1
             call encounter_check_all_sweep_one(ii, nbox, r2(1,ii), r2(2,ii), r2(3,ii), v2(1,ii), v2(2,ii), v2(3,ii), &
                                                           xind(ibeg:iend), yind(ibeg:iend), zind(ibeg:iend),&
@@ -958,7 +958,7 @@ contains
          if (loverlap(i)) then
             ibeg =  self%aabb%ibeg(i) + 1_I8B
             iend =  self%aabb%iend(i) - 1_I8B
-            nbox = int(iend - ibeg + 1, kind=I4B)
+            nbox = int(iend - ibeg, kind=I4B) + 1
             lencounteri(ibeg:iend) = .true.
             call encounter_check_all_sweep_one(i, nbox, r(1,i), r(2,i), r(3,i), v(1,i), v(2,i), v(3,i), &
                                                       xind(ibeg:iend), yind(ibeg:iend), zind(ibeg:iend),&

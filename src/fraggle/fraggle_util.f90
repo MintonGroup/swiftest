@@ -108,7 +108,6 @@ contains
       integer(I4B), parameter :: iMrem = 3
       integer(I4B), parameter :: NFRAGMIN = iMrem + 2 !! Minimum number of fragments that can be generated 
       integer(I4B), dimension(:), allocatable :: ind
-      integer(I4B), parameter :: MAXLOOP = 20
       logical :: flipper
       logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
 
@@ -174,7 +173,7 @@ contains
             mass(2) = impactors%mass_dist(iMslr)
 
             ! Recompute the slope parameter beta so that we span the complete size range
-            if (Mslr == min_mfrag) Mslr = Mslr + impactors%mass_dist(iMrem) / nfrag
+            if (abs(Mslr - min_mfrag) < epsilon(min_mfrag) * min_mfrag) Mslr = Mslr + impactors%mass_dist(iMrem) / nfrag
             mremaining = impactors%mass_dist(iMrem)
 
             ! The mass will be distributed in a power law where N>M=(M/Mslr)**(-beta/3)
@@ -225,8 +224,8 @@ contains
 
             ! For catastrophic impacts, we will assign each of the n>2 fragments to one of the two original bodies so that the fragment cloud occupies 
             ! roughly the same space as both original bodies. For all other disruption cases, we use body 2 as the center of the cloud.
-            fragments%origin_body(1) = 1
-            fragments%origin_body(2) = 2
+            fragments%origin_body(1) = 1_I1B
+            fragments%origin_body(2) = 2_I1B
             if (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) then
                mcumul = fragments%mass(1)
                flipper = .true.

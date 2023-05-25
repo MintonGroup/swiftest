@@ -361,8 +361,6 @@ contains
       integer(I4B) :: i, j, loop, istart, nfrag, npl, ntp
       logical :: lsupercat, lhitandrun
       integer(I4B), parameter :: MAXLOOP = 10000
-      real(DP), parameter :: cloud_size_scale_factor = 3.0_DP ! Scale factor to apply to the size of the cloud relative to the distance from the impact point. 
-                                                              ! A larger value puts more space between fragments initially
       real(DP), parameter :: rbuffer = 1.01_DP ! Body radii are inflated by this scale factor to prevent secondary collisions 
       real(DP), parameter :: pack_density = 0.5236_DP ! packing density of loose spheres
 

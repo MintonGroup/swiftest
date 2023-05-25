@@ -2078,7 +2078,7 @@ module base
             n = n + 1
             lo = minval(input_array(:), mask=input_array(:) > lo)
             unique_array(n) = lo
-            where(input_array(:) == lo) index_map(:) = n
+            where(abs(input_array(:) - lo) < epsilon(1.0_DP) * lo) index_map(:) = n
             if (lo >= hi) exit
          enddo
          allocate(output_array(n), source=unique_array(1:n)) 
