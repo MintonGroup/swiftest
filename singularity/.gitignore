@@ -1,3 +1,4 @@
-!swiftest.def
 !bin/
-!pull
+!bin/swiftest_driver
+!install.sh
+!setenv.sh

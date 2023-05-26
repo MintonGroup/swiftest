@@ -1,3 +1,4 @@
-#!/bin/sh
-# source this file to set the path to the swiftest.sif file
-export SWIFTEST_SIF="${PWD}/swiftest.sif"
+#!/bin/sh --
+# This will set the SWIFTEST_SIF environment variable as long as it is executed by source.
+# $ . ./setenv.sh
+export SWIFTEST_SIF="${PWD}/swiftest_driver.sif"
