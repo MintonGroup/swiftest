@@ -105,7 +105,7 @@ $ make
 
 The Swiftest executable, called ```swiftest_driver```, should now be created in the ```/swiftest/bin/``` directory.
 
-**Download the `swiftest_driver` as a Docker or Singularity container.
+**Download the `swiftest_driver` as a Docker or Singularity container.**
 
 The Swiftest driver is available as a Docker container on DockerHub in two versions: Intel and GNU. The Intel version was compiled for the x86_64 CPU using the Intel classic Fortran compiler. The GNU version was compliled for the x86_64 CPU using gfortran. The Intel version is faster than the GNU version (though not as fast as a native compile to the target CPU that you wish to run it on due to vectorization optimizations that Swiftest takes advantage of), however it is much larger: The Intel version is ~2.7GB while the GNU version is ~300MB. The Singularity container pulls from the same DockerHub container.
 
