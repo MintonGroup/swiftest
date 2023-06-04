@@ -416,9 +416,9 @@ contains
       associate(nc => self%nc)
 #ifdef COARRAY
          sync all
-         if (param%lcoarray .and. (this_image() /= 1)) sync images(this_image() - 1)
          write(param%display_unit,*) "File output started"
          call iotimer%start()
+         critical
 #endif
          call nc%open(param)
          do i = 1, self%iframe
@@ -433,10 +433,10 @@ contains
          end do
          call nc%close()
 #ifdef COARRAY  
-         if (param%lcoarray .and. (this_image() < num_images())) sync images(this_image() + 1)
+         end critical
          call iotimer%stop()
-         call iotimer%report(message="File output :", unit=param%display_unit)
          sync all
+         call iotimer%report(message="File output :", unit=param%display_unit)
 #endif
       end associate
 

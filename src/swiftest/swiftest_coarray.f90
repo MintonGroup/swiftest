@@ -24,20 +24,33 @@ contains
         ! Internals
         integer(I4B), codimension[*], save :: ntp
         integer(I4B) :: img,ntp_min, ntp_max
+        character(len=NAMELEN) :: min_str, max_str, diff_str, ni_str
 
         ntp = nbody_system%tp%nbody
         sync all
+        write(param%display_unit,*) "Checking whether test particles need to be reblanced."
         ntp_min = huge(1)
         ntp_max = 0
         do img = 1, num_images()
             if (ntp[img] < ntp_min) ntp_min = ntp[img]
             if (ntp[img] > ntp_max) ntp_max = ntp[img]
         end do
+        write(min_str,*) ntp_min
+        write(max_str,*) ntp_max
+        write(diff_str,*) ntp_max - ntp_min
+        write(ni_str,*) num_images()
+        write(param%display_unit,*) "ntp_min   : " // trim(adjustl(min_str))
+        write(param%display_unit,*) "ntp_max   : " // trim(adjustl(max_str))
+        write(param%display_unit,*) "difference: " // trim(adjustl(diff_str))
         if (ntp_max - ntp_min >= num_images()) then
+            write(param%display_unit,*) trim(adjustl(diff_str)) // ">=" // trim(adjustl(ni_str)) // ": Rebalancing"
             call nbody_system%coarray_collect(param)
             call nbody_system%coarray_distribute(param)
+            write(param%display_unit,*) "Rebalancing complete"
+        else
+            write(param%display_unit,*) trim(adjustl(diff_str)) // "<" // trim(adjustl(ni_str)) // ": No rebalancing needed"
         end if
-
+        call flush(param%display_unit)
         return
     end subroutine swiftest_coarray_balance_system
 
@@ -700,10 +713,8 @@ contains
 
         write(image_num_char,*) this_image()
         write(ntp_num_char,*) nbody_system%tp%nbody
-        if (this_image() /= 1) sync images(this_image() - 1)
         write(param%display_unit,*) "Image " // trim(adjustl(image_num_char)) // " ntp: " // trim(adjustl(ntp_num_char))
         if (param%log_output) flush(param%display_unit)
-        if (this_image() < num_images()) sync images(this_image() + 1)
 
         deallocate(ntp, lspill_list, tmp, cotp)
 
