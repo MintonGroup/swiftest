@@ -187,5 +187,7 @@ RUN conda update --all -y
 COPY ./python/ .
 COPY --from=build /usr/local/bin/swiftest_driver /bin/
 RUN cd swiftest && conda develop .
+RUN mkdir -p /.astropy && \
+  chmod -R 777 /.astropy
 ENV SHELL="/bin/bash"
 ENTRYPOINT ["/opt/conda/bin/python"]
