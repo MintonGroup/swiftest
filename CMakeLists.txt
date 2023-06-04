@@ -32,10 +32,15 @@ OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" O
 OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
 OPTION(USE_SIMD "Use SIMD vectorization" ON)
 OPTION(CONTAINERIZE "Compiling for use in a Docker/Singularity container" OFF)
+OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
-# Locate and set parallelization libraries.  There are some CMake peculiarities
+# Locate and set external libraries.  There are some CMake peculiarities
 # taken care of here, such as the fact that the FindOpenMP routine doesn't know
 # about Fortran.
+IF (NOT BUILD_SHARED_LIBS)
+    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".so")
+ENDIF ()
+
 INCLUDE(${CMAKE_MODULE_PATH}/SetParallelizationLibrary.cmake)
 INCLUDE(${CMAKE_MODULE_PATH}/SetUpNetCDF.cmake)
 INCLUDE(${CMAKE_MODULE_PATH}/SetMKL.cmake)

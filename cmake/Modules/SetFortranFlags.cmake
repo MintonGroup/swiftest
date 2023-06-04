@@ -50,9 +50,9 @@ ENDIF(BT STREQUAL "RELEASE")
 # If the compiler flags have already been set, return now
 #########################################################
 
-IF(CMAKE_Fortran_FLAGS_RELEASE AND CMAKE_Fortran_FLAGS_TESTING AND CMAKE_Fortran_FLAGS_DEBUG AND CMAKE_Fortran_FLAGS_PROFILE AND CMAKE_Fortran_FLAGS_CONTAINER)
+IF(CMAKE_Fortran_FLAGS_RELEASE AND CMAKE_Fortran_FLAGS_TESTING AND CMAKE_Fortran_FLAGS_DEBUG AND CMAKE_Fortran_FLAGS_PROFILE )
     RETURN ()
-ENDIF(CMAKE_Fortran_FLAGS_RELEASE AND CMAKE_Fortran_FLAGS_TESTING AND CMAKE_Fortran_FLAGS_DEBUG AND CMAKE_Fortran_FLAGS_PROFILE AND CMAKE_Fortran_FLAGS_CONTAINER)
+ENDIF(CMAKE_Fortran_FLAGS_RELEASE AND CMAKE_Fortran_FLAGS_TESTING AND CMAKE_Fortran_FLAGS_DEBUG AND CMAKE_Fortran_FLAGS_PROFILE)
 
 ########################################################################
 # Determine the appropriate flags for this compiler for each build type.
@@ -118,6 +118,7 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                         "/Qpad" # Intel Windows
 
                 )
+
 IF (CONTAINERIZE)
         # There is some bug where -march=native doesn't work on Mac
         IF(APPLE)
@@ -125,6 +126,18 @@ IF (CONTAINERIZE)
         ELSE()
                 SET(GNUNATIVE "-march=generic")
         ENDIF()
+
+        # Use static Intel libraries
+        SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
+                Fortran "-static-intel"  # Intel
+        )
+
+        IF (USE_OPENMP)
+                SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
+                        Fortran "-qopenmp-link=static"  # Intel
+                )
+        ENDIF (USE_OPENMP)
+
 ELSE ()
         # There is some bug where -march=native doesn't work on Mac
         IF(APPLE)
@@ -148,7 +161,9 @@ IF (USE_SIMD)
         IF (CONTAINERIZE)
                 # Optimize for an old enough processor that it should run on most computers
                 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
-                                Fortran ${GNUNATIVE}    # GNU
+                                Fortran "-xSSE2" # Intel
+                                        "/QxSSE2" # Intel Windows
+                                        ${GNUNATIVE}    # GNU
                                 )
         ELSE ()
                 # Optimize for the host's architecture
