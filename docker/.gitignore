@@ -1,10 +1,5 @@
 *
 !.gitignore
 !install.sh
-!gnu/
-!gnu/Dockerfile
-!/gnu/bin/
-!/gnu/bin/swiftest_driver
-!intel/
-!intel/Dockerfile
-!/intel/bin/swiftest_driver
+!bin
+!bin/swiftest

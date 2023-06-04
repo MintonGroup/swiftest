@@ -1,9 +1,9 @@
-FROM debian:stable-slim as build
+FROM ubuntu:20.04 as build
 
 # kick everything off
 RUN apt-get update && apt-get upgrade -y && \
   DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-  ca-certificates curl git wget gpg-agent software-properties-common build-essential gnupg pkg-config libaec-dev procps && \
+  ca-certificates curl git wget gpg-agent software-properties-common build-essential gnupg pkg-config && \
   rm -rf /var/lib/apt/lists/*
 
 # Get CMAKE and install it
@@ -21,36 +21,8 @@ RUN echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https:/
 RUN apt-get -y update && apt-get upgrade -y
 RUN apt-get install -y intel-hpckit
 
-# Build the NetCDF libraries
-RUN mkdir -p /opt/build && mkdir -p /opt/dist
-ENV INDIR="/opt/dist//usr/local"
+# Set Intel compiler environment variables
 ENV INTEL_DIR="/opt/intel/oneapi"
-ENV CC="${INTEL_DIR}/compiler/latest/linux/bin/icx-cc"
-ENV FC="${INTEL_DIR}/compiler/latest/linux/bin/ifx"
-
-RUN apt-get update && apt-get upgrade -y && \
-  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-  libhdf5-dev hdf5-tools zlib1g zlib1g-dev libxml2-dev libcurl4-gnutls-dev m4 && \
-  rm -rf /var/lib/apt/lists/*
-
-
-#NetCDF-c library
-RUN git clone https://github.com/Unidata/netcdf-c.git
-RUN cd netcdf-c && mkdir build && cd build && \
-   cmake ..  -DCMAKE_PREFIX_PATH="${LD_LIBRARY_PATH}" -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX="${INDIR}"  && \
-   make && make install
-
-#NetCDF-Fortran library
-RUN git clone https://github.com/Unidata/netcdf-fortran.git
-RUN cd netcdf-fortran && mkdir build && cd build && \
-   cmake .. -DCMAKE_INSTALL_PREFIX="${INDIR}"  && \
-   make && make install
-
-# #Swiftest
-RUN git clone -b debug https://github.com/carlislewishard/swiftest.git
-ENV FC="${INTEL_DIR}/mpi/latest/bin/mpiifort"
-ENV NETCDF_HOME="${INDIR}"
-ENV NETCDF_FORTRAN_HOME="${INDIR}"
 ENV LANG=C.UTF-8
 ENV ACL_BOARD_VENDOR_PATH='/opt/Intel/OpenCLFPGA/oneAPI/Boards'
 ENV ADVISOR_2023_DIR='/opt/intel/oneapi/advisor/2023.1.0'
@@ -104,26 +76,118 @@ ENV VT_MPI='impi4'
 ENV VT_ROOT='/opt/intel/oneapi/itac/2021.9.0'
 ENV VT_SLIB_DIR='/opt/intel/oneapi/itac/2021.9.0/slib'
 
-RUN cd swiftest && cmake -P distclean.cmake && mkdir build && cd build && cmake .. -DCMAKE_PREFIX_PATH="${INDIR}" -DCMAKE_INSTALL_PREFIX="${INDIR}" -DCONTAINERIZE=ON -DCMAKE_BUILD_TYPE=release && make && make install
+# Set HDF5 and NetCDF-specific Environment variables
+ENV INSTALL_DIR="/usr/local"
+ENV LIB_DIR="${INSTALL_DIR}/lib"
+ENV LD_LIBRARY_PATH=${LIB_DIR}:${LD_LIBRARY_PATH}
+RUN mkdir -p ${LIB_DIR}
 
-#Production container
-FROM debian:stable-slim
-COPY --from=build /opt/dist /
+ENV CC="${INTEL_DIR}/compiler/latest/linux/bin/icx-cc"
+ENV FC="${INTEL_DIR}/compiler/latest/linux/bin/ifx"
+ENV CXX="${INTEL_DIR}/compiler/latest/linux/bin/icpx"
+ENV LDFLAGS="-L${LIB_DIR}"
+ENV NCDIR="${INSTALL_DIR}"
+ENV NFDIR="${INSTALL_DIR}"
+ENV HDF5_ROOT="${INSTALL_DIR}"
+ENV HDF5_LIBDIR="${HDF5_ROOT}/lib"
+ENV HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
+ENV HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
 
-# Get the Intel runtime libraries
+# Get the HDF5, NetCDF-C and NetCDF-Fortran libraries
+RUN wget -qO- https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14.1/bin/unix/hdf5-1.14.1-2-Std-ubuntu2004_64-Intel.tar.gz | tar xvz 
+RUN wget -qO- https://github.com/Unidata/netcdf-c/archive/refs/tags/v4.9.2.tar.gz | tar xvz
+RUN wget -qO- https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v4.6.1.tar.gz | tar xvz
+RUN wget -qO- https://www.zlib.net/zlib-1.2.13.tar.gz | tar xvz
+
+# Install dependencies
 RUN apt-get update && apt-get upgrade -y && \
   DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-  ca-certificates curl gpg-agent software-properties-common gnupg pkg-config procps && \
+  libxml2-dev libcurl4-gnutls-dev libzstd-dev libbz2-dev libaec-dev m4 && \
   rm -rf /var/lib/apt/lists/*
 
-RUN curl -fsSL https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS-2023.PUB | apt-key add -
-RUN echo "deb [trusted=yes] https://apt.repos.intel.com/oneapi all main " > /etc/apt/sources.list.d/oneAPI.list
-RUN apt-get -y update && apt-get upgrade -y
-RUN apt-get install -y intel-oneapi-runtime-openmp intel-oneapi-runtime-mkl intel-oneapi-runtime-mpi intel-oneapi-runtime-fortran 
-ENV NETCDF_HOME="/usr/local"
-ENV LANG=C.UTF-8
-ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/intel/oneapi/lib"
-RUN apt-get -y update && apt-get upgrade -y
-RUN apt-get install -y libhdf5-dev libxml2-dev 
+# Install HDF5
+RUN cd hdf && \
+  ./HDF5-1.14.1-Linux.sh --skip-license && \
+  cp -R HDF_Group/HDF5/1.14.1/lib/*.a ${HDF5_ROOT}/lib/ && \
+  cp -R HDF_Group/HDF5/1.14.1/include/* ${HDF5_ROOT}/include/ 
 
-ENTRYPOINT ["/usr/local/bin/swiftest_driver"]
+RUN cp zlib-1.2.13/zlib.h ${HDF5_INCLUDE_DIR}/
+
+ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
+ENV LDFLAGS="-static-intel -lhdf5_hl -lhdf5 -lsz -lm -lz -lzstd -lbz2 -lcurl -lxml2"
+RUN cd netcdf-c-4.9.2 && \
+  cmake -S . -B build -DCMAKE_PREFIX_PATH="${INSTALL_DIR}" \
+                      -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
+                      -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+                      -DBUILD_SHARED_LIBS=OFF && \
+  cmake --build build && \
+  cmake --install build
+
+# NetCDF-Fortran library
+ENV F77=${FC}
+ENV CFLAGS="-fPIC"
+ENV FCFLAGS=${CFLAGS}
+ENV FFLAGS=${CFLAGS}
+ENV CPPFLAGS="-I${INSTALL_DIR}/include -I/usr/include -I/usr/include/x86_64-linux-gnu/curl"
+ENV LDFLAGS="-static-intel"
+ENV LIBS="-L/usr/local/lib -L/usr/lib/x86_64-linux-gnu -lnetcdf -lhdf5_hl -lhdf5 -lsz -lm -lz -lzstd -lbz2 -lcurl -lxml2" 
+RUN cd netcdf-fortran-4.6.1 && \
+  ./configure --disable-shared --prefix=${NFDIR} && \
+  make && \
+  make install  
+
+# # Swiftest
+ENV NETCDF_HOME=${INSTALL_DIR}
+ENV NETCDF_FORTRAN_HOME=${NETCDF_HOME}
+ENV NETCDF_LIBRARY=${NETCDF_HOME}
+ENV FC="${INTEL_DIR}/mpi/latest/bin/mpiifort"
+ENV LDFLAGS="-L/usr/local/lib -L/usr/lib/x86_64-linux-gnu -lnetcdff -lnetcdf -lhdf5_hl -lhdf5 -lsz -lz -lzstd -lbz2 -lcurl -lxml2"
+COPY ./cmake/ /swiftest/cmake/
+COPY ./src/ /swiftest/src/
+COPY ./CMakeLists.txt /swiftest/
+RUN echo 'find_path(NETCDF_INCLUDE_DIR NAMES netcdf.mod HINTS ENV NETCDF_FORTRAN_HOME)\n' \
+         'find_library(NETCDF_FORTRAN_LIBRARY NAMES netcdff HINTS ENV LD_LIBRARY_PATH)\n' \
+         'find_library(NETCDF_LIBRARY NAMES netcdf HINTS ENV LD_LIBRARY_PATH)\n' \
+         'find_library(HDF5_HL_LIBRARY NAMES libhdf5_hl.a HINTS ENV LD_LIBRARY_PATH)\n' \
+         'find_library(HDF5_LIBRARY NAMES libhdf5.a HINTS ENV LD_LIBRARY_PATH)\n' \
+         'find_library(Z_LIBRARY NAMES libz.a HINTS ENV LD_LIBRARY_PATH)\n' \
+         'find_library(ZSTD_LIBRARY NAMES libzstd.a HINTS ENV LD_LIBRARY_PATH)\n' \
+         'find_library(SZ_LIBRARY NAMES libsz.a HINTS ENV LD_LIBRARY_PATH)\n' \
+         'find_library(BZ2_LIBRARY NAMES libbz2.a HINTS ENV LD_LIBRARY_PATH)\n' \
+         'find_library(CURL_LIBRARY NAMES libcurl.a HINTS ENV LD_LIBRARY_PATH)\n' \
+         'find_library(XML2_LIBRARY NAMES libxml2.a HINTS ENV LD_LIBRARY_PATH)\n' \
+         'set(NETCDF_FOUND TRUE)\n' \
+         'set(NETCDF_INCLUDE_DIRS ${NETCDF_INCLUDE_DIR})\n' \
+         'set(NETCDF_LIBRARIES ${NETCDF_FORTRAN_LIBRARY} ${NETCDF_LIBRARY} ${HDF5_HL_LIBRARY} ${HDF5_LIBRARY} ${SZ_LIBRARY} ${Z_LIBRARY} ${ZSTD_LIBRARY} ${BZ2_LIBRARY} ${CURL_LIBRARY} ${XML2_LIBRARY} )\n' \
+         'mark_as_advanced(NETCDF_LIBRARY NETCDF_FORTRAN_LIBRARY NETCDF_INCLUDE_DIR)\n' > /swiftest/cmake/Modules/FindNETCDF.cmake
+
+RUN cd swiftest && \
+  cmake -S . -B build -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" -DCONTAINERIZE=ON -DCMAKE_BUILD_TYPE=release -DBUILD_SHARED_LIBS=OFF &&\
+  cmake --build build --verbose && \
+  cmake --install build
+
+# Production container
+FROM continuumio/miniconda3
+
+RUN apt-get update && apt-get upgrade -y && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+  libxml2-dev libcurl4-gnutls-dev libzstd-dev libbz2-dev libaec-dev && \
+  rm -rf /var/lib/apt/lists/*
+
+ENV LD_LIBRARY_PATH="/usr/local/lib"
+COPY --from=build /opt/intel/oneapi/mpi/latest/lib/libmpifort.so.12 /usr/local/lib/
+COPY --from=build /opt/intel/oneapi/mpi/latest/lib/release/libmpi.so.12 /usr/local/lib/
+
+RUN conda update --all -y
+RUN conda install conda-libmamba-solver -y
+RUN conda config --set solver libmamba
+RUN conda install -c conda-forge conda-build numpy scipy matplotlib pandas xarray astropy astroquery tqdm x264 bottleneck ffmpeg h5netcdf netcdf4 -y
+RUN conda update --all -y
+
+COPY ./python/ .
+COPY --from=build /usr/local/bin/swiftest_driver /bin/
+RUN cd swiftest && conda develop .
+RUN mkdir -p /.astropy && \
+  chmod -R 777 /.astropy
+ENV SHELL="/bin/bash"
+ENTRYPOINT ["/opt/conda/bin/python"]
