@@ -1101,10 +1101,11 @@ contains
       class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       ! Internals
-      integer(I4B) :: err, i, j
+      integer(I4B) :: err, i, j, npl
       integer(I8B) :: k, npl8
 
-      associate(npl => self%nbody, nplpl => self%nplpl)
+      associate(nplpl => self%nplpl)
+         npl = self%nbody
          npl8 = int(npl, kind=I8B)
          nplpl = npl8 * (npl8 - 1_I8B) / 2_I8B ! number of entries in a strict lower triangle, npl x npl
          if (param%lflatten_interactions) then

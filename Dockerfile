@@ -136,10 +136,12 @@ RUN cd netcdf-fortran-4.6.1 && \
   make && \
   make install  
 
-# # Swiftest
+# Swiftest
 ENV NETCDF_HOME=${INSTALL_DIR}
 ENV NETCDF_FORTRAN_HOME=${NETCDF_HOME}
 ENV NETCDF_LIBRARY=${NETCDF_HOME}
+ENV FOR_COARRAY_NUM_IMAGES=1
+ENV OMP_NUM_THREADS=1
 ENV FC="${INTEL_DIR}/mpi/latest/bin/mpiifort"
 ENV LDFLAGS="-L/usr/local/lib -L/usr/lib/x86_64-linux-gnu -lnetcdff -lnetcdf -lhdf5_hl -lhdf5 -lsz -lz -lzstd -lbz2 -lcurl -lxml2"
 COPY ./cmake/ /swiftest/cmake/
@@ -162,32 +164,41 @@ RUN echo 'find_path(NETCDF_INCLUDE_DIR NAMES netcdf.mod HINTS ENV NETCDF_FORTRAN
          'mark_as_advanced(NETCDF_LIBRARY NETCDF_FORTRAN_LIBRARY NETCDF_INCLUDE_DIR)\n' > /swiftest/cmake/Modules/FindNETCDF.cmake
 
 RUN cd swiftest && \
-  cmake -S . -B build -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" -DCONTAINERIZE=ON -DCMAKE_BUILD_TYPE=release -DBUILD_SHARED_LIBS=OFF &&\
+  cmake -S . -B build -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" -DCONTAINERIZE=ON -DUSE_COARRAY=OFF -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SHARED_LIBS=OFF &&\
   cmake --build build --verbose && \
   cmake --install build
+
+# Driver container
+FROM ubuntu:20.04 as Driver
+COPY --from=build /opt/intel/oneapi/mpi/latest/lib/libmpifort.so.12 /usr/local/lib/
+COPY --from=build /opt/intel/oneapi/mpi/latest/lib/release/libmpi.so.12 /usr/local/lib/
+COPY --from=build /usr/local/bin/swiftest_driver /usr/local/bin
+RUN apt-get update && apt-get upgrade -y && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+  libsz2 libcurl3-gnutls libxml2 && \
+  rm -rf /var/lib/apt/lists/*
 
 # Production container
 FROM continuumio/miniconda3
 
-RUN apt-get update && apt-get upgrade -y && \
-  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-  libxml2-dev libcurl4-gnutls-dev libzstd-dev libbz2-dev libaec-dev && \
-  rm -rf /var/lib/apt/lists/*
-
 ENV LD_LIBRARY_PATH="/usr/local/lib"
+ENV SHELL="/bin/bash"
 COPY --from=build /opt/intel/oneapi/mpi/latest/lib/libmpifort.so.12 /usr/local/lib/
 COPY --from=build /opt/intel/oneapi/mpi/latest/lib/release/libmpi.so.12 /usr/local/lib/
-
-RUN conda update --all -y
-RUN conda install conda-libmamba-solver -y
-RUN conda config --set solver libmamba
-RUN conda install -c conda-forge conda-build numpy scipy matplotlib pandas xarray astropy astroquery tqdm x264 bottleneck ffmpeg h5netcdf netcdf4 -y
-RUN conda update --all -y
-
 COPY ./python/ .
 COPY --from=build /usr/local/bin/swiftest_driver /bin/
-RUN cd swiftest && conda develop .
-RUN mkdir -p /.astropy && \
+
+RUN apt-get update && apt-get upgrade -y && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+  libsz2 libcurl3-gnutls libxml2 && \
+  rm -rf /var/lib/apt/lists/* && \
+  conda update --all -y && \
+  conda install conda-libmamba-solver -y && \
+  conda config --set solver libmamba && \
+  conda install -c conda-forge conda-build numpy scipy matplotlib pandas xarray astropy astroquery tqdm x264 bottleneck ffmpeg h5netcdf netcdf4 dask -y && \
+  conda update --all -y && \
+  cd swiftest && conda develop . && \
+  mkdir -p /.astropy && \
   chmod -R 777 /.astropy
-ENV SHELL="/bin/bash"
+
 ENTRYPOINT ["/opt/conda/bin/python"]
