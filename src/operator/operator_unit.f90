@@ -89,11 +89,7 @@ contains
       if (allocated(B)) deallocate(B)
       allocate(B(NDIM,n))
 
-#ifdef DOCONLOC
-      do concurrent (i=1:n) shared(A,B)
-#else
-      do concurrent (i=1:n)
-#endif
+      do i=1,n
          B(:,i) = operator_unit_sp(A(:,i))
       end do
 
@@ -113,11 +109,7 @@ contains
       if (allocated(B)) deallocate(B)
       allocate(B(NDIM,n))
 
-#ifdef DOCONLOC
-      do concurrent (i=1:n) shared(A,B)
-#else
-      do concurrent (i=1:n)
-#endif
+      do i=1,n
          B(:,i) = operator_unit_dp(A(:,i))
       end do
 
@@ -136,11 +128,7 @@ contains
       if (allocated(B)) deallocate(B)
       allocate(B(NDIM,n))
 
-#ifdef DOCONLOC
-      do concurrent (i=1:n) shared(A,B)
-#else
-      do concurrent (i=1:n)
-#endif
+      do i=1,n
          B(:,i) = operator_unit_qp(A(:,i))
       end do
 

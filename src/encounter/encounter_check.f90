@@ -179,7 +179,7 @@ contains
 #else
       do concurrent (i = 1:npl)
 #endif
-         rmag = .mag.r(:,i)
+         rmag = norm2(r(:,i))
          rmax(i) = rmag + RSWEEP_FACTOR * renc(i)
          rmin(i) = rmag - RSWEEP_FACTOR * renc(i)
       end do
@@ -236,7 +236,7 @@ contains
 #else
       do concurrent (i = 1:nplm)
 #endif
-         rmag = .mag.rplm(:,i)
+         rmag = norm2(rplm(:,i))
          rmax(i) = rmag + RSWEEP_FACTOR * rencm(i)
          rmin(i) = rmag - RSWEEP_FACTOR * rencm(i)
       end do
@@ -245,7 +245,7 @@ contains
 #else
       do concurrent (i = 1:nplt)
 #endif
-         rmag = .mag.rplt(:,i)
+         rmag = norm2(rplt(:,i))
          rmax(nplm+i) = rmag + RSWEEP_FACTOR * renct(i)
          rmin(nplm+i) = rmag - RSWEEP_FACTOR * renct(i)
       end do
@@ -304,7 +304,7 @@ contains
 #else
       do concurrent (i = 1:npl)
 #endif
-         rmag = .mag.rpl(:,i)
+         rmag = norm2(rpl(:,i))
          rmax(i) = rmag + RSWEEP_FACTOR * rencpl(i)
          rmin(i) = rmag - RSWEEP_FACTOR * rencpl(i)
       end do
@@ -313,7 +313,7 @@ contains
 #else
       do concurrent (i = 1:ntp) 
 #endif
-         rmag = .mag.rtp(:,i)
+         rmag = norm2(rtp(:,i))
          rmax(npl+i) = rmag + RSWEEP_FACTOR * renctp(i)
          rmin(npl+i) = rmag - RSWEEP_FACTOR * renctp(i)
       end do
