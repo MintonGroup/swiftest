@@ -94,7 +94,7 @@ RUN wget -qO- https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14
     wget -qO- https://www.zlib.net/zlib-1.2.13.tar.gz | tar xvz && \
     apt-get update && apt-get upgrade -y && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-      libxml2-dev libcurl4-gnutls-dev libzstd-dev libbz2-dev libaec-dev m4 && \
+    libxml2-dev libcurl4-gnutls-dev libzstd-dev libbz2-dev libaec-dev m4 && \
     rm -rf /var/lib/apt/lists/* && \
     cd hdf && \
     ./HDF5-1.14.1-Linux.sh --skip-license && \
@@ -153,14 +153,13 @@ RUN echo 'find_path(NETCDF_INCLUDE_DIR NAMES netcdf.mod HINTS ENV NETCDF_FORTRAN
          'set(NETCDF_LIBRARIES ${NETCDF_FORTRAN_LIBRARY} ${NETCDF_LIBRARY} ${HDF5_HL_LIBRARY} ${HDF5_LIBRARY} ${SZ_LIBRARY} ${Z_LIBRARY} ${ZSTD_LIBRARY} ${BZ2_LIBRARY} ${CURL_LIBRARY} ${XML2_LIBRARY} )\n' \
          'mark_as_advanced(NETCDF_LIBRARY NETCDF_FORTRAN_LIBRARY NETCDF_INCLUDE_DIR)\n' > /swiftest/cmake/Modules/FindNETCDF.cmake && \
   cd swiftest && \
-  cmake -S . -B build -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" -DCONTAINERIZE=ON -DUSE_COARRAY=OFF -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_SHARED_LIBS=OFF &&\
+  cmake -S . -B build -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" -DCONTAINERIZE=ON -DUSE_COARRAY=ON -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_SHARED_LIBS=OFF &&\
   cmake --build build --verbose && \
   cmake --install build
 
 # Driver container
 FROM ubuntu:20.04 as Driver
-COPY --from=build /opt/intel/oneapi/mpi/latest/lib/libmpifort.so.12 /usr/local/lib/
-COPY --from=build /opt/intel/oneapi/mpi/latest/lib/release/libmpi.so.12 /usr/local/lib/
+COPY --from=build /opt/intel/oneapi/compiler/2023.1.0/linux/compiler/lib/intel64_lin/libicaf.so /usr/local/lib/
 COPY --from=build /usr/local/bin/swiftest_driver /usr/local/bin
 RUN apt-get update && apt-get upgrade -y && \
   DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -172,9 +171,8 @@ FROM continuumio/miniconda3
 
 ENV LD_LIBRARY_PATH="/usr/local/lib"
 ENV SHELL="/bin/bash"
-COPY --from=build /opt/intel/oneapi/mpi/latest/lib/libmpifort.so.12 /usr/local/lib/
-COPY --from=build /opt/intel/oneapi/mpi/latest/lib/release/libmpi.so.12 /usr/local/lib/
 COPY ./python/ .
+COPY --from=build /opt/intel/oneapi/compiler/2023.1.0/linux/compiler/lib/intel64_lin/libicaf.so /usr/local/lib/
 COPY --from=build /usr/local/bin/swiftest_driver /bin/
 
 RUN apt-get update && apt-get upgrade -y && \
@@ -188,6 +186,8 @@ RUN apt-get update && apt-get upgrade -y && \
   conda update --all -y && \
   cd swiftest && conda develop . && \
   mkdir -p /.astropy && \
-  chmod -R 777 /.astropy
+  chmod -R 777 /.astropy && \
+  mkdir -p /.config/matplotlib && \
+  chmod -R 777 /.config/matplotlib 
 
 ENTRYPOINT ["/opt/conda/bin/python"]

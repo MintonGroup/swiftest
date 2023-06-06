@@ -93,6 +93,9 @@ module swiftest
       integer(I4B), dimension(:), allocatable :: child  !! Index of children particles
    contains
       procedure :: dealloc  => swiftest_util_dealloc_kin !! Deallocates all allocatable arrays
+#ifdef COARRAY
+      procedure :: coclone => swiftest_coarray_coclone_kin !! Clones the image 1 body object to all other images in the coarray structure.
+#endif
       final     ::             swiftest_final_kin        !! Finalizes the Swiftest kinship object - deallocates all allocatables
    end type swiftest_kinship
 
@@ -1775,6 +1778,11 @@ module swiftest
          implicit none
          class(swiftest_cb),intent(inout),codimension[*]  :: self  !! Swiftest cb object
       end subroutine swiftest_coarray_coclone_cb
+
+      module subroutine swiftest_coarray_coclone_kin(self)
+         implicit none
+         class(swiftest_kinship),intent(inout),codimension[*]  :: self  !! Swiftest kinship object
+      end subroutine swiftest_coarray_coclone_kin
 
       module subroutine swiftest_coarray_coclone_nc(self)
          implicit none

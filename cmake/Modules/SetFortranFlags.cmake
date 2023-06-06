@@ -117,6 +117,10 @@ IF (CONTAINERIZE)
         SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
                 Fortran "-static-intel"  # Intel
         )
+        # Use static Intel MPI libraries
+        SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
+                Fortran "-static_mpi"  # Intel
+        )
 
         IF (USE_OPENMP)
                 SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
