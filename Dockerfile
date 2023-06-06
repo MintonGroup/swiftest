@@ -132,6 +132,7 @@ ENV NETCDF_LIBRARY=${NETCDF_HOME}
 ENV FOR_COARRAY_NUM_IMAGES=1
 ENV OMP_NUM_THREADS=1
 ENV FC="${INTEL_DIR}/mpi/latest/bin/mpiifort"
+ENV FFLAGS="-fPIC -standard-semantics"
 ENV LDFLAGS="-L/usr/local/lib -L/usr/lib/x86_64-linux-gnu -lnetcdff -lnetcdf -lhdf5_hl -lhdf5 -lsz -lz -lzstd -lbz2 -lcurl -lxml2"
 COPY ./cmake/ /swiftest/cmake/
 COPY ./src/ /swiftest/src/

@@ -81,14 +81,6 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                 Fortran "-fsignaling-nans " # GNU
                 ) 
                
-
-# Determines whether the current Fortran Standard behavior of the compiler is fully implemented. 
-SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
-                Fortran "-standard-semantics" # Intel
-                        "/standard-semantics" # Intel Windows
-                )
-
-
 # Allows for lines longer than 80 characters without truncation
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                 Fortran "-ffree-line-length-none" # GNU (gfortran)
