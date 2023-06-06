@@ -210,7 +210,7 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                 )
 
 # Tells the compiler to issue compile-time messages for nonstandard language elements (Fortran 2018).                
-SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
+SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                 Fortran "-stand f18"  # Intel
                         "/stand:f18"  # Intel Windows
                         "-fstd=f2018" # GNU
