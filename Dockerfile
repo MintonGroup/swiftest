@@ -2,24 +2,18 @@ FROM ubuntu:20.04 as build
 
 # kick everything off
 RUN apt-get update && apt-get upgrade -y && \
-  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-  ca-certificates curl git wget gpg-agent software-properties-common build-essential gnupg pkg-config && \
-  rm -rf /var/lib/apt/lists/*
-
-# Get CMAKE and install it
-RUN mkdir -p cmake/build && \
-   cd cmake/build && \
-   curl -LO https://github.com/Kitware/CMake/releases/download/v3.26.2/cmake-3.26.2-linux-x86_64.sh && \
-   /bin/bash cmake-3.26.2-linux-x86_64.sh --prefix=/usr/local --skip-license
-
-# Get the Intel compilers
-# download the key to system keyring
-RUN wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
-| gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null
-# add signed entry to apt sources and configure the APT client to use Intel repository:
-RUN echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list
-RUN apt-get -y update && apt-get upgrade -y
-RUN apt-get install -y intel-hpckit
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    ca-certificates curl git wget gpg-agent software-properties-common build-essential gnupg pkg-config && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir -p cmake/build && \
+    cd cmake/build && \
+    curl -LO https://github.com/Kitware/CMake/releases/download/v3.26.2/cmake-3.26.2-linux-x86_64.sh && \
+    /bin/bash cmake-3.26.2-linux-x86_64.sh --prefix=/usr/local --skip-license && \
+    wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
+            | gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null && \
+    echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list && \
+    apt-get -y update && apt-get upgrade -y && \
+    apt-get install -y intel-hpckit && \
 
 # Set Intel compiler environment variables
 ENV INTEL_DIR="/opt/intel/oneapi"
@@ -94,24 +88,19 @@ ENV HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
 ENV HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
 
 # Get the HDF5, NetCDF-C and NetCDF-Fortran libraries
-RUN wget -qO- https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14.1/bin/unix/hdf5-1.14.1-2-Std-ubuntu2004_64-Intel.tar.gz | tar xvz 
-RUN wget -qO- https://github.com/Unidata/netcdf-c/archive/refs/tags/v4.9.2.tar.gz | tar xvz
-RUN wget -qO- https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v4.6.1.tar.gz | tar xvz
-RUN wget -qO- https://www.zlib.net/zlib-1.2.13.tar.gz | tar xvz
-
-# Install dependencies
-RUN apt-get update && apt-get upgrade -y && \
-  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-  libxml2-dev libcurl4-gnutls-dev libzstd-dev libbz2-dev libaec-dev m4 && \
-  rm -rf /var/lib/apt/lists/*
-
-# Install HDF5
-RUN cd hdf && \
-  ./HDF5-1.14.1-Linux.sh --skip-license && \
-  cp -R HDF_Group/HDF5/1.14.1/lib/*.a ${HDF5_ROOT}/lib/ && \
-  cp -R HDF_Group/HDF5/1.14.1/include/* ${HDF5_ROOT}/include/ 
-
-RUN cp zlib-1.2.13/zlib.h ${HDF5_INCLUDE_DIR}/
+RUN wget -qO- https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14.1/bin/unix/hdf5-1.14.1-2-Std-ubuntu2004_64-Intel.tar.gz | tar xvz && \
+    wget -qO- https://github.com/Unidata/netcdf-c/archive/refs/tags/v4.9.2.tar.gz | tar xvz && \
+    wget -qO- https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v4.6.1.tar.gz | tar xvz && \
+    wget -qO- https://www.zlib.net/zlib-1.2.13.tar.gz | tar xvz && \
+    apt-get update && apt-get upgrade -y && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      libxml2-dev libcurl4-gnutls-dev libzstd-dev libbz2-dev libaec-dev m4 && \
+    rm -rf /var/lib/apt/lists/* && \
+    cd hdf && \
+    ./HDF5-1.14.1-Linux.sh --skip-license && \
+    cp -R HDF_Group/HDF5/1.14.1/lib/*.a ${HDF5_ROOT}/lib/ && \
+    cp -R HDF_Group/HDF5/1.14.1/include/* ${HDF5_ROOT}/include/ && \
+    cp zlib-1.2.13/zlib.h ${HDF5_INCLUDE_DIR}/
 
 ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
 ENV LDFLAGS="-static-intel -lhdf5_hl -lhdf5 -lsz -lm -lz -lzstd -lbz2 -lcurl -lxml2"
@@ -126,7 +115,7 @@ RUN cd netcdf-c-4.9.2 && \
 # NetCDF-Fortran library
 ENV F77=${FC}
 ENV CFLAGS="-fPIC"
-ENV FCFLAGS=${CFLAGS}
+ENV FCFLAGS="${CFLAGS} -standard-semantics"
 ENV FFLAGS=${CFLAGS}
 ENV CPPFLAGS="-I${INSTALL_DIR}/include -I/usr/include -I/usr/include/x86_64-linux-gnu/curl"
 ENV LDFLAGS="-static-intel"
@@ -161,9 +150,8 @@ RUN echo 'find_path(NETCDF_INCLUDE_DIR NAMES netcdf.mod HINTS ENV NETCDF_FORTRAN
          'set(NETCDF_FOUND TRUE)\n' \
          'set(NETCDF_INCLUDE_DIRS ${NETCDF_INCLUDE_DIR})\n' \
          'set(NETCDF_LIBRARIES ${NETCDF_FORTRAN_LIBRARY} ${NETCDF_LIBRARY} ${HDF5_HL_LIBRARY} ${HDF5_LIBRARY} ${SZ_LIBRARY} ${Z_LIBRARY} ${ZSTD_LIBRARY} ${BZ2_LIBRARY} ${CURL_LIBRARY} ${XML2_LIBRARY} )\n' \
-         'mark_as_advanced(NETCDF_LIBRARY NETCDF_FORTRAN_LIBRARY NETCDF_INCLUDE_DIR)\n' > /swiftest/cmake/Modules/FindNETCDF.cmake
-
-RUN cd swiftest && \
+         'mark_as_advanced(NETCDF_LIBRARY NETCDF_FORTRAN_LIBRARY NETCDF_INCLUDE_DIR)\n' > /swiftest/cmake/Modules/FindNETCDF.cmake && \
+  cd swiftest && \
   cmake -S . -B build -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" -DCONTAINERIZE=ON -DUSE_COARRAY=OFF -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SHARED_LIBS=OFF &&\
   cmake --build build --verbose && \
   cmake --install build

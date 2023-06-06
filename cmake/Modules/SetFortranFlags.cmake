@@ -83,17 +83,11 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                
 
 # Determines whether the current Fortran Standard behavior of the compiler is fully implemented. 
-SET_COMPILE_FLAG(CMAKE_Fortran_Flags "${CMAKE_Fortran_FLAGS}"
+SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                 Fortran "-standard-semantics" # Intel
                         "/standard-semantics" # Intel Windows
                 )
 
-# Tells the compiler to issue compile-time messages for nonstandard language elements (Fortran 2018).                
-SET_COMPILE_FLAG(CMAKE_Fortran_Flags "${CMAKE_Fortran_FLAGS}"
-                Fortran "-stand f18"  # Intel
-                        "/stand:f18"  # Intel Windows
-                        "-fstd=f2018" # GNU
-                )  
 
 # Allows for lines longer than 80 characters without truncation
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
@@ -215,6 +209,12 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                  Fortran "-Wno-unused-dummy-argument" # GNU
                 )
 
+# Tells the compiler to issue compile-time messages for nonstandard language elements (Fortran 2018).                
+SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
+                Fortran "-stand f18"  # Intel
+                        "/stand:f18"  # Intel Windows
+                        "-fstd=f2018" # GNU
+                )  
 
 # Traceback
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
