@@ -13,7 +13,7 @@ RUN apt-get update && apt-get upgrade -y && \
             | gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null && \
     echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list && \
     apt-get -y update && apt-get upgrade -y && \
-    apt-get install -y intel-hpckit && \
+    apt-get install -y intel-hpckit 
 
 # Set Intel compiler environment variables
 ENV INTEL_DIR="/opt/intel/oneapi"
@@ -152,7 +152,7 @@ RUN echo 'find_path(NETCDF_INCLUDE_DIR NAMES netcdf.mod HINTS ENV NETCDF_FORTRAN
          'set(NETCDF_LIBRARIES ${NETCDF_FORTRAN_LIBRARY} ${NETCDF_LIBRARY} ${HDF5_HL_LIBRARY} ${HDF5_LIBRARY} ${SZ_LIBRARY} ${Z_LIBRARY} ${ZSTD_LIBRARY} ${BZ2_LIBRARY} ${CURL_LIBRARY} ${XML2_LIBRARY} )\n' \
          'mark_as_advanced(NETCDF_LIBRARY NETCDF_FORTRAN_LIBRARY NETCDF_INCLUDE_DIR)\n' > /swiftest/cmake/Modules/FindNETCDF.cmake && \
   cd swiftest && \
-  cmake -S . -B build -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" -DCONTAINERIZE=ON -DUSE_COARRAY=OFF -DCMAKE_BUILD_TYPE=DEBUG -DBUILD_SHARED_LIBS=OFF &&\
+  cmake -S . -B build -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" -DCONTAINERIZE=ON -DUSE_COARRAY=OFF -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_SHARED_LIBS=OFF &&\
   cmake --build build --verbose && \
   cmake --install build
 
