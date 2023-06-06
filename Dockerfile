@@ -100,7 +100,7 @@ RUN wget -qO- https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14
     ./HDF5-1.14.1-Linux.sh --skip-license && \
     cp -R HDF_Group/HDF5/1.14.1/lib/*.a ${HDF5_ROOT}/lib/ && \
     cp -R HDF_Group/HDF5/1.14.1/include/* ${HDF5_ROOT}/include/ && \
-    cp zlib-1.2.13/zlib.h ${HDF5_INCLUDE_DIR}/
+    cp /zlib-1.2.13/zlib.h ${HDF5_INCLUDE_DIR}/
 
 ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
 ENV LDFLAGS="-static-intel -lhdf5_hl -lhdf5 -lsz -lm -lz -lzstd -lbz2 -lcurl -lxml2"
