@@ -21,24 +21,28 @@ contains
       class(swiftest_body),         intent(inout) :: self !! Swiftest body object
       class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body objec
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, n
    
       if (self%nbody == 0) return
+      n = self%nbody
 
       call self%set_mu(cb)
+      associate(mu => self%mu, a => self%a, e => self%e, inc => self%inc, capom => self%capom, omega => self%omega, &
+                capm => self%capm, rh => self%rh, vh => self%vh)
 #ifdef DOCONLOC
-      do concurrent (i = 1:self%nbody) shared(self)
+         do concurrent (i = 1:n) shared(mu, a, e, inc, capom, omega, capm, rh, vh)
 #else
-      do concurrent (i = 1:self%nbody)
+         do concurrent (i = 1:n)
 #endif
-         call swiftest_orbel_el2xv(self%mu(i), self%a(i), self%e(i), self%inc(i), self%capom(i), &
-                           self%omega(i), self%capm(i), self%rh(:, i), self%vh(:, i))
-      end do
+            call swiftest_orbel_el2xv(mu(i), a(i), e(i), inc(i), capom(i), omega(i), capm(i), & 
+                                      rh(1,i), rh(2,i), rh(3,i), vh(1,i), vh(2,i), vh(3,i))
+         end do
+      end associate
       return
    end subroutine swiftest_orbel_el2xv_vec
 
 
-   pure subroutine swiftest_orbel_el2xv(mu, a, ie, inc, capom, omega, capm, x, v)
+   pure elemental subroutine swiftest_orbel_el2xv(mu, a, ie, inc, capom, omega, capm, rx, ry, rz, vx, vy, vz)
       !! author: David A. Minton
       !!
       !! Compute osculating orbital elements from relative C)rtesian position and velocity
@@ -56,7 +60,7 @@ contains
       implicit none
       real(DP), intent(in)  :: mu
       real(DP), intent(in)  :: a, ie, inc, capom, omega, capm
-      real(DP), dimension(:), intent(out) :: x, v
+      real(DP), intent(out) :: rx, ry, rz, vx, vy, vz
 
       integer(I4B) :: iorbit_type
       real(DP) :: e, cape, capf, zpara, em1
@@ -129,12 +133,12 @@ contains
          vfac2 = ri  *  sqgma 
       endif
       !--
-      x(1) = d11 * xfac1 + d21 * xfac2
-      x(2) = d12 * xfac1 + d22 * xfac2
-      x(3) = d13 * xfac1 + d23 * xfac2
-      v(1) = d11 * vfac1 + d21 * vfac2
-      v(2) = d12 * vfac1 + d22 * vfac2
-      v(3) = d13 * vfac1 + d23 * vfac2
+      rx = d11 * xfac1 + d21 * xfac2
+      ry = d12 * xfac1 + d22 * xfac2
+      rz = d13 * xfac1 + d23 * xfac2
+      vx = d11 * vfac1 + d21 * vfac2
+      vy = d12 * vfac1 + d22 * vfac2
+      vz = d13 * vfac1 + d23 * vfac2
 
       return
    end subroutine swiftest_orbel_el2xv

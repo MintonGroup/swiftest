@@ -550,12 +550,12 @@ module swiftest
          real(DP), dimension(:,:),   intent(out) :: agr    !! Accelerations
       end subroutine swiftest_gr_kick_getacch
 
-      pure module subroutine swiftest_gr_p4_pos_kick(param, x, v, dt)
+      pure elemental module subroutine swiftest_gr_p4_pos_kick(inv_c2, rx, ry, rz, vx, vy, vz, dt)
          implicit none
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-         real(DP), dimension(:),     intent(inout) :: x     !! Position vector
-         real(DP), dimension(:),     intent(in)    :: v     !! Velocity vector
-         real(DP),                   intent(in)    :: dt    !! Step size
+         real(DP),  intent(in)    :: inv_c2     !! One over speed of light squared (1/c**2)
+         real(DP),  intent(inout) :: rx, ry, rz !! Position vector
+         real(DP),  intent(in)    :: vx, vy, vz !! Velocity vector
+         real(DP),  intent(in)    :: dt         !! Step size
       end subroutine swiftest_gr_p4_pos_kick
 
       pure module subroutine swiftest_gr_pseudovel2vel(param, mu, rh, pv, vh) 
