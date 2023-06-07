@@ -2,5 +2,5 @@
 !.gitignore
 !install.sh
 !bin
-!bin/swiftest_python
+!bin/swiftest
 !bin/swiftest_driver

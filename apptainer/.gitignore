@@ -1,5 +1,4 @@
 !bin/
 !bin/swiftest_driver
-!bin/swiftest_python
+!bin/swiftest
 !install.sh
-!setenv.sh

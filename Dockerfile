@@ -163,7 +163,12 @@ RUN echo 'find_path(NETCDF_INCLUDE_DIR NAMES netcdf.mod HINTS ENV NETCDF_FORTRAN
 
 # Production container
 FROM continuumio/miniconda3 
-COPY ./python/. /opt/conda/pkgs/swiftest/python/
+SHELL ["/bin/bash", "--login", "-c"]
+ENV SHELL="/bin/bash"
+ENV PATH="/opt/conda/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/usr/local/lib"
+
+COPY environment.yml .
 
 RUN apt-get update && apt-get upgrade -y && \
   DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -172,27 +177,28 @@ RUN apt-get update && apt-get upgrade -y && \
   conda update --all -y && \
   conda install conda-libmamba-solver -y && \
   conda config --set solver libmamba && \
-  conda install -c conda-forge conda-build numpy scipy matplotlib pandas xarray astropy astroquery tqdm x264 bottleneck ffmpeg h5netcdf netcdf4 dask -y && \
-  conda update --all -y && \
-  cd /opt/conda/pkgs/swiftest/python/swiftest && conda develop . && \
-  conda clean --all -y 
+  conda env create -f environment.yml && \
+  conda init bash && \
+  echo "conda activate swiftest-env" >> ~/.bashrc 
 
-ENV LD_LIBRARY_PATH="/usr/local/lib"
-ENV SHELL="/bin/bash"
-COPY --from=build /opt/intel/oneapi/compiler/2023.1.0/linux/compiler/lib/intel64_lin/libicaf.so /usr/local/lib/
-COPY --from=build /opt/intel/oneapi/mpi/2021.9.0//lib/release/libmpi.so.12 /usr/local/lib/
-COPY --from=build /opt/intel/oneapi/compiler/2023.1.0/linux/compiler/lib/intel64_lin/libintlc.so.5 /usr/local/lib/
-COPY --from=build /opt/intel/oneapi/mpi/latest/bin/mpiexec.hydra  /usr/local/bin/
-COPY --from=build /usr/local/bin/swiftest_driver /usr/local/bin
-COPY --from=build /usr/local/bin/swiftest_driver_caf /usr/local/bin/
+COPY ./python/. /opt/conda/pkgs/
+COPY --from=build /usr/local/bin/swiftest_driver /opt/conda/envs/swiftest-env/bin/
+COPY --from=build /usr/local/bin/swiftest_driver /opt/conda/bin/
+COPY --from=build /usr/local/bin/swiftest_driver_caf /opt/conda/envs/swiftest-env/bin/
+COPY --from=build /opt/intel/oneapi/compiler/2023.1.0/linux/compiler/lib/intel64_lin/libicaf.so /opt/conda/envs/swiftest-env/lib/
+COPY --from=build /opt/intel/oneapi/mpi/2021.9.0//lib/release/libmpi.so.12 /opt/conda/envs/swiftest-env/lib/
+COPY --from=build /opt/intel/oneapi/compiler/2023.1.0/linux/compiler/lib/intel64_lin/libintlc.so.5 /opt/conda/envs/swiftest-env/lib/
+COPY --from=build /opt/intel/oneapi/mpi/latest/bin/mpiexec.hydra  /opt/conda/envs/swiftest-env/bin/
 
-RUN mkdir -p /.astropy && \
+# Start new shell to activate the environment and install Swiftest
+RUN cd /opt/conda/pkgs/swiftest && conda develop . && \
+  conda clean --all -y && \
+  mkdir -p /.astropy && \
   chmod -R 777 /.astropy && \
   mkdir -p /.cache/matplotlib && \
   mkdir -p /.config/matplotlib && \
   chmod -R 777 /.cache/matplotlib && \
   chmod -R 777 /.config/matplotlib && \
-  mkdir -p /opt/conda/pkgs/swiftest/bin && \
-  ln -s /usr/local/bin/swiftest_driver /opt/conda/pkgs/swiftest/bin/swiftest_driver 
+  ln -s /opt/conda/bin/swiftest_driver /opt/conda/bin/driver
 
-ENTRYPOINT ["/opt/conda/bin/python"]
+ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "swiftest-env"]
