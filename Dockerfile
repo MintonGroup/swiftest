@@ -154,26 +154,19 @@ RUN echo 'find_path(NETCDF_INCLUDE_DIR NAMES netcdf.mod HINTS ENV NETCDF_FORTRAN
          'mark_as_advanced(NETCDF_LIBRARY NETCDF_FORTRAN_LIBRARY NETCDF_INCLUDE_DIR)\n' > /swiftest/cmake/Modules/FindNETCDF.cmake && \
   cd swiftest && \
   cmake -S . -B build -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" -DCONTAINERIZE=ON -DUSE_COARRAY=ON -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_SHARED_LIBS=OFF &&\
-  cmake --build build --verbose && \
+  cmake --build build && \
+  cp bin/swiftest_driver /usr/local/bin/swiftest_driver_caf && \
+  rm -rf build && \
+  cmake -S . -B build -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" -DCONTAINERIZE=ON -DUSE_COARRAY=OFF -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_SHARED_LIBS=OFF &&\
+  cmake --build build && \
   cmake --install build
 
 # Driver container
-FROM ubuntu:20.04 as Driver
+FROM continuumio/miniconda3 as setup_conda
 COPY --from=build /opt/intel/oneapi/compiler/2023.1.0/linux/compiler/lib/intel64_lin/libicaf.so /usr/local/lib/
 COPY --from=build /usr/local/bin/swiftest_driver /usr/local/bin
-RUN apt-get update && apt-get upgrade -y && \
-  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-  libsz2 libcurl3-gnutls libxml2 && \
-  rm -rf /var/lib/apt/lists/*
-
-# Production container
-FROM continuumio/miniconda3
-
-ENV LD_LIBRARY_PATH="/usr/local/lib"
-ENV SHELL="/bin/bash"
-COPY ./python/ .
-COPY --from=build /opt/intel/oneapi/compiler/2023.1.0/linux/compiler/lib/intel64_lin/libicaf.so /usr/local/lib/
 COPY --from=build /usr/local/bin/swiftest_driver /bin/
+COPY ./python/. /opt/conda/pkgs/swiftest/python/
 
 RUN apt-get update && apt-get upgrade -y && \
   DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -184,10 +177,34 @@ RUN apt-get update && apt-get upgrade -y && \
   conda config --set solver libmamba && \
   conda install -c conda-forge conda-build numpy scipy matplotlib pandas xarray astropy astroquery tqdm x264 bottleneck ffmpeg h5netcdf netcdf4 dask -y && \
   conda update --all -y && \
-  cd swiftest && conda develop . && \
-  mkdir -p /.astropy && \
+  cd /opt/conda/pkgs/swiftest/python/swiftest && conda develop . && \
+  conda clean --all -y 
+
+# Production container
+FROM ubuntu:20.04
+
+RUN apt-get update && apt-get upgrade -y && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+  libsz2 libcurl3-gnutls libxml2 && \
+  rm -rf /var/lib/apt/lists/*
+
+ENV LD_LIBRARY_PATH="/usr/local/lib"
+ENV SHELL="/bin/bash"
+COPY --from=build /opt/intel/oneapi/compiler/2023.1.0/linux/compiler/lib/intel64_lin/libicaf.so /usr/local/lib/
+COPY --from=build /opt/intel/oneapi/mpi/2021.9.0//lib/release/libmpi.so.12 /usr/local/lib/
+COPY --from=build /opt/intel/oneapi/compiler/2023.1.0/linux/compiler/lib/intel64_lin/libintlc.so.5 /usr/local/lib/
+COPY --from=setup_conda /opt/conda/. /opt/conda/
+COPY --from=build /opt/intel/oneapi/mpi/latest/bin/mpiexec.hydra  /usr/local/bin/
+COPY --from=build /usr/local/bin/swiftest_driver /usr/local/bin
+COPY --from=build /usr/local/bin/swiftest_driver_caf /usr/local/bin/
+
+RUN mkdir -p /.astropy && \
   chmod -R 777 /.astropy && \
+  mkdir -p /.cache/matplotlib && \
   mkdir -p /.config/matplotlib && \
-  chmod -R 777 /.config/matplotlib 
+  chmod -R 777 /.cache/matplotlib && \
+  chmod -R 777 /.config/matplotlib && \
+  mkdir -p /opt/conda/pkgs/swiftest/bin && \
+  ln -s /usr/local/bin/swiftest_driver /opt/conda/pkgs/swiftest/bin/swiftest_driver 
 
 ENTRYPOINT ["/opt/conda/bin/python"]
