@@ -1,4 +1,4 @@
 #!/bin/sh --
 OMP_NUM_THREADS=${OMP_NUM_THREADS:-`nproc --all`}
 FOR_COARRAY_NUM_IMAGES=${FOR_COARRAY_NUM_IMAGES:-1}
-apptainer run --bind $(pwd):$(pwd) --env OMP_NUM_THREADS=${OMP_NUM_THREADS},FOR_COARRAY_NUM_IMAGES=${FOR_COARRAY_NUM_IMAGES} ${SWIFTEST_SIF} "$@"
+apptainer run --bind $(pwd):$(pwd) --cleanenv --env OMP_NUM_THREADS=${OMP_NUM_THREADS},FOR_COARRAY_NUM_IMAGES=${FOR_COARRAY_NUM_IMAGES} ${SWIFTEST_SIF} "$@"
