@@ -161,11 +161,8 @@ RUN echo 'find_path(NETCDF_INCLUDE_DIR NAMES netcdf.mod HINTS ENV NETCDF_FORTRAN
   cmake --build build && \
   cmake --install build
 
-# Driver container
-FROM continuumio/miniconda3 as setup_conda
-COPY --from=build /opt/intel/oneapi/compiler/2023.1.0/linux/compiler/lib/intel64_lin/libicaf.so /usr/local/lib/
-COPY --from=build /usr/local/bin/swiftest_driver /usr/local/bin
-COPY --from=build /usr/local/bin/swiftest_driver /bin/
+# Production container
+FROM continuumio/miniconda3 
 COPY ./python/. /opt/conda/pkgs/swiftest/python/
 
 RUN apt-get update && apt-get upgrade -y && \
@@ -180,20 +177,11 @@ RUN apt-get update && apt-get upgrade -y && \
   cd /opt/conda/pkgs/swiftest/python/swiftest && conda develop . && \
   conda clean --all -y 
 
-# Production container
-FROM ubuntu:20.04
-
-RUN apt-get update && apt-get upgrade -y && \
-  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-  libsz2 libcurl3-gnutls libxml2 && \
-  rm -rf /var/lib/apt/lists/*
-
 ENV LD_LIBRARY_PATH="/usr/local/lib"
 ENV SHELL="/bin/bash"
 COPY --from=build /opt/intel/oneapi/compiler/2023.1.0/linux/compiler/lib/intel64_lin/libicaf.so /usr/local/lib/
 COPY --from=build /opt/intel/oneapi/mpi/2021.9.0//lib/release/libmpi.so.12 /usr/local/lib/
 COPY --from=build /opt/intel/oneapi/compiler/2023.1.0/linux/compiler/lib/intel64_lin/libintlc.so.5 /usr/local/lib/
-COPY --from=setup_conda /opt/conda/. /opt/conda/
 COPY --from=build /opt/intel/oneapi/mpi/latest/bin/mpiexec.hydra  /usr/local/bin/
 COPY --from=build /usr/local/bin/swiftest_driver /usr/local/bin
 COPY --from=build /usr/local/bin/swiftest_driver_caf /usr/local/bin/

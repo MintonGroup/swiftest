@@ -5,6 +5,6 @@
 # 
 tag=${1:-latest}
 echo "Installing swiftest_driver.sif Singularity container and executable script from swiftest_driver:${tag} Docker container"
-singularity pull --force swiftest_driver.sif docker://daminton/swiftest_driver:${tag}
+singularity pull --force swiftest.sif docker://daminton/swiftest:${tag}
 cp -rf bin/swiftest_driver ../bin/
 source ./setenv.sh
