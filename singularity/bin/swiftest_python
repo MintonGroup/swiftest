@@ -1,0 +1,2 @@
+#!/bin/sh --
+singularity run --bind $(pwd):$(pwd) --env OMP_NUM_THREADS=${OMP_NUM_THREADS},FOR_COARRAY_NUM_IMAGES=${FOR_COARRAY_NUM_IMAGES} ${SWIFTEST_SIF} swiftest_driver "$@"
