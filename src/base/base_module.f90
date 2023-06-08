@@ -600,8 +600,8 @@ module base
          character(*), parameter :: BAR = '("------------------------------------------------")'
          character(*), parameter :: SUCCESS_MSG = '(/, "Normal termination of Swiftest (version ", f3.1, ")")'
          character(*), parameter :: FAIL_MSG = '(/, "Terminating Swiftest (version ", f3.1, ") due to error!!")'
-         character(*), parameter :: USAGE_MSG = '("Usage: swiftest [bs|helio|ra15|rmvs|symba|tu4|whm] <paramfile> ' // &
-                                                '[standard|compact|progress|NONE]")'
+         character(*), parameter :: USAGE_MSG = '("Usage: swiftest <whm|helio|rmvs|symba> <paramfile> ' // &
+                                                '[{standard}|compact|progress]")'
          character(*), parameter :: HELP_MSG  = USAGE_MSG
    
          select case(code)
