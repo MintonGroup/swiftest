@@ -35,6 +35,7 @@ dump*
 !singularity/
 !Dockerfile
 !swiftest.def
+!environment.yml
 
 bin/
 build/*

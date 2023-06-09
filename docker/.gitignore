@@ -4,4 +4,3 @@
 !bin
 !bin/swiftest
 !bin/swiftest_driver
-!Dockerfile.swiftest_driver

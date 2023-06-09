@@ -125,12 +125,12 @@ ENV SHELL="/bin/bash"
 ENV PATH="/opt/conda/bin:${PATH}"
 ENV LD_LIBRARY_PATH="/usr/local/lib"
 
-COPY environment.yml .
-
 RUN conda update --all -y && \
   conda install conda-libmamba-solver -y && \
-  conda config --set solver libmamba && \
-  conda env create -f environment.yml && \
+  conda config --set solver libmamba 
+
+COPY environment.yml .
+RUN conda env create -f environment.yml && \
   conda init bash && \
   echo "conda activate swiftest-env" >> ~/.bashrc 
 
