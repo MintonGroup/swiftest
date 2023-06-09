@@ -1,85 +1,73 @@
-FROM ubuntu:20.04 as build
+# Copyright 2023 - David Minton
+# This file is part of Swiftest.
+# Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+# as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+# Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License along with Swiftest. 
+# If not, see: https://www.gnu.org/licenses. 
+#
+# This Dockerfile will build the Swiftest driver program with minimal external dependencies using the Intel Oneapi toolkit. 
+# This is done by building static versions of a minimal set of libraries that NetCDF-Fortran needs (Netcdf-C, HDF5, and Zlib). 
+# These, along with the Intel runtime libraries, are linked statically to the executable. Only the OS-specific libraries are linked
+# dynamically. 
 
-# kick everything off
-RUN apt-get update && apt-get upgrade -y && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    ca-certificates curl git wget gpg-agent software-properties-common build-essential gnupg pkg-config && \
-    rm -rf /var/lib/apt/lists/* && \
-    mkdir -p cmake/build && \
-    cd cmake/build && \
-    curl -LO https://github.com/Kitware/CMake/releases/download/v3.26.2/cmake-3.26.2-linux-x86_64.sh && \
-    /bin/bash cmake-3.26.2-linux-x86_64.sh --prefix=/usr/local --skip-license && \
-    wget -O- https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB \
-            | gpg --dearmor | tee /usr/share/keyrings/oneapi-archive-keyring.gpg > /dev/null && \
-    echo "deb [signed-by=/usr/share/keyrings/oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list && \
-    apt-get -y update && apt-get upgrade -y && \
-    apt-get install -y intel-hpckit 
+# This build target compiles all dependencies and the swiftest driver itself
+FROM intel/oneapi-hpckit:2023.1.0-devel-ubuntu22.04 as build
 
-# Set Intel compiler environment variables
-ENV INTEL_DIR="/opt/intel/oneapi"
-ENV LANG=C.UTF-8
-ENV ACL_BOARD_VENDOR_PATH='/opt/Intel/OpenCLFPGA/oneAPI/Boards'
-ENV ADVISOR_2023_DIR='/opt/intel/oneapi/advisor/2023.1.0'
-ENV APM='/opt/intel/oneapi/advisor/2023.1.0/perfmodels'
-ENV CCL_CONFIGURATION='cpu_gpu_dpcpp'
-ENV CCL_ROOT='/opt/intel/oneapi/ccl/2021.9.0'
-ENV CLASSPATH='/opt/intel/oneapi/mpi/2021.9.0//lib/mpi.jar:/opt/intel/oneapi/dal/2023.1.0/lib/onedal.jar'
-ENV CLCK_ROOT='/opt/intel/oneapi/clck/2021.7.3'
-ENV CMAKE_PREFIX_PATH='/opt/intel/oneapi/tbb/2021.9.0/env/..:/opt/intel/oneapi/dnnl/2023.1.0/cpu_dpcpp_gpu_dpcpp/../lib/cmake:/opt/intel/oneapi/dal/2023.1.0:/opt/intel/oneapi/compiler/2023.1.0/linux/IntelDPCPP:/opt/intel/oneapi/ccl/2021.9.0/lib/cmake/oneCCL'
-ENV CMPLR_ROOT='/opt/intel/oneapi/compiler/2023.1.0'
-ENV CPATH='/opt/intel/oneapi/tbb/2021.9.0/env/../include:/opt/intel/oneapi/mpi/2021.9.0//include:/opt/intel/oneapi/mkl/2023.1.0/include:/opt/intel/oneapi/ippcp/2021.7.0/include:/opt/intel/oneapi/ipp/2021.8.0/include:/opt/intel/oneapi/dpl/2022.1.0/linux/include:/opt/intel/oneapi/dnnl/2023.1.0/cpu_dpcpp_gpu_dpcpp/include:/opt/intel/oneapi/dev-utilities/2021.9.0/include:/opt/intel/oneapi/dal/2023.1.0/include:/opt/intel/oneapi/ccl/2021.9.0/include/cpu_gpu_dpcpp'
-ENV CPLUS_INCLUDE_PATH='/opt/intel/oneapi/clck/2021.7.3/include'
-ENV DAALROOT='/opt/intel/oneapi/dal/2023.1.0'
-ENV DALROOT='/opt/intel/oneapi/dal/2023.1.0'
-ENV DAL_MAJOR_BINARY='1'
-ENV DAL_MINOR_BINARY='1'
-ENV DIAGUTIL_PATH='/opt/intel/oneapi/vtune/2023.1.0/sys_check/vtune_sys_check.py:/opt/intel/oneapi/debugger/2023.1.0/sys_check/debugger_sys_check.py:/opt/intel/oneapi/compiler/2023.1.0/sys_check/sys_check.sh:/opt/intel/oneapi/advisor/2023.1.0/sys_check/advisor_sys_check.py:'
-ENV DNNLROOT='/opt/intel/oneapi/dnnl/2023.1.0/cpu_dpcpp_gpu_dpcpp'
-ENV DPL_ROOT='/opt/intel/oneapi/dpl/2022.1.0'
-ENV FI_PROVIDER_PATH='/opt/intel/oneapi/mpi/2021.9.0//libfabric/lib/prov:/usr/lib64/libfabric'
-ENV FPGA_VARS_ARGS=''
-ENV FPGA_VARS_DIR='/opt/intel/oneapi/compiler/2023.1.0/linux/lib/oclfpga'
-ENV GDB_INFO='/opt/intel/oneapi/debugger/2023.1.0/documentation/info/'
-ENV INFOPATH='/opt/intel/oneapi/debugger/2023.1.0/gdb/intel64/lib'
-ENV INSPECTOR_2023_DIR='/opt/intel/oneapi/inspector/2023.1.0'
-ENV INTELFPGAOCLSDKROOT='/opt/intel/oneapi/compiler/2023.1.0/linux/lib/oclfpga'
-ENV INTEL_LICENSE_FILE='/opt/intel/licenses:/root/intel/licenses:/opt/intel/oneapi/clck/2021.7.3/licensing:/opt/intel/licenses:/root/intel/licenses:/Users/Shared/Library/Application Support/Intel/Licenses'
-ENV INTEL_PYTHONHOME='/opt/intel/oneapi/debugger/2023.1.0/dep'
-ENV IPPCP_TARGET_ARCH='intel64'
-ENV IPPCRYPTOROOT='/opt/intel/oneapi/ippcp/2021.7.0'
-ENV IPPROOT='/opt/intel/oneapi/ipp/2021.8.0'
-ENV IPP_TARGET_ARCH='intel64'
-ENV I_MPI_ROOT='/opt/intel/oneapi/mpi/2021.9.0'
-ENV LD_LIBRARY_PATH='/opt/intel/oneapi/tbb/2021.9.0/env/../lib/intel64/gcc4.8:/opt/intel/oneapi/mpi/2021.9.0//libfabric/lib:/opt/intel/oneapi/mpi/2021.9.0//lib/release:/opt/intel/oneapi/mpi/2021.9.0//lib:/opt/intel/oneapi/mkl/2023.1.0/lib/intel64:/opt/intel/oneapi/itac/2021.9.0/slib:/opt/intel/oneapi/ippcp/2021.7.0/lib/intel64:/opt/intel/oneapi/ipp/2021.8.0/lib/intel64:/opt/intel/oneapi/dnnl/2023.1.0/cpu_dpcpp_gpu_dpcpp/lib:/opt/intel/oneapi/debugger/2023.1.0/gdb/intel64/lib:/opt/intel/oneapi/debugger/2023.1.0/libipt/intel64/lib:/opt/intel/oneapi/debugger/2023.1.0/dep/lib:/opt/intel/oneapi/dal/2023.1.0/lib/intel64:/opt/intel/oneapi/compiler/2023.1.0/linux/lib:/opt/intel/oneapi/compiler/2023.1.0/linux/lib/x64:/opt/intel/oneapi/compiler/2023.1.0/linux/lib/oclfpga/host/linux64/lib:/opt/intel/oneapi/compiler/2023.1.0/linux/compiler/lib/intel64_lin:/opt/intel/oneapi/ccl/2021.9.0/lib/cpu_gpu_dpcpp'
-ENV LIBRARY_PATH='/opt/intel/oneapi/tbb/2021.9.0/env/../lib/intel64/gcc4.8:/opt/intel/oneapi/mpi/2021.9.0//libfabric/lib:/opt/intel/oneapi/mpi/2021.9.0//lib/release:/opt/intel/oneapi/mpi/2021.9.0//lib:/opt/intel/oneapi/mkl/2023.1.0/lib/intel64:/opt/intel/oneapi/ippcp/2021.7.0/lib/intel64:/opt/intel/oneapi/ipp/2021.8.0/lib/intel64:/opt/intel/oneapi/dnnl/2023.1.0/cpu_dpcpp_gpu_dpcpp/lib:/opt/intel/oneapi/dal/2023.1.0/lib/intel64:/opt/intel/oneapi/compiler/2023.1.0/linux/compiler/lib/intel64_lin:/opt/intel/oneapi/compiler/2023.1.0/linux/lib:/opt/intel/oneapi/clck/2021.7.3/lib/intel64:/opt/intel/oneapi/ccl/2021.9.0/lib/cpu_gpu_dpcpp'
-ENV MANPATH='/opt/intel/oneapi/mpi/2021.9.0/man:/opt/intel/oneapi/itac/2021.9.0/man:/opt/intel/oneapi/debugger/2023.1.0/documentation/man:/opt/intel/oneapi/compiler/2023.1.0/documentation/en/man/common:/opt/intel/oneapi/clck/2021.7.3/man::'
-ENV MKLROOT='/opt/intel/oneapi/mkl/2023.1.0'
-ENV NLSPATH='/opt/intel/oneapi/mkl/2023.1.0/lib/intel64/locale/%l_%t/%N:/opt/intel/oneapi/compiler/2023.1.0/linux/compiler/lib/intel64_lin/locale/%l_%t/%N'
-ENV OCL_ICD_FILENAMES='libintelocl_emu.so:libalteracl.so:/opt/intel/oneapi/compiler/2023.1.0/linux/lib/x64/libintelocl.so'
-ENV ONEAPI_ROOT='/opt/intel/oneapi'
-ENV PATH='/opt/intel/oneapi/vtune/2023.1.0/bin64:/opt/intel/oneapi/mpi/2021.9.0//libfabric/bin:/opt/intel/oneapi/mpi/2021.9.0//bin:/opt/intel/oneapi/mkl/2023.1.0/bin/intel64:/opt/intel/oneapi/itac/2021.9.0/bin:/opt/intel/oneapi/inspector/2023.1.0/bin64:/opt/intel/oneapi/dev-utilities/2021.9.0/bin:/opt/intel/oneapi/debugger/2023.1.0/gdb/intel64/bin:/opt/intel/oneapi/compiler/2023.1.0/linux/lib/oclfpga/bin:/opt/intel/oneapi/compiler/2023.1.0/linux/bin/intel64:/opt/intel/oneapi/compiler/2023.1.0/linux/bin:/opt/intel/oneapi/clck/2021.7.3/bin/intel64:/opt/intel/oneapi/advisor/2023.1.0/bin64:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-ENV PKG_CONFIG_PATH='/opt/intel/oneapi/vtune/2023.1.0/include/pkgconfig/lib64:/opt/intel/oneapi/tbb/2021.9.0/env/../lib/pkgconfig:/opt/intel/oneapi/mpi/2021.9.0/lib/pkgconfig:/opt/intel/oneapi/mkl/2023.1.0/lib/pkgconfig:/opt/intel/oneapi/ippcp/2021.7.0/lib/pkgconfig:/opt/intel/oneapi/inspector/2023.1.0/include/pkgconfig/lib64:/opt/intel/oneapi/dpl/2022.1.0/lib/pkgconfig:/opt/intel/oneapi/dnnl/2023.1.0/cpu_dpcpp_gpu_dpcpp/../lib/pkgconfig:/opt/intel/oneapi/dal/2023.1.0/lib/pkgconfig:/opt/intel/oneapi/compiler/2023.1.0/lib/pkgconfig:/opt/intel/oneapi/ccl/2021.9.0/lib/pkgconfig:/opt/intel/oneapi/advisor/2023.1.0/include/pkgconfig/lib64:'
-ENV PYTHONPATH='/opt/intel/oneapi/advisor/2023.1.0/pythonapi'
-ENV SETVARS_COMPLETED='1'
-ENV TBBROOT='/opt/intel/oneapi/tbb/2021.9.0/env/..'
-ENV VTUNE_PROFILER_2023_DIR='/opt/intel/oneapi/vtune/2023.1.0'
-ENV VTUNE_PROFILER_DIR='/opt/intel/oneapi/vtune/2023.1.0'
-ENV VT_ADD_LIBS='-ldwarf -lelf -lvtunwind -lm -lpthread'
-ENV VT_LIB_DIR='/opt/intel/oneapi/itac/2021.9.0/lib'
-ENV VT_MPI='impi4'
-ENV VT_ROOT='/opt/intel/oneapi/itac/2021.9.0'
-ENV VT_SLIB_DIR='/opt/intel/oneapi/itac/2021.9.0/slib'
+# The MACHINE_CODE_VALUE argument is a string that is used when compiling the swiftest_driver. It is appended to the "-x" compiler 
+# option: (-x${MACHINE_CODE_VALUE}). The default value is set to "sse2" which allows for certain SIMD instructions to be used while 
+# remaining # compatible with a wide range of CPUs. To get the highest performance, you can pass "host" as an argument, but the 
+# compiled binary # would only run on a CPU with an architecture compatible with the one that the build was performed on. 
+# For more details and other options, see:
+# https://www.intel.com/content/www/us/en/docs/fortran-compiler/developer-guide-reference/2023-1/x-qx.html
+ARG MACHINE_CODE_VALUE="sse2"
 
-# Set HDF5 and NetCDF-specific Environment variables
+# Build type options are DEBUG, RELEASE, PROFILE, or TESTING.
+ARG BUILD_TYPE="RELEASE"
+
 ENV INSTALL_DIR="/usr/local"
-ENV LIB_DIR="${INSTALL_DIR}/lib"
-ENV LD_LIBRARY_PATH=${LIB_DIR}:${LD_LIBRARY_PATH}
-RUN mkdir -p ${LIB_DIR}
+ENV CC="${ONEAPI_ROOT}/compiler/latest/linux/bin/icx"
+ENV FC="${ONEAPI_ROOT}/compiler/latest/linux/bin/ifx"
+ENV CXX="${ONEAPI_ROOT}/compiler/latest/linux/bin/icpx"
+ENV F77="${FC}"
 
-ENV CC="${INTEL_DIR}/compiler/latest/linux/bin/icx-cc"
-ENV FC="${INTEL_DIR}/compiler/latest/linux/bin/ifx"
-ENV CXX="${INTEL_DIR}/compiler/latest/linux/bin/icpx"
-ENV LDFLAGS="-L${LIB_DIR}"
+# Get the HDF5, NetCDF-C, and NetCDF-Fortran libraries
+RUN wget -qO- https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14.1/src/hdf5-1.14.1-2.tar.gz | tar xvz && \
+    wget -qO- https://github.com/Unidata/netcdf-c/archive/refs/tags/v4.9.2.tar.gz | tar xvz && \
+    wget -qO- https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v4.6.1.tar.gz | tar xvz && \
+    wget -qO- https://www.zlib.net/zlib-1.2.13.tar.gz | tar xvz
+
+RUN apt-get update && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+  m4 && \
+  rm -rf /var/lib/apt/lists/* 
+
+RUN cd zlib-1.2.13 && \
+  ./configure --prefix=${INSTALL_DIR} --static && \
+  make && \
+  make install
+
+RUN cd hdf5-1.14.1-2 && \
+  ./configure --disable-shared \
+              --enable-build-mode=production \
+              --disable-fortran \
+              --disable-java \
+              --disable-cxx \
+              --prefix=${INSTALL_DIR} \
+              --with-zlib=${INSTALL_DIR} && \
+              make && \
+              make install
+
+RUN cd netcdf-c-4.9.2 && \
+  ./configure --disable-shared \
+              --disable-dap \
+              --disable-libxml2 \
+              --disable-byterange \
+              --prefix=${INSTALL_DIR} && \
+              make && \
+              make install
+
 ENV NCDIR="${INSTALL_DIR}"
 ENV NFDIR="${INSTALL_DIR}"
 ENV HDF5_ROOT="${INSTALL_DIR}"
@@ -87,39 +75,12 @@ ENV HDF5_LIBDIR="${HDF5_ROOT}/lib"
 ENV HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
 ENV HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
 
-# Get the HDF5, NetCDF-C and NetCDF-Fortran libraries
-RUN wget -qO- https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14.1/bin/unix/hdf5-1.14.1-2-Std-ubuntu2004_64-Intel.tar.gz | tar xvz && \
-    wget -qO- https://github.com/Unidata/netcdf-c/archive/refs/tags/v4.9.2.tar.gz | tar xvz && \
-    wget -qO- https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v4.6.1.tar.gz | tar xvz && \
-    wget -qO- https://www.zlib.net/zlib-1.2.13.tar.gz | tar xvz && \
-    apt-get update && apt-get upgrade -y && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    libxml2-dev libcurl4-gnutls-dev libzstd-dev libbz2-dev libaec-dev m4 && \
-    rm -rf /var/lib/apt/lists/* && \
-    cd hdf && \
-    ./HDF5-1.14.1-Linux.sh --skip-license && \
-    cp -R HDF_Group/HDF5/1.14.1/lib/*.a ${HDF5_ROOT}/lib/ && \
-    cp -R HDF_Group/HDF5/1.14.1/include/* ${HDF5_ROOT}/include/ && \
-    cp /zlib-1.2.13/zlib.h ${HDF5_INCLUDE_DIR}/
-
-ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
-ENV LDFLAGS="-static-intel -lhdf5_hl -lhdf5 -lsz -lm -lz -lzstd -lbz2 -lcurl -lxml2"
-RUN cd netcdf-c-4.9.2 && \
-  cmake -S . -B build -DCMAKE_PREFIX_PATH="${INSTALL_DIR}" \
-                      -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
-                      -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-                      -DBUILD_SHARED_LIBS=OFF && \
-  cmake --build build && \
-  cmake --install build
-
 # NetCDF-Fortran library
-ENV F77=${FC}
 ENV CFLAGS="-fPIC"
 ENV FCFLAGS="${CFLAGS} -standard-semantics"
 ENV FFLAGS=${CFLAGS}
-ENV CPPFLAGS="-I${INSTALL_DIR}/include -I/usr/include -I/usr/include/x86_64-linux-gnu/curl"
-ENV LDFLAGS="-static-intel"
-ENV LIBS="-L/usr/local/lib -L/usr/lib/x86_64-linux-gnu -lnetcdf -lhdf5_hl -lhdf5 -lsz -lm -lz -lzstd -lbz2 -lcurl -lxml2" 
+ENV CPPFLAGS="-I${INSTALL_DIR}/include"
+ENV LIBS="-L/usr/local/lib -L/usr/lib/x86_64-linux-gnu -lnetcdf -lhdf5_hl -lhdf5 -lm -lz" 
 RUN cd netcdf-fortran-4.6.1 && \
   ./configure --disable-shared --prefix=${NFDIR} && \
   make && \
@@ -131,38 +92,34 @@ ENV NETCDF_FORTRAN_HOME=${NETCDF_HOME}
 ENV NETCDF_LIBRARY=${NETCDF_HOME}
 ENV FOR_COARRAY_NUM_IMAGES=1
 ENV OMP_NUM_THREADS=1
-ENV FC="${INTEL_DIR}/mpi/latest/bin/mpiifort"
+ENV FC="${ONEAPI_ROOT}/mpi/latest/bin/mpiifort"
 ENV FFLAGS="-fPIC -standard-semantics"
-ENV LDFLAGS="-L/usr/local/lib -L/usr/lib/x86_64-linux-gnu -lnetcdff -lnetcdf -lhdf5_hl -lhdf5 -lsz -lz -lzstd -lbz2 -lcurl -lxml2"
+ENV LDFLAGS="-L/usr/local/lib"
+ENV LIBS="-lhdf5_hl -lhdf5 -lz"
 COPY ./cmake/ /swiftest/cmake/
 COPY ./src/ /swiftest/src/
 COPY ./CMakeLists.txt /swiftest/
-RUN echo 'find_path(NETCDF_INCLUDE_DIR NAMES netcdf.mod HINTS ENV NETCDF_FORTRAN_HOME)\n' \
-         'find_library(NETCDF_FORTRAN_LIBRARY NAMES netcdff HINTS ENV LD_LIBRARY_PATH)\n' \
-         'find_library(NETCDF_LIBRARY NAMES netcdf HINTS ENV LD_LIBRARY_PATH)\n' \
-         'find_library(HDF5_HL_LIBRARY NAMES libhdf5_hl.a HINTS ENV LD_LIBRARY_PATH)\n' \
-         'find_library(HDF5_LIBRARY NAMES libhdf5.a HINTS ENV LD_LIBRARY_PATH)\n' \
-         'find_library(Z_LIBRARY NAMES libz.a HINTS ENV LD_LIBRARY_PATH)\n' \
-         'find_library(ZSTD_LIBRARY NAMES libzstd.a HINTS ENV LD_LIBRARY_PATH)\n' \
-         'find_library(SZ_LIBRARY NAMES libsz.a HINTS ENV LD_LIBRARY_PATH)\n' \
-         'find_library(BZ2_LIBRARY NAMES libbz2.a HINTS ENV LD_LIBRARY_PATH)\n' \
-         'find_library(CURL_LIBRARY NAMES libcurl.a HINTS ENV LD_LIBRARY_PATH)\n' \
-         'find_library(XML2_LIBRARY NAMES libxml2.a HINTS ENV LD_LIBRARY_PATH)\n' \
-         'set(NETCDF_FOUND TRUE)\n' \
-         'set(NETCDF_INCLUDE_DIRS ${NETCDF_INCLUDE_DIR})\n' \
-         'set(NETCDF_LIBRARIES ${NETCDF_FORTRAN_LIBRARY} ${NETCDF_LIBRARY} ${HDF5_HL_LIBRARY} ${HDF5_LIBRARY} ${SZ_LIBRARY} ${Z_LIBRARY} ${ZSTD_LIBRARY} ${BZ2_LIBRARY} ${CURL_LIBRARY} ${XML2_LIBRARY} )\n' \
-         'mark_as_advanced(NETCDF_LIBRARY NETCDF_FORTRAN_LIBRARY NETCDF_INCLUDE_DIR)\n' > /swiftest/cmake/Modules/FindNETCDF.cmake && \
-  cd swiftest && \
-  cmake -S . -B build -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" -DCONTAINERIZE=ON -DUSE_COARRAY=ON -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_SHARED_LIBS=OFF &&\
-  cmake --build build && \
-  cp bin/swiftest_driver /usr/local/bin/swiftest_driver_caf && \
-  rm -rf build && \
-  cmake -S . -B build -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" -DCONTAINERIZE=ON -DUSE_COARRAY=OFF -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_SHARED_LIBS=OFF &&\
+RUN cd swiftest && \
+  cmake -S . -B build -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" \
+  -DMACHINE_CODE_VALUE=${MACHINE_CODE} \
+  -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+  -DUSE_COARRAY=OFF \
+  -DBUILD_SHARED_LIBS=OFF && \
   cmake --build build && \
   cmake --install build
 
-# Production container
-FROM continuumio/miniconda3 
+# This build target creates a container that executes just the driver program
+FROM ubuntu:22.04 as driver
+COPY --from=build /usr/local/bin/swiftest_driver /usr/local/bin/
+ENTRYPOINT ["/usr/local/bin/swiftest_driver"]
+
+# This build target exports the binary to the host
+FROM scratch AS export_driver
+COPY --from=build /usr/local/bin/swiftest_driver /
+
+# This build target creates a container with a conda environment with all dependencies needed to run the Python front end and 
+# analysis tools
+FROM continuumio/miniconda3 as python
 SHELL ["/bin/bash", "--login", "-c"]
 ENV SHELL="/bin/bash"
 ENV PATH="/opt/conda/bin:${PATH}"
@@ -170,11 +127,7 @@ ENV LD_LIBRARY_PATH="/usr/local/lib"
 
 COPY environment.yml .
 
-RUN apt-get update && apt-get upgrade -y && \
-  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-  libsz2 libcurl3-gnutls libxml2 && \
-  rm -rf /var/lib/apt/lists/* && \
-  conda update --all -y && \
+RUN conda update --all -y && \
   conda install conda-libmamba-solver -y && \
   conda config --set solver libmamba && \
   conda env create -f environment.yml && \
@@ -183,12 +136,6 @@ RUN apt-get update && apt-get upgrade -y && \
 
 COPY ./python/. /opt/conda/pkgs/
 COPY --from=build /usr/local/bin/swiftest_driver /opt/conda/envs/swiftest-env/bin/
-COPY --from=build /usr/local/bin/swiftest_driver /opt/conda/bin/
-COPY --from=build /usr/local/bin/swiftest_driver_caf /opt/conda/envs/swiftest-env/bin/
-COPY --from=build /opt/intel/oneapi/compiler/2023.1.0/linux/compiler/lib/intel64_lin/libicaf.so /opt/conda/envs/swiftest-env/lib/
-COPY --from=build /opt/intel/oneapi/mpi/2021.9.0//lib/release/libmpi.so.12 /opt/conda/envs/swiftest-env/lib/
-COPY --from=build /opt/intel/oneapi/compiler/2023.1.0/linux/compiler/lib/intel64_lin/libintlc.so.5 /opt/conda/envs/swiftest-env/lib/
-COPY --from=build /opt/intel/oneapi/mpi/latest/bin/mpiexec.hydra  /opt/conda/envs/swiftest-env/bin/
 
 # Start new shell to activate the environment and install Swiftest
 RUN cd /opt/conda/pkgs/swiftest && conda develop . && \
@@ -199,6 +146,6 @@ RUN cd /opt/conda/pkgs/swiftest && conda develop . && \
   mkdir -p /.config/matplotlib && \
   chmod -R 777 /.cache/matplotlib && \
   chmod -R 777 /.config/matplotlib && \
-  ln -s /opt/conda/bin/swiftest_driver /opt/conda/bin/driver
+  ln -s /opt/conda/envs/swiftest-env/bin/swiftest_driver /opt/conda/bin/driver
 
 ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "swiftest-env"]

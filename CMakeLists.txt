@@ -34,13 +34,6 @@ OPTION(USE_SIMD "Use SIMD vectorization" ON)
 OPTION(CONTAINERIZE "Compiling for use in a Docker/Singularity container" OFF)
 OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
-# Locate and set external libraries.  There are some CMake peculiarities
-# taken care of here, such as the fact that the FindOpenMP routine doesn't know
-# about Fortran.
-IF (NOT BUILD_SHARED_LIBS)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".so")
-ENDIF ()
-
 INCLUDE(${CMAKE_MODULE_PATH}/SetParallelizationLibrary.cmake)
 INCLUDE(${CMAKE_MODULE_PATH}/SetUpNetCDF.cmake)
 INCLUDE(${CMAKE_MODULE_PATH}/SetMKL.cmake)
@@ -50,7 +43,6 @@ INCLUDE(${CMAKE_MODULE_PATH}/SetMKL.cmake)
 INCLUDE(${CMAKE_MODULE_PATH}/SetFortranFlags.cmake) 
 
 INCLUDE_DIRECTORIES($ENV{NETCDF_FORTRAN_HOME}/include;$ENV{NETCDF_HOME}/include)
-
 
 # There is an error in CMAKE with this flag for pgf90.  Unset it
 GET_FILENAME_COMPONENT(FCNAME ${CMAKE_Fortran_COMPILER} NAME)
