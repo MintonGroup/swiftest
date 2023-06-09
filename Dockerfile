@@ -13,7 +13,7 @@
 # dynamically. 
 
 # This build target compiles all dependencies and the swiftest driver itself
-FROM intel/oneapi-hpckit:2023.1.0-devel-ubuntu22.04 as build
+FROM intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04 as build
 
 # The MACHINE_CODE_VALUE argument is a string that is used when compiling the swiftest_driver. It is appended to the "-x" compiler 
 # option: (-x${MACHINE_CODE_VALUE}). The default value is set to "sse2" which allows for certain SIMD instructions to be used while 
@@ -135,7 +135,7 @@ RUN conda env create -f environment.yml && \
   echo "conda activate swiftest-env" >> ~/.bashrc 
 
 COPY ./python/. /opt/conda/pkgs/
-COPY --from=build /usr/local/bin/swiftest_driver /opt/conda/envs/swiftest-env/bin/
+COPY --from=build /usr/local/bin/swiftest_driver /opt/conda/bin/swiftest_driver
 
 # Start new shell to activate the environment and install Swiftest
 RUN cd /opt/conda/pkgs/swiftest && conda develop . && \
@@ -145,7 +145,6 @@ RUN cd /opt/conda/pkgs/swiftest && conda develop . && \
   mkdir -p /.cache/matplotlib && \
   mkdir -p /.config/matplotlib && \
   chmod -R 777 /.cache/matplotlib && \
-  chmod -R 777 /.config/matplotlib && \
-  ln -s /opt/conda/envs/swiftest-env/bin/swiftest_driver /opt/conda/bin/driver
+  chmod -R 777 /.config/matplotlib
 
 ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "swiftest-env"]
