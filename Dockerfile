@@ -13,18 +13,7 @@
 # dynamically. 
 
 # This build target compiles all dependencies and the swiftest driver itself
-FROM intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04 as build
-
-# The MACHINE_CODE_VALUE argument is a string that is used when compiling the swiftest_driver. It is appended to the "-x" compiler 
-# option: (-x${MACHINE_CODE_VALUE}). The default value is set to "sse2" which allows for certain SIMD instructions to be used while 
-# remaining # compatible with a wide range of CPUs. To get the highest performance, you can pass "host" as an argument, but the 
-# compiled binary # would only run on a CPU with an architecture compatible with the one that the build was performed on. 
-# For more details and other options, see:
-# https://www.intel.com/content/www/us/en/docs/fortran-compiler/developer-guide-reference/2023-1/x-qx.html
-ARG MACHINE_CODE_VALUE="sse2"
-
-# Build type options are DEBUG, RELEASE, PROFILE, or TESTING.
-ARG BUILD_TYPE="RELEASE"
+FROM intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04 as build_deps
 
 ENV INSTALL_DIR="/usr/local"
 ENV CC="${ONEAPI_ROOT}/compiler/latest/linux/bin/icx"
@@ -86,6 +75,25 @@ RUN cd netcdf-fortran-4.6.1 && \
   make && \
   make install  
 
+FROM intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04 as build_driver
+COPY --from=build_deps /usr/local/. /usr/local/
+ENV INSTALL_DIR="/usr/local"
+ENV CC="${ONEAPI_ROOT}/compiler/latest/linux/bin/icx"
+ENV FC="${ONEAPI_ROOT}/compiler/latest/linux/bin/ifx"
+ENV CXX="${ONEAPI_ROOT}/compiler/latest/linux/bin/icpx"
+ENV F77="${FC}"
+
+# The MACHINE_CODE_VALUE argument is a string that is used when compiling the swiftest_driver. It is appended to the "-x" compiler 
+# option: (-x${MACHINE_CODE_VALUE}). The default value is set to "sse2" which allows for certain SIMD instructions to be used while 
+# remaining # compatible with a wide range of CPUs. To get the highest performance, you can pass "host" as an argument, but the 
+# compiled binary # would only run on a CPU with an architecture compatible with the one that the build was performed on. 
+# For more details and other options, see:
+# https://www.intel.com/content/www/us/en/docs/fortran-compiler/developer-guide-reference/2023-1/x-qx.html
+ARG MACHINE_CODE_VALUE="sse2"
+
+# Build type options are DEBUG, RELEASE, PROFILE, or TESTING.
+ARG BUILD_TYPE="RELEASE"  
+
 # Swiftest
 ENV NETCDF_HOME=${INSTALL_DIR}
 ENV NETCDF_FORTRAN_HOME=${NETCDF_HOME}
@@ -109,13 +117,13 @@ RUN cd swiftest && \
   cmake --install build
 
 # This build target creates a container that executes just the driver program
-FROM ubuntu:22.04 as driver
-COPY --from=build /usr/local/bin/swiftest_driver /usr/local/bin/
+FROM ubuntu:20.04 as driver
+COPY --from=build_driver /usr/local/bin/swiftest_driver /usr/local/bin/
 ENTRYPOINT ["/usr/local/bin/swiftest_driver"]
 
 # This build target exports the binary to the host
 FROM scratch AS export_driver
-COPY --from=build /usr/local/bin/swiftest_driver /
+COPY --from=build_driver /usr/local/bin/swiftest_driver /
 
 # This build target creates a container with a conda environment with all dependencies needed to run the Python front end and 
 # analysis tools
@@ -135,7 +143,7 @@ RUN conda env create -f environment.yml && \
   echo "conda activate swiftest-env" >> ~/.bashrc 
 
 COPY ./python/. /opt/conda/pkgs/
-COPY --from=build /usr/local/bin/swiftest_driver /opt/conda/bin/swiftest_driver
+COPY --from=build_driver /usr/local/bin/swiftest_driver /opt/conda/bin/swiftest_driver
 
 # Start new shell to activate the environment and install Swiftest
 RUN cd /opt/conda/pkgs/swiftest && conda develop . && \
