@@ -42,15 +42,18 @@ contains
         write(param%display_unit,*) "ntp_min   : " // trim(adjustl(min_str))
         write(param%display_unit,*) "ntp_max   : " // trim(adjustl(max_str))
         write(param%display_unit,*) "difference: " // trim(adjustl(diff_str))
+        flush(param%display_unit)
+        sync all
         if (ntp_max - ntp_min >= num_images()) then
             write(param%display_unit,*) trim(adjustl(diff_str)) // ">=" // trim(adjustl(ni_str)) // ": Rebalancing"
+            flush(param%display_unit)
             call nbody_system%coarray_collect(param)
             call nbody_system%coarray_distribute(param)
             write(param%display_unit,*) "Rebalancing complete"
         else
             write(param%display_unit,*) trim(adjustl(diff_str)) // "<" // trim(adjustl(ni_str)) // ": No rebalancing needed"
         end if
-        call flush(param%display_unit)
+        flush(param%display_unit)
         return
     end subroutine swiftest_coarray_balance_system
 

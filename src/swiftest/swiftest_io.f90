@@ -437,6 +437,7 @@ contains
          call iotimer%stop()
          sync all
          call iotimer%report(message="File output :", unit=param%display_unit)
+         flush(param%display_unit)
 #endif
       end associate
 
