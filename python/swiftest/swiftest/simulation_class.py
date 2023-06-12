@@ -470,6 +470,9 @@ class Simulation(object):
                     sys.exit()
         except:
             warnings.warn(f"Error executing main swiftest_driver program", stacklevel=2)
+            res = p.communicate()
+            for line in res[1]:
+                print(line, end='')
             sys.exit()
 
         pbar.close()
@@ -502,11 +505,9 @@ class Simulation(object):
 
         if not self.binary_source.exists():
             msg = "Path to swiftest_driver has not been set!"
-            msg += f"\nMake sure swiftest_driver is compiled and the executable is in {str(self.binary_path)}"
+            msg += f"\nMake sure swiftest_driver is compiled and the executable is in {str(self.binary_source.parent)}"
             warnings.warn(msg,stacklevel=2)
             return
-        else:
-            shutil.copy2(self.binary_source, self.driver_executable) 
 
         if not self.restart:
             self.clean()
@@ -942,16 +943,15 @@ class Simulation(object):
             update_list.append("codename")
             if self.codename == "Swiftest":
                 self.binary_source = Path(_pyfile).parent.parent.parent.parent / "bin" / "swiftest_driver"
-                self.binary_path = self.simdir.resolve()
-                self.driver_executable = self.binary_path / "swiftest_driver"
+                self.driver_executable = self.binary_source
                 if not self.binary_source.exists():
-                    warnings.warn(f"Cannot find the Swiftest driver in {str(self.binary_path)}",stacklevel=2)
+                    warnings.warn(f"Cannot find the Swiftest driver at {str(self.binary_source)}",stacklevel=2)
                     self.driver_executable = None
                 else:
-                    if self.binary_path.exists():
+                    if self.binary_source.exists():
                         self.driver_executable.resolve()
             else:
-                self.binary_path = "NOT IMPLEMENTED FOR THIS CODE"
+                self.binary_source = "NOT IMPLEMENTED FOR THIS CODE"
                 self.driver_executable = None
             update_list.append("driver_executable")
         
@@ -1200,8 +1200,6 @@ class Simulation(object):
                     msg = f"Cannot create the {self.simdir.resolve()} directory: File exists."
                     msg += "\nDelete the file or change the location of param_file"
                     raise NotADirectoryError(msg)
-            self.binary_path = self.simdir.resolve()
-            self.driver_executable = self.binary_path / "swiftest_driver"
             self.param_file = Path(kwargs.pop("param_file","param.in"))
 
         if self.codename == "Swiftest": 
@@ -2754,7 +2752,6 @@ class Simulation(object):
         self.driver_script = os.path.join(self.simdir, "swiftest_driver.sh")
         with open(self.driver_script, 'w') as f:
             f.write(f"#{self._shell_full}\n")
-            #f.write(f"source ~/.{self._shell}rc\n")
             f.write(f"cd {self.simdir}\n")
             f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} compact\n")
             
@@ -2991,11 +2988,9 @@ class Simulation(object):
             self.write_param(param_file=param_file,**kwargs)
             if not self.binary_source.exists():
                 msg = "Path to swiftest_driver has not been set!"
-                msg += f"\nMake sure swiftest_driver is compiled and the executable is in {str(self.binary_path)}"
+                msg += f"\nMake sure swiftest_driver is compiled and the executable is in {str(self.binary_source.parent)}"
                 warnings.warn(msg,stacklevel=2)
                 return
-            else:
-                shutil.copy2(self.binary_source, self.driver_executable)  
         elif codename == "Swifter":
             swifter_param = io.swiftest2swifter_param(param)
             if "rhill" in self.data:

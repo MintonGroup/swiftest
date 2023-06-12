@@ -46,6 +46,16 @@ ELSE()
     MESSAGE(FATAL_ERROR "CMAKE_BUILD_TYPE not valid! ${BUILD_TYPE_MSG}")
 ENDIF(BT STREQUAL "RELEASE")
 
+IF (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+    IF (APPLE)
+        SET(MACHINE_CODE_VALUE "tune=native" CACHE STRING "Tells the compiler which processor features it may target, including which instruction sets and optimizations it may generate.")
+    ELSE ()
+        SET(MACHINE_CODE_VALUE "arch=native" CACHE STRING "Tells the compiler which processor features it may target, including which instruction sets and optimizations it may generate.")
+    ENDIF ()
+ELSE ()
+    SET(MACHINE_CODE_VALUE "host" CACHE STRING "Tells the compiler which processor features it may target, including which instruction sets and optimizations it may generate.")
+ENDIF ()
+
 #########################################################
 # If the compiler flags have already been set, return now
 #########################################################
@@ -81,20 +91,6 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                 Fortran "-fsignaling-nans " # GNU
                 ) 
                
-
-# Determines whether the current Fortran Standard behavior of the compiler is fully implemented. 
-SET_COMPILE_FLAG(CMAKE_Fortran_Flags "${CMAKE_Fortran_FLAGS}"
-                Fortran "-standard-semantics" # Intel
-                        "/standard-semantics" # Intel Windows
-                )
-
-# Tells the compiler to issue compile-time messages for nonstandard language elements (Fortran 2018).                
-SET_COMPILE_FLAG(CMAKE_Fortran_Flags "${CMAKE_Fortran_FLAGS}"
-                Fortran "-stand f18"  # Intel
-                        "/stand:f18"  # Intel Windows
-                        "-fstd=f2018" # GNU
-                )  
-
 # Allows for lines longer than 80 characters without truncation
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                 Fortran "-ffree-line-length-none" # GNU (gfortran)
@@ -119,17 +115,14 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
 
                 )
 
-IF (CONTAINERIZE)
-        # There is some bug where -march=native doesn't work on Mac
-        IF(APPLE)
-                SET(GNUNATIVE "-mtune=generic")
-        ELSE()
-                SET(GNUNATIVE "-march=generic")
-        ENDIF()
-
+IF (NOT BUILD_SHARED_LIBS)
         # Use static Intel libraries
         SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
                 Fortran "-static-intel"  # Intel
+        )
+        # Use static Intel MPI libraries
+        SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
+                Fortran "-static_mpi"  # Intel
         )
 
         IF (USE_OPENMP)
@@ -137,17 +130,7 @@ IF (CONTAINERIZE)
                         Fortran "-qopenmp-link=static"  # Intel
                 )
         ENDIF (USE_OPENMP)
-
-ELSE ()
-        # There is some bug where -march=native doesn't work on Mac
-        IF(APPLE)
-                SET(GNUNATIVE "-mtune=native")
-        ELSE()
-                SET(GNUNATIVE "-march=native")
-        ENDIF()
-ENDIF (CONTAINERIZE)
-
-
+ENDIF ()
 
 IF (USE_SIMD)
         # Enables OpenMP SIMD compilation when OpenMP parallelization is disabled. 
@@ -158,21 +141,12 @@ IF (USE_SIMD)
                         )     
         ENDIF (NOT USE_OPENMP)
 
-        IF (CONTAINERIZE)
-                # Optimize for an old enough processor that it should run on most computers
-                SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
-                                Fortran "-xSSE2" # Intel
-                                        "/QxSSE2" # Intel Windows
-                                        ${GNUNATIVE}    # GNU
-                                )
-        ELSE ()
-                # Optimize for the host's architecture
-                SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
-                                Fortran "-xhost"        # Intel
-                                        "/QxHost"       # Intel Windows
-                                        ${GNUNATIVE}    # GNU
-                                )
-        ENDIF (CONTAINERIZE)
+        # Optimize for an old enough processor that it should run on most computers
+        SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
+                        Fortran "-x${MACHINE_CODE_VALUE}" # Intel
+                                "/Qx${MACHINE_CODE_VALUE}" # Intel Windows
+                                "-m${MACHINE_CODE_VALUE}"    # GNU
+                        )
 
         # Generate an extended set of vector functions
         SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
@@ -215,6 +189,12 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                  Fortran "-Wno-unused-dummy-argument" # GNU
                 )
 
+# Tells the compiler to issue compile-time messages for nonstandard language elements (Fortran 2018).                
+SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
+                Fortran "-stand f18"  # Intel
+                        "/stand:f18"  # Intel Windows
+                        "-fstd=f2018" # GNU
+                )  
 
 # Traceback
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"

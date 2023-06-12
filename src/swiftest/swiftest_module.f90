@@ -93,6 +93,9 @@ module swiftest
       integer(I4B), dimension(:), allocatable :: child  !! Index of children particles
    contains
       procedure :: dealloc  => swiftest_util_dealloc_kin !! Deallocates all allocatable arrays
+#ifdef COARRAY
+      procedure :: coclone => swiftest_coarray_coclone_kin !! Clones the image 1 body object to all other images in the coarray structure.
+#endif
       final     ::             swiftest_final_kin        !! Finalizes the Swiftest kinship object - deallocates all allocatables
    end type swiftest_kinship
 
@@ -550,12 +553,12 @@ module swiftest
          real(DP), dimension(:,:),   intent(out) :: agr    !! Accelerations
       end subroutine swiftest_gr_kick_getacch
 
-      pure module subroutine swiftest_gr_p4_pos_kick(param, x, v, dt)
+      pure elemental module subroutine swiftest_gr_p4_pos_kick(inv_c2, rx, ry, rz, vx, vy, vz, dt)
          implicit none
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-         real(DP), dimension(:),     intent(inout) :: x     !! Position vector
-         real(DP), dimension(:),     intent(in)    :: v     !! Velocity vector
-         real(DP),                   intent(in)    :: dt    !! Step size
+         real(DP),  intent(in)    :: inv_c2     !! One over speed of light squared (1/c**2)
+         real(DP),  intent(inout) :: rx, ry, rz !! Position vector
+         real(DP),  intent(in)    :: vx, vy, vz !! Velocity vector
+         real(DP),  intent(in)    :: dt         !! Step size
       end subroutine swiftest_gr_p4_pos_kick
 
       pure module subroutine swiftest_gr_pseudovel2vel(param, mu, rh, pv, vh) 
@@ -1775,6 +1778,11 @@ module swiftest
          implicit none
          class(swiftest_cb),intent(inout),codimension[*]  :: self  !! Swiftest cb object
       end subroutine swiftest_coarray_coclone_cb
+
+      module subroutine swiftest_coarray_coclone_kin(self)
+         implicit none
+         class(swiftest_kinship),intent(inout),codimension[*]  :: self  !! Swiftest kinship object
+      end subroutine swiftest_coarray_coclone_kin
 
       module subroutine swiftest_coarray_coclone_nc(self)
          implicit none

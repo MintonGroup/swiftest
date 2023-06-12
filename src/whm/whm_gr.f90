@@ -84,14 +84,14 @@ contains
 
       if (self%nbody == 0) return
 
-      associate(pl => self)
+      associate(xj => self%xj, vj => self%vj, lmask => self%lmask, inv_c2 => param%inv_c2)
          npl = self%nbody
 #ifdef DOCONLOC
-         do concurrent(i = 1:npl, pl%lmask(i)) shared(pl,dt)
+         do concurrent(i = 1:npl, lmask(i)) shared(lmask, inv_c2, xj, vj,dt)
 #else
-         do concurrent(i = 1:npl, pl%lmask(i))
+         do concurrent(i = 1:npl, lmask(i))
 #endif
-            call swiftest_gr_p4_pos_kick(param, pl%xj(:, i), pl%vj(:, i), dt)
+            call swiftest_gr_p4_pos_kick(inv_c2, xj(1,i), xj(2,i), xj(3,i), vj(1,i), vj(2,i), vj(3,i), dt)
          end do
       end associate
  
@@ -115,15 +115,15 @@ contains
       ! Internals
       integer(I4B) :: i, ntp
 
-      associate(tp => self)
+      associate(rh => self%rh, vh => self%vh, lmask => self%lmask, inv_c2 => param%inv_c2)
          ntp = self%nbody
          if (ntp == 0) return
 #ifdef DOCONLOC
-         do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp,dt)
+         do concurrent(i = 1:ntp, lmask(i)) shared(lmask, rh, vh, inv_c2, dt)
 #else
-         do concurrent(i = 1:ntp, tp%lmask(i))
+         do concurrent(i = 1:ntp, lmask(i))
 #endif
-            call swiftest_gr_p4_pos_kick(param, tp%rh(:, i), tp%vh(:, i), dt)
+            call swiftest_gr_p4_pos_kick(inv_c2, rh(1,i), rh(2,i), rh(3,i), vh(1,i), vh(2,i), vh(3,i), dt)
          end do
       end associate
  

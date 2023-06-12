@@ -1213,7 +1213,9 @@ contains
 #else
          do concurrent (i = 1:npl, pl%lmask(i))
 #endif
-            h(:) = pl%rb(:,i) .cross. pl%vb(:,i)
+            h(1) = pl%rb(2,i) * pl%vb(3,i) - pl%rb(3,i) * pl%vb(2,i)
+            h(2) = pl%rb(3,i) * pl%vb(1,i) - pl%rb(1,i) * pl%vb(3,i)
+            h(3) = pl%rb(1,i) * pl%vb(2,i) - pl%rb(2,i) * pl%vb(1,i)
 
             ! Angular momentum from orbit 
             Lplorbit(:,i) = pl%mass(i) * h(:)
@@ -1269,7 +1271,7 @@ contains
 
          nbody_system%ke_orbit = 0.5_DP * (kecb + sum(kepl(1:npl), pl%lmask(1:npl)))
 #ifdef DOCONLOC
-         do concurrent (j = 1:NDIM) shared(nbody_system,pl,Lcborbit,Lplorbit)
+         do concurrent (j = 1:NDIM) shared(nbody_system,pl,Lcborbit,Lplorbit,npl)
 #else  
          do concurrent (j = 1:NDIM)
 #endif

@@ -3,3 +3,4 @@
 !install.sh
 !bin
 !bin/swiftest
+!bin/swiftest_driver
