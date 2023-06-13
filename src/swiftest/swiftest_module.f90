@@ -994,15 +994,15 @@ module swiftest
          real(DP), intent(inout) :: ax, ay, az !! Acceleration vector components of test particle
       end subroutine swiftest_kick_getacch_int_one_tp
 
-      module subroutine swiftest_obl_rot_matrix(self, nbody_system, rot_matrix, rot_matrix_inv)
+      module subroutine swiftest_obl_rot_matrix(n, rot, rot_matrix, rot_matrix_inv)
          implicit none
-         class(swiftest_body),              intent(inout) :: self   !! Swiftest body object 
-         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         integer(I4B),             intent(in)           :: n               !! Number of bodies
+         real(DP), dimension(NDIM), intent(in)       :: rot             !! Central body rotation matrix
          real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix ! rotation matrix and its inverse
          real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix_inv ! inverse of the rotation matrix
       end subroutine swiftest_obl_rot_matrix
 
-      module subroutine swiftest_obl_acc(n, GMcb, j2rp2, j4rp4, rh, lmask, aobl, GMpl, aoblcb)
+      module subroutine swiftest_obl_acc(n, GMcb, j2rp2, j4rp4, rh, lmask, aobl, rot, GMpl, aoblcb)
          implicit none
          integer(I4B),             intent(in)            :: n      !! Number of bodies
          real(DP),                 intent(in)            :: GMcb   !! Central body G*Mass
@@ -1011,6 +1011,7 @@ module swiftest
          real(DP), dimension(:,:), intent(in)            :: rh     !! Heliocentric positions of bodies
          logical,  dimension(:),   intent(in)            :: lmask  !! Logical mask of bodies to compute aobl
          real(DP), dimension(:,:), intent(out)           :: aobl   !! Barycentric acceleration of bodies due to central body oblateness
+         real(DP), dimension(NDIM), intent(in)        :: rot    !! Central body rotation matrix
          real(DP), dimension(:),   intent(in),  optional :: GMpl   !! Masses of input bodies if they are not test particles
          real(DP), dimension(:),   intent(out), optional :: aoblcb !! Barycentric acceleration of central body (only needed if input bodies are massive)
       end subroutine swiftest_obl_acc

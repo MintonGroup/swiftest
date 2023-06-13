@@ -40,7 +40,7 @@ contains
       B(3,3) = +detinv * (A(1,1)*A(2,2) - A(1,2)*A(2,1))
    end function
 
-   module subroutine swiftest_obl_rot_matrix(self, nbody_system, rot_matrix, rot_matrix_inv)
+   module subroutine swiftest_obl_rot_matrix(n, rot, rot_matrix, rot_matrix_inv)
       !! author: Kaustub P. Anand
       !! 
       !! Generate a rotation matrix and its inverse to rotate the coordinate frame to align the rotation axis along the z axis for correct spin calculation
@@ -48,16 +48,18 @@ contains
 
       implicit none
       ! Arguments
-      class(swiftest_body),         intent(inout) :: self   !! Swiftest body object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix ! rotation matrix and its inverse
-      real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix_inv ! inverse of the rotation matrix
+            !! class(swiftest_body),         intent(inout) :: self   !! Swiftest body object
+            !! class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+      integer(I4B),             intent(in)           :: n               !! Number of bodies
+      real(DP), dimension(NDIM), intent(in)       :: rot             !! Central body rotation matrix
+      real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix      !! rotation matrix and its inverse
+      real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix_inv  !! inverse of the rotation matrix
 
       ! Internals
-      real(DP)     :: theta ! angle to rotate it through
-      real(DP), dimension(3) :: u, z_hat ! unit vector about which we rotate and z_hat
-      real(DP), dimension(3, 3) :: S_matrix ! rotation matrices
-      integer        :: i, j ! dummy variable
+      real(DP)     :: theta !! angle to rotate it through
+      real(DP), dimension(3) :: u, z_hat !! unit vector about which we rotate and z_hat
+      real(DP), dimension(3, 3) :: S_matrix !! rotation matrices
+      integer        :: i, j !! dummy variable
 
       ! Assumed that NDIM = 3
       
@@ -65,50 +67,47 @@ contains
       rot_matrix_inv(:, :) = 0.0_DP
       z_hat(:) = [0, 0, 1]
 
-      if (self%nbody == 0) return
+      if (n == 0) return
 
-      associate(n => self%nbody, cb => nbody_system%cb)
-         if (cb%rot(1) == 0 .and. cb%rot(2) == 0) then
-            do i = 1, NDIM
-                  rot_matrix(i, i) = 1.0
-                  rot_matrix_inv(i, i) = 1.0
-            end do
-
-            return ! rotation axis is about the z-axis, no need to change
-         end if
-         
-         u(:) = cb%rot(:) .cross. z_hat(:)
-         u(:) = .unit. u(:)
-         theta = acos(dot_product((.unit. cb%rot(:)), z_hat(:)))
-         
-         ! S_matrix(:, :) = [[0.0_DP, -u(3), u(2)], [u(3), 0.0_DP, -u(1)], [-u(2), u(1), 0.0_DP]] ! skew-symmetric matrix
-         S_matrix(1, :) = [0.0_DP, -u(3), u(2)]
-         S_matrix(2, :) = [u(3), 0.0_DP, -u(1)]
-         S_matrix(3, :) = [-u(2), u(1), 0.0_DP]
-         ! assuming NDIM = 3
-         ! CHECK for a general formula for the skew-symmetric matrix
-
+      if (rot(1) == 0 .and. rot(2) == 0) then
          do i = 1, NDIM
-            do j = 1, NDIM
-               if (i == j) then
-                  rot_matrix(i, j) = rot_matrix(i, j) + cos(theta) ! identity matrix
-                  continue
-               end if
-
-               rot_matrix(i, j) = rot_matrix(i, j) + u(i) * u(j) * (1 - cos(theta)) + S_matrix(i, j) * sin(theta) ! Skew-symmetric matrix + Tensor product matrix
-
-            end do
+               rot_matrix(i, i) = 1.0
+               rot_matrix_inv(i, i) = 1.0
          end do
 
-         rot_matrix_inv = matinv3(rot_matrix)
+         return ! rotation axis is about the z-axis, no need to change
+      end if
+      
+      u(:) = rot(:) .cross. z_hat(:)
+      u(:) = .unit. u(:)
+      theta = acos(dot_product((.unit. rot(:)), z_hat(:)))
+      
+      ! S_matrix(:, :) = [[0.0_DP, -u(3), u(2)], [u(3), 0.0_DP, -u(1)], [-u(2), u(1), 0.0_DP]] ! skew-symmetric matrix
+      S_matrix(1, :) = [0.0_DP, -u(3), u(2)]
+      S_matrix(2, :) = [u(3), 0.0_DP, -u(1)]
+      S_matrix(3, :) = [-u(2), u(1), 0.0_DP]
+      ! assuming NDIM = 3
+      ! CHECK for a general formula for the skew-symmetric matrix
 
-      end associate
+      do i = 1, NDIM
+         do j = 1, NDIM
+            if (i == j) then
+               rot_matrix(i, j) = rot_matrix(i, j) + cos(theta) ! identity matrix
+               continue
+            end if
+
+            rot_matrix(i, j) = rot_matrix(i, j) + u(i) * u(j) * (1 - cos(theta)) + S_matrix(i, j) * sin(theta) ! Skew-symmetric matrix + Tensor product matrix
+
+         end do
+      end do
+
+      rot_matrix_inv = matinv3(rot_matrix)
 
       return
       end subroutine swiftest_obl_rot_matrix
    
-   module subroutine swiftest_obl_acc(n, GMcb, j2rp2, j4rp4, rh, lmask, aobl, GMpl, aoblcb)
-      !! author: David A. Minton
+   module subroutine swiftest_obl_acc(n, GMcb, j2rp2, j4rp4, rh, lmask, aobl, rot, GMpl, aoblcb)
+      !! author: David A. Minton, Kaustub Anand (2023)
       !!
       !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       !!      Returned values do not include monopole term or terms higher than J4
@@ -124,8 +123,10 @@ contains
       real(DP), dimension(:,:), intent(in)            :: rh     !! Heliocentric positions of bodies
       logical,  dimension(:),   intent(in)            :: lmask  !! Logical mask of bodies to compute aobl
       real(DP), dimension(:,:), intent(out)           :: aobl   !! Barycentric acceleration of bodies due to central body oblateness
+      real(DP), dimension(NDIM), intent(in)        :: rot    !! Central body rotation matrix
       real(DP), dimension(:),   intent(in),  optional :: GMpl   !! Masses of input bodies if they are not test particles
       real(DP), dimension(:),   intent(out), optional :: aoblcb !! Barycentric acceleration of central body (only needed if input bodies are massive)
+   
       ! Internals
       integer(I4B) :: i
       real(DP)     :: r2, irh, rinv2, t0, t1, t2, t3, fac1, fac2
@@ -134,43 +135,48 @@ contains
 
       if (n == 0) return
 
-      ! generate the rotation matrix
-      call swiftest_obl_rot_matrix(self, nbody_system, rot_matrix, rot_matrix_inv)
+      aobl(:,:) = 0.0_DP
 
-      associate(n => self%nbody, cb => nbody_system%cb)
-         self%aobl(:,:) = 0.0_DP
-         do concurrent(i = 1:n, self%lmask(i))
+      ! If the rotation axis is along the z-axis, skip calculating the rotation matrix
+      if (rot(1) == 0 .and. rot(2) == 0) then
+         do concurrent(i = 1:n, lmask(i))
+            r2 = dot_product(rh(:, i), rh(:, i))
+            irh = 1.0_DP / sqrt(r2)
+            rinv2 = irh**2
+            t0 = -GMcb * rinv2 * rinv2 * irh
+            t1 = 1.5_DP * j2rp2
+            t2 = rh(3, i) * rh(3, i) * rinv2
+            t3 = 1.875_DP * j4rp4 * rinv2
+            fac1 = t0 * (t1 - t3 - (5 * t1 - (14.0_DP - 21.0_DP * t2) * t3) * t2)
+            fac2 = 2 * t0 * (t1 - (2.0_DP - (14.0_DP * t2 / 3.0_DP)) * t3)
+            aobl(:, i) = fac1 * rh(:, i)
+            aobl(3, i) = fac2 * rh(3, i) + aobl(3, i)
+         end do
+      else 
+         ! generate the rotation matrix
+         call swiftest_obl_rot_matrix(n, rot, rot_matrix, rot_matrix_inv)
+
+         do concurrent(i = 1:n, lmask(i))
             ! rotate the position vectors
-            rh_transformed = MATMUL(self%rh(:, i), rot_matrix) ! 1x3 vector * 3x3 matrix
+            rh_transformed = MATMUL(rh(:, i), rot_matrix) ! 1x3 vector * 3x3 matrix
             r2 = dot_product(rh_transformed, rh_transformed)
             irh = 1.0_DP / sqrt(r2)
             rinv2 = irh**2
-            t0 = -cb%Gmass * rinv2 * rinv2 * irh
-            t1 = 1.5_DP * cb%j2rp2
+            t0 = -GMcb * rinv2 * rinv2 * irh
+            t1 = 1.5_DP * j2rp2
             t2 = rh_transformed(3) * rh_transformed(3) * rinv2
-            t3 = 1.875_DP * cb%j4rp4 * rinv2
+            t3 = 1.875_DP * j4rp4 * rinv2
             fac1 = t0 * (t1 - t3 - (5 * t1 - (14.0_DP - 21.0_DP * t2) * t3) * t2)
             fac2 = 2 * t0 * (t1 - (2.0_DP - (14.0_DP * t2 / 3.0_DP)) * t3)
-            self%aobl(:, i) = fac1 * rh_transformed(:)
-            self%aobl(3, i) = fac2 * rh_transformed(3) + self%aobl(3, i)
+            aobl(:, i) = fac1 * rh_transformed(:)
+            aobl(3, i) = fac2 * rh_transformed(3) + aobl(3, i)
 
             ! rotate the acceleration and position vectors back to the original coordinate frame
-            self%aobl(:, i) = MATMUL(self%aobl(:, i), rot_matrix_inv)
+            aobl(:, i) = MATMUL(aobl(:, i), rot_matrix_inv)
+         end do
+      end if
 
-      aobl(:,:) = 0.0_DP
-      do concurrent(i = 1:n, lmask(i))
-         r2 = dot_product(rh(:, i), rh(:, i))
-         irh = 1.0_DP / sqrt(r2)
-         rinv2 = irh**2
-         t0 = -GMcb * rinv2 * rinv2 * irh
-         t1 = 1.5_DP * j2rp2
-         t2 = rh(3, i) * rh(3, i) * rinv2
-         t3 = 1.875_DP * j4rp4 * rinv2
-         fac1 = t0 * (t1 - t3 - (5 * t1 - (14.0_DP - 21.0_DP * t2) * t3) * t2)
-         fac2 = 2 * t0 * (t1 - (2.0_DP - (14.0_DP * t2 / 3.0_DP)) * t3)
-         aobl(:, i) = fac1 * rh(:, i)
-         aobl(3, i) = fac2 * rh(3, i) + aobl(3, i)
-      end do
+      
 
       if (present(GMpl) .and. present(aoblcb)) then
          aoblcb(:) = 0.0_DP
@@ -201,7 +207,7 @@ contains
       if (self%nbody == 0) return
 
       associate(pl => self, npl => self%nbody, cb => nbody_system%cb)
-         call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rh, pl%lmask, pl%aobl, pl%Gmass, cb%aobl)
+         call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rh, pl%lmask, pl%aobl, cb%rot, pl%Gmass, cb%aobl)
 
          do concurrent(i = 1:npl, pl%lmask(i))
             pl%ah(:, i) = pl%ah(:, i) + pl%aobl(:, i) - cb%aobl(:)
@@ -231,7 +237,7 @@ contains
       if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody, cb => nbody_system%cb)
-         call swiftest_obl_acc(ntp, cb%Gmass, cb%j2rp2, cb%j4rp4, tp%rh, tp%lmask, tp%aobl)
+         call swiftest_obl_acc(ntp, cb%Gmass, cb%j2rp2, cb%j4rp4, tp%rh, tp%lmask, tp%aobl, cb%rot)
          if (nbody_system%lbeg) then
             aoblcb = cb%aoblbeg
          else

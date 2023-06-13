@@ -6,7 +6,7 @@ import datetime
 
 seed = None
 rng = np.random.default_rng(seed=seed)
-tstop = 10 * 365.25 # 1e3 * 365.25 # years
+tstop = 1e3 * 365.25 # 1e3 * 365.25 # years
 dt = 90.0 / 60.0 / 24 / 10 # 1/10 * 90 min to days
 dt_unit = 'Years'
 dt_max = 0
@@ -26,7 +26,7 @@ M2AU = 1 / 1.496e11
 density = 2000 # kg/m^3
 radius = 1.5e6 # m
 volume = 4.0 / 3.0 * np.pi * radius**3
-rot = [0, 0, 0.00058] # rad/s
+rot = [[0, 0, 0.00058]] # rad/s
 
 #initial ring particle orbital parameters
 
@@ -46,7 +46,7 @@ random_pi = 180 * np.random.rand(n_bodies) # 180 degrees
 
 # use JPL Horizons for ISS details
 # date = '2023-04-27'
-ephemerides_start_date = '2023-04-27'
+ephemerides_start_date = '2023-05-18'
 tstart = datetime.date.fromisoformat(ephemerides_start_date)
 tstep = datetime.timedelta(days=1)
 tend = tstart + tstep
