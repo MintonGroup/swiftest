@@ -48,10 +48,8 @@ contains
 
       implicit none
       ! Arguments
-            !! class(swiftest_body),         intent(inout) :: self   !! Swiftest body object
-            !! class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       integer(I4B),             intent(in)           :: n               !! Number of bodies
-      real(DP), dimension(NDIM), intent(in)       :: rot             !! Central body rotation matrix
+      real(DP), dimension(NDIM), intent(in)          :: rot             !! Central body rotation matrix
       real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix      !! rotation matrix and its inverse
       real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix_inv  !! inverse of the rotation matrix
 
@@ -123,7 +121,7 @@ contains
       real(DP), dimension(:,:), intent(in)            :: rh     !! Heliocentric positions of bodies
       logical,  dimension(:),   intent(in)            :: lmask  !! Logical mask of bodies to compute aobl
       real(DP), dimension(:,:), intent(out)           :: aobl   !! Barycentric acceleration of bodies due to central body oblateness
-      real(DP), dimension(NDIM), intent(in)        :: rot    !! Central body rotation matrix
+      real(DP), dimension(NDIM), intent(in)           :: rot    !! Central body rotation matrix
       real(DP), dimension(:),   intent(in),  optional :: GMpl   !! Masses of input bodies if they are not test particles
       real(DP), dimension(:),   intent(out), optional :: aoblcb !! Barycentric acceleration of central body (only needed if input bodies are massive)
    
