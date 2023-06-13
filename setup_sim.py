@@ -6,7 +6,7 @@ import datetime
 
 seed = None
 rng = np.random.default_rng(seed=seed)
-tstop = 1e3 * 365.25 # 1e3 * 365.25 # years
+tstop = 1e1 * 365.25 # 1e3 * 365.25 # years
 dt = 90.0 / 60.0 / 24 / 10 # 1/10 * 90 min to days
 dt_unit = 'Years'
 dt_max = 0
