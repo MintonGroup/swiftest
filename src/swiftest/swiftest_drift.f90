@@ -1,10 +1,10 @@
-!! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+!! Coryright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
 !! This file is part of Swiftest.
 !! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 !! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 !! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
 !! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-!! You should have received a copy of the GNU General Public License along with Swiftest. 
+!! You should have received a cory of the GNU General Public License along with Swiftest. 
 !! If not, see: https://www.gnu.org/licenses. 
 
 submodule (swiftest) s_swiftest_drift
@@ -82,7 +82,11 @@ contains
 
       allocate(dtp(n))
       if (param%lgr) then
+#ifdef DOCONLOC
+         do concurrent(i = 1:n, lmask(i)) shared(param,lmask,x,v,mu,dtp,dt) local(rmag,vmag2,energy)
+#else
          do concurrent(i = 1:n, lmask(i))
+#endif
             rmag = norm2(x(:, i))
             vmag2 = dot_product(v(:, i), v(:, i))
             energy = 0.5_DP * vmag2 - mu(i) / rmag
@@ -104,7 +108,7 @@ contains
    end subroutine swiftest_drift_all
 
 
-   pure elemental module subroutine swiftest_drift_one(mu, px, py, pz, vx, vy, vz, dt, iflag) 
+   pure elemental module subroutine swiftest_drift_one(mu, rx, ry, rz, vx, vy, vz, dt, iflag) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
       !!
       !! Perform Danby drift for one body, redoing drift with smaller substeps if original accuracy is insufficient
@@ -114,18 +118,18 @@ contains
       implicit none
       ! Arguments
       real(DP), intent(in)      :: mu                     !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
-      real(DP), intent(inout)   :: px, py, pz, vx, vy, vz !! Position and velocity of body to drift
+      real(DP), intent(inout)   :: rx, ry, rz, vx, vy, vz !! Position and velocity of body to drift
       real(DP), intent(in)      :: dt                     !! Step size
       integer(I4B), intent(out) :: iflag                  !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       ! Internals
       integer(I4B) :: i
       real(DP)   :: dttmp
 
-      call swiftest_drift_dan(mu, px, py, pz, vx, vy, vz, dt, iflag)
+      call swiftest_drift_dan(mu, rx, ry, rz, vx, vy, vz, dt, iflag)
       if (iflag /= 0) then
          dttmp = 0.1_DP * dt
          do i = 1, 10
-            call swiftest_drift_dan(mu, px, py, pz, vx, vy, vz, dttmp, iflag)
+            call swiftest_drift_dan(mu, rx, ry, rz, vx, vy, vz, dttmp, iflag)
             if (iflag /= 0) exit
          end do
       end if
@@ -134,7 +138,7 @@ contains
    end subroutine swiftest_drift_one
 
 
-   pure subroutine swiftest_drift_dan(mu, px0, py0, pz0, vx0, vy0, vz0, dt0, iflag)
+   pure subroutine swiftest_drift_dan(mu, rx0, ry0, rz0, vx0, vy0, vz0, dt0, iflag)
       !! author: David A. Minton
       !!
       !! Perform Kepler drift, solving Kepler's equation in appropriate variables
@@ -144,23 +148,21 @@ contains
       implicit none
       ! Arguments
       real(DP),     intent(in)    :: mu            !! G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift
-      real(DP),     intent(inout) :: px0, py0, pz0 !! position of body to drift
+      real(DP),     intent(inout) :: rx0, ry0, rz0 !! position of body to drift
       real(DP),     intent(inout) :: vx0, vy0, vz0 !! velocity of body to drift     
       real(DP),     intent(in)    :: dt0           !! time step
       integer(I4B), intent(out)   :: iflag         !! error status flag for Kepler drift (0 = OK, nonzero = NO CONVERGENCE)
       ! Internals
-      real(DP)        :: dt, f, g, fdot, gdot, c1, c2, c3, u, alpha, fp, r0
+      real(DP)        :: rx, ry, rz, vx, vy, vz, dt
+      real(DP)        :: f, g, fdot, gdot, c1, c2, c3, u, alpha, fp, r0
       real(DP)        :: v0s, a, asq, en, dm, ec, es, esq, xkep, fchk, s, c
-      real(DP), dimension(NDIM) :: x, v, x0, v0
 
       ! Executable code
       iflag = 0
       dt = dt0
-      x0 = [px0, py0, pz0]
-      v0 = [vx0, vy0, vz0]
-      r0 = sqrt(dot_product(x0(:), x0(:))) 
-      v0s = dot_product(v0(:), v0(:))
-      u = dot_product(x0(:),  v0(:))
+      r0 = sqrt(rx0*rx0 + ry0*ry0 + rz0*rz0)
+      v0s = vx0*vx0 + vy0*vy0 + vz0*vz0
+      u = rx0*vx0 + ry0*vy0 + rz0*vz0
       alpha = 2 * mu / r0 - v0s
       if (alpha > 0.0_DP) then
          a = mu / alpha
@@ -186,10 +188,19 @@ contains
             g = dt + (s - xkep) / en
             fdot = -(a / (r0 * fp)) * en * s
             gdot = (c - 1.0_DP) / fp + 1.0_DP
-            x(:) = x0(:) * f + v0(:) * g
-            v(:) = x0(:) * fdot + v0(:) * gdot
-            px0 = x(1); py0 = x(2); pz0 = x(3)
-            vx0 = v(1); vy0 = v(2); vz0 = v(3)
+            rx = rx0 * f + vx0 * g
+            ry = ry0 * f + vy0 * g
+            rz = rz0 * f + vz0 * g
+            vx = rx0 * fdot + vx0 * gdot
+            vy = ry0 * fdot + vy0 * gdot
+            vz = rz0 * fdot + vz0 * gdot
+
+            rx0 = rx
+            ry0 = ry
+            rz0 = rz
+            vx0 = vx
+            vy0 = vy
+            vz0 = vz
             iflag = 0
             return
          end if
@@ -201,10 +212,19 @@ contains
          g = dt - mu * c3
          fdot = -mu / (fp * r0) * c1
          gdot = 1.0_DP - mu / fp * c2
-         x(:) = x0(:) * f + v0(:) * g
-         v(:) = x0(:) * fdot + v0(:) * gdot
-         px0 = x(1); py0 = x(2); pz0 = x(3)
-         vx0 = v(1); vy0 = v(2); vz0 = v(3)
+         rx = rx0 * f + vx0 * g
+         ry = ry0 * f + vy0 * g
+         rz = rz0 * f + vz0 * g
+         vx = rx0 * fdot + vx0 * gdot
+         vy = ry0 * fdot + vy0 * gdot
+         vz = rz0 * fdot + vz0 * gdot
+
+         rx0 = rx
+         ry0 = ry
+         rz0 = rz
+         vx0 = vx
+         vy0 = vy
+         vz0 = vz
       end if
 
       return
@@ -235,22 +255,22 @@ contains
       ! executable code
       fac1 = 1.0_DP / (1.0_DP - ec)
       q = fac1 * dm
-      fac2 = es**2 * fac1 - ec / 3.0_DP
+      fac2 = es*es*fac1 - ec / 3.0_DP
       x = q * (1.0_DP - 0.5_DP * fac1 * q * (es - q * fac2))
-      y = x**2
+      y = x*x
       s = x * (a0 - y * (a1 - y * (a2 - y * (a3 - y * (a4 - y))))) / a0
-      c = sqrt(1.0_DP - s**2)
+      c = sqrt(1.0_DP - s*s)
       f = x - ec * s + es * (1.0_DP - c) - dm
       fp = 1.0_DP - ec * c + es * s
       fpp = ec * s + es * c
       fppp = ec * c - es * s
       dx = -f / fp
-      dx = -f / (fp + dx * fpp * 0.5_DP)
-      dx = -f / (fp + dx * fpp * 0.5_DP + dx**2* fppp * SIXTH)
+      dx = -f / (fp + dx * fpp/2.0_DP)
+      dx = -f / (fp + dx * fpp/2.0_DP + dx*dx * fppp * SIXTH)
       x = x + dx
-      y = x**2
+      y = x*x
       s = x * (a0 - y * (a1 - y * (a2 - y * (a3 - y * (a4 - y))))) / a0
-      c = sqrt(1.0_DP - s**2)
+      c = sqrt(1.0_DP - s*s)
       
       return
    end subroutine swiftest_drift_kepmd
@@ -336,18 +356,18 @@ contains
 
       if (alpha > 0.0_DP) then
          if (dt / r0 <= thresh) then
-            s = dt / r0 - (dt**2 * u) / (2 * r0**3)
+            s = dt/r0 - (dt*dt*u)/(2.0_DP*r0*r0*r0)
          else
-            a = mu / alpha
-            en = sqrt(mu / a**3)
-            ec = 1.0_DP - r0 / a
-            es = u / (en * a**2)
-            e = sqrt(ec**2 + es**2)
-            y = en * dt - es
+            a = mu/alpha
+            en = sqrt(mu/(a*a*a))
+            ec = 1.0_DP - r0/a
+            es = u/(en*a*a)
+            e = sqrt(ec*ec + es*es)
+            y = en*dt - es
             call swiftest_orbel_scget(y, sy, cy)
-            sigma = sign(1.0_DP, es * cy + ec * sy)
-            x = y + sigma * danbyk * e
-            s = x / sqrt(alpha)
+            sigma = sign(1.0_DP, es*cy + ec*sy)
+            x = y + sigma*DANBYK*e
+            s = x/sqrt(alpha)
          end if
       else
          call swiftest_drift_kepu_p3solve(dt, r0, mu, alpha, u, s, iflag)
@@ -392,16 +412,16 @@ contains
       do nc = 0, ncmax
          x = s * s * alpha
          call swiftest_drift_kepu_stumpff(x, c0, c1, c2, c3)
-         c1 = c1 * s
-         c2 = c2 * s**2
-         c3 = c3 * s**3
+         c1 = c1*s
+         c2 = c2*s*s
+         c3 = c3*s*s*s
          f = r0 * c1 + u * c2 + mu * c3 - dt
          fp = r0 * c0 + u * c1 + mu * c2
          fpp = (-r0 * alpha + mu) * c1 + u * c0
-         ds = -ln * f / (fp + sign(1.0_DP, fp) * sqrt(abs((ln - 1)**2 * fp**2 - (ln - 1) * ln * f * fpp)))
+         ds = -ln*f/(fp + sign(1.0_DP, fp)*sqrt(abs((ln - 1.0_DP)*(ln - 1.0_DP)*fp*fp - (ln - 1.0_DP)*ln*f*fpp)))
          s = s + ds
          fdt = f / dt
-         if (fdt**2 < DANBYB**2) then
+         if (fdt*fdt < DANBYB*DANBYB) then
             iflag = 0
             return
          end if
@@ -438,23 +458,23 @@ contains
       real(DP)   :: x, c0, ds, f, fpp, fppp, fdt
 
       do nc = 0, 6
-         x = s**2 * alpha
+         x = s*s*alpha
          call swiftest_drift_kepu_stumpff(x, c0, c1, c2, c3)
-         c1 = c1 * s
-         c2 = c2 * s**2
-         c3 = c3 * s**3
-         f = r0 * c1 + u * c2 + mu * c3 - dt
-         fp = r0 * c0 + u * c1 + mu * c2
-         fpp = (-r0 * alpha + mu) * c1 + u * c0
-         fppp = (-r0 * alpha + mu) * c0 - u * alpha * c1
-         ds = -f / fp
-         ds = -f / (fp + ds * fpp * 0.5_DP)
-         ds = -f / (fp + ds * fpp * 0.5_DP + ds**2 * fppp * SIXTH)
+         c1 = c1*s
+         c2 = c2*s*s
+         c3 = c3*s*s*s
+         f = r0*c1 + u*c2 + mu*c3 - dt
+         fp = r0*c0 + u*c1 + mu*c2
+         fpp = (-r0*alpha + mu)*c1 + u*c0
+         fppp = (-r0*alpha + mu)*c0 - u*alpha*c1
+         ds = -f/fp
+         ds = -f/(fp + ds*fpp/2.0_DP)
+         ds = -f/(fp + ds*fpp/2.0_DP + ds*ds*fppp/6.0_DP)
          s = s + ds
-         fdt = f / dt
-         if (fdt**2 < DANBYB**2) then
-            iflag = 0
-            return
+         fdt = f/dt
+         if (fdt*fdt < DANBYB*DANBYB) then
+              iflag = 0
+              return
          end if
       end do
       iflag = 1
@@ -487,9 +507,9 @@ contains
       a2 = 0.5_DP * u / denom
       a1 = r0 / denom
       a0 = -dt / denom
-      q = (a1 - a2**2 * THIRD) * THIRD
-      r = (a1 * a2 - 3 * a0) * SIXTH - (a2 * THIRD)**3 
-      sq2 = q**3 + r**2
+      q = (a1 - a2*a2 * THIRD) * THIRD
+      r = (a1*a2 - 3 * a0) * SIXTH - (a2*a2*a2)/27.0_DP
+      sq2 = q*q*q + r*r
       if (sq2 >= 0.0_DP) then
          sq = sqrt(sq2)
          if ((r + sq) <= 0.0_DP) then
@@ -549,9 +569,9 @@ contains
       if (n /= 0) then
          do i = n, 1, -1
             c3 = (c2 + c0 * c3) / 4.0_DP
-            c2 = c1**2 / 2.0_DP
+            c2 = c1*c1 / 2.0_DP
             c1 = c0 * c1
-            c0 = 2 * c0**2 - 1.0_DP
+            c0 = 2 * c0*c0 - 1.0_DP
             x = x * 4
          end do
       end if

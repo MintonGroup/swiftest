@@ -259,9 +259,9 @@ module encounter
 
       module subroutine encounter_util_append_list(self, source, lsource_mask)
          implicit none
-         class(encounter_list), intent(inout) :: self         !! Swiftest encounter list object
-         class(encounter_list), intent(in)    :: source       !! Source object to append
-         logical, dimension(:), intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         class(encounter_list), intent(inout)        :: self         !! Swiftest encounter list object
+         class(encounter_list), intent(in)           :: source       !! Source object to append
+         logical, dimension(:), intent(in)           :: lsource_mask !! Logical mask indicating which elements to append to
       end subroutine encounter_util_append_list
 
       module subroutine encounter_util_copy_list(self, source)

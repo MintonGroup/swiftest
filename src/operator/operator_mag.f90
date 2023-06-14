@@ -44,7 +44,7 @@ contains
       if (allocated(B)) deallocate(B)
       allocate(B(n))
       call ieee_set_halting_mode(ieee_underflow, .false.)
-      do concurrent (i=1:n)
+      do i = 1,n 
          B(i) = norm2(A(:, i)) 
       end do
       return
@@ -59,7 +59,7 @@ contains
       if (allocated(B)) deallocate(B)
       allocate(B(n))
       call ieee_set_halting_mode(ieee_underflow, .false.)
-      do concurrent (i=1:n)
+      do i = 1,n 
          B(i) = norm2(A(:, i)) 
       end do
       return 
@@ -74,7 +74,7 @@ contains
       if (allocated(B)) deallocate(B)
       allocate(B(n))
       call ieee_set_halting_mode(ieee_underflow, .false.)
-      do concurrent (i=1:n)
+      do i = 1,n 
          B(i) = norm2(A(:, i)) 
       end do
       return 

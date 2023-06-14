@@ -20,30 +20,33 @@ program swiftest_driver
    implicit none
 
    class(swiftest_nbody_system), allocatable :: nbody_system      !! Polymorphic object containing the nbody system to be integrated
-   class(swiftest_parameters),   allocatable :: param             !! Run configuration parameters
+   type(swiftest_parameters)                 :: param             !! Run configuration parameters
+   class(swiftest_storage),      allocatable :: system_history    !! Stores the system history between output dumps
    character(len=:), allocatable             :: integrator        !! Integrator type code (see globals for symbolic names)
    character(len=:), allocatable             :: param_file_name   !! Name of the file containing user-defined parameters
    character(len=:), allocatable             :: display_style     !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
-   integer(I8B)                              :: istart            !! Starting index for loop counter
-   integer(I4B)                              :: iout              !! Output cadence counter
-   integer(I4B)                              :: idump             !! Dump cadence counter
-   integer(I4B)                              :: nout              !! Current output step
-   integer(I4B)                              :: istep             !! Current value of istep (used for time stretching)
    type(walltimer)                           :: integration_timer !! Object used for computing elapsed wall time
 
    call swiftest_io_get_args(integrator, param_file_name, display_style)
 
    !> Read in the user-defined parameters file and the initial conditions of the nbody_system
-   allocate(swiftest_parameters :: param)
    param%integrator = trim(adjustl(integrator))
    param%display_style = trim(adjustl(display_style))
    call param%read_in(param_file_name)
+#ifdef COARRAY
+   if (.not.param%lcoarray .and. (this_image() /= 1)) stop ! Single image mode
+#endif
 
    associate(t0       => param%t0, &
       tstart          => param%tstart, &
       dt              => param%dt, &
       tstop           => param%tstop, &
       iloop           => param%iloop, &
+      istart          => param%istart, &
+      iout            => param%iout, &
+      idump           => param%idump, &
+      nout            => param%nout, &
+      istep           => param%istep, &
       nloops          => param%nloops, &
       istep_out       => param%istep_out, &
       fstep_out       => param%fstep_out, &
@@ -74,72 +77,115 @@ program swiftest_driver
       !> Define the maximum number of threads
       nthreads = 1            ! In the *serial* case
       !$ nthreads = omp_get_max_threads() ! In the *parallel* case
-      !$ write(param%display_unit,'(a)')   ' OpenMP parameters:'
-      !$ write(param%display_unit,'(a)')   ' ------------------'
-      !$ write(param%display_unit,'(a,i3,/)') ' Number of threads = ', nthreads 
-      !$ if (param%log_output) write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
-
-      call nbody_system%initialize(param)
-
-      associate (system_history => nbody_system%system_history)
-         ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial conditions to file.
-         call nbody_system%display_run_information(param, integration_timer, phase="first")
-         if (param%lenergy) then
-            if (param%lrestart) then
-               call nbody_system%get_t0_values(param)
-            else
-               call nbody_system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
-            end if
-            call nbody_system%conservation_report(param, lterminal=.true.)
+#ifdef COARRAY
+      if (this_image() == 1 .or. param%log_output) then
+#endif 
+         !$ write(param%display_unit,'(a)')   ' OpenMP parameters:'
+         !$ write(param%display_unit,'(a)')   ' ------------------'
+         !$ write(param%display_unit,'(a,i3,/)') ' Number of threads = ', nthreads 
+         !$ if (param%log_output) write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
+#ifdef COARRAY
+         if (param%lcoarray) then
+            write(param%display_unit,*)   ' Coarray parameters:'
+            write(param%display_unit,*)   ' -------------------'
+            write(param%display_unit,*) ' Number of images = ', num_images()
+            if (param%log_output .and. this_image() == 1) write(*,'(a,i3)') ' Coarray: Number of images = ',num_images()
+         else
+            write(param%display_unit,*)   ' Coarrays disabled.'
+            if (param%log_output) write(*,*)   ' Coarrays disabled.'
          end if
-         call system_history%take_snapshot(param,nbody_system)
-         call nbody_system%dump(param)
+      end if
+#endif 
+      if (param%log_output) flush(param%display_unit)
 
-         do iloop = istart, nloops
-            !> Step the nbody_system forward in time
-            call integration_timer%start()
-            call nbody_system%step(param, nbody_system%t, dt)
-            call integration_timer%stop()
+#ifdef COARRAY  
+      ! The following line lets us read in the input files one image at a time. Letting each image read the input in is faster than broadcasting all of the data
+      if (param%lcoarray .and. (this_image() /= 1)) sync images(this_image() - 1)
+#endif 
+      call nbody_system%initialize(system_history, param)
+#ifdef COARRAY  
+      if (param%lcoarray .and. (this_image() < num_images())) sync images(this_image() + 1)
 
-            nbody_system%t = t0 + iloop * dt
+      ! Distribute test particles to the various images
+      if (param%lcoarray) call nbody_system%coarray_distribute(param)
+#endif
 
-            !> Evaluate any discards or collisional outcomes
-            call nbody_system%discard(param)
+      ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial conditions to file.
+      call nbody_system%display_run_information(param, integration_timer, phase="first")
 
-            !> If the loop counter is at the output cadence value, append the data file with a single frame
-            if (istep_out > 0) then
-               iout = iout + 1
-               if ((iout == istep) .or. (iloop == nloops)) then
-                  iout = 0
-                  idump = idump + 1
-                  if (ltstretch) then 
-                     nout = nout + 1
-                     istep = floor(istep_out * fstep_out**nout, kind=I4B)
-                  end if
+      if (param%lenergy) then
+         if (param%lrestart) then
+            call nbody_system%get_t0_values(system_history%nc, param)
+         else
+            call nbody_system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
+         end if
+         call nbody_system%conservation_report(param, lterminal=.true.)
+      end if
 
-                  call system_history%take_snapshot(param,nbody_system)
+      call system_history%take_snapshot(param,nbody_system)
+      call nbody_system%dump(param, system_history)
 
-                  if (idump == dump_cadence) then
-                     idump = 0
-                     call nbody_system%dump(param)
-                  end if
+      do iloop = istart, nloops
+         !> Step the nbody_system forward in time
+         call integration_timer%start()
+         call nbody_system%step(param, nbody_system%t, dt)
+         call integration_timer%stop()
 
-                  call integration_timer%report(message="Integration steps:", unit=display_unit)
-                  call nbody_system%display_run_information(param, integration_timer)
-                  call integration_timer%reset()
-                  if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
+         nbody_system%t = t0 + iloop * dt
 
+         !> Evaluate any discards or collisional outcomes
+         call nbody_system%discard(param)
+
+         !> If the loop counter is at the output cadence value, append the data file with a single frame
+         if (istep_out > 0) then
+            iout = iout + 1
+            if ((iout == istep) .or. (iloop == nloops)) then
+               iout = 0
+               idump = idump + 1
+               if (ltstretch) then 
+                  nout = nout + 1
+                  istep = floor(istep_out * fstep_out**nout, kind=I4B)
                end if
-            end if
 
-         end do
-         ! Dump any remaining history if it exists
-         call nbody_system%dump(param)
-         call system_history%dump(param)
-         call nbody_system%display_run_information(param, integration_timer, phase="last")
-         
-      end associate
+               call system_history%take_snapshot(param,nbody_system)
+
+               if (idump == dump_cadence) then
+                  idump = 0
+                  call nbody_system%dump(param, system_history)
+#ifdef COARRAY
+                  if (param%lcoarray) call nbody_system%coarray_balance(param)
+#endif
+               end if
+#ifdef COARRAY
+               if (this_image() == 1 .or. param%log_output) then
+#endif
+                  call integration_timer%report(message="Integration steps:", unit=display_unit)
+#ifdef COARRAY  
+               end if !(this_image() == 1)
+#endif
+               call nbody_system%display_run_information(param, integration_timer)
+               call integration_timer%reset()
+#ifdef COARRAY
+               if (this_image() == 1 .or. param%log_output) then
+#endif
+                  if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
+#ifdef COARRAY
+               end if ! (this_image() == 1)
+#endif
+            end if
+         end if
+
+      end do
+      ! Dump any remaining history if it exists
+      call nbody_system%dump(param, system_history)
+      call nbody_system%display_run_information(param, integration_timer, phase="last")
    end associate
 
-   call base_util_exit(SUCCESS)
+#ifdef COARRAY
+   if (this_image() == 1) then
+#endif
+      call base_util_exit(SUCCESS)
+#ifdef COARRAY
+   end if ! (this_image() == 1) 
+#endif
 end program swiftest_driver

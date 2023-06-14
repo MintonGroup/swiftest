@@ -17,7 +17,9 @@ Swiftest also includes the collisional fragmentation algorithm **Fraggle**, an a
 
 #### Installation
 
-**System Requirements**
+In order to use Swiftest, you need to have a working `swiftest_driver` executable. Currently, this can be obtained by either compiling the source code on the system you plan to run simulations on (fastest), or by running it from a Docker/Singularity container compiled for an x86_64 CPU using the Intel Fortran compiler (slower) or compiled using the GNU/gfortran compiler (slowest). 
+
+**Building the `swiftest_driver` executable**
 
 Swiftest is designed to be downloaded, compiled, and run on a Linux based system. It is untested on Windows systems.
 
@@ -102,6 +104,29 @@ $ make
 ```
 
 The Swiftest executable, called ```swiftest_driver```, should now be created in the ```/swiftest/bin/``` directory.
+
+**Download the `swiftest_driver` as a Docker or Singularity container.**
+
+The Swiftest driver is available as a Docker container on DockerHub in two versions: Intel and GNU. The Intel version was compiled for the x86_64 CPU using the Intel classic Fortran compiler. The GNU version was compliled for the x86_64 CPU using gfortran. The Intel version is faster than the GNU version (though not as fast as a native compile to the target CPU that you wish to run it on due to vectorization optimizations that Swiftest takes advantage of), however it is much larger: The Intel version is ~2.7GB while the GNU version is ~300MB. The Singularity container pulls from the same DockerHub container.
+
+To facilitate installation of the container, we provide a set of shell scripts to help automate the process of installing container versions of the executable. To install the default Intel version of the docker container from within the `swiftest\` project directory
+
+```
+$ cd docker
+$ . ./install.sh
+```
+
+To install the GNU version:
+
+```
+$ cd docker
+$ . ./install.sh gnu
+```
+
+The Singularity versions are installed the same way, just replace `cd docker` with `cd singularity` above. 
+
+Whether installing either the Docker or Singularity containers, the install script will copy an executable shell script `swiftest_driver` into `swiftest/bin/`. Not that when installing the Singularity container, the install script will set an environment variable called `SWIFTEST_SIF` that must point to the aboslute path of the container file called `swiftest_driver.sif`. To use the driver script in a future shell, rather than running the install script again, we suggest adding the environment variable definition to your shell startup script (e.g. add `export SWIFTEST_SIF="/path/to/swiftest/singularity/swiftest.sif"` to your `.zshrc`)
+
 
 **Swiftest Python Package**
 

@@ -21,21 +21,26 @@ contains
       class(base_nbody_system), intent(inout) :: nbody_system    !! Swiftest nbody system object
       class(base_parameters),   intent(in)    :: param     !! Current Swiftest run configuration parameters
       ! Internals
-      integer(I4B) :: i, npl_before, npl_after
+      integer(I4B) :: i, npl_before, npl_after, nfrag
       logical, dimension(:), allocatable :: lexclude
 
       select type(nbody_system)
       class is (swiftest_nbody_system)
-         associate(fragments => self%fragments, impactors => self%impactors, nfrag => self%fragments%nbody, pl => nbody_system%pl, cb => nbody_system%cb)
+         associate(fragments => self%fragments, impactors => self%impactors, pl => nbody_system%pl, cb => nbody_system%cb)
             npl_after = pl%nbody
             npl_before = npl_after - nfrag
+            nfrag = self%fragments%nbody
             allocate(lexclude(npl_after))
 
             pl%status(npl_before+1:npl_after) = ACTIVE
             pl%mass(npl_before+1:npl_after) = fragments%mass(1:nfrag)
             pl%Gmass(npl_before+1:npl_after) = fragments%mass(1:nfrag) * param%GU
             pl%radius(npl_before+1:npl_after) = fragments%radius(1:nfrag)
+#ifdef DOCONLOC
+            do concurrent (i = 1:nfrag) shared(cb,pl,fragments)
+#else
             do concurrent (i = 1:nfrag)
+#endif
                pl%rb(:,npl_before+i) =  fragments%rb(:,i) 
                pl%vb(:,npl_before+i) =  fragments%vb(:,i) 
                pl%rh(:,npl_before+i) =  fragments%rb(:,i) - cb%rb(:)
@@ -141,15 +146,17 @@ contains
    module subroutine collision_util_get_energy_and_momentum(self, nbody_system, param, phase)
       !! Author: David A. Minton
       !!
-      !! Calculates total system energy in either the pre-collision outcome state (phase = "before") or the post-collision outcome state (lbefore = .false.)
+      !! Calculates total system energy in either the pre-collision outcome state (phase = "before") or the post-collision outcome 
+      !! state (lbefore = .false.)
       implicit none
       ! Arguments
       class(collision_basic),   intent(inout) :: self         !! Encounter collision system object
       class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(base_parameters),   intent(inout) :: param        !! Current Swiftest run configuration parameters
-      character(len=*),         intent(in)    :: phase        !! One of "before" or "after", indicating which phase of the calculation this needs to be done
+      character(len=*),         intent(in)    :: phase        !! One of "before" or "after", indicating which phase of the 
+                                                              !!    calculation this needs to be done
       ! Internals
-      integer(I4B) :: i, phase_val
+      integer(I4B) :: i, phase_val, nfrag
 
       select case(phase)
       case("before")
@@ -165,13 +172,24 @@ contains
       class is (swiftest_nbody_system)
       select type(param)
       class is (swiftest_parameters)
-         associate(fragments => self%fragments, impactors => self%impactors, nfrag => self%fragments%nbody, pl => nbody_system%pl, cb => nbody_system%cb)
+         associate(fragments => self%fragments, impactors => self%impactors, pl => nbody_system%pl, cb => nbody_system%cb)
+            nfrag = self%fragments%nbody
             if (phase_val == 1) then
+#ifdef DOCONLOC
+               do concurrent(i = 1:2) shared(impactors)
+#else
                do concurrent(i = 1:2)
+#endif
                   impactors%ke_orbit(i) = 0.5_DP * impactors%mass(i) * dot_product(impactors%vc(:,i), impactors%vc(:,i))
-                  impactors%ke_spin(i) = 0.5_DP * impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i) * dot_product(impactors%rot(:,i), impactors%rot(:,i))
+                  impactors%ke_spin(i) = 0.5_DP * impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i)  & 
+                                                * dot_product(impactors%rot(:,i), impactors%rot(:,i))
                   impactors%be(i) = -3 * impactors%Gmass(i) * impactors%mass(i) / (5 * impactors%radius(i))
-                  impactors%L_orbit(:,i) = impactors%mass(i) * impactors%rc(:,i) .cross. impactors%vc(:,i)
+                  impactors%L_orbit(1,i) = impactors%mass(i) * (impactors%rc(2,i) * impactors%vc(3,i) &
+                                                              - impactors%rc(3,i) * impactors%vc(2,i))
+                  impactors%L_orbit(2,i) = impactors%mass(i) * (impactors%rc(3,i) * impactors%vc(1,i) &
+                                                              - impactors%rc(1,i) * impactors%vc(3,i))
+                  impactors%L_orbit(3,i) = impactors%mass(i) * (impactors%rc(1,i) * impactors%vc(2,i) &
+                                                              - impactors%rc(2,i) * impactors%vc(1,i))
                   impactors%L_spin(:,i) = impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i) * impactors%rot(:,i)
                end do
                self%L_orbit(:,phase_val) = sum(impactors%L_orbit(:,1:2),dim=2)
@@ -180,16 +198,28 @@ contains
                self%ke_orbit(phase_val) = sum(impactors%ke_orbit(1:2))
                self%ke_spin(phase_val) = sum(impactors%ke_spin(1:2))
                self%be(phase_val) = sum(impactors%be(1:2))
-               call swiftest_util_get_potential_energy(2, [(.true., i = 1, 2)], 0.0_DP, impactors%Gmass, impactors%mass, impactors%rb, self%pe(phase_val))
+               call swiftest_util_get_potential_energy(2, [(.true., i = 1, 2)], 0.0_DP, impactors%Gmass, impactors%mass, & 
+                                                            impactors%rb, self%pe(phase_val))
                self%te(phase_val) = self%ke_orbit(phase_val) + self%ke_spin(phase_val) + self%be(phase_val) + self%pe(phase_val)
             else if (phase_val == 2) then
+#ifdef DOCONLOC
+               do concurrent(i = 1:nfrag) shared(fragments)
+#else
                do concurrent(i = 1:nfrag)
+#endif
                   fragments%ke_orbit(i) = 0.5_DP * fragments%mass(i) * dot_product(fragments%vc(:,i), fragments%vc(:,i))
-                  fragments%ke_spin(i) = 0.5_DP * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) * dot_product(fragments%rot(:,i), fragments%rot(:,i))
-                  fragments%L_orbit(:,i) = fragments%mass(i) * fragments%rc(:,i) .cross. fragments%vc(:,i)
+                  fragments%ke_spin(i) = 0.5_DP * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) & 
+                                                * dot_product(fragments%rot(:,i), fragments%rot(:,i))
+                  fragments%L_orbit(1,i) = fragments%mass(i) * (fragments%rc(2,i) * fragments%vc(3,i) - &
+                                                                fragments%rc(3,i) * fragments%vc(2,i))
+                  fragments%L_orbit(2,i) = fragments%mass(i) * (fragments%rc(3,i) * fragments%vc(1,i) - &
+                                                                fragments%rc(1,i) * fragments%vc(3,i))
+                  fragments%L_orbit(3,i) = fragments%mass(i) * (fragments%rc(1,i) * fragments%vc(2,i) - &
+                                                                fragments%rc(2,i) * fragments%vc(1,i))
                   fragments%L_spin(:,i) = fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) * fragments%rot(:,i)
                end do
-               call swiftest_util_get_potential_energy(nfrag, [(.true., i = 1, nfrag)], 0.0_DP, fragments%Gmass, fragments%mass, fragments%rb, fragments%pe)
+               call swiftest_util_get_potential_energy(nfrag, [(.true., i = 1, nfrag)], 0.0_DP, fragments%Gmass, fragments%mass, &
+                                                      fragments%rb, fragments%pe)
                fragments%be = sum(-3*fragments%Gmass(1:nfrag)*fragments%mass(1:nfrag)/(5*fragments%radius(1:nfrag)))
                fragments%L_orbit_tot(:) = sum(fragments%L_orbit(:,1:nfrag),dim=2)
                fragments%L_spin_tot(:) = sum(fragments%L_spin(:,1:nfrag),dim=2)
@@ -227,7 +257,7 @@ contains
       call self%get_index_values(idvals, tvals)
 
       ! Consolidate ids to only unique values
-      call swiftest_util_unique(idvals,self%idvals,self%idmap)
+      call util_unique(idvals,self%idvals,self%idmap)
       self%nid = size(self%idvals)
 
       ! Don't consolidate time values (multiple collisions can happen in a single time step)
@@ -299,6 +329,8 @@ contains
       ! Arguments
       class(collision_fragments),  intent(inout) :: self
 
+      self%nbody = 0
+      if (allocated(self%id)) deallocate(self%id)
       if (allocated(self%info)) deallocate(self%info) 
       if (allocated(self%status)) deallocate(self%status) 
       if (allocated(self%rh)) deallocate(self%rh)
@@ -525,14 +557,16 @@ contains
 
 
    module subroutine collision_util_set_coordinate_collider(self)
-      
+      !! author: David A. Minton
+      !! 
       !!
-      !! Defines the collisional coordinate nbody_system, including the unit vectors of both the nbody_system and individual fragments.
+      !! Defines the collisional coordinate nbody_system, including the unit vectors of both the nbody_system and individual 
+      !! fragments.
       implicit none
       ! Arguments
       class(collision_basic),    intent(inout) :: self      !! Collisional nbody_system
 
-      associate(fragments => self%fragments, impactors => self%impactors, nfrag => self%fragments%nbody)
+      associate(fragments => self%fragments, impactors => self%impactors)
          call impactors%set_coordinate_system() 
 
          if (.not.allocated(self%fragments)) return
@@ -548,7 +582,8 @@ contains
    module subroutine collision_util_set_coordinate_fragments(self)
       !! author: David A. Minton
       !!
-      !! Defines the collisional coordinate nbody_system, including the unit vectors of both the nbody_system and individual fragments.
+      !! Defines the collisional coordinate nbody_system, including the unit vectors of both the nbody_system and individual 
+      !! fragments.
       implicit none
       ! Arguments
       class(collision_fragments), intent(inout) :: self      !! Collisional nbody_system
@@ -574,7 +609,8 @@ contains
    module subroutine collision_util_set_coordinate_impactors(self)
       !! author: David A. Minton
       !!
-      !! Defines the collisional coordinate nbody_system, including the unit vectors of both the nbody_system and individual fragments.
+      !! Defines the collisional coordinate nbody_system, including the unit vectors of both the nbody_system and individual 
+      !! fragments.
       implicit none
       ! Arguments
       class(collision_impactors), intent(inout) :: self      !! Collisional nbody_system
@@ -586,8 +622,8 @@ contains
          delta_v(:) = impactors%vb(:, 2) - impactors%vb(:, 1)
          delta_r(:) = impactors%rb(:, 2) - impactors%rb(:, 1)
    
-         ! We will initialize fragments on a plane defined by the pre-impact nbody_system, with the z-axis aligned with the angular momentum vector
-         ! and the y-axis aligned with the pre-impact distance vector.
+         ! We will initialize fragments on a plane defined by the pre-impact nbody_system, with the z-axis aligned with the angular 
+         ! momentum vector and the y-axis aligned with the pre-impact distance vector.
 
          ! y-axis is the separation distance
          impactors%y_unit(:) = .unit.delta_r(:) 
@@ -616,14 +652,16 @@ contains
          impactors%vc(:,1) = impactors%vb(:,1) - impactors%vbcom(:)
          impactors%vc(:,2) = impactors%vb(:,2) - impactors%vbcom(:)
    
-         ! Find the point of impact between the two bodies, defined as the location (in the collisional coordinate system) at the surface of body 1 along the line connecting the two bodies.
+         ! Find the point of impact between the two bodies, defined as the location (in the collisional coordinate system) at the 
+         ! surface of body 1 along the line connecting the two bodies.
          impactors%rcimp(:) = impactors%rb(:,1) + impactors%radius(1) * impactors%y_unit(:) - impactors%rbcom(:)
 
          ! Set the velocity direction as the "bounce" direction" for disruptions, and body 2's direction for hit and runs
          if (impactors%regime == COLLRESOLVE_REGIME_HIT_AND_RUN) then
             impactors%bounce_unit(:) = .unit. impactors%vc(:,2)
          else
-            impactors%bounce_unit(:) = .unit. (impactors%vc(:,2) - 2 * dot_product(impactors%vc(:,2),impactors%y_unit(:)) * impactors%y_unit(:))
+            impactors%bounce_unit(:) = .unit. (impactors%vc(:,2) - 2 * dot_product(impactors%vc(:,2),impactors%y_unit(:)) &
+                                                                     * impactors%y_unit(:))
          end if
 
       end associate
@@ -726,7 +764,8 @@ contains
       class(base_parameters),   intent(inout)          :: param  !! Current run configuration parameters
       class(base_nbody_system), intent(inout)          :: nbody_system !! Swiftest nbody system object to store
       real(DP),                 intent(in),   optional :: t      !! Time of snapshot if different from nbody_system time
-      character(*),             intent(in),   optional :: arg    !! "before": takes a snapshot just before the collision. "after" takes the snapshot just after the collision.
+      character(*),             intent(in),   optional :: arg    !! "before": takes a snapshot just before the collision. "after" 
+                                                                 !!    takes the snapshot just after the collision.
       ! Arguments
       class(collision_snapshot), allocatable, save :: snapshot
       character(len=:), allocatable :: stage
@@ -800,8 +839,9 @@ contains
                      write(message,*) trim(adjustl(plnew%info(i)%name)), " (", trim(adjustl(plnew%info(i)%particle_type)),")"
                      call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
                   end do
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "***********************************************************" // &
-                                                                     "***********************************************************")
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, & 
+                     "***********************************************************" // &
+                     "***********************************************************")
                   allocate(after_snap%pl, source=plnew)
                end select
                deallocate(after_orig%pl)
@@ -914,7 +954,11 @@ contains
          impactors%L_orbit   = impactors%L_orbit   * collider%Lscale
          impactors%ke_orbit  = impactors%ke_orbit  * collider%Escale
          impactors%ke_spin   = impactors%ke_spin   * collider%Escale
+#ifdef DOCONLOC
+         do concurrent(i = 1:2) shared(impactors)
+#else
          do concurrent(i = 1:2)
+#endif
             impactors%rot(:,i) = impactors%L_spin(:,i) * (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i))
          end do
    

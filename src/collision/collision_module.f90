@@ -19,7 +19,11 @@ module collision
    public
 
    character(len=*), parameter :: COLLISION_OUTFILE = 'collisions.nc'  !! Name of NetCDF output file for collision information
+#ifdef COARRAY
+   character(len=STRMAX) :: COLLISION_LOG_OUT !! Name of log file for collision diagnostic information (each co-image gets its own)
+#else
    character(len=*), parameter :: COLLISION_LOG_OUT = "collisions.log" !! Name of log file for collision diagnostic information
+#endif
 
    !>Symbolic names for collisional outcomes from collresolve_resolve:
    integer(I4B), parameter :: COLLRESOLVE_REGIME_MERGE              =  1
@@ -97,8 +101,10 @@ module collision
 
 
    !> Class definition for the variables that describe a collection of fragments in barycentric coordinates
-   type, extends(base_multibody) :: collision_fragments
+   type, extends(base_object) :: collision_fragments
+      integer(I4B)                                           :: nbody = 0    !! Number of bodies
       real(DP)                                               :: mtot         !! Total mass of fragments       
+      integer(I4B),              dimension(:),   allocatable :: id           !! Identifier
       class(base_particle_info), dimension(:),   allocatable :: info         !! Particle metadata information
       integer(I4B),              dimension(:),   allocatable :: status       !! An integrator-specific status indicator 
       real(DP),                  dimension(:,:), allocatable :: rh           !! Heliocentric position
@@ -120,7 +126,7 @@ module collision
       real(DP),                  dimension(:),   allocatable :: rmag         !! Array of radial distance magnitudes of individual fragments in the collisional coordinate frame 
       real(DP),                  dimension(:),   allocatable :: vmag         !! Array of radial distance magnitudes of individual fragments in the collisional coordinate frame 
       real(DP),                  dimension(:),   allocatable :: rotmag       !! Array of rotation magnitudes of individual fragments 
-      integer(I1B),              dimension(:),   allocatable :: origin_body  !! Array of indices indicating which impactor body (1 or 2) the fragment originates from
+      integer(I4B),              dimension(:),   allocatable :: origin_body  !! Array of indices indicating which impactor body (1 or 2) the fragment originates from
       real(DP),                  dimension(NDIM)             :: L_orbit_tot  !! Orbital angular momentum vector of all fragments
       real(DP),                  dimension(NDIM)             :: L_spin_tot   !! Spin angular momentum vector of all fragments
       real(DP),                  dimension(:,:), allocatable :: L_orbit      !! Orbital angular momentum vector of each individual fragment

@@ -44,7 +44,11 @@ contains
          new_fragments%Gmass(1) =sum(old_fragments%Gmass(1:2))
          new_fragments%density(1) = new_fragments%mass(1) / volume
          new_fragments%radius(1) = (3._DP * volume / (4._DP * PI))**(THIRD)
+#ifdef DOCONLOC
+         do concurrent(i = 1:NDIM) shared(old_fragments, new_fragments)
+#else
          do concurrent(i = 1:NDIM)
+#endif
             new_fragments%Ip(i,1) = sum(old_fragments%mass(1:2) * old_fragments%Ip(i,1:2)) 
          end do
          new_fragments%Ip(:,1) = new_fragments%Ip(:,1) / new_fragments%mass(1)
@@ -55,7 +59,11 @@ contains
          new_fragments%Gmass(2:nnew) = old_fragments%Gmass(3:nold)
          new_fragments%density(2:nnew) = old_fragments%density(3:nold)
          new_fragments%radius(2:nnew) = old_fragments%radius(3:nold)
+#ifdef DOCONLOC
+         do concurrent(i = 1:NDIM) shared(old_fragments,new_fragments)
+#else
          do concurrent(i = 1:NDIM)
+#endif
             new_fragments%Ip(i,2:nnew) = old_fragments%Ip(i,3:nold) 
          end do
          new_fragments%origin_body(2:nnew) = old_fragments%origin_body(3:nold)
@@ -87,10 +95,10 @@ contains
       class(collision_fraggle),   intent(inout) :: self  !! Fraggle collision system object
       class(swiftest_parameters), intent(in)    :: param !! Current Swiftest run configuration parameters
       ! Internals
-      integer(I4B)              :: i, j, k, jproj, jtarg, nfrag, istart, nfragmax, nrem
+      integer(I4B)              :: i, j, jproj, jtarg, nfrag, istart, nfragmax
       real(DP), dimension(2)    :: volume
       real(DP), dimension(NDIM) :: Ip_avg
-      real(DP) ::  mremaining, mtot, mcumul, G, mass_noise, Mslr, x0, x1, ymid, y0, y1, y, yp, eps, Mrat
+      real(DP) ::  mremaining, mtot, mcumul, G, mass_noise, Mslr, Mrat
       real(DP), dimension(:), allocatable :: mass
       real(DP)  :: beta 
       integer(I4B), parameter :: MASS_NOISE_FACTOR = 5  !! The number of digits of random noise that get added to the minimum mass value to prevent identical masses from being generated in a single run 
@@ -100,7 +108,6 @@ contains
       integer(I4B), parameter :: iMrem = 3
       integer(I4B), parameter :: NFRAGMIN = iMrem + 2 !! Minimum number of fragments that can be generated 
       integer(I4B), dimension(:), allocatable :: ind
-      integer(I4B), parameter :: MAXLOOP = 20
       logical :: flipper
       logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
 
@@ -166,7 +173,7 @@ contains
             mass(2) = impactors%mass_dist(iMslr)
 
             ! Recompute the slope parameter beta so that we span the complete size range
-            if (Mslr == min_mfrag) Mslr = Mslr + impactors%mass_dist(iMrem) / nfrag
+            if (abs(Mslr - min_mfrag) < epsilon(min_mfrag) * min_mfrag) Mslr = Mslr + impactors%mass_dist(iMrem) / nfrag
             mremaining = impactors%mass_dist(iMrem)
 
             ! The mass will be distributed in a power law where N>M=(M/Mslr)**(-beta/3)
@@ -188,8 +195,8 @@ contains
             end if
 
             ! Sort the distribution in descending order by mass so that the largest fragment is always the first
-            call swiftest_util_sort(-mass, ind)
-            call swiftest_util_sort_rearrange(mass, ind, nfrag)
+            call util_sort(-mass, ind)
+            call util_sort_rearrange(mass, ind, nfrag)
             call move_alloc(mass, fragments%mass)
 
             fragments%Gmass(:) = G * fragments%mass(:)
@@ -207,14 +214,18 @@ contains
 
             fragments%density(istart:nfrag) = fragments%mtot / sum(volume(:))
             fragments%radius(istart:nfrag) = (3 * fragments%mass(istart:nfrag) / (4 * PI * fragments%density(istart:nfrag)))**(1.0_DP / 3.0_DP)
+#ifdef DOCONLOC
+            do concurrent(i = istart:nfrag) shared(fragments,Ip_avg)
+#else
             do concurrent(i = istart:nfrag)
+#endif
                fragments%Ip(:, i) = Ip_avg(:)
             end do
 
             ! For catastrophic impacts, we will assign each of the n>2 fragments to one of the two original bodies so that the fragment cloud occupies 
             ! roughly the same space as both original bodies. For all other disruption cases, we use body 2 as the center of the cloud.
-            fragments%origin_body(1) = 1
-            fragments%origin_body(2) = 2
+            fragments%origin_body(1) = 1_I1B
+            fragments%origin_body(2) = 2_I1B
             if (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) then
                mcumul = fragments%mass(1)
                flipper = .true.

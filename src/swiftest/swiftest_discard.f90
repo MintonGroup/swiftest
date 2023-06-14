@@ -25,7 +25,7 @@ contains
       lpl_check = allocated(self%pl_discards)
       ltp_check = allocated(self%tp_discards)
 
-      associate(nbody_system => self, tp => self%tp, pl => self%pl, tp_discards => self%tp_discards, pl_discards => self%pl_discards, nc => self%system_history%nc)
+      associate(nbody_system => self, tp => self%tp, pl => self%pl, tp_discards => self%tp_discards, pl_discards => self%pl_discards)
          lpl_discards = .false.
          ltp_discards = .false.
          if (lpl_check .and. pl%nbody > 0) then
@@ -131,7 +131,7 @@ contains
       ! Internals
       integer(I4B)        :: i
       real(DP)            :: energy, vb2, rb2, rh2, rmin2, rmax2, rmaxu2
-      character(len=STRMAX) :: idstr, timestr
+      character(len=STRMAX) :: idstr, timestr, message
 
       associate(ntp => tp%nbody, cb => nbody_system%cb, Gmtot => nbody_system%Gmtot)
          rmin2 = max(param%rmin * param%rmin, cb%radius * cb%radius)
@@ -144,8 +144,9 @@ contains
                   tp%status(i) = DISCARDED_RMAX
                   write(idstr, *) tp%id(i)
                   write(timestr, *) nbody_system%t
-                  write(*, *) "Particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" // &
+                  write(message, *) "Particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" // &
                               " too far from the central body at t = " // trim(adjustl(timestr))
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
                   tp%ldiscard(i) = .true.
                   tp%lmask(i) = .false.
                   call tp%info(i)%set_value(status="DISCARDED_RMAX", discard_time=nbody_system%t, discard_rh=tp%rh(:,i), &
@@ -154,8 +155,9 @@ contains
                   tp%status(i) = DISCARDED_RMIN
                   write(idstr, *) tp%id(i)
                   write(timestr, *) nbody_system%t
-                  write(*, *) "Particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" // &
+                  write(message, *) "Particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" // &
                               " too close to the central body at t = " // trim(adjustl(timestr))
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
                   tp%ldiscard(i) = .true.
                   tp%lmask(i) = .false.
                   call tp%info(i)%set_value(status="DISCARDED_RMIN", discard_time=nbody_system%t, discard_rh=tp%rh(:,i), &
@@ -168,8 +170,9 @@ contains
                      tp%status(i) = DISCARDED_RMAXU
                      write(idstr, *) tp%id(i)
                      write(timestr, *) nbody_system%t
-                     write(*, *) "Particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" // &
+                     write(message, *) "Particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" // &
                                  " is unbound and too far from barycenter at t = " // trim(adjustl(timestr))
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
                      tp%ldiscard(i) = .true.
                      tp%lmask(i) = .false.
                      call tp%info(i)%set_value(status="DISCARDED_RMAXU", discard_time=nbody_system%t, discard_rh=tp%rh(:,i), &
@@ -254,7 +257,7 @@ contains
       integer(I4B)              :: i, j, isp
       real(DP)                  :: r2min, radius
       real(DP), dimension(NDIM) :: dx, dv
-      character(len=STRMAX) :: idstri, idstrj, timestr
+      character(len=STRMAX) :: idstri, idstrj, timestr, message
    
       associate(ntp => tp%nbody, pl => nbody_system%pl, npl => nbody_system%pl%nbody, t => nbody_system%t, dt => param%dt)
          do i = 1, ntp
@@ -271,9 +274,10 @@ contains
                      write(idstri, *) tp%id(i)
                      write(idstrj, *) pl%id(j)
                      write(timestr, *) nbody_system%t
-                     write(*, *) "Test particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstri)) // ")" &
+                     write(message, *) "Test particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstri)) // ")" &
                                                   // "  too close to massive body " // trim(adjustl(pl%info(j)%name)) // " ("  // trim(adjustl(idstrj)) // ")" &
                                                   // " at t = " // trim(adjustl(timestr))
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
                      tp%ldiscard(i) = .true.
                      call tp%info(i)%set_value(status="DISCARDED_PLR", discard_time=nbody_system%t, discard_rh=tp%rh(:,i), &
                                                discard_vh=tp%vh(:,i), discard_body_id=pl%id(j))

@@ -21,20 +21,28 @@ contains
       class(swiftest_body),         intent(inout) :: self !! Swiftest body object
       class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body objec
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, n
    
       if (self%nbody == 0) return
+      n = self%nbody
 
       call self%set_mu(cb)
-      do concurrent (i = 1:self%nbody)
-         call swiftest_orbel_el2xv(self%mu(i), self%a(i), self%e(i), self%inc(i), self%capom(i), &
-                           self%omega(i), self%capm(i), self%rh(:, i), self%vh(:, i))
-      end do
+      associate(mu => self%mu, a => self%a, e => self%e, inc => self%inc, capom => self%capom, omega => self%omega, &
+                capm => self%capm, rh => self%rh, vh => self%vh)
+#ifdef DOCONLOC
+         do concurrent (i = 1:n) shared(mu, a, e, inc, capom, omega, capm, rh, vh)
+#else
+         do concurrent (i = 1:n)
+#endif
+            call swiftest_orbel_el2xv(mu(i), a(i), e(i), inc(i), capom(i), omega(i), capm(i), & 
+                                      rh(1,i), rh(2,i), rh(3,i), vh(1,i), vh(2,i), vh(3,i))
+         end do
+      end associate
       return
    end subroutine swiftest_orbel_el2xv_vec
 
 
-   pure subroutine swiftest_orbel_el2xv(mu, a, ie, inc, capom, omega, capm, x, v)
+   pure elemental subroutine swiftest_orbel_el2xv(mu, a, ie, inc, capom, omega, capm, rx, ry, rz, vx, vy, vz)
       !! author: David A. Minton
       !!
       !! Compute osculating orbital elements from relative C)rtesian position and velocity
@@ -52,7 +60,7 @@ contains
       implicit none
       real(DP), intent(in)  :: mu
       real(DP), intent(in)  :: a, ie, inc, capom, omega, capm
-      real(DP), dimension(:), intent(out) :: x, v
+      real(DP), intent(out) :: rx, ry, rz, vx, vy, vz
 
       integer(I4B) :: iorbit_type
       real(DP) :: e, cape, capf, zpara, em1
@@ -125,12 +133,12 @@ contains
          vfac2 = ri  *  sqgma 
       endif
       !--
-      x(1) = d11 * xfac1 + d21 * xfac2
-      x(2) = d12 * xfac1 + d22 * xfac2
-      x(3) = d13 * xfac1 + d23 * xfac2
-      v(1) = d11 * vfac1 + d21 * vfac2
-      v(2) = d12 * vfac1 + d22 * vfac2
-      v(3) = d13 * vfac1 + d23 * vfac2
+      rx = d11 * xfac1 + d21 * xfac2
+      ry = d12 * xfac1 + d22 * xfac2
+      rz = d13 * xfac1 + d23 * xfac2
+      vx = d11 * vfac1 + d21 * vfac2
+      vy = d12 * vfac1 + d22 * vfac2
+      vz = d13 * vfac1 + d23 * vfac2
 
       return
    end subroutine swiftest_orbel_el2xv
@@ -232,7 +240,6 @@ contains
       real(DP), parameter :: a5 = 51891840._DP,  a3 = 1037836800._DP
       real(DP), parameter :: b11 = 11 * a11, b9 = 9 * a9, b7 = 7 * a7
       real(DP), parameter :: b5 = 5 * a5, b3 = 3 * a3
-      real(DP), parameter :: THIRD = 1._DP / 3._DP
 
       ! Function to solve "Kepler's eqn" for F (here called
       ! x) for given e and CAPN. Only good for smallish CAPN
@@ -690,7 +697,7 @@ contains
    end function swiftest_orbel_fhybrid
    
 
-   pure elemental module subroutine swiftest_orbel_xv2aeq(mu, px, py, pz, vx, vy, vz, a, e, q)
+   pure elemental module subroutine swiftest_orbel_xv2aeq(mu, rx, ry, rz, vx, vy, vz, a, e, q)
       !! author: David A. Minton
       !!
       !! Compute semimajor axis, eccentricity, and pericentric distance from relative Cartesian position and velocity
@@ -700,26 +707,28 @@ contains
       implicit none
       !! Arguments
       real(DP), intent(in)  :: mu !! Gravitational constant
-      real(DP), intent(in)  :: px,py,pz  !! Position vector
+      real(DP), intent(in)  :: rx,ry,rz  !! Position vector
       real(DP), intent(in)  :: vx,vy,vz  !! Velocity vector
       real(DP), intent(out) :: a  !! semimajor axis
       real(DP), intent(out) :: e  !! eccentricity
       real(DP), intent(out) :: q  !! periapsis
       ! Internals
       integer(I4B) :: iorbit_type
-      real(DP)   :: r, v2, h2, energy, fac
-      real(DP), dimension(NDIM) :: hvec, x, v
+      real(DP)   :: hx, hy, hz, r, v2, h2, energy, fac
 
       a = 0.0_DP
       e = 0.0_DP
       q = 0.0_DP
-      x = [px, py, pz]
-      v = [vx, vy, vz]
-      r = .mag.x(:)
-      v2 = dot_product(v(:), v(:))
-      hvec(:) = x(:) .cross. v(:)
-      h2 = dot_product(hvec(:), hvec(:))
-      if (h2 == 0.0_DP) return
+
+      r = sqrt(rx*rx + ry*ry + rz*rz)
+      v2 = vx*vx + vy*vy + vz*vz
+
+      hx = ry*vz - rz*vy
+      hy = rz*vx - rx*vz
+      hz = rx*vy - ry*vx
+      h2 = hx*hx + hy*hy + hz*hz
+
+      if (h2 < tiny(h2)) return
       energy = 0.5_DP * v2 - mu / r
       if (abs(energy * r / mu) < sqrt(TINYVALUE)) then
          iorbit_type = PARABOLA
@@ -755,7 +764,7 @@ contains
    end subroutine swiftest_orbel_xv2aeq
 
 
-   pure module subroutine swiftest_orbel_xv2aqt(mu, px, py, pz, vx, vy, vz, a, q, capm, tperi)
+   pure module subroutine swiftest_orbel_xv2aqt(mu, rx, ry, rz, vx, vy, vz, a, q, capm, tperi)
       !! author: David A. Minton
       !!
       !! Compute semimajor axis, pericentric distance, mean anomaly, and time to nearest pericenter passage from
@@ -767,7 +776,7 @@ contains
       implicit none
       ! Arguments
       real(DP), intent(in)  :: mu    !! Gravitational constant
-      real(DP), intent(in)  :: px,py,pz !! Position vector
+      real(DP), intent(in)  :: rx,ry,rz !! Position vector
       real(DP), intent(in)  :: vx,vy,vz !! Velocity vector
       real(DP), intent(out) :: a     !! semimajor axis
       real(DP), intent(out) :: q     !! periapsis
@@ -775,21 +784,21 @@ contains
       real(DP), intent(out) :: tperi !! time of pericenter passage
       ! Internals
       integer(I4B) :: iorbit_type
-      real(DP)   :: r, v2, h2, rdotv, energy, fac, w, face, cape, e, tmpf, capf, mm
-      real(DP), dimension(NDIM) :: hvec, x, v
+      real(DP)   :: hx, hy, hz, r, v2, h2, rdotv, energy, fac, w, face, cape, e, tmpf, capf, mm
 
       a = 0.0_DP
       q = 0.0_DP
       capm = 0.0_DP
       tperi = 0.0_DP
-      x = [px, py, pz]
-      v = [vx, vy, vz]
-      r = sqrt(dot_product(x(:), x(:)))
-      v2 = dot_product(v(:), v(:))
-      hvec(:) = x(:) .cross. v(:)
-      h2 = dot_product(hvec(:), hvec(:))
-      if (h2 == 0.0_DP) return
-      rdotv = dot_product(x(:), v(:))
+      hx = ry*vz - rz*vy
+      hy = rz*vx - rx*vz
+      hz = rx*vy - ry*vx
+      h2 = hx*hx + hy*hy + hz*hz
+      if (h2 < tiny(h2)) return
+
+      r = sqrt(rx*rx + ry*ry + rz*rz)
+      v2 = vx*vx + vy*vy + vz*vz
+      rdotv = rx*vx + ry*vy + rz*vz 
       energy = 0.5_DP * v2 - mu / r
       if (abs(energy * r / mu) < sqrt(TINYVALUE)) then
          iorbit_type = PARABOLA
@@ -885,7 +894,11 @@ contains
       if (allocated(self%capom)) deallocate(self%capom); allocate(self%capom(self%nbody))
       if (allocated(self%omega)) deallocate(self%omega); allocate(self%omega(self%nbody))
       if (allocated(self%capm)) deallocate(self%capm);  allocate(self%capm(self%nbody))
+#ifdef DOCONLOC
+      do concurrent (i = 1:self%nbody) shared(self) local(varpi,lam,f,cape,capf)
+#else
       do concurrent (i = 1:self%nbody)
+#endif
          call swiftest_orbel_xv2el(self%mu(i), self%rh(1,i), self%rh(2,i), self%rh(3,i), &
                                       self%vh(1,i), self%vh(2,i), self%vh(3,i), &
                                       self%a(i), self%e(i), self%inc(i),  &
@@ -897,7 +910,7 @@ contains
    end subroutine swiftest_orbel_xv2el_vec 
 
 
-   pure module subroutine swiftest_orbel_xv2el(mu, px, py, pz, vx, vy, vz, a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf)
+   pure module subroutine swiftest_orbel_xv2el(mu, rx, ry, rz, vx, vy, vz, a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf)
       !! author: David A. Minton
       !!
       !! Compute osculating orbital elements from relative Cartesian position and velocity
@@ -915,7 +928,7 @@ contains
       implicit none
       ! Arguments
       real(DP), intent(in)  :: mu    !! Gravitational constant
-      real(DP), intent(in)  :: px,py,pz    !! Position vector
+      real(DP), intent(in)  :: rx,ry,rz    !! Position vector
       real(DP), intent(in)  :: vx,vy,vz !! Velocity vector
       real(DP), intent(out) :: a     !! semimajor axis
       real(DP), intent(out) :: e     !! eccentricity
@@ -930,8 +943,7 @@ contains
       real(DP), intent(out) :: capf  !! hyperbolic anomaly (hyperbolic orbits)
       ! Internals
       integer(I4B) :: iorbit_type
-      real(DP)   :: r, v2, h2, h, rdotv, energy, fac, u, w, cw, sw, face, tmpf, sf, cf, rdot, h_over_r2
-      real(DP), dimension(NDIM) :: hvec, x, v
+      real(DP)   :: hx, hy, hz, r, v2, h2, h, rdotv, energy, fac, u, w, cw, sw, face, tmpf, sf, cf, rdot
 
       a = 0.0_DP
       e = 0.0_DP
@@ -944,29 +956,37 @@ contains
       f = 0.0_DP
       cape = 0.0_DP
       capf = 0.0_DP
-      x = [px, py, pz]
-      v = [vx, vy, vz]
-      r = .mag. x(:)
-      v2 = dot_product(v(:), v(:))
-      hvec = x(:) .cross. v(:)
-      h2 = dot_product(hvec(:), hvec(:)) 
-      h = .mag. hvec(:)
+
+      hx = ry*vz - rz*vy
+      hy = rz*vx - rx*vz
+      hz = rx*vy - ry*vx
+      h2 = hx*hx + hy*hy +hz*hz
+      h  = sqrt(h2)
+      if(hz>h) then                 ! Hal's fix
+         hz = h
+         hx = 0.0_DP
+         hy = 0.0_DP
+      endif
       if (h2 <= 10 * tiny(0.0_DP)) return
-      rdotv = dot_product(x(:), v(:))
+      h = SQRT(h2)
+
+      r = sqrt(rx*rx + ry*ry + rz*rz)
+      v2 = vx*vx + vy*vy + vz*vz
+      rdotv = rx*vx + ry*vy + rz*vz
       energy = 0.5_DP * v2 - mu / r
-      fac = hvec(3) / h
+      fac = hz / h
       if (fac < -1.0_DP) then
          inc = PI
       else if (fac < 1.0_DP) then
          inc = acos(fac)
       end if
-      fac = sqrt(hvec(1)**2 + hvec(2)**2) / h
+      fac = sqrt(hx**2 + hy**2) / h
       if (fac**2 < TINYVALUE) then
-         u = atan2(py, px)
-         if (hvec(3) < 0.0_DP) u = -u
+         u = atan2(ry, rx)
+         if (hz < 0.0_DP) u = -u
       else
-         capom = atan2(hvec(1), -hvec(2))
-         u = atan2(pz / sin(inc), px * cos(capom) + py * sin(capom))
+         capom = atan2(hx, -hy)
+         u = atan2(rz / sin(inc), rx * cos(capom) + ry * sin(capom))
       end if
       if (capom < 0.0_DP) capom = capom + TWOPI
       if (u < 0.0_DP) u = u + TWOPI

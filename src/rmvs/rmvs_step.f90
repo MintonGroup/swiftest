@@ -202,6 +202,10 @@ contains
                call tp%step(nbody_system, param, outer_time, dto)
                tp%lfirst = lfirsttp
             else
+               if (param%loblatecb) then
+                  call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rbeg, pl%lmask, pl%outer(outer_index-1)%aobl, pl%Gmass, cb%aoblbeg)
+                  call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rend, pl%lmask, pl%outer(outer_index)%aobl, pl%Gmass, cb%aoblend)
+               end if
                call tp%step(nbody_system, param, outer_time, dto)
             end if
             do j = 1, npl
@@ -537,9 +541,8 @@ contains
       integer(I4B),               intent(in)    :: ipleP     !!  index of RMVS planet being closely encountered
       class(swiftest_parameters), intent(in)    :: param    !! Current run configuration parameters
       ! Internals
-      integer(I4B)              :: i, id1, id2
-      real(DP)                  :: r2, mu, rhill2, vdotr, a, peri, capm, tperi, rpl
-      real(DP), dimension(NDIM) :: rh1, rh2, vh1, vh2
+      integer(I4B)              :: i
+      real(DP)                  :: r2, mu, rhill2, vdotr, a, peri, capm, tperi
 
       rhill2 = pl%rhill(ipleP)**2
       mu = pl%Gmass(ipleP)

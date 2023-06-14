@@ -25,12 +25,10 @@ contains
 
       select type(source)
       class is (symba_pl)
-         associate(nold => self%nbody, nsrc => source%nbody)
-            call swiftest_util_append(self%levelg, source%levelg, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%levelm, source%levelm, nold, nsrc, lsource_mask)
+         call util_append(self%levelg, source%levelg, lsource_mask=lsource_mask)
+         call util_append(self%levelm, source%levelm, lsource_mask=lsource_mask)
 
-            call swiftest_util_append_pl(self, source, lsource_mask) ! Note: helio_pl does not have its own append method, so we skip back to the base class
-         end associate
+         call swiftest_util_append_pl(self, source, lsource_mask) ! Note: helio_pl does not have its own append method, so we skip back to the base class
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class symba_pl or its descendents!"
          call base_util_exit(FAILURE)
@@ -53,12 +51,10 @@ contains
 
       select type(source)
       class is (symba_tp)
-         associate(nold => self%nbody, nsrc => source%nbody)
-            call swiftest_util_append(self%levelg, source%levelg, nold, nsrc, lsource_mask)
-            call swiftest_util_append(self%levelm, source%levelm, nold, nsrc, lsource_mask)
+         call util_append(self%levelg, source%levelg, lsource_mask=lsource_mask)
+         call util_append(self%levelm, source%levelm, lsource_mask=lsource_mask)
 
-            call swiftest_util_append_tp(self, source, lsource_mask) ! Note: helio_tp does not have its own append method, so we skip back to the base class
-         end associate
+         call swiftest_util_append_tp(self, source, lsource_mask) ! Note: helio_tp does not have its own append method, so we skip back to the base class
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class symba_tp or its descendents!"
          call base_util_exit(FAILURE)
@@ -75,8 +71,6 @@ contains
       implicit none
       ! Arguments
       class(symba_pl),  intent(inout) :: self !! SyMBA massive body object
-      ! Internals
-      integer(I4B) :: i
 
       if (allocated(self%levelg)) deallocate(self%levelg)
       if (allocated(self%levelm)) deallocate(self%levelm)
@@ -134,8 +128,8 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (symba_pl)
-            call swiftest_util_fill(keeps%levelg, inserts%levelg, lfill_list)
-            call swiftest_util_fill(keeps%levelm, inserts%levelm, lfill_list)
+            call util_fill(keeps%levelg, inserts%levelg, lfill_list)
+            call util_fill(keeps%levelm, inserts%levelm, lfill_list)
 
             call swiftest_util_fill_pl(keeps, inserts, lfill_list)  ! Note: helio_pl does not have its own fill method, so we skip back to the base class
          class default
@@ -163,9 +157,9 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (symba_tp)
-            call swiftest_util_fill(keeps%nplenc, inserts%nplenc, lfill_list)
-            call swiftest_util_fill(keeps%levelg, inserts%levelg, lfill_list)
-            call swiftest_util_fill(keeps%levelm, inserts%levelm, lfill_list)
+            call util_fill(keeps%nplenc, inserts%nplenc, lfill_list)
+            call util_fill(keeps%levelg, inserts%levelg, lfill_list)
+            call util_fill(keeps%levelm, inserts%levelm, lfill_list)
             
             call swiftest_util_fill_tp(keeps, inserts, lfill_list) ! Note: helio_tp does not have its own fill method, so we skip back to the base class
          class default
@@ -223,8 +217,8 @@ contains
       class(symba_pl), intent(inout) :: self  !! SyMBA massive body object
       integer(I4B),    intent(in)    :: nnew  !! New size neded
 
-      call swiftest_util_resize(self%levelg, nnew)
-      call swiftest_util_resize(self%levelm, nnew)
+      call util_resize(self%levelg, nnew)
+      call util_resize(self%levelm, nnew)
 
       call swiftest_util_resize_pl(self, nnew)
 
@@ -240,8 +234,8 @@ contains
       class(symba_tp), intent(inout) :: self  !! SyMBA test particle object
       integer(I4B),    intent(in)    :: nnew  !! New size neded
 
-      call swiftest_util_resize(self%levelg, nnew)
-      call swiftest_util_resize(self%levelm, nnew)
+      call util_resize(self%levelg, nnew)
+      call util_resize(self%levelm, nnew)
 
       call swiftest_util_resize_tp(self, nnew)
 
@@ -273,7 +267,7 @@ contains
    end subroutine symba_util_set_renc
 
 
-   module subroutine symba_util_setup_initialize_system(self, param)
+   module subroutine symba_util_setup_initialize_system(self, system_history, param)
       !! author: David A. Minton
       !!
       !! Initialize an SyMBA nbody system from files and sets up the planetocentric structures.
@@ -281,8 +275,9 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(symba_nbody_system),  intent(inout) :: self    !! SyMBA nbody_system object
-      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
+      class(symba_nbody_system),               intent(inout) :: self           !! SyMBA nbody_system object
+      class(swiftest_storage),    allocatable, intent(inout) :: system_history !! Stores the system history between output dumps
+      class(swiftest_parameters),              intent(inout) :: param          !! Current run configuration parameters 
       ! Internals
       type(encounter_storage)  :: encounter_history
       type(collision_storage)  :: collision_history
@@ -291,7 +286,7 @@ contains
       call collision_history%setup(4096)
       ! Call parent method
       associate(nbody_system => self)
-         call helio_util_setup_initialize_system(nbody_system, param)
+         call helio_util_setup_initialize_system(nbody_system, system_history, param)
          call nbody_system%pltp_encounter%setup(0_I8B)
          call nbody_system%plpl_encounter%setup(0_I8B)
          call nbody_system%plpl_collision%setup(0_I8B)
@@ -355,8 +350,6 @@ contains
       class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
       integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
-      ! Internals
-      integer(I4B) :: i
 
       !> Call allocation method for parent class. 
       call self%helio_pl%setup(n, param) 
@@ -422,9 +415,9 @@ contains
       associate(pl => self, npl => self%nbody)
          select case(sortby)
          case("levelg")
-            call swiftest_util_sort(direction * pl%levelg(1:npl), ind)
+            call util_sort(direction * pl%levelg(1:npl), ind)
          case("levelm")
-            call swiftest_util_sort(direction * pl%levelm(1:npl), ind)
+            call util_sort(direction * pl%levelm(1:npl), ind)
 
          case default ! Look for components in the parent class
             call swiftest_util_sort_pl(pl, sortby, ascending)
@@ -463,11 +456,11 @@ contains
       associate(tp => self, ntp => self%nbody)
          select case(sortby)
          case("nplenc")
-            call swiftest_util_sort(direction * tp%nplenc(1:ntp), ind)
+            call util_sort(direction * tp%nplenc(1:ntp), ind)
          case("levelg")
-            call swiftest_util_sort(direction * tp%levelg(1:ntp), ind)
+            call util_sort(direction * tp%levelg(1:ntp), ind)
          case("levelm")
-            call swiftest_util_sort(direction * tp%levelm(1:ntp), ind)
+            call util_sort(direction * tp%levelm(1:ntp), ind)
          case default ! Look for components in the parent class
             call swiftest_util_sort_tp(tp, sortby, ascending)
             return
@@ -491,8 +484,8 @@ contains
       integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
 
       associate(pl => self, npl => self%nbody)
-         call swiftest_util_sort_rearrange(pl%levelg,     ind, npl)
-         call swiftest_util_sort_rearrange(pl%levelm,     ind, npl)
+         call util_sort_rearrange(pl%levelg,     ind, npl)
+         call util_sort_rearrange(pl%levelm,     ind, npl)
          call swiftest_util_sort_rearrange_pl(pl,ind)
       end associate
 
@@ -511,9 +504,9 @@ contains
       integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
 
       associate(tp => self, ntp => self%nbody)
-         call swiftest_util_sort_rearrange(tp%nplenc, ind, ntp)
-         call swiftest_util_sort_rearrange(tp%levelg, ind, ntp)
-         call swiftest_util_sort_rearrange(tp%levelm, ind, ntp)
+         call util_sort_rearrange(tp%nplenc, ind, ntp)
+         call util_sort_rearrange(tp%levelg, ind, ntp)
+         call util_sort_rearrange(tp%levelm, ind, ntp)
 
          call swiftest_util_sort_rearrange_tp(tp,ind)
       end associate
@@ -539,8 +532,8 @@ contains
       associate(keeps => self)
          select type(discards)
          class is (symba_pl)
-            call swiftest_util_spill(keeps%levelg, discards%levelg, lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%levelm, discards%levelm, lspill_list, ldestructive)
+            call util_spill(keeps%levelg, discards%levelg, lspill_list, ldestructive)
+            call util_spill(keeps%levelm, discards%levelm, lspill_list, ldestructive)
 
             call swiftest_util_spill_pl(keeps, discards, lspill_list, ldestructive)
          class default
@@ -570,9 +563,9 @@ contains
       associate(keeps => self)
          select type(discards)
          class is (symba_tp)
-            call swiftest_util_spill(keeps%nplenc, discards%nplenc, lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%levelg, discards%levelg, lspill_list, ldestructive)
-            call swiftest_util_spill(keeps%levelm, discards%levelm, lspill_list, ldestructive)
+            call util_spill(keeps%nplenc, discards%nplenc, lspill_list, ldestructive)
+            call util_spill(keeps%levelg, discards%levelg, lspill_list, ldestructive)
+            call util_spill(keeps%levelm, discards%levelm, lspill_list, ldestructive)
 
             call swiftest_util_spill_tp(keeps, discards, lspill_list, ldestructive)
          class default

@@ -73,7 +73,11 @@ contains
       real(DP)                                  :: beta, rjmag4
      
       agr(:,:) = 0.0_DP
+#ifdef DOCONLOC
+      do concurrent (i = 1:n, lmask(i)) shared(lmask,x,mu,agr,inv_c2) local(rjmag4,beta)
+#else
       do concurrent (i = 1:n, lmask(i))
+#endif
          rjmag4 = (dot_product(x(:, i), x(:, i)))**2
          beta = -mu(i)**2 * inv_c2 
          agr(:, i) = 2 * beta * x(:, i) / rjmag4
@@ -83,7 +87,7 @@ contains
    end subroutine swiftest_gr_kick_getacch
 
 
-   pure module subroutine swiftest_gr_p4_pos_kick(param, x, v, dt)
+   pure elemental module subroutine swiftest_gr_p4_pos_kick(inv_c2, rx, ry, rz, vx, vy, vz, dt)
       !! author: David A. Minton
       !!
       !! Position kick due to p**4 term in the post-Newtonian correction
@@ -96,17 +100,21 @@ contains
       !! Adapted from David A. Minton's Swifter routine gr_whm_p4.f90  
       implicit none
       ! Arguments
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-      real(DP), dimension(:),     intent(inout) :: x     !! Position vector
-      real(DP), dimension(:),     intent(in)    :: v     !! Velocity vector
-      real(DP),                   intent(in)    :: dt    !! Step size
+      real(DP), intent(in)    :: inv_c2     !! One over speed of light squared (1/c**2)
+      real(DP), intent(inout) :: rx, ry, rz !! Position vector
+      real(DP), intent(in)    :: vx, vy, vz !! Velocity vector
+      real(DP), intent(in)    :: dt         !! Step size
       ! Internals
-      real(DP), dimension(NDIM)             :: dr
-      real(DP)                              :: vmag2
+      real(DP) :: drx, dry, drz
+      real(DP) :: vmag2
 
-      vmag2 = dot_product(v(:), v(:)) 
-      dr(:) = -2 * param%inv_c2 * vmag2 * v(:)
-      x(:) = x(:) + dr(:) * dt
+      vmag2 = vx*vx + vy*vy + vz*vz
+      drx = -2 * inv_c2 * vmag2 * vx
+      dry = -2 * inv_c2 * vmag2 * vy
+      drz = -2 * inv_c2 * vmag2 * vz
+      rx = rx + drx * dt
+      ry = ry + dry * dt
+      rz = rz + drz * dt
 
       return
    end subroutine swiftest_gr_p4_pos_kick

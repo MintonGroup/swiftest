@@ -1,0 +1,22 @@
+name: swiftest-env
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - numpy
+  - scipy
+  - matplotlib
+  - pandas
+  - xarray
+  - h5netcdf
+  - netcdf4
+  - dask
+  - bottleneck
+  - astropy
+  - astroquery
+  - tqdm
+  - x264
+  - ffmpeg
+  - conda-build
