@@ -79,7 +79,7 @@ $ cd build
 As mentioned in the **System Requirements** section, Swiftest requires the NetCDF and NetCDF Fortran libraries to be installed prior to compilation. If the libraries are installed in the standard library location on your machine, CMake should be able to find the libraries without specifying the path. However, if CMake struggles to find the NetCDF libraries, there are two ways to set the path to these libraries.
 
 1. Create an environment variable called ```NETCDF_FORTRAN_HOME``` that contains the path to the location where the libraries are installed
-2.  Set the path at the time of compilation using ```-CMAKE_PREFIX_PATH=/path/to/netcdf/```
+2.  Set the path at the time of compilation using ```-DCMAKE_PREFIX_PATH=/path/to/netcdf/```
 
 CMake allows the user to specify a set of compiler flags to use during compilation. We define five sets of compiler flags: release, testing, profile, math, and debug. To view and/or edit the flags included in each set, see ```swiftest/cmake/Modules/SetFortranFlags.cmake```.
 
