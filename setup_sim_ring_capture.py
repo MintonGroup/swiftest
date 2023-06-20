@@ -9,8 +9,8 @@ seed = None
 rng = np.random.default_rng(seed=seed)
 n_bodies = int(1e4) # number of planet bodies
 array_shift = np.random.randint(0, n_bodies)
-tstop = 10 # rotation periods
-dt = 1.0e-5
+tstop = 100 # rotation periods
+dt = 1.0e-4
 dt_unit = 'Haumea_rot_period'
 # dt_unit = 'd'
 dt_max = 0
@@ -76,22 +76,29 @@ y = random_pos_mag * np.sin(random_theta) * np.sin(random_phi)
 z = random_pos_mag * np.cos(random_theta) * np.sign(z_sign)
 random_pos_vec = np.array([x, y, z]).T
 
-# set up the velocity vectors pointing radially away from the central body.
+# set up the velocity vectors (pointing radially away from the central body if needed)
 
-# random_vel_mag = np.sqrt(mass * sim.GU / random_pos_mag) * (rng.random(n_bodies) * (1.15 - 0.85) + 0.85) # randomize the velocity by 0.9 - 1.1 times the keplerian velocity
-
+# Radial Velocity
 v_escape = np.sqrt(2 * sim.GU * mass / radius)
 alpha = rng.random(n_bodies) * (0.95 - 0.8) + 0.8 # numerical scaling for initial velocity
 random_vel_mag = np.sqrt(alpha * v_escape**2 + 2 * sim.GU * mass * (1 / random_pos_mag - 1 / radius)) # scale the velocity with distance
+
+# # Tangential velocity
+# # random_vel_mag = np.sqrt(mass * sim.GU / random_pos_mag) * (rng.random(n_bodies) * (1.15 - 0.85) + 0.85) # randomize the velocity by 0.9 - 1.1 times the keplerian velocity
+
+# v_orbital = np.sqrt(sim.GU * mass / (radius + np.average(random_pos_mag)))
+# alpha = rng.random(n_bodies) * (1.1 - 0.85) + 0.85 # numerical scaling for initial velocity
+# random_vel_mag = np.sqrt(alpha * v_orbital)
 
 x = x * random_vel_mag / random_pos_mag
 y = y * random_vel_mag / random_pos_mag
 z = z * random_vel_mag / random_pos_mag
 
 # rotate the velocity vectors (degrees)
-# 85 - 95 degrees to represent orbiting particles for tangential motion
-angle = 20
-rot_angle = np.deg2rad(rng.random(n_bodies) * (angle - (-1.0 * angle)) + (-1.0 * angle)) # rotate by <<range>> degrees randomly
+    # 85 - 95 degrees to represent orbiting particles for tangential motion
+angle = 0.0
+range = 40
+rot_angle = np.deg2rad(rng.random(n_bodies) * (range) + (angle - range/2)) # rotate by "angle" degrees randomly with a "range" variation about the "angle"
 
 x_tmp = x
 y_tmp = y
@@ -163,7 +170,7 @@ plt.xlim([0, np.max(random_pos_mag) + 2])
 plt.plot([cb_ax_long, cb_ax_long], [0, ymax], '-', color = 'orange')
 plt.text(cb_ax_long + 0.1, ymax / 5, s = r'Longest CB Axis', color = 'orange', rotation = 'vertical')
 plt.plot([-7, 7], [v_escape, v_escape], '-', color = 'black')
-plt.text(1, v_escape + 0.5, s = 'Escape Velocity', color = 'black')
+# plt.text(1, v_escape + 0.5, s = 'Escape Velocity', color = 'black')
 
 plt.savefig(simdir + '/r_vs_v_initial.png')
 

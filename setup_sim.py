@@ -6,14 +6,14 @@ import datetime
 
 seed = None
 rng = np.random.default_rng(seed=seed)
-tstop = 1e1 * 365.25 # 1e3 * 365.25 # years
-dt = 90.0 / 60.0 / 24 / 10 # 1/10 * 90 min to days
+tstop = 1e3 * 365.25                    # years to days
+dt = 90.0 / 60.0 / 24 / 10              # 1/10 * 90 min to days
 dt_unit = 'Years'
 dt_max = 0
 
 scratch_dr = '/scratch/bell/anand43/swiftest_runs/'
 body_dr = 'tests/'
-simdir = 'test' # '2e3_part_radial'
+simdir = 'moon_0inc_rotated_obl_test2' # '2e3_part_radial'
 simdir = scratch_dr + body_dr + simdir
 
 # unit conversion factors
@@ -52,26 +52,26 @@ tstep = datetime.timedelta(days=1)
 tend = tstart + tstep
 ephemerides_end_date = tend.isoformat()
 ephemerides_step = '1d'
-iss_obj = Horizons(id = '-125544', location = '399', epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
-                                       'step': ephemerides_step}) # 399 = Earth geocenter; -125544 = ISS
+obj = Horizons(id = '301', location = '399', epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
+                                       'step': ephemerides_step}) # IDs: 399 = Earth geocenter; -125544 = ISS; 301 = Moon/Luna
 
-iss_el = iss_obj.elements()
-iss_el['a'].convert_unit_to('km')
-random_a = iss_el['a'][0]
-random_e = iss_el['e'][0]
-random_i = iss_el['incl'][0]
-random_capom = iss_el['Omega'][0]
-random_omega = iss_el['w'][0]
-random_capm = iss_el['M'][0]
+obj_el = obj.elements()
+obj_el['a'].convert_unit_to('km')
+random_a = obj_el['a'][0]
+random_e = obj_el['e'][0]
+random_i = 23.4392811 #obj_el['incl'][0]
+random_capom = obj_el['Omega'][0]
+random_omega = obj_el['w'][0]
+random_capm = obj_el['M'][0]
 random_radius = 100e-3 # km
-random_mass = 419725 # km
+random_mass = 419725 # kg
 
 earth_radius = 6371.01 # km
 earth_mass = 5.97219e24 # kg
 earth_J2 = 1083e-6 # from Murray and Dermott txt. bk.
 earth_J4 = -2e-6 # from Murray and Dermott txt. bk.
-earth_tilt = np.deg2rad(23.4392811)
-earth_rot = np.array([0.0, np.sin(earth_tilt), np.cos(earth_tilt)]) * 2 * np.pi / (24 * 60 * 60.0)
+earth_tilt = np.deg2rad(-23.4392811)
+earth_rot = np.array([0.0, np.sin(earth_tilt), np.cos(earth_tilt)]) * 2 * np.pi / (24 * 60 * 60.0) # rad/s
 earth_rot = [earth_rot]
 
 # # check that dt < dt_max
@@ -91,20 +91,26 @@ earth_rot = [earth_rot]
 
 sim = swiftest.Simulation(simdir = simdir, integrator = "symba", tstop = tstop, dt = dt, istep_out = 1e7, dump_cadence = 10, rotation = True, collision_model = "FRAGGLE", MU = 'kg', DU2M = 1e3, TU = 'd', rmin = earth_radius)
 # sim.add_solar_system_body(["Earth"], date = ephemerides_start_date)
+
 # Manually add Earth as a CB because no J2 or J4 term is added otherwise
 sim.add_body(name = "Earth", id = 1, a = 0, e = 0, inc = 0, capom = 0, omega = 0, capm = 0, mass = earth_mass, radius = earth_radius, J2 = earth_J2 * earth_radius**2, J4 = earth_J4 * earth_radius**4, rot = earth_rot)
 
 # sim.add_body(name = 'Centaur', id = 1, mass = density * volume, radius = radius, a = 0, e = 0, inc = 0, capom = 0, omega = 0, capm = 0)
-sim.add_body(name = "ISS", id = np.arange(id_start, n_bodies + id_start, step = 1), a = random_a, e = random_e, inc = random_i, capom = random_capom, omega = random_omega, capm = random_capm, mass = random_mass, radius = random_radius)
-# sim.get_parameter()
-# sim.set_parameter()
+
+sim.add_body(name = "Moon", id = np.arange(id_start, n_bodies + id_start, step = 1), a = random_a, e = random_e, inc = random_i, capom = random_capom, omega = random_omega, capm = random_capm, mass = random_mass, radius = random_radius)
+
 sim.write_param()
 sim.save()
 # sim.run()
 
 print(f'total number of steps ={int(tstop / dt)}')
-J2 = sim.init_cond.isel(name = 0)['j2rp2'].values
-print(f'J2 in init_cond = {J2}')
-d = sim.data.isel(name = 0)
-J2 = d['j2rp2'].values
-print(f'J2 for central body = {J2}')
+# J2 = sim.init_cond.isel(name = 0)['j2rp2'].values
+# print(f'J2 in init_cond = {J2}')
+# d = sim.data.isel(name = 0)
+# J2 = d['j2rp2'].values
+# print(f'J2 for central body = {J2}')
+print(f'lon_asc_node = {random_capom}')
+print(f'arg_peri = {random_omega}')
+print(f'inclination = {random_i}')
+print(f'mean anomaly = {random_capm}')
+print(f'earth rot = {earth_rot}')

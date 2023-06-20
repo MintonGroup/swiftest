@@ -996,10 +996,10 @@ module swiftest
 
       module subroutine swiftest_obl_rot_matrix(n, rot, rot_matrix, rot_matrix_inv)
          implicit none
-         integer(I4B),             intent(in)           :: n               !! Number of bodies
-         real(DP), dimension(NDIM), intent(in)       :: rot             !! Central body rotation matrix
-         real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix ! rotation matrix and its inverse
-         real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix_inv ! inverse of the rotation matrix
+         integer(I4B),             intent(in)           :: n              !! Number of bodies
+         real(DP), dimension(NDIM), intent(in)       :: rot               !! Central body rotation vector
+         real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix     !! rotation matrix 
+         real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix_inv !! inverse of the rotation matrix
       end subroutine swiftest_obl_rot_matrix
 
       module subroutine swiftest_obl_acc(n, GMcb, j2rp2, j4rp4, rh, lmask, aobl, rot, GMpl, aoblcb)

@@ -49,8 +49,8 @@ contains
       implicit none
       ! Arguments
       integer(I4B),             intent(in)           :: n               !! Number of bodies
-      real(DP), dimension(NDIM), intent(in)          :: rot             !! Central body rotation matrix
-      real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix      !! rotation matrix and its inverse
+      real(DP), dimension(NDIM), intent(in)          :: rot             !! Central body rotation vector
+      real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix      !! rotation matrix
       real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix_inv  !! inverse of the rotation matrix
 
       ! Internals
