@@ -28,18 +28,49 @@ from typing import (
     Any
 )
 
-def clm_from_ellipsoid():
+def clm_from_ellipsoid(lmax, mass, density, a, b = None, c = None):
     """
-    Initializes a Swiftest dataset containing the major planets of the Solar System at a particular data from JPL/Horizons
+    Creates and returns the gravity coefficients for an ellipsoid with principal axes a, b, c upto a certain maximum degree lmax. Uses pyshtools.
+    No units necessary for a, b, & c. However, they need to be in the same units (DU).
 
     Parameters
     ----------
-    param : dict
-        Swiftest paramuration parameters. This method uses the unit conversion factors to convert from JPL's AU-day system into the system specified in the param file
-    ephemerides_start_date : string
-        Date to use when obtaining the ephemerides in the format YYYY-MM-DD.
+    lmax : int
+        The maximum spherical harmonic degree resolvable by the grid.
+    mass : float
+        mass of the central body
+    density : float
+        density of the central body
+    a : float 
+        length of the pricipal axis aligned with the x axis
+    b : float, optional, default = a
+        length of the pricipal axis aligned with the y axis
+    c : float, optional, default = b
+        length of the pricipal axis aligned with the z axis
 
     Returns
     -------
-    ds : xarray dataset
+    clm : ndarry, shape (2, lmax+1, lmax+1)
+        numpy ndarray of the gravitational potential spherical harmonic coefficients. 
+        This is a three-dimensional array formatted as coeffs[i, degree, order], 
+        where i=0 corresponds to positive orders and i=1 to negative orders.
+
     """
+    G = swiftest.constants.GC
+    Gmass = G * mass # SHTOOLS uses an SI G value, and divides it before using the mass
+            # FIND A BETTER WAY TO CHANGE UNITS
+
+    # cap lmax to 20 to ensure fast performance
+    lmax_limit = 20
+    if(lmax > lmax_limit): # FIND A BETTER WAY to judge this cut off point, i.e., relative change between coefficients
+        lmax = lmax_limit
+        print(f'Setting maximum spherical harmonic degree to {lmax_limit}')
+
+    # create shape grid and convert to Spherical Harmonics (.expand())
+    shape_SH = pysh.SHGrid.from_ellipsoid(lmax = lmax, a = a, b = b, c = c).expand()
+
+    # get coefficients
+    clm_class = pysh.SHGravcoeffs.from_shape(shape_SH, rho = density, gm = Gmass)
+    clm = clm_class.to_array()
+
+    return clm
