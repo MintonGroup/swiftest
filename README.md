@@ -46,7 +46,7 @@ Parallelization in Swiftest is done with OpenMP. Version 3.1.4 or higher is nece
 The easiest way to get Swiftest on your machine is to clone the GitHub repository. To do so, open a terminal window and type the following:
 
 ```
-$ git clone https://github.itap.purdue.edu/MintonGroup/swiftest.git
+$ git clone https://github.com/carlislewishard/swiftest.git
 ```
 
 If your cloned version is not already set to the master branch:
