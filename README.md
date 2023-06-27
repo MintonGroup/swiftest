@@ -46,7 +46,7 @@ Parallelization in Swiftest is done with OpenMP. Version 3.1.4 or higher is nece
 The easiest way to get Swiftest on your machine is to clone the GitHub repository. To do so, open a terminal window and type the following:
 
 ```
-$ git clone https://github.itap.purdue.edu/MintonGroup/swiftest.git
+$ git clone https://github.com/carlislewishard/swiftest.git
 ```
 
 If your cloned version is not already set to the master branch:
@@ -85,7 +85,7 @@ CMake allows the user to specify a set of compiler flags to use during compilati
 
 As a general rule, the release flags are fully optimized and best used when running Swiftest with the goal of generating results. This is the default set of flags. When making changes to the Swiftest source code, it is best to compile Swiftest using the debug set of flags. You may also define your own set of compiler flags. 
 
-To build Swiftest with the release flags (default), type the following:
+To build Swiftest with the release flags (default) using the Intel fortran compiler (ifort), type the following:
 ```
 $ cmake ..
 ```
@@ -96,6 +96,11 @@ $ cmake .. -DCMAKE_BUILD_TYPE=DEBUG
 To build with another set of flags, simply replace ```DEBUG``` in the above line with the name of the flags you wish to use. 
 
 Add ```-CMAKE_PREFIX_PATH=/path/to/netcdf/``` to these commands as needed.
+
+If using the GCC fortran compiler (gfortran), add the following flags:
+```
+cmake -DCMAKE_Fortran_FLAGS="-I/usr/lib64/gfortran/modules/ -ffree-line-length-512" ...
+```
 
 After building Swiftest, make the executable using: 
 
