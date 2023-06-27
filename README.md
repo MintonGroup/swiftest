@@ -99,11 +99,14 @@ Add ```-CMAKE_PREFIX_PATH=/path/to/netcdf/``` to these commands as needed.
 
 If using the GCC fortran compiler (gfortran), add the following flags:
 ```
-cmake -DCMAKE_Fortran_FLAGS="-I/usr/lib64/gfortran/modules/ -ffree-line-length-512" ...
+-DCMAKE_Fortran_FLAGS="-I/usr/lib64/gfortran/modules/ -ffree-line-length-512"
+```
+You can manually specify the compiler you wish to use with the following flag:
+```
+c-DCMAKE_Fortran_COMPILER=$(which ifort)
 ```
 
 After building Swiftest, make the executable using: 
-
 ```
 $ make
 ```
