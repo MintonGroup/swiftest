@@ -52,7 +52,7 @@ print("Final Mass Error: ", GM_final)
 
 # Determine if the errors are within bounds
 L_limit = 1e-10
-E_limit = 1e-4
+E_limit = 1e-5
 GM_limit = 1e-14
 
 lerror = 0
