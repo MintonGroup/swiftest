@@ -11,13 +11,14 @@ README.txt
 
 Swiftest Example : Basic_Simulation
 Author           : Carlisle Wishard and David Minton
-Date             : December 6, 2022
+Date             : June 27, 2023
 
 Included in the Basic_Simulation example directory are the following files:
 
 	- README.txt            : This file
 	- initial_conditions.py : A Python Script that generates and runs a set of initial conditions.
 	- output_reader.py      : A Python Script that processes out.nc and generates output.eps
+        - errors.py             : A Python Script that processes out.nc and reports the simulation errors to the terminal
 
 This example is intended to be run with Swiftest SyMBA. For details on how to generate, run, and analyze this example, 
 see the Swiftest User Manual.
