@@ -17,7 +17,9 @@ Swiftest also includes the collisional fragmentation algorithm **Fraggle**, an a
 
 #### Installation
 
-**System Requirements**
+In order to use Swiftest, you need to have a working `swiftest_driver` executable. Currently, this can be obtained by either compiling the source code on the system you plan to run simulations on (fastest), or by running it from a Docker/Singularity container compiled for an x86_64 CPU using the Intel Fortran compiler (slower) or compiled using the GNU/gfortran compiler (slowest). 
+
+**Building the `swiftest_driver` executable**
 
 Swiftest is designed to be downloaded, compiled, and run on a Linux based system. It is untested on Windows systems.
 
@@ -44,7 +46,7 @@ Parallelization in Swiftest is done with OpenMP. Version 3.1.4 or higher is nece
 The easiest way to get Swiftest on your machine is to clone the GitHub repository. To do so, open a terminal window and type the following:
 
 ```
-$ git clone https://github.itap.purdue.edu/MintonGroup/swiftest.git
+$ git clone https://github.com/carlislewishard/swiftest.git
 ```
 
 If your cloned version is not already set to the master branch:
@@ -83,7 +85,7 @@ CMake allows the user to specify a set of compiler flags to use during compilati
 
 As a general rule, the release flags are fully optimized and best used when running Swiftest with the goal of generating results. This is the default set of flags. When making changes to the Swiftest source code, it is best to compile Swiftest using the debug set of flags. You may also define your own set of compiler flags. 
 
-To build Swiftest with the release flags (default), type the following:
+To build Swiftest with the release flags (default) using the Intel fortran compiler (ifort), type the following:
 ```
 $ cmake ..
 ```
@@ -95,13 +97,44 @@ To build with another set of flags, simply replace ```DEBUG``` in the above line
 
 Add ```-CMAKE_PREFIX_PATH=/path/to/netcdf/``` to these commands as needed.
 
-After building Swiftest, make the executable using: 
+If using the GCC fortran compiler (gfortran), add the following flags:
+```
+-DCMAKE_Fortran_FLAGS="-I/usr/lib64/gfortran/modules/ -ffree-line-length-512"
+```
+You can manually specify the compiler you wish to use with the following flag:
+```
+c-DCMAKE_Fortran_COMPILER=$(which ifort)
+```
 
+After building Swiftest, make the executable using: 
 ```
 $ make
 ```
 
 The Swiftest executable, called ```swiftest_driver```, should now be created in the ```/swiftest/bin/``` directory.
+
+**Download the `swiftest_driver` as a Docker or Singularity container.**
+
+The Swiftest driver is available as a Docker container on DockerHub in two versions: Intel and GNU. The Intel version was compiled for the x86_64 CPU using the Intel classic Fortran compiler. The GNU version was compliled for the x86_64 CPU using gfortran. The Intel version is faster than the GNU version (though not as fast as a native compile to the target CPU that you wish to run it on due to vectorization optimizations that Swiftest takes advantage of), however it is much larger: The Intel version is ~2.7GB while the GNU version is ~300MB. The Singularity container pulls from the same DockerHub container.
+
+To facilitate installation of the container, we provide a set of shell scripts to help automate the process of installing container versions of the executable. To install the default Intel version of the docker container from within the `swiftest\` project directory
+
+```
+$ cd docker
+$ . ./install.sh
+```
+
+To install the GNU version:
+
+```
+$ cd docker
+$ . ./install.sh gnu
+```
+
+The Singularity versions are installed the same way, just replace `cd docker` with `cd singularity` above. 
+
+Whether installing either the Docker or Singularity containers, the install script will copy an executable shell script `swiftest_driver` into `swiftest/bin/`. Not that when installing the Singularity container, the install script will set an environment variable called `SWIFTEST_SIF` that must point to the aboslute path of the container file called `swiftest_driver.sif`. To use the driver script in a future shell, rather than running the install script again, we suggest adding the environment variable definition to your shell startup script (e.g. add `export SWIFTEST_SIF="/path/to/swiftest/singularity/swiftest.sif"` to your `.zshrc`)
+
 
 **Swiftest Python Package**
 

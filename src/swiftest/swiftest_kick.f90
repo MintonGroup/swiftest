@@ -21,7 +21,6 @@ contains
       class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
       class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
       ! Internals
-      logical, save :: lfirst = .true.
 #ifdef PROFILE
       type(walltimer), save :: timer 
 #endif
@@ -136,7 +135,7 @@ contains
       integer(I8B)                      :: k
       real(DP), dimension(NDIM,npl) :: ahi, ahj
       integer(I4B) :: i, j
-      real(DP)     :: rji2, rlim2
+      real(DP)     :: rji2
       real(DP)     :: rx, ry, rz
 
       ahi(:,:) = 0.0_DP
@@ -197,7 +196,11 @@ contains
          !$omp reduction(+:ahi) & 
          !$omp reduction(-:ahj)
          do i = 1, nplm
+#ifdef DOCONLOC
+            do concurrent(j = i+1:npl) shared(i,r,radius,ahi,ahj,Gmass) local(rx,ry,rz,rji2,rlim2)
+#else
             do concurrent(j = i+1:npl)
+#endif
                rx = r(1, j) - r(1, i) 
                ry = r(2, j) - r(2, i) 
                rz = r(3, j) - r(3, i) 
@@ -208,14 +211,22 @@ contains
             end do
          end do
          !$omp end parallel do
+#ifdef DOCONLOC
+         do concurrent(i = 1:npl) shared(acc,ahi,ahj)
+#else
          do concurrent(i = 1:npl)
+#endif
             acc(:,i) = acc(:,i) + ahi(:,i) + ahj(:,i)
          end do
       else 
          !$omp parallel do default(private) schedule(static)&
          !$omp shared(npl, nplm, r, Gmass, radius, acc)
          do i = 1, nplm
+#ifdef DOCONLOC
+            do concurrent(j = 1:npl, i/=j) shared(i,r,radius,Gmass,acc) local(rx,ry,rz,rji2,rlim2,fac)
+#else
             do concurrent(j = 1:npl, i/=j)
+#endif
                rx = r(1,j) - r(1,i)
                ry = r(2,j) - r(2,i)
                rz = r(3,j) - r(3,i)
@@ -235,7 +246,11 @@ contains
             !$omp parallel do default(private) schedule(static)&
             !$omp shared(npl, nplm, r, Gmass, radius, acc)
             do i = nplm+1,npl
+#ifdef DOCONLOC
+               do concurrent(j = 1:nplm) shared(i,r,radius,Gmass,acc) local(rx,ry,rz,rji2,rlim2,fac)
+#else
                do concurrent(j = 1:nplm)
+#endif
                   rx = r(1,j) - r(1,i)
                   ry = r(2,j) - r(2,i)
                   rz = r(3,j) - r(3,i)
@@ -275,7 +290,7 @@ contains
       real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
       ! Internals
       integer(I4B) :: i, j, nplt
-      real(DP)     :: rji2, rlim2, fac, rx, ry, rz
+      real(DP)     :: rji2, fac, rx, ry, rz
       real(DP), dimension(NDIM,npl) :: ahi, ahj
       logical :: lmtiny
 
@@ -290,7 +305,11 @@ contains
          !$omp reduction(+:ahi) & 
          !$omp reduction(-:ahj)
          do i = 1, nplm
+#ifdef DOCONLOC
+            do concurrent(j = i+1:npl) shared(i,r,Gmass,ahi,ahj) local(rx,ry,rz,rji2)
+#else
             do concurrent(j = i+1:npl)
+#endif
                rx = r(1, j) - r(1, i) 
                ry = r(2, j) - r(2, i) 
                rz = r(3, j) - r(3, i) 
@@ -300,14 +319,22 @@ contains
             end do
          end do
          !$omp end parallel do
+#ifdef DOCONLOC
+         do concurrent(i = 1:npl) shared(acc,ahi,ahj)
+#else
          do concurrent(i = 1:npl)
+#endif
             acc(:,i) = acc(:,i) + ahi(:,i) + ahj(:,i)
          end do
       else 
          !$omp parallel do default(private) schedule(static)&
          !$omp shared(npl, nplm, r, Gmass, acc)
          do i = 1, nplm
+#ifdef DOCONLOC
+            do concurrent(j = 1:npl, j/=i) shared(i,r,Gmass, acc) local(rx,ry,rz,rji2,fac)
+#else
             do concurrent(j = 1:npl, j/=i)
+#endif
                rx = r(1,j) - r(1,i)
                ry = r(2,j) - r(2,i)
                rz = r(3,j) - r(3,i)
@@ -324,7 +351,11 @@ contains
             !$omp parallel do default(private) schedule(static)&
             !$omp shared(npl, nplm, r, Gmass, acc)
             do i = nplm+1,npl
+#ifdef DOCONLOC
+               do concurrent(j = 1:nplm) shared(i,r,Gmass,acc) local(rx,ry,rz,rji2,fac)
+#else
                do concurrent(j = 1:nplm)
+#endif
                   rx = r(1,j) - r(1,i)
                   ry = r(2,j) - r(2,i)
                   rz = r(3,j) - r(3,i)
@@ -369,7 +400,11 @@ contains
       !$omp reduction(-:acc)
       do i = 1, ntp
          if (lmask(i)) then
+#ifdef DOCONLOC
+            do concurrent (j = 1:npl) shared(rtp,rpl,GMpl,acc) local(rx,ry,rz,rji2)
+#else
             do concurrent (j = 1:npl)
+#endif
                rx = rtp(1, i) - rpl(1, j)
                ry = rtp(2, i) - rpl(2, j)
                rz = rtp(3, i) - rpl(3, j)

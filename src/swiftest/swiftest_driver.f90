@@ -33,7 +33,9 @@ program swiftest_driver
    param%integrator = trim(adjustl(integrator))
    param%display_style = trim(adjustl(display_style))
    call param%read_in(param_file_name)
+#ifdef COARRAY
    if (.not.param%lcoarray .and. (this_image() /= 1)) stop ! Single image mode
+#endif
 
    associate(t0       => param%t0, &
       tstart          => param%tstart, &

@@ -71,8 +71,6 @@ contains
       implicit none
       ! Arguments
       class(symba_pl),  intent(inout) :: self !! SyMBA massive body object
-      ! Internals
-      integer(I4B) :: i
 
       if (allocated(self%levelg)) deallocate(self%levelg)
       if (allocated(self%levelm)) deallocate(self%levelm)
@@ -352,8 +350,6 @@ contains
       class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
       integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
-      ! Internals
-      integer(I4B) :: i
 
       !> Call allocation method for parent class. 
       call self%helio_pl%setup(n, param) 

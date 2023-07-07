@@ -277,11 +277,16 @@ contains
       class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
       class(swiftest_cb), intent(in) :: cb   !! Swiftest central body object
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, ntp
 
       if (self%nbody == 0) return
-      associate(tp => self, ntp => self%nbody)
+      associate(tp => self)
+         ntp = self%nbody
+#ifdef DOCONLOC
+         do concurrent (i = 1:ntp, tp%status(i) /= INACTIVE) shared(cb,tp)
+#else
          do concurrent (i = 1:ntp, tp%status(i) /= INACTIVE)
+#endif
             tp%rb(:, i) = tp%rh(:, i) + cb%rb(:)
             tp%vb(:, i) = tp%vh(:, i) + cb%vb(:)
          end do
@@ -303,12 +308,17 @@ contains
       class(swiftest_pl),     intent(inout) :: self !! Swiftest massive body object
       class(swiftest_cb),  intent(inout) :: cb   !! Swiftest central body object
       ! Internals
-      integer(I4B)          :: i
+      integer(I4B)          :: i, npl
 
       if (self%nbody == 0) return
 
-      associate(pl => self, npl => self%nbody)
+      associate(pl => self)
+         npl = self%nbody
+#ifdef DOCONLOC
+         do concurrent (i = 1:npl, pl%status(i) /= INACTIVE) shared(cb,pl)
+#else
          do concurrent (i = 1:npl, pl%status(i) /= INACTIVE)
+#endif
             pl%rh(:, i) = pl%rb(:, i) - cb%rb(:)
             pl%vh(:, i) = pl%vb(:, i) - cb%vb(:)
          end do
@@ -330,12 +340,17 @@ contains
       class(swiftest_tp),     intent(inout) :: self !! Swiftest massive body object
       class(swiftest_cb),  intent(in)    :: cb   !! Swiftest central body object
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, ntp
 
       if (self%nbody == 0) return
 
-      associate(tp => self, ntp => self%nbody)
+      associate(tp => self)
+         ntp = self%nbody
+#ifdef DOCONLOC
+         do concurrent(i = 1:ntp, tp%status(i) /= INACTIVE) shared(cb,tp)
+#else
          do concurrent(i = 1:ntp, tp%status(i) /= INACTIVE)
+#endif
             tp%rh(:, i) = tp%rb(:, i) - cb%rb(:)
             tp%vh(:, i) = tp%vb(:, i) - cb%vb(:)
          end do
@@ -357,16 +372,21 @@ contains
       class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
       class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       ! Internals
-      integer(I4B)              :: i
+      integer(I4B)              :: i, npl
 
       if (self%nbody == 0) return
 
-      associate(pl => self, npl => self%nbody)
+      associate(pl => self)
+         npl = self%nbody
          cb%vb(:) = 0.0_DP
          do i = npl, 1, -1
             if (pl%status(i) /= INACTIVE) cb%vb(:) = cb%vb(:) - pl%Gmass(i) * pl%vb(:, i) / cb%Gmass
          end do
+#ifdef DOCONLOC
+         do concurrent(i = 1:npl) shared(cb,pl)
+#else
          do concurrent(i = 1:npl)
+#endif
             pl%vh(:, i) = pl%vb(:, i) - cb%vb(:)
          end do
       end associate
@@ -413,19 +433,24 @@ contains
       class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
       class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
       ! Internals
-      integer(I4B)  :: i
+      integer(I4B)  :: i, npl
       real(DP)      :: Gmtot
 
       if (self%nbody == 0) return
 
-      associate(pl => self, npl => self%nbody)
+      associate(pl => self)
+         npl = self%nbody
          Gmtot = cb%Gmass + sum(pl%Gmass(1:npl))
          cb%vb(:) = 0.0_DP
          do i = 1, npl
             cb%vb(:) = cb%vb(:) - pl%Gmass(i) * pl%vh(:, i) 
          end do
          cb%vb(:) = cb%vb(:) / Gmtot
+#ifdef DOCONLOC
+         do concurrent(i = 1:npl) shared(cb,pl)
+#else
          do concurrent(i = 1:npl)
+#endif
             pl%vb(:, i) = pl%vh(:, i) + cb%vb(:)
          end do
       end associate
@@ -508,11 +533,16 @@ contains
       class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
       class(swiftest_cb), intent(in) :: cb      !! Swiftest central body object
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, ntp
 
       if (self%nbody == 0) return
-      associate(tp => self, ntp => self%nbody)
+      associate(tp => self)
+         ntp = self%nbody
+#ifdef DOCONLOC
+         do concurrent (i = 1:ntp, tp%status(i) /= INACTIVE) shared(cb,tp)
+#else
          do concurrent (i = 1:ntp, tp%status(i) /= INACTIVE)
+#endif
             tp%rb(:, i) = tp%rh(:, i) + cb%rb(:)
          end do
       end associate
@@ -1071,20 +1101,25 @@ contains
       class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       ! Internals
-      integer(I4B) :: i, j, err
-      integer(I8B) :: k, npl
+      integer(I4B) :: err, i, j, npl
+      integer(I8B) :: k, npl8
 
-      npl = int(self%nbody, kind=I8B)
       associate(nplpl => self%nplpl)
-         nplpl = npl * (npl - 1_I8B) / 2_I8B ! number of entries in a strict lower triangle, npl x npl
+         npl = self%nbody
+         npl8 = int(npl, kind=I8B)
+         nplpl = npl8 * (npl8 - 1_I8B) / 2_I8B ! number of entries in a strict lower triangle, npl x npl
          if (param%lflatten_interactions) then
             if (allocated(self%k_plpl)) deallocate(self%k_plpl) ! Reset the index array if it's been set previously
             allocate(self%k_plpl(2, nplpl), stat=err)
             if (err /=0) then ! An error occurred trying to allocate this big array. This probably means it's too big to fit in memory, and so we will force the run back into triangular mode
                param%lflatten_interactions = .false.
             else
+#ifdef DOCONLOC
+               do concurrent (i=1:npl, j=1:npl, j>i) shared(self) local(k)
+#else
                do concurrent (i=1:npl, j=1:npl, j>i)
-                  call swiftest_util_flatten_eucl_ij_to_k(self%nbody, i, j, k)
+#endif
+                  call swiftest_util_flatten_eucl_ij_to_k(npl, i, j, k)
                   self%k_plpl(1, k) = i
                   self%k_plpl(2, k) = j
                end do
@@ -1111,17 +1146,18 @@ contains
       class(swiftest_pl),         intent(in)    :: pl    !! Swiftest massive body object
       class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
       ! Internals
-      integer(I8B) :: i, j, counter, npl, ntp
+      integer(I4B) :: i, j
+      integer(I8B) :: counter, npl8, ntp8
 
-      ntp = int(self%nbody, kind=I8B)
-      npl = int(pl%nbody, kind=I8B)
-      associate(npltp => self%npltp)
-         npltp = npl * ntp
+      associate(ntp => self%nbody, npl => pl%nbody, npltp => self%npltp)
+         npl8 = int(npl, kind=I8B)
+         ntp8 = int(ntp, kind=I8B)
+         npltp = npl8 * ntp8 
          if (allocated(self%k_pltp)) deallocate(self%k_pltp) ! Reset the index array if it's been set previously
          allocate(self%k_pltp(2, npltp))
-         do i = 1_I8B, npl
-            counter = (i - 1_I8B) * npl + 1_I8B
-            do j = 1_I8B,  ntp
+         counter = 1_I8B
+         do i = 1, npl
+            do j = 1,  ntp
                self%k_pltp(1, counter) = i
                self%k_pltp(2, counter) = j
                counter = counter + 1_I8B
@@ -1145,7 +1181,7 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters
       ! Internals
-      integer(I4B) :: i,j
+      integer(I4B) :: i,j, npl
       real(DP) :: kecb, kespincb
       real(DP), dimension(self%pl%nbody) :: kepl, kespinpl
       real(DP), dimension(NDIM,self%pl%nbody) :: Lplorbit
@@ -1153,7 +1189,8 @@ contains
       real(DP), dimension(NDIM) :: Lcborbit, Lcbspin
       real(DP), dimension(NDIM) :: h
 
-      associate(nbody_system => self, pl => self%pl, npl => self%pl%nbody, cb => self%cb)
+      associate(nbody_system => self, pl => self%pl, cb => self%cb)
+         npl = self%pl%nbody
          nbody_system%L_orbit(:) = 0.0_DP
          nbody_system%L_spin(:) = 0.0_DP
          nbody_system%L_total(:) = 0.0_DP
@@ -1171,8 +1208,14 @@ contains
          nbody_system%be_cb = -3*cb%Gmass * cb%mass / (5 * cb%radius) 
          Lcborbit(:) = cb%mass * (cb%rb(:) .cross. cb%vb(:))
 
+#ifdef DOCONLOC
+         do concurrent (i = 1:npl, pl%lmask(i)) shared(pl,Lplorbit,kepl) local(h) 
+#else
          do concurrent (i = 1:npl, pl%lmask(i))
-            h(:) = pl%rb(:,i) .cross. pl%vb(:,i)
+#endif
+            h(1) = pl%rb(2,i) * pl%vb(3,i) - pl%rb(3,i) * pl%vb(2,i)
+            h(2) = pl%rb(3,i) * pl%vb(1,i) - pl%rb(1,i) * pl%vb(3,i)
+            h(3) = pl%rb(1,i) * pl%vb(2,i) - pl%rb(2,i) * pl%vb(1,i)
 
             ! Angular momentum from orbit 
             Lplorbit(:,i) = pl%mass(i) * h(:)
@@ -1187,7 +1230,11 @@ contains
             ! For simplicity, we always assume that the rotation pole is the 3rd principal axis
             Lcbspin(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
 
+#ifdef DOCONLOC
+            do concurrent (i = 1:npl, pl%lmask(i)) shared(pl,Lplspin,kespinpl)
+#else
             do concurrent (i = 1:npl, pl%lmask(i))
+#endif
                ! Currently we assume that the rotation pole is the 3rd principal axis
                ! Angular momentum from spin
                Lplspin(:,i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(:,i)
@@ -1198,7 +1245,11 @@ contains
 
             nbody_system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), pl%lmask(1:npl)))
 
+#ifdef DOCONLOC
+            do concurrent (j = 1:NDIM) shared(nbody_system,pl,Lplspin,Lcbspin)
+#else
             do concurrent (j = 1:NDIM)
+#endif
                nbody_system%L_spin(j) = Lcbspin(j) + sum(Lplspin(j,1:npl), pl%lmask(1:npl))
             end do
          else
@@ -1219,8 +1270,11 @@ contains
          end if
 
          nbody_system%ke_orbit = 0.5_DP * (kecb + sum(kepl(1:npl), pl%lmask(1:npl)))
-   
+#ifdef DOCONLOC
+         do concurrent (j = 1:NDIM) shared(nbody_system,pl,Lcborbit,Lplorbit,npl)
+#else  
          do concurrent (j = 1:NDIM)
+#endif
             nbody_system%L_orbit(j) = Lcborbit(j) + sum(Lplorbit(j,1:npl), pl%lmask(1:npl)) 
          end do
 
@@ -1264,7 +1318,11 @@ contains
          pecb(1:npl) = 0.0_DP
       end where
 
+#ifdef DOCONLOC
+      do concurrent(i = 1:npl, lmask(i)) shared(lmask,pecb,GMcb,mass,rb)
+#else
       do concurrent(i = 1:npl, lmask(i))
+#endif
          pecb(i) = -GMcb * mass(i) / norm2(rb(:,i)) 
       end do
 
@@ -1311,7 +1369,11 @@ contains
          pecb(1:npl) = 0.0_DP
       end where
 
+#ifdef DOCONLOC
+      do concurrent(i = 1:npl, lmask(i)) shared(lmask, pecb, GMcb, mass, rb, lmask)
+#else
       do concurrent(i = 1:npl, lmask(i))
+#endif
          pecb(i) = -GMcb * mass(i) / norm2(rb(:,i)) 
       end do
 
@@ -1322,7 +1384,11 @@ contains
       !$omp reduction(+:pe) 
       do i = 1, npl
          if (lmask(i)) then
+#ifdef DOCONLOC
+            do concurrent(j = i+1:npl, lmask(i) .and. lmask(j)) shared(lmask, pepl, rb, mass, Gmass, lmask) 
+#else
             do concurrent(j = i+1:npl, lmask(i) .and. lmask(j))
+#endif
                pepl(j) = - (Gmass(i) * mass(j)) / norm2(rb(:, i) - rb(:, j))
             end do
             pe = pe + sum(pepl(i+1:npl), lmask(i+1:npl))
@@ -1516,7 +1582,6 @@ contains
       integer(I4B) :: i
       real(DP), dimension(n) :: e !! Temporary, just to make use of the xv2aeq subroutine
       real(DP) :: vdotr
-      character(len=NAMELEN) :: message
 
       do i = 1,n
          vdotr = dot_product(r(:,i),v(:,i))
@@ -1582,7 +1647,8 @@ contains
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
       ! Internals
       class(swiftest_pl), allocatable :: tmp !! The discarded body list.
-      integer(I4B) :: i, k, npl, nadd, nencmin, nenc_old, idnew1, idnew2, idold1, idold2
+      integer(I4B) :: i, npl, nadd, idnew1, idnew2, idold1, idold2
+      integer(I8B) :: k, nenc_old, nencmin
       logical, dimension(:), allocatable :: lmask
       class(encounter_list), allocatable :: plplenc_old
       logical :: lencounter
@@ -1615,7 +1681,10 @@ contains
             npl = pl%nbody
          end if
 
-         if (npl == 0) return
+         if (npl == 0) then
+            if (param%lmtiny_pl) pl%nplm = 0
+            return
+         end if
 
          ! Reset all of the status flags for this body
          pl%status(1:npl) = ACTIVE
@@ -1633,6 +1702,7 @@ contains
             elsewhere
                pl%info(1:npl)%particle_type = PL_TYPE_NAME 
             end where
+            pl%nplm = count(.not.pl%lmtiny(1:npl))
          end if
 
          ! Reindex the new list of bodies 
@@ -1647,7 +1717,7 @@ contains
          if (allocated(nbody_system%plpl_encounter)) then
             ! Store the original plplenc list so we don't remove any of the original encounters
             nenc_old = nbody_system%plpl_encounter%nenc
-            if (nenc_old > 0) then 
+            if (nenc_old > 0_I8B) then 
                allocate(plplenc_old, source=nbody_system%plpl_encounter)
                call plplenc_old%copy(nbody_system%plpl_encounter)
             end if
@@ -1669,10 +1739,10 @@ contains
             end select
 
             ! Re-index the encounter list as the index values may have changed
-            if (nenc_old > 0) then
+            if (nenc_old > 0_I8B) then
                nencmin = min(nbody_system%plpl_encounter%nenc, plplenc_old%nenc) 
                nbody_system%plpl_encounter%nenc = nencmin
-               do k = 1, nencmin
+               do k = 1_I8B, nencmin
                   idnew1 = nbody_system%plpl_encounter%id1(k)
                   idnew2 = nbody_system%plpl_encounter%id2(k)
                   idold1 = plplenc_old%id1(k)
@@ -1713,7 +1783,7 @@ contains
                end if
                nencmin = count(lmask(:))
                nbody_system%plpl_encounter%nenc = nencmin
-               if (nencmin > 0) then
+               if (nencmin > 0_I8B) then
                   nbody_system%plpl_encounter%index1(1:nencmin) = pack(nbody_system%plpl_encounter%index1(1:nenc_old), lmask(1:nenc_old))
                   nbody_system%plpl_encounter%index2(1:nencmin) = pack(nbody_system%plpl_encounter%index2(1:nenc_old), lmask(1:nenc_old))
                   nbody_system%plpl_encounter%id1(1:nencmin) = pack(nbody_system%plpl_encounter%id1(1:nenc_old), lmask(1:nenc_old))
@@ -3264,9 +3334,7 @@ contains
             "Authors:", //,                                                      &
             "    The Purdue University Swiftest Development team ", /,           &
             "    Lead by David A. Minton ", /,                                   &
-            "    Single loop blocking by Jacob R. Elliott", /,                   &
-            "    Fragmentation by Carlisle A. Wishard and", //,                  &
-            "    Jennifer L. L. Poutplin                 ", //,                  &
+            "    Carlisle Wishard, Jennifer Pouplin, Jacob Elliott, Dana Singh." &
             "Please address comments and questions to:", //,                     &
             "    David A. Minton", /,                                            &
             "    Department Earth, Atmospheric, & Planetary Sciences ",/,        &
@@ -3279,22 +3347,6 @@ contains
             "SWIFTER and SWIFT codes that made this possible.", //,              &
             "************************************************", /)
 
-
-      100 FORMAT(/,  "************* SWIFTER: Version ", F3.1, " *************", //, &
-                  "Authors:", //,                                                &
-                  "    Martin Duncan: Queen's University", /,                    &
-                  "    Hal Levison  : Southwest Research Institute", //,         &
-                  "Please address comments and questions to:", //,               &
-                  "    Hal Levison or David Kaufmann", /,                        &
-                  "    Department of Space Studies", /,                          &
-                  "    Southwest Research Institute", /,                         &
-                  "    1050 Walnut Street, Suite 400", /,                        &
-                  "    Boulder, Colorado  80302", /,                             &
-                  "    303-546-0290 (HFL), 720-240-0119 (DEK)", /,               &
-                  "    303-546-9687 (fax)", /,                                   &
-                  "    hal@gort.boulder.swri.edu (HFL)", /,                      &
-                  "    kaufmann@boulder.swri.edu (DEK)", //,                     &
-                  "************************************************", /)
 
       return
    end subroutine swiftest_util_version

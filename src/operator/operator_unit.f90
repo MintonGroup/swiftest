@@ -89,7 +89,7 @@ contains
       if (allocated(B)) deallocate(B)
       allocate(B(NDIM,n))
 
-      do concurrent (i=1:n)
+      do i=1,n
          B(:,i) = operator_unit_sp(A(:,i))
       end do
 
@@ -109,7 +109,7 @@ contains
       if (allocated(B)) deallocate(B)
       allocate(B(NDIM,n))
 
-      do concurrent (i=1:n)
+      do i=1,n
          B(:,i) = operator_unit_dp(A(:,i))
       end do
 
@@ -128,7 +128,7 @@ contains
       if (allocated(B)) deallocate(B)
       allocate(B(NDIM,n))
 
-      do concurrent (i=1:n)
+      do i=1,n
          B(:,i) = operator_unit_qp(A(:,i))
       end do
 

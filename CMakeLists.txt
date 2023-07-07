@@ -30,14 +30,10 @@ ENDIF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
 # Set some options the user may choose
 OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
 OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
+OPTION(USE_SIMD "Use SIMD vectorization" ON)
+OPTION(CONTAINERIZE "Compiling for use in a Docker/Singularity container" OFF)
+OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
-IF (USE_COARRAY)
-  ADD_DEFINITIONS(-DCOARRAY)
-ENDIF()
-
-# Locate and set parallelization libraries.  There are some CMake peculiarities
-# taken care of here, such as the fact that the FindOpenMP routine doesn't know
-# about Fortran.
 INCLUDE(${CMAKE_MODULE_PATH}/SetParallelizationLibrary.cmake)
 INCLUDE(${CMAKE_MODULE_PATH}/SetUpNetCDF.cmake)
 INCLUDE(${CMAKE_MODULE_PATH}/SetMKL.cmake)
@@ -47,7 +43,6 @@ INCLUDE(${CMAKE_MODULE_PATH}/SetMKL.cmake)
 INCLUDE(${CMAKE_MODULE_PATH}/SetFortranFlags.cmake) 
 
 INCLUDE_DIRECTORIES($ENV{NETCDF_FORTRAN_HOME}/include;$ENV{NETCDF_HOME}/include)
-
 
 # There is an error in CMAKE with this flag for pgf90.  Unset it
 GET_FILENAME_COMPONENT(FCNAME ${CMAKE_Fortran_COMPILER} NAME)
@@ -78,3 +73,17 @@ ADD_SUBDIRECTORY(${SRC} ${BIN})
 ADD_CUSTOM_TARGET(distclean 
     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/distclean.cmake
 )
+
+# Add an automatic test
+ADD_CUSTOM_TARGET(Run_Test ALL 
+    COMMAND echo "***Running Python script examples/Basic_Simulation/initial_conditions.py***" 
+    COMMAND python ${CMAKE_SOURCE_DIR}/examples/Basic_Simulation/initial_conditions.py
+    COMMAND echo "***Saving data to directory examples/Basic_Simulation/simdata***"
+    COMMAND echo "***Running Python script examples/Basic_Simulation/output_reader.py***"
+    COMMAND python ${CMAKE_SOURCE_DIR}/examples/Basic_Simulation/output_reader.py
+    COMMAND echo "***Plotting results as examples/Basic_Simulation/output.eps***"
+    COMMAND echo "***Calculating errors with Python script examples/Basic_Simulation/errors.py***"
+    COMMAND python ${CMAKE_SOURCE_DIR}/examples/Basic_Simulation/errors.py
+    COMMAND echo "***Test Complete***"
+)
+

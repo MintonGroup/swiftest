@@ -29,11 +29,13 @@ contains
       class(swiftest_parameters), allocatable   :: param_planetocen
       real(DP), dimension(:, :), allocatable    :: rh_original
       real(DP)                                  :: GMcb_original
-      integer(I4B)                              :: i
+      integer(I4B)                              :: i, ntp, inner_index
 
       if (self%nbody == 0) return
 
-      associate(tp => self, ntp => self%nbody, ipleP => self%ipleP, inner_index => self%index)
+      associate(tp => self, ipleP => self%ipleP)
+         ntp = self%nbody
+         inner_index = self%index
          select type(nbody_system)
          class is (rmvs_nbody_system)
             if (nbody_system%lplanetocentric) then  ! This is a close encounter step, so any accelerations requiring heliocentric position values
@@ -59,17 +61,29 @@ contains
 
                         ! Now compute any heliocentric values of acceleration 
                         if (tp%lfirst) then
+#ifdef DOCONLOC
+                           do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp)
+#else
                            do concurrent(i = 1:ntp, tp%lmask(i))
+#endif
                               tp%rheliocentric(:,i) = tp%rh(:,i) + cb%inner(inner_index - 1)%x(:,1)
                            end do
                         else
+#ifdef DOCONLOC
+                           do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp)
+#else
                            do concurrent(i = 1:ntp, tp%lmask(i))
+#endif
                               tp%rheliocentric(:,i) = tp%rh(:,i) + cb%inner(inner_index    )%x(:,1)
                            end do
                         end if
 
                         ! Swap the planetocentric and heliocentric position vectors and central body masses
+#ifdef DOCONLOC
+                        do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp)
+#else
                         do concurrent(i = 1:ntp, tp%lmask(i))
+#endif
                            tp%rh(:, i) = tp%rheliocentric(:, i)
                         end do
                         GMcb_original = cb%Gmass

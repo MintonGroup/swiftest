@@ -14,6 +14,8 @@
 # Add the source files
 SET(STRICT_MATH_FILES
             ${SRC}/collision/collision_generate.f90
+            ${SRC}/collision/collision_io.f90     
+            ${SRC}/collision/collision_util.f90
             ${SRC}/fraggle/fraggle_generate.f90
             ${SRC}/fraggle/fraggle_util.f90
             ${SRC}/fraggle/fraggle_module.f90
@@ -23,6 +25,7 @@ SET(STRICT_MATH_FILES
             ${SRC}/helio/helio_step.f90
             ${SRC}/misc/lambda_function_module.f90
             ${SRC}/misc/solver_module.f90
+            ${SRC}/netcdf_io/netcdf_io_implementations.f90  
             ${SRC}/operator/operator_module.f90
             ${SRC}/operator/operator_cross.f90
             ${SRC}/operator/operator_mag.f90
@@ -31,6 +34,7 @@ SET(STRICT_MATH_FILES
             ${SRC}/rmvs/rmvs_step.f90
             ${SRC}/swiftest/swiftest_drift.f90    
             ${SRC}/swiftest/swiftest_gr.f90       
+            ${SRC}/swiftest/swiftest_io.f90         
             ${SRC}/swiftest/swiftest_kick.f90 
             ${SRC}/swiftest/swiftest_user.f90
             ${SRC}/swiftest/swiftest_obl.f90    
@@ -60,20 +64,16 @@ SET(FAST_MATH_FILES
             ${SRC}/helio/helio_module.f90
             ${SRC}/symba/symba_module.f90
             ${SRC}/collision/collision_check.f90  
-            ${SRC}/collision/collision_io.f90     
             ${SRC}/collision/collision_regime.f90   
             ${SRC}/collision/collision_resolve.f90  
-            ${SRC}/collision/collision_util.f90
             ${SRC}/encounter/encounter_check.f90
             ${SRC}/encounter/encounter_io.f90
             ${SRC}/encounter/encounter_util.f90
             ${SRC}/helio/helio_util.f90
-            ${SRC}/netcdf_io/netcdf_io_implementations.f90  
             ${SRC}/rmvs/rmvs_discard.f90
             ${SRC}/rmvs/rmvs_encounter_check.f90
             ${SRC}/rmvs/rmvs_util.f90
             ${SRC}/swiftest/swiftest_discard.f90  
-            ${SRC}/swiftest/swiftest_io.f90         
             ${SRC}/swiftest/swiftest_util.f90
             ${SRC}/symba/symba_discard.f90
             ${SRC}/symba/symba_encounter_check.f90
@@ -108,19 +108,17 @@ SET_SOURCE_FILES_PROPERTIES(${SWIFTEST_src} PROPERTIES Fortran_PREPROCESS ON)
 # Add the needed libraries and special compiler flags
 #####################################################
 
-# # Uncomment if you need to link to BLAS and LAPACK
-TARGET_LINK_LIBRARIES(${SWIFTEST_DRIVER} ${NETCDF_LIBRARIES} ${NETCDF_FORTRAN_LIBRARIES})
+TARGET_LINK_LIBRARIES(${SWIFTEST_DRIVER} PRIVATE ${NETCDF_FORTRAN_LIBRARIES} ${NETCDF_LIBRARIES} $ENV{LIBS})
 
 IF(USE_OPENMP)
-    SET_TARGET_PROPERTIES(${SWIFTEST_DRIVER} PROPERTIES
-                          COMPILE_FLAGS "${OpenMP_Fortran_FLAGS}"
-                          LINK_FLAGS "${OpenMP_Fortran_FLAGS}")
+    SET_PROPERTY(TARGET ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY COMPILE_FLAGS  "${OpenMP_Fortran_FLAGS} ")
+    SET_PROPERTY(TARGET ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY LINK_FLAGS  "${OpenMP_Fortran_FLAGS} ")
 ENDIF(USE_OPENMP)
 
 IF(USE_COARRAY)
-    SET_TARGET_PROPERTIES(${SWIFTEST_DRIVER} PROPERTIES
-                          COMPILE_FLAGS "${Coarray_Fortran_FLAGS}"
-                          LINK_FLAGS "${Coarray_Fortran_FLAGS}")
+    TARGET_COMPILE_DEFINITIONS(${SWIFTEST_DRIVER} PRIVATE -DCOARRAY)
+    SET_PROPERTY(TARGET ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY COMPILE_FLAGS  "${Coarray_Fortran_FLAGS} ")
+    SET_PROPERTY(TARGET ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY LINK_FLAGS  "${Coarray_Fortran_FLAGS} ")
 ENDIF(USE_COARRAY)
 
 
@@ -148,3 +146,24 @@ IF(BT STREQUAL "DEBUG")
 ELSEIF(BT STREQUAL "PROFILE")
    ADD_DEFINITIONS(-DPROFILE)
 ENDIF()
+
+# Check to see if the compiler allows for local-spec in do concurrent statements. Set a preprocessor variable if it does
+IF (USE_OPENMP)
+    SET(TESTFILE "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}")
+    SET(TESTFILE "${TESTFILE}/CMakeTmp/testFortranDoConcurrentLoc.f90")
+    FILE(WRITE "${TESTFILE}"
+"
+program TestDoConcurrentLoc
+integer :: i
+real,dimension(10) :: a
+do concurrent(i = 1:10) shared(a)
+   a(i) = i 
+end do
+end program TestDoConcurrentLoc
+")
+    TRY_COMPILE(DOCONLOC_WORKS ${CMAKE_BINARY_DIR} ${TESTFILE}
+    COMPILE_DEFINITIONS "${CMAKE_Fortran_FLAGS}" OUTPUT_VARIABLE OUTPUT)
+    IF (DOCONLOC_WORKS)
+        TARGET_COMPILE_DEFINITIONS(${SWIFTEST_DRIVER} PRIVATE -DDOCONLOC)
+    ENDIF (DOCONLOC_WORKS)
+ENDIF (USE_OPENMP)

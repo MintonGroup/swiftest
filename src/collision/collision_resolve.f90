@@ -191,8 +191,9 @@ contains
       logical,      dimension(:), allocatable :: lplpl_collision
       logical,      dimension(:), allocatable :: lplpl_unique_parent
       integer(I4B), dimension(:), pointer     :: plparent
-      integer(I4B), dimension(:), allocatable :: collision_idx, unique_parent_idx
-      integer(I4B)                            :: i, index_coll, ncollisions, nunique_parent, nplplenc
+      integer(I4B)                            :: nunique_parent
+      integer(I8B)                            :: ncollisions, index_coll, k, nplplenc
+      integer(I8B), dimension(:), allocatable :: unique_parent_idx, collision_idx
 
       select type(nbody_system)
       class is (swiftest_nbody_system)
@@ -201,14 +202,14 @@ contains
          associate(idx1 => self%index1, idx2 => self%index2, plparent => pl%kin%parent)
             nplplenc = self%nenc
             allocate(lplpl_collision(nplplenc))
-            lplpl_collision(:) = self%status(1:nplplenc) == COLLIDED
+            lplpl_collision(:) = self%status(1_I8B:nplplenc) == COLLIDED
             if (.not.any(lplpl_collision)) return 
             ! Collisions have been detected in this step. So we need to determine which of them are between unique bodies.
 
             ! Get the subset of pl-pl encounters that lead to a collision
             ncollisions = count(lplpl_collision(:))
             allocate(collision_idx(ncollisions))
-            collision_idx = pack([(i, i=1, nplplenc)], lplpl_collision)
+            collision_idx = pack([(k, k=1_I8B, nplplenc)], lplpl_collision)
 
             ! Get the subset of collisions that involve a unique pair of parents
             allocate(lplpl_unique_parent(ncollisions))
@@ -223,7 +224,7 @@ contains
             ! due to restructuring of parent/child relationships when there are large numbers of multi-body collisions in a single
             ! step
             lplpl_unique_parent(:) = .true.
-            do index_coll = 1, ncollisions
+            do index_coll = 1_I8B, ncollisions
                associate(ip1 => plparent(idx1(collision_idx(index_coll))), ip2 => plparent(idx2(collision_idx(index_coll))))
                   lplpl_unique_parent(:) = .not. ( any(plparent(idx1(unique_parent_idx(:))) == ip1) .or. &
                                                    any(plparent(idx2(unique_parent_idx(:))) == ip1) .or. &
@@ -350,7 +351,7 @@ contains
       class is (swiftest_nbody_system)
       select type(param)
       class is (swiftest_parameters)
-         associate(pl => nbody_system%pl, pl_discards => nbody_system%pl_discards, info => nbody_system%pl%info, pl_adds => nbody_system%pl_adds, cb => nbody_system%cb, npl => nbody_system%pl%nbody, &
+         associate(pl => nbody_system%pl, pl_discards => nbody_system%pl_discards, info => nbody_system%pl%info, pl_adds => nbody_system%pl_adds, cb => nbody_system%cb, &
             collider => nbody_system%collider, impactors => nbody_system%collider%impactors,fragments => nbody_system%collider%fragments)
 
             ! Add the impactors%id bodies to the subtraction list
@@ -387,7 +388,11 @@ contains
             !    plnew%tlag = pl%tlag(ibiggest)
             ! end if
 
+#ifdef DOCONLOC
+            do concurrent(i = 1:nfrag) shared(plnew,fragments) local(volume)
+#else
             do concurrent(i = 1:nfrag)
+#endif
                volume = 4.0_DP/3.0_DP * PI * plnew%radius(i)**3
                plnew%density(i) = fragments%mass(i) / volume
             end do
@@ -533,7 +538,8 @@ contains
       character(len=STRMAX) :: timestr, idstr
       integer(I4B), dimension(2) :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
       logical  :: lgoodcollision
-      integer(I4B) :: i, j, nnew, loop, ncollisions
+      integer(I4B) :: i, j, nnew, loop
+      integer(I8B) :: k, ncollisions
       integer(I4B), dimension(:), allocatable :: idnew
       integer(I4B), parameter :: MAXCASCADE = 1000
   
@@ -572,9 +578,9 @@ contains
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, "***********************************************************" // &
                                                             "***********************************************************")
 
-                  do i = 1, ncollisions
-                     idx_parent(1) = pl%kin(idx1(i))%parent
-                     idx_parent(2) = pl%kin(idx2(i))%parent
+                  do k = 1_I8B, ncollisions
+                     idx_parent(1) = pl%kin(idx1(k))%parent
+                     idx_parent(2) = pl%kin(idx2(k))%parent
                      call impactors%consolidate(nbody_system, param, idx_parent, lgoodcollision)
                      if ((.not. lgoodcollision) .or. any(pl%status(idx_parent(:)) /= COLLIDED)) cycle
 
@@ -595,7 +601,7 @@ contains
 
                      call collision_history%take_snapshot(param,nbody_system, t, "after") 
 
-                     plpl_collision%status(i) = collider%status
+                     plpl_collision%status(k) = collider%status
                      call impactors%dealloc()
                   end do
 

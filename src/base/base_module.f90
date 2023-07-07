@@ -22,90 +22,100 @@ module base
    !> User defined parameters that are read in from the parameters input file. 
    !>    Each paramter is initialized to a default values. 
    type, abstract :: base_parameters
-      character(STRMAX)                       :: integrator                             !! Name of the nbody integrator used
-      character(STRMAX)                       :: param_file_name                        !! The name of the parameter file
-      real(DP)                                :: t0                   =  0.0_DP         !! Integration reference time
-      real(DP)                                :: tstart               = -1.0_DP         !! Integration start time
-      real(DP)                                :: tstop                = -1.0_DP         !! Integration stop time
-      real(DP)                                :: dt                   = -1.0_DP         !! Time step
-      integer(I8B)                            :: iloop                = 0_I8B           !! Main loop counter
-      integer(I8B)                            :: nloops               = 0_I8B           !! Total number of loops to execute
-      integer(I8B)                            :: istart               = 0_I8B           !! Starting index for loop counter
-      integer(I4B)                            :: iout                 = 0               !! Output cadence counter
-      integer(I4B)                            :: idump                = 0               !! Dump cadence counter
-      integer(I4B)                            :: nout                 = 0               !! Current output step
-      integer(I4B)                            :: istep                = 0               !! Current value of istep (used for time stretching)
-      character(STRMAX)                       :: incbfile             = CB_INFILE       !! Name of input file for the central body
-      character(STRMAX)                       :: inplfile             = PL_INFILE       !! Name of input file for massive bodies
-      character(STRMAX)                       :: intpfile             = TP_INFILE       !! Name of input file for test particles
-      character(STRMAX)                       :: nc_in                = NC_INFILE       !! Name of system input file for NetCDF input
-      character(STRMAX)                       :: in_type              = "NETCDF_DOUBLE" !! Data representation type of input data files
-      character(STRMAX)                       :: in_form              = "XV"            !! Format of input data files ("EL" or ["XV"])
-      integer(I4B)                            :: istep_out            = -1              !! Number of time steps between saved outputs
-      integer(I4B)                            :: nstep_out            = -1              !! Total number of saved outputs
-      real(DP)                                :: fstep_out            = 1.0_DP          !! The output step time stretching factor
-      logical                                 :: ltstretch            = .false.         !! Whether to employ time stretching or not
-      character(STRMAX)                       :: outfile              = BIN_OUTFILE     !! Name of output binary file
-      character(STRMAX)                       :: out_type             = "NETCDF_DOUBLE" !! Binary format of output file
-      character(STRMAX)                       :: out_form             = "XVEL"          !! Data to write to output file
-      character(STRMAX)                       :: out_stat             = 'NEW'           !! Open status for output binary file
-      integer(I4B)                            :: dump_cadence         =  10             !! Number of output steps between dumping simulation data to file
-      real(DP)                                :: rmin                 = -1.0_DP         !! Minimum heliocentric radius for test particle
-      real(DP)                                :: rmax                 = -1.0_DP         !! Maximum heliocentric radius for test particle
-      real(DP)                                :: rmaxu                = -1.0_DP         !! Maximum unbound heliocentric radius for test particle
-      real(DP)                                :: qmin                 = -1.0_DP         !! Minimum pericenter distance for test particle
-      character(STRMAX)                       :: qmin_coord           = "HELIO"         !! Coordinate frame to use for qmin (["HELIO"] or "BARY")
-      real(DP)                                :: qmin_alo             = -1.0_DP         !! Minimum semimajor axis for qmin
-      real(DP)                                :: qmin_ahi             = -1.0_DP         !! Maximum semimajor axis for qmin
-      real(QP)                                :: MU2KG                = -1.0_QP         !! Converts mass units to grams
-      real(QP)                                :: TU2S                 = -1.0_QP         !! Converts time units to seconds
-      real(QP)                                :: DU2M                 = -1.0_QP         !! Converts distance unit to centimeters
-      real(DP)                                :: GU                   = -1.0_DP         !! Universal gravitational constant in the system units
-      real(DP)                                :: inv_c2               = -1.0_DP         !! Inverse speed of light squared in the system units
-      real(DP)                                :: GMTINY               = -1.0_DP         !! Smallest G*mass that is fully gravitating
-      real(DP)                                :: min_GMfrag           = -1.0_DP         !! Smallest G*mass that can be produced in a fragmentation event
-      real(DP)                                :: nfrag_reduction      =  30.0_DP        !! Reduction factor for limiting the number of fragments in a collision
-      integer(I4B), dimension(:), allocatable :: seed                                   !! Random seeds for fragmentation modeling
-      logical                                 :: lmtiny_pl            = .false.         !! Include semi-interacting massive bodies
-      character(STRMAX)                       :: collision_model      = "MERGE"         !! The Coll
-      character(STRMAX)                       :: encounter_save       = "NONE"          !! Indicate if and how encounter data should be saved
-      logical                                 :: lenc_save_trajectory = .false.         !! Indicates that when encounters are saved, the full trajectory through recursion steps are saved
-      logical                                 :: lenc_save_closest    = .false.         !! Indicates that when encounters are saved, the closest approach distance between pairs of bodies is saved
-      character(NAMELEN)                      :: interaction_loops    = "ADAPTIVE"      !! Method used to compute interaction loops. Options are "TRIANGULAR", "FLAT", or "ADAPTIVE" 
-      character(NAMELEN)                      :: encounter_check_plpl = "ADAPTIVE"      !! Method used to compute pl-pl encounter checks. Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
-      character(NAMELEN)                      :: encounter_check_pltp = "ADAPTIVE"      !! Method used to compute pl-tp encounter checks. Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
-      logical                                 :: lcoarray             = .false.         !! Use Coarrays for test particle parallelization.
+      character(STRMAX) :: integrator                             !! Name of the nbody integrator used
+      character(STRMAX) :: param_file_name                        !! The name of the parameter file
+      real(DP)          :: t0                   =  0.0_DP         !! Integration reference time
+      real(DP)          :: tstart               = -1.0_DP         !! Integration start time
+      real(DP)          :: tstop                = -1.0_DP         !! Integration stop time
+      real(DP)          :: dt                   = -1.0_DP         !! Time step
+      integer(I8B)      :: iloop                = 0_I8B           !! Main loop counter
+      integer(I8B)      :: nloops               = 0_I8B           !! Total number of loops to execute
+      integer(I8B)      :: istart               = 0_I8B           !! Starting index for loop counter
+      integer(I4B)      :: iout                 = 0               !! Output cadence counter
+      integer(I4B)      :: idump                = 0               !! Dump cadence counter
+      integer(I4B)      :: nout                 = 0               !! Current output step
+      integer(I4B)      :: istep                = 0               !! Current value of istep (used for time stretching)
+      character(STRMAX) :: incbfile             = CB_INFILE       !! Name of input file for the central body
+      character(STRMAX) :: inplfile             = PL_INFILE       !! Name of input file for massive bodies
+      character(STRMAX) :: intpfile             = TP_INFILE       !! Name of input file for test particles
+      character(STRMAX) :: nc_in                = NC_INFILE       !! Name of system input file for NetCDF input
+      character(STRMAX) :: in_type              = "NETCDF_DOUBLE" !! Data representation type of input data files
+      character(STRMAX) :: in_form              = "XV"            !! Format of input data files ("EL" or ["XV"])
+      integer(I4B)      :: istep_out            = -1              !! Number of time steps between saved outputs
+      integer(I4B)      :: nstep_out            = -1              !! Total number of saved outputs
+      real(DP)          :: fstep_out            = 1.0_DP          !! The output step time stretching factor
+      logical           :: ltstretch            = .false.         !! Whether to employ time stretching or not
+      character(STRMAX) :: outfile              = BIN_OUTFILE     !! Name of output binary file
+      character(STRMAX) :: out_type             = "NETCDF_DOUBLE" !! Binary format of output file
+      character(STRMAX) :: out_form             = "XVEL"          !! Data to write to output file
+      character(STRMAX) :: out_stat             = 'NEW'           !! Open status for output binary file
+      integer(I4B)      :: dump_cadence         =  10             !! Number of output steps between dumping simulation data to file
+      real(DP)          :: rmin                 = -1.0_DP         !! Minimum heliocentric radius for test particle
+      real(DP)          :: rmax                 = -1.0_DP         !! Maximum heliocentric radius for test particle
+      real(DP)          :: rmaxu                = -1.0_DP         !! Maximum unbound heliocentric radius for test particle
+      real(DP)          :: qmin                 = -1.0_DP         !! Minimum pericenter distance for test particle
+      character(STRMAX) :: qmin_coord           = "HELIO"         !! Coordinate frame to use for qmin (["HELIO"] or "BARY")
+      real(DP)          :: qmin_alo             = -1.0_DP         !! Minimum semimajor axis for qmin
+      real(DP)          :: qmin_ahi             = -1.0_DP         !! Maximum semimajor axis for qmin
+      real(QP)          :: MU2KG                = -1.0_QP         !! Converts mass units to grams
+      real(QP)          :: TU2S                 = -1.0_QP         !! Converts time units to seconds
+      real(QP)          :: DU2M                 = -1.0_QP         !! Converts distance unit to centimeters
+      real(DP)          :: GU                   = -1.0_DP         !! Universal gravitational constant in the system units
+      real(DP)          :: inv_c2               = -1.0_DP         !! Inverse speed of light squared in the system units
+      real(DP)          :: GMTINY               = -1.0_DP         !! Smallest G*mass that is fully gravitating
+      real(DP)          :: min_GMfrag           = -1.0_DP         !! Smallest G*mass that can be produced in a fragmentation event
+      real(DP)          :: nfrag_reduction      =  30.0_DP        !! Reduction factor for limiting the number of collision fragments 
+      integer(I4B), dimension(:), allocatable :: seed             !! Random seeds for fragmentation modeling
+      logical           :: lmtiny_pl            = .false.         !! Include semi-interacting massive bodies
+      character(STRMAX) :: collision_model      = "MERGE"         !! The Coll
+      character(STRMAX) :: encounter_save       = "NONE"          !! Indicate if and how encounter data should be saved
+      logical           :: lenc_save_trajectory = .false.         !! Indicates that when encounters are saved, the full trajectory 
+                                                                  !!    through recursion steps are saved
+      logical           :: lenc_save_closest    = .false.         !! Indicates that when encounters are saved, the closest approach 
+                                                                  !!    distance between pairs of bodies is saved
+      character(NAMELEN):: interaction_loops    = "ADAPTIVE"      !! Method used to compute interaction loops. 
+                                                                  !!    Options are "TRIANGULAR", "FLAT", or "ADAPTIVE" 
+      character(NAMELEN):: encounter_check_plpl = "ADAPTIVE"      !! Method used to compute pl-pl encounter checks. 
+                                                                  !!    Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
+      character(NAMELEN):: encounter_check_pltp = "ADAPTIVE"      !! Method used to compute pl-tp encounter checks. 
+                                                                  !!    Options are "TRIANGULAR", "SORTSWEEP", or "ADAPTIVE" 
+      logical           :: lcoarray             = .false.         !! Use Coarrays for test particle parallelization.
 
-      ! The following are used internally, and are not set by the user, but instead are determined by the input value of INTERACTION_LOOPS
+      ! The following are not set by the user, but instead are determined by the input value of INTERACTION_LOOPS
       logical :: lflatten_interactions     = .false. !! Use the flattened upper triangular matrix for pl-pl interaction loops
-      logical :: lencounter_sas_plpl       = .false. !! Use the Sort and Sweep algorithm to prune the encounter list before checking for close encounters
-      logical :: lencounter_sas_pltp       = .false. !! Use the Sort and Sweep algorithm to prune the encounter list before checking for close encounters
+      logical :: lencounter_sas_plpl       = .false. !! Use the Sort and Sweep algorithm to prune the encounter list before checking 
+                                                     !!     for close encounters
+      logical :: lencounter_sas_pltp       = .false. !! Use the Sort and Sweep algorithm to prune the encounter list before checking 
+                                                     !!  for close encounters
 
       ! Logical flags to turn on or off various features of the code
-      logical :: lrhill_present = .false. !! Hill radii are given as an input rather than calculated by the code (can be used to inflate close encounter regions manually)
+      logical :: lrhill_present = .false. !! Hill radii are given as an input rather than calculated by the code (can be used to 
+                                          !!    inflate close encounter regions manually)
       logical :: lextra_force   = .false. !! User defined force function turned on
       logical :: lbig_discard   = .false. !! Save big bodies on every discard
       logical :: lclose         = .false. !! Turn on close encounters
       logical :: lenergy        = .false. !! Track the total energy of the system
-      logical :: loblatecb      = .false. !! Calculate acceleration from oblate central body (automatically turns true if nonzero J2 is input)
+      logical :: loblatecb      = .false. !! Calculate acceleration from oblate central body (automatically turns true if nonzero J2 
+                                          !!    is input)
       logical :: lrotation      = .false. !! Include rotation states of big bodies
       logical :: ltides         = .false. !! Include tidal dissipation 
 
-      ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be updated with initial conditions values)
-      real(DP)                  :: E_orbit_orig  = 0.0_DP  !! Initial orbital energy
+      ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be 
+      ! updated with initial conditions values)
+      real(DP)                  :: E_orbit_orig = 0.0_DP  !! Initial orbital energy
       real(DP)                  :: GMtot_orig   = 0.0_DP  !! Initial system mass
-      real(DP), dimension(NDIM) :: L_total_orig    = 0.0_DP  !! Initial total angular momentum vector
-      real(DP), dimension(NDIM) :: L_orbit_orig  = 0.0_DP  !! Initial orbital angular momentum
-      real(DP), dimension(NDIM) :: L_spin_orig   = 0.0_DP  !! Initial spin angular momentum vector
-      real(DP), dimension(NDIM) :: L_escape      = 0.0_DP  !! Angular momentum of bodies that escaped the system (used for bookeeping)
+      real(DP), dimension(NDIM) :: L_total_orig = 0.0_DP  !! Initial total angular momentum vector
+      real(DP), dimension(NDIM) :: L_orbit_orig = 0.0_DP  !! Initial orbital angular momentum
+      real(DP), dimension(NDIM) :: L_spin_orig  = 0.0_DP  !! Initial spin angular momentum vector
+      real(DP), dimension(NDIM) :: L_escape     = 0.0_DP  !! Angular momentum of escaped bodies (used for bookeeping)
       real(DP)                  :: GMescape     = 0.0_DP  !! Mass of bodies that escaped the system (used for bookeeping)
-      real(DP)                  :: E_collisions  = 0.0_DP  !! Energy lost from system due to collisions
-      real(DP)                  :: E_untracked   = 0.0_DP  !! Energy gained from system due to escaped bodies
+      real(DP)                  :: E_collisions = 0.0_DP  !! Energy lost from system due to collisions
+      real(DP)                  :: E_untracked  = 0.0_DP  !! Energy gained from system due to escaped bodies
       logical                   :: lfirstenergy = .true.  !! This is the first time computing energe
       logical                   :: lfirstkick   = .true.  !! Initiate the first kick in a symplectic step
       logical                   :: lrestart     = .false. !! Indicates whether or not this is a restarted run
 
-      character(NAMELEN)        :: display_style         !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
+      character(NAMELEN)       :: display_style        !! Style of the output display {["STANDARD"], "COMPACT"}). 
       integer(I4B)             :: display_unit          !! File unit number for display (either to stdout or to a log file)
       logical                  :: log_output  = .false. !! Logs the output to file instead of displaying it on the terminal
 
@@ -137,8 +147,10 @@ module base
          implicit none
          class(base_parameters), intent(inout) :: self       !! Collection of parameters
          integer(I4B),           intent(in)    :: unit       !! File unit number
-         character(len=*),       intent(in)    :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
-                                                             !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
+         character(len=*),       intent(in)    :: iotype     !! Dummy argument passed to the  input/output procedure contains the 
+                                                             !!   text from the char-literal-constant, prefixed with DT. If you do 
+                                                             !!   not include a char-literal-constant, the iotype argument contains 
+                                                             !!   only DT.
          character(len=*),       intent(in)    :: v_list(:)  !! The first element passes the integrator code to the reader
          integer(I4B),           intent(out)   :: iostat     !! IO status code
          character(len=*),       intent(inout) :: iomsg      !! Message to pass if iostat /= 0
@@ -149,8 +161,10 @@ module base
          implicit none
          class(base_parameters), intent(in)    :: self      !! Collection of parameters
          integer(I4B),           intent(in)    :: unit      !! File unit number
-         character(len=*),       intent(in)    :: iotype    !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
-                                                            !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
+         character(len=*),       intent(in)    :: iotype    !! Dummy argument passed to the  input/output procedure contains the 
+                                                            !!    text from the char-literal-constant, prefixed with DT. If you do 
+                                                            !!    not include a char-literal-constant, the iotype argument contains 
+                                                            !!    only DT.
          integer(I4B),           intent(in)    :: v_list(:) !! Not used in this procedure
          integer(I4B),           intent(out)   :: iostat    !! IO status code
          character(len=*),       intent(inout) :: iomsg     !! Message to pass if iostat /= 0
@@ -168,7 +182,8 @@ module base
    type :: base_storage_frame
       class(*), allocatable :: item
    contains
-      procedure :: store         => base_util_copy_store       !! Stores a snapshot of the nbody system so that later it can be retrieved for saving to file.
+      procedure :: store         => base_util_copy_store       !! Stores a snapshot of the nbody system so that later it can be 
+                                                               !!    retrieved for saving to file.
       generic   :: assignment(=) => store
       final     ::                  base_final_storage_frame
    end type
@@ -179,25 +194,26 @@ module base
       integer(I4B) :: nframes !! Total number of frames that can be stored
 
       !! An class that establishes the pattern for various storage objects
-      type(base_storage_frame), dimension(:), allocatable :: frame          !! Array of stored frames
-      integer(I4B)                                        :: iframe = 0     !! Index of the last frame stored in the system
-      integer(I4B)                                        :: nid            !! Number of unique id values in all saved snapshots
-      integer(I4B),             dimension(:), allocatable :: idvals         !! The set of unique id values contained in the snapshots
-      integer(I4B),             dimension(:), allocatable :: idmap          !! The id value -> index map  
-      integer(I4B)                                        :: nt             !! Number of unique time values in all saved snapshots
-      real(DP),                 dimension(:), allocatable :: tvals          !! The set of unique time values contained in the snapshots
-      integer(I4B),             dimension(:), allocatable :: tmap           !! The t value -> index map
+      type(base_storage_frame), dimension(:), allocatable :: frame      !! Array of stored frames
+      integer(I4B)                                        :: iframe = 0 !! Index of the last frame stored in the system
+      integer(I4B)                                        :: nid        !! Number of unique id values in all saved snapshots
+      integer(I4B),             dimension(:), allocatable :: idvals     !! The set of unique id values contained in the snapshots
+      integer(I4B),             dimension(:), allocatable :: idmap      !! The id value -> index map  
+      integer(I4B)                                        :: nt         !! Number of unique time values in all saved snapshots
+      real(DP),                 dimension(:), allocatable :: tvals      !! The set of unique time values contained in the snapshots
+      integer(I4B),             dimension(:), allocatable :: tmap       !! The t value -> index map
    contains
       procedure :: dealloc => base_util_dealloc_storage !! Deallocates all allocatables
-      procedure :: reset   => base_util_reset_storage   !! Resets the storage object back to its original state by removing all of the saved items from the storage frames
+      procedure :: reset   => base_util_reset_storage   !! Resets the storage object back to its original state by removing all of 
+                                                        !!    the saved items from the storage frames
       procedure :: resize  => base_util_resize_storage  !! Resizes storage if it is too small 
       procedure :: setup   => base_util_setup_storage   !! Sets up a storage system with a set number of frames
       procedure :: save    => base_util_snapshot_save   !! Takes a snapshot of the current system
    end type base_storage
 
 
-   !> Class definition for the particle origin information object. This object is used to track time, location, and collisional regime
-   !> of fragments produced in collisional events.
+   !> Class definition for the particle origin information object. This object is used to track time, location, and collisional 
+   !> regime of fragments produced in collisional events.
    type, abstract :: base_particle_info
    end type base_particle_info
 
@@ -291,13 +307,15 @@ module base
       subroutine base_util_append_arr_char_string(arr, source, nold, lsource_mask)
          !! author: David A. Minton
          !!
-         !! Append a single array of character string type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
+         !! Append a single array of character string type onto another. If the destination array is not allocated, or is not big 
+         !! enough, this will allocate space for it.
          implicit none
          ! Arguments
-         character(len=STRMAX), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
-         character(len=STRMAX), dimension(:), allocatable, intent(in)           :: source       !! Array to append 
-         integer(I4B),                                     intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
-         logical,               dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
+         character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr    !! Destination array 
+         character(len=STRMAX), dimension(:), allocatable, intent(in)    :: source !! Array to append 
+         integer(I4B), intent(in), optional :: nold !! Extent of original array. If passed, the source array will begin at 
+                                                    !!  arr(nold+1). Otherwise, the size of arr will be used.
+         logical, dimension(:), intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
          ! Internals
          integer(I4B) :: nnew, nsrc, nend_orig
 
@@ -336,13 +354,15 @@ module base
       subroutine base_util_append_arr_DP(arr, source, nold, lsource_mask)
          !! author: David A. Minton
          !!
-         !! Append a single array of double precision type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
+         !! Append a single array of double precision type onto another. If the destination array is not allocated, or is not big 
+         !! enough, this will allocate space for it.
          implicit none
          ! Arguments
-         real(DP), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
-         real(DP), dimension(:), allocatable, intent(in)           :: source       !! Array to append 
-         integer(I4B),                        intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
-         logical,  dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
+         real(DP), dimension(:), allocatable, intent(inout) :: arr !! Destination array 
+         real(DP), dimension(:), allocatable, intent(in) :: source !! Array to append 
+         integer(I4B), intent(in), optional :: nold !! Extent of original array. If passed, the source array will begin at 
+                                                    !!   arr(nold+1). Otherwise, the size of arr will be used.
+         logical,  dimension(:), intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
          ! Internals
          integer(I4B) :: nnew, nsrc, nend_orig
 
@@ -381,13 +401,15 @@ module base
       subroutine base_util_append_arr_DPvec(arr, source, nold, lsource_mask)
          !! author: David A. Minton
          !!
-         !! Append a single array of double precision vector type of size (NDIM, n) onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
+         !! Append a single array of double precision vector type of size (NDIM, n) onto another. If the destination array is not 
+         !! allocated, or is not big enough, this will allocate space for it.
          implicit none
          ! Arguments
-         real(DP), dimension(:,:), allocatable, intent(inout)        :: arr          !! Destination array 
-         real(DP), dimension(:,:), allocatable, intent(in)           :: source       !! Array to append 
-         integer(I4B),                          intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
-         logical,  dimension(:),                intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
+         real(DP), dimension(:,:), allocatable, intent(inout) :: arr       !! Destination array 
+         real(DP), dimension(:,:), allocatable, intent(in) :: source       !! Array to append 
+         integer(I4B), intent(in), optional :: nold !! Extent of original array. If passed, the source array will begin at 
+                                                    !!   arr(nold+1). Otherwise, the size of arr will be used.
+         logical,  dimension(:), intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
          ! Internals
          integer(I4B) :: nnew, nsrc, nend_orig
 
@@ -428,13 +450,15 @@ module base
       subroutine base_util_append_arr_I4B(arr, source, nold, lsource_mask)
          !! author: David A. Minton
          !!
-         !! Append a single array of integer(I4B) onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
+         !! Append a single array of integer(I4B) onto another. If the destination array is not allocated, or is not big enough, 
+         !! this will allocate space for it.
          implicit none
          ! Arguments
-         integer(I4B), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
-         integer(I4B), dimension(:), allocatable, intent(in)           :: source       !! Array to append 
-         integer(I4B),                            intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
-         logical,      dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
+         integer(I4B), dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+         integer(I4B), dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+         integer(I4B), intent(in), optional :: nold !! Extent of original array. If passed, the source array will begin at 
+                                                    !!   arr(nold+1). Otherwise, the size of arr will be used.
+         logical, dimension(:), intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
          ! Internals
          integer(I4B) :: nnew, nsrc, nend_orig
 
@@ -473,13 +497,15 @@ module base
       subroutine base_util_append_arr_logical(arr, source, nold, lsource_mask)
          !! author: David A. Minton
          !!
-         !! Append a single array of logical type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
+         !! Append a single array of logical type onto another. If the destination array is not allocated, or is not big enough, 
+         !! this will allocate space for it.
          implicit none
          ! Arguments
-         logical, dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
-         logical, dimension(:), allocatable, intent(in)           :: source       !! Array to append 
-         integer(I4B),                       intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
-         logical, dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
+         logical, dimension(:), allocatable, intent(inout) :: arr          !! Destination array 
+         logical, dimension(:), allocatable, intent(in)    :: source       !! Array to append 
+         integer(I4B), intent(in), optional :: nold   !! Extent of original array. If passed, the source array will begin at 
+                                                      !!    arr(nold+1). Otherwise, the size of arr will be used.
+         logical, dimension(:), intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
          ! Internals
          integer(I4B) :: nnew, nsrc, nend_orig
 
@@ -574,7 +600,8 @@ module base
          character(*), parameter :: BAR = '("------------------------------------------------")'
          character(*), parameter :: SUCCESS_MSG = '(/, "Normal termination of Swiftest (version ", f3.1, ")")'
          character(*), parameter :: FAIL_MSG = '(/, "Terminating Swiftest (version ", f3.1, ") due to error!!")'
-         character(*), parameter :: USAGE_MSG = '("Usage: swiftest [bs|helio|ra15|rmvs|symba|tu4|whm] <paramfile> [standard|compact|progress|NONE]")'
+         character(*), parameter :: USAGE_MSG = '("Usage: swiftest <whm|helio|rmvs|symba> <paramfile> ' // &
+                                                '[{standard}|compact|progress]")'
          character(*), parameter :: HELP_MSG  = USAGE_MSG
    
          select case(code)
@@ -605,7 +632,8 @@ module base
          ! Arguments
          character(len=STRMAX), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
          character(len=STRMAX), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-         logical,               dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+         logical,               dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the 
+                                                                                       !!    keeps
    
          if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
    
@@ -702,7 +730,8 @@ module base
       subroutine base_util_reset_storage(self)
          !! author: David A. Minton
          !!
-         !! Resets the storage object back to its original state by removing all of the saved items from the storage frames, but does not deallocate the frames
+         !! Resets the storage object back to its original state by removing all of the saved items from the storage frames, but 
+         !! does not deallocate the frames
          implicit none
          ! Arguments
          class(base_storage), intent(inout) :: self
@@ -736,7 +765,7 @@ module base
          character(len=STRMAX), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
          integer(I4B),                                     intent(in)    :: nnew !! New size
          ! Internals
-         character(len=STRMAX), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
+         character(len=STRMAX), dimension(:), allocatable :: tmp !! Temp. storage array in case the input array is already allocated
          integer(I4B) :: nold !! Old size
    
          if (nnew < 0) return
@@ -1008,10 +1037,12 @@ module base
       subroutine base_util_snapshot_save(self, snapshot)
          !! author: David A. Minton
          !!
-         !! Checks the current size of the storage object against the required size and extends it by a factor of 2 more than requested if it is too small.
-         !! Note: The reason to extend it by a factor of 2 is for performance. When there are many enounters per step, resizing every time you want to add an 
-         !! encounter takes significant computational effort. Resizing by a factor of 2 is a tradeoff between performance (fewer resize calls) and memory managment
-         !! Memory usage grows by a factor of 2 each time it fills up, but no more. 
+         !! Checks the current size of the storage object against the required size and extends it by a factor of 2 more than 
+         !! requested if it is too small.  
+         !! Note: The reason to extend it by a factor of 2 is for performance. When there are many enounters per step, resizing 
+         !! every time you want to add an encounter takes significant computational effort. Resizing by a factor of 2 is a tradeoff 
+         !! between performance (fewer resize calls) and memory managment. Memory usage grows by a factor of 2 each time it fills 
+         !! up, but no more. 
          implicit none
          ! Arguments
          class(base_storage), intent(inout) :: self     !! Storage encounter storage object
@@ -1043,8 +1074,11 @@ module base
          ! Arguments
          character(len=STRMAX), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
          character(len=STRMAX), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-         logical,               dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-         logical,                                          intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+         logical,               dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into 
+                                                                                         !!    the discards
+         logical,                                          intent(in)    :: ldestructive !! Logical flag indicating whether or not 
+                                                                                         !!    this operation should alter the keeps 
+                                                                                         !!    array or not
          ! Internals
          integer(I4B) :: nspill, nkeep, nlist
          character(len=STRMAX), dimension(:), allocatable                :: tmp          !! Array of values to keep 
@@ -1087,7 +1121,8 @@ module base
          real(DP), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
          real(DP), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
          logical,  dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
-         logical,                             intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+         logical,                             intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation 
+                                                                            !!    should alter the keeps array or not
          ! Internals
          integer(I4B) :: nspill, nkeep, nlist
          real(DP), dimension(:), allocatable                :: tmp          !! Array of values to keep 
@@ -1130,7 +1165,8 @@ module base
          real(DP), dimension(:,:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
          real(DP), dimension(:,:), allocatable, intent(inout) :: discards     !! Array discards
          logical,  dimension(:),                intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-         logical,                               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+         logical,                               intent(in)    :: ldestructive !! Logical flag indicating whether or not this 
+                                                                              !!    operation should alter the keeps array or not
          ! Internals
          integer(I4B) :: i, nspill, nkeep, nlist
          real(DP), dimension(:,:), allocatable                :: tmp          !! Array of values to keep 
@@ -1174,13 +1210,14 @@ module base
          !! This is the inverse of a spill operation
          implicit none
          ! Arguments
-         integer(I4B), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-         integer(I4B), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-         logical,      dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-         logical,                                 intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+         integer(I4B), dimension(:), allocatable, intent(inout) :: keeps       !! Array of values to keep 
+         integer(I4B), dimension(:), allocatable, intent(inout) :: discards    !! Array of discards
+         logical,      dimension(:),              intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+         logical,                                 intent(in)    :: ldestructive!! Logical flag indicating whether or not this 
+                                                                               !!    operation should alter the keeps array or not
          ! Internals
          integer(I4B) :: nspill, nkeep, nlist
-         integer(I4B), dimension(:), allocatable                :: tmp          !! Array of values to keep 
+         integer(I4B), dimension(:), allocatable                :: tmp         !! Array of values to keep 
 
          nkeep = count(.not.lspill_list(:))
          nspill = count(lspill_list(:))
@@ -1217,10 +1254,11 @@ module base
          !! This is the inverse of a spill operation
          implicit none
          ! Arguments
-         integer(I8B), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
-         integer(I8B), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-         logical,      dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-         logical,                                 intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+         integer(I8B), dimension(:), allocatable, intent(inout) :: keeps       !! Array of values to keep 
+         integer(I8B), dimension(:), allocatable, intent(inout) :: discards    !! Array of discards
+         logical,      dimension(:),              intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
+         logical,                                 intent(in)    :: ldestructive!! Logical flag indicating whether or not this 
+                                                                               !!   operation should alter the keeps array or not
          ! Internals
          integer(I4B) :: nspill, nkeep, nlist
          integer(I8B), dimension(:), allocatable                :: tmp          !! Array of values to keep 
@@ -1263,7 +1301,8 @@ module base
          logical, dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
          logical, dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
          logical, dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-         logical,                            intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or no
+         logical,                            intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation 
+                                                                           !!    should alter the keeps array or no
          ! Internals
          integer(I4B) :: nspill, nkeep, nlist
          logical, dimension(:), allocatable                :: tmp          !! Array of values to keep 
@@ -1918,7 +1957,7 @@ module base
          integer(I4B),          dimension(:),              intent(in)    :: ind !! Index to rearrange against
          integer(I4B),                                     intent(in)    :: n   !! Number of elements in arr and ind to rearrange
          ! Internals
-         character(len=STRMAX), dimension(:), allocatable                :: tmp !! Temporary copy of arry used during rearrange operation
+         character(len=STRMAX), dimension(:), allocatable  :: tmp !! Temporary copy of arry used during rearrange operation
 
          if (.not. allocated(arr) .or. n <= 0) return
          allocate(tmp, mold=arr)
@@ -2062,7 +2101,9 @@ module base
          ! Arguments
          real(DP),     dimension(:),              intent(in)  :: input_array  !! Unsorted input array 
          real(DP),     dimension(:), allocatable, intent(out) :: output_array !! Sorted array of unique values 
-         integer(I4B), dimension(:), allocatable, intent(out) :: index_map    !! An array of the same size as input_array that such that any for any index i, output_array(index_map(i)) = input_array(i)       
+         integer(I4B), dimension(:), allocatable, intent(out) :: index_map    !! An array of the same size as input_array that such 
+                                                                              !!    that any for any index i, 
+                                                                              !!    output_array(index_map(i)) = input_array(i)       
          ! Internals
          real(DP), dimension(:), allocatable :: unique_array
          integer(I4B) :: n
@@ -2078,7 +2119,7 @@ module base
             n = n + 1
             lo = minval(input_array(:), mask=input_array(:) > lo)
             unique_array(n) = lo
-            where(input_array(:) == lo) index_map(:) = n
+            where(abs(input_array(:) - lo) < epsilon(1.0_DP) * lo) index_map(:) = n
             if (lo >= hi) exit
          enddo
          allocate(output_array(n), source=unique_array(1:n)) 
@@ -2095,7 +2136,9 @@ module base
          ! Arguments
          integer(I4B), dimension(:),              intent(in)  :: input_array  !! Unsorted input array 
          integer(I4B), dimension(:), allocatable, intent(out) :: output_array !! Sorted array of unique values
-         integer(I4B), dimension(:), allocatable, intent(out) :: index_map    !! An array of the same size as input_array that such that any for any index i, output_array(index_map(i)) = input_array(i)     
+         integer(I4B), dimension(:), allocatable, intent(out) :: index_map    !! An array of the same size as input_array that such 
+                                                                              !!   that any for any index i, 
+                                                                              !!   output_array(index_map(i)) = input_array(i)     
          ! Internals
          integer(I4B), dimension(:), allocatable :: unique_array
          integer(I4B) :: n, lo, hi

@@ -24,22 +24,39 @@ contains
         ! Internals
         integer(I4B), codimension[*], save :: ntp
         integer(I4B) :: img,ntp_min, ntp_max
+        character(len=NAMELEN) :: min_str, max_str, diff_str, ni_str
 
         ntp = nbody_system%tp%nbody
         sync all
+        write(param%display_unit,*) "Checking whether test particles need to be reblanced."
         ntp_min = huge(1)
         ntp_max = 0
         do img = 1, num_images()
             if (ntp[img] < ntp_min) ntp_min = ntp[img]
             if (ntp[img] > ntp_max) ntp_max = ntp[img]
         end do
+        write(min_str,*) ntp_min
+        write(max_str,*) ntp_max
+        write(diff_str,*) ntp_max - ntp_min
+        write(ni_str,*) num_images()
+        write(param%display_unit,*) "ntp_min   : " // trim(adjustl(min_str))
+        write(param%display_unit,*) "ntp_max   : " // trim(adjustl(max_str))
+        write(param%display_unit,*) "difference: " // trim(adjustl(diff_str))
+        flush(param%display_unit)
+        sync all
         if (ntp_max - ntp_min >= num_images()) then
+            write(param%display_unit,*) trim(adjustl(diff_str)) // ">=" // trim(adjustl(ni_str)) // ": Rebalancing"
+            flush(param%display_unit)
             call nbody_system%coarray_collect(param)
             call nbody_system%coarray_distribute(param)
+            write(param%display_unit,*) "Rebalancing complete"
+        else
+            write(param%display_unit,*) trim(adjustl(diff_str)) // "<" // trim(adjustl(ni_str)) // ": No rebalancing needed"
         end if
-
+        flush(param%display_unit)
         return
     end subroutine swiftest_coarray_balance_system
+
 
     module subroutine swiftest_coarray_coclone_body(self)
         !! author: David A. Minton
@@ -80,6 +97,21 @@ contains
 
         return
     end subroutine swiftest_coarray_coclone_body
+
+    module subroutine swiftest_coarray_coclone_kin(self)
+        !! author: David A. Minton
+        !!
+        !! Broadcasts the image 1 object to all other images in a coarray 
+        implicit none
+        ! Arguments
+        class(swiftest_kinship),intent(inout),codimension[*]  :: self  !! Swiftest kinship object
+
+        call coclone(self%parent)
+        call coclone(self%nchild)
+        call coclone(self%child)
+
+        return
+     end subroutine swiftest_coarray_coclone_kin
 
     module subroutine swiftest_coarray_coclone_nc(self)
         !! author: David A. Minton
@@ -314,10 +346,6 @@ contains
         ! Internals
         integer(I4B) :: i
 
-        call self%cb%coclone()
-        call self%pl%coclone()
-        call self%tp%coclone()
-
         call coclone(self%maxid)
         call coclone(self%t)
         call coclone(self%GMtot)
@@ -461,7 +489,7 @@ contains
         integer(I4B), intent(in),optional :: src_img
         ! Internals
         type(swiftest_kinship), dimension(:), codimension[:], allocatable :: tmp
-        integer(I4B) :: img, si
+        integer(I4B) :: i, img, si
         integer(I4B), allocatable :: n[:]
         logical, allocatable :: isalloc[:]
 
@@ -471,21 +499,17 @@ contains
             si = 1
         end if
 
-        allocate(isalloc[*])
-        allocate(n[*])
+        sync all
         isalloc = allocated(var)
         if (isalloc) n = size(var)
         sync all 
         if (.not. isalloc[si]) return
 
         allocate(tmp(n[si])[*])
-        if (this_image() == si) then
-            do img = 1, num_images()
-                tmp(:)[img] = var 
-            end do
-            sync images(*)
-        else 
-            sync images(si)
+        do i = 1, n[si]
+            call tmp(i)%coclone()
+        end do
+        if (this_image() /= si) then
             if (allocated(var)) deallocate(var)
             allocate(var, source=tmp)
         end if
@@ -700,10 +724,8 @@ contains
 
         write(image_num_char,*) this_image()
         write(ntp_num_char,*) nbody_system%tp%nbody
-        if (this_image() /= 1) sync images(this_image() - 1)
         write(param%display_unit,*) "Image " // trim(adjustl(image_num_char)) // " ntp: " // trim(adjustl(ntp_num_char))
         if (param%log_output) flush(param%display_unit)
-        if (this_image() < num_images()) sync images(this_image() + 1)
 
         deallocate(ntp, lspill_list, tmp, cotp)
 

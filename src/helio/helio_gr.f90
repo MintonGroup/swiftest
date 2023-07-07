@@ -71,13 +71,18 @@ contains
       class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt     !! Step size
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, npl
 
       if (self%nbody == 0) return
 
-      associate(pl => self, npl => self%nbody)
-         do concurrent(i = 1:npl, pl%lmask(i))
-            call swiftest_gr_p4_pos_kick(param, pl%rh(:, i), pl%vb(:, i), dt)
+      associate(lmask => self%lmask, rh => self%rh, vb => self%vb, inv_c2 => param%inv_c2)
+         npl = self%nbody
+#ifdef DOCONLOC
+         do concurrent(i = 1:npl, lmask(i)) shared(inv_c2, lmask, rh, vb, dt)
+#else
+         do concurrent(i = 1:npl, lmask(i))
+#endif
+            call swiftest_gr_p4_pos_kick(inv_c2, rh(1,i), rh(2,i), rh(3,i), vb(1,i), vb(2,i), vb(3,i), dt)
          end do
       end associate
  
@@ -99,13 +104,18 @@ contains
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt     !! Step size
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, ntp
 
       if (self%nbody == 0) return
 
-      associate(tp => self, ntp => self%nbody)
-         do concurrent(i = 1:ntp, tp%lmask(i))
-            call swiftest_gr_p4_pos_kick(param, tp%rh(:, i), tp%vb(:, i), dt)
+      associate(rh => self%rh, vb => self%vb, lmask => self%lmask, inv_c2 => param%inv_c2)
+         ntp = self%nbody
+#ifdef DOCONLOC
+         do concurrent(i = 1:ntp, lmask(i)) shared(inv_c2, lmask, rh, vb, dt)
+#else
+         do concurrent(i = 1:ntp, lmask(i))
+#endif
+            call swiftest_gr_p4_pos_kick(inv_c2, rh(1,i), rh(2,i), rh(3,i), vb(1,i), vb(2,i), vb(3,i), dt)
          end do
       end associate
  

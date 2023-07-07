@@ -68,7 +68,6 @@ contains
     end subroutine rmvs_coarray_coclone_pl
 
 
-
     module subroutine rmvs_coarray_coclone_system(self)
         !! author: David A. Minton
          !!
@@ -141,14 +140,7 @@ contains
         do i = 1, n[si]
             call tmp(i)%coclone()
         end do
-        if (this_image() == si) then
-            do img = 1, num_images()
-                tmp(:)[img] = var(:)
-            end do
-
-            sync images(*)
-        else
-            sync images(si)
+        if (this_image() /= si) then
             if (allocated(var)) deallocate(var)
             allocate(var, source=tmp)
         end if

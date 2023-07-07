@@ -39,6 +39,7 @@ from numpy.random import default_rng
 #sim = swiftest.Simulation(fragmentation=True, minimum_fragment_mass = 2.5e-11, mtiny=2.5e-8)
 sim = swiftest.Simulation()
 sim.clean()
+rng = default_rng(seed=123)
 
 # Add the modern planets and the Sun using the JPL Horizons Database.
 sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"])
@@ -47,37 +48,37 @@ sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Sat
 npl         = 5
 density_pl  = 3000.0 / (sim.param['MU2KG'] / sim.param['DU2M'] ** 3)
 
-name_pl     = ["MassiveBody_01", "MassiveBody_02", "MassiveBody_03", "MassiveBody_04", "MassiveBody_05"]
-a_pl        = default_rng().uniform(0.3, 1.5, npl)
-e_pl        = default_rng().uniform(0.0, 0.3, npl)
-inc_pl      = default_rng().uniform(0.0, 90, npl)
-capom_pl    = default_rng().uniform(0.0, 360.0, npl)
-omega_pl    = default_rng().uniform(0.0, 360.0, npl)
-capm_pl     = default_rng().uniform(0.0, 360.0, npl)
-GM_pl       = (np.array([6e23, 8e23, 1e24, 3e24, 5e24]) / sim.param['MU2KG']) * sim.GU
-R_pl        = np.full(npl, (3 * (GM_pl / sim.GU) / (4 * np.pi * density_pl)) ** (1.0 / 3.0))
-Rh_pl       = a_pl * ((GM_pl) / (3 * sim.GU)) ** (1.0 / 3.0)
-Ip_pl      = np.full((npl,3),0.4,)
-rot_pl     = np.zeros((npl,3))
+name_pl     = ["SemiBody_01", "SemiBody_02", "SemiBody_03", "SemiBody_04", "SemiBody_05"]
+a_pl        = rng.uniform(0.3, 1.5, npl)
+e_pl        = rng.uniform(0.0, 0.2, npl)
+inc_pl      = rng.uniform(0.0, 10, npl)
+capom_pl    = rng.uniform(0.0, 360.0, npl)
+omega_pl    = rng.uniform(0.0, 360.0, npl)
+capm_pl     = rng.uniform(0.0, 360.0, npl)
+M_pl        = np.array([6e20, 8e20, 1e21, 3e21, 5e21]) * sim.KG2MU
+R_pl        = np.full(npl, (3 * M_pl/ (4 * np.pi * density_pl)) ** (1.0 / 3.0))
+Ip_pl       = np.full((npl,3),0.4,)
+rot_pl      = np.zeros((npl,3))
+mtiny       = 1.1 * np.max(M_pl)
 
-sim.add_body(name=name_pl, a=a_pl, e=e_pl, inc=inc_pl, capom=capom_pl, omega=omega_pl, capm=capm_pl, Gmass=GM_pl, radius=R_pl, rhill=Rh_pl, Ip=Ip_pl, rot=rot_pl)
+sim.add_body(name=name_pl, a=a_pl, e=e_pl, inc=inc_pl, capom=capom_pl, omega=omega_pl, capm=capm_pl, mass=M_pl, radius=R_pl,  Ip=Ip_pl, rot=rot_pl)
 
 # Add 10 user-defined test particles.
 ntp = 10
 
 name_tp     = ["TestParticle_01", "TestParticle_02", "TestParticle_03", "TestParticle_04", "TestParticle_05", "TestParticle_06", "TestParticle_07", "TestParticle_08", "TestParticle_09", "TestParticle_10"]
-a_tp        = default_rng().uniform(0.3, 1.5, ntp)
-e_tp        = default_rng().uniform(0.0, 0.3, ntp)
-inc_tp      = default_rng().uniform(0.0, 90, ntp)
-capom_tp    = default_rng().uniform(0.0, 360.0, ntp)
-omega_tp    = default_rng().uniform(0.0, 360.0, ntp)
-capm_tp     = default_rng().uniform(0.0, 360.0, ntp)
+a_tp        = rng.uniform(0.3, 1.5, ntp)
+e_tp        = rng.uniform(0.0, 0.2, ntp)
+inc_tp      = rng.uniform(0.0, 10, ntp)
+capom_tp    = rng.uniform(0.0, 360.0, ntp)
+omega_tp    = rng.uniform(0.0, 360.0, ntp)
+capm_tp     = rng.uniform(0.0, 360.0, ntp)
 
 sim.add_body(name=name_tp, a=a_tp, e=e_tp, inc=inc_tp, capom=capom_tp, omega=omega_tp, capm=capm_tp)
-
-# Run the simulation. Arguments may be defined here or thorugh the swiftest.Simulation() method.
-#sim.run(tstart=0.0, tstop=1.0e3, dt=0.01, istep_out=100, dump_cadence=10)
-sim.set_parameter(tstart=0.0, tstop=1.0e3, dt=0.01, istep_out=100, dump_cadence=0)
+sim.set_parameter(tstart=0.0, tstop=1.0e3, dt=0.01, istep_out=100, dump_cadence=0, compute_conservation_values=True, mtiny=mtiny)
 # Display the run configuration parameters.
 sim.get_parameter()
 sim.save()
+
+# Run the simulation. Arguments may be defined here or thorugh the swiftest.Simulation() method.
+sim.run()

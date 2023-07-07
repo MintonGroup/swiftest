@@ -17,7 +17,7 @@ pl = sim.init_cond.sel(name=plname)
 for i,n in enumerate(pl.name):
     pli = pl.sel(name=n)
     rstart = 2 * pli['radius'].data[0]  # Start the test particles at a multiple of the planet radius away
-    vstart = 1.5 * np.sqrt(2 * pli['Gmass'].data[0])  / rstart  # Start the test particle velocities at a multiple of the escape speed
+    vstart = 1.5 * np.sqrt(2 * pli['Gmass'].data[0]  / rstart)  # Start the test particle velocities at a multiple of the escape speed
     rstart_vec = np.array([rstart / np.sqrt(2.0), rstart / np.sqrt(2.0), 0.0])
     vstart_vec = np.array([vstart, 0.0, 0.0])
     rp = pli['rh'].data[0]
