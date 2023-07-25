@@ -63,9 +63,9 @@ def solar_system_horizons(name: str,
         ispl = False
         print(f"\nMassive body {name} not found or not yet supported")
         print("This will be created as a massless test particle")
-        if id is None:
-            print("ID value required for this input type")
-            return
+        # if id is None:
+        #     print("ID value required for this input type")
+        #     return
     
     # Planet MSun/M ratio
     MSun_over_Mpl = {
@@ -177,9 +177,14 @@ def solar_system_horizons(name: str,
         ephemerides_step = '1d'
 
         pldata = {}
-        pldata[name] = Horizons(id=id, location='@sun',
-                               epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
-                                       'step': ephemerides_step})
+        if id is not None:
+            pldata[name] = Horizons(id=id, location='@sun',
+                                   epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
+                                           'step': ephemerides_step})
+        else:
+            pldata[name] = Horizons(id=name, location='@sun',
+                                   epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
+                                           'step': ephemerides_step})
         
         if param['IN_FORM'] == 'XV':
             rx = pldata[name].vectors()['x'][0] * DCONV
@@ -221,7 +226,7 @@ def solar_system_horizons(name: str,
         else:
             Gmass = None
 
-    if id is None:
+    if id is None and name in planetid:
         id = planetid[name]
 
     return id,name,a,e,inc,capom,omega,capm,rh,vh,Gmass,Rpl,rhill,Ip,rot,J2,J4

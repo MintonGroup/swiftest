@@ -2241,6 +2241,7 @@ class Simulation(object):
 
         for k,v in kwargs.items():
             if k in scalar_ints:
+                v[v == None] = -1
                 kwargs[k] = v.astype(int)
             elif k in scalar_floats:
                 kwargs[k] = v.astype(np.float64)
@@ -2254,11 +2255,21 @@ class Simulation(object):
 
         kwargs['time'] = np.array([self.param['TSTART']])
         
+        if len(self.data) == 0:
+            maxid = -1
+        else:
+            maxid = self.data.id.max().values[()]
+
+        nbodies = kwargs["name"].size
+        kwargs['id'] = np.where(kwargs['id'] < 0,np.arange(start=maxid+1,stop=maxid+1+nbodies,dtype=int),kwargs['id'])
+        
         dsnew = init_cond.vec2xr(self.param,**kwargs)
 
         dsnew = self._combine_and_fix_dsnew(dsnew)
         if dsnew['npl'] > 0 or dsnew['ntp'] > 0:
            self.save(verbose=False)
+           
+           
 
         self.init_cond = self.data.copy(deep=True)
 
