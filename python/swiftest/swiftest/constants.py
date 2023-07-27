@@ -11,6 +11,8 @@
 
 import numpy as np
 import astropy.constants as const
+import astropy.units as u
+from astropy.coordinates import SkyCoord
 
 # Constants in SI units
 GC = const.G.value[()]
@@ -27,4 +29,6 @@ einsteinC = 299792458.0
 # Solar oblatenes values: From Mecheri et al. (2004), using Corbard (b) 2002 values (Table II)
 J2Sun = 2.198e-7
 J4Sun = -4.805e-9
+rotpoleSun = SkyCoord(ra=286.13 * u.degree, dec=63.87 * u.degree).cartesian
+rotSun = (360.0 / 25.05) / JD2S  * rotpoleSun 
 
