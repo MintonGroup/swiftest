@@ -24,90 +24,259 @@ from typing import (
     List,
     Any
 )
+
+def horizons_get_physical_properties(altid):
+    """
+    Parses the raw output from JPL Horizons in order to extract physical properties of a body if they exist
+    
+
+    Parameters
+    ----------
+    altid : string
+        Raw response from the JPL Horizons query
+
+    Returns
+    -------
+    MSun_over_Mpl : float
+        The ratio of MSun/M of the body
+    radius : float
+        The radius of the body in m
+    rot: (3) float vector
+        The rotation rate vector oriented toward the north pole
+    """
+
+    def get_Gmass(raw_response):
+        GM = [s for s in raw_response.split('\n') if 'GM' in s 
+            and 'Rel' not in s 
+            and 'GMT' not in s
+            and 'ANGMOM' not in s]
+        if len(GM) == 0:
+            return None
+        GM = GM[0]
+        GM = GM.split('GM')[1]
+        GM = GM.split('=')[1]
+        GM = GM.strip().split(' ')[0].split('+')[0]
+        try:
+            GM = float(GM)
+        except:
+            GM = None
+        return GM
+
+    def get_radius(raw_response):
+
+        radius = [s for s in raw_response.split('\n') if 'mean radius' in s.lower() or 'RAD' in s or 'Radius (km)' in s]
+        if len(radius) == 0:
+            return None
+        radius = radius[0]
+        if "Radius (km)" in radius:
+            radius = radius.split("Radius (km)")[1].strip(' =').split('+')[0].split()[0].strip()
+        elif "R_eff" in radius: # Some small bodies list an effective radius 
+            radius = radius.split('R_eff')[1].strip(' =').split('+')[0].split()[0].strip()
+        elif "RAD" in radius: # Some small bodies list the radius like this
+            radius = radius.split('RAD')[1].strip(' =').split('+')[0].split()[0].strip()
+            if 'x' in radius: # Triaxial ellipsoid bodies like Haumea may have multiple dimensions which need to be averaged
+                radius = radius.split('x')
+                try:
+                    for i,v in enumerate(radius):
+                        radius[i] = float(v.split()[0].strip())
+                    radius = np.average(radius)
+                except:
+                    radius = None
+        else: # Handles most major bodies
+            radius = radius.split('=')[1].strip().split('+')[0].split()[0].strip() 
+        try:
+            radius = float(radius)
+        except:
+            radius = None
+        return radius
+
+    def get_rotrate(raw_response):
+        raw_response=jpl.raw_response
+        rotrate = [s for s in raw_response.split('\n') if 'rot. rat' in s.lower()]
+        if len(rotrate) == 0:
+            rotrate = [s for s in raw_response.split('\n') if 'ROTPER' in s.upper()] # Try the small body version
+            if len(rotrate) > 0:
+                rotrate = rotrate[0].split('ROTPER=')[1].strip()
+                try:
+                   rotrate = 2*np.pi / (float(rotrate) * 3600)
+                except:
+                   rotrate = None
+            else:
+                if "Synchronous" in raw_response: # Satellites have this:
+                    rotrate = [s for s in raw_response.split('\n') if 'Orbital period' in s][0]
+                    rotrate = rotrate.split('Orbital period')[1].replace('~',' ').replace('d',' ').strip()
+                    rotrate = 2*np.pi / (float(rotrate) *  swiftest.JD2S) 
+                else:   
+                    rotrate = None
+        else:
+            rotrate = rotrate[0].lower().split('rot. rat')[1].split('=')[1].strip().split('  ')[0].strip()
+            try:
+                rotrate = float(rotrate)
+            except:
+                rotrate = None
+        return rotrate
+
+    def get_rotpole(jpl):
+        RA = jpl.ephemerides()['NPole_RA'][0]
+        DEC = jpl.ephemerides()['NPole_DEC'][0]
+
+        if np.ma.is_masked(RA) or np.ma.is_masked(DEC):
+            return np.array([0.0,0.0,1.0])
+
+        rotpole = SkyCoord(ra=RA * u.degree, dec=DEC * u.degree).cartesian
+        return np.array([rotpole.x.value, rotpole.y.value, rotpole.z.value])
+
+    for id in altid:
+        jpl,idlist,namelist = horizons_query(id=id,ephemerides_start_date='2023-07-26',verbose=False)
+        Rpl = get_radius(jpl.raw_response) 
+        if Rpl is not None:
+            Rpl *= 1e3
+            break
+        
+    Gmass = get_Gmass(jpl.raw_response)
+    if Rpl is None or Gmass is None:
+        rot = np.full(3,np.nan) 
+    else:
+        print(f"Physical properties found for {namelist[0]}") 
+        Gmass *= 1e-9  # JPL returns GM in units of km**3 / s**2
+
+        rotrate = get_rotrate(jpl.raw_response)
+        if rotrate is None:
+            rotrate = 0.0
+        else:
+            rotrate = np.rad2deg(rotrate)
+
+        rotpole = get_rotpole(jpl)
+        rot = rotpole*rotrate
+            
+    return Gmass,Rpl,rot
+
+
+def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=False):
+    """
+    Queries JPL/Horizons for a body matching the id. If one is found, a HorizonsClass object is returned for the first object that
+    matches the passed id string. If more than one match is found, a list of alternate ids is also returned. If no object is found
+    then None is returned.
+
+    Parameters
+    ----------
+    id : string
+        A string identifying which body is requested from JPL/Horizons
+    ephemerides_start_date : string
+        Date to use when obtaining the ephemerides in the format YYYY-MM-DD.
+    exclude_spacecraft: bool (optional) - Default True
+        Indicate whether spacecraft ids should be exluded from the alternate id list
+    verbose: bool (optional) - Default True
+        Indicate whether to print messages about the query or not
+
+    Returns
+    -------
+    jpl: HorizonsClass | None
+        An astroquery.jplhorizons HorizonsClass object. Or None if no match was found.
+    altid: string list | None
+        A list of alternate ids if more than one object matches the list
+        
+    """
+    
+    def get_altid(errstr,exclude_spacecraft=True):
+        """
+        Parses the error message returned from a failed Horizons query. If the query failed because of an ambiguous id, then it will
+        return a list of id values that could possibly match the query.
+        not found
+
+        Parameters
+        ----------
+        raw_response : string
+            Raw response from the JPL Horizons query
+
+        Returns
+        -------
+        MSun_over_Mpl : float
+        """    
+        if "ID" in errstr:
+            altid = errstr.split('ID')[1]
+            altid = altid.split('\n')[2:-1]
+            altname = []
+            for n,v in enumerate(altid):
+                altid[n] = v.strip().split(' ')[0]
+                altname.append(' '.join(v.strip().split(' ')[1:]).strip().split('  ')[0])
+            if exclude_spacecraft:
+                altname = [altname[i] for i,n in enumerate(altid) if int(n) > 0] 
+                altid = [n for n in altid if int(n) > 0]
+                
+            return altid,altname 
+        else:
+            return None,None
+        
+        
+    # Horizons date time internal variables
+    tstart = datetime.date.fromisoformat(ephemerides_start_date)
+    tstep = datetime.timedelta(days=1)
+    tend = tstart + tstep
+    ephemerides_end_date = tend.isoformat()
+    ephemerides_step = '1d'
+    
+    try:
+        jpl = Horizons(id=id, location='@sun',
+                            epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
+                                    'step': ephemerides_step})
+        eph=jpl.ephemerides()
+        altid = [id]
+        altname =[jpl.table['targetname'][0]]
+    except Exception as e:
+        altid,altname = get_altid(str(e))
+        if altid is not None: # Return the first matching id
+            id = altid[0]
+            jpl = Horizons(id=id, location='@sun',
+                        epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
+                                'step': ephemerides_step})
+            eph=jpl.ephemerides()
+        else:
+            print(f"Could not find {id} in the JPL/Horizons system")
+            return None,None,None
+    if verbose:
+        print(f"Found matching body: {altname[0]} ({altid[0]})") 
+        if len(altid) > 1:
+            print("    Alternate matching bodies:")
+            for i,v in enumerate(altid):
+                if i > 0:
+                    print(f"    {altname[i]} ({v})")
+        
+    return jpl,altid,altname
+    
+    
 def solar_system_horizons(name: str,
                           param: Dict,
                           ephemerides_start_date: str,
-                          id: int | None = None):
+                          ephemeris_id: str | None = None):
     """
     Initializes a Swiftest dataset containing the major planets of the Solar System at a particular data from JPL/Horizons
 
     Parameters
     ----------
+    name  : string
+        Name of body to add to Dataset. If `id` is not supplied, this is also what will be searche for in the JPL/Horizon's database.
+        The first matching body is found (for major planets, this is the barycenter of a planet-satellite system)
     param : dict
         Swiftest paramuration parameters. This method uses the unit conversion factors to convert from JPL's AU-day system into the system specified in the param file
     ephemerides_start_date : string
         Date to use when obtaining the ephemerides in the format YYYY-MM-DD.
+    ephemeris_id : string (optional)
+        If passed, this is passed to Horizons instead of `name`. This can be used to find a more precise body than given by `name`. 
+    
 
     Returns
     -------
     ds : xarray dataset
+        Initial conditions of body formatted for Swiftest
+    
+    Notes
+    --------
+    When passing `name` == "Earth" or `name` == "Pluto", it a body is generated that has initial conditions matching the system
+    barycenter and mass equal to the sum of Earth+Moon or Pluto+Charon. To obtain initial conditions for either Earth or Pluto alone,
+    pass `ephemeris_id` == "399" for Earth or `id` == "999" for Pluto. 
     """
-    # Planet ids
-    planetid = {
-        'Sun': '0',
-        'Mercury': '1',
-        'Venus': '2',
-        'Earth': '3',
-        'Mars': '4',
-        'Jupiter': '5',
-        'Saturn': '6',
-        'Uranus': '7',
-        'Neptune': '8',
-        'Pluto': '9'
-    }
     
-    if name in planetid:
-        ispl = True
-        id = planetid[name]
-    else:
-        ispl = False
-        print(f"\nMassive body {name} not found or not yet supported")
-        print("This will be created as a massless test particle")
-        # if id is None:
-        #     print("ID value required for this input type")
-        #     return
-    
-    # Planet MSun/M ratio
-    MSun_over_Mpl = {
-        'Sun'    : np.longdouble(1.0),
-        'Mercury': np.longdouble(6023600.0),
-        'Venus': np.longdouble(408523.71),
-        'Earth': np.longdouble(328900.56),
-        'Mars': np.longdouble(3098708.),
-        'Jupiter': np.longdouble(1047.3486),
-        'Saturn': np.longdouble(3497.898),
-        'Uranus': np.longdouble(22902.98),
-        'Neptune': np.longdouble(19412.24),
-        'Pluto': np.longdouble(1.35e8)
-    }
-    
-    # Planet radii in AU
-    planetradius = {
-        'Sun' : swiftest.RSun / swiftest.AU2M,
-        'Mercury': np.longdouble(2439.4e3) / swiftest.AU2M,
-        'Venus': np.longdouble(6051.8e3) / swiftest.AU2M,
-        'Earth': np.longdouble(6371.0084e3) / swiftest.AU2M,  # Earth only for radius
-        'Mars': np.longdouble(3389.50e3) / swiftest.AU2M,
-        'Jupiter': np.longdouble(69911e3) / swiftest.AU2M,
-        'Saturn': np.longdouble(58232.0e3) / swiftest.AU2M,
-        'Uranus': np.longdouble(25362.e3) / swiftest.AU2M,
-        'Neptune': np.longdouble(24622.e3) / swiftest.AU2M,
-        'Pluto': np.longdouble(1188.3e3 / swiftest.AU2M)
-    }
-    
-    planetrot = {
-       'Sun' : np.longdouble(360.0 / 25.05) / swiftest.JD2S, # Approximate
-       'Mercury': np.longdouble(360.0 / 58.646) / swiftest.JD2S,
-       'Venus': np.longdouble(360.0 / 243.0226 ) / swiftest.JD2S,
-       'Earth': np.longdouble(360.0 / 0.99726968) / swiftest.JD2S,
-       'Mars': np.longdouble(360.0 / 1.025957) / swiftest.JD2S,
-       'Jupiter': np.longdouble(360.0 / (9.9250 / 24.0) ) / swiftest.JD2S,
-       'Saturn': np.longdouble(360.0 / (10.656 / 24.0) ) / swiftest.JD2S,
-       'Uranus': np.longdouble(360.0 / 0.71833) / swiftest.JD2S,
-       'Neptune': np.longdouble(360.0 / 0.6713) / swiftest.JD2S,
-       'Pluto': np.longdouble(360.0 / 6.387230) / swiftest.JD2S
-    }
-   
     planetIpz = { # Only the polar moments of inertia are used currently. Where the quantity is unkown, we just use the value of a sphere = 0.4
         'Sun' : np.longdouble(0.070),
         'Mercury' : np.longdouble(0.346),
@@ -132,9 +301,7 @@ def solar_system_horizons(name: str,
     J2RP2 = swiftest.J2Sun * (swiftest.RSun / param['DU2M']) ** 2
     J4RP4 = swiftest.J4Sun * (swiftest.RSun / param['DU2M']) ** 4
     
-    solarpole = SkyCoord(ra=286.13 * u.degree, dec=63.87 * u.degree)
-    solarrot = planetrot['Sun'] * param['TU2S']
-    rotcb = solarpole.cartesian * solarrot
+    rotcb = swiftest.rotSun * param['TU2S'] 
     rotcb = np.array([rotcb.x.value, rotcb.y.value, rotcb.z.value])
     Ipsun = np.array([0.0, 0.0, planetIpz['Sun']])
 
@@ -157,7 +324,7 @@ def solar_system_horizons(name: str,
     J2 = None
     J4 = None
 
-    if name == "Sun" : # Create central body
+    if name == "Sun" or ephemeris_id == "0": # Create central body
         print("Creating the Sun as a central body")
         Gmass = GMcb
         Rpl = Rcb
@@ -167,67 +334,68 @@ def solar_system_horizons(name: str,
             Ip = Ipsun
             rot = rotcb
     else: # Fetch solar system ephemerides from Horizons
-        print(f"Fetching ephemerides data for {name} from JPL/Horizons")
-
-        # Horizons date time internal variables
-        tstart = datetime.date.fromisoformat(ephemerides_start_date)
-        tstep = datetime.timedelta(days=1)
-        tend = tstart + tstep
-        ephemerides_end_date = tend.isoformat()
-        ephemerides_step = '1d'
-
-        pldata = {}
-        if id is not None:
-            pldata[name] = Horizons(id=id, location='@sun',
-                                   epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
-                                           'step': ephemerides_step})
-        else:
-            pldata[name] = Horizons(id=name, location='@sun',
-                                   epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
-                                           'step': ephemerides_step})
+        if ephemeris_id is None:
+            ephemeris_id = name
+            
+        print(f"Fetching ephemerides data for {ephemeris_id} from JPL/Horizons")
+        
+        jpl,altid,altname = horizons_query(ephemeris_id,ephemerides_start_date)
+        print(f"Found ephemerides data for {altname[0]} ({altid[0]}) from JPL/Horizons")
+        if name == None:
+            name = altname[0]
         
         if param['IN_FORM'] == 'XV':
-            rx = pldata[name].vectors()['x'][0] * DCONV
-            ry = pldata[name].vectors()['y'][0] * DCONV
-            rz = pldata[name].vectors()['z'][0] * DCONV
-            vx = pldata[name].vectors()['vx'][0] * VCONV
-            vy = pldata[name].vectors()['vy'][0] * VCONV
-            vz = pldata[name].vectors()['vz'][0] * VCONV
+            rx = jpl.vectors()['x'][0] * DCONV
+            ry = jpl.vectors()['y'][0] * DCONV
+            rz = jpl.vectors()['z'][0] * DCONV
+            vx = jpl.vectors()['vx'][0] * VCONV
+            vy = jpl.vectors()['vy'][0] * VCONV
+            vz = jpl.vectors()['vz'][0] * VCONV
 
             rh = np.array([rx,ry,rz])
             vh = np.array([vx,vy,vz])
         elif param['IN_FORM'] == 'EL':
-            a = pldata[name].elements()['a'][0] * DCONV
-            e = pldata[name].elements()['e'][0]
-            inc = pldata[name].elements()['incl'][0]
-            capom = pldata[name].elements()['Omega'][0]
-            omega = pldata[name].elements()['w'][0]
-            capm = pldata[name].elements()['M'][0]
+            a = jpl.elements()['a'][0] * DCONV
+            e = jpl.elements()['e'][0]
+            inc = jpl.elements()['incl'][0]
+            capom = jpl.elements()['Omega'][0]
+            omega = jpl.elements()['w'][0]
+            capm = jpl.elements()['M'][0]
 
-        if ispl:
-            Gmass = GMcb / MSun_over_Mpl[name]
+        Gmass,Rpl,rot = horizons_get_physical_properties(altid)
+        # If the user inputs "Earth" or Pluto, then the Earth-Moon or Pluto-Charon barycenter and combined mass is used. 
+        # To use the Earth or Pluto alone, simply pass "399" or "999", respectively to name
+        if ephemeris_id == "Earth":
+            print("Combining mass of Earth and the Moon")
+            Gmass_moon,tmp,tmp = horizons_get_physical_properties(["301"])
+            Gmass += Gmass_moon
+        elif ephemeris_id == "Pluto":
+            print("Combining mass of Pluto and Charon")
+            Gmass_charon,tmp,tmp = horizons_get_physical_properties(["901"])
+            Gmass += Gmass_charon 
+        
+        if Gmass is not None:
             if param['CHK_CLOSE']:
-                Rpl = planetradius[name] * DCONV
+                Rpl /= param['DU2M']
 
             # Generate planet value vectors
             if (param['RHILL_PRESENT']):
-                rhill = pldata[name].elements()['a'][0] * DCONV * (3 * MSun_over_Mpl[name]) ** (-THIRDLONG)
+                rhill = jpl.elements()['a'][0] * DCONV * (3 * MSun_over_Mpl[name]) ** (-THIRDLONG)
 
             if (param['ROTATION']):
-                RA = pldata[name].ephemerides()['NPole_RA'][0]
-                DEC = pldata[name].ephemerides()['NPole_DEC'][0]
-
-                rotpole = SkyCoord(ra=RA * u.degree, dec=DEC * u.degree)
-                rotrate = planetrot[name] * param['TU2S']
-                rot = rotpole.cartesian * rotrate
-                rot = np.array([rot.x.value, rot.y.value, rot.z.value])
-                Ip = np.array([0.0, 0.0, planetIpz[name]])
-
+                rot *= param['TU2S']
+                if name in planetIpz:
+                    Ip = np.array([0.0, 0.0, planetIpz[name]])
+                else:
+                    Ip = np.array([0.4, 0.4, 0.4])
         else:
             Gmass = None
 
-    if id is None and name in planetid:
-        id = planetid[name]
+    # Only the Sun gets assigned its own special id for now. All other ids will be sorted later
+    if name == "Sun":
+        id = 0
+    else:
+        id = -1
 
     return id,name,a,e,inc,capom,omega,capm,rh,vh,Gmass,Rpl,rhill,Ip,rot,J2,J4
 
