@@ -120,7 +120,8 @@ The Swiftest CMake configuration comes with several customization options:
 | Enable/Disable Coarray support (experimental) | \-DUSE_COARRAY=[ON\|**OFF**]                 |
 | Set Fortran compiler path       | \-DCMAKE_Fortran_COMPILER=/path/to/fortran/compiler        |
 | Set path to make program        | \-DCMAKE_MAKE_PROGRAM=/path/to/make                        |
-| Enable/Disable shared libraries (Intel only) | \-DBUILD_SHARED_LIBS=[**ON\|OFF]        |
+| Enable/Disable shared libraries (Intel only) | \-DBUILD_SHARED_LIBS=[**ON\|OFF]              |
+| Add additional include path     | \-DCMAKE_Fortran_FLAGS="-I/path/to/libries                 |
 
 
 To see a list of all possible options available to CMake:
