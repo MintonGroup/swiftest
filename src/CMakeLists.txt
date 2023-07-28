@@ -170,14 +170,9 @@ ENDIF (USE_OPENMP)
 
 
 # Add an automatic test
+
 ADD_CUSTOM_TARGET(Run_Test ALL 
-    COMMAND echo "***Running Python script examples/Basic_Simulation/initial_conditions.py***" 
-    COMMAND python ${CMAKE_SOURCE_DIR}/examples/Basic_Simulation/initial_conditions.py
-    COMMAND echo "***Saving data to directory examples/Basic_Simulation/simdata***"
-    COMMAND echo "***Running Python script examples/Basic_Simulation/output_reader.py***"
-    COMMAND python ${CMAKE_SOURCE_DIR}/examples/Basic_Simulation/output_reader.py
-    COMMAND echo "***Plotting results as examples/Basic_Simulation/output.eps***"
-    COMMAND echo "***Calculating errors with Python script examples/Basic_Simulation/errors.py***"
-    COMMAND python ${CMAKE_SOURCE_DIR}/examples/Basic_Simulation/errors.py
+    COMMAND echo "***Running Python script tests/test_suite.py***" 
+    COMMAND python ${CMAKE_SOURCE_DIR}/test/test_suite.py
     COMMAND echo "***Test Complete***"
 )
