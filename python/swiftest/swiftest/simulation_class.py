@@ -113,7 +113,7 @@ class Simulation(object):
             Parameter input file equivalent: `ISTEP_OUT`
         tstep_out : float, optional
             The approximate time between when outputs are written to file. Passing this computes
-            `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `tstep_out` can be set.
+            `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `tstep_out` can be set. `tstep_out` must be less than `tstop`
             Parameter input file equivalent: None 
         nstep_out : int, optional
             The total number of times that outputs are written to file. Passing this allows for a geometric progression of output steps:
@@ -676,12 +676,17 @@ class Simulation(object):
             return {}
         else:
             update_list.append("istep_out")
+            
+        if tstep_out is not None and tstep_out > tstop:
+            warnings.warn("tstep_out must be less than tstop. Setting tstep_out=tstop",stacklevel=2)
+            tstep_out = tstop
 
         if tstep_out is not None and dt is not None:
             istep_out = int(tstep_out / dt)
 
         if istep_out is not None:
             self.param['ISTEP_OUT'] = int(istep_out)
+            
             
         if nstep_out is not None:
             if istep_out is None:
