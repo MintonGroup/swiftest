@@ -111,7 +111,7 @@ COPY ./src/ /swiftest/src/
 COPY ./CMakeLists.txt /swiftest/
 RUN cd swiftest && \
   cmake -S . -B build -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" \
-  -DMACHINE_CODE_VALUE=${MACHINE_CODE} \
+  -DMACHINE_CODE_VALUE=${MACHINE_CODE_VALUE} \
   -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
   -DUSE_COARRAY=OFF \
   -DBUILD_SHARED_LIBS=OFF \
