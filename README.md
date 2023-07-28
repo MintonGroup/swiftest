@@ -69,8 +69,19 @@ You now have a Swiftest repository on your personal machine that you may compile
 
 By far the simplest, most reliable way of compiling the driver program is via a Docker container. The Swiftest project contains a Dockerfile that may be used to generate an executable without needing to provide any external dependencies, other than the Docker engine itself (see [here](https://docs.docker.com/get-docker/) for instructions on obtaining Docker). Once Docker is installed and the Docker engine is running, execute:
 ```
-$ docker build --target=export_driver --output=bin --build-arg MACHINE_CODE_VALUE="Host" [--build-arg EXTRA_CMAKE_OPTIONS=["-D<Additional option you want to pass to CMake>"]
+$ docker build --target=export_driver \
+               --output=bin \
+               --build-arg MACHINE_CODE_VALUE="Host"  \
+             [ --build-arg BUILD_TYPE="*RELEASE*|DEBUG|TESTING|PROFILE" ] \
+             [ --build-arg EXTRA_CMAKE_OPTIONS="-D<Additional option you want to pass to CMake>" ]
 ```
+
+The Docker build will download and compile all of the library dependencies (HDF5, NetCDF-C, and NetCDF-Fortran) as static libraries and the Swiftest driver using Intel compilers. Once completed, the Swiftest executable, called ```swiftest_driver```, should now be created in the ```bin/``` directory. 
+
+> Note: The Dockerfile is designed to build an executable that is compatible with a broad range of CPU architectures by specifying the SSE2 instruction as a target for SIMD instructions using the `-x` compiler option. When compiling on the same CPU archictecture you plan to execute the driver program, for the highest possible SIMD performance, use `--build-arg MACHINE_CODE_VALUE="Host" to override the default `MACHINE_CODE_VALUE="SSE2"`. For additional options see [here](https://www.intel.com/content/www/us/en/docs/fortran-compiler/developer-guide-reference/2023-1/x-qx.html).
+
+The optional Docker argument `EXTRA_CMAKE_OPTIONS` is provided to pass any additional CMake arguments (see below).
+
 
 ***Compiling `swiftest_driver` using CMake***
 
@@ -118,7 +129,6 @@ $ cmake -B build -S . -LA
 ```
 
 The Swiftest executable, called ```swiftest_driver```, should now be created in the ```bin/``` directory.
-
 
 
 **Download the `swiftest_driver` as a Docker or Singularity container.**
