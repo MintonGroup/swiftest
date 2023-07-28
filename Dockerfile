@@ -91,8 +91,10 @@ ENV F77="${FC}"
 # https://www.intel.com/content/www/us/en/docs/fortran-compiler/developer-guide-reference/2023-1/x-qx.html
 ARG MACHINE_CODE_VALUE="sse2"
 
-# Build type options are DEBUG, RELEASE, PROFILE, or TESTING.
 ARG BUILD_TYPE="RELEASE"  
+
+# Additional CMAKE options:
+ARG EXTRA_CMAKE_OPTIONS=""
 
 # Swiftest
 ENV NETCDF_HOME=${INSTALL_DIR}
@@ -112,7 +114,8 @@ RUN cd swiftest && \
   -DMACHINE_CODE_VALUE=${MACHINE_CODE} \
   -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
   -DUSE_COARRAY=OFF \
-  -DBUILD_SHARED_LIBS=OFF && \
+  -DBUILD_SHARED_LIBS=OFF \
+  ${EXTRA_CMAKE_OPTIONS} && \
   cmake --build build && \
   cmake --install build
 
