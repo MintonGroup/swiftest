@@ -16,7 +16,7 @@ Date             : June 27, 2023
 Included in the Basic_Simulation example directory are the following files:
 
 	- README.txt            : This file
-	- initial_conditions.py : A Python Script that generates and runs a set of initial conditions.
+	- basic_simulation.py : A Python Script that generates and runs a set of initial conditions.
 	- output_reader.py      : A Python Script that processes out.nc and generates output.eps
         - errors.py             : A Python Script that processes out.nc and reports the simulation errors to the terminal
 
