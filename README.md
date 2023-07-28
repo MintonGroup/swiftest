@@ -512,7 +512,7 @@ This example walks through how to set up a standard solar system simulation. It 
 - Semi-Interacting Massive Bodies - Gravitationally affect and are affected by fully-interacting massive bodies, do not gravitationally affect and are not affected by other semi-interacting massive bodies.
 - Test Particles - Gravitationally affected by fully-interacting massive bodies only. 
 
-To generate the initial conditions, run the Python script titled **initial_conditions.py**. This script also runs Swiftest SyMBA, generating output. To process the output file, run the script titled **output_reader.py**. 
+To generate the initial conditions, run the Python script titled **basic_simulation.py**. This script also runs Swiftest SyMBA, generating output. To process the output file, run the script titled **output_reader.py**. 
 
 **Chambers2013**
 
