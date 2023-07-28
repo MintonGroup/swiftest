@@ -93,7 +93,7 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                
 # Allows for lines longer than 80 characters without truncation
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
-                Fortran "-ffree-line-length-none" # GNU (gfortran)
+                Fortran "-ffree-line-length-512" # GNU (gfortran)
                 )
 
 # Disables right margin wrapping in list-directed output
