@@ -2313,6 +2313,7 @@ contains
       case (INT_BS)
          write(*,*) 'Bulirsch-Stoer integrator not yet enabled'
        case (INT_HELIO)
+         allocate(helio_nbody_system :: nbody_system)
          select type(nbody_system)
          class is (helio_nbody_system)
             allocate(helio_cb :: nbody_system%cb)
