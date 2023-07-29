@@ -170,9 +170,4 @@ ENDIF (USE_OPENMP)
 
 
 # Add an automatic test
-
-ADD_CUSTOM_TARGET(Run_Test ALL 
-    COMMAND echo "***Running Python script tests/test_suite.py***" 
-    COMMAND python ${CMAKE_SOURCE_DIR}/test/test_suite.py
-    COMMAND echo "***Test Complete***"
-)
+ADD_TEST(NAME test_suite COMMAND python ${CMAKE_SOURCE_DIR/test/test_suite.py})
