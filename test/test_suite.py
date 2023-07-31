@@ -105,56 +105,59 @@ class TestSwiftest(unittest.TestCase):
       Tests that Swiftest conserves mass, energy, and momentum to within acceptable tolerances.
       """
       print("\ntest_conservation: Tests that Swiftest conserves mass, energy, and momentum to within acceptable tolerances.")
-      sim = swiftest.Simulation(read_param=True) 
       
-      # Add 5 user-defined semi-interacting massive bodies.
-      npl         = 5
-      density_pl  = 3000.0 / (sim.param['MU2KG'] / sim.param['DU2M'] ** 3)
-
-      name_pl     = [f"SemiBody_{i:02}" for i in range(1,npl+1)]
-      a_pl        = rng.uniform(0.3, 1.5, npl)
-      e_pl        = rng.uniform(0.0, 0.2, npl)
-      inc_pl      = rng.uniform(0.0, 10, npl)
-      capom_pl    = rng.uniform(0.0, 360.0, npl)
-      omega_pl    = rng.uniform(0.0, 360.0, npl)
-      capm_pl     = rng.uniform(0.0, 360.0, npl)
-      M_pl        = np.array([6e20, 8e20, 1e21, 3e21, 5e21]) * sim.KG2MU
-      R_pl        = np.full(npl, (3 * M_pl/ (4 * np.pi * density_pl)) ** (1.0 / 3.0))
-      Ip_pl       = np.full((npl,3),0.4,)
-      rot_pl      = np.zeros((npl,3))
-      mtiny       = 1.1 * np.max(M_pl)
+      # Error limits
+      L_slope_limit = 1e-10
+      E_slope_limit = 1e-8
+      GM_limit = 1e-14
+ 
+      sim = swiftest.Simulation()
+      sim.clean()
       
-      sim.add_body(name=name_pl, a=a_pl, e=e_pl, inc=inc_pl, capom=capom_pl, omega=omega_pl, capm=capm_pl, mass=M_pl, radius=R_pl,  Ip=Ip_pl, rot=rot_pl)
+      sim.add_solar_system_body(major_bodies)
+      
+      dt = 0.01
+      nout = 1000
+      tstop = 1e4
+      tstep_out = tstop / nout
            
-      sim.run(start=0.0, tstop=1.0e3, dt=0.01, istep_out=100, dump_cadence=0, compute_conservation_values=True, mtiny=mtiny, integrator="symba") 
+      sim.run(tstart=0.0, tstop=tstop, dt=dt, tstep_out=tstep_out, dump_cadence=0, compute_conservation_values=True, integrator="symba")
+      
+      def fit_func(x,slope,b):
+         """
+         Linear function for curve fitting
+         """
+         return slope * x + b
+      
       # Calculate the angular momentum error
       sim.data['L_tot'] = sim.data['L_orbit'] + sim.data['L_spin'] + sim.data['L_escape']
       sim.data['DL'] = sim.data['L_tot'] - sim.data['L_tot'].isel(time=0)
-      sim.data['L_error'] = swiftest.tool.magnitude(sim.data,'DL') / swiftest.tool.magnitude(sim.data.isel(time=0), 'L_tot')
-      L_final = sim.data['L_error'][-1].values
+      L_error = swiftest.tool.magnitude(sim.data,'DL') / swiftest.tool.magnitude(sim.data.isel(time=0), 'L_tot')
 
       # Calculate the energy error
-      sim.data['E_error'] = (sim.data['TE'] - sim.data['TE'].isel(time=0)) / sim.data['TE'].isel(time=0)
-      E_final = sim.data['E_error'][-1].values
+      E_error = (sim.data['TE'] - sim.data['TE'].isel(time=0)) / sim.data['TE'].isel(time=0)
 
       # Calculate the mass error
       sim.data['GMtot'] = sim.data['Gmass'].sum(dim='name',skipna=True) + sim.data['GMescape']
-      sim.data['GM_error'] = (sim.data['GMtot'] - sim.data['GMtot'].isel(time=0)) / sim.data['GMtot'].isel(time=0)
-      GM_final = sim.data['GM_error'][-1].values
-
+      GM_error = (sim.data['GMtot'] - sim.data['GMtot'].isel(time=0)) / sim.data['GMtot'].isel(time=0)
+      GM_final = GM_error.isel(time=-1).values
+      
+      # Compute the slope of the error vs time fit
+      E_fit_result = E_error.curvefit("time",fit_func)
+      L_fit_result = L_error.curvefit("time",fit_func)
+      
+      E_slope = E_fit_result['curvefit_coefficients'].sel(param='slope').values
+      L_slope = L_fit_result['curvefit_coefficients'].sel(param='slope').values
+      
       # Print the final errors
-      print("Final Angular Momentum Error: ", L_final)
-      print("Final Energy Error: ", E_final)
-      print("Final Mass Error: ", GM_final)
+      print("\n")
+      print(f"Angular momentum error slope: {L_slope:.2e}/{sim.TU_name}")
+      print(f"Energy error slope: {E_slope:.2e}/{sim.TU_name}")
+      print(f"Final Mass Error: {GM_final:.2e}")
 
-      # Determine if the errors are within bounds
-      L_limit = 1e-10
-      E_limit = 1e-5
-      GM_limit = 1e-14
-
-      self.assertLess(L_final,L_limit, msg=f"Angular Momentum Error of {L_final} higher than threshold value of {L_limit}")
-      self.assertLess(E_final,E_limit, msg=f"Energy Error of {E_final} higher than threshold value of {E_limit}")
-      self.assertLess(GM_final,GM_limit, msg=f"Mass Error of {GM_final} higher than threshold value of {GM_limit}")
+      self.assertLess(np.abs(L_slope),L_slope_limit, msg=f"Angular Momentum Error of {L_slope:.2e}/{sim.TU_name} higher than threshold value of {L_slope_limit:.2e}/{sim.TU_name}")
+      self.assertLess(np.abs(E_slope),E_slope_limit, msg=f"Energy Error of {E_slope:.2e}/{sim.TU_name} higher than threshold value of {E_slope_limit:.2e}/{sim.TU_name}")
+      self.assertLess(np.abs(GM_final),GM_limit, msg=f"Mass Error of {GM_final:.2e} higher than threshold value of {GM_limit:.2e}")
       
 if __name__ == '__main__':
    unittest.main()
