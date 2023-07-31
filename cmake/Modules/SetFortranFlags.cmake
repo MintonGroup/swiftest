@@ -300,9 +300,10 @@ SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_TESTING "${CMAKE_Fortran_FLAGS_DEBUG}"
 
 # Unroll loops
 SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                Fortran "-unroll"        # Intel
+                Fortran "-funroll-loops" # GNU
+                        "-unroll"        # Intel
                         "/unroll"        # Intel Windows
-                        "-funroll-loops" # GNU
+                        
                 )
 
 # Inline functions
