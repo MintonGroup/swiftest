@@ -119,6 +119,7 @@ IF (NOT BUILD_SHARED_LIBS)
         # Use static Intel libraries
         SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
                 Fortran "-static-intel"  # Intel
+                        "-static-libgfortran -static-libgcc" # GNU
         )
         # Use static Intel MPI libraries
         SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
