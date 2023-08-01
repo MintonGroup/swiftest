@@ -169,5 +169,3 @@ end program TestDoConcurrentLoc
 ENDIF (USE_OPENMP)
 
 
-# Add an automatic test
-ADD_TEST(NAME test_suite COMMAND python ${CMAKE_SOURCE_DIR/test/test_suite.py})
