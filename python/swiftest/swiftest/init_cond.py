@@ -225,7 +225,7 @@ def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=
         altname =[jpl.table['targetname'][0]]
     except Exception as e:
         altid,altname = get_altid(str(e))
-        if altid is not None: # Return the first matching id
+        if altid is not None and len(altid) >0: # Return the first matching id
             id = altid[0]
             jpl = Horizons(id=id, location='@sun',
                         epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
@@ -340,9 +340,12 @@ def solar_system_horizons(name: str,
         print(f"Fetching ephemerides data for {ephemeris_id} from JPL/Horizons")
         
         jpl,altid,altname = horizons_query(ephemeris_id,ephemerides_start_date)
-        print(f"Found ephemerides data for {altname[0]} ({altid[0]}) from JPL/Horizons")
-        if name == None:
-            name = altname[0]
+        if jpl is not None:
+            print(f"Found ephemerides data for {altname[0]} ({altid[0]}) from JPL/Horizons")
+            if name == None:
+                name = altname[0]
+        else:
+            return None
         
         if param['IN_FORM'] == 'XV':
             rx = jpl.vectors()['x'][0] * DCONV
@@ -380,7 +383,7 @@ def solar_system_horizons(name: str,
 
             # Generate planet value vectors
             if (param['RHILL_PRESENT']):
-                rhill = jpl.elements()['a'][0] * DCONV * (3 * MSun_over_Mpl[name]) ** (-THIRDLONG)
+                rhill = jpl.elements()['a'][0] * DCONV * (3 * Gmass / GMcb) ** (-THIRDLONG)
 
             if (param['ROTATION']):
                 rot *= param['TU2S']

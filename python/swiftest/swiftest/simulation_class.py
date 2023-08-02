@@ -2232,10 +2232,15 @@ class Simulation(object):
 
         body_list = []
         for i,n in enumerate(name):
-            body_list.append(init_cond.solar_system_horizons(n, self.param, date, ephemeris_id=ephemeris_id[i]))
+            body = init_cond.solar_system_horizons(n, self.param, date, ephemeris_id=ephemeris_id[i])
+            if body is not None:
+                body_list.append(body)
 
         #Convert the list receieved from the solar_system_horizons output and turn it into arguments to vec2xr
-        if len(body_list) == 1:
+        if len(body_list) == 0:
+           print("No valid bodies found")
+           return 
+        elif len(body_list) == 1:
             values = list(np.hsplit(np.array(body_list[0],dtype=np.dtype(object)),17))
         else:
             values = list(np.squeeze(np.hsplit(np.array(body_list,np.dtype(object)),17)))
