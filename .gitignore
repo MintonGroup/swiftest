@@ -4,7 +4,6 @@
 !*/
 # whitelist only the files that ever need to be tracked
 !*.f90
-!*.sh
 swiftest_driver.sh
 !CMakeLists.txt
 !*.cmake
