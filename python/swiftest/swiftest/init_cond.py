@@ -25,15 +25,18 @@ from typing import (
     Any
 )
 
-def horizons_get_physical_properties(altid):
+def horizons_get_physical_properties(altid,**kwargs):
     """
     Parses the raw output from JPL Horizons in order to extract physical properties of a body if they exist
     
 
     Parameters
     ----------
-    altid : string
-        Raw response from the JPL Horizons query
+    altid : list of str
+        List of ids to use for Horizons query
+    **kwargs: Any
+            Additional keyword arguments to pass to the query method (see https://astroquery.readthedocs.io/en/latest/jplhorizons/jplhorizons.html)
+
 
     Returns
     -------
@@ -104,7 +107,7 @@ def horizons_get_physical_properties(altid):
             else:
                 if "Synchronous" in raw_response: # Satellites have this:
                     rotrate = [s for s in raw_response.split('\n') if 'Orbital period' in s][0]
-                    rotrate = rotrate.split('Orbital period')[1].replace('~',' ').replace('d',' ').strip()
+                    rotrate = rotrate.split('Orbital period')[1].replace('~',' ').replace('d',' ').replace('=',' ').strip()
                     rotrate = 2*np.pi / (float(rotrate) *  swiftest.JD2S) 
                 else:   
                     rotrate = None
@@ -125,9 +128,12 @@ def horizons_get_physical_properties(altid):
 
         rotpole = SkyCoord(ra=RA * u.degree, dec=DEC * u.degree).cartesian
         return np.array([rotpole.x.value, rotpole.y.value, rotpole.z.value])
+    
+    if type(altid) != list:
+        altid = [altid]
 
     for id in altid:
-        jpl,idlist,namelist = horizons_query(id=id,ephemerides_start_date='2023-07-26',verbose=False)
+        jpl,idlist,namelist = horizons_query(id=id,ephemerides_start_date='2023-07-26',verbose=False,**kwargs)
         Rpl = get_radius(jpl.raw_response) 
         if Rpl is not None:
             Rpl *= 1e3
@@ -152,7 +158,7 @@ def horizons_get_physical_properties(altid):
     return Gmass,Rpl,rot
 
 
-def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=False):
+def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=False,**kwargs):
     """
     Queries JPL/Horizons for a body matching the id. If one is found, a HorizonsClass object is returned for the first object that
     matches the passed id string. If more than one match is found, a list of alternate ids is also returned. If no object is found
@@ -219,7 +225,7 @@ def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=
     try:
         jpl = Horizons(id=id, location='@sun',
                             epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
-                                    'step': ephemerides_step})
+                                    'step': ephemerides_step},**kwargs)
         eph=jpl.ephemerides()
         altid = [id]
         altname =[jpl.table['targetname'][0]]
@@ -248,7 +254,8 @@ def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=
 def solar_system_horizons(name: str,
                           param: Dict,
                           ephemerides_start_date: str,
-                          ephemeris_id: str | None = None):
+                          ephemeris_id: str | None = None,
+                          **kwargs: Any):
     """
     Initializes a Swiftest dataset containing the major planets of the Solar System at a particular data from JPL/Horizons
 
@@ -263,7 +270,8 @@ def solar_system_horizons(name: str,
         Date to use when obtaining the ephemerides in the format YYYY-MM-DD.
     ephemeris_id : string (optional)
         If passed, this is passed to Horizons instead of `name`. This can be used to find a more precise body than given by `name`. 
-    
+    **kwargs: Any
+            Additional keyword arguments to pass to the query method (see https://astroquery.readthedocs.io/en/latest/jplhorizons/jplhorizons.html)
 
     Returns
     -------
@@ -339,7 +347,7 @@ def solar_system_horizons(name: str,
             
         print(f"Fetching ephemerides data for {ephemeris_id} from JPL/Horizons")
         
-        jpl,altid,altname = horizons_query(ephemeris_id,ephemerides_start_date)
+        jpl,altid,altname = horizons_query(ephemeris_id,ephemerides_start_date,**kwargs)
         if jpl is not None:
             print(f"Found ephemerides data for {altname[0]} ({altid[0]}) from JPL/Horizons")
             if name == None:
@@ -365,16 +373,16 @@ def solar_system_horizons(name: str,
             omega = jpl.elements()['w'][0]
             capm = jpl.elements()['M'][0]
 
-        Gmass,Rpl,rot = horizons_get_physical_properties(altid)
+        Gmass,Rpl,rot = horizons_get_physical_properties(altid,**kwargs)
         # If the user inputs "Earth" or Pluto, then the Earth-Moon or Pluto-Charon barycenter and combined mass is used. 
         # To use the Earth or Pluto alone, simply pass "399" or "999", respectively to name
         if ephemeris_id == "Earth":
             print("Combining mass of Earth and the Moon")
-            Gmass_moon,tmp,tmp = horizons_get_physical_properties(["301"])
+            Gmass_moon,tmp,tmp = horizons_get_physical_properties(["301"],**kwargs)
             Gmass += Gmass_moon
         elif ephemeris_id == "Pluto":
             print("Combining mass of Pluto and Charon")
-            Gmass_charon,tmp,tmp = horizons_get_physical_properties(["901"])
+            Gmass_charon,tmp,tmp = horizons_get_physical_properties(["901"],**kwargs)
             Gmass += Gmass_charon 
         
         if Gmass is not None:

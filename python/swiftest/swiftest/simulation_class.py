@@ -2165,7 +2165,8 @@ class Simulation(object):
                               name: str | List[str] | None = None,
                               ephemeris_id: int | List[int] | None = None,
                               date: str | None = None,
-                              source: str = "HORIZONS"):
+                              source: str = "HORIZONS", 
+                              **kwargs: Any):
         """
         Adds a solar system body to an existing simulation Dataset from the JPL Horizons ephemeris service. The JPL Horizons service
         will be searched for a body matching the string passed by `name`, or alternatively `ephemeris_id` if passed. Bodies will be
@@ -2193,6 +2194,8 @@ class Simulation(object):
         source : str, default "Horizons"
             The source of the ephemerides.
             >*Note.* Currently only the JPL Horizons ephemeris is implemented, so this is ignored.
+        **kwargs: Any
+            Additional keyword arguments to pass to the query method (i.e. astroquery.Horizons)
         Returns
         -------
         None
@@ -2232,7 +2235,7 @@ class Simulation(object):
 
         body_list = []
         for i,n in enumerate(name):
-            body = init_cond.solar_system_horizons(n, self.param, date, ephemeris_id=ephemeris_id[i])
+            body = init_cond.solar_system_horizons(n, self.param, date, ephemeris_id=ephemeris_id[i],**kwargs)
             if body is not None:
                 body_list.append(body)
 

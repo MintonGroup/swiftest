@@ -45,7 +45,7 @@ rng = default_rng(seed=123)
 sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune"])
 
 # Add in some main belt asteroids
-sim.add_solar_system_body(name=["Ceres","Vesta","Pallas","Hygiea"])
+sim.add_solar_system_body(name=["Ceres","Vesta","Pallas","Hygiea"],id_type="smallbody")
 
 # Add in some big KBOs
 sim.add_solar_system_body(name=["Pluto","Eris","Sedna","Haumea","Makemake","Quaoar","Orcus","Gonggong","Salacia"])
