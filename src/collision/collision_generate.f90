@@ -88,7 +88,7 @@ contains
                call self%merge(nbody_system, param, t) ! Use the default collision model, which is merge
             case default 
                call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Error in swiftest_collision, unrecognized collision regime")
-               call base_util_exit(FAILURE)
+               call base_util_exit(FAILURE,unit=param%display_unit)
             end select
             end associate
       end select

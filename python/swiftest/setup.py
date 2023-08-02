@@ -12,6 +12,6 @@
 from setuptools import setup, find_packages
 
 setup(name='swiftest',
-      version='0.2',
+      version='2023.08.00',
       author='David A. Minton',
       packages=find_packages())

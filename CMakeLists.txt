@@ -13,11 +13,10 @@
 # Define the project and the depencies that it has
 ##################################################
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.5...3.20.1)
-PROJECT(Swiftest Fortran)
-
-# Set the Swiftest version
-SET(VERSION 1.0.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.20.1)
+# Get version stored in text file
+FILE(READ "version.txt" VERSION)
+PROJECT(Swiftest VERSION ${VERSION} LANGUAGES Fortran)
 
 INCLUDE(CTest)
 
@@ -68,6 +67,38 @@ SET(LIB ${CMAKE_SOURCE_DIR}/lib)
 SET(BIN ${CMAKE_SOURCE_DIR}/bin)
 SET(MOD ${CMAKE_SOURCE_DIR}/include)
 SET(TEST ${CMAKE_SOURCE_DIR}/test)
+SET(PY ${CMAKE_SOURCE_DIR}/python/swiftest)
+
+FUNCTION(REPLACE_VERSION IN_FILE LANGUAGE)
+    # Make list of strings from file
+    FILE(STRINGS ${IN_FILE} LINES)
+
+    # Replace file with new one
+    FILE(WRITE ${IN_FILE} "")
+
+    # Look for the word "VERSION" and replace the line with the updated one
+    FOREACH(LINE IN LISTS LINES)
+        IF (LANGUAGE STREQUAL "Fortran") # This is the version found in the swiftest driver program
+            STRING(FIND "${LINE}" " VERSION =" LINE_HAS_VER)
+            IF (LINE_HAS_VER GREATER_EQUAL 0) # This is the version line
+                FILE(APPEND ${IN_FILE} "   character(*), parameter :: VERSION = \"${CMAKE_PROJECT_VERSION}\" !! Swiftest version\n")
+            ELSE ()
+                FILE(APPEND ${IN_FILE} "${LINE}\n") # No match. Put this line back like we found it
+            ENDIF ()
+        ELSEIF (LANGUAGE STREQUAL "Python") # This is the version found in the Python package
+            STRING(FIND "${LINE}" "version=" LINE_HAS_VER)
+            IF (LINE_HAS_VER GREATER_EQUAL 0) # This is the version line
+                FILE(APPEND ${IN_FILE} "      version='${CMAKE_PROJECT_VERSION}',\n")
+            ELSE ()
+                FILE(APPEND ${IN_FILE} "${LINE}\n") # No match. Put this line back like we found it
+            ENDIF ()
+        ENDIF ()
+    ENDFOREACH ()
+ENDFUNCTION ()
+
+REPLACE_VERSION(${SRC}/globals/globals_module.f90 "Fortran" )
+REPLACE_VERSION(${PY}/setup.py "Python")
+
 
 # Have the .mod files placed in the lib folder
 SET(CMAKE_Fortran_MODULE_DIRECTORY ${MOD})

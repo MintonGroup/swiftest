@@ -267,7 +267,7 @@ contains
 
       667 continue
       write(*,*) "Error creating fragmentation output file. " // trim(adjustl(errmsg))
-      call base_util_exit(FAILURE)
+      call base_util_exit(FAILURE,unit=param%display_unit)
    end subroutine collision_io_netcdf_initialize_output
 
 
