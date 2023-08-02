@@ -56,9 +56,12 @@ def horizons_get_physical_properties(altid,**kwargs):
         if len(GM) == 0:
             return None
         GM = GM[0]
-        GM = GM.split('GM')[1]
-        GM = GM.split('=')[1]
-        GM = GM.strip().split(' ')[0].split('+')[0]
+        if len(GM) > 1:
+            GM = GM.split('GM')[1]
+            if len(GM) > 1:
+                GM = GM.split('=')
+                if len(GM) > 1:
+                    GM = GM[1].strip().split(' ')[0].split('+')[0]
         try:
             GM = float(GM)
         except:
