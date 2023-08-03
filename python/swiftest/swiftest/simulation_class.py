@@ -405,7 +405,7 @@ class Simulation(object):
 
         # Get current environment variables
         env = os.environ.copy()
-        cmd = f"{env['SHELL']} -l {self.driver_script}"
+        cmd = f"{env['SHELL']} {self.driver_script}"
         
 
         def _type_scrub(output_data):
