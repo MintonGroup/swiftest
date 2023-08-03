@@ -113,7 +113,7 @@ class Simulation(object):
             Parameter input file equivalent: `ISTEP_OUT`
         tstep_out : float, optional
             The approximate time between when outputs are written to file. Passing this computes
-            `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `tstep_out` can be set.
+            `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `tstep_out` can be set. `tstep_out` must be less than `tstop`
             Parameter input file equivalent: None 
         nstep_out : int, optional
             The total number of times that outputs are written to file. Passing this allows for a geometric progression of output steps:
@@ -676,12 +676,17 @@ class Simulation(object):
             return {}
         else:
             update_list.append("istep_out")
+            
+        if tstep_out is not None and tstep_out > tstop:
+            warnings.warn("tstep_out must be less than tstop. Setting tstep_out=tstop",stacklevel=2)
+            tstep_out = tstop
 
         if tstep_out is not None and dt is not None:
             istep_out = int(tstep_out / dt)
 
         if istep_out is not None:
             self.param['ISTEP_OUT'] = int(istep_out)
+            
             
         if nstep_out is not None:
             if istep_out is None:
@@ -2157,57 +2162,61 @@ class Simulation(object):
         return range_dict
 
     def add_solar_system_body(self,
-                              name: str | List[str],
+                              name: str | List[str] | None = None,
                               ephemeris_id: int | List[int] | None = None,
                               date: str | None = None,
-                              source: str = "HORIZONS"):
+                              source: str = "HORIZONS", 
+                              **kwargs: Any):
         """
-        Adds a solar system body to an existing simulation Dataset from the JPL Horizons ephemeris service.
+        Adds a solar system body to an existing simulation Dataset from the JPL Horizons ephemeris service. The JPL Horizons service
+        will be searched for a body matching the string passed by `name`, or alternatively `ephemeris_id` if passed. Bodies will be
+        named in the Swiftest initial conditions Dataset using `name`. Use `ephemeris_id` to have finer control over which body is
+        searched in Horizons while using a custom name.
+        
+        If `name` is not passed, then the target name property is used as the name. You must pass either `name` and/or `ephemeris_id`
+        
+        When passing `name` == "Earth" or `name` == "Pluto", it a body is generated that has initial conditions matching the system
+        barycenter and mass equal to the sum of Earth+Moon or Pluto+Charon. 
+        
+        To obtain initial conditions for either Earth or Pluto alone, pass `ephemeris_id` == "399" for Earth or 
+        `ephemeris_id` == "999" for Pluto.  
 
-        The following are name/ephemeris_id pairs that are currently known to Swiftest, and therefore have
-        physical properties that can be used to make massive bodies.
-
-        Sun     : 0
-        Mercury : 1
-        Venus   : 2
-        Earth   : 3
-        Mars    : 4
-        Jupiter : 5
-        Saturn  : 6
-        Uranus  : 7
-        Neptune : 8
-        Pluto   : 9
 
         Parameters
         ----------
-        name : str | List[str]
-            Add solar system body by name.
-            Bodies not on this list will be added as test particles, but additional properties can be added later if
-            desired.
+        name : str, optional | List[str]
+            Add solar system body by name. This will be the name used in the Swiftest initial conditions Dataset unless not supplied 
         ephemeris_id : int | List[int], optional but must be the same length as `name` if passed.
-            Use id if the body you wish to add is recognized by Swiftest. In that case, the id is passed to the
-            ephemeris service and the name is used. The body specified by `id` supercedes that given by `name`.
+            In that case, the id is passed to the ephemeris service and the name is used. 
         date : str, optional
             ISO-formatted date sto use when obtaining the ephemerides in the format YYYY-MM-DD. Defaults to value
             set by `set_ephemeris_date`.
         source : str, default "Horizons"
             The source of the ephemerides.
             >*Note.* Currently only the JPL Horizons ephemeris is implemented, so this is ignored.
+        **kwargs: Any
+            Additional keyword arguments to pass to the query method (i.e. astroquery.Horizons)
         Returns
         -------
         None
             initial conditions data stored as an Xarray Dataset in the init_cond instance variable
         """
+        
+        if name == None and ephemeris_id == None:
+            warnings.warn("Either `name` and/or `ephemeris_id` must be supplied to add_solar_system_body")
+            return None
 
-        if type(name) is str:
-            name = [name]
         if ephemeris_id is not None:
-            if type(ephemeris_id) is int:
+            if type(ephemeris_id) is int or type(ephemeris_id) is str:
                 ephemeris_id = [ephemeris_id]
-            if len(ephemeris_id) != len(name):
+            if name is None:
+                name = [None] * len(ephemeris_id)
+            elif len(ephemeris_id) != len(name):
                 warnings.warn(f"The length of ephemeris_id ({len(ephemeris_id)}) does not match the length of name ({len(name)})",stacklevel=2)
                 return None
         else:
+            if type(name) is str:
+                name = [name]
             ephemeris_id = [None] * len(name)
 
         if self.ephemeris_date is None:
@@ -2226,10 +2235,15 @@ class Simulation(object):
 
         body_list = []
         for i,n in enumerate(name):
-            body_list.append(init_cond.solar_system_horizons(n, self.param, date, id=ephemeris_id[i]))
+            body = init_cond.solar_system_horizons(n, self.param, date, ephemeris_id=ephemeris_id[i],**kwargs)
+            if body is not None:
+                body_list.append(body)
 
         #Convert the list receieved from the solar_system_horizons output and turn it into arguments to vec2xr
-        if len(body_list) == 1:
+        if len(body_list) == 0:
+           print("No valid bodies found")
+           return 
+        elif len(body_list) == 1:
             values = list(np.hsplit(np.array(body_list[0],dtype=np.dtype(object)),17))
         else:
             values = list(np.squeeze(np.hsplit(np.array(body_list,np.dtype(object)),17)))
@@ -2241,6 +2255,7 @@ class Simulation(object):
 
         for k,v in kwargs.items():
             if k in scalar_ints:
+                v[v == None] = -1
                 kwargs[k] = v.astype(int)
             elif k in scalar_floats:
                 kwargs[k] = v.astype(np.float64)
@@ -2254,11 +2269,21 @@ class Simulation(object):
 
         kwargs['time'] = np.array([self.param['TSTART']])
         
+        if len(self.data) == 0:
+            maxid = -1
+        else:
+            maxid = self.data.id.max().values[()]
+
+        nbodies = kwargs["name"].size
+        kwargs['id'] = np.where(kwargs['id'] < 0,np.arange(start=maxid+1,stop=maxid+1+nbodies,dtype=int),kwargs['id'])
+        
         dsnew = init_cond.vec2xr(self.param,**kwargs)
 
         dsnew = self._combine_and_fix_dsnew(dsnew)
         if dsnew['npl'] > 0 or dsnew['ntp'] > 0:
            self.save(verbose=False)
+           
+           
 
         self.init_cond = self.data.copy(deep=True)
 

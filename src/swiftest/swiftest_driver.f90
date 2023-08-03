@@ -184,7 +184,7 @@ program swiftest_driver
 #ifdef COARRAY
    if (this_image() == 1) then
 #endif
-      call base_util_exit(SUCCESS)
+      call base_util_exit(SUCCESS,unit=param%display_unit)
 #ifdef COARRAY
    end if ! (this_image() == 1) 
 #endif

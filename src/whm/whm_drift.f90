@@ -50,7 +50,7 @@ contains
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
                end if
             end do
-            call base_util_exit(FAILURE)
+            call base_util_exit(FAILURE,param%display_unit)
          end if
       end associate
 

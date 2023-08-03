@@ -91,8 +91,10 @@ ENV F77="${FC}"
 # https://www.intel.com/content/www/us/en/docs/fortran-compiler/developer-guide-reference/2023-1/x-qx.html
 ARG MACHINE_CODE_VALUE="sse2"
 
-# Build type options are DEBUG, RELEASE, PROFILE, or TESTING.
 ARG BUILD_TYPE="RELEASE"  
+
+# Additional CMAKE options:
+ARG EXTRA_CMAKE_OPTIONS=""
 
 # Swiftest
 ENV NETCDF_HOME=${INSTALL_DIR}
@@ -109,10 +111,11 @@ COPY ./src/ /swiftest/src/
 COPY ./CMakeLists.txt /swiftest/
 RUN cd swiftest && \
   cmake -S . -B build -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" \
-  -DMACHINE_CODE_VALUE=${MACHINE_CODE} \
+  -DMACHINE_CODE_VALUE=${MACHINE_CODE_VALUE} \
   -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
   -DUSE_COARRAY=OFF \
-  -DBUILD_SHARED_LIBS=OFF && \
+  -DBUILD_SHARED_LIBS=OFF \
+  ${EXTRA_CMAKE_OPTIONS} && \
   cmake --build build && \
   cmake --install build
 
@@ -133,20 +136,18 @@ ENV SHELL="/bin/bash"
 ENV PATH="/opt/conda/bin:${PATH}"
 ENV LD_LIBRARY_PATH="/usr/local/lib"
 
+COPY --from=build_driver /usr/local/bin/swiftest_driver /opt/conda/bin/swiftest_driver
+COPY ./python/. /opt/conda/pkgs/
+COPY environment.yml .
+
 RUN conda update --all -y && \
   conda install conda-libmamba-solver -y && \
-  conda config --set solver libmamba 
-
-COPY environment.yml .
-RUN conda env create -f environment.yml && \
+  conda config --set solver libmamba && \
+  conda install conda-build -y && \
+  conda env create -f environment.yml && \
+  cd /opt/conda/pkgs/swiftest && conda develop . --name swiftest-env && \
   conda init bash && \
-  echo "conda activate swiftest-env" >> ~/.bashrc 
-
-COPY ./python/. /opt/conda/pkgs/
-COPY --from=build_driver /usr/local/bin/swiftest_driver /opt/conda/bin/swiftest_driver
-
-# Start new shell to activate the environment and install Swiftest
-RUN cd /opt/conda/pkgs/swiftest && conda develop . && \
+  echo "conda activate swiftest-env" >> ~/.bashrc  && \
   conda clean --all -y && \
   mkdir -p /.astropy && \
   chmod -R 777 /.astropy && \

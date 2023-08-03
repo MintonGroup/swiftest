@@ -2313,6 +2313,7 @@ contains
       case (INT_BS)
          write(*,*) 'Bulirsch-Stoer integrator not yet enabled'
        case (INT_HELIO)
+         allocate(helio_nbody_system :: nbody_system)
          select type(nbody_system)
          class is (helio_nbody_system)
             allocate(helio_cb :: nbody_system%cb)
@@ -2366,7 +2367,7 @@ contains
          write(*,*) 'RINGMOONS-SyMBA integrator not yet enabled'
       case default
          write(*,*) 'Unkown integrator',param%integrator
-         call base_util_exit(FAILURE)
+         call base_util_exit(FAILURE,param%display_unit)
       end select
 
       allocate(swiftest_particle_info :: nbody_system%cb%info)
@@ -3328,7 +3329,7 @@ contains
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: util_version.f90
       implicit none
-      write(*, 200) VERSION_NUMBER
+      write(*, 200) VERSION
       200 format(/, "************* Swiftest: Version ", f3.1, " *************", //, &
             "Based off of Swifter:", //,                                         &
             "Authors:", //,                                                      &

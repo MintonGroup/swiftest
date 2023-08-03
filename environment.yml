@@ -20,4 +20,3 @@ dependencies:
   - tqdm>=4.65.0
   - x264>=1!157.20191217
   - ffmpeg>=4.3.2
-  - conda-build
