@@ -359,7 +359,7 @@ def el2xv_vec(mu, a, ecc, inc, Omega, omega, M):
         longitude of ascending node (degrees)
     omega : (n) float array
         argument of periapsis (degrees)
-    M : (n) flaot array
+    M : (n) float array
         Mean anomaly (degrees)
 
     Returns

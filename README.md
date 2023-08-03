@@ -63,55 +63,74 @@ $ git pull
 
 You now have a Swiftest repository on your personal machine that you may compile, edit, and run as you see fit.
 
-**Compiling Swiftest**
+**Compiling the Swiftest driver program**
 
-Swiftest is written in modern Fortran and must be compiled before it can be run. After compilation, an executable, called the Swiftest driver, will have been created in the ```/swiftest/bin/``` directory. 
+***Compiling `swiftest_driver` using Docker***
+
+By far the simplest, most reliable way of compiling the driver program is via a Docker container. The Swiftest project contains a Dockerfile that may be used to generate an executable without needing to provide any external dependencies, other than the Docker engine itself (see [here](https://docs.docker.com/get-docker/) for instructions on obtaining Docker). Once Docker is installed and the Docker engine is running, execute:
+```
+$ docker build --target=export_driver \
+               --output=bin \
+               --build-arg MACHINE_CODE_VALUE="Host"  \
+             [ --build-arg BUILD_TYPE="*RELEASE*|DEBUG|TESTING|PROFILE" ] \
+             [ --build-arg EXTRA_CMAKE_OPTIONS="-D<Additional option you want to pass to CMake>" ]
+```
+
+The Docker build will download and compile all of the library dependencies (HDF5, NetCDF-C, and NetCDF-Fortran) as static libraries and the Swiftest driver using Intel compilers. Once completed, the Swiftest executable, called ```swiftest_driver```, should now be created in the ```bin/``` directory. 
+
+> Note: The Dockerfile is designed to build an executable that is compatible with a broad range of CPU architectures by specifying the SSE2 instruction as a target for SIMD instructions using the `-x` compiler option. When compiling on the same CPU archictecture you plan to execute the driver program, for the highest possible SIMD performance, use `--build-arg MACHINE_CODE_VALUE="Host" to override the default `MACHINE_CODE_VALUE="SSE2"`. For additional options see [here](https://www.intel.com/content/www/us/en/docs/fortran-compiler/developer-guide-reference/2023-1/x-qx.html).
+
+The optional Docker argument `EXTRA_CMAKE_OPTIONS` is provided to pass any additional CMake arguments (see below).
+
+
+***Compiling `swiftest_driver` using CMake***
+
+The Swiftest driver program is written in modern Fortran and must be compiled before it can be run. After compilation, an executable, called the `swiftest_driver``, will have been created in the ```bin/``` directory. 
 
 Swiftest is compiled through [CMake](https://cmake.org/). Compiling with CMake has a number of benefits that provide a streamlined experience for the Swiftest user and developer. At compilation, CMake will automatically select the set of flags that are compatible with the local compiler. CMake also allows a Swiftest developer to re-compile only the files that have been edited, instead of requiring the developer to re-compile the entire Swiftest program. Please visit the CMake website for more information on how to install CMake.
-
-Once CMake is installed, navigate to the topmost directory in your Swiftest repository. It is best practice to create a ```build``` directory in your topmost directory from which you will compile Swiftest. This way, temporary CMake files will not clutter up the ```swiftest/src/``` sub-directories. To create a new directory and then navigate into that directory, type the following:
-
-```
-$ mkdir build
-$ cd build
-```
 
 As mentioned in the **System Requirements** section, Swiftest requires the NetCDF and NetCDF Fortran libraries to be installed prior to compilation. If the libraries are installed in the standard library location on your machine, CMake should be able to find the libraries without specifying the path. However, if CMake struggles to find the NetCDF libraries, there are two ways to set the path to these libraries.
 
 1. Create an environment variable called ```NETCDF_FORTRAN_HOME``` that contains the path to the location where the libraries are installed
-2.  Set the path at the time of compilation using ```-DCMAKE_PREFIX_PATH=/path/to/netcdf/```
+2.  Set the path at the build step using ```-CMAKE_PREFIX_PATH=/path/to/netcdf/```
 
 CMake allows the user to specify a set of compiler flags to use during compilation. We define five sets of compiler flags: release, testing, profile, math, and debug. To view and/or edit the flags included in each set, see ```swiftest/cmake/Modules/SetFortranFlags.cmake```.
 
 As a general rule, the release flags are fully optimized and best used when running Swiftest with the goal of generating results. This is the default set of flags. When making changes to the Swiftest source code, it is best to compile Swiftest using the debug set of flags. You may also define your own set of compiler flags. 
 
-To build Swiftest with the release flags (default) using the Intel fortran compiler (ifort), type the following:
-```
-$ cmake ..
-```
-To build with the debug flags, type:
-```
-$ cmake .. -DCMAKE_BUILD_TYPE=DEBUG
-```
-To build with another set of flags, simply replace ```DEBUG``` in the above line with the name of the flags you wish to use. 
+Navigate to the topmost directory in your Swiftest repository. It is best practice to create a ```build``` directory in your topmost directory from which you will compile Swiftest. This way, temporary CMake files will not clutter up the ```swiftest/src/``` sub-directories. The commands to build the source code into a ```build``` directory and compile Swiftest are:
 
-Add ```-CMAKE_PREFIX_PATH=/path/to/netcdf/``` to these commands as needed.
+```
+$ cmake -B build -S .
+$ cmake --build build
+```
+The [CMake Fortran template](https://github.com/SethMMorton/cmake_fortran_template) comes with a script that can be used to clean out any build artifacts and start from scratch:
 
-If using the GCC fortran compiler (gfortran), add the following flags:
 ```
--DCMAKE_Fortran_FLAGS="-I/usr/lib64/gfortran/modules/ -ffree-line-length-512"
-```
-You can manually specify the compiler you wish to use with the following flag:
-```
-c-DCMAKE_Fortran_COMPILER=$(which ifort)
+$ cmake -P distclean.cmake
 ```
 
-After building Swiftest, make the executable using: 
+The Swiftest CMake configuration comes with several customization options:
+
+| Option                          | CMake command                                              |
+| --------------------------------|------------------------------------------------------------|
+| Build type                      | \-DCMAKE_BUILD_TYPE=[**RELEASE**\|DEBUG\|TESTING\|PROFILE] |
+| Enable/Disable OpenMP support   | \-DUSE_OPENMP=[**ON**\|OFF]                                |
+| Enable/Disable SIMD directives  | \-DUSE_SIMD=[**ON**\|OFF]                                  |
+| Enable/Disable Coarray support (experimental) | \-DUSE_COARRAY=[ON\|**OFF**]                 |
+| Set Fortran compiler path       | \-DCMAKE_Fortran_COMPILER=/path/to/fortran/compiler        |
+| Set path to make program        | \-DCMAKE_MAKE_PROGRAM=/path/to/make                        |
+| Enable/Disable shared libraries (Intel only) | \-DBUILD_SHARED_LIBS=[**ON\|OFF]              |
+| Add additional include path     | \-DCMAKE_Fortran_FLAGS="-I/path/to/libries                 |
+
+
+To see a list of all possible options available to CMake:
 ```
-$ make
+$ cmake -B build -S . -LA
 ```
 
-The Swiftest executable, called ```swiftest_driver```, should now be created in the ```/swiftest/bin/``` directory.
+The Swiftest executable, called ```swiftest_driver```, should now be created in the ```bin/``` directory.
+
 
 **Download the `swiftest_driver` as a Docker or Singularity container.**
 
@@ -493,7 +512,7 @@ This example walks through how to set up a standard solar system simulation. It 
 - Semi-Interacting Massive Bodies - Gravitationally affect and are affected by fully-interacting massive bodies, do not gravitationally affect and are not affected by other semi-interacting massive bodies.
 - Test Particles - Gravitationally affected by fully-interacting massive bodies only. 
 
-To generate the initial conditions, run the Python script titled **initial_conditions.py**. This script also runs Swiftest SyMBA, generating output. To process the output file, run the script titled **output_reader.py**. 
+To generate the initial conditions, run the Python script titled **basic_simulation.py**. This script also runs Swiftest SyMBA, generating output. To process the output file, run the script titled **output_reader.py**. 
 
 **Chambers2013**
 

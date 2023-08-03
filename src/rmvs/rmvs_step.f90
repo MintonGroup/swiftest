@@ -293,7 +293,7 @@ contains
                                        vtmp(:,i), new_line('a'), &
                                        " STOPPING "
                      call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
-                     call base_util_exit(failure)
+                     call base_util_exit(FAILURE,param%display_unit)
                   end if
                end do
             end if
@@ -317,7 +317,7 @@ contains
                      write(*, *) xtmp(:,i)
                      write(*, *) vtmp(:,i)
                      write(*, *) " STOPPING "
-                     call base_util_exit(failure)
+                     call base_util_exit(FAILURE,param%display_unit)
                   end if
                end do
             end if

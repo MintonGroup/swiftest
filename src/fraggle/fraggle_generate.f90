@@ -52,7 +52,7 @@ contains
                message = "Supercatastrophic disruption between"
             case default 
                write(*,*) "Error in swiftest_collision, unrecognized collision regime"
-               call base_util_exit(FAILURE)
+               call base_util_exit(FAILURE,param%display_unit)
             end select
             call collision_io_collider_message(pl, impactors%id, message)
             call swiftest_io_log_one_message(COLLISION_LOG_OUT, trim(adjustl(message)))

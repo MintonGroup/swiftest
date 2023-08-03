@@ -4,7 +4,7 @@
 !*/
 # whitelist only the files that ever need to be tracked
 !*.f90
-!*.sh
+swiftest_driver.sh
 !CMakeLists.txt
 !*.cmake
 !COPYING.txt
@@ -23,6 +23,8 @@ dump*
 !examples/**
 *ipynb_checkpoints
 **/.DS_Store
+!python/swiftest/tests/test_suite.py
+!version.txt
 
 #Documentation
 !docs/*

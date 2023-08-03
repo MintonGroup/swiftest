@@ -145,7 +145,7 @@ contains
 
       667 continue
       write(*,*) "Error creating encounter output file. " // trim(adjustl(errmsg))
-      call base_util_exit(FAILURE)
+      call base_util_exit(FAILURE,param%display_unit)
    end subroutine encounter_io_netcdf_initialize_output
 
 

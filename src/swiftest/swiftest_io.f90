@@ -196,7 +196,7 @@ contains
             if (abs(nbody_system%Mtot_error) > 100 * epsilon(nbody_system%Mtot_error)) then
                write(*,*) "Severe error! Mass not conserved! Halting!"
                ! Save the frame of data to the bin file in the slot just after the present one for diagnostics
-               call base_util_exit(FAILURE)
+               call base_util_exit(FAILURE,param%display_unit)
             end if
          end if
       end associate
@@ -344,7 +344,7 @@ contains
 
       667 continue
       write(*,*) "Error opening parameter dump file " // trim(adjustl(errmsg))
-      call base_util_exit(FAILURE)
+      call base_util_exit(FAILURE,self%display_unit)
    end subroutine swiftest_io_dump_param
 
 
@@ -896,7 +896,7 @@ contains
 
       667 continue
       write(*,*) "Error creating NetCDF output file. " // trim(adjustl(errmsg))
-      call base_util_exit(FAILURE)
+      call base_util_exit(FAILURE,param%display_unit)
    end subroutine swiftest_io_netcdf_initialize_output
 
 
@@ -1161,7 +1161,7 @@ contains
             write(*,*) "Error reading in NetCDF file: The recorded value of ntp does not match the number of active test particles"
             write(*,*) "Recorded: ",ntp
             write(*,*) "Active  : ",ntp_check
-            call base_util_exit(failure)
+            call base_util_exit(FAILURE,param%display_unit)
          end if
 
          ! Now read in each variable and split the outputs by body type
@@ -2879,7 +2879,7 @@ contains
 
       667 continue
       write(*,*) "Error reading central body file: " // trim(adjustl(errmsg))
-      call base_util_exit(FAILURE)
+      call base_util_exit(FAILURE,param%display_unit)
    end subroutine swiftest_io_read_in_cb
 
 
@@ -2922,7 +2922,7 @@ contains
          end if
          ierr = self%read_frame(nc, tmp_param)
          deallocate(tmp_param)
-         if (ierr /=0) call base_util_exit(FAILURE)
+         if (ierr /=0) call base_util_exit(FAILURE,param%display_unit)
       end if
 
       param%loblatecb = ((abs(self%cb%j2rp2) > 0.0_DP) .or. (abs(self%cb%j4rp4) > 0.0_DP))
@@ -3044,7 +3044,7 @@ contains
       class default
          write(*,*) "Error reading body file: " // trim(adjustl(errmsg))
       end select
-      call base_util_exit(FAILURE)
+      call base_util_exit(FAILURE,param%display_unit)
    end function swiftest_io_read_frame_body
 
 
@@ -3122,7 +3122,7 @@ contains
 
       667 continue
       write(*,*) "Error opening swiftest log file: " // trim(adjustl(errmsg))
-      call base_util_exit(FAILURE)
+      call base_util_exit(FAILURE,self%display_unit)
    end subroutine swiftest_io_set_display_param
 
 
@@ -3203,7 +3203,7 @@ contains
 
       667 continue
       write(*,*) "Error writing nbody_system frame: " // trim(adjustl(errmsg))
-      call base_util_exit(FAILURE)
+      call base_util_exit(FAILURE,param%display_unit)
    end subroutine swiftest_io_initialize_output_file_system
 
 end submodule s_swiftest_io

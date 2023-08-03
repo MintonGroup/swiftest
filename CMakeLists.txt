@@ -13,11 +13,12 @@
 # Define the project and the depencies that it has
 ##################################################
 
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.5...3.20.1)
-PROJECT(Swiftest Fortran)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.20.1)
+# Get version stored in text file
+FILE(READ "version.txt" VERSION)
+PROJECT(Swiftest VERSION ${VERSION} LANGUAGES Fortran)
 
-# Set the Swiftest version
-SET(VERSION 1.0.0)
+INCLUDE(CTest)
 
 # Add our local modlues to the module path
 SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/")
@@ -27,29 +28,32 @@ IF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
     MESSAGE(FATAL_ERROR "Fortran compiler does not support F90")
 ENDIF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
 
+
+IF (CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
+    SET(COMPILER_OPTIONS "Intel" CACHE STRING "Compiler identified as Intel")
+ELSEIF (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+    SET(COMPILER_OPTIONS "GNU" CACHE STRING "Compiler identified as gfortran")
+ELSE ()
+    MESSAGE(FATAL_ERROR "Compiler not recognized!") 
+ENDIF ()
+
 # Set some options the user may choose
 OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
 OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
 OPTION(USE_SIMD "Use SIMD vectorization" ON)
-OPTION(CONTAINERIZE "Compiling for use in a Docker/Singularity container" OFF)
 OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
 INCLUDE(${CMAKE_MODULE_PATH}/SetParallelizationLibrary.cmake)
 INCLUDE(${CMAKE_MODULE_PATH}/SetUpNetCDF.cmake)
-INCLUDE(${CMAKE_MODULE_PATH}/SetMKL.cmake)
+IF (COMPILER_OPTIONS STREQUAL "Intel")
+    INCLUDE(${CMAKE_MODULE_PATH}/SetMKL.cmake)
+ENDIF ()
 
 # This INCLUDE statement executes code that sets the compile flags for DEBUG,
 # RELEASE, PROFILING, and TESTING.  
 INCLUDE(${CMAKE_MODULE_PATH}/SetFortranFlags.cmake) 
 
 INCLUDE_DIRECTORIES($ENV{NETCDF_FORTRAN_HOME}/include;$ENV{NETCDF_HOME}/include)
-
-# There is an error in CMAKE with this flag for pgf90.  Unset it
-GET_FILENAME_COMPONENT(FCNAME ${CMAKE_Fortran_COMPILER} NAME)
-IF(FCNAME STREQUAL "pgf90")
-    UNSET(CMAKE_SHARED_LIBRARY_LINK_Fortran_FLAGS)
-ENDIF(FCNAME STREQUAL "pgf90")
-
 ############################################################
 # Define the actual files and folders that make up the build
 ############################################################
@@ -62,6 +66,39 @@ SET(SRC ${CMAKE_SOURCE_DIR}/src)
 SET(LIB ${CMAKE_SOURCE_DIR}/lib)
 SET(BIN ${CMAKE_SOURCE_DIR}/bin)
 SET(MOD ${CMAKE_SOURCE_DIR}/include)
+SET(TEST ${CMAKE_SOURCE_DIR}/test)
+SET(PY ${CMAKE_SOURCE_DIR}/python/swiftest)
+
+FUNCTION(REPLACE_VERSION IN_FILE LANGUAGE)
+    # Make list of strings from file
+    FILE(STRINGS ${IN_FILE} LINES)
+
+    # Replace file with new one
+    FILE(WRITE ${IN_FILE} "")
+
+    # Look for the word "VERSION" and replace the line with the updated one
+    FOREACH(LINE IN LISTS LINES)
+        IF (LANGUAGE STREQUAL "Fortran") # This is the version found in the swiftest driver program
+            STRING(FIND "${LINE}" " VERSION =" LINE_HAS_VER)
+            IF (LINE_HAS_VER GREATER_EQUAL 0) # This is the version line
+                FILE(APPEND ${IN_FILE} "   character(*), parameter :: VERSION = \"${CMAKE_PROJECT_VERSION}\" !! Swiftest version\n")
+            ELSE ()
+                FILE(APPEND ${IN_FILE} "${LINE}\n") # No match. Put this line back like we found it
+            ENDIF ()
+        ELSEIF (LANGUAGE STREQUAL "Python") # This is the version found in the Python package
+            STRING(FIND "${LINE}" "version=" LINE_HAS_VER)
+            IF (LINE_HAS_VER GREATER_EQUAL 0) # This is the version line
+                FILE(APPEND ${IN_FILE} "      version='${CMAKE_PROJECT_VERSION}',\n")
+            ELSE ()
+                FILE(APPEND ${IN_FILE} "${LINE}\n") # No match. Put this line back like we found it
+            ENDIF ()
+        ENDIF ()
+    ENDFOREACH ()
+ENDFUNCTION ()
+
+REPLACE_VERSION(${SRC}/globals/globals_module.f90 "Fortran" )
+REPLACE_VERSION(${PY}/setup.py "Python")
+
 
 # Have the .mod files placed in the lib folder
 SET(CMAKE_Fortran_MODULE_DIRECTORY ${MOD})
@@ -69,21 +106,11 @@ SET(CMAKE_Fortran_MODULE_DIRECTORY ${MOD})
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${BIN})
 
+# Set up test directory
+ENABLE_TESTING()
+ADD_SUBDIRECTORY(${TEST})
+
 # Add a distclean target to the Makefile
 ADD_CUSTOM_TARGET(distclean 
     COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/distclean.cmake
 )
-
-# Add an automatic test
-ADD_CUSTOM_TARGET(Run_Test ALL 
-    COMMAND echo "***Running Python script examples/Basic_Simulation/initial_conditions.py***" 
-    COMMAND python ${CMAKE_SOURCE_DIR}/examples/Basic_Simulation/initial_conditions.py
-    COMMAND echo "***Saving data to directory examples/Basic_Simulation/simdata***"
-    COMMAND echo "***Running Python script examples/Basic_Simulation/output_reader.py***"
-    COMMAND python ${CMAKE_SOURCE_DIR}/examples/Basic_Simulation/output_reader.py
-    COMMAND echo "***Plotting results as examples/Basic_Simulation/output.eps***"
-    COMMAND echo "***Calculating errors with Python script examples/Basic_Simulation/errors.py***"
-    COMMAND python ${CMAKE_SOURCE_DIR}/examples/Basic_Simulation/errors.py
-    COMMAND echo "***Test Complete***"
-)
-

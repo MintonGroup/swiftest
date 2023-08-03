@@ -648,7 +648,7 @@ contains
                   if (loop == MAXCASCADE) then
                      call swiftest_io_log_one_message(COLLISION_LOG_OUT,"A runaway collisional cascade has been detected in collision_resolve_plpl.")
                      call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Consider reducing the step size or changing the parameters in the collisional model to reduce the number of fragments.")
-                     call base_util_exit(FAILURE)
+                     call base_util_exit(FAILURE,unit=param%display_unit)
                   end if
                end associate
             end do

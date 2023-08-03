@@ -586,7 +586,7 @@ module base
       end subroutine base_util_dealloc_storage
 
 
-      subroutine base_util_exit(code)
+      subroutine base_util_exit(code,unit)
          !! author: David A. Minton
          !!
          !! Print termination message and exit program
@@ -596,25 +596,33 @@ module base
          implicit none
          ! Arguments
          integer(I4B), intent(in) :: code
+         integer(I4B), intent(in), optional :: unit
          ! Internals
-         character(*), parameter :: BAR = '("------------------------------------------------")'
-         character(*), parameter :: SUCCESS_MSG = '(/, "Normal termination of Swiftest (version ", f3.1, ")")'
-         character(*), parameter :: FAIL_MSG = '(/, "Terminating Swiftest (version ", f3.1, ") due to error!!")'
+         character(*), parameter :: BAR = '("---------------------------------------------------")'
+         character(*), parameter :: SUCCESS_MSG = '(/, "Normal termination of Swiftest (version ", A, ")")'
+         character(*), parameter :: FAIL_MSG = '(/, "Terminating Swiftest (version ", A, ") due to error!!")'
          character(*), parameter :: USAGE_MSG = '("Usage: swiftest <whm|helio|rmvs|symba> <paramfile> ' // &
                                                 '[{standard}|compact|progress]")'
          character(*), parameter :: HELP_MSG  = USAGE_MSG
+         integer(I4B) :: iu
+
+         if (present(unit)) then
+            iu = unit
+         else
+            iu = OUTPUT_UNIT
+         end if
    
          select case(code)
          case(SUCCESS)
-            write(*, SUCCESS_MSG) VERSION_NUMBER
-            write(*, BAR)
+            write(iu, SUCCESS_MSG) VERSION
+            write(iu, BAR)
          case(USAGE) 
-            write(*, USAGE_MSG)
+            write(iu, USAGE_MSG)
          case(HELP)
-            write(*, HELP_MSG)
+            write(iu, HELP_MSG)
          case default
-            write(*, FAIL_MSG) VERSION_NUMBER
-            write(*, BAR)
+            write(iu, FAIL_MSG) VERSION
+            write(iu, BAR)
             error stop
          end select
    

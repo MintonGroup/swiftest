@@ -44,7 +44,6 @@ FILE(GLOB_RECURSE CMAKEINSTALL "${TOPDIR}/*cmake_install.cmake"
 FILE(GLOB_RECURSE MAKEFILE "${TOPDIR}/*Makefile")
 FILE(GLOB_RECURSE CMAKETESTFILES "${TOPDIR}/*CTestTestfile.cmake")
 SET(TOPDIRECTORIES "${TOPDIR}/lib" 
-                   "${TOPDIR}/test"
                    "${TOPDIR}/bin"
 )
 
