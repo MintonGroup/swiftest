@@ -70,7 +70,7 @@ def clm_from_ellipsoid(lmax, mass, density, a, b = None, c = None):
     shape_SH = pysh.SHGrid.from_ellipsoid(lmax = lmax, a = a, b = b, c = c).expand()
 
     # get coefficients
-    clm_class = pysh.SHGravcoeffs.from_shape(shape_SH, rho = density, gm = Gmass)
+    clm_class = pysh.SHGravcoeffs.from_shape(shape_SH, rho = density, gm = Gmass) # 4pi normalization
     clm = clm_class.to_array()
 
     return clm
@@ -115,7 +115,7 @@ def clm_from_relief(lmax, mass, density, grid):
         # shape_SH = SHExpandDH(grid)
 
     # get coefficients
-    clm_class = pysh.SHGravcoeffs.from_shape(shape_SH, rho = density, gm = Gmass)
+    clm_class = pysh.SHGravcoeffs.from_shape(shape_SH, rho = density, gm = Gmass) # 4pi normalization
     clm = clm_class.to_array()
 
     return clm
