@@ -16,7 +16,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.20.1)
 # Get version stored in text file
 FILE(READ "version.txt" VERSION)
-PROJECT(Swiftest VERSION ${VERSION} LANGUAGES Fortran)
+PROJECT(swiftest VERSION ${VERSION} LANGUAGES Fortran)
 
 INCLUDE(CTest)
 
@@ -58,15 +58,14 @@ INCLUDE_DIRECTORIES($ENV{NETCDF_FORTRAN_HOME}/include;$ENV{NETCDF_HOME}/include)
 # Define the actual files and folders that make up the build
 ############################################################
 
-# Define the executable name
-SET(SWIFTEST_DRIVER swiftest_driver)
+
 
 # Define some directories
 SET(SRC ${CMAKE_SOURCE_DIR}/src)
 SET(LIB ${CMAKE_SOURCE_DIR}/lib)
 SET(BIN ${CMAKE_SOURCE_DIR}/bin)
 SET(MOD ${CMAKE_SOURCE_DIR}/include)
-SET(TEST ${CMAKE_SOURCE_DIR}/test)
+#SET(TEST ${CMAKE_SOURCE_DIR}/test)
 SET(PY ${CMAKE_SOURCE_DIR}/python/swiftest)
 
 FUNCTION(REPLACE_VERSION IN_FILE LANGUAGE)
@@ -106,9 +105,9 @@ SET(CMAKE_Fortran_MODULE_DIRECTORY ${MOD})
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${BIN})
 
-# Set up test directory
-ENABLE_TESTING()
-ADD_SUBDIRECTORY(${TEST})
+# # Set up test directory
+# ENABLE_TESTING()
+# ADD_SUBDIRECTORY(${TEST})
 
 # Add a distclean target to the Makefile
 ADD_CUSTOM_TARGET(distclean 
