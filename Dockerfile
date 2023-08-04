@@ -149,6 +149,7 @@ ENV LD_LIBRARY_PATH="/usr/local/lib"
 
 COPY --from=build_driver /usr/local/bin/swiftest_driver /opt/conda/bin/swiftest_driver
 COPY --from=build_driver /usr/local/lib/libswiftest.a  /opt/conda/lib/libswiftest.a
+COPY --from=build_driver /usr/local/include/swiftest.mod  /opt/conda/include/swiftest.mod
 COPY ./python/. /opt/conda/pkgs/
 COPY environment.yml .
 
