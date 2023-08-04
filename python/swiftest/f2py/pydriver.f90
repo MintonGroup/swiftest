@@ -7,7 +7,7 @@ subroutine driver(integrator, param_file_name, display_style)
    !!
    !! Adapted from Swifter by David E. Kaufmann's Swifter driver programs swifter_[bs,helio,ra15,rmvs,symba,tu4,whm].f90
    !! Adapted from Hal Levison and Martin Duncan's Swift driver programs
-   use swiftest
+   use swiftest, only : swiftest_driver
    implicit none
 
    ! Arguments
