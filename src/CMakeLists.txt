@@ -75,6 +75,7 @@ SET(FAST_MATH_FILES
             ${SRC}/rmvs/rmvs_util.f90
             ${SRC}/swiftest/swiftest_discard.f90  
             ${SRC}/swiftest/swiftest_util.f90
+            ${SRC}/swiftest/swiftest_driver.f90
             ${SRC}/symba/symba_discard.f90
             ${SRC}/symba/symba_encounter_check.f90
             ${SRC}/symba/symba_util.f90
@@ -92,7 +93,7 @@ SET(COARRAY_FILES
             ${SRC}/rmvs/rmvs_coarray.f90
 )
 
-SET(DRIVER_src ${SRC}/swiftest/swiftest_driver.f90)
+SET(DRIVER_src ${SRC}/main/main.f90)
 
 # Combine all source files (includ)
 set(SWIFTEST_src ${FAST_MATH_FILES} ${STRICT_MATH_FILES})
