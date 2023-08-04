@@ -130,6 +130,10 @@ ENTRYPOINT ["/usr/local/bin/swiftest_driver"]
 FROM scratch AS export_driver
 COPY --from=build_driver /usr/local/bin/swiftest_driver /
 
+# This build target exports the static library to the host
+FROM scratch as export_library
+COPY --from=build_driver /usr/local/lib/libswiftest.a /
+
 # This build target creates a container with a conda environment with all dependencies needed to run the Python front end and 
 # analysis tools
 FROM continuumio/miniconda3 as python
