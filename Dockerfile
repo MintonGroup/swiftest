@@ -109,6 +109,8 @@ ENV LIBS="-lhdf5_hl -lhdf5 -lz"
 COPY ./cmake/ /swiftest/cmake/
 COPY ./src/ /swiftest/src/
 COPY ./CMakeLists.txt /swiftest/
+COPY ./python/ /swiftest/python/
+COPY ./version.txt /swiftest/
 RUN cd swiftest && \
   cmake -S . -B build -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" \
   -DMACHINE_CODE_VALUE=${MACHINE_CODE_VALUE} \
@@ -137,6 +139,7 @@ ENV PATH="/opt/conda/bin:${PATH}"
 ENV LD_LIBRARY_PATH="/usr/local/lib"
 
 COPY --from=build_driver /usr/local/bin/swiftest_driver /opt/conda/bin/swiftest_driver
+COPY --from=build_driver /usr/local/lib/libswiftest.a  /opt/conda/lib/libswiftest.a
 COPY ./python/. /opt/conda/pkgs/
 COPY environment.yml .
 
