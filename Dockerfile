@@ -136,7 +136,7 @@ COPY --from=build_driver /usr/local/lib/libswiftest.a /
 
 # This build target exports the module file to the host
 FROM scratch as export_module
-COPY --from=build_driver /usr/local/include/swiftest.mod /
+COPY --from=build_driver /swiftest/include/ /swiftest/
 
 
 # This build target creates a container with a conda environment with all dependencies needed to run the Python front end and 
@@ -149,7 +149,7 @@ ENV LD_LIBRARY_PATH="/usr/local/lib"
 
 COPY --from=build_driver /usr/local/bin/swiftest_driver /opt/conda/bin/swiftest_driver
 COPY --from=build_driver /usr/local/lib/libswiftest.a  /opt/conda/lib/libswiftest.a
-COPY --from=build_driver /usr/local/include/swiftest.mod  /opt/conda/include/swiftest.mod
+COPY --from=build_driver /swiftest/include/ /opt/conda/include/swiftest/
 COPY ./python/. /opt/conda/pkgs/
 COPY environment.yml .
 
