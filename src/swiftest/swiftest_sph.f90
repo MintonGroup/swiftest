@@ -50,7 +50,7 @@ contains
                 plm = p(PlmIndex(l, m))         ! p_l,m
                 plm1 = p(PlmIndex(l, m+1))      ! p_l,m+1
 
-                ! Normalization = 4*pi normalized
+                ! Normalization = 4*pi (geodesy) normalized
                 N = sqrt((2 * l + 1) * gamma(l - m + 1) / gamma(l + m + 1))
 
                 ! C_lm and S_lm with Cos and Sin of m * phi
@@ -60,8 +60,8 @@ contains
 
                 ! m > 0
                 g_sph(1) -= gm * r_0**l / r_mag**(l + 1) * N * (-1.0 * m * plm * cssc / rh(2) + ccss * (plm * (m * cotan(theta) / (rh(3) * cos(phi)) - (l + 1) * rh(1) / r_mag**2) + plm1 / (rh(3) * cos(phi)))) ! g_x
-                g_sph(2) -= gm * r_0**l / r_mag**(l + 1) * N * (m * plm * cssc / rh(1) + ccss * (plm * (m * cotan(theta) / (rh(3) * sin(phi)) - (l + 1) * rh(1) / r_mag**2) + plm1 / (rh(3) * sin(phi))))
-                g_sph(3) -= gm * r_0**l / r_mag**(l + 1) * N * (ccss * (plm * (m * cotan(theta) / sqrt(r_mag**2 - rh(3)**3) - (l + 1) * rh(1) / r_mag**2) + plm1 / sqrt(r_mag**2 - rh(3)**2)))
+                g_sph(2) -= gm * r_0**l / r_mag**(l + 1) * N * (m * plm * cssc / rh(1) + ccss * (plm * (m * cotan(theta) / (rh(3) * sin(phi)) - (l + 1) * rh(1) / r_mag**2) + plm1 / (rh(3) * sin(phi)))) ! g_y
+                g_sph(3) -= gm * r_0**l / r_mag**(l + 1) * N * (ccss * (plm * (m * cotan(theta) / sqrt(r_mag**2 - rh(3)**3) - (l + 1) * rh(1) / r_mag**2) + plm1 / sqrt(r_mag**2 - rh(3)**2))) ! g_z
 
             end do
         end do
@@ -76,45 +76,3 @@ contains
         !!
 
         end subroutine swiftest_sph_g_acc_all
-
-    module subroutine swiftest_sph_dylm_dtheta(ylm, ylm1, theta, phi, l, m, dylm_dtheta, dyl_m_dtheta)
-        !! author: Kaustub P. Anand
-        !!
-        !! Calculate the derivative of Y_lm with respect to theta dY_lm / dtheta term
-        !!
-
-        ! Arguments
-        real(DP), intent(in)        :: ylm ! Y_l,m
-        real(DP), intent(in)        :: ylm1 ! Y_l,m+1
-        real(DP), intent(in)        :: theta ! Zenith angle
-        real(DP), intent(in)        :: phi ! Azimuthal angle
-        integer, intent(in)         :: l, m ! spherical harmonics numbers
-        real(DP), intent(out)       :: dylm_dtheta ! derivative for +m
-        real(DP), intent(out)       :: dyl_m_dtheta ! derivative for -m
-
-
-        ! Internals
-
-        dylm_dtheta = m * cotan(theta) * ylm + sqrt((l - m) * (l + m + 1)) * ylm1 * exp(i * phi)
-        dyl_m_dtheta = -m * cotan(theta) * ylm * (-1)**m + sqrt((l + m) * (l - m + 1)) * ylm1 * exp(i * phi)
-
-        return
-        end subroutine swiftest_sph_dylm_dtheta
-
-    module subroutine swiftest_sph_ylm(l, m, phi, theta, ylm)
-        !! author: Kaustub P. Anand
-        !!
-        !! Calculate the Y_lm for a given l, m, phi, and theta
-        !!
-
-        integer, intent(in)         :: l, m ! spherical harmonics numbers
-        real(DP), intent(in)        :: theta ! Zenith angle
-        real(DP), intent(in)        :: phi ! Azimuthal angle
-        real(DP), dimension(:), intent(out)       :: ylm ! Spherical Harmonics for phi and theta
-
-        PlBar(p, lmax, cos(theta)) ! 4*pi normalized
-
-        ylm(:) = p(PlmIndex(l, m)) * sqrt((2 * l + 1) * gamma(l - m + 1) / gamma(l + m + 1)) * exp(i * m * phi)
-
-        return
-        end subroutine swiftest_sph_ylm
