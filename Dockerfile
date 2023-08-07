@@ -130,11 +130,9 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.2-0-Linux-x86
   -DBUILD_SHARED_LIBS=OFF \
   ${EXTRA_CMAKE_OPTIONS} && \
   cmake --build build && \
-  cmake --install build && \
-  mv bin/CMakeFiles/swiftest.dir/__/python/swiftest/f2py/driver.f90.o python/swiftest/f2py/ && \
-  mv bin/CMakeFiles/swiftest.dir/__/python/swiftest/f2py/pydriver.f90.o python/swiftest/f2py/ 
+  cmake --install build 
 
-RUN cd swiftest/python/swiftest/f2py && \
+RUN cd swiftest/python && \
   python setup.py build_ext --inplace 
 
 
@@ -167,17 +165,17 @@ ENV LD_LIBRARY_PATH="/usr/local/lib"
 COPY --from=build_driver /usr/local/bin/swiftest_driver /opt/conda/bin/swiftest_driver
 COPY --from=build_driver /usr/local/lib/libswiftest.a  /opt/conda/lib/libswiftest.a
 COPY --from=build_driver /swiftest/include/ /opt/conda/include/swiftest/
-COPY ./python/. /opt/conda/pkgs/
+COPY ./python/. /opt/conda/pkgs/swiftest/
 COPY environment.yml .
 
 RUN conda update --all -y && \
   conda install conda-libmamba-solver -y && \
   conda config --set solver libmamba && \
-  conda install conda-build -y && \
   conda env create -f environment.yml && \
-  cd /opt/conda/pkgs/swiftest && conda develop . --name swiftest-env && \
   conda init bash && \
   echo "conda activate swiftest-env" >> ~/.bashrc  && \
+  conda install -c anaconda cython -y && \
+  cd /opt/conda/pkgs/swiftest && pip install -e . && \
   conda clean --all -y && \
   mkdir -p /.astropy && \
   chmod -R 777 /.astropy && \

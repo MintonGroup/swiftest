@@ -7,9 +7,10 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 
-########################################
-# Set up how to compile the source files
-########################################
+# Communicate version number and other CMake build variables to the source code
+set(GLOBAL_MODULE_IN ${SRC}/globals/globals_module.f90.in)
+set(GLOBAL_MODULE_OUT ${SRC}/globals/globals_module.f90)
+CONFIGURE_FILE(${GLOBAL_MODULE_IN} ${GLOBAL_MODULE_OUT})
 
 # Add the source files
 SET(STRICT_MATH_FILES
@@ -48,8 +49,7 @@ SET(STRICT_MATH_FILES
             ${SRC}/whm/whm_gr.f90
             ${SRC}/whm/whm_kick.f90
             ${SRC}/whm/whm_step.f90
-            ${PY}/pydriver/src/driver.f90
-            ${PY}/pydriver/src/pydriver.f90
+            ${SRC}/bindings/bindings_module.f90
 )
 
 SET(FAST_MATH_FILES
@@ -96,7 +96,7 @@ SET(COARRAY_FILES
 
 SET(DRIVER_src ${SRC}/main/main.f90)
 
-# Combine all source files (includ)
+# Combine all source files 
 set(SWIFTEST_src ${FAST_MATH_FILES} ${STRICT_MATH_FILES})
 IF(USE_COARRAY)
     set(SWIFTEST_src ${SWIFTEST_src} ${COARRAY_FILES} )
@@ -117,20 +117,25 @@ ADD_EXECUTABLE(${SWIFTEST_DRIVER} ${DRIVER_src})
 # Add the needed libraries and special compiler flags
 #####################################################
 
-TARGET_LINK_LIBRARIES(${SWIFTEST_DRIVER} PRIVATE swiftest ${NETCDF_FORTRAN_LIBRARIES} ${NETCDF_LIBRARIES} $ENV{LIBS})
+TARGET_LINK_LIBRARIES(${SWIFTEST_DRIVER} PRIVATE ${SWIFTEST_LIBRARY} ${NETCDF_FORTRAN_LIBRARIES} ${NETCDF_LIBRARIES} $ENV{LIBS})
 
 IF(USE_OPENMP)
-    SET_PROPERTY(TARGET swiftest ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY COMPILE_FLAGS  "${OpenMP_Fortran_FLAGS} ")
-    SET_PROPERTY(TARGET swiftest ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY LINK_FLAGS  "${OpenMP_Fortran_FLAGS} ")
+    SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY} ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY COMPILE_FLAGS  "${OpenMP_Fortran_FLAGS} ")
+    SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY} ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY LINK_FLAGS  "${OpenMP_Fortran_FLAGS} ")
 ENDIF(USE_OPENMP)
 
 IF(USE_COARRAY)
-    TARGET_COMPILE_DEFINITIONS(swiftest PRIVATE -DCOARRAY)
+    TARGET_COMPILE_DEFINITIONS(${SWIFTEST_LIBRARY} PRIVATE -DCOARRAY)
     TARGET_COMPILE_DEFINITIONS(${SWIFTEST_DRIVER} PRIVATE -DCOARRAY)
-    SET_PROPERTY(TARGET swiftest ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY COMPILE_FLAGS  "${Coarray_Fortran_FLAGS} ")
-    SET_PROPERTY(TARGET swiftest ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY LINK_FLAGS  "${Coarray_Fortran_FLAGS} ")
+    SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY} ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY COMPILE_FLAGS  "${Coarray_Fortran_FLAGS} ")
+    SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY} ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY LINK_FLAGS  "${Coarray_Fortran_FLAGS} ")
 ENDIF(USE_COARRAY)
 
+STRING(REPLACE ";" " " SWIFTEST_LINK_FLAGS "${CMAKE_LINK_LIBRARY_FLAG}${SWIFTEST_LIBRARY} ${NETCDF_FORTRAN_LIBRARIES} ${NETCDF_LIBRARIES} $ENV{LIBS}")
+SET(SWIFTEST_LINK_FLAGS "${SWIFTEST_LINK_FLAGS}" CACHE STRING "Link flags to pass to setup.py")
+
+GET_TARGET_PROPERTY(SWIFTEST_INCLUDE_DIR ${SWIFTEST_DRIVER} INCLUDE_DIRECTORIES)
+SET(SWIFTEST_INCLUDE_DIR "${SWIFTEST_INCLUDE_DIR}" CACHE STRING "Include directory needed for linking the library to an executable")
 
 #Set strict vs fast math flags
 STRING(TOUPPER "${CMAKE_BUILD_TYPE}" BT)
@@ -182,8 +187,3 @@ INSTALL(TARGETS ${SWIFTEST_DRIVER} ${SWIFTEST_LIBRARY}
     INCLUDES DESTINATION include
 )
 
-INSTALL(TARGETS ${SWIFTEST_LIBRARY}
-    LIBRARY DESTINATION "${PY}/pydriver/lib"
-    ARCHIVE DESTINATION "${PY}/pydriver/lib"
-    INCLUDES DESTINATION "${PY}pydriver/include"
-    )

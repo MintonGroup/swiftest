@@ -45,6 +45,7 @@ FILE(GLOB_RECURSE MAKEFILE "${TOPDIR}/*Makefile")
 FILE(GLOB_RECURSE CMAKETESTFILES "${TOPDIR}/*CTestTestfile.cmake")
 SET(TOPDIRECTORIES "${TOPDIR}/lib" 
                    "${TOPDIR}/bin"
+                   "${TOPDIR}/include"
 )
 
 # CMake has trouble finding directories recursively, so locate these

@@ -446,7 +446,7 @@ contains
    end subroutine swiftest_io_dump_storage
 
 
-   module subroutine swiftest_io_get_args(integrator, param_file_name, display_style)
+   module subroutine swiftest_io_get_args(integrator, param_file_name, display_style, from_cli)
       !! author: David A. Minton
       !!
       !! Reads in the name of the parameter file from command line arguments. 
@@ -455,20 +455,41 @@ contains
       character(len=:), intent(inout), allocatable :: integrator      !! Symbolic code of the requested integrator  
       character(len=:), intent(inout), allocatable :: param_file_name !! Name of the input parameters file
       character(len=:), intent(inout), allocatable :: display_style   !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
+      logical,          intent(in)                 :: from_cli        !! If true, get command-line arguments. Otherwise, use the values of the input variables
       ! Internals
       character(len=STRMAX), dimension(:), allocatable :: arg
+      character(len=STRMAX), dimension(3)              :: tmp_arg
       integer(I4B), dimension(:), allocatable :: ierr
       integer :: i,narg
 
-      narg = command_argument_count() 
-      if (narg > 0) then
-         allocate(arg(narg),ierr(narg))
-         do i = 1,narg
-            call get_command_argument(i, arg(i), status = ierr(i))
-         end do
-         if (any(ierr /= 0)) call base_util_exit(USAGE)
+      if (from_cli) then
+         narg = command_argument_count() 
+         if (narg > 0) then
+            allocate(arg(narg),ierr(narg))
+            do i = 1,narg
+               call get_command_argument(i, arg(i), status = ierr(i))
+            end do
+            if (any(ierr /= 0)) call base_util_exit(USAGE)
+         else
+            call base_util_exit(USAGE)
+         end if
       else
-         call base_util_exit(USAGE)
+         narg = 0
+         if (len(integrator) > 0) then
+            narg = narg + 1
+            tmp_arg(narg) = integrator
+         end if
+         if (len(param_file_name) > 0) then
+            narg = narg + 1
+            tmp_arg(narg) = param_file_name
+         end if
+         if (len(display_style) > 0) then
+            narg = narg + 1
+            tmp_arg(narg) = display_style
+         end if
+         allocate(arg(narg))
+         arg(1:narg) = tmp_arg(1:narg)
+         deallocate(integrator, param_file_name, display_style)
       end if
    
       if (narg == 1) then

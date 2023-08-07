@@ -639,11 +639,12 @@ module swiftest
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
       end subroutine swiftest_io_dump_storage
 
-      module subroutine swiftest_io_get_args(integrator, param_file_name, display_style) 
+      module subroutine swiftest_io_get_args(integrator, param_file_name, display_style, from_cli) 
          implicit none
          character(len=:), allocatable, intent(inout) :: integrator      !! Symbolic code of the requested integrator  
          character(len=:), allocatable, intent(inout) :: param_file_name !! Name of the input parameters file
          character(len=:), allocatable, intent(inout) :: display_style   !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
+         logical,                       intent(in)    :: from_cli        !! If true, get command-line arguments. Otherwise, use the values of the input variables
       end subroutine swiftest_io_get_args
 
       module function swiftest_io_get_token(buffer, ifirst, ilast, ierr) result(token)

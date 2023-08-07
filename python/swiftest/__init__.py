@@ -9,5 +9,6 @@
  If not, see: https://www.gnu.org/licenses. 
 """
 
-from swiftest.constants import *
-from swiftest.simulation_class import Simulation
+from constants import *
+from simulation_class import Simulation
+from bindings import driver

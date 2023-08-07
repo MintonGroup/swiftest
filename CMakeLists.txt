@@ -59,57 +59,24 @@ INCLUDE_DIRECTORIES($ENV{NETCDF_FORTRAN_HOME}/include;$ENV{NETCDF_HOME}/include)
 ############################################################
 
 
-
 # Define some directories
 SET(SRC ${CMAKE_SOURCE_DIR}/src)
 SET(LIB ${CMAKE_SOURCE_DIR}/lib)
 SET(BIN ${CMAKE_SOURCE_DIR}/bin)
 SET(MOD ${CMAKE_SOURCE_DIR}/include)
 #SET(TEST ${CMAKE_SOURCE_DIR}/test)
-SET(PY ${CMAKE_SOURCE_DIR}/src/python)
+SET(PY ${CMAKE_SOURCE_DIR}/python)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIB})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${LIB})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN})
-
-
-FUNCTION(REPLACE_VERSION IN_FILE LANGUAGE)
-    # Make list of strings from file
-    FILE(STRINGS ${IN_FILE} LINES)
-
-    # Replace file with new one
-    FILE(WRITE ${IN_FILE} "")
-
-    # Look for the word "VERSION" and replace the line with the updated one
-    FOREACH(LINE IN LISTS LINES)
-        IF (LANGUAGE STREQUAL "Fortran") # This is the version found in the swiftest driver program
-            STRING(FIND "${LINE}" " VERSION =" LINE_HAS_VER)
-            IF (LINE_HAS_VER GREATER_EQUAL 0) # This is the version line
-                FILE(APPEND ${IN_FILE} "   character(*), parameter :: VERSION = \"${CMAKE_PROJECT_VERSION}\" !! Swiftest version\n")
-            ELSE ()
-                FILE(APPEND ${IN_FILE} "${LINE}\n") # No match. Put this line back like we found it
-            ENDIF ()
-        ELSEIF (LANGUAGE STREQUAL "Python") # This is the version found in the Python package
-            STRING(FIND "${LINE}" "version=" LINE_HAS_VER)
-            IF (LINE_HAS_VER GREATER_EQUAL 0) # This is the version line
-                FILE(APPEND ${IN_FILE} "      version='${CMAKE_PROJECT_VERSION}',\n")
-            ELSE () # No match. Put this line back like we found it
-                STRING(REPLACE ";" "\n" LINE "${LINE}") # Fixes an issue when parsing the list that defines the pydriver extension module
-                FILE(APPEND ${IN_FILE} "${LINE}\n") 
-            ENDIF ()
-        ENDIF ()
-    ENDFOREACH ()
-ENDFUNCTION ()
-
-REPLACE_VERSION(${SRC}/globals/globals_module.f90 "Fortran" )
-REPLACE_VERSION(${PY}/setup.py "Python")
-
 
 # Have the .mod files placed in the lib folder
 SET(CMAKE_Fortran_MODULE_DIRECTORY ${MOD})
 
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${BIN})
+ADD_SUBDIRECTORY(${PY})
 
 # # Set up test directory
 # ENABLE_TESTING()

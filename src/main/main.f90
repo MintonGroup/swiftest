@@ -20,7 +20,7 @@ program main
    character(len=:), allocatable             :: display_style     !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
 
    ! Read in command line arguments
-   call swiftest_io_get_args(integrator, param_file_name, display_style)
+   call swiftest_io_get_args(integrator, param_file_name, display_style, from_cli=.true.)
 
    ! Execute the driver
    call swiftest_driver(integrator, param_file_name, display_style)
