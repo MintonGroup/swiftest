@@ -76,6 +76,7 @@ RUN cd netcdf-fortran-4.6.1 && \
   make install  
 
 FROM intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04 as build_driver
+SHELL ["/bin/bash", "--login", "-c"]
 COPY --from=build_deps /usr/local/. /usr/local/
 ENV INSTALL_DIR="/usr/local"
 ENV CC="${ONEAPI_ROOT}/compiler/latest/linux/bin/icx"
@@ -106,12 +107,22 @@ ENV FC="${ONEAPI_ROOT}/mpi/latest/bin/mpiifort"
 ENV FFLAGS="-fPIC -standard-semantics"
 ENV LDFLAGS="-L/usr/local/lib"
 ENV LIBS="-lhdf5_hl -lhdf5 -lz"
+ENV PATH /root/miniconda3/bin:$PATH
+
 COPY ./cmake/ /swiftest/cmake/
 COPY ./src/ /swiftest/src/
 COPY ./CMakeLists.txt /swiftest/
 COPY ./python/ /swiftest/python/
 COPY ./version.txt /swiftest/
-RUN cd swiftest && \
+RUN wget https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.2-0-Linux-x86_64.sh  && \
+  /usr/bin/bash Miniconda3-py311_23.5.2-0-Linux-x86_64.sh -b && \
+  /root/miniconda3/bin/conda init bash && \
+  source /root/.bashrc && conda update --all -y && \
+  conda install conda-libmamba-solver -y && \
+  conda config --set solver libmamba && \
+  conda install -c conda-forge numpy -y&& \ 
+  conda install -c anaconda cython -y && \
+  cd swiftest && \
   cmake -S . -B build -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" \
   -DMACHINE_CODE_VALUE=${MACHINE_CODE_VALUE} \
   -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
@@ -119,7 +130,13 @@ RUN cd swiftest && \
   -DBUILD_SHARED_LIBS=OFF \
   ${EXTRA_CMAKE_OPTIONS} && \
   cmake --build build && \
-  cmake --install build
+  cmake --install build && \
+  mv bin/CMakeFiles/swiftest.dir/__/python/swiftest/f2py/driver.f90.o python/swiftest/f2py/ && \
+  mv bin/CMakeFiles/swiftest.dir/__/python/swiftest/f2py/pydriver.f90.o python/swiftest/f2py/ 
+
+RUN cd swiftest/python/swiftest/f2py && \
+  python setup.py build_ext --inplace 
+
 
 # This build target creates a container that executes just the driver program
 FROM ubuntu:20.04 as driver

@@ -66,7 +66,7 @@ SET(LIB ${CMAKE_SOURCE_DIR}/lib)
 SET(BIN ${CMAKE_SOURCE_DIR}/bin)
 SET(MOD ${CMAKE_SOURCE_DIR}/include)
 #SET(TEST ${CMAKE_SOURCE_DIR}/test)
-SET(PY ${CMAKE_SOURCE_DIR}/python/swiftest)
+SET(PY ${CMAKE_SOURCE_DIR}/src/python)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIB})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${LIB})
@@ -93,8 +93,9 @@ FUNCTION(REPLACE_VERSION IN_FILE LANGUAGE)
             STRING(FIND "${LINE}" "version=" LINE_HAS_VER)
             IF (LINE_HAS_VER GREATER_EQUAL 0) # This is the version line
                 FILE(APPEND ${IN_FILE} "      version='${CMAKE_PROJECT_VERSION}',\n")
-            ELSE ()
-                FILE(APPEND ${IN_FILE} "${LINE}\n") # No match. Put this line back like we found it
+            ELSE () # No match. Put this line back like we found it
+                STRING(REPLACE ";" "\n" LINE "${LINE}") # Fixes an issue when parsing the list that defines the pydriver extension module
+                FILE(APPEND ${IN_FILE} "${LINE}\n") 
             ENDIF ()
         ENDIF ()
     ENDFOREACH ()

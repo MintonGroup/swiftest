@@ -48,6 +48,8 @@ SET(STRICT_MATH_FILES
             ${SRC}/whm/whm_gr.f90
             ${SRC}/whm/whm_kick.f90
             ${SRC}/whm/whm_step.f90
+            ${PY}/pydriver/src/driver.f90
+            ${PY}/pydriver/src/pydriver.f90
 )
 
 SET(FAST_MATH_FILES
@@ -81,7 +83,6 @@ SET(FAST_MATH_FILES
             ${SRC}/symba/symba_util.f90
             ${SRC}/walltime/walltime_implementations.f90
             ${SRC}/whm/whm_util.f90
-            
 )
 
 SET(COARRAY_FILES
@@ -131,7 +132,6 @@ IF(USE_COARRAY)
 ENDIF(USE_COARRAY)
 
 
-
 #Set strict vs fast math flags
 STRING(TOUPPER "${CMAKE_BUILD_TYPE}" BT)
 IF(BT STREQUAL "RELEASE" OR BT STREQUAL "PROFILE")
@@ -176,9 +176,14 @@ ELSE()
     SET(CMAKE_INSTALL_PREFIX /usr/local)
 ENDIF(WIN32)
 INSTALL(TARGETS ${SWIFTEST_DRIVER} ${SWIFTEST_LIBRARY}
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    INCLUDES DESTINATION include
 )
-INSTALL(FILES ${MOD}/swiftest.mod DESTINATION include)
 
+INSTALL(TARGETS ${SWIFTEST_LIBRARY}
+    LIBRARY DESTINATION "${PY}/pydriver/lib"
+    ARCHIVE DESTINATION "${PY}/pydriver/lib"
+    INCLUDES DESTINATION "${PY}pydriver/include"
+    )
