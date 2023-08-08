@@ -11,4 +11,4 @@
 
 from constants import *
 from simulation_class import Simulation
-from bindings import driver
+from swiftest_bindings import driver

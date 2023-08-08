@@ -13,6 +13,7 @@
 ##################################################
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.20.1)
+
 # Get version stored in text file
 FILE(READ "version.txt" VERSION)
 PROJECT(swiftest VERSION ${VERSION} LANGUAGES C Fortran)
@@ -35,14 +36,7 @@ IF (NOT SKBUILD)
   MESSAGE(STATUS "Looking in ${SKBLD_DIR}/resources/cmake for CMake modules")
 ENDIF()
 
-# scikit-build style includes
-FIND_PACKAGE(Cython REQUIRED)
-SET(PYTHON_EXTENSION_MODULE_SUFFIX "${Python3_SOABI}" CACHE STRING "Suffix for python extension modules")
-
-# Communicate version number and other CMake build variables to the source code
-SET(SETUP_PY_IN "${PROJECT_SOURCE_DIR}/setup.py.in")
-SET(SETUP_PY_OUT "${PROJECT_SOURCE_DIR}/setup.py")
-CONFIGURE_FILE(${SETUP_PY_IN} ${SETUP_PY_OUT})
+SET(PYTHON_EXTENSION_MODULE_SUFFIX ".${Python3_SOABI}" CACHE STRING "Suffix for python extension modules")
 
 INCLUDE(CTest)
 
@@ -58,6 +52,7 @@ SET(SRC ${CMAKE_SOURCE_DIR}/src)
 SET(LIB ${CMAKE_SOURCE_DIR}/lib)
 SET(BIN ${CMAKE_SOURCE_DIR}/bin)
 SET(MOD ${CMAKE_SOURCE_DIR}/include)
+SET(PY ${CMAKE_SOURCE_DIR}/swiftest)
 #SET(TEST ${CMAKE_SOURCE_DIR}/tests)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIB})
@@ -69,7 +64,7 @@ SET(CMAKE_Fortran_MODULE_DIRECTORY ${MOD})
 
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${BIN})
-
+ADD_SUBDIRECTORY(${SRC}/bindings)
 # # Set up test directory
 # ENABLE_TESTING()
 # ADD_SUBDIRECTORY(${TEST})
