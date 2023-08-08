@@ -17,7 +17,7 @@ use SHTOOLS
 
 contains
 
-    module subroutine swiftest_sph_g_acc_one(gm, r_0, phi, theta, rh, c_lm, g_sph, l_max)
+    module subroutine swiftest_sph_g_acc_one(gm, r_0, phi, theta, rh, c_lm, g_sph)
         !! author: Kaustub P. Anand
         !!
         !! Calculate the acceleration terms for one pair of bodies given c_lm, theta, phi, r
@@ -74,5 +74,16 @@ contains
         !!
         !! Calculate the acceleration terms for all bodies given c_lm
         !!
+
+        associate(pl => self, npl => self%nbody, cb => nbody_system%cb)
+            do concurrent(i = 1:npl, pl%lmask(i))
+                gm = pl%Gmass(i)
+                rh = pl%rh(:, i) ! CHECK pl%rh shape
+                r = sqrt(rh(1)**2 + rh(2)**2 + rh(3)**2) ! mag of vector function???
+                theta = acos(rh(3) / r)
+                phi = acos(rh(1) / sqrt(rh(1)**2 + rh(2)**2)) * sign(1, rh(2)) - cb%phase ! CALCULATE CB PHASE VALUE FOR PHI
+
+                call swiftest_sph_g_acc_one(gm, r, phi, theta, rh, cb%c_lm, g_sph)
+                pl%ah(:, i) = pl%ah(:, i) + g_sph
 
         end subroutine swiftest_sph_g_acc_all
