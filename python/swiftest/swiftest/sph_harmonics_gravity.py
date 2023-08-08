@@ -28,15 +28,13 @@ from typing import (
     Any
 )
 
-def clm_from_ellipsoid(lmax, mass, density, a, b = None, c = None):
+def clm_from_ellipsoid(mass, density, a, b = None, c = None, lmax = 6):
     """
     Creates and returns the gravity coefficients for an ellipsoid with principal axes a, b, c upto a certain maximum degree lmax. 
     Uses pyshtools. No units necessary for a, b, & c. However, they need to be in the same units (DU).
 
     Parameters
     ----------
-    lmax : int
-        The maximum spherical harmonic degree resolvable by the grid.
     mass : float
         mass of the central body
     density : float
@@ -47,6 +45,8 @@ def clm_from_ellipsoid(lmax, mass, density, a, b = None, c = None):
         length of the pricipal axis aligned with the y axis
     c : float, optional, default = b
         length of the pricipal axis aligned with the z axis
+    lmax : int, optional, default = 6
+        The maximum spherical harmonic degree resolvable by the grid.
 
     Returns
     -------
@@ -60,9 +60,10 @@ def clm_from_ellipsoid(lmax, mass, density, a, b = None, c = None):
     Gmass = G * mass # SHTOOLS uses an SI G value, and divides it before using the mass
             # FIND A BETTER WAY TO CHANGE UNITS
 
-    # cap lmax to 20 to ensure fast performance
-    lmax_limit = 20
-    if(lmax > lmax_limit): # FIND A BETTER WAY to judge this cut off point, i.e., relative change between coefficients
+    # cap lmax to ensure fast performance without giving up accuracy
+    
+    lmax_limit = 6 # lmax_limit = 6 derived from Jean's Law by taking the characteristic wavelength as the radius of the CB
+    if(lmax > lmax_limit):                              # FIND A BETTER WAY to judge this cut off point, i.e., relative change between coefficients
         lmax = lmax_limit
         print(f'Setting maximum spherical harmonic degree to {lmax_limit}')
 
