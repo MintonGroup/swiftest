@@ -536,6 +536,13 @@ module swiftest
          integer(I4B), intent(out)      :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine swiftest_drift_one
 
+      module subroutine swiftest_driver(integrator, param_file_name, display_style)
+         implicit none
+         character(len=:), intent(in), allocatable :: integrator      !! Symbolic code of the requested integrator  
+         character(len=:), intent(in), allocatable :: param_file_name !! Name of the input parameters file
+         character(len=:), intent(in), allocatable :: display_style   !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD" 
+      end subroutine swiftest_driver
+
       pure module subroutine swiftest_gr_kick_getaccb_ns_body(self, nbody_system, param)
          implicit none
          class(swiftest_body),              intent(inout) :: self   !! Swiftest generic body object

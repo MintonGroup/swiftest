@@ -75,12 +75,13 @@ SET(FAST_MATH_FILES
             ${SRC}/rmvs/rmvs_util.f90
             ${SRC}/swiftest/swiftest_discard.f90  
             ${SRC}/swiftest/swiftest_util.f90
+            ${SRC}/swiftest/swiftest_driver.f90
             ${SRC}/symba/symba_discard.f90
             ${SRC}/symba/symba_encounter_check.f90
             ${SRC}/symba/symba_util.f90
             ${SRC}/walltime/walltime_implementations.f90
             ${SRC}/whm/whm_util.f90
-            ${SRC}/swiftest/swiftest_driver.f90
+            
 )
 
 SET(COARRAY_FILES
@@ -92,46 +93,43 @@ SET(COARRAY_FILES
             ${SRC}/rmvs/rmvs_coarray.f90
 )
 
-IF(USE_COARRAY)
-    set(SWIFTEST_src ${COARRAY_FILES} ${FAST_MATH_FILES} ${STRICT_MATH_FILES})
-ELSE()
-    set(SWIFTEST_src ${FAST_MATH_FILES} ${STRICT_MATH_FILES})
-ENDIF(USE_COARRAY)
+SET(DRIVER_src ${SRC}/main/main.f90)
 
-# Define the executable in terms of the source files
-ADD_EXECUTABLE(${SWIFTEST_DRIVER} ${SWIFTEST_src})
+# Combine all source files (includ)
+set(SWIFTEST_src ${FAST_MATH_FILES} ${STRICT_MATH_FILES})
+IF(USE_COARRAY)
+    set(SWIFTEST_src ${SWIFTEST_src} ${COARRAY_FILES} )
+ENDIF ()
 
 # Turn preprocessor on for all files
-SET_SOURCE_FILES_PROPERTIES(${SWIFTEST_src} PROPERTIES Fortran_PREPROCESS ON)
+SET_SOURCE_FILES_PROPERTIES(${SWIFTEST_src} ${DRIVER_src} PROPERTIES Fortran_PREPROCESS ON)
+
+# Create a library from the source files, except the driver
+SET(SWIFTEST_LIBRARY swiftest)
+ADD_LIBRARY(${SWIFTEST_LIBRARY} ${SWIFTEST_src})
+
+# Define the executable name
+SET(SWIFTEST_DRIVER swiftest_driver)
+ADD_EXECUTABLE(${SWIFTEST_DRIVER} ${DRIVER_src})
 
 #####################################################
 # Add the needed libraries and special compiler flags
 #####################################################
 
-TARGET_LINK_LIBRARIES(${SWIFTEST_DRIVER} PRIVATE ${NETCDF_FORTRAN_LIBRARIES} ${NETCDF_LIBRARIES} $ENV{LIBS})
+TARGET_LINK_LIBRARIES(${SWIFTEST_DRIVER} PRIVATE swiftest ${NETCDF_FORTRAN_LIBRARIES} ${NETCDF_LIBRARIES} $ENV{LIBS})
 
 IF(USE_OPENMP)
-    SET_PROPERTY(TARGET ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY COMPILE_FLAGS  "${OpenMP_Fortran_FLAGS} ")
-    SET_PROPERTY(TARGET ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY LINK_FLAGS  "${OpenMP_Fortran_FLAGS} ")
+    SET_PROPERTY(TARGET swiftest ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY COMPILE_FLAGS  "${OpenMP_Fortran_FLAGS} ")
+    SET_PROPERTY(TARGET swiftest ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY LINK_FLAGS  "${OpenMP_Fortran_FLAGS} ")
 ENDIF(USE_OPENMP)
 
 IF(USE_COARRAY)
+    TARGET_COMPILE_DEFINITIONS(swiftest PRIVATE -DCOARRAY)
     TARGET_COMPILE_DEFINITIONS(${SWIFTEST_DRIVER} PRIVATE -DCOARRAY)
-    SET_PROPERTY(TARGET ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY COMPILE_FLAGS  "${Coarray_Fortran_FLAGS} ")
-    SET_PROPERTY(TARGET ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY LINK_FLAGS  "${Coarray_Fortran_FLAGS} ")
+    SET_PROPERTY(TARGET swiftest ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY COMPILE_FLAGS  "${Coarray_Fortran_FLAGS} ")
+    SET_PROPERTY(TARGET swiftest ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY LINK_FLAGS  "${Coarray_Fortran_FLAGS} ")
 ENDIF(USE_COARRAY)
 
-
-#####################################
-# Tell how to install this executable
-#####################################
-
-IF(WIN32)
-    SET(CMAKE_INSTALL_PREFIX "C:\\Program Files")
-ELSE()
-    SET(CMAKE_INSTALL_PREFIX /usr/local)
-ENDIF(WIN32)
-INSTALL(TARGETS ${SWIFTEST_DRIVER} RUNTIME DESTINATION bin)
 
 
 #Set strict vs fast math flags
@@ -168,4 +166,19 @@ end program TestDoConcurrentLoc
     ENDIF (DOCONLOC_WORKS)
 ENDIF (USE_OPENMP)
 
+
+#####################################
+# Tell how to install this executable
+#####################################
+IF(WIN32)
+    SET(CMAKE_INSTALL_PREFIX "C:\\Program Files")
+ELSE()
+    SET(CMAKE_INSTALL_PREFIX /usr/local)
+ENDIF(WIN32)
+INSTALL(TARGETS ${SWIFTEST_DRIVER} ${SWIFTEST_LIBRARY}
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+)
+INSTALL(FILES ${MOD}/swiftest.mod DESTINATION include)
 

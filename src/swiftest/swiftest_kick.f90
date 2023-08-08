@@ -95,8 +95,7 @@ contains
       !$omp parallel do default(private) schedule(static)&
       !$omp shared(nplpl, k_plpl, r, Gmass, radius) &
       !$omp lastprivate(i, j, rji2, rlim2, rx, ry, rz) &
-      !$omp reduction(+:ahi) &
-      !$omp reduction(-:ahj) 
+      !$omp reduction(+:ahi,ahj) 
       do k = 1_I8B, nplpl
          i = k_plpl(1, k)
          j = k_plpl(2, k)
@@ -144,8 +143,7 @@ contains
       !$omp parallel do default(private) schedule(static)&
       !$omp shared(nplpl, k_plpl, r, Gmass) &
       !$omp lastprivate(i, j, rji2, rx, ry, rz) &
-      !$omp reduction(+:ahi) &
-      !$omp reduction(-:ahj) 
+      !$omp reduction(+:ahi,ahj) 
       do k = 1_I8B, nplpl
          i = k_plpl(1, k)
          j = k_plpl(2, k)
@@ -193,8 +191,7 @@ contains
          ahj(:,:) = 0.0_DP
          !$omp parallel do default(private) schedule(static)&
          !$omp shared(npl, nplm, r, Gmass, radius) &
-         !$omp reduction(+:ahi) & 
-         !$omp reduction(-:ahj)
+         !$omp reduction(+:ahi,j)
          do i = 1, nplm
 #ifdef DOCONLOC
             do concurrent(j = i+1:npl) shared(i,r,radius,ahi,ahj,Gmass) local(rx,ry,rz,rji2,rlim2)
@@ -302,8 +299,7 @@ contains
          ahj(:,:) = 0.0_DP
          !$omp parallel do default(private) schedule(static)&
          !$omp shared(npl, nplm, r, Gmass) &
-         !$omp reduction(+:ahi) & 
-         !$omp reduction(-:ahj)
+         !$omp reduction(+:ahi,ahj)
          do i = 1, nplm
 #ifdef DOCONLOC
             do concurrent(j = i+1:npl) shared(i,r,Gmass,ahi,ahj) local(rx,ry,rz,rji2)
@@ -397,7 +393,7 @@ contains
 
       !$omp parallel do default(private) schedule(static)&
       !$omp shared(npl, ntp, lmask, rtp, rpl, GMpl) &
-      !$omp reduction(-:acc)
+      !$omp reduction(+:acc)
       do i = 1, ntp
          if (lmask(i)) then
 #ifdef DOCONLOC
