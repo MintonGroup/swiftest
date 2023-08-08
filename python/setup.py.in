@@ -10,7 +10,9 @@
  If not, see: https://www.gnu.org/licenses. 
 """
 
-from setuptools import setup, find_packages, Extension
+#from skbuild import setup
+from setuptools import setup
+from setuptools import find_packages, Extension
 from Cython.Build import cythonize
 import os
 
@@ -19,7 +21,7 @@ root_dir = 'pybindings'
 include_dirs = "${SWIFTEST_INCLUDE_DIR}"
 include_dirs = include_dirs.split()
 include_dirs.append(root_dir)
-link_flags = "${CMAKE_Fortran_LINK_FLAGS}"
+link_flags = "${SWIFTEST_LINK_FLAGS}"
 link_flags = link_flags.split()
 
 pybindings_extension = [Extension('swiftest.bindings',
@@ -34,5 +36,7 @@ setup(name='swiftest',
       author='David A. Minton',
       author_email='daminton@purdue.edu',
       url='https://github.itap.purdue.edu/MintonGroup/swiftest',
+      python_requires=">3.8",
+      license="GPLv3",
       ext_modules = cythonize(pybindings_extension),
       packages=find_packages())

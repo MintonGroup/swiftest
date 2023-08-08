@@ -76,8 +76,19 @@ RUN cd netcdf-fortran-4.6.1 && \
   make install  
 
 FROM intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04 as build_driver
-SHELL ["/bin/bash", "--login", "-c"]
+SHELL ["/bin/bash", "-c"]
 COPY --from=build_deps /usr/local/. /usr/local/
+ENV PATH /root/miniconda3/bin:$PATH
+
+RUN wget https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.2-0-Linux-x86_64.sh  && \
+  /bin/bash Miniconda3-py311_23.5.2-0-Linux-x86_64.sh -b && \
+  /root/miniconda3/bin/conda init bash && \
+  source /root/.bashrc && conda update --all -y && \
+  conda install conda-libmamba-solver -y && \
+  conda config --set solver libmamba && \
+  conda install -c conda-forge scikit-build -y&& \ 
+  conda install -c anaconda cython -y
+
 ENV INSTALL_DIR="/usr/local"
 ENV CC="${ONEAPI_ROOT}/compiler/latest/linux/bin/icx"
 ENV FC="${ONEAPI_ROOT}/compiler/latest/linux/bin/ifx"
@@ -103,26 +114,21 @@ ENV NETCDF_FORTRAN_HOME=${NETCDF_HOME}
 ENV NETCDF_LIBRARY=${NETCDF_HOME}
 ENV FOR_COARRAY_NUM_IMAGES=1
 ENV OMP_NUM_THREADS=1
+
 ENV FC="${ONEAPI_ROOT}/mpi/latest/bin/mpiifort"
+ENV CC="${ONEAPI_ROOT}/mpi/latest/bin/mpicc -cc=icx"
+ENV CXX="${ONEAPI_ROOT}/mpi/latest/bin/mpicc -cc=icpx"
 ENV FFLAGS="-fPIC -standard-semantics"
 ENV LDFLAGS="-L/usr/local/lib"
 ENV LIBS="-lhdf5_hl -lhdf5 -lz"
-ENV PATH /root/miniconda3/bin:$PATH
 
 COPY ./cmake/ /swiftest/cmake/
 COPY ./src/ /swiftest/src/
 COPY ./CMakeLists.txt /swiftest/
 COPY ./python/ /swiftest/python/
 COPY ./version.txt /swiftest/
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.2-0-Linux-x86_64.sh  && \
-  /usr/bin/bash Miniconda3-py311_23.5.2-0-Linux-x86_64.sh -b && \
-  /root/miniconda3/bin/conda init bash && \
-  source /root/.bashrc && conda update --all -y && \
-  conda install conda-libmamba-solver -y && \
-  conda config --set solver libmamba && \
-  conda install -c conda-forge numpy -y&& \ 
-  conda install -c anaconda cython -y && \
-  cd swiftest && \
+
+RUN cd swiftest && \
   cmake -S . -B build -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" \
   -DMACHINE_CODE_VALUE=${MACHINE_CODE_VALUE} \
   -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \

@@ -25,6 +25,8 @@ dump*
 **/.DS_Store
 !python/swiftest/tests/test_suite.py
 !version.txt
+**/_skbuild
+
 
 
 #Documentation

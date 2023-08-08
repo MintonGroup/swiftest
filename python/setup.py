@@ -10,7 +10,9 @@
  If not, see: https://www.gnu.org/licenses. 
 """
 
-from setuptools import setup, find_packages, Extension
+#from skbuild import setup
+from setuptools import setup
+from setuptools import find_packages, Extension
 from Cython.Build import cythonize
 import os
 
@@ -19,7 +21,7 @@ root_dir = 'pybindings'
 include_dirs = "/Users/daminton/git/swiftest/apple_install/usr/local/include;/Users/daminton/git/swiftest/apple_install/usr/local/include"
 include_dirs = include_dirs.split()
 include_dirs.append(root_dir)
-link_flags = " -static-libgfortran -static-libgcc -static-libstdc++"
+link_flags = " -static-libgfortran -static-libgcc -static-libstdc++ -L/Users/daminton/git/swiftest/lib -lswiftest  /Users/daminton/git/swiftest/apple_install/usr/local/lib/libnetcdff.a /Users/daminton/git/swiftest/apple_install/usr/local/lib/libnetcdf.a -L/Users/daminton/git/swiftest/apple_install/usr/local/lib -lhdf5_hl -lhdf5 -lm -lz -lbz2 -lxml2 -lcurl"
 link_flags = link_flags.split()
 
 pybindings_extension = [Extension('swiftest.bindings',
@@ -34,5 +36,7 @@ setup(name='swiftest',
       author='David A. Minton',
       author_email='daminton@purdue.edu',
       url='https://github.itap.purdue.edu/MintonGroup/swiftest',
+      python_requires=">3.8",
+      license="GPLv3",
       ext_modules = cythonize(pybindings_extension),
       packages=find_packages())
