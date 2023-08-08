@@ -11,12 +11,12 @@
 ##################################################
 # Define the project and the depencies that it has
 ##################################################
-
 CMAKE_MINIMUM_REQUIRED(VERSION 3.20.1)
 
 # Get version stored in text file
 FILE(READ "version.txt" VERSION)
 PROJECT(swiftest VERSION ${VERSION} LANGUAGES C Fortran)
+MESSAGE(STATUS "CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}\nPROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR}\n")
 
 # The following section is modified from Numpy f2py documentation
 IF(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
@@ -24,8 +24,8 @@ IF(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
 ENDIF()
 
 # Ensure scikit-build modules
+FIND_PACKAGE(Python3 COMPONENTS Interpreter Development REQUIRED)
 IF (NOT SKBUILD)
-  FIND_PACKAGE(Python3 COMPONENTS Interpreter Development REQUIRED)
   EXECUTE_PROCESS(
     COMMAND "${Python3_EXECUTABLE}"
     -c "import os, skbuild; print(os.path.dirname(skbuild.__file__))"
@@ -38,16 +38,20 @@ ENDIF()
 
 SET(PYTHON_EXTENSION_MODULE_SUFFIX ".${Python3_SOABI}" CACHE STRING "Suffix for python extension modules")
 
-INCLUDE(CTest)
+# Detect when building against a conda environment set the _using_conda variable
+# for use both in this file and in the parent
+GET_FILENAME_COMPONENT(_python_bin_dir ${Python3_EXECUTABLE} DIRECTORY)
+IF(EXISTS "${_python_bin_dir}/../conda-meta")
+  MESSAGE("-- Detected conda environment, setting INSTALL_RPATH_USE_LINK_PATH")
+  SET(_using_conda On)
+ELSE()
+  SET(_using_conda Off)
+ENDIF()
 
 # Add our local modules to the module path
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
-############################################################
-# Define the actual files and folders that make up the build
-############################################################
-
-# Define some directories
+# Define some directories that are important to the build
 SET(SRC ${CMAKE_SOURCE_DIR}/src)
 SET(LIB ${CMAKE_SOURCE_DIR}/lib)
 SET(BIN ${CMAKE_SOURCE_DIR}/bin)

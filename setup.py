@@ -11,27 +11,10 @@
 """
 
 from skbuild import setup
-from setuptools import find_packages #, Extension
-#from Cython.Build import cythonize
-import os
 
-# Build the pybindings extension that allows us to run the Fortran driver as a Python module. 
-# root_dir = os.path.join(,'bindings')
-# include_dirs = ""
-# include_dirs = include_dirs.split()
-# include_dirs.append(root_dir)
-# link_flags = ""
-# link_flags = link_flags.split()
-
-# pybindings_extension = [Extension('swiftest.bindings',
-#                          [os.path.join(root_dir,'bindings.pyx')],
-#                          extra_compile_args=['-fPIC', '-O3'],
-#                          extra_link_args=link_flags,
-#                          include_dirs=include_dirs,
-#                          package_data={"": [os.path.join(root_dir,'bindings.h')]} 
-#                          )]
 with open('version.txt') as version_file:
     version = version_file.read().strip()
+    
 setup(name='swiftest',
       version=version,
       author='David A. Minton',
@@ -39,7 +22,13 @@ setup(name='swiftest',
       url='https://github.itap.purdue.edu/MintonGroup/swiftest',
       python_requires=">3.8",
       license="GPLv3",
-      #ext_modules = cythonize(pybindings_extension),
+      cmake_args=[
+            '-DCMAKE_BUILD_TYPE=RELEASE',
+            '-DMACHINE_CODE_VALUE="generic"',
+            '-DUSE_COARRAY:BOOL=OFF',
+            '-DUSE_OPENMP:BOOL=ON',
+            '-DBUILD_SHARED_LIBS:BOOL=OFF'
+            ],
       install_requires= [
             'numpy>=1.24.3',
             'pandas>=1.5.3',
@@ -54,4 +43,4 @@ setup(name='swiftest',
             'astroquery>=0.4.6',
             'tqdm>=4.65.0',
       ],
-      packages=find_packages())
+      packages=['swiftest'])
