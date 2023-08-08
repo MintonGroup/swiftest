@@ -23,7 +23,7 @@
 
 #=============================================================================
 
-INCLUDE (${CMAKE_ROOT}/Modules/FindPackageHandleStandardArgs.cmake)
+INCLUDE (FindPackageHandleStandardArgs)
 
 IF (COMPILER_OPTIONS STREQUAL "Intel")
     IF (USE_SIMD)

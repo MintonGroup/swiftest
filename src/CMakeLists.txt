@@ -12,6 +12,37 @@ set(GLOBAL_MODULE_IN ${SRC}/globals/globals_module.f90.in)
 set(GLOBAL_MODULE_OUT ${SRC}/globals/globals_module.f90)
 CONFIGURE_FILE(${GLOBAL_MODULE_IN} ${GLOBAL_MODULE_OUT})
 
+IF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
+    MESSAGE(FATAL_ERROR "Fortran compiler does not support F90")
+ENDIF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
+
+IF (CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
+    SET(COMPILER_OPTIONS "Intel" CACHE STRING "Compiler identified as Intel")
+ELSEIF (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+    SET(COMPILER_OPTIONS "GNU" CACHE STRING "Compiler identified as gfortran")
+ELSE ()
+    MESSAGE(FATAL_ERROR "Compiler not recognized!") 
+ENDIF ()
+
+# Set some options the user may choose
+OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
+OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
+OPTION(USE_SIMD "Use SIMD vectorization" ON)
+OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+
+INCLUDE(SetParallelizationLibrary)
+INCLUDE(SetUpNetCDF)
+IF (COMPILER_OPTIONS STREQUAL "Intel")
+    INCLUDE(SetMKL)
+ENDIF ()
+
+# This INCLUDE statement executes code that sets the compile flags for DEBUG,
+# RELEASE, PROFILING, and TESTING.  
+INCLUDE(SetFortranFlags) 
+
+INCLUDE_DIRECTORIES($ENV{NETCDF_FORTRAN_HOME}/include;$ENV{NETCDF_HOME}/include)
+
+
 # Add the source files
 SET(STRICT_MATH_FILES
             ${SRC}/collision/collision_generate.f90

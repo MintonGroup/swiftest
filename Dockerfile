@@ -16,10 +16,11 @@
 FROM intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04 as build_deps
 
 ENV INSTALL_DIR="/usr/local"
-ENV CC="${ONEAPI_ROOT}/compiler/latest/linux/bin/icx"
-ENV FC="${ONEAPI_ROOT}/compiler/latest/linux/bin/ifx"
-ENV CXX="${ONEAPI_ROOT}/compiler/latest/linux/bin/icpx"
+ENV FC="${ONEAPI_ROOT}/mpi/latest/bin/mpiifort"
+ENV CC="${ONEAPI_ROOT}/mpi/latest/bin/mpicc -cc=icx"
+ENV CXX="${ONEAPI_ROOT}/mpi/latest/bin/mpicc -cc=icpx"
 ENV F77="${FC}"
+ENV CFLAGS="-fPIC"
 
 # Get the HDF5, NetCDF-C, and NetCDF-Fortran libraries
 RUN wget -qO- https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14.1/src/hdf5-1.14.1-2.tar.gz | tar xvz && \
@@ -65,7 +66,6 @@ ENV HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
 ENV HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
 
 # NetCDF-Fortran library
-ENV CFLAGS="-fPIC"
 ENV FCFLAGS="${CFLAGS} -standard-semantics"
 ENV FFLAGS=${CFLAGS}
 ENV CPPFLAGS="-I${INSTALL_DIR}/include"
@@ -77,7 +77,8 @@ RUN cd netcdf-fortran-4.6.1 && \
 
 FROM intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04 as build_driver
 SHELL ["/bin/bash", "-c"]
-COPY --from=build_deps /usr/local/. /usr/local/
+ENV INSTALL_DIR="/usr/local"
+COPY --from=build_deps ${INSTALL_DIR}/. ${INSTALL_DIR}/
 ENV PATH /root/miniconda3/bin:$PATH
 
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.2-0-Linux-x86_64.sh  && \
@@ -88,12 +89,6 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.2-0-Linux-x86
   conda config --set solver libmamba && \
   conda install -c conda-forge scikit-build -y&& \ 
   conda install -c anaconda cython -y
-
-ENV INSTALL_DIR="/usr/local"
-ENV CC="${ONEAPI_ROOT}/compiler/latest/linux/bin/icx"
-ENV FC="${ONEAPI_ROOT}/compiler/latest/linux/bin/ifx"
-ENV CXX="${ONEAPI_ROOT}/compiler/latest/linux/bin/icpx"
-ENV F77="${FC}"
 
 # The MACHINE_CODE_VALUE argument is a string that is used when compiling the swiftest_driver. It is appended to the "-x" compiler 
 # option: (-x${MACHINE_CODE_VALUE}). The default value is set to "sse2" which allows for certain SIMD instructions to be used while 
@@ -119,7 +114,7 @@ ENV FC="${ONEAPI_ROOT}/mpi/latest/bin/mpiifort"
 ENV CC="${ONEAPI_ROOT}/mpi/latest/bin/mpicc -cc=icx"
 ENV CXX="${ONEAPI_ROOT}/mpi/latest/bin/mpicc -cc=icpx"
 ENV FFLAGS="-fPIC -standard-semantics"
-ENV LDFLAGS="-L/usr/local/lib"
+ENV LDFLAGS="-L${INSTALL_DIR}/lib"
 ENV LIBS="-lhdf5_hl -lhdf5 -lz"
 
 COPY ./cmake/ /swiftest/cmake/
@@ -138,8 +133,8 @@ RUN cd swiftest && \
   cmake --build build && \
   cmake --install build 
 
-RUN cd swiftest/python && \
-  python setup.py build_ext --inplace 
+# RUN cd swiftest/python && \
+#   python setup.py build_ext --inplace 
 
 
 # This build target creates a container that executes just the driver program
@@ -159,19 +154,20 @@ COPY --from=build_driver /usr/local/lib/libswiftest.a /
 FROM scratch as export_module
 COPY --from=build_driver /swiftest/include/ /swiftest/
 
-
 # This build target creates a container with a conda environment with all dependencies needed to run the Python front end and 
 # analysis tools
 FROM continuumio/miniconda3 as python
 SHELL ["/bin/bash", "--login", "-c"]
+ENV INSTALL_DIR="/usr/local"
+ENV CONDA_DIR="/opt/conda"
 ENV SHELL="/bin/bash"
-ENV PATH="/opt/conda/bin:${PATH}"
-ENV LD_LIBRARY_PATH="/usr/local/lib"
+ENV PATH="${CONDA_DIR}/bin:${PATH}"
+ENV LD_LIBRARY_PATH="${INSTALL_DIR}/lib"
 
-COPY --from=build_driver /usr/local/bin/swiftest_driver /opt/conda/bin/swiftest_driver
-COPY --from=build_driver /usr/local/lib/libswiftest.a  /opt/conda/lib/libswiftest.a
-COPY --from=build_driver /swiftest/include/ /opt/conda/include/swiftest/
-COPY ./python/. /opt/conda/pkgs/swiftest/
+COPY --from=build_driver ${INSTALL_DIR}/bin/swiftest_driver ${CONDA_DIR}/bin/swiftest_driver
+COPY --from=build_driver ${INSTALL_DIR}/lib/libswiftest.a  ${CONDA_DIR}/conda/lib/libswiftest.a
+COPY --from=build_driver /swiftest/include/ ${CONDA_DIR}/include/swiftest/
+COPY ./python/. ${CONDA_DIR}/pkgs/swiftest/
 COPY environment.yml .
 
 RUN conda update --all -y && \

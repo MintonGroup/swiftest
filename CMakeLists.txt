@@ -7,8 +7,7 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 
-# CMake project file for SWIFTEST
-
+# CMake project file for Swiftest
 ##################################################
 # Define the project and the depencies that it has
 ##################################################
@@ -16,56 +15,50 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.20.1)
 # Get version stored in text file
 FILE(READ "version.txt" VERSION)
-PROJECT(swiftest VERSION ${VERSION} LANGUAGES Fortran)
+PROJECT(swiftest VERSION ${VERSION} LANGUAGES C Fortran)
+
+# The following section is modified from Numpy f2py documentation
+IF(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
+  MESSAGE(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.\n")
+ENDIF()
+
+# Ensure scikit-build modules
+IF (NOT SKBUILD)
+  FIND_PACKAGE(Python3 COMPONENTS Interpreter Development REQUIRED)
+  EXECUTE_PROCESS(
+    COMMAND "${Python3_EXECUTABLE}"
+    -c "import os, skbuild; print(os.path.dirname(skbuild.__file__))"
+    OUTPUT_VARIABLE SKBLD_DIR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  LIST(APPEND CMAKE_MODULE_PATH "${SKBLD_DIR}/resources/cmake")
+  MESSAGE(STATUS "Looking in ${SKBLD_DIR}/resources/cmake for CMake modules")
+ENDIF()
+
+# scikit-build style includes
+FIND_PACKAGE(Cython REQUIRED)
+SET(PYTHON_EXTENSION_MODULE_SUFFIX "${Python3_SOABI}" CACHE STRING "Suffix for python extension modules")
+
+# Communicate version number and other CMake build variables to the source code
+SET(SETUP_PY_IN "${PROJECT_SOURCE_DIR}/setup.py.in")
+SET(SETUP_PY_OUT "${PROJECT_SOURCE_DIR}/setup.py")
+CONFIGURE_FILE(${SETUP_PY_IN} ${SETUP_PY_OUT})
 
 INCLUDE(CTest)
 
-# Add our local modlues to the module path
-SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+# Add our local modules to the module path
+LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 
-# Uncomment if it is required that Fortran 90 is supported
-IF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
-    MESSAGE(FATAL_ERROR "Fortran compiler does not support F90")
-ENDIF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
-
-
-IF (CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
-    SET(COMPILER_OPTIONS "Intel" CACHE STRING "Compiler identified as Intel")
-ELSEIF (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-    SET(COMPILER_OPTIONS "GNU" CACHE STRING "Compiler identified as gfortran")
-ELSE ()
-    MESSAGE(FATAL_ERROR "Compiler not recognized!") 
-ENDIF ()
-
-# Set some options the user may choose
-OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
-OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
-OPTION(USE_SIMD "Use SIMD vectorization" ON)
-OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
-
-INCLUDE(${CMAKE_MODULE_PATH}/SetParallelizationLibrary.cmake)
-INCLUDE(${CMAKE_MODULE_PATH}/SetUpNetCDF.cmake)
-IF (COMPILER_OPTIONS STREQUAL "Intel")
-    INCLUDE(${CMAKE_MODULE_PATH}/SetMKL.cmake)
-ENDIF ()
-
-# This INCLUDE statement executes code that sets the compile flags for DEBUG,
-# RELEASE, PROFILING, and TESTING.  
-INCLUDE(${CMAKE_MODULE_PATH}/SetFortranFlags.cmake) 
-
-INCLUDE_DIRECTORIES($ENV{NETCDF_FORTRAN_HOME}/include;$ENV{NETCDF_HOME}/include)
 ############################################################
 # Define the actual files and folders that make up the build
 ############################################################
-
 
 # Define some directories
 SET(SRC ${CMAKE_SOURCE_DIR}/src)
 SET(LIB ${CMAKE_SOURCE_DIR}/lib)
 SET(BIN ${CMAKE_SOURCE_DIR}/bin)
 SET(MOD ${CMAKE_SOURCE_DIR}/include)
-#SET(TEST ${CMAKE_SOURCE_DIR}/test)
-SET(PY ${CMAKE_SOURCE_DIR}/python)
+#SET(TEST ${CMAKE_SOURCE_DIR}/tests)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIB})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${LIB})
@@ -76,7 +69,6 @@ SET(CMAKE_Fortran_MODULE_DIRECTORY ${MOD})
 
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${BIN})
-ADD_SUBDIRECTORY(${PY})
 
 # # Set up test directory
 # ENABLE_TESTING()

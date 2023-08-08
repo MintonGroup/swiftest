@@ -10,18 +10,17 @@
  If not, see: https://www.gnu.org/licenses. 
 """
 
-#from skbuild import setup
-from setuptools import setup
+from skbuild import setup
 from setuptools import find_packages, Extension
 from Cython.Build import cythonize
 import os
 
 # Build the pybindings extension that allows us to run the Fortran driver as a Python module. 
 root_dir = 'pybindings'
-include_dirs = "/Users/daminton/git/swiftest/apple_install/usr/local/include;/Users/daminton/git/swiftest/apple_install/usr/local/include"
+include_dirs = ""
 include_dirs = include_dirs.split()
 include_dirs.append(root_dir)
-link_flags = " -static-libgfortran -static-libgcc -static-libstdc++ -L/Users/daminton/git/swiftest/lib -lswiftest  /Users/daminton/git/swiftest/apple_install/usr/local/lib/libnetcdff.a /Users/daminton/git/swiftest/apple_install/usr/local/lib/libnetcdf.a -L/Users/daminton/git/swiftest/apple_install/usr/local/lib -lhdf5_hl -lhdf5 -lm -lz -lbz2 -lxml2 -lcurl"
+link_flags = ""
 link_flags = link_flags.split()
 
 pybindings_extension = [Extension('swiftest.bindings',
@@ -32,7 +31,7 @@ pybindings_extension = [Extension('swiftest.bindings',
                          )]
 
 setup(name='swiftest',
-      version='2023.08.00',
+      version='2023.8.0',
       author='David A. Minton',
       author_email='daminton@purdue.edu',
       url='https://github.itap.purdue.edu/MintonGroup/swiftest',

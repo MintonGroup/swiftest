@@ -14,7 +14,7 @@
 ####################################################################
 # Make sure that the default build type is RELEASE if not specified.
 ####################################################################
-INCLUDE(${CMAKE_MODULE_PATH}/SetCompileFlag.cmake)
+INCLUDE(SetCompileFlag)
 
 # Make sure the build type is uppercase
 STRING(TOUPPER "${CMAKE_BUILD_TYPE}" BT)
