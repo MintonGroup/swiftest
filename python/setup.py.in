@@ -16,10 +16,10 @@ import os
 
 # Build the pybindings extension that allows us to run the Fortran driver as a Python module. 
 root_dir = 'pybindings'
-include_dirs = "/Users/daminton/git/swiftest/apple_install/usr/local/include;/Users/daminton/git/swiftest/apple_install/usr/local/include"
+include_dirs = "${SWIFTEST_INCLUDE_DIR}"
 include_dirs = include_dirs.split()
 include_dirs.append(root_dir)
-link_flags = " -static-libgfortran -static-libgcc -static-libstdc++"
+link_flags = "${CMAKE_Fortran_LINK_FLAGS}"
 link_flags = link_flags.split()
 
 pybindings_extension = [Extension('swiftest.bindings',
@@ -30,7 +30,7 @@ pybindings_extension = [Extension('swiftest.bindings',
                          )]
 
 setup(name='swiftest',
-      version='2023.08.00',
+      version='${CMAKE_PROJECT_VERSION}',
       author='David A. Minton',
       author_email='daminton@purdue.edu',
       url='https://github.itap.purdue.edu/MintonGroup/swiftest',
