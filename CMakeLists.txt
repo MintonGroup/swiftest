@@ -16,7 +16,12 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.20.1)
 # Get version stored in text file
 FILE(READ "version.txt" VERSION)
 PROJECT(swiftest VERSION ${VERSION} LANGUAGES C Fortran)
-MESSAGE(STATUS "CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}\nPROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR}\n")
+
+# Set some options the user may choose
+OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
+OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
+OPTION(USE_SIMD "Use SIMD vectorization" ON)
+OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
 # The following section is modified from Numpy f2py documentation
 IF(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)

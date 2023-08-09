@@ -77,18 +77,6 @@ RUN cd netcdf-fortran-4.6.1 && \
 
 FROM intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04 as build_driver
 SHELL ["/bin/bash", "-c"]
-ENV INSTALL_DIR="/usr/local"
-COPY --from=build_deps ${INSTALL_DIR}/. ${INSTALL_DIR}/
-ENV PATH /root/miniconda3/bin:$PATH
-
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.2-0-Linux-x86_64.sh  && \
-  /bin/bash Miniconda3-py311_23.5.2-0-Linux-x86_64.sh -b && \
-  /root/miniconda3/bin/conda init bash && \
-  source /root/.bashrc && conda update --all -y && \
-  conda install conda-libmamba-solver -y && \
-  conda config --set solver libmamba && \
-  conda install -c conda-forge scikit-build -y&& \ 
-  conda install -c anaconda cython -y
 
 # The MACHINE_CODE_VALUE argument is a string that is used when compiling the swiftest_driver. It is appended to the "-x" compiler 
 # option: (-x${MACHINE_CODE_VALUE}). The default value is set to "sse2" which allows for certain SIMD instructions to be used while 
@@ -103,39 +91,56 @@ ARG BUILD_TYPE="RELEASE"
 # Additional CMAKE options:
 ARG EXTRA_CMAKE_OPTIONS=""
 
-# Swiftest
+ENV INSTALL_DIR="/usr/local"
 ENV NETCDF_HOME=${INSTALL_DIR}
 ENV NETCDF_FORTRAN_HOME=${NETCDF_HOME}
 ENV NETCDF_LIBRARY=${NETCDF_HOME}
 ENV FOR_COARRAY_NUM_IMAGES=1
 ENV OMP_NUM_THREADS=1
-
 ENV FC="${ONEAPI_ROOT}/mpi/latest/bin/mpiifort"
 ENV CC="${ONEAPI_ROOT}/mpi/latest/bin/mpicc -cc=icx"
 ENV CXX="${ONEAPI_ROOT}/mpi/latest/bin/mpicc -cc=icpx"
 ENV FFLAGS="-fPIC -standard-semantics"
 ENV LDFLAGS="-L${INSTALL_DIR}/lib"
 ENV LIBS="-lhdf5_hl -lhdf5 -lz"
+ENV PATH /root/miniconda3/bin:$PATH
 
+COPY --from=build_deps ${INSTALL_DIR}/. ${INSTALL_DIR}/
 COPY ./cmake/ /swiftest/cmake/
 COPY ./src/ /swiftest/src/
 COPY ./CMakeLists.txt /swiftest/
-COPY ./python/ /swiftest/python/
+COPY ./swiftest/ /swiftest/swiftest/
 COPY ./version.txt /swiftest/
+COPY ./setup.py /swiftest/
+COPY ./requirements.txt /swiftest/
+COPY ./pyproject.toml /swiftest/
+COPY ./environment.yml /swiftest/
 
-RUN cd swiftest && \
-  cmake -S . -B build -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" \
-  -DMACHINE_CODE_VALUE=${MACHINE_CODE_VALUE} \
-  -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-  -DUSE_COARRAY=OFF \
-  -DBUILD_SHARED_LIBS=OFF \
-  ${EXTRA_CMAKE_OPTIONS} && \
-  cmake --build build && \
-  cmake --install build 
+RUN wget https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.2-0-Linux-x86_64.sh  && \
+  /bin/bash Miniconda3-py311_23.5.2-0-Linux-x86_64.sh -b && \
+  /root/miniconda3/bin/conda init bash && \
+  source /root/.bashrc && conda update --all -y && \
+  conda install conda-libmamba-solver -y && \
+  conda config --set solver libmamba && \
+  conda env create -f environment.yml && \
+  conda init bash && \
+  echo "conda activate swiftest-env" >> ~/.bashrc  && \
+  source ~/.bashrc && \
+  conda install -c conda-forge scikit-build -y&& \ 
+  conda install -c anaconda cython -y
 
-# RUN cd swiftest/python && \
-#   python setup.py build_ext --inplace 
+# RUN cd swiftest && \
+#   cmake -S . -B build -DCMAKE_INSTALL_PREFIX="${INSTALL_DIR}" \
+#   -DMACHINE_CODE_VALUE=${MACHINE_CODE_VALUE} \
+#   -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+#   -DUSE_COARRAY=OFF \
+#   -DBUILD_SHARED_LIBS=OFF \
+#   ${EXTRA_CMAKE_OPTIONS} && \
+#   cmake --build build && \
+#   cmake --install build 
 
+# RUN cd swiftest && \
+#    pip install . -v
 
 # This build target creates a container that executes just the driver program
 FROM ubuntu:20.04 as driver
@@ -176,8 +181,6 @@ RUN conda update --all -y && \
   conda env create -f environment.yml && \
   conda init bash && \
   echo "conda activate swiftest-env" >> ~/.bashrc  && \
-  conda install -c anaconda cython -y && \
-  cd /opt/conda/pkgs/swiftest && pip install -e . && \
   conda clean --all -y && \
   mkdir -p /.astropy && \
   chmod -R 777 /.astropy && \

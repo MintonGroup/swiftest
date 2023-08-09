@@ -11,8 +11,13 @@
 """
 
 from skbuild import setup
-from Cython.Build import cythonize
-import os
+
+cmake_args = [
+            '-DCMAKE_BUILD_TYPE=RELEASE',
+            '-DMACHINE_CODE_VALUE="generic"',
+            '-DUSE_COARRAY:BOOL=OFF',
+            '-DUSE_OPENMP:BOOL=ON',
+            ]
 
 with open('version.txt') as version_file:
     version = version_file.read().strip()
@@ -43,13 +48,7 @@ setup(name='swiftest',
         'Programming Language :: Python :: 3',
       ],
       keywords='astronomy astrophysics planetary nbody integrator symplectic wisdom-holman',
-      cmake_args=[
-            '-DCMAKE_BUILD_TYPE=RELEASE',
-            '-DMACHINE_CODE_VALUE="generic"',
-            '-DUSE_COARRAY:BOOL=OFF',
-            '-DUSE_OPENMP:BOOL=ON',
-            '-DBUILD_SHARED_LIBS:BOOL=OFF'
-            ],
+      cmake_args=cmake_args,
       install_requires= [
             'numpy>=1.24.3',
             'scipy>=1.10.1',
