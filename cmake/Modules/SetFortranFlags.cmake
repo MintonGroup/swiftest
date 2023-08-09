@@ -144,12 +144,12 @@ IF (NOT BUILD_SHARED_LIBS)
 ENDIF (NOT BUILD_SHARED_LIBS)
 
 IF (USE_SIMD)
-        SET(MACHINE_CODE_VALUE "host" CACHE STRING "Tells the compiler which processor features it may target, including which instruction sets and optimizations it may generate.")
+        SET(MACHINE_CODE_VALUE "Host")
 
         IF (COMPILER_OPTIONS STREQUAL "Intel")
 
                 IF (MACHINE_CODE_VALUE STREQUAL "generic")
-                        SET(MACHINE_CODE_VALUE "SSE2")
+                        SET(MACHINE_CODE_VALUE "SSE2" FORCE) # SSE2 is the Intel equivalent of generic
                 ENDIF()
 
                 # Enables OpenMP SIMD compilation when OpenMP parallelization is disabled. 
@@ -195,6 +195,7 @@ IF (USE_SIMD)
                 ENDIF ()
 
         ENDIF ()
+        SET(MACHINE_CODE_VALUE ${MACHINE_CODE_VALUE} CACHE STRING "Tells the compiler which processor features it may target, including which instruction sets and optimizations it may generate.")
 ENDIF (USE_SIMD)                
 
 
