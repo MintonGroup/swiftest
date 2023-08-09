@@ -11,7 +11,7 @@
 ##################################################
 # Define the project and the depencies that it has
 ##################################################
-CMAKE_MINIMUM_REQUIRED(VERSION 3.20.1)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.5.0...3.27.1)
 
 # Get version stored in text file
 FILE(READ "version.txt" VERSION)
