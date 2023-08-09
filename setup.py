@@ -24,6 +24,25 @@ setup(name='swiftest',
       url='https://github.itap.purdue.edu/MintonGroup/swiftest',
       python_requires=">3.8",
       license="GPLv3",
+      classifiers=[
+        # How mature is this project? Common values are
+        #   3 - Alpha
+        #   4 - Beta
+        #   5 - Production/Stable
+        'Development Status :: 3 - Alpha/Development',
+
+        # Indicate who your project is intended for
+        'Intended Audience :: Science/Research',
+        'Topic :: Scientific/Engineering :: Astronomy',
+
+        # Pick your license as you wish (should match "license" above)
+        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+
+        # Specify the Python versions you support here. In particular, ensure
+        # that you indicate whether you support Python 2, Python 3 or both.
+        'Programming Language :: Python :: 3',
+      ],
+      keywords='astronomy astrophysics planetary nbody integrator symplectic wisdom-holman',
       cmake_args=[
             '-DCMAKE_BUILD_TYPE=RELEASE',
             '-DMACHINE_CODE_VALUE="generic"',
@@ -33,7 +52,6 @@ setup(name='swiftest',
             ],
       install_requires= [
             'numpy>=1.24.3',
-            'pandas>=1.5.3',
             'scipy>=1.10.1',
             'xarray>=2022.11.0',
             'dask>=2022.1',
@@ -46,4 +64,5 @@ setup(name='swiftest',
             'tqdm>=4.65.0',
       ],
       packages=['swiftest'],
+      test_suite="swiftest.tests",
       )
