@@ -18,12 +18,11 @@ swiftest_driver.sh
 !README.swifter 
 dump*
 !**/.gitignore
-!*.py
-!*.ipynb
+!setup.py
 !examples/**
+!swiftest/**
 *ipynb_checkpoints
 **/.DS_Store
-!python/swiftest/tests/test_suite.py
 !version.txt
 !requirements.txt
 !pyproject.toml
