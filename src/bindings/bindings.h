@@ -1,1 +1,0 @@
-extern void bindings_c_driver(char* integrator, char* param_file_name, char* display_style);

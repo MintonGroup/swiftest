@@ -11,6 +11,8 @@
 """
 
 from skbuild import setup
+from Cython.Build import cythonize
+import os
 
 with open('version.txt') as version_file:
     version = version_file.read().strip()
@@ -43,4 +45,5 @@ setup(name='swiftest',
             'astroquery>=0.4.6',
             'tqdm>=4.65.0',
       ],
-      packages=['swiftest'])
+      packages=['swiftest'],
+      )

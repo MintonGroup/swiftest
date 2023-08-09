@@ -36,8 +36,6 @@ IF (NOT SKBUILD)
   MESSAGE(STATUS "Looking in ${SKBLD_DIR}/resources/cmake for CMake modules")
 ENDIF()
 
-SET(PYTHON_EXTENSION_MODULE_SUFFIX ".${Python3_SOABI}" CACHE STRING "Suffix for python extension modules")
-
 # Detect when building against a conda environment set the _using_conda variable
 # for use both in this file and in the parent
 GET_FILENAME_COMPONENT(_python_bin_dir ${Python3_EXECUTABLE} DIRECTORY)
@@ -68,7 +66,8 @@ SET(CMAKE_Fortran_MODULE_DIRECTORY ${MOD})
 
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${BIN})
-ADD_SUBDIRECTORY(${SRC}/bindings)
+
+ADD_SUBDIRECTORY(${PY})
 # # Set up test directory
 # ENABLE_TESTING()
 # ADD_SUBDIRECTORY(${TEST})
