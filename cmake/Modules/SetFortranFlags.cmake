@@ -148,6 +148,10 @@ IF (USE_SIMD)
 
         IF (COMPILER_OPTIONS STREQUAL "Intel")
 
+                IF (MACHINE_CODE_VALUE STREQUAL "generic")
+                        SET(MACHINE_CODE_VALUE "SSE2")
+                ENDIF()
+
                 # Enables OpenMP SIMD compilation when OpenMP parallelization is disabled. 
                 IF (NOT USE_OPENMP)
                         SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
