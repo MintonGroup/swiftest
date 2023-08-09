@@ -40,9 +40,6 @@ ENDIF ()
 # RELEASE, PROFILING, and TESTING.  
 INCLUDE(SetFortranFlags) 
 
-INCLUDE_DIRECTORIES($ENV{NETCDF_FORTRAN_HOME}/include;$ENV{NETCDF_HOME}/include)
-
-
 # Add the source files
 SET(STRICT_MATH_FILES
             ${SRC}/collision/collision_generate.f90
