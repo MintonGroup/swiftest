@@ -131,25 +131,20 @@ COPY ./version.txt /swiftest/
 COPY ./setup.py /swiftest/
 COPY ./requirements.txt /swiftest/
 COPY ./pyproject.toml /swiftest/
+
+ENV CMAKE_ARGS="-DMACHINE_CODE_VALUE=${MACHINE_CODE_VALUE} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DBUILD_SHARED_LIBS=OFF ${EXTRA_CMAKE_OPTIONS}"
+
 RUN cd swiftest && \
    pip install . -v
 
 # This build target creates a container that executes just the driver program
 FROM ubuntu:20.04 as driver
-COPY --from=build_driver /usr/local/bin/swiftest_driver /usr/local/bin/
+COPY --from=build_driver /root/miniconda3/envs/swiftest-env/bin/swiftest_driver /usr/local/bin/
 ENTRYPOINT ["/usr/local/bin/swiftest_driver"]
 
 # This build target exports the binary to the host
 FROM scratch AS export_driver
-COPY --from=build_driver /usr/local/bin/swiftest_driver /
-
-# This build target exports the static library to the host
-FROM scratch as export_library
-COPY --from=build_driver /usr/local/lib/libswiftest.a /
-
-# This build target exports the module file to the host
-FROM scratch as export_module
-COPY --from=build_driver /swiftest/include/ /swiftest/
+COPY --from=driver /usr/local/bin/swiftest_driver /
 
 # This build target creates a container with a conda environment with all dependencies needed to run the Python front end and 
 # analysis tools
@@ -159,18 +154,11 @@ ENV INSTALL_DIR="/usr/local"
 ENV CONDA_DIR="/opt/conda"
 ENV SHELL="/bin/bash"
 ENV PATH="${CONDA_DIR}/bin:${PATH}"
-ENV LD_LIBRARY_PATH="${INSTALL_DIR}/lib"
 
-COPY --from=build_driver ${INSTALL_DIR}/bin/swiftest_driver ${CONDA_DIR}/bin/swiftest_driver
-COPY --from=build_driver ${INSTALL_DIR}/lib/libswiftest.a  ${CONDA_DIR}/conda/lib/libswiftest.a
-COPY --from=build_driver /swiftest/include/ ${CONDA_DIR}/include/swiftest/
-COPY ./python/. ${CONDA_DIR}/pkgs/swiftest/
-COPY environment.yml .
-
+COPY --from=build_driver /root/miniconda3/envs/swiftest-env/ ${CONDA_DIR}/envs/
 RUN conda update --all -y && \
   conda install conda-libmamba-solver -y && \
   conda config --set solver libmamba && \
-  conda env create -f environment.yml && \
   conda init bash && \
   echo "conda activate swiftest-env" >> ~/.bashrc  && \
   conda clean --all -y && \
