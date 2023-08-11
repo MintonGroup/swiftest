@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -l
 # This script will create a miniforge3 conda environment in order to execute the build
 # Zlib, hdf5, netcdf-c, netcdf-fortran
 # 
@@ -31,9 +31,14 @@ else
    ${SHELL} Mambaforge-23.1.0-4-${OS}-${ARCH}.sh -b -p ${INSTALL_DIR}
    rm Mambaforge-23.1.0-4-${OS}-${ARCH}.sh
 
-   CONDABIN="${INSTALL_DIR}/condabin/mamba"
-   ${CONDABIN} init $MYSHELL
-   ${CONDABIN} update --name base mamba -y
+   CONDABIN="mamba"
+   if [ $MYSHELL != "bash" ]; then
+      $INSTALL_DIR/condabin/$CONDABIN init $MYSHELL
+   fi
+   $INSTALL_DIR/condabin/$CONDABIN init bash
+   source ~/.bashrc
+   export PATH=${INSTALL_DIR}/bin:$PATH
 fi
 cd $SCRIPT_DIR
+${CONDABIN} update --name base ${CONDABIN} -y
 ${CONDABIN} env create --file swiftest-build-env.yml --name swiftest-build-env 

@@ -23,13 +23,10 @@ COPY . ./
 RUN ${SCRIPT_DIR}/fetch_dependencies.sh  
 RUN if [ "$BUILDIMAGE" = "intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04" ]; then \
         ${SCRIPT_DIR}/build_dependencies.sh Intel; \
-    else \
-        conda init bash && \
-        conda update --name base conda -y && \
-        ${SCRIPT_DIR}/make_environment.sh && \
+    else \ 
+        ${SCRIPT_DIR}/make_build_environment.sh && \
         echo "conda activate swiftest-build-env" >> ~/.bashrc  && \
-        source ~/.bashrc && \
-        ${SCRIPT_DIR}/build_dependencies.sh GNU; \
+        /bin/bash -lic "${SCRIPT_DIR}/build_dependencies.sh GNU"; \
     fi 
 
 # ENV INSTALL_DIR="/usr/local"

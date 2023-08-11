@@ -10,8 +10,8 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
-SCRIPT_DIR=$(dirname "$0")
-BUILD_DIR=${SCRIPT_DIR}/../build
+SCRIPT_DIR=$(realpath $(dirname $0))
+BUILD_DIR=$(realpath ${SCRIPT_DIR}/../build)
 mkdir -p ${BUILD_DIR}
 cd $BUILD_DIR
 

@@ -23,20 +23,18 @@
 
 
 # Determine the platform and architecture
-SCRIPT_DIR=$(dirname "$0")
+SCRIPT_DIR=$(realpath $(dirname $0))
+ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+BUILD_DIR=$(realpath ${ROOT_DIR}/build)
 read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
 
 # Determine if we are in the correct directory (the script can either be run from the Swiftest project root directory or the
 # buildscripts directory)
-if [ ! -f "./setup.py" ]; then
-    if [ -f "../setup.py" ]; then
-        cd ..
-    else
-        echo "Error: setup.py not found in . or .."
+if [ ! -f "${ROOT_DIR}/setup.py" ]; then
+        echo "Error: setup.py not found" 
         exit 1
-    fi
 fi
-
+cd ${ROOT_DIR}
 VERSION=$( cat version.txt )
 echo "Building Swiftest version ${VERSION} for ${OS}-${ARCH}"
 
