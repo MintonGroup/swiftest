@@ -21,7 +21,11 @@ ENV SHELL="/bin/bash"
 WORKDIR /swiftest
 
 # Compile the dependencies
-COPY ./buildscripts ./buildscripts/
+COPY ./buildscripts/fetch_dependencies.sh ./buildscripts/
+COPY ./buildscripts/get_platform.sh ./buildscripts/
+COPY ./buildscripts/make_build_environment.sh ./buildscripts/
+COPY ./buildscripts/build_dependencies.sh ./buildscripts/
+COPY ./buildscripts/swiftest-build-env.yml ./buildscripts/
 RUN ${SCRIPT_DIR}/fetch_dependencies.sh  
 RUN if [ "$BUILDIMAGE" = "intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04" ]; then \
         apt-get update && \
@@ -33,7 +37,22 @@ RUN if [ "$BUILDIMAGE" = "intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04" ]; the
         echo "conda activate swiftest-build-env" >> ~/.bashrc  && \
         /bin/bash -lic "${SCRIPT_DIR}/build_dependencies.sh GNU"; \
     fi 
+
+FROM ${BUILDIMAGE} as build-swiftest
+ENV SCRIPT_DIR="buildscripts"
+SHELL ["/bin/bash", "--login", "-c"]
+ENV SHELL="/bin/bash"
+WORKDIR /swiftest
+ENV BUILD_DIR=/swiftest/build
+
+# Copy build artifacts over to the swiftest package builder stage
+COPY --from=build-deps ${BUILD_DIR}/lib/ /usr/local/lib/
+COPY --from=build-deps ${BUILD_DIR}/include/ /usr/local/include/
+COPY --from=build-deps ${BUILD_DIR}/bin/ /usr/local/bin/
+COPY --from=build-deps ${BUILD_DIR}/share/ /usr/local/share/
+
 # Compile the Swiftest project
+COPY ./buildscripts/build_swiftest.sh ./buildscripts/
 COPY ./cmake/ ./cmake/
 COPY ./src/ ./src/
 COPY ./swiftest/ ./swiftest/
@@ -43,4 +62,13 @@ COPY ./environment.yml ./
 COPY ./pyproject.toml ./
 COPY ./requirements.txt ./
 COPY ./version.txt ./
-RUN /bin/bash -lic "${SCRIPT_DIR}/build_swiftest.sh"
+ENV PIP_ROOT_USER_ACTION=ignore
+RUN if [ "$BUILDIMAGE" = "intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04" ]; then \
+        /bin/bash -lic "${SCRIPT_DIR}/build_swiftest.sh Intel"; \
+    else \ 
+        /bin/bash -lic "${SCRIPT_DIR}/build_swiftest.sh GNU"; \
+    fi
+
+#Export the generated wheel file to the host machine
+FROM scratch as export-wheel
+COPY --from=build-swiftest /swiftest/dist/ /dist/

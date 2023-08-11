@@ -49,9 +49,10 @@ esac
 export F77=${FC}
 echo "Using $COMPILER compilers:\nFC: $FC\nCC: $CC\nCXX: $CXX\n"
 
-export CPATH=$DEPDIR
-export LD_LIBRARY_PATH="${CPATH}/lib:${LD_LIBRARY_PATH}"
-export LIBS="-lhdf5_hl -lhdf5 -lz"
+export CPATH=$DEPDIR/include
+export NETCDF_FORTRAN_HOME=$DEPDIR
+export LD_LIBRARY_PATH="${DEPDIR}/lib:${LD_LIBRARY_PATH}"
+export LIBS=$(${DEPDIR}/bin/nf-config --all)
 export LDFLAGS="-L${DEPDIR}/lib"
 export CFLAGS="-fPIC"
 export CMAKE_ARGS="-DBUILD_SHARED_LIBS=OFF"
@@ -64,4 +65,6 @@ else
     export FFLAGS="${CFLAGS}"
 fi
 cd $ROOT_DIR
-pip install .
+python -m pip install build
+python -m build --wheel
+

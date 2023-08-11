@@ -17,5 +17,6 @@
 !swiftest/*.h
 !swiftest/tests/*.py
 !src/*/*.f90
+!src/globals/globals_module.f90.in
 !buildscripts/*.sh
 !buildscripts/*.yml
