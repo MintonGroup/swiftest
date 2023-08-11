@@ -75,7 +75,19 @@ make distclean
 ./configure --prefix=${INSTALL_DIR} --static 
 make 
 make install
+if [ $? -ne 0]; then
+   echo "zlib could not be compiled."
+   exit 1
+fi
+
 cd ../hdf5-1.14.1-2 
+if [ "$COMPILER" = "GNU-Mac" ]; then
+   read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
+   if [ "ARCH" = "arm64" ]; then
+      echo "echo arm-apple-darwin" > bin/config.sub 
+   fi
+fi
+make distclean
 ./configure --disable-shared \
               --enable-build-mode=production \
               --disable-fortran \
@@ -83,19 +95,26 @@ cd ../hdf5-1.14.1-2
               --disable-cxx \
               --prefix=${INSTALL_DIR} \
               --with-zlib=${INSTALL_DIR} 
-make distclean
 make
 make install
+if [ $? -ne 0]; then
+   echo "hdf5 could not be compiled."
+   exit 1
+fi
 
 cd ../netcdf-c-4.9.2
+make distclean
 ./configure --disable-shared \
             --disable-dap \
             --disable-byterange \
             --prefix=${INSTALL_DIR} 
-make distclean
 make 
 make check 
 make install
+if [ $? -ne 0]; then
+   echo "netcdf-c could not be compiled."
+   exit 1
+fi
 
 if [ $COMPILER = "Intel" ]; then 
     export FCFLAGS="${CFLAGS} -standard-semantics"
@@ -105,10 +124,14 @@ else
     export FFLAGS="${CFLAGS}"
 fi
 
+make distclean
 export LIBS="$(${INSTALL_DIR}/bin/nc-config --libs)"
 cd ../netcdf-fortran-4.6.1
 ./configure --disable-shared --with-pic --prefix=${NFDIR}  
-make distclean
 make 
 make check 
 make install
+if [ $? -ne 0]; then
+   echo "netcdf-fortran could not be compiled."
+   exit 1
+fi
