@@ -146,7 +146,7 @@ ENDIF()
 #####################################################
 # Create a library from the source files, except the driver
 SET(SWIFTEST_LIBRARY swiftest)
-ADD_LIBRARY(${SWIFTEST_LIBRARY} ${netcdff} ${SWIFTEST_src})
+ADD_LIBRARY(${SWIFTEST_LIBRARY} ${SWIFTEST_src})
 
 # Define the executable name
 SET(SWIFTEST_DRIVER swiftest_driver)
