@@ -70,7 +70,7 @@ def clm_from_ellipsoid(mass, density, a, b = None, c = None, lmax = 6, ref_radiu
     # create shape grid 
     shape_SH = pysh.SHGrid.from_ellipsoid(lmax = lmax, a = a, b = b, c = c)
 
-    # get coefficients
+    # get gravity coefficients
     clm_class = pysh.SHGravcoeffs.from_shape(shape_SH, rho = density, gm = Gmass) # 4pi normalization
     clm = clm_class.to_array(normalization = 'ortho') # Change to orthonormal normalization
 
@@ -78,7 +78,7 @@ def clm_from_ellipsoid(mass, density, a, b = None, c = None, lmax = 6, ref_radiu
     print(f'Ensure that the Central Body radius equals the reference radius')
 
     if(ref_radius == True):
-        ref_radius = shape_SH.expand(normalization = 'ortho').coeffs[0, 0, 0]
+        ref_radius = shape_SH.expand(normalization = '4pi').coeffs[0, 0, 0]
         return clm, ref_radius
     else:
         return clm
