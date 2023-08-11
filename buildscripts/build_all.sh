@@ -24,7 +24,6 @@
 
 # Determine the platform and architecture
 SCRIPT_DIR=$(dirname "$0")
-echo $SCRIPT_DIR
 read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
 
 # Determine if we are in the correct directory (the script can either be run from the Swiftest project root directory or the
@@ -49,7 +48,7 @@ case $OS in
             if [ "$ARCH" = "x86_64" ]; then
                 BUILDIMAGE="intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04"
             else
-                BUILDIMAGE="condaforge/miniforge3:23.1.0-4"
+                BUILDIMAGE="condaforge/mambaforge:23.1.0-4"
             fi
             cmd="docker build --tag swiftest:latest --tag swiftest:${VERSION} --build-arg BUILDIMAGE=\"${BUILDIMAGE}\" ."
             echo "Executing Docker build:\n${cmd}"

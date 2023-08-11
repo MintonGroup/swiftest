@@ -10,9 +10,12 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
+SCRIPT_DIR=$(realpath $(dirname $0))
+BUILD_DIR=$(realpath ${SCRIPT_DIR}/../build)
 
-SCRIPT_DIR=$(dirname "$0")
-cd $SCRIPT_DIR/..
+mkdir -p ${BUILD_DIR}
+cd $BUILD_DIR
+
 wget -qO- https://www.zlib.net/zlib-1.2.13.tar.gz | tar xvz
 wget -qO- https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14.1/src/hdf5-1.14.1-2.tar.gz | tar xvz 
 wget -qO- https://github.com/Unidata/netcdf-c/archive/refs/tags/v4.9.2.tar.gz | tar xvz 

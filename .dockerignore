@@ -18,3 +18,4 @@
 !swiftest/tests/*.py
 !src/*/*.f90
 !buildscripts/*.sh
+!buildscripts/*.yml

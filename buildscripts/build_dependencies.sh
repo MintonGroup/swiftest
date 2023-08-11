@@ -11,11 +11,12 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 SCRIPT_DIR=$(dirname "$0")
-cd $SCRIPT_DIR/..
+BUILD_DIR=${SCRIPT_DIR}/../build
+mkdir -p ${BUILD_DIR}
+cd $BUILD_DIR
 
 USTMT="Usage: $0 <{Intel}|GNU>"
-if [[ ( $@ == "--help") ||  $@ == "-h" ]]
-then 
+if [[ ( $@ == "--help") ||  $@ == "-h" ]]; then 
 	echo $USTMT
 	exit 0
 fi
@@ -51,7 +52,7 @@ esac
 export F77=${FC}
 echo "Using $COMPILER compilers:\nFC: $FC\nCC: $CC\nCXX: $CXX\n"
 
-export INSTALL_DIR=$(realpath .)/usr/local
+export INSTALL_DIR=${BUILD_DIR}
 mkdir -p ${INSTALL_DIR}
 export NCDIR="${INSTALL_DIR}"
 export NFDIR="${INSTALL_DIR}"
@@ -93,7 +94,7 @@ if [ $COMPILER = "Intel" ]; then
     export FFLAGS=${CFLAGS}
 else
     export FCFLAGS="${CFLAGS}"
-    export FFFLAGS="${CFLAGS}"
+    export FFLAGS="${CFLAGS}"
 fi
 
 export LIBS="$(${INSTALL_DIR}/bin/nc-config --libs)"

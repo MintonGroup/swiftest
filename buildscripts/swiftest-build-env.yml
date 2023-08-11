@@ -1,0 +1,15 @@
+name: swiftest-build-env
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python>=3.8
+  - compilers>=1.6
+  - setuptools>=42
+  - scikit-build>=0.17
+  - cmake>=3.5.0
+  - cython>=3.0.0
+  - make
+  - ninja

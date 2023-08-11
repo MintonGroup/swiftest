@@ -15,29 +15,22 @@
 # This build target compiles all dependencies and the swiftest driver itself
 ARG BUILDIMAGE="intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04"
 FROM ${BUILDIMAGE} as build-deps
+ENV SCRIPT_DIR="buildscripts"
 SHELL ["/bin/bash", "--login", "-c"]
+ENV SHELL="/bin/bash"
 WORKDIR /swiftest
 COPY . ./
-RUN buildscripts/fetch_dependencies.sh 
+RUN ${SCRIPT_DIR}/fetch_dependencies.sh  
 RUN if [ "$BUILDIMAGE" = "intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04" ]; then \
-        buildscripts/build_dependencies.sh Intel; \
+        ${SCRIPT_DIR}/build_dependencies.sh Intel; \
     else \
         conda init bash && \
-        conda update --all -y && \
-        conda env create --file environment.yml --name swiftest-build-env && \
+        conda update --name base conda -y && \
+        ${SCRIPT_DIR}/make_environment.sh && \
         echo "conda activate swiftest-build-env" >> ~/.bashrc  && \
         source ~/.bashrc && \
-        conda update all -y && \
-        conda install -c conda-forge scikit-build cython cmake gfortran -y &&\
-        buildscripts/build_dependencies.sh GNU; \
+        ${SCRIPT_DIR}/build_dependencies.sh GNU; \
     fi 
-
-# RUN buildscripts/make_environment.sh 
-# RUN echo "conda activate swiftest-build-env" >> ~/.bashrc 
-# RUN source ~/.bashrc && conda activate swiftest-build-env
-# RUN conda update all -y
-# RUN conda install -c conda-forge scikit-build cython cmake gfortran --name swiftest-build-env -y  
-# RUN buildscripts/build_dependencies.sh GNU
 
 # ENV INSTALL_DIR="/usr/local"
 # ENV FC="${ONEAPI_ROOT}/mpi/latest/bin/mpiifort"
