@@ -19,13 +19,29 @@ ENV SCRIPT_DIR="buildscripts"
 SHELL ["/bin/bash", "--login", "-c"]
 ENV SHELL="/bin/bash"
 WORKDIR /swiftest
-COPY . ./
+
+# Compile the dependencies
+COPY ./buildscripts ./buildscripts/
 RUN ${SCRIPT_DIR}/fetch_dependencies.sh  
 RUN if [ "$BUILDIMAGE" = "intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04" ]; then \
+        apt-get update && \
+        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends m4 && \
+        rm -rf /var/lib/apt/lists/* && \
         ${SCRIPT_DIR}/build_dependencies.sh Intel; \
     else \ 
         ${SCRIPT_DIR}/make_build_environment.sh && \
         echo "conda activate swiftest-build-env" >> ~/.bashrc  && \
         /bin/bash -lic "${SCRIPT_DIR}/build_dependencies.sh GNU"; \
     fi 
+
+# Compile the Swiftest project
+COPY ./cmake/ ./cmake/
+COPY ./src/ ./src/
+COPY ./swiftest/ ./swiftest/
+COPY ./CMakeLists.txt ./
+COPY ./setup.py ./
+COPY ./environment.yml ./
+COPY ./pyproject.toml ./
+COPY ./requirements.txt ./
+COPY ./version.txt ./
 RUN pip install .
