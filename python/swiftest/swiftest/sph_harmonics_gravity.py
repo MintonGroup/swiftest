@@ -28,7 +28,7 @@ from typing import (
     Any
 )
 
-def clm_from_ellipsoid(mass, density, a, b = None, c = None, lmax = 6):
+def clm_from_ellipsoid(mass, density, a, b = None, c = None, lmax = 6, ref_radius = False):
     """
     Creates and returns the gravity coefficients for an ellipsoid with principal axes a, b, c upto a certain maximum degree lmax. 
     Uses pyshtools. No units necessary for a, b, & c. However, they need to be in the same units (DU).
@@ -47,6 +47,8 @@ def clm_from_ellipsoid(mass, density, a, b = None, c = None, lmax = 6):
         length of the pricipal axis aligned with the z axis
     lmax : int, optional, default = 6
         The maximum spherical harmonic degree resolvable by the grid.
+    ref_radius : boolean, optional, default = False
+        Boolean value to return the reference radius calculated by SHTOOLS
 
     Returns
     -------
@@ -57,40 +59,47 @@ def clm_from_ellipsoid(mass, density, a, b = None, c = None, lmax = 6):
 
     """
     G = swiftest.constants.GC
-    Gmass = G * mass # SHTOOLS uses an SI G value, and divides it before using the mass
-            # FIND A BETTER WAY TO CHANGE UNITS
+    Gmass = G * mass # SHTOOLS uses an SI G value, and divides it before using the mass; NO NEED TO CHANGE UNITS
 
     # cap lmax to ensure fast performance without giving up accuracy
-    
-    lmax_limit = 6 # lmax_limit = 6 derived from Jean's Law by taking the characteristic wavelength as the radius of the CB
-    if(lmax > lmax_limit):                              # FIND A BETTER WAY to judge this cut off point, i.e., relative change between coefficients
+    lmax_limit = 6              # lmax_limit = 6 derived from Jean's Law by taking the characteristic wavelength as the radius of the CB
+    if(lmax > lmax_limit):                           
         lmax = lmax_limit
         print(f'Setting maximum spherical harmonic degree to {lmax_limit}')
 
-    # create shape grid and convert to Spherical Harmonics (.expand())
-    shape_SH = pysh.SHGrid.from_ellipsoid(lmax = lmax, a = a, b = b, c = c).expand()
+    # create shape grid 
+    shape_SH = pysh.SHGrid.from_ellipsoid(lmax = lmax, a = a, b = b, c = c)
 
     # get coefficients
     clm_class = pysh.SHGravcoeffs.from_shape(shape_SH, rho = density, gm = Gmass) # 4pi normalization
-    clm = clm_class.to_array()
+    clm = clm_class.to_array(normalization = 'ortho') # Change to orthonormal normalization
 
-    return clm
+    # Return reference radius EQUALS the radius of the Central Body
+    print(f'Ensure that the Central Body radius equals the reference radius')
 
-def clm_from_relief(lmax, mass, density, grid):
+    if(ref_radius == True):
+        ref_radius = shape_SH.expand(normalization = 'ortho').coeffs[0, 0, 0]
+        return clm, ref_radius
+    else:
+        return clm
+
+def clm_from_relief(mass, density, grid, lmax = 6, ref_radius = True):
     """
     Creates and returns the gravity coefficients for a body with a given DH grid upto a certain maximum degree lmax. 
     Uses pyshtools.
 
     Parameters
     ----------
-    lmax : int
-        The maximum spherical harmonic degree resolvable by the grid.
     mass : float
         mass of the central body
     density : float
         density of the central body
     grid : array, shape []
         DH grid of the surface relief of the body
+    lmax : int, optional, default = 6
+        The maximum spherical harmonic degree resolvable by the grid.
+    ref_radius : boolean, optional, default = False
+        Boolean value to return the reference radius calculated by SHTOOLS
 
     Returns
     -------
@@ -102,21 +111,27 @@ def clm_from_relief(lmax, mass, density, grid):
     """
 
     G = swiftest.constants.GC
-    Gmass = G * mass # SHTOOLS uses an SI G value, and divides it before using the mass
-            # FIND A BETTER WAY TO CHANGE UNITS
+    Gmass = G * mass # SHTOOLS uses an SI G value, and divides it before using the mass; NO NEED TO CHANGE UNITS
 
     # cap lmax to 20 to ensure fast performance
-    lmax_limit = 20
+    lmax_limit = 6
     if(lmax > lmax_limit): # FIND A BETTER WAY to judge this cut off point, i.e., relative change between coefficients
         lmax = lmax_limit
         print(f'Setting maximum spherical harmonic degree to {lmax_limit}')
 
     # convert to spherical harmonics
-    shape_SH = pysh.SHGrid.from_array(grid).expand()
-        # shape_SH = SHExpandDH(grid)
+    shape_SH = pysh.SHGrid.from_array(grid)
 
     # get coefficients
     clm_class = pysh.SHGravcoeffs.from_shape(shape_SH, rho = density, gm = Gmass) # 4pi normalization
-    clm = clm_class.to_array()
+    clm = clm_class.to_array(normalization = 'ortho') # change to orthogonal normalization
 
-    return clm
+    # Return reference radius EQUALS the radius of the Central Body
+
+    print(f'Ensure that the Central Body radius equals the reference radius')
+
+    if(ref_radius == True):
+        ref_radius = shape_SH.expand(normalization = 'ortho').coeffs[0, 0, 0]
+        return clm, ref_radius
+    else:
+        return clm

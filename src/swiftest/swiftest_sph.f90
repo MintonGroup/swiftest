@@ -59,9 +59,14 @@ contains
                                                                                             ! cssc * m = first derivative of ccss with respect to phi
 
                 ! m > 0
-                g_sph(1) -= gm * r_0**l / r_mag**(l + 1) * N * (-1.0 * m * plm * cssc / rh(2) + ccss * (plm * (m * cotan(theta) / (rh(3) * cos(phi)) - (l + 1) * rh(1) / r_mag**2) + plm1 / (rh(3) * cos(phi)))) ! g_x
-                g_sph(2) -= gm * r_0**l / r_mag**(l + 1) * N * (m * plm * cssc / rh(1) + ccss * (plm * (m * cotan(theta) / (rh(3) * sin(phi)) - (l + 1) * rh(1) / r_mag**2) + plm1 / (rh(3) * sin(phi)))) ! g_y
-                g_sph(3) -= gm * r_0**l / r_mag**(l + 1) * N * (ccss * (plm * (m * cotan(theta) / sqrt(r_mag**2 - rh(3)**3) - (l + 1) * rh(1) / r_mag**2) + plm1 / sqrt(r_mag**2 - rh(3)**2))) ! g_z
+                g_sph(1) -= gm * r_0**l / r_mag**(l + 1) * N * (-1.0 * m * plm * cssc / rh(2) &
+                                                                + ccss * (plm * (m * cotan(theta) / (rh(3) * cos(phi)) &
+                                                                        - (l + 1) * rh(1) / r_mag**2) + plm1 / (rh(3) * cos(phi)))) ! g_x
+                g_sph(2) -= gm * r_0**l / r_mag**(l + 1) * N * (m * plm * cssc / rh(1) &
+                                                                + ccss * (plm * (m * cotan(theta) / (rh(3) * sin(phi)) &
+                                                                        - (l + 1) * rh(1) / r_mag**2) + plm1 / (rh(3) * sin(phi)))) ! g_y
+                g_sph(3) -= gm * r_0**l / r_mag**(l + 1) * N * (ccss * (plm * (m * cotan(theta) / sqrt(r_mag**2 - rh(3)**3) &
+                                                                        - (l + 1) * rh(1) / r_mag**2) + plm1 / sqrt(r_mag**2 - rh(3)**2))) ! g_z
 
             end do
         end do
