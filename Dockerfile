@@ -33,7 +33,6 @@ RUN if [ "$BUILDIMAGE" = "intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04" ]; the
         echo "conda activate swiftest-build-env" >> ~/.bashrc  && \
         /bin/bash -lic "${SCRIPT_DIR}/build_dependencies.sh GNU"; \
     fi 
-
 # Compile the Swiftest project
 COPY ./cmake/ ./cmake/
 COPY ./src/ ./src/
@@ -44,4 +43,8 @@ COPY ./environment.yml ./
 COPY ./pyproject.toml ./
 COPY ./requirements.txt ./
 COPY ./version.txt ./
+ENV CPATH="/swiftest/lib"
+ENV LD_LIBRARY_PATH="${CPATH}/lib:${LD_LIBRARY_PATH}"
+ENV LIBS="-lhdf5_hl -lhdf5 -lz"
+ENV CMAKE_ARGS="-DBUILD_SHARED_LIBS=OFF"
 RUN pip install .
