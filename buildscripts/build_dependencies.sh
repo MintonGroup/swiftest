@@ -131,7 +131,7 @@ cd ../netcdf-fortran-4.6.1
 make 
 make check 
 make install
-if [ $? -ne 0]; then
+if [ $? -ne 0 ]; then
    echo "netcdf-fortran could not be compiled."
    exit 1
 fi
