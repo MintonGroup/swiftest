@@ -64,5 +64,9 @@ case $OS in
         ;;
 esac
 
+${SCRIPT_DIR}/fetch_dependencies.sh
+${SCRIPT_DIR}/make_build_environment.sh
+${SCRIPT_DIR}/build_dependencies.sh
+${SCRIPT_DIR}/build_swiftest.sh
 
 

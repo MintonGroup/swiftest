@@ -43,8 +43,4 @@ COPY ./environment.yml ./
 COPY ./pyproject.toml ./
 COPY ./requirements.txt ./
 COPY ./version.txt ./
-ENV CPATH="/swiftest/lib"
-ENV LD_LIBRARY_PATH="${CPATH}/lib:${LD_LIBRARY_PATH}"
-ENV LIBS="-lhdf5_hl -lhdf5 -lz"
-ENV CMAKE_ARGS="-DBUILD_SHARED_LIBS=OFF"
-RUN pip install .
+RUN /bin/bash -lic "${SCRIPT_DIR}/build_swiftest.sh"
