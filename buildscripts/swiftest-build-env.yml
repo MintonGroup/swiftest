@@ -12,4 +12,5 @@ dependencies:
   - cmake>=3.5.0
   - cython>=3.0.0
   - make
+  - m4
   - ninja
