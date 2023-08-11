@@ -25,7 +25,8 @@
 # Determine the platform and architecture
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
-BUILD_DIR=$(realpath ${ROOT_DIR}/build)
+BUILD_DIR="${ROOT_DIR}/build"
+mkdir -p ${BUILD_DIR}
 read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
 
 # Determine if we are in the correct directory (the script can either be run from the Swiftest project root directory or the
@@ -54,9 +55,15 @@ case $OS in
             exit 0
         else
             echo "Docker not detected"
+            if [ "$ARCH" = "x86_64" ]; then
+                COMPILER="Intel"
+            else
+                COMPILER="GNU"
+            fi
         fi
         ;; 
     MacOSX) 
+        COMPILER="GNU"
         ;;
     *)
         echo "Swiftest is currently not configured to build for platform ${OS}-${ARCH}"
@@ -64,9 +71,12 @@ case $OS in
         ;;
 esac
 
-${SCRIPT_DIR}/fetch_dependencies.sh
-${SCRIPT_DIR}/make_build_environment.sh
-${SCRIPT_DIR}/build_dependencies.sh
-${SCRIPT_DIR}/build_swiftest.sh
+/bin/bash -lic "${SCRIPT_DIR}/fetch_dependencies.sh"
+if [ "$COMPILER"="GNU" ]; then
+    /bin/bash -lic "${SCRIPT_DIR}/make_build_environment.sh"
+    conda activate swiftest-build-env 
+fi
+/bin/bash -lic "${SCRIPT_DIR}/build_dependencies.sh $COMPILER"
+/bin/bash -lic "${SCRIPT_DIR}/build_swiftest.sh $COMPILER"
 
 

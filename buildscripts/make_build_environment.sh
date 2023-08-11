@@ -36,7 +36,13 @@ else
       $INSTALL_DIR/condabin/$CONDABIN init $MYSHELL
    fi
    $INSTALL_DIR/condabin/$CONDABIN init bash
-   source ~/.bashrc
+   if [ -f ~/.bashrc ]; then
+      source ~/.bashrc
+   fi
+   if [ -f ~/.bash_profile ]; then
+      source ~/.bash_profile
+   fi
+   
    export PATH=${INSTALL_DIR}/bin:$PATH
 fi
 cd $SCRIPT_DIR
