@@ -38,10 +38,15 @@ case $COMPILER in
         fi
         export F77="${FC}"
         ;;
-    GNU)
+    GNU-Linux)
         export FC=$(command -v gfortran)
         export CC=$(command -v gcc)
         export CXX=$(command -v g++)
+        ;;
+    GNU-Mac)
+        export FC=$HOMEBREW_PREFIX/bin/gfortran-13
+        export CC=$HOMEBREW_PREFIX/bin/gcc-13
+        export CXX=$HOMEBREW_PREFIX/bin/g++-13
         ;;
     *)
         echo "Unknown compiler type: ${COMPILER}"
@@ -61,11 +66,12 @@ export HDF5_LIBDIR="${HDF5_ROOT}/lib"
 export HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
 export HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
 
-export LDFLAGS="-L${INSTALL_DIR}/lib"
+export LDFLAGS="${LDFLAGS} -L${INSTALL_DIR}/lib"
 export CPATH="${INSTALL_DIR}/include"
 export CFLAGS="-fPIC"
 
 cd zlib-1.2.13 
+make distclean
 ./configure --prefix=${INSTALL_DIR} --static 
 make 
 make install
@@ -77,6 +83,7 @@ cd ../hdf5-1.14.1-2
               --disable-cxx \
               --prefix=${INSTALL_DIR} \
               --with-zlib=${INSTALL_DIR} 
+make distclean
 make
 make install
 
@@ -85,6 +92,7 @@ cd ../netcdf-c-4.9.2
             --disable-dap \
             --disable-byterange \
             --prefix=${INSTALL_DIR} 
+make distclean
 make 
 make check 
 make install
@@ -100,6 +108,7 @@ fi
 export LIBS="$(${INSTALL_DIR}/bin/nc-config --libs)"
 cd ../netcdf-fortran-4.6.1
 ./configure --disable-shared --with-pic --prefix=${NFDIR}  
+make distclean
 make 
 make check 
 make install

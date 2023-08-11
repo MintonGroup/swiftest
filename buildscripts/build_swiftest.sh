@@ -35,10 +35,15 @@ case $COMPILER in
         fi
         export F77="${FC}"
         ;;
-    GNU)
+    GNU-Linux)
         export FC=$(command -v gfortran)
         export CC=$(command -v gcc)
         export CXX=$(command -v g++)
+        ;;
+    GNU-Mac)
+        export FC=$HOMEBREW_PREFIX/bin/gfortran-13
+        export CC=$HOMEBREW_PREFIX/bin/gcc-13
+        export CXX=$HOMEBREW_PREFIX/bin/g++-13
         ;;
     *)
         echo "Unknown compiler type: ${COMPILER}"
@@ -53,7 +58,7 @@ export CPATH=$DEPDIR/include
 export NETCDF_FORTRAN_HOME=$DEPDIR
 export LD_LIBRARY_PATH="${DEPDIR}/lib:${LD_LIBRARY_PATH}"
 export LIBS=$(${DEPDIR}/bin/nf-config --all)
-export LDFLAGS="-L${DEPDIR}/lib"
+export LDFLAGS="${LDFLAGS} -L${DEPDIR}/lib"
 export CFLAGS="-fPIC"
 export CMAKE_ARGS="-DBUILD_SHARED_LIBS=OFF"
 

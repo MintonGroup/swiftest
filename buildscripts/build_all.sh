@@ -58,12 +58,15 @@ case $OS in
             if [ "$ARCH" = "x86_64" ]; then
                 COMPILER="Intel"
             else
-                COMPILER="GNU"
+                COMPILER="GNU-Linux"
             fi
         fi
         ;; 
     MacOSX) 
-        COMPILER="GNU"
+        COMPILER="GNU-Mac"
+        export MACOSX_DEPLOYMENT_TARGET=13 
+        export LDFLAGS="-Wl,-no_compact_unwind"
+        echo "Building for Mac assumes using Homebrew gfortran-13, gcc-13, and g++13. Install these first if necessary."
         ;;
     *)
         echo "Swiftest is currently not configured to build for platform ${OS}-${ARCH}"
@@ -71,12 +74,8 @@ case $OS in
         ;;
 esac
 
-/bin/bash -lic "${SCRIPT_DIR}/fetch_dependencies.sh"
-if [ "$COMPILER"="GNU" ]; then
-    /bin/bash -lic "${SCRIPT_DIR}/make_build_environment.sh"
-    conda activate swiftest-build-env 
-fi
-/bin/bash -lic "${SCRIPT_DIR}/build_dependencies.sh $COMPILER"
-/bin/bash -lic "${SCRIPT_DIR}/build_swiftest.sh $COMPILER"
+${SCRIPT_DIR}/fetch_dependencies.sh && \
+${SCRIPT_DIR}/build_dependencies.sh $COMPILER && \
+${SCRIPT_DIR}/build_swiftest.sh $COMPILER
 
 
