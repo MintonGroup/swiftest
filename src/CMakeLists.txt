@@ -34,6 +34,7 @@ ENDIF ()
 # RELEASE, PROFILING, and TESTING.  
 INCLUDE(SetFortranFlags) 
 
+
 # Add the source files
 SET(STRICT_MATH_FILES
             ${SRC}/collision/collision_generate.f90
@@ -127,7 +128,6 @@ ENDIF ()
 # Turn preprocessor on for all files
 SET_SOURCE_FILES_PROPERTIES(${SWIFTEST_src} ${DRIVER_src} PROPERTIES Fortran_PREPROCESS ON)
 
-
 #Set strict vs fast math flags
 STRING(TOUPPER "${CMAKE_BUILD_TYPE}" BT)
 IF(BT STREQUAL "RELEASE" OR BT STREQUAL "PROFILE")
@@ -142,12 +142,11 @@ ELSEIF(BT STREQUAL "PROFILE")
 ENDIF()
 
 #####################################################
-# Add the needed libraries and special compiler flags
+# Add the needed libraries 
 #####################################################
-
 # Create a library from the source files, except the driver
 SET(SWIFTEST_LIBRARY swiftest)
-ADD_LIBRARY(${SWIFTEST_LIBRARY} ${SWIFTEST_src})
+ADD_LIBRARY(${SWIFTEST_LIBRARY} ${netcdff} ${SWIFTEST_src})
 
 # Define the executable name
 SET(SWIFTEST_DRIVER swiftest_driver)

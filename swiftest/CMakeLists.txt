@@ -13,7 +13,6 @@ CMAKE_POLICY(SET CMP0148 OLD)
 SET(CYTHON_FLAGS
     "--directive binding=True,boundscheck=False,wraparound=False,embedsignature=True,always_allow_keywords=True"
     CACHE STRING "The directives for Cython compilation.")
-FIND_PACKAGE(PythonInterp REQUIRED)
 FIND_PACKAGE(Cython REQUIRED)
 FIND_PACKAGE(PythonExtensions REQUIRED)
 
