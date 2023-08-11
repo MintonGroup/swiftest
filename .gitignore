@@ -40,8 +40,13 @@ dump*
 !singularity/
 !Dockerfile
 !environment.yml
+!.dockerignore
 
 bin/
 build/*
+hdf5-*
+netcdf-c-*
+netcdf-fortran-*
+zlib-*
 
 
