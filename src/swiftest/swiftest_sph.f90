@@ -17,7 +17,7 @@ use SHTOOLS
 
 contains
 
-    module subroutine swiftest_sph_g_acc_one(gm, r_0, phi, theta, rh, c_lm, g_sph)
+    module subroutine swiftest_sph_g_acc_one(GMcb, r_0, phi, theta, rh, c_lm, g_sph, GMpl, aoblcb)
         !! author: Kaustub P. Anand
         !!
         !! Calculate the acceleration terms for one pair of bodies given c_lm, theta, phi, r
@@ -25,33 +25,34 @@ contains
 
         implicit none
         ! Arguments
-        real(DP), intent(in)        :: gm                       !! GMass of the central body
-        real(DP), intent(in)        :: r_0                      !! radius of the central body
-        real(DP), intent(in)        :: phi                      !! Azimuthal/Phase angle (radians)
-        real(DP), intent(in)        :: theta                    !! Inclination/Zenith angle (radians)
-        real(DP), intent(in), dimension(NDIM)       :: rh       !! distance vector of body
-        real(DP), intent(in), dimension(2, :, :)    :: c_lm     !! Spherical Harmonic coefficients
-        real(DP), intent(out), dimension(NDIM)      :: g_sph    !! acceleration vector
-
+        real(DP), intent(in)        :: GMcb                        !! GMass of the central body
+        real(DP), intent(in)        :: r_0                         !! radius of the central body
+        real(DP), intent(in)        :: phi                         !! Azimuthal/Phase angle (radians)
+        real(DP), intent(in)        :: theta                       !! Inclination/Zenith angle (radians)
+        real(DP), intent(in), dimension(NDIM)       :: rh          !! distance vector of body
+        real(DP), intent(in), dimension(2, :, :)    :: c_lm        !! Spherical Harmonic coefficients
+        real(DP), intent(out), dimension(NDIM)      :: g_sph       !! acceleration vector
+        real(DP), dimension(:),   intent(in),  optional :: GMpl    !! Masses of input bodies if they are not test particles
+        real(DP), dimension(:),   intent(inout), optional :: aoblcb  !! Barycentric acceleration of central body (only needed if input bodies are massive)
+     
         ! Internals
         integer        :: l, m              !! SPH coefficients
         real(DP)       :: r_mag             !! magnitude of rh
-        real(DP)       :: p                 !! Associated Lengendre Polynomials at a given cos(theta)
+        real(DP), dimension(2, :, :)  :: p, dp             !! Associated Lengendre Polynomials at a given cos(theta)
         integer        :: l_max             !! max Spherical Harmonic l order value
+        real(DP)       :: plm, dplm         !! Associated Legendre polynomials at a given l, m
 
+        g_sph(:) = 0.0_DP
         r_mag = sqrt(dot_product(rh(:), rh(:)))
-        l_max = size(c_lm, 2)
-        PlBar(p, lmax, cos(theta))      ! Associated Legendre Polynomials
+        l_max = size(c_lm, 2) - 1
+        PlmON_d1(p, dp, l_max, cos(theta))      ! Orthonormalized Associated Legendre Polynomials and the 1st Derivative
 
-        do l = 1, l_max
-            do m = 1, l
+        do l = 0, l_max
+            do m = 0, l
 
                 ! Associated Legendre Polynomials   
                 plm = p(PlmIndex(l, m))         ! p_l,m
-                plm1 = p(PlmIndex(l, m+1))      ! p_l,m+1
-
-                ! Normalization = 4*pi (geodesy) normalized
-                N = sqrt((2 * l + 1) * gamma(l - m + 1) / gamma(l + m + 1))
+                dplm = dp(PlmIndex(l, m))       ! d(p_l,m)
 
                 ! C_lm and S_lm with Cos and Sin of m * phi
                 ccss = c_lm(1, l, m) * cos(m * phi) + c_lm(2, l, m) * sin(m * phi)          ! C_lm * cos(m * phi) + S_lm * sin(m * phi)
@@ -59,14 +60,14 @@ contains
                                                                                             ! cssc * m = first derivative of ccss with respect to phi
 
                 ! m > 0
-                g_sph(1) -= gm * r_0**l / r_mag**(l + 1) * N * (-1.0 * m * plm * cssc / rh(2) &
-                                                                + ccss * (plm * (m * cotan(theta) / (rh(3) * cos(phi)) &
-                                                                        - (l + 1) * rh(1) / r_mag**2) + plm1 / (rh(3) * cos(phi)))) ! g_x
-                g_sph(2) -= gm * r_0**l / r_mag**(l + 1) * N * (m * plm * cssc / rh(1) &
-                                                                + ccss * (plm * (m * cotan(theta) / (rh(3) * sin(phi)) &
-                                                                        - (l + 1) * rh(1) / r_mag**2) + plm1 / (rh(3) * sin(phi)))) ! g_y
-                g_sph(3) -= gm * r_0**l / r_mag**(l + 1) * N * (ccss * (plm * (m * cotan(theta) / sqrt(r_mag**2 - rh(3)**3) &
-                                                                        - (l + 1) * rh(1) / r_mag**2) + plm1 / sqrt(r_mag**2 - rh(3)**2))) ! g_z
+                g_sph(1) -= GMcb * r_0**l / r_mag**(l + 1) * (-1.0 * m * plm * cssc / rh(2) &
+                                                                - ccss * (dplm * sin(theta) / (rh(3) * cos(phi)) + plm * (l + 1) * rh(1) / r_mag**2)) ! g_x
+                g_sph(2) -= GMcb * r_0**l / r_mag**(l + 1) * (m * plm * cssc / rh(1) &
+                                                                - ccss * (dplm * sin(theta) / (rh(3) * sin(phi)) + plm * (l + 1) * rh(2) / r_mag**2)) ! g_y
+                g_sph(3) += GMcb * r_0**l / r_mag**(l + 1) * ccss * (dplm * sin(theta) / sqrt(r_mag**2 - rh(3)**2) + plm * (l + 1) * rh(3) / r_mag**2) ! g_z
+            
+            if (present(GMpl) .and. present(aoblcb)) then
+                aoblcb(:) = aoblcb(:) - GMpl * g_sph(:) / GMcb
 
             end do
         end do
@@ -74,21 +75,68 @@ contains
         return
         end subroutine swiftest_sph_g_acc_one
 
-    module subroutine swiftest_sph_g_acc_all()
+    module subroutine swiftest_sph_g_acc_pl_all(self, nbody_system)
         !! author: Kaustub P. Anand
         !!
-        !! Calculate the acceleration terms for all bodies given c_lm
+        !! Calculate the acceleration terms for all massive bodies given c_lm
         !!
+        implicit none
+        ! Arguments
+        class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
+        class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+        ! Internals
+        integer(I4B) :: i
+        real(DP)        :: r_mag, theta, phi    !! magnitude of the position vector, zenith angle, and azimuthal angle
+        real(DP), dimension(NDIM)  :: rh           !! Position vector of the test particle
+        real(DP), dimension(NDIM)  :: g_sph        !! Gravitational terms from Spherical Harmonics
 
         associate(pl => self, npl => self%nbody, cb => nbody_system%cb)
+            cb%aobl(:) = 0.0_DP
             do concurrent(i = 1:npl, pl%lmask(i))
-                gm = pl%Gmass(i)
                 rh = pl%rh(:, i) ! CHECK pl%rh shape
-                r = sqrt(rh(1)**2 + rh(2)**2 + rh(3)**2) ! mag of vector function???
-                theta = acos(rh(3) / r)
+                r_mag = .mag. rh(1:3)
+                theta = acos(rh(3) / r_mag)
+                phi = acos(rh(1) / sqrt(rh(1)**2 + rh(2)**2)) * sign(1, rh(2))  - cb%phase ! CALCULATE CB PHASE VALUE FOR PHI
+
+                call swiftest_sph_g_acc_one(cb%Gmass, r_mag, phi, theta, rh, cb%c_lm, g_sph, pl%Gmass, cb%aobl)
+                pl%ah(:, i) = pl%ah(:, i) + g_sph(:) - cb%aobl(:)
+                pl%aobl(:, i) = g_sph(:)
+        return 
+        end subroutine swiftest_sph_g_acc_pl_all
+    
+    module subroutine swiftest_sph_g_acc_tp_all(self, nbody_system)
+        !! author: Kaustub P. Anand
+        !!
+        !! Calculate the acceleration terms for all test particles given c_lm
+        !!
+        implicit none
+        ! Arguments
+        class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
+        class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+        ! Internals
+        integer(I4B)    :: i
+        real(DP)        :: r_mag, theta, phi       !! magnitude of the position vector, zenith angle, and azimuthal angle
+        real(DP), dimension(NDIM)  :: rh           !! Position vector of the test particle
+        real(DP), dimension(NDIM)  :: g_sph        !! Gravitational terms from Spherical Harmonics
+        real(DP), dimension(NDIM)  :: aoblcb       !! Temporary variable for central body oblateness acceleration
+
+        associate(tp => self, ntp => self%nbody, cb => nbody_system%cb)
+
+            if (nbody_system%lbeg) then
+                aoblcb = cb%aoblbeg
+             else
+                aoblcb = cb%aoblend
+             end if
+
+            do concurrent(i = 1:ntp, tp%lmask(i))
+                rh = tp%rh(:, i)
+                r_mag = .mag. rh(1:3)
+                theta = acos(rh(3) / r_mag)
                 phi = acos(rh(1) / sqrt(rh(1)**2 + rh(2)**2)) * sign(1, rh(2)) - cb%phase ! CALCULATE CB PHASE VALUE FOR PHI
 
-                call swiftest_sph_g_acc_one(gm, r, phi, theta, rh, cb%c_lm, g_sph)
-                pl%ah(:, i) = pl%ah(:, i) + g_sph
-
-        end subroutine swiftest_sph_g_acc_all
+                call swiftest_sph_g_acc_one(cb%Gmass, r_mag, phi, theta, rh, cb%c_lm, g_sph)
+                tp%ah(:, i) = tp%ah(:, i) + g_sph(:) - aoblcb(:)
+                tp%aobl(:, i) = g_sph(:)
+        return
+        end subroutine swiftest_sph_g_acc_tp_all
+    

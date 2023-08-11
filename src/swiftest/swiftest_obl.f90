@@ -174,8 +174,6 @@ contains
          end do
       end if
 
-      
-
       if (present(GMpl) .and. present(aoblcb)) then
          aoblcb(:) = 0.0_DP
          do i = n, 1, -1
