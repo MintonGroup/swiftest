@@ -45,11 +45,11 @@ case $OS in
         if command -v docker &> /dev/null; then
             echo "Docker detected"
             if [ "$ARCH" = "x86_64" ]; then
-                BUILDIMAGE="intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04"
+                COMPILER="intel"
             else
-                BUILDIMAGE="condaforge/mambaforge:23.1.0-4"
+                COMPILER="gnu"
             fi
-            cmd="docker build --tag swiftest:latest --tag swiftest:${VERSION} --build-arg BUILDIMAGE=\"${BUILDIMAGE}\" ."
+            cmd="docker build --tag swiftest:latest --tag swiftest:${VERSION} --file=dockerfile.${COMPILER} ."
             echo "Executing Docker build:\n${cmd}"
             eval "$cmd"
             exit 0

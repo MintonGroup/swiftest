@@ -13,9 +13,7 @@
 # dynamically. 
 
 # This build target compiles all dependencies and the swiftest driver itself
-ARG BUILDIMAGE="intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04"
-FROM ${BUILDIMAGE} as build-deps
-ARG BUILDIMAGE="intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04"
+FROM intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04 as build-deps
 ENV SCRIPT_DIR="buildscripts"
 SHELL ["/bin/bash", "--login", "-c"]
 ENV SHELL="/bin/bash"
@@ -28,18 +26,12 @@ COPY ./${SCRIPT_DIR}/build_dependencies.sh ./${SCRIPT_DIR}/
 COPY ./${SCRIPT_DIR}/swiftest-build-env.yml ./${SCRIPT_DIR}/
 COPY ./${SCRIPT_DIR}/fetch_dependencies.sh ./${SCRIPT_DIR}/
 RUN ${SCRIPT_DIR}/fetch_dependencies.sh
-RUN if [ "$BUILDIMAGE" = "intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04" ]; then \
-        apt-get update && \
+RUN  apt-get update && \
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends m4 && \
         rm -rf /var/lib/apt/lists/* && \
-        ${SCRIPT_DIR}/build_dependencies.sh Intel; \
-    else \ 
-        ${SCRIPT_DIR}/make_build_environment.sh && \
-        echo "conda activate swiftest-build-env" >> ~/.bashrc  && \
-        /bin/bash -lic "${SCRIPT_DIR}/build_dependencies.sh GNU-Linux"; \
-    fi 
+        ${SCRIPT_DIR}/build_dependencies.sh Intel
 
-FROM ${BUILDIMAGE} as build-swiftest
+FROM intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04 as build-swiftest
 ENV SCRIPT_DIR="buildscripts"
 SHELL ["/bin/bash", "--login", "-c"]
 ENV SHELL="/bin/bash"
@@ -64,11 +56,8 @@ COPY ./pyproject.toml ./
 COPY ./requirements.txt ./
 COPY ./version.txt ./
 ENV PIP_ROOT_USER_ACTION=ignore
-RUN if [ "$BUILDIMAGE" = "intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04" ]; then \
-        /bin/bash -lic "${SCRIPT_DIR}/build_swiftest.sh Intel"; \
-    else \ 
-        /bin/bash -lic "${SCRIPT_DIR}/build_swiftest.sh GNU-Linux"; \
-    fi
+RUN /bin/bash -lic && "${SCRIPT_DIR}/make_build_environment" && \
+    /bin/bash -lic "${SCRIPT_DIR}/build_swiftest.sh Intel"
 
 #Export the generated wheel file to the host machine
 FROM scratch as export-wheel

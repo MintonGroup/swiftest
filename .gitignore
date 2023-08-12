@@ -38,7 +38,7 @@ dump*
 #Docker and Singularity files
 !docker/
 !singularity/
-!Dockerfile
+!Dockerfile.*
 !environment.yml
 !.dockerignore
 
