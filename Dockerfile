@@ -15,18 +15,19 @@
 # This build target compiles all dependencies and the swiftest driver itself
 ARG BUILDIMAGE="intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04"
 FROM ${BUILDIMAGE} as build-deps
+ARG BUILDIMAGE="intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04"
 ENV SCRIPT_DIR="buildscripts"
 SHELL ["/bin/bash", "--login", "-c"]
 ENV SHELL="/bin/bash"
 WORKDIR /swiftest
 
 # Compile the dependencies
-COPY ./buildscripts/fetch_dependencies.sh ./buildscripts/
-COPY ./buildscripts/get_platform.sh ./buildscripts/
-COPY ./buildscripts/make_build_environment.sh ./buildscripts/
-COPY ./buildscripts/build_dependencies.sh ./buildscripts/
-COPY ./buildscripts/swiftest-build-env.yml ./buildscripts/
-RUN ${SCRIPT_DIR}/fetch_dependencies.sh  
+COPY ./${SCRIPT_DIR}/get_platform.sh ./${SCRIPT_DIR}/
+COPY ./${SCRIPT_DIR}/make_build_environment.sh ./${SCRIPT_DIR}
+COPY ./${SCRIPT_DIR}/build_dependencies.sh ./${SCRIPT_DIR}/
+COPY ./${SCRIPT_DIR}/swiftest-build-env.yml ./${SCRIPT_DIR}/
+COPY ./${SCRIPT_DIR}/fetch_dependencies.sh ./${SCRIPT_DIR}/
+RUN ${SCRIPT_DIR}/fetch_dependencies.sh
 RUN if [ "$BUILDIMAGE" = "intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04" ]; then \
         apt-get update && \
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends m4 && \
@@ -35,7 +36,7 @@ RUN if [ "$BUILDIMAGE" = "intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04" ]; the
     else \ 
         ${SCRIPT_DIR}/make_build_environment.sh && \
         echo "conda activate swiftest-build-env" >> ~/.bashrc  && \
-        /bin/bash -lic "${SCRIPT_DIR}/build_dependencies.sh GNU"; \
+        /bin/bash -lic "${SCRIPT_DIR}/build_dependencies.sh GNU-Linux"; \
     fi 
 
 FROM ${BUILDIMAGE} as build-swiftest
@@ -66,7 +67,7 @@ ENV PIP_ROOT_USER_ACTION=ignore
 RUN if [ "$BUILDIMAGE" = "intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04" ]; then \
         /bin/bash -lic "${SCRIPT_DIR}/build_swiftest.sh Intel"; \
     else \ 
-        /bin/bash -lic "${SCRIPT_DIR}/build_swiftest.sh GNU"; \
+        /bin/bash -lic "${SCRIPT_DIR}/build_swiftest.sh GNU-Linux"; \
     fi
 
 #Export the generated wheel file to the host machine

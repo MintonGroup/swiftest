@@ -106,6 +106,7 @@ cd ../netcdf-c-4.9.2
 make distclean
 ./configure --disable-shared \
             --disable-dap \
+            --disable-libxml2 \
             --disable-byterange \
             --prefix=${INSTALL_DIR} 
 make 
