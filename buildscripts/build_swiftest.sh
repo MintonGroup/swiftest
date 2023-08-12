@@ -17,7 +17,9 @@ if [[ ( $@ == "--help") ||  $@ == "-h" ]]; then
 	exit 0
 fi
 COMPILER=${1:-Intel}
-DEPDIR={$2:-$(realpath ${ROOT_DIR}/build)}
+DEPDIR_DEFAULT=$(realpath ${ROOT_DIR}/build)
+DEPDIR=${2:-$DEPDIR_DEFAULT}
+echo "NetCDF & HDF library directory: ${DEPDIR}"
 
 case $COMPILER in
     Intel)
@@ -52,7 +54,8 @@ case $COMPILER in
         ;;
 esac
 export F77=${FC}
-echo "Using $COMPILER compilers:\nFC: $FC\nCC: $CC\nCXX: $CXX\n"
+NL=$'\n'
+echo "Using ${COMPILER} compilers:${NL}FC: ${FC}${NL}CC: ${CC}${NL}CXX: ${CXX}${NL}"
 
 export CPATH=$DEPDIR/include
 export NETCDF_FORTRAN_HOME=$DEPDIR
