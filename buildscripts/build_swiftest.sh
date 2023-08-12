@@ -57,7 +57,7 @@ echo "Using $COMPILER compilers:\nFC: $FC\nCC: $CC\nCXX: $CXX\n"
 export CPATH=$DEPDIR/include
 export NETCDF_FORTRAN_HOME=$DEPDIR
 export LD_LIBRARY_PATH="${DEPDIR}/lib:${LD_LIBRARY_PATH}"
-export LIBS=$(${DEPDIR}/bin/nf-config --all)
+export LIBS=$(${DEPDIR}/bin/nf-config --flibs)
 export LDFLAGS="${LDFLAGS} -L${DEPDIR}/lib"
 export CFLAGS="-fPIC"
 export CMAKE_ARGS="-DBUILD_SHARED_LIBS=OFF"
