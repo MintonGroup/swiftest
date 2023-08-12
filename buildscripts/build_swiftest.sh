@@ -44,8 +44,10 @@ case $COMPILER in
         ;;
     GNU-Mac)
         export FC=$HOMEBREW_PREFIX/bin/gfortran-13
-        export CC=$HOMEBREW_PREFIX/bin/gcc-13
-        export CXX=$HOMEBREW_PREFIX/bin/g++-13
+        #export CC=$HOMEBREW_PREFIX/bin/gcc-13
+        #xport CXX=$HOMEBREW_PREFIX/bin/g++-13
+        export CC=/usr/bin/clang
+        export CXX=/usr/bin/clang++
         ;;
     *)
         echo "Unknown compiler type: ${COMPILER}"

@@ -8,10 +8,10 @@
 # If not, see: https://www.gnu.org/licenses. 
 
 # - Finds the NetCDF libraries 
-
-find_path(NETCDF_INCLUDE_DIR NAMES netcdf.mod HINTS ENV NETCDF_FORTRAN_HOME)
-find_library(NETCDF_FORTRAN_LIBRARY NAMES netcdff HINTS ENV NETCDF_FORTRAN_HOME)
-find_library(NETCDF_LIBRARY NAMES netcdf HINTS ENV NETCDF_FORTRAN_HOME)
+set(NETCDF_FORTRAN_HOME $ENV{NETCDF_FORTRAN_HOME} CACHE STRING "Value of NetCDF library home directory")
+find_path(NETCDF_INCLUDE_DIR NAMES netcdf.mod HINTS ENV NETCDF_FORTRAN_HOME PATH_SUFFIXES include)
+find_library(NETCDF_FORTRAN_LIBRARY NAMES netcdff HINTS ENV NETCDF_FORTRAN_HOME PATH_SUFFIXES lib)
+find_library(NETCDF_LIBRARY NAMES netcdf HINTS ENV NETCDF_FORTRAN_HOME PATH_SUFFIXES lib)
 
 set(NETCDF_FOUND TRUE)
 # Note for posterity: When building static libraries, NETCDF_FORTRAN_LIBRARY must come *before* NETCDF_LIBRARY. Otherwise you get a bunch of "undefined reference to" errors
