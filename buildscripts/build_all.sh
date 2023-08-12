@@ -41,25 +41,21 @@ echo "Building Swiftest version ${VERSION} for ${OS}-${ARCH}"
 
 case $OS in
     Linux)
+        if [ "$ARCH" = "x86_64" ]; then
+            COMPILER="Intel"
+        else
+            COMPILER="GNU-Linux"
+        fi
         # Determine if Docker is available
         if command -v docker &> /dev/null; then
             echo "Docker detected"
-            if [ "$ARCH" = "x86_64" ]; then
-                COMPILER="intel"
-            else
-                COMPILER="gnu"
-            fi
+
             cmd="docker build --tag swiftest:latest --tag swiftest:${VERSION} --file=dockerfile.${COMPILER} ."
             echo "Executing Docker build:\n${cmd}"
             eval "$cmd"
             exit 0
         else
             echo "Docker not detected"
-            if [ "$ARCH" = "x86_64" ]; then
-                COMPILER="Intel"
-            else
-                COMPILER="GNU-Linux"
-            fi
         fi
         ;; 
     MacOSX) 
