@@ -42,6 +42,8 @@ COPY --from=build-deps ${BUILD_DIR}/lib/ /usr/local/lib/
 COPY --from=build-deps ${BUILD_DIR}/include/ /usr/local/include/
 COPY --from=build-deps ${BUILD_DIR}/bin/ /usr/local/bin/
 COPY --from=build-deps ${BUILD_DIR}/share/ /usr/local/share/
+COPY --from=build-deps /opt/conda/envs/ /opt/conda/envs/
+COPY --from=build-deps /root/.bashrc /root/
 
 # Compile the Swiftest project
 COPY ./buildscripts/build_swiftest.sh ./buildscripts/
@@ -55,7 +57,7 @@ COPY ./pyproject.toml ./
 COPY ./requirements.txt ./
 COPY ./version.txt ./
 ENV PIP_ROOT_USER_ACTION=ignore
-RUN  /bin/bash -lic "${SCRIPT_DIR}/build_swiftest.sh GNU-Linux"
+RUN  /bin/bash -lic "${SCRIPT_DIR}/build_swiftest.sh GNU-Linux /usr/local"
 
 #Export the generated wheel file to the host machine
 FROM scratch as export-wheel
