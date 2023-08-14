@@ -55,16 +55,19 @@ contains
                 dplm = dp(PlmIndex(l, m))       ! d(p_l,m)
 
                 ! C_lm and S_lm with Cos and Sin of m * phi
-                ccss = c_lm(1, l, m) * cos(m * phi) + c_lm(2, l, m) * sin(m * phi)          ! C_lm * cos(m * phi) + S_lm * sin(m * phi)
-                cssc = -1.0 * c_lm(1, l, m) * sin(m * phi) + c_lm(2, l, m) * cos(m * phi)   ! - C_lm * sin(m * phi) + S_lm * cos(m * phi) 
+                ccss = c_lm(1, l+1, m+1) * cos(m * phi) + c_lm(2, l+1, m+1) * sin(m * phi)          ! C_lm * cos(m * phi) + S_lm * sin(m * phi)
+                cssc = -1.0 * c_lm(1, l+1, m+1) * sin(m * phi) + c_lm(2, l+1, m+1) * cos(m * phi)   ! - C_lm * sin(m * phi) + S_lm * cos(m * phi) 
                                                                                             ! cssc * m = first derivative of ccss with respect to phi
 
                 ! m > 0
-                g_sph(1) -= GMcb * r_0**l / r_mag**(l + 1) * (-1.0 * m * plm * cssc / rh(2) &
-                                                                - ccss * (dplm * sin(theta) / (rh(3) * cos(phi)) + plm * (l + 1) * rh(1) / r_mag**2)) ! g_x
-                g_sph(2) -= GMcb * r_0**l / r_mag**(l + 1) * (m * plm * cssc / rh(1) &
-                                                                - ccss * (dplm * sin(theta) / (rh(3) * sin(phi)) + plm * (l + 1) * rh(2) / r_mag**2)) ! g_y
-                g_sph(3) += GMcb * r_0**l / r_mag**(l + 1) * ccss * (dplm * sin(theta) / sqrt(r_mag**2 - rh(3)**2) + plm * (l + 1) * rh(3) / r_mag**2) ! g_z
+                g_sph(1) -= GMcb * r_0**l / r_mag**(l + 1) * (cssc * -1.0 * m * plm / rh(2) &
+                                                              - ccss * (dplm * sin(theta) / (rh(3) * cos(phi)) &    
+                                                                        + plm * (l + 1) * rh(1) / r_mag**2)) ! g_x
+                g_sph(2) -= GMcb * r_0**l / r_mag**(l + 1) * (cssc * m * plm / rh(1) &
+                                                              - ccss * (dplm * sin(theta) / (rh(3) * sin(phi)) &
+                                                                        + plm * (l + 1) * rh(2) / r_mag**2)) ! g_y
+                g_sph(3) += GMcb * r_0**l / r_mag**(l + 1) * ccss * (dplm * sin(theta) / sqrt(r_mag**2 - rh(3)**2) &
+                                                                     + plm * (l + 1) * rh(3) / r_mag**2) ! g_z
             
             if (present(GMpl) .and. present(aoblcb)) then
                 aoblcb(:) = aoblcb(:) - GMpl * g_sph(:) / GMcb
