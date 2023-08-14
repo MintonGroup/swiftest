@@ -13,40 +13,77 @@
 # dynamically. 
 
 # This build target compiles all dependencies and the swiftest driver itself
-FROM condaforge/mambaforge:23.1.0-4 as build-deps
-ENV SCRIPT_DIR="buildscripts"
+FROM continuumio/miniconda3:23.5.2-0 as build-deps
+SHELL ["/bin/bash", "--login", "-c"]
+ENV PATH="/opt/conda/bin:${PATH}"
+WORKDIR /swiftest
+
+ENV INSTALL_DIR=/usr/local
+ENV NCDIR="${INSTALL_DIR}"
+ENV NFDIR="${INSTALL_DIR}"
+ENV HDF5_ROOT="${INSTALL_DIR}"
+ENV HDF5_LIBDIR="${HDF5_ROOT}/lib"
+ENV HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
+ENV HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
+ENV LD_LIBRARY_PATH="${INSTALL_DIR}/lib"
+ENV LDFLAGS="-L${INSTALL_DIR}/lib"
+ENV CPPFLAGS="-I${INSTALL_DIR}/include"
+
+COPY ./buildscripts/swiftest-build-env.yml ./
+COPY ./buildscripts/fetch_dependencies.sh ./
+RUN ./fetch_dependencies.sh -d ./
+
+# Get the HDF5, NetCDF-C, and NetCDF-Fortran libraries
+RUN conda update --all -y && \
+    conda install conda-libmamba-solver -y && \
+    conda config --set solver libmamba && \
+    conda env create --file swiftest-build-env.yml --name swiftest-build-env && \
+    conda init bash && \
+    echo "conda activate swiftest-build-env" >> ~/.bashrc 
+
+RUN cd zlib-* && \
+    ./configure \
+        --prefix=${INSTALL_DIR} \
+        --static && \
+    make && make install && \
+    cd ../hdf5-* && \
+    ./configure \
+        --prefix=${INSTALL_DIR} \
+        --disable-shared \
+        --enable-build-mode=production \
+        --disable-fortran \
+        --disable-java \
+        --disable-cxx \
+        --with-zlib=${INSTALL_DIR} && \
+    make && make install && \
+    cd ../netcdf-c-* && \
+    ./configure \
+        --prefix=${INSTALL_DIR} \
+        --disable-shared \
+        --disable-dap \
+        --disable-libxml2 \
+        --disable-byterange && \
+    make && make install && \
+    cd ../netcdf-fortran-* && \
+    export CFLAGS="-fPIC" && \
+    export FCFLAGS="${CFLAGS}" && \
+    export FFLAGS=${CFLAGS} && \
+    export LIBS=$(${INSTALL_DIR}/bin/nc-config --libs --static) && \
+    ./configure --disable-shared --prefix=${NFDIR} && \
+    make && make install
+
+FROM continuumio/miniconda3:23.5.2-0 as build-swiftest
 SHELL ["/bin/bash", "--login", "-c"]
 ENV SHELL="/bin/bash"
 WORKDIR /swiftest
-
-# Compile the dependencies
-COPY ./${SCRIPT_DIR}/get_platform.sh ./${SCRIPT_DIR}/
-COPY ./${SCRIPT_DIR}/make_build_environment.sh ./${SCRIPT_DIR}
-COPY ./${SCRIPT_DIR}/build_dependencies.sh ./${SCRIPT_DIR}/
-COPY ./${SCRIPT_DIR}/swiftest-build-env.yml ./${SCRIPT_DIR}/
-COPY ./${SCRIPT_DIR}/fetch_dependencies.sh ./${SCRIPT_DIR}/
-RUN ${SCRIPT_DIR}/fetch_dependencies.sh
-RUN ${SCRIPT_DIR}/make_build_environment.sh && \
-        echo "conda activate swiftest-build-env" >> ~/.bashrc  && \
-        /bin/bash -lic "${SCRIPT_DIR}/build_dependencies.sh GNU-Linux"
-
-FROM condaforge/mambaforge:23.1.0-4 as build-swiftest
-ENV SCRIPT_DIR="buildscripts"
-SHELL ["/bin/bash", "--login", "-c"]
-ENV SHELL="/bin/bash"
-WORKDIR /swiftest
-ENV BUILD_DIR=/swiftest/build
 
 # Copy build artifacts over to the swiftest package builder stage
-COPY --from=build-deps ${BUILD_DIR}/lib/ /usr/local/lib/
-COPY --from=build-deps ${BUILD_DIR}/include/ /usr/local/include/
-COPY --from=build-deps ${BUILD_DIR}/bin/ /usr/local/bin/
-COPY --from=build-deps ${BUILD_DIR}/share/ /usr/local/share/
+ENV INSTALL_DIR=/usr/local
+COPY --from=build-deps ${INSTALL_DIR}/ ${INSTALL_DIR}/
 COPY --from=build-deps /opt/conda/envs/ /opt/conda/envs/
 COPY --from=build-deps /root/.bashrc /root/
 
 # Compile the Swiftest project
-COPY ./buildscripts/build_swiftest.sh ./buildscripts/
 COPY ./cmake/ ./cmake/
 COPY ./src/ ./src/
 COPY ./swiftest/ ./swiftest/
@@ -56,9 +93,18 @@ COPY ./environment.yml ./
 COPY ./pyproject.toml ./
 COPY ./requirements.txt ./
 COPY ./version.txt ./
+
+# Generate the build environment in conda
 ENV PIP_ROOT_USER_ACTION=ignore
-RUN  /bin/bash -lic "${SCRIPT_DIR}/build_swiftest.sh GNU-Linux /usr/local"
+ENV LDFLAGS="-L${INSTALL_DIR}/lib"
+ENV CFLAGS="-fPIC"
+ENV FFLAGS=${CFLAGS}
+ENV SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF -DMACHINE_CODE_VALUE=\"native\""
+RUN export NFCFG="${INSTALL_DIR}/bin/nf-config" && \
+    export LIBS=$($NFCFG --flibs) && \
+    python3 -m pip install build pip && \
+    python3 -m build --wheel
 
 #Export the generated wheel file to the host machine
 FROM scratch as export-wheel
-COPY --from=build-swiftest /swiftest/dist/ /dist/
+COPY --from=build-swiftest /swiftest/dist/ ./

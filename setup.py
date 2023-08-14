@@ -14,7 +14,6 @@ from skbuild import setup
 
 cmake_args = [
             '-DCMAKE_BUILD_TYPE=RELEASE',
-            '-DMACHINE_CODE_VALUE="generic"',
             '-DUSE_COARRAY:BOOL=OFF',
             '-DUSE_OPENMP:BOOL=ON',
             ]

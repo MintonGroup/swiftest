@@ -34,7 +34,6 @@ ENDIF ()
 # RELEASE, PROFILING, and TESTING.  
 INCLUDE(SetFortranFlags) 
 
-
 # Add the source files
 SET(STRICT_MATH_FILES
             ${SRC}/collision/collision_generate.f90

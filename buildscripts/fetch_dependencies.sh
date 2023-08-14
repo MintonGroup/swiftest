@@ -12,10 +12,26 @@
 # If not, see: https://www.gnu.org/licenses. 
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
-BUILD_DIR="${ROOT_DIR}/build"
-mkdir -p ${BUILD_DIR}
-cd $BUILD_DIR
+# Parse arguments
+USTMT="Usage: ${0} <-d /path/to/download]"
+DOWNLOAD_DIR="${ROOT_DIR}/build"
+while getopts ":d:" ARG; do
+    case "${ARG}" in
+    d)
+        DOWNLOAD_DIR="${OPTARG}"
+        ;;
+    :)      
+        echo "Error: -${OPTARG} requires an argument."
+        echo $USTMT
+        exit 1
+        ;;
+    *)
+        ;;
+    esac
+done
 
+mkdir -p ${DOWNLOAD_DIR}
+cd $DOWNLOAD_DIR
 wget -qO- https://www.zlib.net/zlib-1.2.13.tar.gz | tar xvz
 wget -qO- https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14.1/src/hdf5-1.14.1-2.tar.gz | tar xvz 
 wget -qO- https://github.com/Unidata/netcdf-c/archive/refs/tags/v4.9.2.tar.gz | tar xvz 
