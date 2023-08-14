@@ -62,7 +62,7 @@ def clm_from_ellipsoid(mass, density, a, b = None, c = None, lmax = 6, ref_radiu
     Gmass = G * mass # SHTOOLS uses an SI G value, and divides it before using the mass; NO NEED TO CHANGE UNITS
 
     # cap lmax to ensure fast performance without giving up accuracy
-    lmax_limit = 6              # lmax_limit = 6 derived from Jean's Law by taking the characteristic wavelength as the radius of the CB
+    lmax_limit = 6              # lmax_limit = 6 derived from Jean's Law; characteristic wavelength = the radius of the CB
     if(lmax > lmax_limit):                           
         lmax = lmax_limit
         print(f'Setting maximum spherical harmonic degree to {lmax_limit}')
@@ -71,7 +71,7 @@ def clm_from_ellipsoid(mass, density, a, b = None, c = None, lmax = 6, ref_radiu
     shape_SH = pysh.SHGrid.from_ellipsoid(lmax = lmax, a = a, b = b, c = c)
 
     # get gravity coefficients
-    clm_class = pysh.SHGravcoeffs.from_shape(shape_SH, rho = density, gm = Gmass) # 4pi normalization
+    clm_class = pysh.SHGravCoeffs.from_shape(shape_SH, rho = density, gm = Gmass) # 4pi normalization
     clm = clm_class.to_array(normalization = 'ortho') # Change to orthonormal normalization
 
     # Return reference radius EQUALS the radius of the Central Body
