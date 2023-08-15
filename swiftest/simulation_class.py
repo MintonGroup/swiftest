@@ -28,7 +28,7 @@ import numpy.typing as npt
 import shutil
 import warnings
 import sys
-from py.io import StdCaptureFD
+from py.io import StdCapture
 from tqdm.auto import tqdm
 from typing import (
     Literal,
@@ -425,6 +425,8 @@ class Simulation(object):
         noutput = int((self.param['TSTOP'] - self.param['T0']) / self.param['DT'])
         iloop = int((self.param['TSTART'] - self.param['T0']) / self.param['DT'])
         twidth = int(np.ceil(np.log10(self.param['TSTOP']/(self.param['DT'] * self.param['ISTEP_OUT']))))
+        if twidth < 1:
+            twidth = 1
         pre_message = f"Time: {self.param['TSTART']:.{twidth}e} / {self.param['TSTOP']:.{twidth}e} {self.TU_name} "
         post_message = f"npl: {self.init_cond['npl'].values[0]} ntp: {self.init_cond['ntp'].values[0]}"
         if "nplm" in self.init_cond:
@@ -434,9 +436,7 @@ class Simulation(object):
         post_message += f" Wall time / step: {0.0:.5e} s"
         pbar = tqdm(total=noutput, desc=pre_message, postfix=post_message, bar_format='{l_bar}{bar}{postfix}')
         with _cwd(self.simdir):
-            capture = StdCaptureFD(out=False, in_=False)
-            out,err = capture.reset()
-            driver(self.integrator,str(self.param_file), "compact")
+            res, out, err = StdCapture.call(driver(self.integrator,str(self.param_file), "compact"))
             for line in out:
                 if "SWIFTEST STOP" in line:
                     process_output = False
