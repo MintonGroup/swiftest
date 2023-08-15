@@ -48,7 +48,7 @@ export F77=${F77}
 export CPP=${CPP}
 
 export LD_LIBRARY_PATH="${PREFIX}/lib:${LD_LIBRARY_PATH}"
-export CPPFLAGS="${CPPFLAGS} -isystem {$PREFIX}/include"
+export CPPFLAGS="${CPPFLAGS} -isystem ${PREFIX}/include"
 export LDFLAGS="${LDFLAGS} -L${PREFIX}/lib"
 export CPATH="${PREFIX}/include:${CPATH}"
 export CFLAGS="${CFLAGS} -Wno-unused-but-set-variable"
