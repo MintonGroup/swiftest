@@ -36,7 +36,13 @@ while getopts ":c:p:" ARG; do
     esac
 done
 CMD="${SCRIPT_DIR}/set_compilers.sh -c $COMPILER -f"
-read -r CC CXX FC F77 < <($CMD)
+read -r CC CXX FC F77 CPP < <($CMD)
+export CC=${CC}
+export CXX=${CXX}
+export FC=${FC}
+export F77=${F77}
+export CPP=${CPP}
+
 printf "Using ${COMPILER} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n\n"
 printf "Installing to ${PREFIX}\n"
 printf "Dependency libraries in ${PREFIX}\n"
@@ -55,18 +61,19 @@ else
 fi
 export LDFLAGS="${LDFLAGS} -L${DEPDIR}/lib"
 export CFLAGS="-fPIC"
-export CMAKE_ARGS="-DBUILD_SHARED_LIBS=OFF"
+export SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF"
 
 if [ $COMPILER = "Intel" ]; then 
     export FCFLAGS="${CFLAGS} -standard-semantics"
     export FFLAGS=${CFLAGS}
-    export CMAKE_ARGS="${CMAKE_ARGS} -DMACHINE_CODE_VALUE=\"SSE2\""
+    export SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DMACHINE_CODE_VALUE=\"SSE2\""
 else
     export FCFLAGS="${CFLAGS}"
     export FFLAGS="${CFLAGS}"
-    export CMAKE_ARGS="${CMAKE_ARGS} -DMACHINE_CODE_VALUE=\"generic\""
+    export SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DMACHINE_CODE_VALUE=\"generic\""
 fi
 cd $ROOT_DIR
+    
 python3 -m pip install build pip
 python3 -m build --wheel
 
