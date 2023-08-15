@@ -28,7 +28,6 @@ import numpy.typing as npt
 import shutil
 import warnings
 import sys
-from py.io import StdCapture
 from tqdm.auto import tqdm
 from typing import (
     Literal,
@@ -47,6 +46,94 @@ def _cwd(newdir):
         yield
     finally:
         os.chdir(olddir)
+        
+        
+import os
+import sys
+import threading
+import time
+
+
+class OutputGrabber(object):
+    """
+    Class used to grab standard output or another stream.
+    """
+    escape_char = "\b"
+
+    def __init__(self, stream=None, threaded=True):
+        self.origstream = stream
+        self.threaded = threaded
+        if self.origstream is None:
+            self.origstream = sys.stdout
+        self.origstreamfd = self.origstream.fileno()
+        self.capturedtext = ""
+        # Create a pipe so the stream can be captured:
+        self.pipe_out, self.pipe_in = os.pipe()
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.stop()
+
+    def start(self):
+        """
+        Start capturing the stream data.
+        """
+        self.capturedtext = ""
+        # Save a copy of the stream:
+        self.streamfd = os.dup(self.origstreamfd)
+        # Replace the original stream with our write pipe:
+        os.dup2(self.pipe_in, self.origstreamfd)
+        if self.threaded:
+            # Start thread that will read the stream:
+            self.workerThread = threading.Thread(target=self.readOutput)
+            self.workerThread.start()
+            # Make sure that the thread is running and os.read() has executed:
+            time.sleep(0.01)
+
+    def stop(self):
+        """
+        Stop capturing the stream data and save the text in `capturedtext`.
+        """
+        # Print the escape character to make the readOutput method stop:
+        self.origstream.write(self.escape_char)
+        # Flush the stream to make sure all our data goes in before
+        # the escape character:
+        self.origstream.flush()
+        if self.threaded:
+            # wait until the thread finishes so we are sure that
+            # we have until the last character:
+            self.workerThread.join()
+        else:
+            self.readOutput()
+        # Close the pipe:
+        os.close(self.pipe_in)
+        os.close(self.pipe_out)
+        # Restore the original stream:
+        os.dup2(self.streamfd, self.origstreamfd)
+        # Close the duplicate stream:
+        os.close(self.streamfd)
+
+    def readOutput(self):
+        """
+        Read the stream data (one byte at a time)
+        and save the text in `capturedtext`.
+        """
+        
+        def _outstream(self):
+            capturedtext = ''
+            while True:
+                char = os.read(self.pipe_out,1).decode(self.origstream.encoding)
+                if not char or self.newline in char:
+                    break
+                capturedtext += char
+            yield capturedtext
+        
+        while True:
+            self.capturedtext = _outstream(self)
+        
 
 class Simulation(object):
     """
@@ -436,32 +523,34 @@ class Simulation(object):
         post_message += f" Wall time / step: {0.0:.5e} s"
         pbar = tqdm(total=noutput, desc=pre_message, postfix=post_message, bar_format='{l_bar}{bar}{postfix}')
         with _cwd(self.simdir):
-            res, out, err = StdCapture.call(driver(self.integrator,str(self.param_file), "compact"))
-            for line in out:
-                if "SWIFTEST STOP" in line:
-                    process_output = False
+            out = OutputGrabber()
+            with out:
+                driver(self.integrator,str(self.param_file), "compact")
+                for line in out.capturedtext:
+                    if "SWIFTEST STOP" in line:
+                        process_output = False
 
-                if process_output:
-                    kvstream=line.replace('\n','').strip().split(';') # Removes the newline character,
-                    output_data = _type_scrub({kv.split()[0]: kv.split()[1] for kv in kvstream[:-1]})
-                    pre_message = f"Time: {output_data['T']:.{twidth}e} / {self.param['TSTOP']:.{twidth}e} {self.TU_name}"
-                    post_message = f" npl: {output_data['NPL']} ntp: {output_data['NTP']}"
-                    if "NPLM" in output_data:
-                        post_message += f" nplm: {output_data['NPLM']}"
-                    if "LTOTERR" in output_data:
-                        post_message += f" dL/L0: {output_data['LTOTERR']:.5e}"
-                    if "ETOTERR" in output_data:
-                        post_message += f" dE/|E0|: {output_data['ETOTERR']:+.5e}"
-                    post_message += f" Wall time / step: {output_data['WTPS']:.5e} s"
-                    interval = output_data['ILOOP'] - iloop
-                    if interval > 0:
-                        pbar.update(interval)
-                        pbar.set_description_str(pre_message)
-                        pbar.set_postfix_str(post_message)
-                    iloop = output_data['ILOOP']
+                    if process_output:
+                        kvstream=line.replace('\n','').strip().split(';') # Removes the newline character,
+                        output_data = _type_scrub({kv.split()[0]: kv.split()[1] for kv in kvstream[:-1]})
+                        pre_message = f"Time: {output_data['T']:.{twidth}e} / {self.param['TSTOP']:.{twidth}e} {self.TU_name}"
+                        post_message = f" npl: {output_data['NPL']} ntp: {output_data['NTP']}"
+                        if "NPLM" in output_data:
+                            post_message += f" nplm: {output_data['NPLM']}"
+                        if "LTOTERR" in output_data:
+                            post_message += f" dL/L0: {output_data['LTOTERR']:.5e}"
+                        if "ETOTERR" in output_data:
+                            post_message += f" dE/|E0|: {output_data['ETOTERR']:+.5e}"
+                        post_message += f" Wall time / step: {output_data['WTPS']:.5e} s"
+                        interval = output_data['ILOOP'] - iloop
+                        if interval > 0:
+                            pbar.update(interval)
+                            pbar.set_description_str(pre_message)
+                            pbar.set_postfix_str(post_message)
+                        iloop = output_data['ILOOP']
 
-                if "SWIFTEST START" in line:
-                    process_output = True
+                    if "SWIFTEST START" in line:
+                        process_output = True
 
             # res = p.communicate()
             # if p.returncode != 0:

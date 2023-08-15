@@ -25,4 +25,13 @@ program main
    ! Execute the driver
    call swiftest_driver(integrator, param_file_name, display_style)
 
+
+#ifdef COARRAY
+   if (this_image() == 1) then
+#endif
+      call base_util_exit(SUCCESS)
+#ifdef COARRAY
+   end if ! (this_image() == 1) 
+#endif
+
 end program main
