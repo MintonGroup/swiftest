@@ -47,10 +47,17 @@ printf "Using ${COMPILER} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n\n"
 printf "Installing to ${PREFIX}\n"
 printf "Dependency libraries in ${PREFIX}\n"
 export DEPDIR=$PREFIX
-export CPATH=$DEPDIR/include
 export NETCDF_FORTRAN_HOME=$DEPDIR
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${DEPDIR}/lib"
+export CPPFLAGS="${CPPFLAGS} -I{$DEPDIR}/include"
+export LDFLAGS="${LDFLAGS} -L${DEPDIR}/lib"
+export CPATH="${CPATH}:${DEPDIR}/include"
 
-export LD_LIBRARY_PATH="${DEPDIR}/lib:${LD_LIBRARY_PATH}"
+if [ $COMPILER = "GNU-Mac" ]; then
+    export MACOSX_DEPLOYMENT_TARGET=13 
+    export LDFLAGS="${LDFLAGS} -Wl,-no_compact_unwind"
+fi
+
 NFCFG="${DEPDIR}/bin/nf-config"
 if command -v $NFCFG &> /dev/null; then
     export LIBS=$($NFCFG --flibs)
@@ -72,8 +79,16 @@ else
     export FFLAGS="${CFLAGS}"
     export SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DMACHINE_CODE_VALUE=\"generic\""
 fi
+
+read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
+echo $OS $ARCH
+if [ $OS = "MacOSX" ] && [ $ARCH = "arm64" ]; then
+    printf "OpenMP not supported on Apple M1 Silicon quite yet\n"
+    export SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DUSE_OPENMP=OFF"
+fi
+
 cd $ROOT_DIR
-    
 python3 -m pip install build pip
-python3 -m build --wheel
+python3 -m build
+python3 -m pip install . -v 
 

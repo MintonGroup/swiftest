@@ -27,6 +27,8 @@ dump*
 !requirements.txt
 !pyproject.toml
 **/_skbuild
+*.egg*
+swiftest-*
 
 
 #Documentation

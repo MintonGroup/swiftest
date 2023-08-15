@@ -31,35 +31,34 @@ cd ${ROOT_DIR}
 VERSION=$( cat version.txt )
 echo "Building Swiftest version ${VERSION} for ${OS}-${ARCH}"
 
-if command -v docker &> /dev/null; then
-    echo "Docker detected"
+# if command -v docker &> /dev/null; then
+#     echo "Docker detected"
 
-    cmd="docker build --tag swiftest:latest --tag swiftest:${VERSION} --file=dockerfile.${COMPILER} --output=${ROOT_DIR}/dist/ ."
-    echo "Executing Docker build:\n${cmd}"
-    eval "$cmd"
-    exit 0
-else
-    echo "Docker not detected"
-fi
+#     cmd="docker build --tag swiftest:latest --tag swiftest:${VERSION} --file=dockerfile.${COMPILER} --output=${ROOT_DIR}/dist/ ."
+#     echo "Executing Docker build:\n${cmd}"
+#     eval "$cmd"
+#     exit 0
+# else
+#     echo "Docker not detected"
+# fi
 
 case $OS in
-        # Determine if Docker is available
-
-        ;; 
     MacOSX) 
         COMPILER="GNU-Mac"
         export MACOSX_DEPLOYMENT_TARGET=13 
         export LDFLAGS="-Wl,-no_compact_unwind"
-        echo "Building for Mac assumes using Homebrew gfortran-13, gcc-13, and g++13. Install these first if necessary."
+        ;;
+    Linux)
+        COMPILER="GNU-Linux"
         ;;
     *)
-        echo "Swiftest is currently not configured to build for platform ${OS}-${ARCH}"
-        exit 1
+        echo "This script is not tested for ${OS}-${ARCH}"
         ;;
 esac
 
 ${SCRIPT_DIR}/fetch_dependencies.sh -d ${BUILD_DIR} && \
 ${SCRIPT_DIR}/build_dependencies.sh -c $COMPILER -p ${PREFIX} && \
 ${SCRIPT_DIR}/build_swiftest.sh -c $COMPILER -p ${PREFIX}
+
 
 

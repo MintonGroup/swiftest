@@ -53,17 +53,31 @@ printf "*********************************************************\n"
 printf "Using ${COMPILER} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
 printf "Installing to ${PREFIX}\n"
 printf "\n"
-export CPPFLAGS="-I{PREFIX}/include"
-export LDFLAGS="${LDFLAGS} -L${PREFIX}/lib"
+
 export HDF5_ROOT="${PREFIX}"
 export HDF5_LIBDIR="${HDF5_ROOT}/lib"
 export HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
 export HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
 export NCDIR="${PREFIX}"
 export NFDIR="${PREFIX}"
-export LD_LIBRARY_PATH="${PREFIX}/lib"
-export LDFLAGS="-L${PREFIX}/lib"
-export CPPFLAGS="-I${PREFIX}/include"
+export LD_LIBRARY_PATH="${PREFIX}/lib:${LD_LIBRARY_PATH}"
+export CPPFLAGS="${CPPFLAGS} -isystem {$PREFIX}/include"
+export LDFLAGS="${LDFLAGS} -L${PREFIX}/lib"
+export CPATH="${PREFIX}/include:${CPATH}"
+export CFLAGS="${CFLAGS} -Wno-unused-but-set-variable"
+
+if [ $COMPILER = "GNU-Mac" ]; then
+    export MACOSX_DEPLOYMENT_TARGET=13 
+    export LDFLAGS="${LDFLAGS} -Wl,-no_compact_unwind"
+    export CFLAGS="${CFLAGS} -Wno-deprecated-non-prototype"
+fi
+
+printf "LIBS: ${LIBS}\n"
+printf "CFLAGS: ${CFLAGS}\n"
+printf "CPPFLAGS: ${CPPFLAGS}\n"
+printf "CPATH: ${CPATH}\n"
+printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
+printf "LDFLAGS: ${LDFLAGS}\n"
 
 printf "*********************************************************\n"
 printf "*            BUILDING ZLIB STATIC LIBRARY               *\n"
@@ -108,10 +122,7 @@ if [ !  $COMPILER = "GNU-Mac" ]; then
     COPTS="${COPTS} --disable-libxml2"
 fi
 printf "COPTS: ${COPTS}\n"
-printf "LIBS: ${LIBS}\n"
-printf "CFLAGS: ${CFLAGS}\n"
-printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
-printf "LDFLAGS: ${LDFLAGS}\n"
+
 
 ./configure $COPTS
 make && make check && make install
