@@ -50,7 +50,7 @@ printf "Dependency libraries in ${PREFIX}\n"
 export DEPDIR=$PREFIX
 export NETCDF_FORTRAN_HOME=$DEPDIR
 export LD_LIBRARY_PATH="${DEPDIR}/lib:${LD_LIBRARY_PATH}"
-export CPPFLAGS="${CPPFLAGS} -I{$DEPDIR}/include"
+export CPPFLAGS="${CPPFLAGS} -isystem ${DEPDIR}/include"
 export LDFLAGS="${LDFLAGS} -L${DEPDIR}/lib"
 export CPATH="${DEPDIR}/include:${CPATH}"
 
