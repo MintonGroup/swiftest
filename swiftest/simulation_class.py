@@ -14,6 +14,7 @@ from swiftest import io
 from swiftest import init_cond
 from swiftest import tool
 from swiftest import constants
+from swiftest import driver
 from swiftest import __file__ as _pyfile
 import json
 import os
@@ -25,10 +26,10 @@ import numpy as np
 from functools import partial
 import numpy.typing as npt
 import shutil
-import subprocess
 import shlex
 import warnings
 import sys
+from py.io import StdCaptureFD
 from tqdm.auto import tqdm
 from typing import (
     Literal,
@@ -403,11 +404,6 @@ class Simulation(object):
         Internal callable function that executes the swiftest_driver run
         """
 
-        # Get current environment variables
-        env = os.environ.copy()
-        cmd = f"{env['SHELL']} {self.driver_script}"
-        
-
         def _type_scrub(output_data):
             int_vars = ["ILOOP","NPL","NTP","NPLM"]
             for k,v in output_data.items():
@@ -430,44 +426,46 @@ class Simulation(object):
         post_message += f" Wall time / step: {0.0:.5e} s"
         pbar = tqdm(total=noutput, desc=pre_message, postfix=post_message, bar_format='{l_bar}{bar}{postfix}')
         try:
-            with subprocess.Popen(shlex.split(cmd),
-                                  stdout=subprocess.PIPE,
-                                  stderr=subprocess.PIPE,
-                                  env=env,
-                                  universal_newlines=True) as p:
+            capture = StdCaptureFD(out=False, in_=False)
+            out,err = capture.reset()
+            # with subprocess.Popen(shlex.split(cmd),
+            #                       stdout=subprocess.PIPE,
+            #                       stderr=subprocess.PIPE,
+            #                       env=env,
+            #                       universal_newlines=True) as p:
+            driver(self.integrator,str(self.param_file), "compact")
+            for line in out:
+                if "SWIFTEST STOP" in line:
+                    process_output = False
 
-                for line in p.stdout:
-                    if "SWIFTEST STOP" in line:
-                        process_output = False
+                if process_output:
+                    kvstream=line.replace('\n','').strip().split(';') # Removes the newline character,
+                    output_data = _type_scrub({kv.split()[0]: kv.split()[1] for kv in kvstream[:-1]})
+                    pre_message = f"Time: {output_data['T']:.{twidth}e} / {self.param['TSTOP']:.{twidth}e} {self.TU_name}"
+                    post_message = f" npl: {output_data['NPL']} ntp: {output_data['NTP']}"
+                    if "NPLM" in output_data:
+                        post_message += f" nplm: {output_data['NPLM']}"
+                    if "LTOTERR" in output_data:
+                        post_message += f" dL/L0: {output_data['LTOTERR']:.5e}"
+                    if "ETOTERR" in output_data:
+                        post_message += f" dE/|E0|: {output_data['ETOTERR']:+.5e}"
+                    post_message += f" Wall time / step: {output_data['WTPS']:.5e} s"
+                    interval = output_data['ILOOP'] - iloop
+                    if interval > 0:
+                        pbar.update(interval)
+                        pbar.set_description_str(pre_message)
+                        pbar.set_postfix_str(post_message)
+                    iloop = output_data['ILOOP']
 
-                    if process_output:
-                        kvstream=line.replace('\n','').strip().split(';') # Removes the newline character,
-                        output_data = _type_scrub({kv.split()[0]: kv.split()[1] for kv in kvstream[:-1]})
-                        pre_message = f"Time: {output_data['T']:.{twidth}e} / {self.param['TSTOP']:.{twidth}e} {self.TU_name}"
-                        post_message = f" npl: {output_data['NPL']} ntp: {output_data['NTP']}"
-                        if "NPLM" in output_data:
-                            post_message += f" nplm: {output_data['NPLM']}"
-                        if "LTOTERR" in output_data:
-                            post_message += f" dL/L0: {output_data['LTOTERR']:.5e}"
-                        if "ETOTERR" in output_data:
-                            post_message += f" dE/|E0|: {output_data['ETOTERR']:+.5e}"
-                        post_message += f" Wall time / step: {output_data['WTPS']:.5e} s"
-                        interval = output_data['ILOOP'] - iloop
-                        if interval > 0:
-                           pbar.update(interval)
-                           pbar.set_description_str(pre_message)
-                           pbar.set_postfix_str(post_message)
-                        iloop = output_data['ILOOP']
+                if "SWIFTEST START" in line:
+                    process_output = True
 
-                    if "SWIFTEST START" in line:
-                        process_output = True
-
-                res = p.communicate()
-                if p.returncode != 0:
-                    for line in res[1]:
-                        print(line, end='')
-                    warnings.warn("Failure in swiftest_driver", stacklevel=2)
-                    sys.exit()
+            res = p.communicate()
+            if p.returncode != 0:
+                for line in res[1]:
+                    print(line, end='')
+                warnings.warn("Failure in swiftest_driver", stacklevel=2)
+                sys.exit()
         except:
             warnings.warn(f"Error executing main swiftest_driver program", stacklevel=2)
             res = p.communicate()
@@ -2773,12 +2771,12 @@ class Simulation(object):
         else:
             warnings.warn('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".',stacklevel=2)
             
-        # Generate executable script    
-        self.driver_script = os.path.join(self.simdir, "swiftest_driver.sh")
-        with open(self.driver_script, 'w') as f:
-            f.write(f"#{self._shell_full}\n")
-            f.write(f"cd {self.simdir}\n")
-            f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} compact\n")
+        # # Generate executable script    
+        # self.driver_script = os.path.join(self.simdir, "swiftest_driver.sh")
+        # with open(self.driver_script, 'w') as f:
+        #     f.write(f"#{self._shell_full}\n")
+        #     f.write(f"cd {self.simdir}\n")
+        #     f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} compact\n")
             
         return
 

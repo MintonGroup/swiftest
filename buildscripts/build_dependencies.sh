@@ -12,127 +12,139 @@
 # If not, see: https://www.gnu.org/licenses. 
 SCRIPT_DIR=$(realpath $(dirname $0))
 BUILD_DIR=$(realpath ${SCRIPT_DIR}/../build)
+
 mkdir -p ${BUILD_DIR}
 cd $BUILD_DIR
 
-USTMT="Usage: $0 <{Intel}|GNU>"
-if [[ ( $@ == "--help") ||  $@ == "-h" ]]; then 
-	echo $USTMT
-	exit 0
-fi
-COMPILER=${1:-Intel}
-
-case $COMPILER in
-    Intel)
-        if command -v ifx &> /dev/null; then
-            export FC=$(command -v ifx)
-            export CC=$(command -v icx)
-            export CXX=$(command -v icpx)
-        elif command -v ifort &> /dev/null; then
-            export FC=$(command -v ifort) 
-            export CC=$(command -v icc)
-            export CXX=$(command -v icpc)
-        else
-            echo "Error. Cannot find valid Intel fortran compiler."
-            exit 1
-        fi
-        export F77="${FC}"
+# Parse arguments
+USTMT="Usage: ${0} <-c Intel|GNU-Linux|GNU-Mac> [-p {/usr/local}|/prefix/path]"
+IFORT=false
+PREFIX=/usr/local
+COMPILER=""
+CARG=""
+while getopts ":c:p:" ARG; do
+    case "${ARG}" in
+    c)
+        COMPILER="${OPTARG}"
         ;;
-    GNU-Linux)
-        export FC=$(command -v gfortran)
-        export CC=$(command -v gcc)
-        export CXX=$(command -v g++)
+    p)
+        PREFIX="${OPTARG}"
         ;;
-    GNU-Mac)
-        export FC=$HOMEBREW_PREFIX/bin/gfortran-13
-        export CC=$HOMEBREW_PREFIX/bin/gcc-13
-        export CXX=$HOMEBREW_PREFIX/bin/g++-13
-        ;;
-    *)
-        echo "Unknown compiler type: ${COMPILER}"
+    :)      
+        echo "Error: -${OPTARG} requires an argument."
         echo $USTMT
         exit 1
         ;;
-esac
-export F77=${FC}
-echo "Using $COMPILER compilers:\nFC: $FC\nCC: $CC\nCXX: $CXX\n"
+    *)
+        ;;
+    esac
+done
+CMD="${SCRIPT_DIR}/set_compilers.sh -c $COMPILER"
+read -r CC CXX FC F77 CPP < <($CMD)
+export CC=${CC}
+export CXX=${CXX}
+export FC=${FC}
+export F77=${F77}
+export CPP=${CPP}
 
-export INSTALL_DIR=${BUILD_DIR}
-mkdir -p ${INSTALL_DIR}
-export NCDIR="${INSTALL_DIR}"
-export NFDIR="${INSTALL_DIR}"
-export HDF5_ROOT="${INSTALL_DIR}"
+printf "*********************************************************\n"
+printf "*          STARTING DEPENDENCY BUILD                    *\n"
+printf "*********************************************************\n"
+printf "Using ${COMPILER} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
+printf "Installing to ${PREFIX}\n"
+printf "\n"
+export CPPFLAGS="-I{PREFIX}/include"
+export LDFLAGS="${LDFLAGS} -L${PREFIX}/lib"
+export HDF5_ROOT="${PREFIX}"
 export HDF5_LIBDIR="${HDF5_ROOT}/lib"
 export HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
 export HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
+export NCDIR="${PREFIX}"
+export NFDIR="${PREFIX}"
+export LD_LIBRARY_PATH="${PREFIX}/lib"
+export LDFLAGS="-L${PREFIX}/lib"
+export CPPFLAGS="-I${PREFIX}/include"
 
-export LDFLAGS="${LDFLAGS} -L${INSTALL_DIR}/lib"
-export CPATH="${INSTALL_DIR}/include"
-export CFLAGS="-fPIC"
-
+printf "*********************************************************\n"
+printf "*            BUILDING ZLIB STATIC LIBRARY               *\n"
+printf "*********************************************************\n"
 cd zlib-1.2.13 
-make distclean
-./configure --prefix=${INSTALL_DIR} --static 
+./configure --prefix=${PREFIX} --static 
 make 
-make install
-if [ $? -ne 0]; then
-   echo "zlib could not be compiled."
-   exit 1
-fi
-
-cd ../hdf5-1.14.1-2 
-if [ "$COMPILER" = "GNU-Mac" ]; then
-   read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
-   if [ "ARCH" = "arm64" ]; then
-      echo "echo arm-apple-darwin" > bin/config.sub 
-   fi
-fi
-make distclean
-./configure --disable-shared \
-              --enable-build-mode=production \
-              --disable-fortran \
-              --disable-java \
-              --disable-cxx \
-              --prefix=${INSTALL_DIR} \
-              --with-zlib=${INSTALL_DIR} 
-make
-make install
-if [ $? -ne 0]; then
-   echo "hdf5 could not be compiled."
-   exit 1
-fi
-
-cd ../netcdf-c-4.9.2
-make distclean
-./configure --disable-shared \
-            --disable-dap \
-            --disable-libxml2 \
-            --disable-byterange \
-            --prefix=${INSTALL_DIR} 
-make 
-make check 
-make install
-if [ $? -ne 0]; then
-   echo "netcdf-c could not be compiled."
-   exit 1
-fi
-
-if [ $COMPILER = "Intel" ]; then 
-    export FCFLAGS="${CFLAGS} -standard-semantics"
-    export FFLAGS=${CFLAGS}
-else
-    export FCFLAGS="${CFLAGS}"
-    export FFLAGS="${CFLAGS}"
-fi
-
-make distclean
-export LIBS="$(${INSTALL_DIR}/bin/nc-config --libs)"
-cd ../netcdf-fortran-4.6.1
-./configure --disable-shared --with-pic --prefix=${NFDIR}  
-make 
-make check 
 make install
 if [ $? -ne 0 ]; then
-   echo "netcdf-fortran could not be compiled."
+   printf "zlib could not be compiled.\n"
    exit 1
 fi
+
+printf "\n"
+printf "*********************************************************\n"
+printf "*            BUILDING HDF5 STATIC LIBRARY               *\n"
+printf "*********************************************************\n"
+cd ../hdf5-1.14.1-2 
+if [ "$COMPILER"="GNU-Mac" ]; then
+   read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
+   if [ $OS="MacOS" ] && [ "$ARCH"="arm64" ]; then
+      printf "Manually setting bin/config.sub to arm-apple-darwin\n"
+      printf "echo arm-apple-darwin" > bin/config.sub 
+   fi
+fi
+COPTS="--disable-shared --enable-build-mode=production --disable-fortran --disable-java --disable-cxx --prefix=${PREFIX} --with-zlib=${PREFIX}"
+./configure ${COPTS}
+make && make install
+if [ $? -ne 0 ]; then
+   printf "hdf5 could not be compiled.\n"
+   exit 1
+fi
+
+
+printf "\n"
+printf "*********************************************************\n"
+printf "*          BUILDING NETCDF-C STATIC LIBRARY             *\n"
+printf "*********************************************************\n"
+cd ../netcdf-c-4.9.2
+COPTS="--disable-shared --disable-dap --disable-byterange --prefix=${PREFIX}"
+if [ ! $COMPILER="GNU-Mac" ]; then
+    COPTS="${COPTS} --disable-libxml2"
+fi
+printf "COPTS: ${COPTS}\n"
+printf "LIBS: ${LIBS}\n"
+printf "CFLAGS: ${CFLAGS}\n"
+printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
+printf "LDFLAGS: ${LDFLAGS}\n"
+
+./configure $COPTS
+make && make check && make install
+if [ $? -ne 0 ]; then
+   printf "netcdf-c could not be compiled."\n
+   exit 1
+fi
+
+
+export CFLAGS="-fPIC"
+if [ $COMPILER="Intel" ]; then 
+    export FCFLAGS="${CFLAGS} -standard-semantics"
+else
+    export FCFLAGS="${CFLAGS}"
+fi
+export FFLAGS=${CFLAGS}
+
+export LIBS="$(${PREFIX}/bin/nc-config --libs --static)"
+
+printf "\n"
+printf "*********************************************************\n"
+printf "*       BUILDING NETCDF-FORTRAN STATIC LIBRARY          *\n"
+printf "*********************************************************\n"
+cd ../netcdf-fortran-4.6.1
+./configure --disable-shared --with-pic --prefix=${PREFIX}  
+make && make check && make install
+if [ $? -ne 0 ]; then
+   printf "netcdf-fortran could not be compiled.\n"
+   exit 1
+fi
+
+printf "\n"
+printf "*********************************************************\n"
+printf "*             DEPENDENCIES ARE BUILT                    *\n"
+printf "*********************************************************\n"
+printf "Dependencys are installed to: ${PREFIX}\n\n"

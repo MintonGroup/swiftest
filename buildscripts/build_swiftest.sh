@@ -11,58 +11,48 @@
 # If not, see: https://www.gnu.org/licenses. 
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
-USTMT="Usage: $0 <{Intel}|GNU> [/path/to/nf-nc-hdf5]"
-if [[ ( $@ == "--help") ||  $@ == "-h" ]]; then 
-	echo $USTMT
-	exit 0
-fi
-COMPILER=${1:-Intel}
-DEPDIR_DEFAULT=$(realpath ${ROOT_DIR}/build)
-DEPDIR=${2:-$DEPDIR_DEFAULT}
-echo "NetCDF & HDF library directory: ${DEPDIR}"
 
-case $COMPILER in
-    Intel)
-        if command -v ifx &> /dev/null; then
-            export FC=$(command -v ifx)
-            export CC=$(command -v icx)
-            export CXX=$(command -v icpx)
-        elif command -v ifort &> /dev/null; then
-            export FC=$(command -v ifort) 
-            export CC=$(command -v icc)
-            export CXX=$(command -v icpc)
-        else
-            echo "Error. Cannot find valid Intel fortran compiler."
-            exit 1
-        fi
-        export F77="${FC}"
+# Parse arguments
+USTMT="Usage: ${0} <-c Intel|GNU-Linux|GNU-Mac> [-p {/usr/local}|/prefix/path]"
+IFORT=false
+PREFIX=/usr/local
+COMPILER=""
+CARG=""
+while getopts ":c:p:" ARG; do
+    case "${ARG}" in
+    c)
+        COMPILER="${OPTARG}"
         ;;
-    GNU-Linux)
-        export FC=$(command -v gfortran)
-        export CC=$(command -v gcc)
-        export CXX=$(command -v g++)
+    p)
+        PREFIX="${OPTARG}"
         ;;
-    GNU-Mac)
-        export FC=$HOMEBREW_PREFIX/bin/gfortran-13
-        #export CC=$HOMEBREW_PREFIX/bin/gcc-13
-        #xport CXX=$HOMEBREW_PREFIX/bin/g++-13
-        export CC=/usr/bin/clang
-        export CXX=/usr/bin/clang++
-        ;;
-    *)
-        echo "Unknown compiler type: ${COMPILER}"
+    :)      
+        echo "Error: -${OPTARG} requires an argument."
         echo $USTMT
         exit 1
         ;;
-esac
-export F77=${FC}
-NL=$'\n'
-echo "Using ${COMPILER} compilers:${NL}FC: ${FC}${NL}CC: ${CC}${NL}CXX: ${CXX}${NL}"
-
+    *)
+        ;;
+    esac
+done
+CMD="${SCRIPT_DIR}/set_compilers.sh -c $COMPILER -f"
+read -r CC CXX FC F77 < <($CMD)
+printf "Using ${COMPILER} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n\n"
+printf "Installing to ${PREFIX}\n"
+printf "Dependency libraries in ${PREFIX}\n"
+export DEPDIR=$PREFIX
 export CPATH=$DEPDIR/include
 export NETCDF_FORTRAN_HOME=$DEPDIR
+
 export LD_LIBRARY_PATH="${DEPDIR}/lib:${LD_LIBRARY_PATH}"
-export LIBS=$(${DEPDIR}/bin/nf-config --flibs)
+NFCFG="${DEPDIR}/bin/nf-config"
+if command -v $NFCFG &> /dev/null; then
+    export LIBS=$($NFCFG --flibs)
+else
+    printf "Error: Cannot find ${NFCFG}.\n"
+    printf "Is NetCDF-Fortran installed?\n"
+    exit 1
+fi
 export LDFLAGS="${LDFLAGS} -L${DEPDIR}/lib"
 export CFLAGS="-fPIC"
 export CMAKE_ARGS="-DBUILD_SHARED_LIBS=OFF"
@@ -70,11 +60,13 @@ export CMAKE_ARGS="-DBUILD_SHARED_LIBS=OFF"
 if [ $COMPILER = "Intel" ]; then 
     export FCFLAGS="${CFLAGS} -standard-semantics"
     export FFLAGS=${CFLAGS}
+    export CMAKE_ARGS="${CMAKE_ARGS} -DMACHINE_CODE_VALUE=\"SSE2\""
 else
     export FCFLAGS="${CFLAGS}"
     export FFLAGS="${CFLAGS}"
+    export CMAKE_ARGS="${CMAKE_ARGS} -DMACHINE_CODE_VALUE=\"generic\""
 fi
 cd $ROOT_DIR
-python -m pip install build
-python -m build --wheel
+python3 -m pip install build pip
+python3 -m build --wheel
 

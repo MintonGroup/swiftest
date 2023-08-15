@@ -1,16 +1,6 @@
 #!/bin/bash
-# This script will determine the steps necessary to set up an appropriate build environment necessary to build Swiftest and all its
-# dependencies. The steps that are executed depend on the combination of platform and architecture, as follows:
-# 
-# Linux amd64/x86_64:
-#   Docker present: The build scripts will run inside a Docker container with Intel compilers (preferred).
-#   Docker not present: The build scripts will run inside a custom conda environment and build with Intel compilers if available, 
-#       or GNU compiler compilers otherwise.
-# Linux aarch64/arm64:
-#   Docker present: The build scripts will run inside a Docker container with GNU compilers
-#   Docker not present: The build scripts will run inside a custom conda environment with GNU compilers
-# Mac OS (Darwin):
-#   The build scripts will run inside a custom conda environment with GNU compilers
+# This script will generate cross-platform wheels for the Swiftest Python package using Docker. If it is called from MacOS it will
+# also generate a Mac build.
 #
 # Copyright 2023 - David Minton
 # This file is part of Swiftest.
@@ -26,6 +16,8 @@
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 BUILD_DIR="${ROOT_DIR}/build"
+PREFIX=${BUILD_DIR}/usr/local
+
 mkdir -p ${BUILD_DIR}
 read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
 
@@ -39,24 +31,20 @@ cd ${ROOT_DIR}
 VERSION=$( cat version.txt )
 echo "Building Swiftest version ${VERSION} for ${OS}-${ARCH}"
 
-case $OS in
-    Linux)
-        if [ "$ARCH" = "x86_64" ]; then
-            COMPILER="Intel"
-        else
-            COMPILER="GNU-Linux"
-        fi
-        # Determine if Docker is available
-        if command -v docker &> /dev/null; then
-            echo "Docker detected"
+if command -v docker &> /dev/null; then
+    echo "Docker detected"
 
-            cmd="docker build --tag swiftest:latest --tag swiftest:${VERSION} --file=dockerfile.${COMPILER} ."
-            echo "Executing Docker build:\n${cmd}"
-            eval "$cmd"
-            exit 0
-        else
-            echo "Docker not detected"
-        fi
+    cmd="docker build --tag swiftest:latest --tag swiftest:${VERSION} --file=dockerfile.${COMPILER} --output=${ROOT_DIR}/dist/ ."
+    echo "Executing Docker build:\n${cmd}"
+    eval "$cmd"
+    exit 0
+else
+    echo "Docker not detected"
+fi
+
+case $OS in
+        # Determine if Docker is available
+
         ;; 
     MacOSX) 
         COMPILER="GNU-Mac"
@@ -70,8 +58,8 @@ case $OS in
         ;;
 esac
 
-${SCRIPT_DIR}/fetch_dependencies.sh && \
-${SCRIPT_DIR}/build_dependencies.sh $COMPILER && \
-${SCRIPT_DIR}/build_swiftest.sh $COMPILER
+${SCRIPT_DIR}/fetch_dependencies.sh -d ${BUILD_DIR} && \
+${SCRIPT_DIR}/build_dependencies.sh -c $COMPILER -p ${PREFIX} && \
+${SCRIPT_DIR}/build_swiftest.sh -c $COMPILER -p ${PREFIX}
 
 
