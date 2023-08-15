@@ -14,6 +14,7 @@ from swiftest import io
 from swiftest import init_cond
 from swiftest import tool
 from swiftest import constants
+from swiftest._bindings import driver
 from swiftest import __file__ as _pyfile
 import json
 import os
@@ -25,7 +26,6 @@ import numpy as np
 from functools import partial
 import numpy.typing as npt
 import shutil
-import shlex
 import warnings
 import sys
 from py.io import StdCaptureFD
@@ -37,7 +37,16 @@ from typing import (
     Tuple,
     Any
 )
+import contextlib
 
+@contextlib.contextmanager
+def _cwd(newdir):
+    olddir = os.getcwd()
+    os.chdir(newdir)
+    try:
+        yield
+    finally:
+        os.chdir(olddir)
 
 class Simulation(object):
     """
@@ -63,7 +72,7 @@ class Simulation(object):
             file, arguments to Simulation, the general `set_parameter` method, or the specific setters for groups of
             similar parameters (e.g. set_init_cond_files, set_simulation_time, etc.). Each parameter has a default value
             that can be overridden by an argument to Simulation(). Some argument parameters have equivalent values that
-            are passed to the `swiftest_driver` Fortran program via a parameter input file. When declaring a new
+            are passed to the Swiftest driver Fortran function via a parameter input file. When declaring a new
             Simulation object, parameters are chosen in the following way, from highest to lowest priority"
             1. Arguments to Simulation()
             2. The parameter input file given by `param_file` under the following conditions:
@@ -424,14 +433,9 @@ class Simulation(object):
             post_message += f" dL/L0: {0.0:.5e} dE/|E0|: {0.0:+.5e}"
         post_message += f" Wall time / step: {0.0:.5e} s"
         pbar = tqdm(total=noutput, desc=pre_message, postfix=post_message, bar_format='{l_bar}{bar}{postfix}')
-        try:
+        with _cwd(self.simdir):
             capture = StdCaptureFD(out=False, in_=False)
             out,err = capture.reset()
-            # with subprocess.Popen(shlex.split(cmd),
-            #                       stdout=subprocess.PIPE,
-            #                       stderr=subprocess.PIPE,
-            #                       env=env,
-            #                       universal_newlines=True) as p:
             driver(self.integrator,str(self.param_file), "compact")
             for line in out:
                 if "SWIFTEST STOP" in line:
@@ -459,18 +463,18 @@ class Simulation(object):
                 if "SWIFTEST START" in line:
                     process_output = True
 
-            res = p.communicate()
-            if p.returncode != 0:
-                for line in res[1]:
-                    print(line, end='')
-                warnings.warn("Failure in swiftest_driver", stacklevel=2)
-                sys.exit()
-        except:
-            warnings.warn(f"Error executing main swiftest_driver program", stacklevel=2)
-            res = p.communicate()
-            for line in res[1]:
-                print(line, end='')
-            sys.exit()
+            # res = p.communicate()
+            # if p.returncode != 0:
+            #     for line in res[1]:
+            #         print(line, end='')
+            #     warnings.warn("Failure in swiftest_driver", stacklevel=2)
+            #     sys.exit()
+        # except:
+        #     warnings.warn(f"Error executing main swiftest_driver program", stacklevel=2)
+        #     res = p.communicate()
+        #     for line in res[1]:
+        #         print(line, end='')
+        #     sys.exit()
 
         pbar.close()
         return
@@ -498,12 +502,6 @@ class Simulation(object):
 
         if self.codename != "Swiftest":
             warnings.warn(f"Running an integration is not yet supported for {self.codename}",stacklevel=2)
-            return
-
-        if not self.binary_source.exists():
-            msg = "Path to swiftest_driver has not been set!"
-            msg += f"\nMake sure swiftest_driver is compiled and the executable is in {str(self.binary_source.parent)}"
-            warnings.warn(msg,stacklevel=2)
             return
 
         if not self.restart:
@@ -943,19 +941,6 @@ class Simulation(object):
 
             self.param['! VERSION'] = f"{self.codename} input file"
             update_list.append("codename")
-            if self.codename == "Swiftest":
-                self.binary_source = Path(_pyfile).parent.parent.parent.parent / "bin" / "swiftest_driver"
-                self.driver_executable = self.binary_source
-                if not self.binary_source.exists():
-                    warnings.warn(f"Cannot find the Swiftest driver at {str(self.binary_source)}",stacklevel=2)
-                    self.driver_executable = None
-                else:
-                    if self.binary_source.exists():
-                        self.driver_executable.resolve()
-            else:
-                self.binary_source = "NOT IMPLEMENTED FOR THIS CODE"
-                self.driver_executable = None
-            update_list.append("driver_executable")
         
         if self.codename == "Swifter":
             J2 = self.param.pop("J2",0.0)
@@ -1018,7 +1003,6 @@ class Simulation(object):
         valid_instance_vars = {"codename": self.codename,
                                "integrator": self.integrator,
                                "param_file": str(self.param_file),
-                               "driver_executable": str(self.driver_executable)
                               }
 
         try:
@@ -2770,13 +2754,6 @@ class Simulation(object):
         else:
             warnings.warn('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".',stacklevel=2)
             
-        # # Generate executable script    
-        # self.driver_script = os.path.join(self.simdir, "swiftest_driver.sh")
-        # with open(self.driver_script, 'w') as f:
-        #     f.write(f"#{self._shell_full}\n")
-        #     f.write(f"cd {self.simdir}\n")
-        #     f.write(f"{str(self.driver_executable)} {self.integrator} {str(self.param_file)} compact\n")
-            
         return
 
     def convert(self, param_file, newcodename="Swiftest", plname="pl.swiftest.in", tpname="tp.swiftest.in",
@@ -3008,11 +2985,6 @@ class Simulation(object):
             infile_name = Path(self.simdir) / param['NC_IN']
             io.swiftest_xr2infile(ds=self.data, param=param, in_type=self.param['IN_TYPE'], infile_name=infile_name, framenum=framenum, verbose=verbose)
             self.write_param(param_file=param_file,**kwargs)
-            if not self.binary_source.exists():
-                msg = "Path to swiftest_driver has not been set!"
-                msg += f"\nMake sure swiftest_driver is compiled and the executable is in {str(self.binary_source.parent)}"
-                warnings.warn(msg,stacklevel=2)
-                return
         elif codename == "Swifter":
             swifter_param = io.swiftest2swifter_param(param)
             if "rhill" in self.data:

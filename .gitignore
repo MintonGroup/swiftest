@@ -30,6 +30,7 @@ dump*
 *.egg*
 swiftest-*
 __pycache__*
+_cmake*
 
 
 #Documentation

@@ -11,4 +11,3 @@
 
 from .constants import *
 from .simulation_class import Simulation
-from ._bindings import driver
