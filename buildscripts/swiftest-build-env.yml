@@ -11,6 +11,7 @@ dependencies:
   - scikit-build>=0.17
   - cmake>=3.5.0
   - cython>=3.0.0
+  - json5>=0.9
   - make
   - m4
   - ninja

@@ -45,8 +45,6 @@ echo "Building Swiftest version ${VERSION} for ${OS}-${ARCH}"
 case $OS in
     MacOSX) 
         COMPILER="GNU-Mac"
-        export MACOSX_DEPLOYMENT_TARGET=13 
-        export LDFLAGS="-Wl,-no_compact_unwind"
         ;;
     Linux)
         COMPILER="GNU-Linux"

@@ -29,6 +29,7 @@ dump*
 **/_skbuild
 *.egg*
 swiftest-*
+__pycache__*
 
 
 #Documentation

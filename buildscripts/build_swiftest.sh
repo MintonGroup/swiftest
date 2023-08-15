@@ -46,18 +46,19 @@ export CPP=${CPP}
 printf "Using ${COMPILER} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n\n"
 printf "Installing to ${PREFIX}\n"
 printf "Dependency libraries in ${PREFIX}\n"
+
 export DEPDIR=$PREFIX
 export NETCDF_FORTRAN_HOME=$DEPDIR
-export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${DEPDIR}/lib"
+export LD_LIBRARY_PATH="${DEPDIR}/lib:${LD_LIBRARY_PATH}"
 export CPPFLAGS="${CPPFLAGS} -I{$DEPDIR}/include"
 export LDFLAGS="${LDFLAGS} -L${DEPDIR}/lib"
-export CPATH="${CPATH}:${DEPDIR}/include"
+export CPATH="${DEPDIR}/include:${CPATH}"
 
 if [ $COMPILER = "GNU-Mac" ]; then
-    export MACOSX_DEPLOYMENT_TARGET=13 
+    # export MACOSX_DEPLOYMENT_TARGET=13 
     export LDFLAGS="${LDFLAGS} -Wl,-no_compact_unwind"
+    printf "MACOSX_DEPLOYMENT_TARGET: ${MACOSX_DEPLOYMENT_TARGET}\n"
 fi
-
 NFCFG="${DEPDIR}/bin/nf-config"
 if command -v $NFCFG &> /dev/null; then
     export LIBS=$($NFCFG --flibs)
@@ -84,11 +85,27 @@ read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
 echo $OS $ARCH
 if [ $OS = "MacOSX" ] && [ $ARCH = "arm64" ]; then
     printf "OpenMP not supported on Apple M1 Silicon quite yet\n"
-    export SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DUSE_OPENMP=OFF"
+    export SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DUSE_OPENMP=OFF -DUSE_SIMD=OFF"
 fi
 
 cd $ROOT_DIR
+
+printf "\n"
+printf "*********************************************************\n"
+printf "*                   BUILDING SWIFTEST                   *\n"
+printf "*********************************************************\n"
+printf "LIBS: ${LIBS}\n"
+printf "CFLAGS: ${CFLAGS}\n"
+printf "FFLAGS: ${FFLAGS}\n"
+printf "FCFLAGS: ${FCFLAGS}\n"
+printf "CPPFLAGS: ${CPPFLAGS}\n"
+printf "CPATH: ${CPATH}\n"
+printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
+printf "LDFLAGS: ${LDFLAGS}\n"
+printf "NETCDF_FORTRAN_HOME: ${NETCDF_FORTRAN_HOME}\n"
+printf "SKBUILD_CONFIGURE_OPTIONS: ${SKBUILD_CONFIGURE_OPTIONS}\n"
+printf "*********************************************************\n"
+
 python3 -m pip install build pip
-python3 -m build
 python3 -m pip install . -v 
 
