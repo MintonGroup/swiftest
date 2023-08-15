@@ -106,7 +106,4 @@ printf "NETCDF_FORTRAN_HOME: ${NETCDF_FORTRAN_HOME}\n"
 printf "SKBUILD_CONFIGURE_OPTIONS: ${SKBUILD_CONFIGURE_OPTIONS}\n"
 printf "*********************************************************\n"
 
-python3 -m pip install build pip
-python3 -m build
-python3 -m pip install . -v 
-
+pipx run cibuildwheel --platform macos
