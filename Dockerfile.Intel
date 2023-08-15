@@ -79,7 +79,13 @@ SHELL ["/bin/bash", "--login", "-c"]
 ENV SHELL="/bin/bash"
 WORKDIR /swiftest
 
-ENV FC="${ONEAPI_ROOT}/compiler/latest/linux/bin/mpiifort"
+ENV INSTALL_DIR=/usr/local
+ENV NETCDF_HOME=${INSTALL_DIR}
+ENV NETCDF_FORTRAN_HOME=${NETCDF_HOME}
+ENV NETCDF_LIBRARY=${NETCDF_HOME}
+ENV FOR_COARRAY_NUM_IMAGES=1
+ENV OMP_NUM_THREADS=1
+ENV FC="${ONEAPI_ROOT}/mpi/latest/bin/mpiifort"
 ENV CC="${ONEAPI_ROOT}/compiler/latest/linux/bin/icx"
 ENV CXX="${ONEAPI_ROOT}/compiler/latest/linux/bin/icpx"
 ENV F77="${FC}"
@@ -89,7 +95,6 @@ ENV NETCDF_FORTRAN_HOME=${INSTALL_DIR}
 ENV LD_LIBRARY_PATH="${INSTALL_DIR}/lib:${LD_LIBRARY_PATH}"
 
 # Copy build artifacts over to the swiftest package builder stage
-ENV INSTALL_DIR=/usr/local
 COPY --from=build-deps ${INSTALL_DIR}/ ${INSTALL_DIR}/
 
 # Compile the Swiftest project
@@ -107,7 +112,8 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install python3-pip
 # Generate the build environment in conda
 ENV PIP_ROOT_USER_ACTION=ignore
 ENV LDFLAGS="-L${INSTALL_DIR}/lib"
-ENV CFLAGS="-fPIC -standard-semantics"
+ENV CFLAGS="-fPIC"
+ENV FCFLAGS="-fPIC -standard-semantics"
 ENV FFLAGS=${CFLAGS}
 ENV SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF -DMACHINE_CODE_VALUE=\"SSE2\""
 RUN export NFCFG="${INSTALL_DIR}/bin/nf-config" && \

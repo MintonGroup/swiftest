@@ -82,9 +82,9 @@ printf "*********************************************************\n"
 printf "*            BUILDING HDF5 STATIC LIBRARY               *\n"
 printf "*********************************************************\n"
 cd ../hdf5-1.14.1-2 
-if [ "$COMPILER"="GNU-Mac" ]; then
+if [ $COMPILER = "GNU-Mac" ]; then
    read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
-   if [ $OS="MacOS" ] && [ "$ARCH"="arm64" ]; then
+   if [ $ARCH  = "arm64" ]; then
       printf "Manually setting bin/config.sub to arm-apple-darwin\n"
       printf "echo arm-apple-darwin" > bin/config.sub 
    fi
@@ -104,7 +104,7 @@ printf "*          BUILDING NETCDF-C STATIC LIBRARY             *\n"
 printf "*********************************************************\n"
 cd ../netcdf-c-4.9.2
 COPTS="--disable-shared --disable-dap --disable-byterange --prefix=${PREFIX}"
-if [ ! $COMPILER="GNU-Mac" ]; then
+if [ !  $COMPILER = "GNU-Mac" ]; then
     COPTS="${COPTS} --disable-libxml2"
 fi
 printf "COPTS: ${COPTS}\n"
@@ -120,9 +120,7 @@ if [ $? -ne 0 ]; then
    exit 1
 fi
 
-
-export CFLAGS="-fPIC"
-if [ $COMPILER="Intel" ]; then 
+if [ $COMPILER = "Intel" ]; then 
     export FCFLAGS="${CFLAGS} -standard-semantics"
 else
     export FCFLAGS="${CFLAGS}"
@@ -130,7 +128,6 @@ fi
 export FFLAGS=${CFLAGS}
 
 export LIBS="$(${PREFIX}/bin/nc-config --libs --static)"
-
 printf "\n"
 printf "*********************************************************\n"
 printf "*       BUILDING NETCDF-FORTRAN STATIC LIBRARY          *\n"
