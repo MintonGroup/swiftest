@@ -105,7 +105,7 @@ case $COMPILER in
         export FC=${FC:-$(command -v gfortran)}
         export CC=${CC:-$(command -v gcc)}
         export CXX=${CXX:-$(command -v g++)}
-        export CXX=${CPP:-$(command -v cpp)}
+        export CPP=${CPP:-$(command -v cpp)}
         ;;
     GNU-Mac)
         export FC=${FC:-$HOMEBREW_PREFIX/bin/gfortran-13}
