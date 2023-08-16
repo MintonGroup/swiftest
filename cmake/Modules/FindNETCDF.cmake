@@ -130,6 +130,10 @@ ELSE ()
    ELSE ()
       MESSAGE(FATAL_ERROR "Cannot find nc-config")
    ENDIF ()
+   IF (DEFINED ENV{LIBS})
+      SEPARATE_ARGUMENTS(LIBS NATIVE_COMMAND "$ENV{LIBS}")
+      LIST(APPEND EXTRA_FLAGS ${LIBS})
+   ENDIF()
 
    # Note for posterity: When building static libraries, NETCDF_FORTRAN_LIBRARY must come *before* NETCDF_LIBRARY. Otherwise you get a bunch of "undefined reference to" errors
    SET(NETCDF_LIBRARIES ${NETCDF_FORTRAN_LIBRARY} ${NETCDF_LIBRARY} ${EXTRA_FLAGS} CACHE STRING "NetCDF Fortran and dependant static libraries")

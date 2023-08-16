@@ -11,6 +11,8 @@ build-backend = "setuptools.build_meta"
 [tool.cibuildwheel.linux]
 environment = {SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF"}
 before-all = [
-    "yum install netcdf-fortran-static netcdf-static hdf5-static -y"
+    "yum install m4 doxygen -y",
+    "buildscripts/fetch_dependencies.sh -d build",
+    "buildscripts/build_dependencies.sh -c GNU-Linux -p /usr/local"
 ]
     
