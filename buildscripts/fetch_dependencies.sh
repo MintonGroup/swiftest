@@ -32,7 +32,7 @@ done
 
 mkdir -p ${DOWNLOAD_DIR}
 cd $DOWNLOAD_DIR
-wget -qO- https://www.zlib.net/zlib-1.2.13.tar.gz | tar xvz
-wget -qO- https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14.1/src/hdf5-1.14.1-2.tar.gz | tar xvz 
+#wget -qO- https://www.zlib.net/zlib-1.2.13.tar.gz | tar xvz
+#wget -qO- https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14.1/src/hdf5-1.14.1-2.tar.gz | tar xvz 
 wget -qO- https://github.com/Unidata/netcdf-c/archive/refs/tags/v4.9.2.tar.gz | tar xvz 
 wget -qO- https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v4.6.1.tar.gz | tar xvz 
