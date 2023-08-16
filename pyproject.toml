@@ -9,8 +9,8 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel.linux]
-environment = {SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF",CPATH="/usr:/usr/local",LD_LIBRARY_PATH="/usr/lib:/usr/lib64:/usr/local/lib:/usr/lib/x86_64-linux-gnu:/usr/lib/aarch64-linux-gnu"}
+environment = {SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF"}
 before-all = [
-    "yum install netcdf-fortran-static netcdf-static hdf5-static -y",
+    "yum install netcdf-fortran-static netcdf-static hdf5-static -y"
 ]
     
