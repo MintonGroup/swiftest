@@ -53,8 +53,8 @@ printf "Using ${COMPILER} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
 printf "Installing to ${PREFIX}\n"
 printf "\n"
 
-#${SCRIPT_DIR}/build_zlib.sh -c $COMPILER -p $PREFIX
-#${SCRIPT_DIR}/build_hdf5.sh -c $COMPILER -p $PREFIX
+${SCRIPT_DIR}/build_zlib.sh -c $COMPILER -p $PREFIX
+${SCRIPT_DIR}/build_hdf5.sh -c $COMPILER -p $PREFIX
 ${SCRIPT_DIR}/build_netcdf-c.sh -c $COMPILER -p $PREFIX
 ${SCRIPT_DIR}/build_netcdf-fortran.sh -c $COMPILER -p $PREFIX
 

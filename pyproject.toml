@@ -11,7 +11,7 @@ build-backend = "setuptools.build_meta"
 [tool.cibuildwheel.linux]
 environment = {SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF", FFLAGS="${FFLAGS} -fPIC"}
 before-all = [
-    "yum install wget m4 doxygen hdf5-static -y",
+    "yum install wget m4 doxygen -y",
     "buildscripts/fetch_dependencies.sh -d build",
     "buildscripts/build_dependencies.sh -c GNU-Linux -p /usr/local"
 ]
