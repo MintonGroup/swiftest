@@ -11,7 +11,7 @@ build-backend = "setuptools.build_meta"
 [tool.cibuildwheel.linux]
 environment = {SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF"}
 before-all = [
-    "yum install m4 doxygen -y",
+    "yum install wget m4 doxygen -y",
     "buildscripts/fetch_dependencies.sh -d build",
     "buildscripts/build_dependencies.sh -c GNU-Linux -p /usr/local"
 ]
