@@ -47,15 +47,15 @@ export FC=${FC}
 export F77=${F77}
 export CPP=${CPP}
 
-export HDF5_ROOT="${PREFIX}"
+export HDF5_ROOT=${HDF5_ROOT:-$PREFIX}
 export HDF5_LIBDIR="${HDF5_ROOT}/lib"
 export HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
 export HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
 export NCDIR="${PREFIX}"
 export NFDIR="${PREFIX}"
-export LD_LIBRARY_PATH="${PREFIX}/lib:${LD_LIBRARY_PATH}"
-export CPPFLAGS="${CPPFLAGS} -isystem ${PREFIX}/include"
-export LDFLAGS="${LDFLAGS} -L${PREFIX}/lib"
+export LD_LIBRARY_PATH="${PREFIX}/lib:${HDF5_LIBDIR}:${LD_LIBRARY_PATH}"
+export CPPFLAGS="${CPPFLAGS} -isystem ${PREFIX}/include -isystem ${HDF5_INCLUDE_DIR}"
+export LDFLAGS="${LDFLAGS} -L${PREFIX}/lib -L${HDF5_LIBDIR}"
 export CPATH="${PREFIX}/include:${CPATH}"
 export CFLAGS="${CFLAGS} -Wno-unused-but-set-variable"
 
@@ -75,6 +75,7 @@ printf "CPPFLAGS: ${CPPFLAGS}\n"
 printf "CPATH: ${CPATH}\n"
 printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
 printf "LDFLAGS: ${LDFLAGS}\n"
+printf "HDF5_ROOT: ${HDF5_ROOT}\n"
 printf "*********************************************************\n"
 
 cd ${BUILD_DIR}/netcdf-c-*
@@ -84,34 +85,16 @@ if [ !  $COMPILER = "GNU-Mac" ]; then
 fi
 printf "COPTS: ${COPTS}\n"
 ./configure $COPTS
-make && make check && make install
+make && make check 
+
+if [ -w ${PREFIX} ]; then
+    make install
+else
+    sudo make install
+fi
+
 if [ $? -ne 0 ]; then
    printf "netcdf-c could not be compiled."\n
    exit 1
 fi
 
-if [ $COMPILER = "Intel" ]; then 
-    export FCFLAGS="${CFLAGS} -standard-semantics"
-else
-    export FCFLAGS="${CFLAGS}"
-fi
-export FFLAGS=${CFLAGS}
-
-export LIBS="$(${PREFIX}/bin/nc-config --libs --static)"
-printf "\n"
-printf "*********************************************************\n"
-printf "*       BUILDING NETCDF-FORTRAN STATIC LIBRARY          *\n"
-printf "*********************************************************\n"
-cd ../netcdf-fortran-4.6.1
-./configure --disable-shared --with-pic --prefix=${PREFIX}  
-make && make check && make install
-if [ $? -ne 0 ]; then
-   printf "netcdf-fortran could not be compiled.\n"
-   exit 1
-fi
-
-printf "\n"
-printf "*********************************************************\n"
-printf "*             DEPENDENCIES ARE BUILT                    *\n"
-printf "*********************************************************\n"
-printf "Dependencys are installed to: ${PREFIX}\n\n"

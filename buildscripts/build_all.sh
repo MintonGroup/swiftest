@@ -16,7 +16,30 @@
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 BUILD_DIR="${ROOT_DIR}/build"
-PREFIX=${BUILD_DIR}/usr/local
+PREFIX=/usr/local
+
+# Parse arguments
+USTMT="Usage: ${0} [-d {./build}|/path/to/build] [-p {/usr/local}|/prefix/path]"
+IFORT=false
+PREFIX=/usr/local
+COMPILER=""
+while getopts ":c:d:" ARG; do
+    case "${ARG}" in
+    d)
+        BUILD_DIR="${OPTARG}"
+        ;;
+    p)
+        PREFIX="${OPTARG}"
+        ;;
+    :)      
+        echo "Error: -${OPTARG} requires an argument."
+        echo $USTMT
+        exit 1
+        ;;
+    *)
+        ;;
+    esac
+done
 
 mkdir -p ${BUILD_DIR}
 read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)

@@ -73,7 +73,13 @@ printf "*********************************************************\n"
 cd ${BUILD_DIR}/zlib-*
 ./configure --prefix=${PREFIX} --static 
 make 
-make install
+
+if [ -w ${PREFIX} ]; then
+    make install
+else
+    sudo make install
+fi
+
 if [ $? -ne 0 ]; then
    printf "zlib could not be compiled.\n"
    exit 1

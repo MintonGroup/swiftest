@@ -11,6 +11,8 @@
 """
 
 from skbuild import setup
+import os
+import subprocess
 
 with open('version.txt') as version_file:
     version = version_file.read().strip()

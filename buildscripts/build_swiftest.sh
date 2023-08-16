@@ -49,6 +49,11 @@ printf "Dependency libraries in ${PREFIX}\n"
 
 export DEPDIR=$PREFIX
 export NETCDF_FORTRAN_HOME=$DEPDIR
+export HDF_ROOT=$PREFIX
+export HDF5_LIBDIR="${HDF5_ROOT}/lib"
+export HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
+export HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
+
 export LD_LIBRARY_PATH="${DEPDIR}/lib:${LD_LIBRARY_PATH}"
 export CPPFLAGS="${CPPFLAGS} -isystem ${DEPDIR}/include"
 export LDFLAGS="${LDFLAGS} -L${DEPDIR}/lib"
@@ -59,16 +64,7 @@ if [ $COMPILER = "GNU-Mac" ]; then
     export LDFLAGS="${LDFLAGS} -Wl,-no_compact_unwind"
     printf "MACOSX_DEPLOYMENT_TARGET: ${MACOSX_DEPLOYMENT_TARGET}\n"
 fi
-NFCFG="${DEPDIR}/bin/nf-config"
-if command -v $NFCFG &> /dev/null; then
-    export LIBS=$($NFCFG --flibs)
-else
-    printf "Error: Cannot find ${NFCFG}.\n"
-    printf "Is NetCDF-Fortran installed?\n"
-    exit 1
-fi
-export LDFLAGS="${LDFLAGS} -L${DEPDIR}/lib"
-export CFLAGS="-fPIC"
+
 export SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF"
 
 if [ $COMPILER = "Intel" ]; then 

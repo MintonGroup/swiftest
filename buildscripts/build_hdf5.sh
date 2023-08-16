@@ -87,7 +87,13 @@ if [ $COMPILER = "GNU-Mac" ]; then
 fi
 COPTS="--disable-shared --enable-build-mode=production --disable-fortran --disable-java --disable-cxx --prefix=${PREFIX} --with-zlib=${PREFIX}"
 ./configure ${COPTS}
-make && make install
+make 
+if [ -w ${PREFIX} ]; then
+    make install
+else
+    sudo make install
+fi
+
 if [ $? -ne 0 ]; then
    printf "hdf5 could not be compiled.\n"
    exit 1

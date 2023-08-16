@@ -82,7 +82,13 @@ printf "*********************************************************\n"
 
 cd ${BUILD_DIR}/netcdf-fortran-*
 ./configure --disable-shared --with-pic --disable-zstandard-plugin --prefix=${PREFIX}  
-make && make check && make install
+make && make check i
+if [ -w ${PREFIX} ]; then
+    make install
+else
+    sudo make install
+fi
+
 if [ $? -ne 0 ]; then
    printf "netcdf-fortran could not be compiled.\n"
    exit 1

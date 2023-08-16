@@ -8,13 +8,91 @@
 # If not, see: https://www.gnu.org/licenses. 
 
 # - Finds the NetCDF libraries 
-set(NETCDF_FORTRAN_HOME $ENV{NETCDF_FORTRAN_HOME} CACHE STRING "Value of NetCDF library home directory")
-find_path(NETCDF_INCLUDE_DIR NAMES netcdf.mod HINTS ENV NETCDF_FORTRAN_HOME PATH_SUFFIXES include)
-find_library(NETCDF_FORTRAN_LIBRARY NAMES netcdff HINTS ENV NETCDF_FORTRAN_HOME PATH_SUFFIXES lib)
-find_library(NETCDF_LIBRARY NAMES netcdf HINTS ENV NETCDF_FORTRAN_HOME PATH_SUFFIXES lib)
 
-set(NETCDF_FOUND TRUE)
-# Note for posterity: When building static libraries, NETCDF_FORTRAN_LIBRARY must come *before* NETCDF_LIBRARY. Otherwise you get a bunch of "undefined reference to" errors
+FIND_PATH(NETCDF_INCLUDE_DIR 
+   NAMES netcdf.mod 
+   HINTS 
+      ENV NETCDF_INCLUDE_DIR 
+      ENV NETCDF_FORTRAN_HOME
+      ENV CPATH
+   PATH_SUFFIXES
+      include
+   REQUIRED
+)
 
-mark_as_advanced(NETCDF_LIBRARY NETCDF_FORTRAN_LIBRARY NETCDF_INCLUDE_DIR)
-set(NETCDF_LIBRARIES ${NETCDF_FORTRAN_LIBRARY} ${NETCDF_LIBRARY} CACHE STRING "NetCDF libraries")
+MESSAGE(STATUS "NetCDF-Fortran include directory: ${NETCDF_INCLUDE_DIR}")
+
+IF (BUILD_SHARED_LIBS) 
+   SET(NETCDFF "netcdff")
+ELSE ()
+   SET(NETCDFF "libnetcdff.a")
+   SET(NETCDF  "libnetcdf.a")
+ENDIF()
+
+FIND_LIBRARY(NETCDF_FORTRAN_LIBRARY 
+   NAMES ${NETCDFF} 
+   HINTS
+      ENV NETCDF_FORTRAN_HOME
+      ENV NETCDF_HOME
+      ENV LD_LIBRARY_PATH
+   PATH_SUFFIXES
+      lib
+      ${CMAKE_LIBRARY_ARCHITECTURE} 
+   REQUIRED
+)
+
+MESSAGE(STATUS "NetCDF-Fortran Library: ${NETCDF_FORTRAN_LIBRARY}")
+
+IF (BUILD_SHARED_LIBS)
+   SET(NETCDF_LIBRARIES ${NETCDF_FORTRAN_LIBRARY} CACHE STRING "NetCDF Fortran library")
+ELSE ()
+   FIND_LIBRARY(NETCDF_LIBRARY 
+      NAMES ${NETCDF} 
+      HINTS
+         ENV NETCDF_HOME
+         ENV LD_LIBRARY_PATH
+      PATH_SUFFIXES
+         lib
+         ${CMAKE_LIBRARY_ARCHITECTURE} 
+      REQUIRED
+   )
+
+   MESSAGE(STATUS "NetCDF-C Library: ${NETCDF_LIBRARY}")
+
+   FIND_PATH(NCBIN
+      NAMES nc-config
+      HINTS 
+         ENV NETCDF_HOME
+         ENV PATH
+      PATH_SUFFIXES
+         bin
+   )
+
+   IF (NCBIN) # The nc-config utility is available. Parse its output for unique flags
+      SET(CMD "${NCBIN}/nc-config")
+      LIST(APPEND CMD "--libs")
+      LIST(APPEND CMD "--static")
+      MESSAGE(STATUS "NetCDF configuration command: ${CMD}")
+      EXECUTE_PROCESS(COMMAND ${CMD} OUTPUT_VARIABLE EXTRA_FLAGS ERROR_VARIABLE ERR RESULT_VARIABLE RES OUTPUT_STRIP_TRAILING_WHITESPACE)
+      IF (EXTRA_FLAGS)
+         SEPARATE_ARGUMENTS(EXTRA_FLAGS NATIVE_COMMAND "${EXTRA_FLAGS}")
+         LIST(REMOVE_DUPLICATES EXTRA_FLAGS)
+         LIST(FILTER EXTRA_FLAGS EXCLUDE REGEX "netcdf+|-L+")
+         MESSAGE(STATUS "Extra library flags: ${EXTRA_FLAGS}")
+      ELSE ()
+         MESSAGE(STATUS "Cannot execute ${CMD}")
+         MESSAGE(STATUS "OUTPUT: ${EXTRA_FLAGS}")
+         MESSAGE(STATUS "RESUL : ${RES}")
+         MESSAGE(STATUS "ERROR : ${ERR}")
+         MESSAGE(FATAL_ERROR "Cannot configure NetCDF for static")
+      ENDIF ()
+   ELSE ()
+      MESSAGE(FATAL_ERROR "Cannot find nc-config")
+   ENDIF ()
+
+   # Note for posterity: When building static libraries, NETCDF_FORTRAN_LIBRARY must come *before* NETCDF_LIBRARY. Otherwise you get a bunch of "undefined reference to" errors
+   SET(NETCDF_LIBRARIES ${NETCDF_FORTRAN_LIBRARY} ${NETCDF_LIBRARY} ${EXTRA_FLAGS} CACHE STRING "NetCDF Fortran and dependant static libraries")
+ENDIF ()
+
+SET(NETCDF_FOUND TRUE)
+MARK_AS_ADVANCED(NETCDF_LIBRARIES NETCDF_INCLUDE_DIR)

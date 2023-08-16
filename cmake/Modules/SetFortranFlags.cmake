@@ -104,11 +104,13 @@ ELSEIF (COMPILER_OPTIONS STREQUAL "Intel")
         SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                         Fortran "-pad"  # Intel
                                 "/Qpad" # Intel Windows
-
                         )
 ENDIF ()
 
 IF (NOT BUILD_SHARED_LIBS)
+        SET_COMPILE_FLAG(CMAKE_FORTRAN_FLAGS "${CMAKE_FORTRAN_FLAGS}"
+                        Fortran "-fPIC"
+                        )
 
         IF (COMPILER_OPTIONS STREQUAL "Intel")
                 # Use static Intel libraries
