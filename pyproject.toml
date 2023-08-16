@@ -9,9 +9,9 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel.linux]
-environment = {SCRIPT_DIR="buildscripts",BUILD_DIR="build",PREFIX="/usr/local"}
+environment = {SCRIPT_DIR="buildscripts", BUILD_DIR="build", PREFIX="/usr/local", SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF", CFLAGS="-fPIC", CPPFLAGS="-isystem /usr/local/include", NETCDF_FORTRAN_HOME="/usr/local", LIBS="-lm -lz -ldl"}
 before-all = [
-    "yum install wget m4 -y",
+    "yum install wget m4 doxygen -y",
     "bash ${SCRIPT_DIR}/fetch_dependencies.sh -d ${BUILD_DIR}",
     "bash ${SCRIPT_DIR}/build_dependencies.sh -c GNU-Linux -p ${PREFIX}"
 ]
