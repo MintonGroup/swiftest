@@ -7,3 +7,12 @@ requires = [
     "ninja",
 ]
 build-backend = "setuptools.build_meta"
+
+[tool.cibuildwheel.linux]
+environment = {SCRIPT_DIR="buildscripts",BUILD_DIR="build",PREFIX="/usr/local"}
+before-all = [
+    "yum install wget m4 -y",
+    "bash ${SCRIPT_DIR}/fetch_dependencies.sh -d ${BUILD_DIR}",
+    "bash ${SCRIPT_DIR}/build_dependencies.sh -c GNU-Linux -p ${PREFIX}"
+]
+    

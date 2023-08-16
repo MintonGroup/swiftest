@@ -31,17 +31,6 @@ cd ${ROOT_DIR}
 VERSION=$( cat version.txt )
 echo "Building Swiftest version ${VERSION} for ${OS}-${ARCH}"
 
-# if command -v docker &> /dev/null; then
-#     echo "Docker detected"
-
-#     cmd="docker build --tag swiftest:latest --tag swiftest:${VERSION} --file=dockerfile.${COMPILER} --output=${ROOT_DIR}/dist/ ."
-#     echo "Executing Docker build:\n${cmd}"
-#     eval "$cmd"
-#     exit 0
-# else
-#     echo "Docker not detected"
-# fi
-
 case $OS in
     MacOSX) 
         COMPILER="GNU-Mac"
