@@ -24,7 +24,7 @@ while getopts ":d:p:m:h" ARG; do
         DEPENDENCY_DIR=$(realpath ${OPTARG})
         ;;
     p)
-        PREFIX="${OPTARG}"
+        PREFIX=$(realpath ${OPTARG})
         ;;
     m)
         MACOSX_DEPLOYMENT_TARGET="${OPTARG}"
