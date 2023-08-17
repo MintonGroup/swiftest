@@ -21,10 +21,12 @@ MACOSX_DEPLOYMENT_TARGET=13
 while getopts ":d:p:m:h" ARG; do
     case "${ARG}" in
     d)
-        DEPENDENCY_DIR=$(realpath ${OPTARG})
+        mkdir -p ${OPTARG}
+        DEPENDENCY_DIR=$(realpath "${OPTARG}")
         ;;
     p)
-        PREFIX=$(realpath ${OPTARG})
+        mkdir -p ${OPTARG}
+        PREFIX=$(realpath "${OPTARG}")
         ;;
     m)
         MACOSX_DEPLOYMENT_TARGET="${OPTARG}"
