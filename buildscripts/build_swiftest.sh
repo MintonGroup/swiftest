@@ -11,7 +11,8 @@
 # If not, see: https://www.gnu.org/licenses. 
 set -a
 if [ -z ${SCRIPT_DIR+x} ]; then SCRIPT_DIR=$(realpath $(dirname $0)); fi
-. ${SCRIPT_DIR}/_build_getopts.sh
+ARGS=$@
+. ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 
 # Determine if we are in the correct directory (the script can either be run from the Swiftest project root directory or the
 # buildscripts directory)
@@ -60,6 +61,9 @@ printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
 printf "LDFLAGS: ${LDFLAGS}\n"
 printf "NETCDF_FORTRAN_HOME: ${NETCDF_FORTRAN_HOME}\n"
 printf "SKBUILD_CONFIGURE_OPTIONS: ${SKBUILD_CONFIGURE_OPTIONS}\n"
+if [ $OS = "MacOSX" ]; then
+    printf "MACOSX_DEPLOYMENT_TARGET: ${MACOSX_DEPLOYMENT_TARGET}\n"
+fi
 printf "*********************************************************\n"
 
 python3 -m pip install build pip

@@ -13,7 +13,8 @@
 SCRIPT_DIR=$(realpath $(dirname $0))
 
 set -a
-. ${SCRIPT_DIR}/_build_getopts.sh
+ARGS=$@
+. ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 
 printf "\n"
 printf "*********************************************************\n"

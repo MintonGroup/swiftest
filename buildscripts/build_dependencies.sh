@@ -14,8 +14,8 @@
 # Determine the platform and architecture
 SCRIPT_DIR=$(realpath $(dirname $0))
 set -a
-. ${SCRIPT_DIR}/_build_getopts.sh
 ARGS=$@
+. ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 
 ZLIB_VER="1.2.13"
 HDF5_VER="1.14.1-2"

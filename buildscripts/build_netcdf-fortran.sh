@@ -12,7 +12,8 @@
 # If not, see: https://www.gnu.org/licenses. 
 SCRIPT_DIR=$(realpath $(dirname $0))
 set -a
-. ${SCRIPT_DIR}/_build_getopts.sh
+ARGS=$@
+. ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 
 LIBS="$(${PREFIX}/bin/nc-config --libs --static)"
 

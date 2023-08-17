@@ -14,9 +14,9 @@
 # Determine the platform and architecture
 set -a
 SCRIPT_DIR=$(realpath $(dirname $0))
-. ${SCRIPT_DIR}/_build_getopts.sh
-
 ARGS=$@
+. ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
+
 set -e
 ${SCRIPT_DIR}/build_dependencies.sh ${ARGS}
 ${SCRIPT_DIR}/build_swiftest.sh ${ARGS}

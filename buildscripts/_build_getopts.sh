@@ -14,10 +14,10 @@ SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 
 # Parse arguments
-USTMT="Usage: ${0} <-d /path/to/dependency/source> [-p /prefix/path|{/usr/local}] [-m MACOSX_DEPLOYMENT_TARGET|{13}]"
+USTMT="Usage: ${0} <-d /path/to/dependency/source> [-p /prefix/path|{/usr/local}] [-m MACOSX_DEPLOYMENT_TARGET|{10.9}]"
 PREFIX=/usr/local
 DEPENDENCY_DIR="${ROOT_DIR}/_dependencies"
-MACOSX_DEPLOYMENT_TARGET=13
+MACOSX_DEPLOYMENT_TARGET="10.9"
 while getopts ":d:p:m:h" ARG; do
     case "${ARG}" in
     d)
