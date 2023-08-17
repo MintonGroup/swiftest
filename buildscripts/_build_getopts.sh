@@ -44,6 +44,7 @@ while getopts ":d:p:m:h" ARG; do
         ;;
     esac
 done
+
 read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
 case $OS in
     MacOSX) 
@@ -87,3 +88,7 @@ if [ -z ${DEPENDENCY_ENV_VARS+x} ]; then
 fi
 
 mkdir -p ${DEPENDENCY_DIR}
+mkdir -p ${PREFIX}/lib
+mkdir -p ${PREFIX}/include
+mkdir -p ${PREFIX}/share
+mkdir -p ${PREFIX}/bin
