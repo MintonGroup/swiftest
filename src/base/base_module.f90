@@ -623,7 +623,7 @@ module base
          case default
             write(iu, FAIL_MSG) VERSION
             write(iu, BAR)
-            error stop
+            stop 
          end select
    
          stop

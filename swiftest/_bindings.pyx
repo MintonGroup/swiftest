@@ -13,6 +13,10 @@ def driver(integrator, param_file_name, display_style):
         char* c_param_file_name = b_param_file_name 
         char* c_display_style = b_display_style 
 
-    with nogil:
-        bindings_c_driver(c_integrator, c_param_file_name, c_display_style)
+    try:
+        with nogil:
+            bindings_c_driver(c_integrator, c_param_file_name, c_display_style)
+    except:
+        raise Warning("The Swiftest driver did not terminate normally")
+
     return
