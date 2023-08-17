@@ -63,12 +63,12 @@ if [ -z ${DEPENDENCY_ENV_VARS+x} ]; then
     read -r CC CXX FC F77 CPP < <($CMD)
     unset CMD
 
-    LD_LIBRARY_PATH="${PREFIX}/lib"
-    CPPFLAGS="-isystem ${PREFIX}/include"
-    LDFLAGS="-L${PREFIX}/lib -fPIE"
-    CPATH="${PREFIX}/include}"
-    CFLAGS="-Wno-unused-but-set-variable -fPIC"
-    LIBS="-lgomp"
+    LD_LIBRARY_PATH="${PREFIX}/lib:${LD_LIBRARY_PATH}"
+    CPPFLAGS="${CPPFLAGS} -isystem ${PREFIX}/include"
+    LDFLAGS="${LDFLAGS} -L${PREFIX}/lib -fPIE"
+    CPATH="${CPATH} ${PREFIX}/include}"
+    CFLAGS="${CFLAGS} -Wno-unused-but-set-variable -fPIC"
+    LIBS="${LIBS} -lgomp"
 
     if [ $COMPILER = "GNU-Mac" ]; then
         LDFLAGS="${LDFLAGS} -Wl,-no_compact_unwind"

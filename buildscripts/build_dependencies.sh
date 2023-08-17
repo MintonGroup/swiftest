@@ -17,16 +17,48 @@ set -a
 . ${SCRIPT_DIR}/_build_getopts.sh
 ARGS=$@
 
+ZLIB_VER="1.2.13"
+HDF5_VER="1.14.1-2"
+NC_VER="4.9.2"
+NF_VER="4.6.1"
+
 printf "*********************************************************\n"
 printf "*          FETCHING DEPENCENCY SOURCES                  *\n"
 printf "*********************************************************\n"
 printf "Copying files to ${DEPENDENCY_DIR}\n"
 mkdir -p ${DEPENDENCY_DIR}
 cd $DEPENDENCY_DIR
-wget -qO- https://www.zlib.net/zlib-1.2.13.tar.gz | tar xvz
-wget -qO- https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14.1/src/hdf5-1.14.1-2.tar.gz | tar xvz 
-wget -qO- https://github.com/Unidata/netcdf-c/archive/refs/tags/v4.9.2.tar.gz | tar xvz 
-wget -qO- https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v4.6.1.tar.gz | tar xvz 
+if [ -d ${DEPENDENCY_DIR}/zlib-${ZLIB_VER} ]; then
+    cd ${DEPENDENCY_DIR}/zlib-${ZLIB_VER}
+    make distclean
+    cd ${DEPENDENCY_DIR}
+else
+    wget -qO- https://www.zlib.net/zlib-${ZLIB_VER}.tar.gz | tar xvz
+fi
+
+if [ -d ${DEPENDENCY_DIR}/hdf5-${HDF5_VER} ]; then
+    cd ${DEPENDENCY_DIR}/hdf5-${HDF5_VER} 
+    make distclean
+    cd ${DEPENDENCY_DIR}
+else
+    wget -qO- https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14.1/src/hdf5-${HDF5_VER}.tar.gz | tar xvz 
+fi
+
+if [ -d ${DEPENDENCY_DIR}/netcdf-c-${NC_VER} ]; then
+    cd ${DEPENDENCY_DIR}/netcdf-c-${NC_VER} 
+    make distclean
+    cd ${DEPENDENCY_DIR}
+else
+    wget -qO- https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NC_VER}.tar.gz | tar xvz 
+fi
+
+if [ -d ${DEPENDENCY_DIR}/netcdf-fortran-${NF_VER} ]; then
+    cd ${DEPENDENCY_DIR}/netcdf-fortran-${NF_VER} 
+    make distclean
+    cd ${DEPENDENCY_DIR}
+else
+    wget -qO- https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v${NF_VER}.tar.gz | tar xvz 
+fi 
 cd $ROOT_DIR
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
