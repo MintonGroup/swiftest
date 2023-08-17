@@ -1,4 +1,5 @@
 !_bindings.h
 !_bindings.pyx
 !CMakeLists.txt  
-*.py
+!*.py
+!tests
