@@ -9,10 +9,9 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel.linux]
-environment = {SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF", FFLAGS="${FFLAGS} -fPIC"}
+environment = {SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF", FFLAGS="${FFLAGS} -fPIC", CFLAGS="${CFLAGS} -fPIC", LDFLAGS="${LDFLAGS} -fPIE"}
 before-all = [
     "yum install wget m4 doxygen -y",
     "buildscripts/build_dependencies.sh",
-    "buildscripts/build_swiftest.sh -c GNU-Linux -p /usr/local"
 ]
     

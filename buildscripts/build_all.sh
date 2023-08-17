@@ -15,18 +15,16 @@
 # Determine the platform and architecture
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
-BUILD_DIR="${ROOT_DIR}/build"
+DEPENDENCY_DIR="${ROOT_DIR}/_dependencies"
 PREFIX=/usr/local
 
 # Parse arguments
-USTMT="Usage: ${0} [-d {./build}|/path/to/build] [-p {/usr/local}|/prefix/path]"
-IFORT=false
-PREFIX=/usr/local
+USTMT="Usage: ${0} [-d /path/to/dependancy/build] [-p {/usr/local}|/prefix/path]"
 COMPILER=""
-while getopts ":c:d:" ARG; do
+while getopts ":d:p:" ARG; do
     case "${ARG}" in
     d)
-        BUILD_DIR="${OPTARG}"
+        DEPENDENCY_DIR="${OPTARG}"
         ;;
     p)
         PREFIX="${OPTARG}"
@@ -41,7 +39,6 @@ while getopts ":c:d:" ARG; do
     esac
 done
 
-mkdir -p ${BUILD_DIR}
 read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
 
 # Determine if we are in the correct directory (the script can either be run from the Swiftest project root directory or the
@@ -52,7 +49,6 @@ if [ ! -f "${ROOT_DIR}/setup.py" ]; then
 fi
 cd ${ROOT_DIR}
 VERSION=$( cat version.txt )
-echo "Building Swiftest version ${VERSION} for ${OS}-${ARCH}"
 
 case $OS in
     MacOSX) 
@@ -66,14 +62,7 @@ case $OS in
         ;;
 esac
 
-mkdir -p ${BUILD_DIR}
-cd $BUILD_DIR
-wget -qO- https://www.zlib.net/zlib-1.2.13.tar.gz | tar xvz
-wget -qO- https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14.1/src/hdf5-1.14.1-2.tar.gz | tar xvz 
-wget -qO- https://github.com/Unidata/netcdf-c/archive/refs/tags/v4.9.2.tar.gz | tar xvz 
-wget -qO- https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v4.6.1.tar.gz | tar xvz 
-
-${SCRIPT_DIR}/build_dependencies.sh -c $COMPILER -p ${PREFIX} && \
+${SCRIPT_DIR}/build_dependencies.sh -p ${PREFIX} -d ${DEPENDENCY_DIR} 
 ${SCRIPT_DIR}/build_swiftest.sh -c $COMPILER -p ${PREFIX}
 
 
