@@ -11,24 +11,23 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 SCRIPT_DIR=$(realpath $(dirname $0))
-BUILD_DIR=$(realpath ${SCRIPT_DIR}/../build)
-
-mkdir -p ${BUILD_DIR}
-cd $BUILD_DIR
 
 # Parse arguments
-USTMT="Usage: ${0} <-c Intel|GNU-Linux|GNU-Mac> [-p {/usr/local}|/prefix/path]"
-IFORT=false
+USTMT="Usage: ${0} <-c Intel|GNU-Linux|GNU-Mac> <-d /path/to/dependency/source> [-p {/usr/local}|/prefix/path] "
 PREFIX=/usr/local
 COMPILER=""
+DEPENCENCY_DIR=""
 CARG=""
-while getopts ":c:p:" ARG; do
+while getopts ":c:p:d:" ARG; do
     case "${ARG}" in
     c)
         COMPILER="${OPTARG}"
         ;;
     p)
         PREFIX="${OPTARG}"
+        ;;
+    d)
+        DEPENDENCY_DIR="${OPTARG}"
         ;;
     :)      
         echo "Error: -${OPTARG} requires an argument."
@@ -39,6 +38,7 @@ while getopts ":c:p:" ARG; do
         ;;
     esac
 done
+
 CMD="${SCRIPT_DIR}/set_compilers.sh -c $COMPILER"
 read -r CC CXX FC F77 CPP < <($CMD)
 export CC=${CC}
@@ -80,7 +80,7 @@ printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
 printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
-cd ${BUILD_DIR}/netcdf-fortran-*
+cd ${DEPENDENCY_DIR}/netcdf-fortran-*
 ./configure --disable-shared --with-pic --disable-zstandard-plugin --prefix=${PREFIX}  
 make && make check i
 if [ -w ${PREFIX} ]; then
