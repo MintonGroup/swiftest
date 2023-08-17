@@ -9,79 +9,39 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
-SCRIPT_DIR=$(realpath $(dirname $0))
-ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+set -a
+if [ -z ${SCRIPT_DIR+x} ]; then SCRIPT_DIR=$(realpath $(dirname $0)); fi
+. ${SCRIPT_DIR}/_build_getopts.sh
 
-# Parse arguments
-USTMT="Usage: ${0} <-c Intel|GNU-Linux|GNU-Mac> [-p {/usr/local}|/prefix/path]"
-IFORT=false
-PREFIX=/usr/local
-COMPILER=""
-CARG=""
-while getopts ":c:p:" ARG; do
-    case "${ARG}" in
-    c)
-        COMPILER="${OPTARG}"
-        ;;
-    p)
-        PREFIX="${OPTARG}"
-        ;;
-    :)      
-        echo "Error: -${OPTARG} requires an argument."
-        echo $USTMT
-        exit 1
-        ;;
-    *)
-        ;;
-    esac
-done
-CMD="${SCRIPT_DIR}/set_compilers.sh -c $COMPILER -f"
-read -r CC CXX FC F77 CPP < <($CMD)
-export CC=${CC}
-export CXX=${CXX}
-export FC=${FC}
-export F77=${F77}
-export CPP=${CPP}
+# Determine if we are in the correct directory (the script can either be run from the Swiftest project root directory or the
+# buildscripts directory)
+if [ ! -f "${ROOT_DIR}/setup.py" ]; then
+    echo "Error: setup.py not found" 
+    exit 1
+fi
 
 printf "Using ${COMPILER} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n\n"
 printf "Installing to ${PREFIX}\n"
 printf "Dependency libraries in ${PREFIX}\n"
 
-export DEPDIR=$PREFIX
-export NETCDF_FORTRAN_HOME=$DEPDIR
-export HDF_ROOT=$PREFIX
-export HDF5_LIBDIR="${HDF5_ROOT}/lib"
-export HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
-export HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
 
-export LD_LIBRARY_PATH="${DEPDIR}/lib:${LD_LIBRARY_PATH}"
-export CPPFLAGS="${CPPFLAGS} -isystem ${DEPDIR}/include"
-export LDFLAGS="${LDFLAGS} -L${DEPDIR}/lib"
-export CPATH="${DEPDIR}/include:${CPATH}"
-
-if [ $COMPILER = "GNU-Mac" ]; then
-    # export MACOSX_DEPLOYMENT_TARGET=13 
-    export LDFLAGS="${LDFLAGS} -Wl,-no_compact_unwind"
-    printf "MACOSX_DEPLOYMENT_TARGET: ${MACOSX_DEPLOYMENT_TARGET}\n"
-fi
-
-export SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF"
+SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF"
 
 if [ $COMPILER = "Intel" ]; then 
-    export FCFLAGS="${CFLAGS} -standard-semantics"
-    export FFLAGS=${CFLAGS}
-    export SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DMACHINE_CODE_VALUE=\"SSE2\""
+    FCFLAGS="${CFLAGS} -standard-semantics"
+    FFLAGS=${CFLAGS}
+    SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DMACHINE_CODE_VALUE=\"SSE2\""
 else
-    export FCFLAGS="${CFLAGS}"
-    export FFLAGS="${CFLAGS}"
-    export SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DMACHINE_CODE_VALUE=\"generic\""
+    FCFLAGS="${CFLAGS}"
+    FFLAGS="${CFLAGS}"
+    SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DMACHINE_CODE_VALUE=\"generic\""
 fi
 
 read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
 echo $OS $ARCH
 if [ $OS = "MacOSX" ] && [ $ARCH = "arm64" ]; then
     printf "OpenMP not supported on Apple M1 Silicon quite yet\n"
-    export SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DUSE_OPENMP=OFF -DUSE_SIMD=OFF"
+    SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DUSE_OPENMP=OFF -DUSE_SIMD=OFF"
 fi
 
 cd $ROOT_DIR
@@ -102,6 +62,5 @@ printf "NETCDF_FORTRAN_HOME: ${NETCDF_FORTRAN_HOME}\n"
 printf "SKBUILD_CONFIGURE_OPTIONS: ${SKBUILD_CONFIGURE_OPTIONS}\n"
 printf "*********************************************************\n"
 
-#pipx run cibuildwheel --platform macos
 python3 -m pip install build pip
 python3 -m build

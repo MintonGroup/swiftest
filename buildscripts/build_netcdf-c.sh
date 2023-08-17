@@ -12,58 +12,8 @@
 # If not, see: https://www.gnu.org/licenses. 
 SCRIPT_DIR=$(realpath $(dirname $0))
 
-# Parse arguments
-USTMT="Usage: ${0} <-c Intel|GNU-Linux|GNU-Mac> <-d /path/to/dependency/source> [-p {/usr/local}|/prefix/path] "
-PREFIX=/usr/local
-COMPILER=""
-DEPENCENCY_DIR=""
-CARG=""
-while getopts ":c:p:d:" ARG; do
-    case "${ARG}" in
-    c)
-        COMPILER="${OPTARG}"
-        ;;
-    p)
-        PREFIX="${OPTARG}"
-        ;;
-    d)
-        DEPENDENCY_DIR="${OPTARG}"
-        ;;
-    :)      
-        echo "Error: -${OPTARG} requires an argument."
-        echo $USTMT
-        exit 1
-        ;;
-    *)
-        ;;
-    esac
-done
-
-CMD="${SCRIPT_DIR}/set_compilers.sh -c $COMPILER"
-read -r CC CXX FC F77 CPP < <($CMD)
-export CC=${CC}
-export CXX=${CXX}
-export FC=${FC}
-export F77=${F77}
-export CPP=${CPP}
-
-export HDF5_ROOT=${HDF5_ROOT:-$PREFIX}
-export HDF5_LIBDIR="${HDF5_ROOT}/lib"
-export HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
-export HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
-export NCDIR="${PREFIX}"
-export NFDIR="${PREFIX}"
-export LD_LIBRARY_PATH="${PREFIX}/lib:${HDF5_LIBDIR}:${LD_LIBRARY_PATH}"
-export CPPFLAGS="${CPPFLAGS} -isystem ${PREFIX}/include -isystem ${HDF5_INCLUDE_DIR}"
-export LDFLAGS="${LDFLAGS} -L${PREFIX}/lib -L${HDF5_LIBDIR}"
-export CPATH="${PREFIX}/include:${CPATH}"
-export CFLAGS="${CFLAGS} -Wno-unused-but-set-variable"
-
-if [ $COMPILER = "GNU-Mac" ]; then
-    export MACOSX_DEPLOYMENT_TARGET=13 
-    export LDFLAGS="${LDFLAGS} -Wl,-no_compact_unwind"
-    export CFLAGS="${CFLAGS} -Wno-deprecated-non-prototype"
-fi
+set -a
+. ${SCRIPT_DIR}/_build_getopts.sh
 
 printf "\n"
 printf "*********************************************************\n"
