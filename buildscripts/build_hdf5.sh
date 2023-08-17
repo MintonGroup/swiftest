@@ -85,7 +85,7 @@ if [ $COMPILER = "GNU-Mac" ]; then
       printf "echo arm-apple-darwin" > bin/config.sub 
    fi
 fi
-COPTS="--disable-shared --enable-build-mode=production --disable-fortran --disable-java --disable-cxx --prefix=${PREFIX} --with-zlib=${PREFIX}"
+COPTS="--disable-shared --enable-build-mode=production --enable-tests=no --enable-tools=no --disable-fortran --disable-java --disable-cxx --prefix=${PREFIX} --with-zlib=${PREFIX}"
 ./configure ${COPTS}
 make 
 if [ -w ${PREFIX} ]; then

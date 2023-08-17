@@ -81,7 +81,7 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/netcdf-fortran-*
-./configure --disable-shared --with-pic --disable-zstandard-plugin --prefix=${PREFIX}  
+./configure --disable-shared --with-pic --disable-zstandard-plugin --enable-large-file-tests=no  --enable-filter-test=no --prefix=${PREFIX}  
 make && make check i
 if [ -w ${PREFIX} ]; then
     make install

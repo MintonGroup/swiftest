@@ -79,7 +79,7 @@ printf "HDF5_ROOT: ${HDF5_ROOT}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/netcdf-c-*
-COPTS="--disable-shared --disable-dap --disable-byterange --prefix=${PREFIX}"
+COPTS="--disable-shared --disable-dap --disable-byterange --disable-testsets --prefix=${PREFIX}"
 if [ !  $COMPILER = "GNU-Mac" ]; then
     COPTS="${COPTS} --disable-libxml2"
 fi
