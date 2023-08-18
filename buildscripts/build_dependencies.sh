@@ -17,8 +17,8 @@ set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 
-ZLIB_VER="1.2.13"
-HDF5_VER="1.14.1-2"
+ZLIB_VER="1.3"
+HDF5_VER="1_14_2"
 NC_VER="4.9.2"
 NF_VER="4.6.1"
 
@@ -33,15 +33,28 @@ if [ -d ${DEPENDENCY_DIR}/zlib-${ZLIB_VER} ]; then
     make distclean
     cd ${DEPENDENCY_DIR}
 else
-    wget -qO- https://www.zlib.net/zlib-${ZLIB_VER}.tar.gz | tar xvz
+    [ -d ${DEPENDENCY_DIR}/zlib-* ] && rm -rf ${DEPENDENCY_DIR}/zlib-*
+    wget -qO- https://github.com/madler/zlib/releases/download/v${ZLIB_VER}/zlib-${ZLIB_VER}.tar.gz | tar xvz
 fi
 
-if [ -d ${DEPENDENCY_DIR}/hdf5-${HDF5_VER} ]; then
-    cd ${DEPENDENCY_DIR}/hdf5-${HDF5_VER} 
+printf "Checking if HDF5 source exists\n"
+if [[ (-d ${DEPENDENCY_DIR}/hdfsrc) && (-f ${DEPENDENCY_DIR}/hdfsrc/README.md) ]]; then
+    OLDVER=$(grep version ${DEPENDENCY_DIR}/hdfsrc/README.md | awk '{print $3}' | sed 's/\./_/g')
+    printf "Existing copy of HDF5 source detected\n"
+    printf "Existing version : ${OLDVER}\n"
+    printf "Requested version: ${HDF5_VER}\n"
+    if [ "$OLDVER" != "${HDF5_VER}" ]; then
+        printf "Existing version of HDF5 source doesn't match requested. Deleting\n"
+        rm -rf ${DEPENDENCY_DIR}/hdfsrc
+    fi
+fi
+
+if [ -d ${DEPENDENCY_DIR}/hdfsrc ]; then
+    cd ${DEPENDENCY_DIR}/hdfsrc
     make distclean
     cd ${DEPENDENCY_DIR}
 else
-    wget -qO- https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.14/hdf5-1.14.1/src/hdf5-${HDF5_VER}.tar.gz | tar xvz 
+    wget -qO- https://github.com/HDFGroup/hdf5/releases/download/hdf5-${HDF5_VER}/hdf5-${HDF5_VER}.tar.gz | tar xvz
 fi
 
 if [ -d ${DEPENDENCY_DIR}/netcdf-c-${NC_VER} ]; then
@@ -49,6 +62,7 @@ if [ -d ${DEPENDENCY_DIR}/netcdf-c-${NC_VER} ]; then
     make distclean
     cd ${DEPENDENCY_DIR}
 else
+    [ -d ${DEPENDENCY_DIR}/netcdf-c-* ] && rm -rf ${DEPENDENCY_DIR}/netcdf-c-*
     wget -qO- https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NC_VER}.tar.gz | tar xvz 
 fi
 
@@ -57,6 +71,7 @@ if [ -d ${DEPENDENCY_DIR}/netcdf-fortran-${NF_VER} ]; then
     make distclean
     cd ${DEPENDENCY_DIR}
 else
+    [ -d ${DEPENDENCY_DIR}/netcdf-fortran-* ] && rm -rf ${DEPENDENCY_DIR}/netcdf-fortran-*
     wget -qO- https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v${NF_VER}.tar.gz | tar xvz 
 fi 
 cd $ROOT_DIR

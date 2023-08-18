@@ -27,7 +27,7 @@ printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
 printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
-cd ${DEPENDENCY_DIR}/hdf5-*
+cd ${DEPENDENCY_DIR}/hdfsrc
 if [ $COMPILER = "GNU-Mac" ]; then
    read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
    if [ $ARCH  = "arm64" ]; then
