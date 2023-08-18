@@ -3207,7 +3207,7 @@ contains
                call nc%open(param)
             case('NEW')
                if (fileExists) then
-                  errmsg = trim(adjustl(param%outfile)) // " Alread Exists! You must specify OUT_STAT = APPEND, REPLACE, or UNKNOWN"
+                  errmsg = trim(adjustl(param%outfile)) // " already exists! You must specify OUT_STAT = APPEND, REPLACE, or UNKNOWN"
                   goto 667
                end if
                call nc%initialize(param)
