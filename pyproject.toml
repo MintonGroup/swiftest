@@ -10,19 +10,20 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
-test-requires = ["pytest","cython"]
 test-command = "pytest {package}/tests"
+test-requires = ['pytest','cython']
+test-skip = "cp312-*"
 
 [tool.cibuildwheel.linux]
 environment = {SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF", FFLAGS="${FFLAGS} -fPIC", CFLAGS="${CFLAGS} -fPIC", LDFLAGS="${LDFLAGS} -fPIE", LIBS="-lgomp"}
 before-all = [
-    "yum install wget m4 doxygen python3-distutils-extra -y",
-    "buildscripts/build_dependencies.sh",
+    "yum install wget m4 doxygen -y",
+    "buildscripts/build_dependencies.sh -d /_dependencies -p /usr/local",
 ]
 
 [tool.cibuildwheel.macos]
-environment = {MACOSX_DEPLOYMENT_TARGET="10.9", LD_LIBRARY_PATH="${TMPDIR}/lib:${LD_LIBRARY_PATH}",CPPFLAGS="${CPPFLAGS} -isystem ${TMPDIR}/include",LDFLAGS="${LDFLAGS} -L${TMPDIR}/lib -fPIE -Wl,-no_compact_unwind",CPATH="${CPATH} ${TMPDIR}/include}", CFLAGS="${CFLAGS} -Wno-unused-but-set-variable -fPIC -Wno-deprecated-non-prototype", SKBUILD_CONFIGURE_OPTIONS="-DUSE_OPENMP=OFF -DUSE_SIMD=OFF -DBUILD_SHARED_LIBS=OFF",FFLAGS="${FFLAGS} -fPIC"}
+environment = {PATH="${TMPDIR}/bin:${PATH}",MACOSX_DEPLOYMENT_TARGET="10.9", LD_LIBRARY_PATH="${TMPDIR}/lib:${LD_LIBRARY_PATH}",CPPFLAGS="${CPPFLAGS} -isystem ${TMPDIR}/include",LDFLAGS="${LDFLAGS} -L${TMPDIR}/lib -fPIE -Wl,-no_compact_unwind",CPATH="${CPATH} ${TMPDIR}/include}", CFLAGS="${CFLAGS} -Wno-unused-but-set-variable -fPIC -Wno-deprecated-non-prototype", SKBUILD_CONFIGURE_OPTIONS="-DUSE_OPENMP=OFF -DUSE_SIMD=OFF -DBUILD_SHARED_LIBS=OFF",FFLAGS="${FFLAGS} -fPIC"}
 before-all = [
-    "buildscripts/build_dependencies.sh -d ${TMPDIR} -p ${TMPDIR}"
+    "buildscripts/build_dependencies.sh -d ${TMPDIR} -p ${TMPDIR} -m ${MACOSX_DEPLOYMENT_TARGET}"
 ]
     

@@ -20,7 +20,7 @@ setup(name='swiftest',
       author='David A. Minton',
       author_email='daminton@purdue.edu',
       url='https://github.itap.purdue.edu/MintonGroup/swiftest',
-      python_requires=">3.8",
+      python_requires=">=3.8",
       license="GPLv3",
       classifiers=[
         # How mature is this project? Common values are
