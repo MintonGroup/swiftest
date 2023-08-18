@@ -5,19 +5,19 @@ requires = [
     "cmake>=3.5.0",
     "cython>=3.0.0",
     "ninja",
-    "pytest"
+    "pytest",
+    "distutils"
 ]
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
-dependency-versions = "latest"
 test-requires = ["pytest","cython"]
 test-command = "pytest {package}/tests"
 
 [tool.cibuildwheel.linux]
 environment = {SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF", FFLAGS="${FFLAGS} -fPIC", CFLAGS="${CFLAGS} -fPIC", LDFLAGS="${LDFLAGS} -fPIE", LIBS="-lgomp"}
 before-all = [
-    "yum install wget m4 doxygen -y",
+    "yum install wget m4 doxygen python3-distutils-extra -y",
     "buildscripts/build_dependencies.sh",
 ]
 
