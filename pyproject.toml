@@ -13,6 +13,7 @@ build-backend = "setuptools.build_meta"
 test-command = "pytest {package}/tests"
 test-requires = ['pytest','cython']
 test-skip = "cp312-*"
+skip = "pp*"
 
 [tool.cibuildwheel.linux]
 environment = {SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF", FFLAGS="${FFLAGS} -fPIC", CFLAGS="${CFLAGS} -fPIC", LDFLAGS="${LDFLAGS} -fPIE", LIBS="-lgomp"}
