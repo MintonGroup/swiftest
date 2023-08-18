@@ -3190,9 +3190,9 @@ contains
       character(len=2*STRMAX)          :: errmsg
       logical                          :: fileExists
 
-      associate (pl => self%pl, tp => self%tp, npl => self%pl%nbody, ntp => self%tp%nbody)
+      associate (pl => self%pl, tp => self%tp, npl => self%pl%nbody, ntp => self%tp%nbody, lfirst => self%lfirst_io)
          nc%file_name = param%outfile
-         if (self%lfirst) then
+         if (lfirst) then
             inquire(file=param%outfile, exist=fileExists)
 #ifdef COARRAY
             if (this_image() /= 1) param%out_stat = 'APPEND'
@@ -3215,7 +3215,7 @@ contains
                call nc%initialize(param)
             end select
 
-            self%lfirst = .false.
+            lfirst = .false.
          end if
 
       end associate

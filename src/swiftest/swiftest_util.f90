@@ -2368,7 +2368,8 @@ contains
          write(*,*) 'Unkown integrator',param%integrator
          call base_util_exit(FAILURE,param%display_unit)
       end select
-      nbody_system%lfirst = .true.
+      nbody_system%lfirst_io = .true.
+      nbody_system%lfirst_peri = .true.
 
       allocate(swiftest_particle_info :: nbody_system%cb%info)
 

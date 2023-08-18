@@ -302,17 +302,16 @@ contains
       class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       ! Internals
-      logical, save         :: lfirst = .true.
       logical               :: lfirst_orig
       integer(I4B)          :: i
       character(len=STRMAX) :: timestr, idstr, message
 
 
       lfirst_orig = pl%lfirst
-      pl%lfirst = lfirst
-      if (lfirst) then
+      pl%lfirst = nbody_system%lfirst_peri
+      if (nbody_system%lfirst_peri) then
          call pl%get_peri(nbody_system, param)          
-         lfirst = .false.
+         nbody_system%lfirst_peri = .false.
       else
          call pl%get_peri(nbody_system, param)          
          do i = 1, pl%nbody
