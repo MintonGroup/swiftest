@@ -6,7 +6,6 @@ requires = [
     "cython>=3.0.0",
     "ninja",
     "pytest",
-    "distutils"
 ]
 build-backend = "setuptools.build_meta"
 
