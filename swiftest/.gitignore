@@ -2,4 +2,3 @@
 !_bindings.pyx
 !CMakeLists.txt  
 !*.py
-!tests

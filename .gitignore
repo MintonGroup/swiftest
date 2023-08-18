@@ -21,6 +21,7 @@ dump*
 !setup.py
 !examples/**
 !swiftest/**
+!tests/**
 *ipynb_checkpoints
 **/.DS_Store
 !version.txt

@@ -54,6 +54,7 @@ setup(name='swiftest',
             'astroquery>=0.4.6',
             'tqdm>=4.65.0',
             'py>=1.11'
+            'cython>=3.0.0'
       ],
       packages=['swiftest'],
       test_suite="swiftest.tests",
