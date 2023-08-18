@@ -11,7 +11,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
 dependency-versions = "latest"
-test-requires = ["pytest"]
+test-requires = ["pytest","cython"]
 test-command = "pytest {package}/tests"
 
 [tool.cibuildwheel.linux]

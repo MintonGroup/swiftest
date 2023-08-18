@@ -53,7 +53,7 @@ setup(name='swiftest',
             'astropy>=5.1',
             'astroquery>=0.4.6',
             'tqdm>=4.65.0',
-            'py>=1.11'
+            'py>=1.11',
             'cython>=3.0.0'
       ],
       packages=['swiftest'],
