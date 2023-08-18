@@ -16,8 +16,6 @@ test-skip = "cp312-*"
 skip = "pp*"
 
 [tool.cibuildwheel.linux]
-archs = ["x86_64", "aarch64"]
-
 environment = {SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF", FFLAGS="${FFLAGS} -fPIC", CFLAGS="${CFLAGS} -fPIC", LDFLAGS="${LDFLAGS} -fPIE", LIBS="-lgomp"}
 before-all = [
     "yum install wget m4 doxygen -y",
