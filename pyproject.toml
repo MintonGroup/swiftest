@@ -16,6 +16,8 @@ test-skip = "cp312-*"
 skip = "pp*"
 
 [tool.cibuildwheel.linux]
+archs = ["x86_64", "aarch64"]
+
 environment = {SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF", FFLAGS="${FFLAGS} -fPIC", CFLAGS="${CFLAGS} -fPIC", LDFLAGS="${LDFLAGS} -fPIE", LIBS="-lgomp"}
 before-all = [
     "yum install wget m4 doxygen -y",
@@ -23,7 +25,8 @@ before-all = [
 ]
 
 [tool.cibuildwheel.macos]
-environment = {PATH="${TMPDIR}/bin:${PATH}",MACOSX_DEPLOYMENT_TARGET="10.9", LD_LIBRARY_PATH="${TMPDIR}/lib:${LD_LIBRARY_PATH}",CPPFLAGS="${CPPFLAGS} -isystem ${TMPDIR}/include",LDFLAGS="${LDFLAGS} -L${TMPDIR}/lib -fPIE -Wl,-no_compact_unwind",CPATH="${CPATH} ${TMPDIR}/include}", CFLAGS="${CFLAGS} -Wno-unused-but-set-variable -fPIC -Wno-deprecated-non-prototype", SKBUILD_CONFIGURE_OPTIONS="-DUSE_OPENMP=OFF -DUSE_SIMD=OFF -DBUILD_SHARED_LIBS=OFF",FFLAGS="${FFLAGS} -fPIC"}
+archs = ["x86_64", "universal2", "arm64"]
+environment = {PATH="${TMPDIR}/bin:${PATH}",MACOSX_DEPLOYMENT_TARGET="11.0", LD_LIBRARY_PATH="${TMPDIR}/lib:${LD_LIBRARY_PATH}",CPPFLAGS="${CPPFLAGS} -isystem ${TMPDIR}/include",LDFLAGS="${LDFLAGS} -L${TMPDIR}/lib -fPIE -Wl,-no_compact_unwind",CPATH="${CPATH} ${TMPDIR}/include}", CFLAGS="${CFLAGS} -Wno-unused-but-set-variable -fPIC -Wno-deprecated-non-prototype", SKBUILD_CONFIGURE_OPTIONS="-DUSE_OPENMP=OFF -DUSE_SIMD=OFF -DBUILD_SHARED_LIBS=OFF",FFLAGS="${FFLAGS} -fPIC"}
 before-all = [
     "buildscripts/build_dependencies.sh -d ${TMPDIR} -p ${TMPDIR} -m ${MACOSX_DEPLOYMENT_TARGET}"
 ]

@@ -14,10 +14,10 @@ SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 
 # Parse arguments
-USTMT="Usage: ${0} <-d /path/to/dependency/source> [-p /prefix/path|{/usr/local}] [-m MACOSX_DEPLOYMENT_TARGET|{10.9}]"
+USTMT="Usage: ${0} <-d /path/to/dependency/source> [-p /prefix/path|{/usr/local}] [-m MACOSX_DEPLOYMENT_TARGET|{11.0}]"
 PREFIX=/usr/local
 DEPENDENCY_DIR="${ROOT_DIR}/_dependencies"
-MACOSX_DEPLOYMENT_TARGET="10.9"
+MACOSX_DEPLOYMENT_TARGET="11.0"
 while getopts ":d:p:m:h" ARG; do
     case "${ARG}" in
     d)
@@ -59,9 +59,7 @@ case $OS in
 esac 
 
 if [ -z ${DEPENDENCY_ENV_VARS+x} ]; then
-    CMD="${SCRIPT_DIR}/set_compilers.sh -c $COMPILER"
-    read -r CC CXX FC F77 CPP < <($CMD)
-    unset CMD
+    . ${SCRIPT_DIR}/set_compilers.sh 
 
     LD_LIBRARY_PATH="${PREFIX}/lib:${LD_LIBRARY_PATH}"
     CPPFLAGS="${CPPFLAGS} -isystem ${PREFIX}/include"

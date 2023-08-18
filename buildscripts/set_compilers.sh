@@ -14,26 +14,6 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 # Parse arguments
-USTMT="Usage: ${0} <-c Intel|GNU-Linux|GNU-Mac> [-f|--force-ifort]"
-IFORT=false
-COMPILER=""
-while getopts ":c:f" ARG; do
-    case "${ARG}" in
-    f)
-        ;;
-    c)
-        COMPILER="${OPTARG}"
-        ;;
-    :)      
-        echo "Error: -${OPTARG} requires an argument."
-        echo $USTMT
-        exit 1
-        ;;
-    *)
-        ;;
-    esac
-done
-
 case "$COMPILER" in
     Intel|GNU-Linux|GNU-Mac)
         ;;
@@ -45,28 +25,29 @@ case "$COMPILER" in
         ;;
 esac
 
+set -a
 # Only replace compiler definitions if they are not already set
 case $COMPILER in
     Intel)
         if [ ! -v FC ]; then
             if command -v ifx &> /dev/null; then
-                export FC=$(command -v ifx)
+                FC=$(command -v ifx)
             elif command -v ifort &> /dev/null; then
-                export FC=$(command -v mpiifort)
+                FC=$(command -v mpiifort)
             else
                 printf "Error. Cannot find valid Intel Fortran compiler.\n"
                 exit 1
             fi
         fi
         if [ ! -v F77 ]; then
-            export F77="${FC}"
+            F77="${FC}"
         fi
 
         if [ ! -v CC ]; then
             if command -v icx &> /dev/null; then 
-                export CC=$(command -v icx)
+                CC=$(command -v icx)
             elif command -v icc &> /dev/null; then
-                export CC=$(command -v icc)
+                CC=$(command -v icc)
             else
                 printf "Error. Cannot find valid Intel C compiler.\n"
                 exit 1
@@ -75,9 +56,9 @@ case $COMPILER in
 
         if [ ! -v CXX ]; then
             if command -v icpx &> /dev/null; then
-                export CXX=$(command -v icpx)
+                CXX=$(command -v icpx)
             elif command -v icpc &> /dev/null; then
-                export CXX=$(command -v icpc)
+                CXX=$(command -v icpc)
             else
                 printf "Error. Cannot find valid Intel C++ compiler.\n"
                 exit 1
@@ -85,33 +66,39 @@ case $COMPILER in
         fi
 
         if command -v mpiifort &> /dev/null; then
-            export I_MPI_F90=${FC}
-            export FC=$(command -v mpiifort)
+            I_MPI_F90=${FC}
+            FC=$(command -v mpiifort)
         fi
 
         if command -v mpiicc &> /dev/null; then
-            export I_MPI_CC =${CC}
-            export CC=$(command -v mpiicc)
+            I_MPI_CC =${CC}
+            CC=$(command -v mpiicc)
         fi
 
         if command -v mpiicpc &> /dev/null; then
-            export I_MPI_CXX =${CXX}
-            export CXX=$(command -v mpiicpc)
+            I_MPI_CXX =${CXX}
+            CXX=$(command -v mpiicpc)
         fi
 
-        export CPP=${CPP:-$HOMEBRE_PREFIX/bin/cpp-13}
+        CPP=${CPP:-$HOMEBRE_PREFIX/bin/cpp-13}
         ;;
     GNU-Linux)
-        export FC=${FC:-$(command -v gfortran)}
-        export CC=${CC:-$(command -v gcc)}
-        export CXX=${CXX:-$(command -v g++)}
-        export CPP=${CPP:-$(command -v cpp)}
+        FC=${FC:-$(command -v gfortran)}
+        CC=${CC:-$(command -v gcc)}
+        CXX=${CXX:-$(command -v g++)}
+        CPP=${CPP:-$(command -v cpp)}
         ;;
     GNU-Mac)
-        export FC=${FC:-$HOMEBREW_PREFIX/bin/gfortran-13}
-        export CC=${CC:-$HOMEBREW_PREFIX/bin/gcc-13}
-        export CXX=${CXX:-$HOMEBREW_PREFIX/bin/g++-13}
-        export CPP=${CPP:-$HOMEBRE_PREFIX/bin/cpp-13}
+        MAJOR=$(echo ${MACOSX_DEPLOYMENT_TARGET} | awk '{print $1}' FS=.)
+        printf "MACOS Major Version: ${MAJOR}\n"
+        FC=${FC:-$HOMEBREW_PREFIX/bin/gfortran-${MAJOR}}
+        CC=${CC:-$HOMEBREW_PREFIX/bin/gcc-${MAJOR}}
+        CXX=${CXX:-$HOMEBREW_PREFIX/bin/g++-${MAJOR}}
+        CPP=${CPP:-$HOMEBREW_PREFIX/bin/cpp-${MAJOR}}
+        AR=${AR:-$HOMEBREW_PREFIX/bin/gcc-ar-${MAJOR}}
+        NM=${NM:-$HOMEBREW_PREFIX/bin/gcc-nm-${MAJOR}}
+        RANLIB=${RANLIB:-$HOMEBREW_PREFIX/bin/gcc-ranlib-${MAJOR}}
+        LD_LIBRARY_PATH="${HOMEBREW_PREFIX}/lib/gcc/${MAJOR}/lib:${LD_LIBRARY_PATH}"
         ;;
     *)
         printf "Unknown compiler type: ${COMPILER}\n"
@@ -120,6 +107,4 @@ case $COMPILER in
         exit 1
         ;;
 esac
-export F77=${FC}
-
-printf "${CC} ${CXX} ${FC} ${F77} ${CPP}"
+F77=${FC}
