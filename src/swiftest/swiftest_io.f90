@@ -3186,13 +3186,13 @@ contains
       class(swiftest_netcdf_parameters), intent(inout) :: nc     !! Parameters used to identify a particular NetCDF dataset
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       ! Internals
-      logical, save                    :: lfirst = .true. !! Flag to determine if this is the first call of this method
-      character(len=2*STRMAX)            :: errmsg
+
+      character(len=2*STRMAX)          :: errmsg
       logical                          :: fileExists
 
       associate (pl => self%pl, tp => self%tp, npl => self%pl%nbody, ntp => self%tp%nbody)
          nc%file_name = param%outfile
-         if (lfirst) then
+         if (self%lfirst) then
             inquire(file=param%outfile, exist=fileExists)
 #ifdef COARRAY
             if (this_image() /= 1) param%out_stat = 'APPEND'
@@ -3215,7 +3215,7 @@ contains
                call nc%initialize(param)
             end select
 
-            lfirst = .false.
+            self%lfirst = .false.
          end if
 
       end associate

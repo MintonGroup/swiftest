@@ -2358,10 +2358,9 @@ contains
             allocate(symba_pl :: nbody_system%pl_adds)
             allocate(symba_pl :: nbody_system%pl_discards)
 
-            allocate(symba_list_pltp :: nbody_system%pltp_encounter)
-            allocate(symba_list_plpl :: nbody_system%plpl_encounter)
+            allocate(symba_list_pltp     :: nbody_system%pltp_encounter)
+            allocate(symba_list_plpl     :: nbody_system%plpl_encounter)
             allocate(collision_list_plpl :: nbody_system%plpl_collision)
-
          end select
       case (INT_RINGMOONS)
          write(*,*) 'RINGMOONS-SyMBA integrator not yet enabled'
@@ -2369,6 +2368,7 @@ contains
          write(*,*) 'Unkown integrator',param%integrator
          call base_util_exit(FAILURE,param%display_unit)
       end select
+      nbody_system%lfirst = .true.
 
       allocate(swiftest_particle_info :: nbody_system%cb%info)
 
