@@ -5,11 +5,14 @@ requires = [
     "cmake>=3.5.0",
     "cython>=3.0.0",
     "ninja",
+    "pytest"
 ]
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
 dependency-versions = "latest"
+test-requires = "pytest"
+test-command = "pytest {package}/tests"
 
 [tool.cibuildwheel.linux]
 environment = {SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF", FFLAGS="${FFLAGS} -fPIC", CFLAGS="${CFLAGS} -fPIC", LDFLAGS="${LDFLAGS} -fPIE", LIBS="-lgomp"}
