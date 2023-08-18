@@ -302,9 +302,9 @@ contains
       class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
       ! Internals
-      logical, save      :: lfirst = .true.
-      logical            :: lfirst_orig
-      integer(I4B)       :: i
+      logical, save         :: lfirst = .true.
+      logical               :: lfirst_orig
+      integer(I4B)          :: i
       character(len=STRMAX) :: timestr, idstr, message
 
 
