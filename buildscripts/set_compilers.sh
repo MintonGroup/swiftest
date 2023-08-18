@@ -89,16 +89,16 @@ case $COMPILER in
         CPP=${CPP:-$(command -v cpp)}
         ;;
     GNU-Mac)
-        MAJOR=$(echo ${MACOSX_DEPLOYMENT_TARGET} | awk '{print $1}' FS=.)
-        printf "MACOS Major Version: ${MAJOR}\n"
-        FC=${FC:-$HOMEBREW_PREFIX/bin/gfortran-${MAJOR}}
-        CC=${CC:-$HOMEBREW_PREFIX/bin/gcc-${MAJOR}}
-        CXX=${CXX:-$HOMEBREW_PREFIX/bin/g++-${MAJOR}}
-        CPP=${CPP:-$HOMEBREW_PREFIX/bin/cpp-${MAJOR}}
-        AR=${AR:-$HOMEBREW_PREFIX/bin/gcc-ar-${MAJOR}}
-        NM=${NM:-$HOMEBREW_PREFIX/bin/gcc-nm-${MAJOR}}
-        RANLIB=${RANLIB:-$HOMEBREW_PREFIX/bin/gcc-ranlib-${MAJOR}}
-        LD_LIBRARY_PATH="${HOMEBREW_PREFIX}/lib/gcc/${MAJOR}/lib:${LD_LIBRARY_PATH}"
+        GCCVER=${GCCVER:-13}
+        printf "GCC Version: ${GCCVER}\n"
+        FC=${FC:-$HOMEBREW_PREFIX/bin/gfortran-${GCCVER}}
+        CC=${CC:-$HOMEBREW_PREFIX/bin/gcc-${GCCVER}}
+        CXX=${CXX:-$HOMEBREW_PREFIX/bin/g++-${GCCVER}}
+        CPP=${CPP:-$HOMEBREW_PREFIX/bin/cpp-${GCCVER}}
+        AR=${AR:-$HOMEBREW_PREFIX/bin/gcc-ar-${GCCVER}}
+        NM=${NM:-$HOMEBREW_PREFIX/bin/gcc-nm-${GCCVER}}
+        RANLIB=${RANLIB:-$HOMEBREW_PREFIX/bin/gcc-ranlib-${GCCVER}}
+        LD_LIBRARY_PATH="${HOMEBREW_PREFIX}/lib/gcc/${GCCVER}/lib:${LD_LIBRARY_PATH}"
         ;;
     *)
         printf "Unknown compiler type: ${COMPILER}\n"
