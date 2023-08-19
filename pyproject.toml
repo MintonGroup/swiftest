@@ -13,12 +13,13 @@ build-backend = "setuptools.build_meta"
 test-command = "pytest {package}/tests"
 test-requires = ['pytest','cython']
 test-skip = "cp312-*"
-skip = "pp*"
+skip = ["pp* *i686 *-manylinux_i686 *_ppc64le *_s390x *-musllinux* *-win32"]
+before-build = "python3 -m pip install -U pip"
 
 [tool.cibuildwheel.linux]
 environment = {SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF", FFLAGS="${FFLAGS} -fPIC", CFLAGS="${CFLAGS} -fPIC", LDFLAGS="${LDFLAGS} -fPIE", LIBS="-lgomp"}
 before-all = [
-    "if command -v yum &> /dev/null; then GET=yum; else GET=apt-get; fi && ${GET} install wget m4 doxygen -y",
+    "yum install wget m4 doxygen  -y ||  apt-get install wget m4 doxygen -y",
     "buildscripts/build_dependencies.sh -d /_dependencies -p /usr/local",
 ]
 
@@ -28,4 +29,5 @@ environment = {GCCVER="13",PATH="${TMPDIR}/bin:${PATH}", LD_LIBRARY_PATH="${TMPD
 before-all = [
     "buildscripts/build_dependencies.sh -d ${TMPDIR} -p ${TMPDIR} -m ${MACOSX_DEPLOYMENT_TARGET}"
 ]
+
     
