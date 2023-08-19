@@ -18,7 +18,7 @@ skip = "pp*"
 [tool.cibuildwheel.linux]
 environment = {SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF", FFLAGS="${FFLAGS} -fPIC", CFLAGS="${CFLAGS} -fPIC", LDFLAGS="${LDFLAGS} -fPIE", LIBS="-lgomp"}
 before-all = [
-    "yum install wget m4 doxygen -y",
+    "if command -v yum &> /dev/null; then GET=yum; else GET=apt-get; fi && ${GET} install wget m4 doxygen -y",
     "buildscripts/build_dependencies.sh -d /_dependencies -p /usr/local",
 ]
 
