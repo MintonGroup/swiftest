@@ -89,7 +89,6 @@ case $OS in
         CPP=${CPP:-$(command -v cpp)}
         ;;
     MacOSX)
-
         if $(brew --version &> /dev/null); then 
             brew install llvm@16 libomp 
         else
@@ -112,8 +111,7 @@ case $OS in
         CPATH="${FROOT}/include:${CPATH}"
         CXXFLAGS="${CFLAGS} ${CXXFLAGS}"
         FCFLAGS="${CFLAGS} ${FCFLAGS}"
-        CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} ${CFLAGS} -Wno-deprecated-non-prototype"
-    fi
+        CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype ${CFLAGS}"
         ;;
     *)
         printf "Unknown compiler type: ${OS}\n"
