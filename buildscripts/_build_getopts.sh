@@ -17,7 +17,7 @@ ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 USTMT="Usage: ${0} <-d /path/to/dependency/source> [-p /prefix/path|{/usr/local}] [-m MACOSX_DEPLOYMENT_TARGET|{11.0}]"
 PREFIX=/usr/local
 DEPENDENCY_DIR="${ROOT_DIR}/_dependencies"
-MACOSX_DEPLOYMENT_TARGET="11.0"
+MACOSX_DEPLOYMENT_TARGET="13.0"
 while getopts ":d:p:m:h" ARG; do
     case "${ARG}" in
     d)
@@ -46,17 +46,6 @@ while getopts ":d:p:m:h" ARG; do
 done
 
 read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
-case $OS in
-    MacOSX) 
-        COMPILER="GNU-Mac"
-        ;;
-    Linux)
-        COMPILER="GNU-Linux"
-        ;;
-    *)
-        printf "This script is not tested for ${OS}-${ARCH}\n"
-        ;;
-esac 
 
 if [ -z ${DEPENDENCY_ENV_VARS+x} ]; then
     . ${SCRIPT_DIR}/set_compilers.sh 

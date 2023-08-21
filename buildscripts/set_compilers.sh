@@ -14,12 +14,12 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 # Parse arguments
-case "$COMPILER" in
-    Intel|GNU-Linux|GNU-Mac)
+case "$OS" in
+    Intel|Linux|MacOSX)
         ;;
     *)
-        echo "Unknown compiler type: $COMPILER"
-        echo "Valid options are Intel, GNU-Linux, or GNU-Mac"
+        echo "Unknown compiler type: $OS"
+        echo "Valid options are Intel, Linux, or MacOSX"
         echo $USTMT
         exit 1
         ;;
@@ -27,7 +27,7 @@ esac
 
 set -a
 # Only replace compiler definitions if they are not already set
-case $COMPILER in
+case $OS in
     Intel)
         if [ ! -v FC ]; then
             if command -v ifx &> /dev/null; then
@@ -82,13 +82,13 @@ case $COMPILER in
 
         CPP=${CPP:-$HOMEBRE_PREFIX/bin/cpp-13}
         ;;
-    GNU-Linux)
+    Linux)
         FC=${FC:-$(command -v gfortran)}
         CC=${CC:-$(command -v gcc)}
         CXX=${CXX:-$(command -v g++)}
         CPP=${CPP:-$(command -v cpp)}
         ;;
-    GNU-Mac)
+    MacOSX)
 
         if $(brew --version &> /dev/null); then 
             brew install llvm@16 libomp 
@@ -106,17 +106,18 @@ case $COMPILER in
         FROOT=$(realpath $(dirname $(command -v gfortran))/..) 
         FC=$(command -v gfortran)
         LD_LIBRARY_PATH="${COMPILER_PREFIX}/lib:${FROOT}/lib:${LD_LIBRARY_PATH}"
-        LDFLAGS="-L${HOMEBREW_PREFIX}/opt/llvm/lib/c++ -Wl,-rpath,${HOMEBREW_PREFIX}/opt/llvm/lib/c+ -L${HOMEBREW_PREFIX}/opt/libomp/lib"
+        LDFLAGS="-L${HOMEBREW_PREFIX}/opt/llvm/lib/c++ -Wl,-rpath,${HOMEBREW_PREFIX}/opt/llvm/lib/c+ -L${HOMEBREW_PREFIX}/opt/libomp/lib -Wl,-no_compact_unwind"
         CPPFLAGS="-isystem ${HOMEBREW_PREFIX}/opt/libomp/include"
         LIBS="-lomp ${LIBS}"
         CPATH="${FROOT}/include:${CPATH}"
-        CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} ${CFLAGS}"
         CXXFLAGS="${CFLAGS} ${CXXFLAGS}"
         FCFLAGS="${CFLAGS} ${FCFLAGS}"
+        CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} ${CFLAGS} -Wno-deprecated-non-prototype"
+    fi
         ;;
     *)
-        printf "Unknown compiler type: ${COMPILER}\n"
-        echo "Valid options are Intel, GNU-Linux, or GNU-Mac"
+        printf "Unknown compiler type: ${OS}\n"
+        echo "Valid options are Intel, Linux, or MacOSX"
         printf $USTMT
         exit 1
         ;;
