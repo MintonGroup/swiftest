@@ -39,3 +39,5 @@ if [ $? -ne 0 ]; then
    printf "zlib could not be compiled.\n"
    exit 1
 fi
+
+make distclean

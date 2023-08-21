@@ -11,6 +11,7 @@
 """
 
 from skbuild import setup
+from pathlib import Path
 
 with open('version.txt') as version_file:
     version = version_file.read().strip()
@@ -20,6 +21,8 @@ setup(name='swiftest',
       author='David A. Minton',
       author_email='daminton@purdue.edu',
       url='https://github.itap.purdue.edu/MintonGroup/swiftest',
+      long_description=Path("README.md").read_text(encoding="utf-8"),
+      long_description_content_type="text/markdown",
       python_requires=">=3.8",
       license="GPLv3",
       classifiers=[

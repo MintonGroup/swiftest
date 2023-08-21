@@ -63,15 +63,8 @@ if [ -z ${DEPENDENCY_ENV_VARS+x} ]; then
 
     LD_LIBRARY_PATH="${PREFIX}/lib:${LD_LIBRARY_PATH}"
     CPPFLAGS="${CPPFLAGS} -isystem ${PREFIX}/include"
-    LDFLAGS="${LDFLAGS} -L${PREFIX}/lib -fPIE"
+    LDFLAGS="${LDFLAGS} -L${PREFIX}/lib"
     CPATH="${CPATH} ${PREFIX}/include}"
-    CFLAGS="${CFLAGS} -Wno-unused-but-set-variable -fPIC"
-    LIBS="${LIBS} -lgomp"
-
-    if [ $COMPILER = "GNU-Mac" ]; then
-        LDFLAGS="${LDFLAGS} -Wl,-no_compact_unwind"
-        CFLAGS="${CFLAGS} -Wno-deprecated-non-prototype"
-    fi
 
     HDF5_ROOT="${PREFIX}"
     HDF5_LIBDIR="${HDF5_ROOT}/lib"

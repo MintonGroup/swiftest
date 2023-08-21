@@ -89,16 +89,29 @@ case $COMPILER in
         CPP=${CPP:-$(command -v cpp)}
         ;;
     GNU-Mac)
-        GCCVER=${GCCVER:-13}
-        printf "GCC Version: ${GCCVER}\n"
-        FC=${FC:-$HOMEBREW_PREFIX/bin/gfortran-${GCCVER}}
-        CC=${CC:-$HOMEBREW_PREFIX/bin/gcc-${GCCVER}}
-        CXX=${CXX:-$HOMEBREW_PREFIX/bin/g++-${GCCVER}}
-        CPP=${CPP:-$HOMEBREW_PREFIX/bin/cpp-${GCCVER}}
-        AR=${AR:-$HOMEBREW_PREFIX/bin/gcc-ar-${GCCVER}}
-        NM=${NM:-$HOMEBREW_PREFIX/bin/gcc-nm-${GCCVER}}
-        RANLIB=${RANLIB:-$HOMEBREW_PREFIX/bin/gcc-ranlib-${GCCVER}}
-        LD_LIBRARY_PATH="${HOMEBREW_PREFIX}/lib/gcc/${GCCVER}/lib:${LD_LIBRARY_PATH}"
+
+        if $(brew --version &> /dev/null); then 
+            brew install llvm@16 libomp 
+        else
+            echo \"Please install Homebrew first\" 
+            exit 1 
+        fi
+        COMPILER_PREFIX=${COMPILER_PREFIX:-"/opt/homebrew/opt/llvm"}
+        CC=${CC:-${COMPILER_PREFIX}/bin/clang}
+        CXX=${CXX:-${COMPILER_PREFIX}/bin/clang++}
+        CPP=${CPP:-${COMPILER_PREFIX}/bin/clang-cpp}
+        AR=${AR:-${COMPILER_PREFIX}/bin/llvm-ar}
+        NM=${NM:-${COMPILER_PREFIX}/bin/llvm-nm}
+        RANLIB=${RANLIB:-${COMPILER_PREFIX}/bin/llvm-ranlib}
+        FROOT=$(realpath $(dirname $(command -v gfortran))/..) 
+        FC=$(command -v gfortran)
+        LD_LIBRARY_PATH="${COMPILER_PREFIX}/lib:${FROOT}/lib:${LD_LIBRARY_PATH}"
+        LDFLAGS="-L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++"
+        LIBS="-L/opt/homebrew/opt/libomp/lib -lomp ${LIBS}"
+        CPATH="${FROOT}/include:${CPATH}"
+        CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} ${CFLAGS}"
+        CXXFLAGS="${CFLAGS} ${CXXFLAGS}"
+        FCFLAGS="${CFLAGS} ${FCFLAGS}"
         ;;
     *)
         printf "Unknown compiler type: ${COMPILER}\n"

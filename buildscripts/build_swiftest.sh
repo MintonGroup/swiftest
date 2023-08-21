@@ -40,10 +40,6 @@ fi
 
 read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
 echo $OS $ARCH
-if [ $OS = "MacOSX" ] && [ $ARCH = "arm64" ]; then
-    printf "OpenMP not supported on Apple M1 Silicon quite yet\n"
-    SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DUSE_OPENMP=OFF -DUSE_SIMD=OFF"
-fi
 
 cd $ROOT_DIR
 

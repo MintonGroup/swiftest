@@ -28,11 +28,7 @@ printf "*********************************************************\n"
 printf "Copying files to ${DEPENDENCY_DIR}\n"
 mkdir -p ${DEPENDENCY_DIR}
 cd $DEPENDENCY_DIR
-if [ -d ${DEPENDENCY_DIR}/zlib-${ZLIB_VER} ]; then
-    cd ${DEPENDENCY_DIR}/zlib-${ZLIB_VER}
-    make distclean
-    cd ${DEPENDENCY_DIR}
-else
+if [ ! -d ${DEPENDENCY_DIR}/zlib-${ZLIB_VER} ]; then
     [ -d ${DEPENDENCY_DIR}/zlib-* ] && rm -rf ${DEPENDENCY_DIR}/zlib-*
     wget -qO- https://github.com/madler/zlib/releases/download/v${ZLIB_VER}/zlib-${ZLIB_VER}.tar.gz | tar xvz
 fi
@@ -49,31 +45,20 @@ if [[ (-d ${DEPENDENCY_DIR}/hdfsrc) && (-f ${DEPENDENCY_DIR}/hdfsrc/README.md) ]
     fi
 fi
 
-if [ -d ${DEPENDENCY_DIR}/hdfsrc ]; then
-    cd ${DEPENDENCY_DIR}/hdfsrc
-    make distclean
-    cd ${DEPENDENCY_DIR}
-else
+if [ ! -d ${DEPENDENCY_DIR}/hdfsrc ]; then
     wget -qO- https://github.com/HDFGroup/hdf5/releases/download/hdf5-${HDF5_VER}/hdf5-${HDF5_VER}.tar.gz | tar xvz
 fi
 
-if [ -d ${DEPENDENCY_DIR}/netcdf-c-${NC_VER} ]; then
-    cd ${DEPENDENCY_DIR}/netcdf-c-${NC_VER} 
-    make distclean
-    cd ${DEPENDENCY_DIR}
-else
+if [ ! -d ${DEPENDENCY_DIR}/netcdf-c-${NC_VER} ]; then
     [ -d ${DEPENDENCY_DIR}/netcdf-c-* ] && rm -rf ${DEPENDENCY_DIR}/netcdf-c-*
     wget -qO- https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NC_VER}.tar.gz | tar xvz 
 fi
 
-if [ -d ${DEPENDENCY_DIR}/netcdf-fortran-${NF_VER} ]; then
-    cd ${DEPENDENCY_DIR}/netcdf-fortran-${NF_VER} 
-    make distclean
-    cd ${DEPENDENCY_DIR}
-else
+if [ ! -d ${DEPENDENCY_DIR}/netcdf-fortran-${NF_VER} ]; then
     [ -d ${DEPENDENCY_DIR}/netcdf-fortran-* ] && rm -rf ${DEPENDENCY_DIR}/netcdf-fortran-*
     wget -qO- https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v${NF_VER}.tar.gz | tar xvz 
 fi 
+
 cd $ROOT_DIR
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
@@ -83,10 +68,30 @@ printf "Installing to ${PREFIX}\n"
 printf "\n"
 
 set -e
-${SCRIPT_DIR}/build_zlib.sh ${ARGS}
-${SCRIPT_DIR}/build_hdf5.sh ${ARGS}
-${SCRIPT_DIR}/build_netcdf-c.sh ${ARGS}
-${SCRIPT_DIR}/build_netcdf-fortran.sh ${ARGS}
+if [ ! -f ${PREFIX}/lib/libz.a ]; then
+    ${SCRIPT_DIR}/build_zlib.sh ${ARGS}
+else
+    echo "Found: ${PREFIX}/lib/libz.a"
+fi
+
+if [ ! -f ${PREFIX}/lib/libhdf5.a ]; then
+    ${SCRIPT_DIR}/build_hdf5.sh ${ARGS}
+else
+    echo "Found: ${PREFIX}/lib/libhdf5.a"
+fi
+
+
+if [ ! -f ${PREFIX}/lib/libnetcdf.a ]; then
+    ${SCRIPT_DIR}/build_netcdf-c.sh ${ARGS}
+else
+    echo "Found: ${PREFIX}/lib/libnetcdf.a" 
+fi
+
+if [ ! -f ${PREFIX}/lib/libnetcdff.a ]; then
+    ${SCRIPT_DIR}/build_netcdf-fortran.sh ${ARGS}
+else
+`   echo "Found: ${PREFIX}/lib/libnetcdff.a"
+fi
 
 printf "\n"
 printf "*********************************************************\n"
