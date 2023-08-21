@@ -106,8 +106,9 @@ case $COMPILER in
         FROOT=$(realpath $(dirname $(command -v gfortran))/..) 
         FC=$(command -v gfortran)
         LD_LIBRARY_PATH="${COMPILER_PREFIX}/lib:${FROOT}/lib:${LD_LIBRARY_PATH}"
-        LDFLAGS="-L/opt/homebrew/opt/llvm/lib/c++ -Wl,-rpath,/opt/homebrew/opt/llvm/lib/c++"
-        LIBS="-L/opt/homebrew/opt/libomp/lib -lomp ${LIBS}"
+        LDFLAGS="-L${HOMEBREW_PREFIX}/opt/llvm/lib/c++ -Wl,-rpath,${HOMEBREW_PREFIX}/opt/llvm/lib/c+ -L${HOMEBREW_PREFIX}/opt/libomp/lib"
+        CPPFLAGS="-isystem ${HOMEBREW_PREFIX}/opt/libomp/include"
+        LIBS="-lomp ${LIBS}"
         CPATH="${FROOT}/include:${CPATH}"
         CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} ${CFLAGS}"
         CXXFLAGS="${CFLAGS} ${CXXFLAGS}"
