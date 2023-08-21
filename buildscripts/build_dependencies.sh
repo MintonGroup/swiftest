@@ -90,7 +90,7 @@ fi
 if [ ! -f ${PREFIX}/lib/libnetcdff.a ]; then
     ${SCRIPT_DIR}/build_netcdf-fortran.sh ${ARGS}
 else
-`   echo "Found: ${PREFIX}/lib/libnetcdff.a"
+    echo "Found: ${PREFIX}/lib/libnetcdff.a"
 fi
 
 printf "\n"
