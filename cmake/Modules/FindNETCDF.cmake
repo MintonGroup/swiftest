@@ -9,48 +9,51 @@
 
 # - Finds the NetCDF libraries 
 
-FIND_PATH(NFBIN
-NAMES nf-config
-HINTS 
-   ENV NETCDF_FORTRAN_HOME
-   ENV PATH
-PATH_SUFFIXES
-   bin
-)
+IF (NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
+   FIND_PATH(NFBIN
+   NAMES nf-config
+   HINTS 
+      ENV NETCDF_FORTRAN_HOME
+      ENV PATH
+   PATH_SUFFIXES
+      bin
+   )
 
-IF (NFBIN)
-   SET(CMD "${NFBIN}/nf-config")
-   LIST(APPEND CMD "--includedir")
-   MESSAGE(STATUS "Searching for NetCDF-Fortran include directory using ${CMD}")
-   EXECUTE_PROCESS(COMMAND ${CMD} OUTPUT_VARIABLE NFINCLUDE_DIR ERROR_VARIABLE ERR RESULT_VARIABLE RES OUTPUT_STRIP_TRAILING_WHITESPACE)
-   IF (NFINCLUDE_DIR)
-      MESSAGE(STATUS "Found in ${NFINCLUDE_DIR}")
-   ELSE ()
-      MESSAGE(STATUS "Cannot execute ${CMD}")
-      MESSAGE(STATUS "OUTPUT: ${NFINCLUDE_DIR}")
-      MESSAGE(STATUS "RESULT: ${RES}")
-      MESSAGE(STATUS "ERROR : ${ERR}")
-   ENDIF ()
+   IF (NFBIN)
+      SET(CMD "${NFBIN}/nf-config")
+      LIST(APPEND CMD "--includedir")
+      MESSAGE(STATUS "Searching for NetCDF-Fortran include directory using ${CMD}")
+      EXECUTE_PROCESS(COMMAND ${CMD} OUTPUT_VARIABLE NFINCLUDE_DIR ERROR_VARIABLE ERR RESULT_VARIABLE RES OUTPUT_STRIP_TRAILING_WHITESPACE)
+      IF (NFINCLUDE_DIR)
+         MESSAGE(STATUS "Found in ${NFINCLUDE_DIR}")
+      ELSE ()
+         MESSAGE(STATUS "Cannot execute ${CMD}")
+         MESSAGE(STATUS "OUTPUT: ${NFINCLUDE_DIR}")
+         MESSAGE(STATUS "RESULT: ${RES}")
+         MESSAGE(STATUS "ERROR : ${ERR}")
+      ENDIF ()
 
-   SET(CMD "${NFBIN}/nf-config")
-   LIST(APPEND CMD "--prefix")
-   MESSAGE(STATUS "Searching for NetCDF-Fortran library directory using ${CMD}")
-   EXECUTE_PROCESS(COMMAND ${CMD} OUTPUT_VARIABLE NFPREFIX_DIR ERROR_VARIABLE ERR RESULT_VARIABLE RES OUTPUT_STRIP_TRAILING_WHITESPACE)
-   IF (NFPREFIX_DIR)
-      MESSAGE(STATUS "Found in ${NFPREFIX_DIR}")
-   ELSE ()
-      MESSAGE(STATUS "Cannot execute ${CMD}")
-      MESSAGE(STATUS "OUTPUT: ${NFPREFIX_DIR}")
-      MESSAGE(STATUS "RESULT: ${RES}")
-      MESSAGE(STATUS "ERROR : ${ERR}")
-   ENDIF ()
+      SET(CMD "${NFBIN}/nf-config")
+      LIST(APPEND CMD "--prefix")
+      MESSAGE(STATUS "Searching for NetCDF-Fortran library directory using ${CMD}")
+      EXECUTE_PROCESS(COMMAND ${CMD} OUTPUT_VARIABLE NFPREFIX_DIR ERROR_VARIABLE ERR RESULT_VARIABLE RES OUTPUT_STRIP_TRAILING_WHITESPACE)
+      IF (NFPREFIX_DIR)
+         MESSAGE(STATUS "Found in ${NFPREFIX_DIR}")
+      ELSE ()
+         MESSAGE(STATUS "Cannot execute ${CMD}")
+         MESSAGE(STATUS "OUTPUT: ${NFPREFIX_DIR}")
+         MESSAGE(STATUS "RESULT: ${RES}")
+         MESSAGE(STATUS "ERROR : ${ERR}")
+      ENDIF ()
+   ENDIF()
 ENDIF()
 
+MESSAGE(STATUS "\nNETCDF_INCLUDE: $ENV{NETCDF_INCLUDE}\nNETCDF_FORTRAN_HOME: $ENV{NETCDF_FORTRAN_HOME}\n")
 FIND_PATH(NETCDF_INCLUDE_DIR 
    NAMES netcdf.mod 
    HINTS 
       ${NFINCLUDE_DIR}
-      ENV NETCDF_INCLUDE_DIR 
+      ENV NETCDF_INCLUDE
       ENV NETCDF_FORTRAN_HOME
       ENV CPATH
    PATH_SUFFIXES
@@ -62,7 +65,7 @@ FIND_PATH(NETCDF_INCLUDE_DIR
 
 MESSAGE(STATUS "NetCDF-Fortran include directory: ${NETCDF_INCLUDE_DIR}")
 
-IF (BUILD_SHARED_LIBS) 
+IF (BUILD_SHARED_LIBS OR CMAKE_SYSTEM_NAME STREQUAL "Windows") 
    SET(NETCDFF "netcdff")
 ELSE ()
    SET(NETCDFF "libnetcdff.a")
@@ -99,37 +102,39 @@ ELSE ()
    )
 
    MESSAGE(STATUS "NetCDF-C Library: ${NETCDF_LIBRARY}")
+   IF (NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
+      FIND_PATH(NCBIN
+         NAMES nc-config
+         HINTS 
+            ENV NETCDF_HOME
+            ENV PATH
+         PATH_SUFFIXES
+            bin
+      )
 
-   FIND_PATH(NCBIN
-      NAMES nc-config
-      HINTS 
-         ENV NETCDF_HOME
-         ENV PATH
-      PATH_SUFFIXES
-         bin
-   )
-
-   IF (NCBIN) # The nc-config utility is available. Parse its output for unique flags
-      SET(CMD "${NCBIN}/nc-config")
-      LIST(APPEND CMD "--libs")
-      LIST(APPEND CMD "--static")
-      MESSAGE(STATUS "NetCDF configuration command: ${CMD}")
-      EXECUTE_PROCESS(COMMAND ${CMD} OUTPUT_VARIABLE EXTRA_FLAGS ERROR_VARIABLE ERR RESULT_VARIABLE RES OUTPUT_STRIP_TRAILING_WHITESPACE)
-      IF (EXTRA_FLAGS)
-         SEPARATE_ARGUMENTS(EXTRA_FLAGS NATIVE_COMMAND "${EXTRA_FLAGS}")
-         LIST(REMOVE_DUPLICATES EXTRA_FLAGS)
-         LIST(FILTER EXTRA_FLAGS EXCLUDE REGEX "netcdf+")
-         MESSAGE(STATUS "Extra library flags: ${EXTRA_FLAGS}")
+      IF (NCBIN) # The nc-config utility is available. Parse its output for unique flags
+         SET(CMD "${NCBIN}/nc-config")
+         LIST(APPEND CMD "--libs")
+         LIST(APPEND CMD "--static")
+         MESSAGE(STATUS "NetCDF configuration command: ${CMD}")
+         EXECUTE_PROCESS(COMMAND ${CMD} OUTPUT_VARIABLE EXTRA_FLAGS ERROR_VARIABLE ERR RESULT_VARIABLE RES OUTPUT_STRIP_TRAILING_WHITESPACE)
+         IF (EXTRA_FLAGS)
+            SEPARATE_ARGUMENTS(EXTRA_FLAGS NATIVE_COMMAND "${EXTRA_FLAGS}")
+            LIST(REMOVE_DUPLICATES EXTRA_FLAGS)
+            LIST(FILTER EXTRA_FLAGS EXCLUDE REGEX "netcdf+")
+            MESSAGE(STATUS "Extra library flags: ${EXTRA_FLAGS}")
+         ELSE ()
+            MESSAGE(STATUS "Cannot execute ${CMD}")
+            MESSAGE(STATUS "OUTPUT: ${EXTRA_FLAGS}")
+            MESSAGE(STATUS "RESUL : ${RES}")
+            MESSAGE(STATUS "ERROR : ${ERR}")
+            MESSAGE(FATAL_ERROR "Cannot configure NetCDF for static")
+         ENDIF ()
       ELSE ()
-         MESSAGE(STATUS "Cannot execute ${CMD}")
-         MESSAGE(STATUS "OUTPUT: ${EXTRA_FLAGS}")
-         MESSAGE(STATUS "RESUL : ${RES}")
-         MESSAGE(STATUS "ERROR : ${ERR}")
-         MESSAGE(FATAL_ERROR "Cannot configure NetCDF for static")
+         MESSAGE(FATAL_ERROR "Cannot find nc-config")
       ENDIF ()
-   ELSE ()
-      MESSAGE(FATAL_ERROR "Cannot find nc-config")
-   ENDIF ()
+   ENDIF()
+   
    IF (DEFINED ENV{LIBS})
       STRING(STRIP "$ENV{LIBS}" LIBS)
       SEPARATE_ARGUMENTS(LIBS NATIVE_COMMAND "$LIBS")
