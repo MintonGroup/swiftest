@@ -21,20 +21,17 @@ if [ ! -f "${ROOT_DIR}/setup.py" ]; then
     exit 1
 fi
 
-printf "Using ${COMPILER} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n\n"
+printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n\n"
 printf "Installing to ${PREFIX}\n"
 printf "Dependency libraries in ${PREFIX}\n"
 
 
 SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF"
 
-if [ $COMPILER = "Intel" ]; then 
+if [ $OS = "Intel" ]; then 
     FCFLAGS="${CFLAGS} -standard-semantics"
-    FFLAGS=${CFLAGS}
     SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DMACHINE_CODE_VALUE=\"SSE2\""
 else
-    FCFLAGS="${CFLAGS}"
-    FFLAGS="${CFLAGS}"
     SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DMACHINE_CODE_VALUE=\"generic\""
 fi
 
@@ -63,4 +60,9 @@ fi
 printf "*********************************************************\n"
 
 python3 -m pip install build pip
-python3 -m build
+python3 -m build --sdist
+if [ $OS = "MacOSX" ]; then
+    cibuildwheel --platform macos
+elif [ $OS = "Linux" ]; then
+    cibuildwheel --platform linux
+fi

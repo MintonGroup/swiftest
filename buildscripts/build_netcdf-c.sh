@@ -31,7 +31,7 @@ printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/netcdf-c-*
 COPTS="--disable-shared --disable-dap --disable-byterange --disable-testsets --prefix=${PREFIX}"
-if [ !  $COMPILER = "GNU-Mac" ]; then
+if [ !  $OS = "MacOSX" ]; then
     COPTS="${COPTS} --disable-libxml2"
 fi
 printf "COPTS: ${COPTS}\n"

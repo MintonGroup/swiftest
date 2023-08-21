@@ -23,7 +23,7 @@ before-all = [
 ]
 
 [tool.cibuildwheel.macos]
-environment = {PATH="${TMPDIR}/bin:${PATH}", LD_LIBRARY_PATH="${TMPDIR}/lib:${LD_LIBRARY_PATH}",CPPFLAGS="${CPPFLAGS} -isystem ${TMPDIR}/include",LDFLAGS="${LDFLAGS} -L${TMPDIR}/lib",CPATH="${CPATH} ${TMPDIR}/include}", SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF",FFLAGS="${FFLAGS} -fPIC"}
+skip = "cp38-*"
 before-all = [
     "buildscripts/build_dependencies.sh -d ${TMPDIR} -p ${TMPDIR} -m ${MACOSX_DEPLOYMENT_TARGET}"
 ]

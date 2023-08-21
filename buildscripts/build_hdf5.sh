@@ -28,7 +28,7 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/hdfsrc
-if [ $COMPILER = "GNU-Mac" ]; then
+if [ $OS = "MacOSX" ]; then
    read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
    if [ $ARCH  = "arm64" ]; then
       printf "Manually setting bin/config.sub to arm-apple-darwin\n"
