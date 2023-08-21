@@ -17,11 +17,17 @@ Swiftest also includes the collisional fragmentation algorithm **Fraggle**, an a
 
 #### Installation
 
-In order to use Swiftest, you need to have a working `swiftest_driver` executable. Currently, this can be obtained by either compiling the source code on the system you plan to run simulations on (fastest), or by running it from a Docker/Singularity container compiled for an x86_64 CPU using the Intel Fortran compiler (slower) or compiled using the GNU/gfortran compiler (slowest). 
+For most users, installing swiftest can be done via pip using the command:
 
-**Building the `swiftest_driver` executable**
+```
+pip install swiftest
+```
 
-Swiftest is designed to be downloaded, compiled, and run on a Linux based system. It is untested on Windows systems.
+This will install the `swiftest` Python package, which can be incorporated into Python projects using `import swiftest`. It also will install a standalone executable called `swiftest_driver`, which can execute simulations from the command line, provided that initial conditions and configuration files are available in the path. 
+
+**Building the `swiftest` Python package and standalone `swiftest_driver` executable**
+
+Swiftest is designed to be downloaded, compiled, and run on a Linux or MacOS based system. Windows support is currently being developed.
 
 It is possible to download, compile, and run Swiftest on a machine with at least 400 MB of free disk space and 8 GB of RAM. To take full advantage of the parallelization and performance updates included in Swiftest, it is highly recommended that Swiftest be installed on a high-performance computing cluster. For reference, Swiftest is maintained on the Purdue University [Bell Community Cluster](https://www.rcac.purdue.edu/compute/bell). 
 
@@ -82,6 +88,8 @@ The Docker build will download and compile all of the library dependencies (HDF5
 
 The optional Docker argument `EXTRA_CMAKE_OPTIONS` is provided to pass any additional CMake arguments (see below).
 
+***Compiling `swiftest_driver` using CMake***
+Several build scripts are available in the `buildscripts` folder for building Swiftest and its dependencies on a Linux or Mac system. These are used when generating the official Swiftest Python wheels using cibuildwheel. To build the complete project, run `buildscripts\build_all.sh` from the command line. 
 
 ***Compiling `swiftest_driver` using CMake***
 
