@@ -96,7 +96,7 @@ case $COMPILER in
             echo \"Please install Homebrew first\" 
             exit 1 
         fi
-        COMPILER_PREFIX=${COMPILER_PREFIX:-"/opt/homebrew/opt/llvm"}
+        COMPILER_PREFIX=${COMPILER_PREFIX:-"${HOMEBREW_PREFIX}/opt/llvm"}
         CC=${CC:-${COMPILER_PREFIX}/bin/clang}
         CXX=${CXX:-${COMPILER_PREFIX}/bin/clang++}
         CPP=${CPP:-${COMPILER_PREFIX}/bin/clang-cpp}
