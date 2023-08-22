@@ -21,7 +21,7 @@ PROJECT(swiftest VERSION ${VERSION} LANGUAGES C Fortran)
 OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
 OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
 OPTION(USE_SIMD "Use SIMD vectorization" ON)
-OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+OPTION(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 
 # The following section is modified from Numpy f2py documentation
 IF(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)

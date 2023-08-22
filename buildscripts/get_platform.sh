@@ -21,6 +21,7 @@
 OS=$(uname -s)
 ARCH=$(uname -m)
 
+
 case $ARCH in
     x86_64)
         ;;
@@ -49,6 +50,9 @@ case $OS in
         ;; 
     Darwin)
         OS="MacOSX" 
+        ;;
+    *MSYS*)
+        OS="Windows"
         ;;
     *)
         echo "Swiftest is currently not configured to build for platform ${OS}-${ARCH}"
