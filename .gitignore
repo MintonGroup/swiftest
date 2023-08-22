@@ -32,6 +32,7 @@ dump*
 swiftest-*
 __pycache__*
 _cmake*
+_dependencies
 
 
 #Documentation
