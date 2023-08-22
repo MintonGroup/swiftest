@@ -65,12 +65,17 @@ FIND_PATH(NETCDF_INCLUDE_DIR
 
 MESSAGE(STATUS "NetCDF-Fortran include directory: ${NETCDF_INCLUDE_DIR}")
 
-IF (BUILD_SHARED_LIBS OR CMAKE_SYSTEM_NAME STREQUAL "Windows") 
+IF (BUILD_SHARED_LIBS) 
    SET(NETCDFF "netcdff")
    SET(NETCDF "netcdf")
 ELSE ()
-   SET(NETCDFF "libnetcdff.a")
-   SET(NETCDF  "libnetcdf.a")
+   IF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+      SET(NETCDFF "netcdff.lib")
+      SET(NETCDF  "netcdf.lib")
+   ELSE ()
+      SET(NETCDFF "libnetcdff.a")
+      SET(NETCDF  "libnetcdf.a")
+   ENDIF()
 ENDIF()
 
 FIND_LIBRARY(NETCDF_FORTRAN_LIBRARY 
@@ -134,11 +139,6 @@ ELSE ()
       ELSE ()
          MESSAGE(FATAL_ERROR "Cannot find nc-config")
       ENDIF ()
-   ELSE ()
-      FIND_PACKAGE(NETCDF CONFIG QUIET)
-      IF (NETCDF_FOUND)
-         set(NETCDF_LIBRARY "${netCDF_LIBRARIES}")
-      ENDIF()
    ENDIF()
    
    IF (DEFINED ENV{LIBS})

@@ -37,6 +37,7 @@ IF (NOT SKBUILD)
     OUTPUT_VARIABLE SKBLD_DIR
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
+  FILE(TO_CMAKE_PATH ${SKBLD_DIR} SKBLD_DIR)
   LIST(APPEND CMAKE_MODULE_PATH "${SKBLD_DIR}/resources/cmake")
   MESSAGE(STATUS "Looking in ${SKBLD_DIR}/resources/cmake for CMake modules")
 ENDIF()
@@ -52,14 +53,22 @@ ELSE()
 ENDIF()
 
 # Add our local modules to the module path
-LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" LOCAL_MODULE_PATH)
+LIST(APPEND CMAKE_MODULE_PATH ${LOCAL_MODULE_PATH})
 
 # Define some directories that are important to the build
-SET(SRC "${CMAKE_SOURCE_DIR}/src" CACHE FILEPATH "Location of source files")
-SET(LIB "${CMAKE_SOURCE_DIR}/lib" CACHE FILEPATH "Library file location")
-SET(BIN "${CMAKE_SOURCE_DIR}/bin" CACHE FILEPATH "Binary file location")
-SET(MOD "${CMAKE_SOURCE_DIR}/include" CACHE FILEPATH "Include directory")
-SET(PY "${CMAKE_SOURCE_DIR}/swiftest" CACHE FILEPATH "Python source directory")
+SET(SRC "${CMAKE_SOURCE_DIR}/src")
+SET(LIB "${CMAKE_SOURCE_DIR}/lib")
+SET(BIN "${CMAKE_SOURCE_DIR}/bin")
+SET(MOD "${CMAKE_SOURCE_DIR}/include")
+SET(PY "${CMAKE_SOURCE_DIR}/swiftest")
+
+# Make sure paths are correct for Unix or Windows style
+FILE(TO_CMAKE_PATH ${SRC} SRC)
+FILE(TO_CMAKE_PATH ${LIB} LIB)
+FILE(TO_CMAKE_PATH ${BIN} BIN)
+FILE(TO_CMAKE_PATH ${MOD} MOD)
+FILE(TO_CMAKE_PATH ${PY} PY)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIB})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${LIB})

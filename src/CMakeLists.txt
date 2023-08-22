@@ -173,7 +173,7 @@ ENDIF(USE_COARRAY)
 
 # Check to see if the compiler allows for local-spec in do concurrent statements. Set a preprocessor variable if it does
 IF (USE_OPENMP)
-    SET(TESTFILE "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}")
+    SET(TESTFILE "${CMAKE_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}")
     SET(TESTFILE "${TESTFILE}/CMakeTmp/testFortranDoConcurrentLoc.f90")
     FILE(WRITE "${TESTFILE}"
 "
@@ -198,6 +198,7 @@ ENDIF (USE_OPENMP)
 #####################################
 IF(WIN32)
     SET(CMAKE_INSTALL_PREFIX "C:\\Program Files")
+    FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX} CMAKE_INSTALL_PREFIX)
 ELSE()
     SET(CMAKE_INSTALL_PREFIX /usr/local)
 ENDIF(WIN32)
