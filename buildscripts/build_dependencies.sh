@@ -29,7 +29,7 @@ printf "Copying files to ${DEPENDENCY_DIR}\n"
 mkdir -p ${DEPENDENCY_DIR}
 if [ ! -d ${DEPENDENCY_DIR}/zlib-${ZLIB_VER} ]; then
     [ -d ${DEPENDENCY_DIR}/zlib-* ] && rm -rf ${DEPENDENCY_DIR}/zlib-*
-    curl -s -L https://github.com/madler/zlib/releases/download/v${ZLIB_VER}/zlib-${ZLIB_VER}.tar.gz | tar xvz - -C ${DEPENDENCY_DIR}
+    curl -L https://github.com/madler/zlib/releases/download/v${ZLIB_VER}/zlib-${ZLIB_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
 fi
 
 printf "Checking if HDF5 source exists\n"
@@ -45,17 +45,17 @@ if [[ (-d ${DEPENDENCY_DIR}/hdfsrc) && (-f ${DEPENDENCY_DIR}/hdfsrc/README.md) ]
 fi
 
 if [ ! -d ${DEPENDENCY_DIR}/hdfsrc ]; then
-    curl -s -L https://github.com/HDFGroup/hdf5/releases/download/hdf5-${HDF5_VER}/hdf5-${HDF5_VER}.tar.gz | tar xvz - -C ${DEPENDENCY_DIR}
+    curl -s -L https://github.com/HDFGroup/hdf5/releases/download/hdf5-${HDF5_VER}/hdf5-${HDF5_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
 fi
 
 if [ ! -d ${DEPENDENCY_DIR}/netcdf-c-${NC_VER} ]; then
     [ -d ${DEPENDENCY_DIR}/netcdf-c-* ] && rm -rf ${DEPENDENCY_DIR}/netcdf-c-*
-    curl -s -L https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NC_VER}.tar.gz | tar xvz - -C ${DEPENDENCY_DIR}
+    curl -s -L https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NC_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
 fi
 
 if [ ! -d ${DEPENDENCY_DIR}/netcdf-fortran-${NF_VER} ]; then
     [ -d ${DEPENDENCY_DIR}/netcdf-fortran-* ] && rm -rf ${DEPENDENCY_DIR}/netcdf-fortran-*
-    curl -s -L https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v${NF_VER}.tar.gz | tar xvz - -C ${DEPENDENCY_DIR}
+    curl -s -L https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v${NF_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
 fi 
 
 cd $ROOT_DIR
