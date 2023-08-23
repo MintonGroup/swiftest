@@ -23,7 +23,7 @@
 
 #=============================================================================
 
-INCLUDE (${CMAKE_ROOT}/Modules/FindPackageHandleStandardArgs.cmake)
+INCLUDE (FindPackageHandleStandardArgs)
 
 STRING(TOUPPER "${CMAKE_BUILD_TYPE}" BT)
 IF(BT STREQUAL "DEBUG")

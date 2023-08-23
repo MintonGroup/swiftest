@@ -20,9 +20,18 @@ program main
    character(len=:), allocatable             :: display_style     !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
 
    ! Read in command line arguments
-   call swiftest_io_get_args(integrator, param_file_name, display_style)
+   call swiftest_io_get_args(integrator, param_file_name, display_style, from_cli=.true.)
 
    ! Execute the driver
    call swiftest_driver(integrator, param_file_name, display_style)
+
+
+#ifdef COARRAY
+   if (this_image() == 1) then
+#endif
+      call base_util_exit(SUCCESS)
+#ifdef COARRAY
+   end if ! (this_image() == 1) 
+#endif
 
 end program main

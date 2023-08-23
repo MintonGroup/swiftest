@@ -1,0 +1,126 @@
+# Copyright 2023 - David Minton
+# This file is part of Swiftest.
+# Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+# as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+# Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+# You should have received a copy of the GNU General Public License along with Swiftest. 
+# If not, see: https://www.gnu.org/licenses. 
+#
+# This Dockerfile will build the Swiftest driver program with minimal external dependencies using the Intel Oneapi toolkit. 
+# This is done by building static versions of a minimal set of libraries that NetCDF-Fortran needs (Netcdf-C, HDF5, and Zlib). 
+# These, along with the Intel runtime libraries, are linked statically to the executable. Only the OS-specific libraries are linked
+# dynamically. 
+
+# This build target compiles all dependencies and the swiftest driver itself
+FROM intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04 as build-deps
+SHELL ["/bin/bash", "--login", "-c"]
+ENV INSTALL_DIR=/usr/local
+WORKDIR /swiftest
+
+ENV CC="${ONEAPI_ROOT}/compiler/latest/linux/bin/icx"
+ENV FC="${ONEAPI_ROOT}/compiler/latest/linux/bin/ifx"
+ENV CXX="${ONEAPI_ROOT}/compiler/latest/linux/bin/icpx"
+ENV F77="${FC}"
+
+ENV INSTALL_DIR=/usr/local
+ENV NCDIR="${INSTALL_DIR}"
+ENV NFDIR="${INSTALL_DIR}"
+ENV HDF5_ROOT="${INSTALL_DIR}"
+ENV HDF5_LIBDIR="${HDF5_ROOT}/lib"
+ENV HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
+ENV HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
+ENV LD_LIBRARY_PATH="${INSTALL_DIR}/lib"
+ENV LDFLAGS="-L${INSTALL_DIR}/lib"
+ENV CPPFLAGS="-I${INSTALL_DIR}/include"
+
+COPY ./buildscripts/fetch_dependencies.sh ./
+RUN apt-get update && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+  m4 && \
+  rm -rf /var/lib/apt/lists/*  && \
+  ./fetch_dependencies.sh -d ./
+
+# Get the HDF5, NetCDF-C, and NetCDF-Fortran libraries
+RUN cd zlib-* && \
+    ./configure \
+        --prefix=${INSTALL_DIR} \
+        --static && \
+    make && make install && \
+    cd ../hdf5-* && \
+    ./configure \
+        --prefix=${INSTALL_DIR} \
+        --disable-shared \
+        --enable-build-mode=production \
+        --disable-fortran \
+        --disable-java \
+        --disable-cxx \
+        --with-zlib=${INSTALL_DIR} && \
+    make && make install && \
+    cd ../netcdf-c-* && \
+    ./configure \
+        --prefix=${INSTALL_DIR} \
+        --disable-shared \
+        --disable-dap \
+        --disable-libxml2 \
+        --disable-byterange && \
+    make && make install 
+RUN cd netcdf-fortran-* && \
+    export CFLAGS="-fPIC" && \
+    export FCFLAGS="${CFLAGS}  -standard-semantics" && \
+    export FFLAGS=${CFLAGS} && \
+    export LIBS=$(${INSTALL_DIR}/bin/nc-config --libs --static) && \
+    ./configure --disable-shared --prefix=${NFDIR} && \
+    make && make install
+
+FROM intel/oneapi-hpckit:2023.1.0-devel-ubuntu20.04 as build-swiftest
+ENV SCRIPT_DIR="buildscripts"
+SHELL ["/bin/bash", "--login", "-c"]
+ENV SHELL="/bin/bash"
+WORKDIR /swiftest
+
+ENV INSTALL_DIR=/usr/local
+ENV NETCDF_HOME=${INSTALL_DIR}
+ENV NETCDF_FORTRAN_HOME=${NETCDF_HOME}
+ENV NETCDF_LIBRARY=${NETCDF_HOME}
+ENV FOR_COARRAY_NUM_IMAGES=1
+ENV OMP_NUM_THREADS=1
+ENV FC="${ONEAPI_ROOT}/mpi/latest/bin/mpiifort"
+ENV CC="${ONEAPI_ROOT}/compiler/latest/linux/bin/icx"
+ENV CXX="${ONEAPI_ROOT}/compiler/latest/linux/bin/icpx"
+ENV F77="${FC}"
+
+ENV CPATH=${INSTALL_DIR}/include
+ENV NETCDF_FORTRAN_HOME=${INSTALL_DIR}
+ENV LD_LIBRARY_PATH="${INSTALL_DIR}/lib:${LD_LIBRARY_PATH}"
+
+# Copy build artifacts over to the swiftest package builder stage
+COPY --from=build-deps ${INSTALL_DIR}/ ${INSTALL_DIR}/
+
+# Compile the Swiftest project
+COPY ./requirements.txt ./
+COPY ./environment.yml ./
+COPY ./cmake/ ./cmake/
+COPY ./pyproject.toml ./
+COPY ./setup.py ./
+COPY ./src/ ./src/
+COPY ./swiftest/ ./swiftest/
+COPY ./CMakeLists.txt ./
+COPY ./version.txt ./
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install python3-pip python3.8-venv -y
+
+# Generate the build environment in conda
+ENV PIP_ROOT_USER_ACTION=ignore
+ENV LDFLAGS="-L${INSTALL_DIR}/lib"
+ENV CFLAGS="-fPIC"
+ENV FCFLAGS="-fPIC -standard-semantics"
+ENV FFLAGS=${CFLAGS}
+ENV SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF -DMACHINE_CODE_VALUE=\"SSE2\""
+RUN export NFCFG="${INSTALL_DIR}/bin/nf-config" && \
+    export LIBS=$($NFCFG --flibs) && \
+    python3 -m pip install build pip && \
+    python3 -m build --wheel
+
+#Export the generated wheel file to the host machine
+FROM scratch as export-wheel
+COPY --from=build-swiftest /swiftest/dist/ ./

@@ -14,7 +14,7 @@
 ####################################################################
 # Make sure that the default build type is RELEASE if not specified.
 ####################################################################
-INCLUDE(${CMAKE_MODULE_PATH}/SetCompileFlag.cmake)
+INCLUDE(SetCompileFlag)
 
 # Make sure the build type is uppercase
 STRING(TOUPPER "${CMAKE_BUILD_TYPE}" BT)
@@ -104,11 +104,13 @@ ELSEIF (COMPILER_OPTIONS STREQUAL "Intel")
         SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                         Fortran "-pad"  # Intel
                                 "/Qpad" # Intel Windows
-
                         )
 ENDIF ()
 
 IF (NOT BUILD_SHARED_LIBS)
+        SET_COMPILE_FLAG(CMAKE_FORTRAN_FLAGS "${CMAKE_FORTRAN_FLAGS}"
+                        Fortran "-fPIC"
+                        )
 
         IF (COMPILER_OPTIONS STREQUAL "Intel")
                 # Use static Intel libraries
@@ -123,9 +125,9 @@ IF (NOT BUILD_SHARED_LIBS)
                 IF (USE_OPENMP)
                         SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
                                 Fortran "-qopenmp-link=static"  # Intel
-                )
+                        )
                 ENDIF (USE_OPENMP)
-       ELSEIF (COMPIELR_OPTIONS STREQUAL "GNU") 
+       ELSEIF (COMPILER_OPTIONS STREQUAL "GNU") 
                 # Set GNU static libraries
                 SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
                         Fortran  "-static-libgfortran" 
@@ -139,14 +141,23 @@ IF (NOT BUILD_SHARED_LIBS)
                 SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
                         Fortran  "-static-libquadmath" 
                 )
+                IF (USE_OPENMP)
+                        SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
+                                Fortran "-lgomp"  
+                        )
+                ENDIF (USE_OPENMP)
         ENDIF ()
 
 ENDIF (NOT BUILD_SHARED_LIBS)
 
 IF (USE_SIMD)
-        SET(MACHINE_CODE_VALUE "host" CACHE STRING "Tells the compiler which processor features it may target, including which instruction sets and optimizations it may generate.")
 
         IF (COMPILER_OPTIONS STREQUAL "Intel")
+                SET(MACHINE_CODE_VALUE "Host" CACHE STRING "Tells the compiler which processor features it may target, including which instruction sets and optimizations it may generate.")
+
+                IF (MACHINE_CODE_VALUE STREQUAL "generic")
+                     SET(MACHINE_CODE_VALUE "SSE2" CACHE STRING "SSE2 is the safest option when compiling for non-host compatibility" FORCE)
+                ENDIF()
 
                 # Enables OpenMP SIMD compilation when OpenMP parallelization is disabled. 
                 IF (NOT USE_OPENMP)
@@ -168,6 +179,7 @@ IF (USE_SIMD)
                                         "/Qvecabi:cmdtarget" # Intel Windows
                                 )
         ELSEIF (COMPILER_OPTIONS STREQUAL "GNU")
+                SET(MACHINE_CODE_VALUE "native" CACHE STRING "Tells the compiler which processor features it may target, including which instruction sets and optimizations it may generate.")
 
                 # Enables OpenMP SIMD compilation when OpenMP parallelization is disabled. 
                 IF (NOT USE_OPENMP)
@@ -176,8 +188,8 @@ IF (USE_SIMD)
                         )     
                 ENDIF (NOT USE_OPENMP)
 
-                IF (MACHINE_CODE_VALUE STREQUAL "host")
-                        SET(MACHINE_CODE_VALUE "native" CACHE STRING "Tells the compiler which processor features it may target, including which instruction sets and optimizations it may generate.")
+                IF (MACHINE_CODE_VALUE STREQUAL "Host")
+                        SET(MACHINE_CODE_VALUE "native" CACHE STRING "native is the GNU equivalent of Host" FORCE)
                 ENDIF ()
 
                 IF (APPLE)
@@ -188,9 +200,13 @@ IF (USE_SIMD)
                         SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                                         Fortran "-march=${MACHINE_CODE_VALUE}" 
                         )
+                        SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
+                                        Fortran "-mtune=${MACHINE_CODE_VALUE}" 
+                        )
                 ENDIF ()
 
         ENDIF ()
+        SET(MACHINE_CODE_VALUE ${MACHINE_CODE_VALUE} CACHE STRING "Tells the compiler which processor features it may target, including which instruction sets and optimizations it may generate.")
 ENDIF (USE_SIMD)                
 
 

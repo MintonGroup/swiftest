@@ -395,6 +395,8 @@ module swiftest
       logical                         :: lbeg                 !! True if this is the beginning of a step. This is used so that test particle steps can be calculated 
                                                               !!    separately from massive bodies.  Massive body variables are saved at half steps, and passed to 
                                                               !!    the test particles
+      logical                         :: lfirst_io   = .true.  !! Flag to indicate that this is the first time to write to a file
+      logical                         :: lfirst_peri = .true.  !! Flag to indicate that this is the first pericenter passage
    contains
       !> Each integrator will have its own version of the step
       procedure(abstract_step_system), deferred :: step
@@ -639,11 +641,12 @@ module swiftest
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
       end subroutine swiftest_io_dump_storage
 
-      module subroutine swiftest_io_get_args(integrator, param_file_name, display_style) 
+      module subroutine swiftest_io_get_args(integrator, param_file_name, display_style, from_cli) 
          implicit none
          character(len=:), allocatable, intent(inout) :: integrator      !! Symbolic code of the requested integrator  
          character(len=:), allocatable, intent(inout) :: param_file_name !! Name of the input parameters file
          character(len=:), allocatable, intent(inout) :: display_style   !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
+         logical,                       intent(in)    :: from_cli        !! If true, get command-line arguments. Otherwise, use the values of the input variables
       end subroutine swiftest_io_get_args
 
       module function swiftest_io_get_token(buffer, ifirst, ilast, ierr) result(token)

@@ -23,20 +23,31 @@
 
 #=============================================================================
 
-INCLUDE (${CMAKE_ROOT}/Modules/FindPackageHandleStandardArgs.cmake)
+INCLUDE (FindPackageHandleStandardArgs)
 
 IF (COMPILER_OPTIONS STREQUAL "Intel")
-    IF (USE_SIMD)
-        SET (OpenMP_Fortran_FLAG_CANDIDATES
-            "-qopenmp" # Intel
-            "/Qopenmp" # Intel Windows
-        )
+    MESSAGE(STATUS "CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
+    IF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        IF (USE_SIMD)
+            SET (OpenMP_Fortran_FLAG_CANDIDATES
+                "/Qopenmp" # Intel Windows
+            )
+        ELSE ()
+            SET (OpenMP_Fortran_FLAG_CANDIDATES
+                "/Qopenmp-simd-"             # Intel Windows
+            )
+        ENDIF (USE_SIMD)
     ELSE ()
-        SET (OpenMP_Fortran_FLAG_CANDIDATES
-            "-qopenmp -qno-openmp-simd"  # Intel
-            "/Qopenmp-simd-"             # Intel Windows
-        )
-    ENDIF (USE_SIMD)
+        IF (USE_SIMD)
+            SET (OpenMP_Fortran_FLAG_CANDIDATES
+                "-qopenmp" # Intel
+            )
+        ELSE ()
+            SET (OpenMP_Fortran_FLAG_CANDIDATES
+                "-qopenmp -qno-openmp-simd"  # Intel
+            )
+        ENDIF (USE_SIMD)
+    ENDIF ()
 ELSEIF (COMPILER_OPTIONS STREQUAL "GNU")
     IF (USE_SIMD)
         SET (OpenMP_Fortran_FLAG_CANDIDATES

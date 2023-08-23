@@ -7,102 +7,72 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 
-# CMake project file for SWIFTEST
-
+# CMake project file for Swiftest
 ##################################################
 # Define the project and the depencies that it has
 ##################################################
+CMAKE_MINIMUM_REQUIRED(VERSION 3.6.0...3.27.1)
 
-CMAKE_MINIMUM_REQUIRED(VERSION 3.20.1)
 # Get version stored in text file
 FILE(READ "version.txt" VERSION)
-PROJECT(swiftest VERSION ${VERSION} LANGUAGES Fortran)
-
-INCLUDE(CTest)
-
-# Add our local modlues to the module path
-SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/")
-
-# Uncomment if it is required that Fortran 90 is supported
-IF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
-    MESSAGE(FATAL_ERROR "Fortran compiler does not support F90")
-ENDIF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
-
-
-IF (CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
-    SET(COMPILER_OPTIONS "Intel" CACHE STRING "Compiler identified as Intel")
-ELSEIF (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-    SET(COMPILER_OPTIONS "GNU" CACHE STRING "Compiler identified as gfortran")
-ELSE ()
-    MESSAGE(FATAL_ERROR "Compiler not recognized!") 
-ENDIF ()
+PROJECT(swiftest VERSION ${VERSION} LANGUAGES C Fortran)
 
 # Set some options the user may choose
 OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
 OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
 OPTION(USE_SIMD "Use SIMD vectorization" ON)
-OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+OPTION(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 
-INCLUDE(${CMAKE_MODULE_PATH}/SetParallelizationLibrary.cmake)
-INCLUDE(${CMAKE_MODULE_PATH}/SetUpNetCDF.cmake)
-IF (COMPILER_OPTIONS STREQUAL "Intel")
-    INCLUDE(${CMAKE_MODULE_PATH}/SetMKL.cmake)
-ENDIF ()
+# The following section is modified from Numpy f2py documentation
+IF(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
+  MESSAGE(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.\n")
+ENDIF()
 
-# This INCLUDE statement executes code that sets the compile flags for DEBUG,
-# RELEASE, PROFILING, and TESTING.  
-INCLUDE(${CMAKE_MODULE_PATH}/SetFortranFlags.cmake) 
+# Ensure scikit-build modules
+FIND_PACKAGE(Python3 COMPONENTS Interpreter Development.Module REQUIRED)
+IF (NOT SKBUILD)
+  EXECUTE_PROCESS(
+    COMMAND "${Python3_EXECUTABLE}"
+    -c "import os, skbuild; print(os.path.dirname(skbuild.__file__))"
+    OUTPUT_VARIABLE SKBLD_DIR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  FILE(TO_CMAKE_PATH ${SKBLD_DIR} SKBLD_DIR)
+  LIST(APPEND CMAKE_MODULE_PATH "${SKBLD_DIR}/resources/cmake")
+  MESSAGE(STATUS "Looking in ${SKBLD_DIR}/resources/cmake for CMake modules")
+ENDIF()
 
-INCLUDE_DIRECTORIES($ENV{NETCDF_FORTRAN_HOME}/include;$ENV{NETCDF_HOME}/include)
-############################################################
-# Define the actual files and folders that make up the build
-############################################################
+# Detect when building against a conda environment set the _using_conda variable
+# for use both in this file and in the parent
+GET_FILENAME_COMPONENT(_python_bin_dir ${Python3_EXECUTABLE} DIRECTORY)
+IF(EXISTS "${_python_bin_dir}/../conda-meta")
+  MESSAGE("-- Detected conda environment, setting INSTALL_RPATH_USE_LINK_PATH")
+  SET(_using_conda On)
+ELSE()
+  SET(_using_conda Off)
+ENDIF()
 
+# Add our local modules to the module path
+FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" LOCAL_MODULE_PATH)
+LIST(APPEND CMAKE_MODULE_PATH ${LOCAL_MODULE_PATH})
 
+# Define some directories that are important to the build
+SET(SRC "${CMAKE_SOURCE_DIR}/src")
+SET(LIB "${CMAKE_SOURCE_DIR}/lib")
+SET(BIN "${CMAKE_SOURCE_DIR}/bin")
+SET(MOD "${CMAKE_SOURCE_DIR}/include")
+SET(PY "${CMAKE_SOURCE_DIR}/swiftest")
 
-# Define some directories
-SET(SRC ${CMAKE_SOURCE_DIR}/src)
-SET(LIB ${CMAKE_SOURCE_DIR}/lib)
-SET(BIN ${CMAKE_SOURCE_DIR}/bin)
-SET(MOD ${CMAKE_SOURCE_DIR}/include)
-#SET(TEST ${CMAKE_SOURCE_DIR}/test)
-SET(PY ${CMAKE_SOURCE_DIR}/python/swiftest)
+# Make sure paths are correct for Unix or Windows style
+FILE(TO_CMAKE_PATH ${SRC} SRC)
+FILE(TO_CMAKE_PATH ${LIB} LIB)
+FILE(TO_CMAKE_PATH ${BIN} BIN)
+FILE(TO_CMAKE_PATH ${MOD} MOD)
+FILE(TO_CMAKE_PATH ${PY} PY)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIB})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${LIB})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN})
-
-
-FUNCTION(REPLACE_VERSION IN_FILE LANGUAGE)
-    # Make list of strings from file
-    FILE(STRINGS ${IN_FILE} LINES)
-
-    # Replace file with new one
-    FILE(WRITE ${IN_FILE} "")
-
-    # Look for the word "VERSION" and replace the line with the updated one
-    FOREACH(LINE IN LISTS LINES)
-        IF (LANGUAGE STREQUAL "Fortran") # This is the version found in the swiftest driver program
-            STRING(FIND "${LINE}" " VERSION =" LINE_HAS_VER)
-            IF (LINE_HAS_VER GREATER_EQUAL 0) # This is the version line
-                FILE(APPEND ${IN_FILE} "   character(*), parameter :: VERSION = \"${CMAKE_PROJECT_VERSION}\" !! Swiftest version\n")
-            ELSE ()
-                FILE(APPEND ${IN_FILE} "${LINE}\n") # No match. Put this line back like we found it
-            ENDIF ()
-        ELSEIF (LANGUAGE STREQUAL "Python") # This is the version found in the Python package
-            STRING(FIND "${LINE}" "version=" LINE_HAS_VER)
-            IF (LINE_HAS_VER GREATER_EQUAL 0) # This is the version line
-                FILE(APPEND ${IN_FILE} "      version='${CMAKE_PROJECT_VERSION}',\n")
-            ELSE ()
-                FILE(APPEND ${IN_FILE} "${LINE}\n") # No match. Put this line back like we found it
-            ENDIF ()
-        ENDIF ()
-    ENDFOREACH ()
-ENDFUNCTION ()
-
-REPLACE_VERSION(${SRC}/globals/globals_module.f90 "Fortran" )
-REPLACE_VERSION(${PY}/setup.py "Python")
-
 
 # Have the .mod files placed in the lib folder
 SET(CMAKE_Fortran_MODULE_DIRECTORY ${MOD})
@@ -110,11 +80,9 @@ SET(CMAKE_Fortran_MODULE_DIRECTORY ${MOD})
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${BIN})
 
-# # Set up test directory
-# ENABLE_TESTING()
-# ADD_SUBDIRECTORY(${TEST})
+ADD_SUBDIRECTORY(${PY})
 
 # Add a distclean target to the Makefile
 ADD_CUSTOM_TARGET(distclean 
-    COMMAND ${CMAKE_COMMAND} -P ${CMAKE_SOURCE_DIR}/distclean.cmake
+    COMMAND ${CMAKE_COMMAND} -P "${CMAKE_SOURCE_DIR}/distclean.cmake"
 )
