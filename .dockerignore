@@ -1,0 +1,22 @@
+# Ignore everything
+*
+# Whitelist what is necessary
+!setup.py
+!version.txt
+!environment.yml
+!pyproject.toml
+!requirements.txt
+!distclean.cmake
+!cmake/Modules/*.cmake
+!CMakeLists.txt
+!src/CMakeLists.txt
+!swiftest/CMakeLists.txt
+!swiftest/tests/CMakeLists.txt
+!swiftest/*.py
+!swiftest/*.pyx
+!swiftest/*.h
+!swiftest/tests/*.py
+!src/*/*.f90
+!src/globals/globals_module.f90.in
+!buildscripts/*.sh
+!buildscripts/*.yml

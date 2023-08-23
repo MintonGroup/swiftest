@@ -79,7 +79,7 @@ module lambda_function
    !!          if (allocated(self%lastarg)) deallocate(self%lastarg)
    !!          allocate(self%lastarg, source=x)
    !!       else
-   !!          error stop "Lambda function was not initialized"
+   !!          stop "Lambda function was not initialized"
    !!       end if
    !!    end function lambda_ri_args_eval
    !!
@@ -238,7 +238,7 @@ module lambda_function
             if (allocated(self%lastarg)) deallocate(self%lastarg)
             allocate(self%lastarg, source=x)
          else
-            error stop "Lambda function was not initialized"
+            stop "Lambda function was not initialized"
          end if
       end function lambda_eval_0
 
@@ -255,7 +255,7 @@ module lambda_function
             if (allocated(self%lastarg)) deallocate(self%lastarg)
             allocate(self%lastarg, source=x)
          else
-            error stop "Lambda function was not initialized"
+            stop "Lambda function was not initialized"
          end if
       end function lambda_eval_0_err
 
@@ -270,7 +270,7 @@ module lambda_function
          if (associated(self%lambdaptr_tvar)) then
             y = self%lambdaptr_tvar(x,t)
          else
-            error stop "Lambda function was not initialized"
+            stop "Lambda function was not initialized"
          end if
       end function lambda_eval_tvar
 
