@@ -58,6 +58,9 @@ contains
             ! end if
          end if
 
+         if(param%lshgrav) then
+            call pl%swiftest_sph_g_acc_pl_all(nbody_system)
+
          if (param%lgr) call pl%accel_gr(param) 
 
          if (param%lextra_force) call pl%accel_user(nbody_system, param, t, lbeg)
@@ -104,6 +107,7 @@ contains
          end if
 
          if (param%loblatecb) call tp%accel_obl(nbody_system)
+         if (param%lshgrav) call tp%swiftest_sph_g_acc_tp_all(nbody_system)
          if (param%lextra_force) call tp%accel_user(nbody_system, param, t, lbeg)
          if (param%lgr) call tp%accel_gr(param) 
       end associate

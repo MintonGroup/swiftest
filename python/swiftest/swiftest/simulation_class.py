@@ -2405,7 +2405,8 @@ class Simulation(object):
                  rot: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None=None,
                  Ip: List[float] | npt.NDArray[np.float_] | None=None,
                  J2: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 J4: float | List[float] | npt.NDArray[np.float_] | None=None):
+                 J4: float | List[float] | npt.NDArray[np.float_] | None=None,
+                 c_lm: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None):
         """
         Adds a body (test particle or massive body) to the internal DataSet given a set up 6 vectors (orbital elements
         or cartesian state vectors, depending on the value of self.param). Input all angles in degress.
@@ -2447,6 +2448,12 @@ class Simulation(object):
         Rotation rate vectors if these are massive bodies with rotation enabled.
         Ip: (3) or (n,3) array-like of float, optional
         Principal axes moments of inertia vectors if these are massive bodies with rotation enabled.
+        J2: float, optional
+        J2 term of (central) body oblateness multiplied by radius^2.
+        J4: float, optional
+        J4 term of (central) body oblateness multiplied by radius^4.
+        c_lm: (2, l + 1, l + 1) array-like of float, optional
+        Gravitational spherical harmonics coefficients (ortho-normalization)
 
         Returns
         -------
@@ -2515,6 +2522,11 @@ class Simulation(object):
                     val = val.T
 
             return val, n
+        
+        def input_to_ND_array(val, shape):
+            # Create function to convert c_lm array to numpy
+
+            return val, n
 
         nbodies = None
         name,nbodies = input_to_array(name,"s",nbodies)
@@ -2536,6 +2548,8 @@ class Simulation(object):
         vh,nbodies = input_to_array_3d(vh,nbodies)
         rot,nbodies = input_to_array_3d(rot,nbodies)
         Ip,nbodies = input_to_array_3d(Ip,nbodies)
+
+        c_lm, nbodies = c_lm, nbodies
 
         if len(self.data) == 0:
             maxid = -1
@@ -2562,7 +2576,7 @@ class Simulation(object):
                 Gmass = self.GU * mass
 
         dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
-                                 Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, time=time)
+                                 Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, c_lm = c_lm, time=time)
 
         dsnew = self._combine_and_fix_dsnew(dsnew)
         self.save(verbose=False)

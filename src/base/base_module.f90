@@ -90,6 +90,7 @@ module base
       logical :: loblatecb      = .false. !! Calculate acceleration from oblate central body (automatically turns true if nonzero J2 is input)
       logical :: lrotation      = .false. !! Include rotation states of big bodies
       logical :: ltides         = .false. !! Include tidal dissipation 
+      logical :: lshgrav        = .false. !! Calculate acceleration from spherical harmonics terms for the central body (automatically turns true if clm array is input)
 
       ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be updated with initial conditions values)
       real(DP)                  :: E_orbit_orig  = 0.0_DP  !! Initial orbital energy

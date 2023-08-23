@@ -2924,7 +2924,9 @@ contains
          if (ierr /=0) call base_util_exit(FAILURE)
       end if
 
-      param%loblatecb = ((self%cb%j2rp2 /= 0.0_DP) .or. (self%cb%j4rp4 /= 0.0_DP))
+      param%lshgrav = (size(self%cb%c_lm) /= 0.0_DP)
+
+      param%loblatecb = ((self%cb%j2rp2 /= 0.0_DP) .or. (self%cb%j4rp4 /= 0.0_DP)) .and. (param%lshgrav == .FALSE.)
       if (.not.param%loblatecb) then
          if (allocated(self%pl%aobl)) deallocate(self%pl%aobl)
          if (allocated(self%tp%aobl)) deallocate(self%tp%aobl)
@@ -2937,6 +2939,8 @@ contains
             if (.not. allocated(self%tp%aobl)) allocate(self%tp%aobl(NDIM,self%tp%nbody))
             self%tp%aobl(:,:) = 0.0_DP
          end if
+      
+      
       end if
 
       return
