@@ -601,7 +601,7 @@ module base
          character(*), parameter :: BAR = '("---------------------------------------------------")'
          character(*), parameter :: SUCCESS_MSG = '(/, "Normal termination of Swiftest (version ", A, ")")'
          character(*), parameter :: FAIL_MSG = '(/, "Terminating Swiftest (version ", A, ") due to error!!")'
-         character(*), parameter :: USAGE_MSG = '("Usage: swiftest <whm|helio|rmvs|symba> <paramfile> ' // &
+         character(*), parameter :: USAGE_MSG = '("Usage: swiftest_driver <whm|helio|rmvs|symba> <paramfile> ' // &
                                                 '[{standard}|compact|progress]")'
          character(*), parameter :: HELP_MSG  = USAGE_MSG
          integer(I4B) :: iu
@@ -623,7 +623,7 @@ module base
          case default
             write(iu, FAIL_MSG) VERSION
             write(iu, BAR)
-            error stop
+            stop 
          end select
    
          stop

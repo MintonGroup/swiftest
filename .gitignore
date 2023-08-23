@@ -18,13 +18,22 @@ swiftest_driver.sh
 !README.swifter 
 dump*
 !**/.gitignore
-!*.py
-!*.ipynb
+!setup.py
 !examples/**
+!swiftest/**
+!tests/**
 *ipynb_checkpoints
 **/.DS_Store
-!python/swiftest/tests/test_suite.py
 !version.txt
+!requirements.txt
+!pyproject.toml
+**/_skbuild
+*.egg*
+swiftest-*
+__pycache__*
+_cmake*
+_dependencies
+
 
 #Documentation
 !docs/*
@@ -35,10 +44,15 @@ dump*
 #Docker and Singularity files
 !docker/
 !singularity/
-!Dockerfile
+!Dockerfile.*
 !environment.yml
+!.dockerignore
 
 bin/
 build/*
+hdf5-*
+netcdf-c-*
+netcdf-fortran-*
+zlib-*
 
 
