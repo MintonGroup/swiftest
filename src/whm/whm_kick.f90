@@ -85,22 +85,32 @@ contains
       real(DP),                     intent(in)    :: t      !! Current time
       logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
-      integer(I4B)                                :: i
+      integer(I4B)                                :: i, npl, ntp
       real(DP), dimension(NDIM)                   :: ah0
    
-      associate(tp => self, ntp => self%nbody, pl => nbody_system%pl, cb => nbody_system%cb, npl => nbody_system%pl%nbody)
+      associate(tp => self, pl => nbody_system%pl, cb => nbody_system%cb)
+         npl = nbody_system%pl%nbody
+         ntp = self%nbody
          if (ntp == 0 .or. npl == 0) return
          nbody_system%lbeg = lbeg
 
          if (lbeg) then
             ah0(:) = whm_kick_getacch_ah0(pl%Gmass(1:npl), pl%rbeg(:, 1:npl), npl)
+#ifdef DOCONLOC
+            do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp,ah0)
+#else
             do concurrent(i = 1:ntp, tp%lmask(i))
+#endif
                tp%ah(:, i) = tp%ah(:, i) + ah0(:)
             end do
             call tp%accel_int(param, pl%Gmass(1:npl), pl%rbeg(:, 1:npl), npl)
          else
             ah0(:) = whm_kick_getacch_ah0(pl%Gmass(1:npl), pl%rend(:, 1:npl), npl)
+#ifdef DOCONLOC
+            do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp,ah0)
+#else
             do concurrent(i = 1:ntp, tp%lmask(i))
+#endif
                tp%ah(:, i) = tp%ah(:, i) + ah0(:)
             end do
             call tp%accel_int(param, pl%Gmass(1:npl), pl%rend(:, 1:npl), npl)
@@ -155,16 +165,19 @@ contains
       class(swiftest_cb), intent(in)    :: cb !! WHM central body object
       class(whm_pl),      intent(inout) :: pl !! WHM massive body object
       ! Internals
-      integer(I4B)                 :: i
+      integer(I4B)                 :: i, npl
       real(DP), dimension(NDIM)    :: ah1h, ah1j
 
-      associate(npl => pl%nbody)
-         do concurrent (i = 2:npl, pl%lmask(i))
-            ah1j(:) = pl%xj(:, i) * pl%ir3j(i)
-            ah1h(:) = pl%rh(:, i) * pl%ir3h(i)
-            pl%ah(:, i) = pl%ah(:, i) + cb%Gmass * (ah1j(:) - ah1h(:))
-         end do
-      end associate
+      npl = pl%nbody
+#ifdef DOCONLOC
+      do concurrent (i = 2:npl, pl%lmask(i)) shared(pl,cb) local(ah1j,ah1h)
+#else
+      do concurrent (i = 2:npl, pl%lmask(i))
+#endif
+         ah1j(:) = pl%xj(:, i) * pl%ir3j(i)
+         ah1h(:) = pl%rh(:, i) * pl%ir3h(i)
+         pl%ah(:, i) = pl%ah(:, i) + cb%Gmass * (ah1j(:) - ah1h(:))
+      end do
    
       return
    end subroutine whm_kick_getacch_ah1
@@ -182,22 +195,25 @@ contains
       class(swiftest_cb), intent(in)    :: cb !! Swiftest central body object
       class(whm_pl),      intent(inout) :: pl !! WHM massive body object
       ! Internals
-      integer(I4B)                 :: i
+      integer(I4B)                 :: i, npl
       real(DP)                     :: etaj, fac
       real(DP), dimension(NDIM)    :: ah2, ah2o
    
-      associate(npl => pl%nbody)
-         ah2(:) = 0.0_DP
-         ah2o(:) = 0.0_DP
-         etaj = cb%Gmass
-         do concurrent(i = 2:npl, pl%lmask(i))
-            etaj = etaj + pl%Gmass(i - 1)
-            fac = pl%Gmass(i) * cb%Gmass * pl%ir3j(i) / etaj
-            ah2(:) = ah2o + fac * pl%xj(:, i)
-            pl%ah(:,i) = pl%ah(:, i) + ah2(:)
-            ah2o(:) = ah2(:)
-         end do
-      end associate
+      npl = pl%nbody
+      ah2(:) = 0.0_DP
+      ah2o(:) = 0.0_DP
+      etaj = cb%Gmass
+#ifdef DOCONLOC
+      do concurrent(i = 2:npl, pl%lmask(i)) shared(pl,cb,ah2,ah2o) local(etaj,fac)
+#else
+      do concurrent(i = 2:npl, pl%lmask(i))
+#endif
+         etaj = etaj + pl%Gmass(i - 1)
+         fac = pl%Gmass(i) * cb%Gmass * pl%ir3j(i) / etaj
+         ah2(:) = ah2o(:) + fac * pl%xj(:, i)
+         pl%ah(:,i) = pl%ah(:, i) + ah2(:)
+         ah2o(:) = ah2(:)
+      end do
    
       return
    end subroutine whm_kick_getacch_ah2
@@ -219,9 +235,10 @@ contains
       real(DP),                     intent(in)    :: dt     !! Stepsize
       logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, npl
 
-      associate(pl => self, npl => self%nbody, cb => nbody_system%cb)
+      associate(pl => self, cb => nbody_system%cb)
+         npl = self%nbody
          if (npl == 0) return
          if (lbeg) then
             if (pl%lfirst) then
@@ -236,7 +253,11 @@ contains
             call pl%accel(nbody_system, param, t, lbeg)
             call pl%set_beg_end(rend = pl%rh)
          end if
+#ifdef DOCONLOC
+         do concurrent(i = 1:npl, pl%lmask(i)) shared(pl,dt)
+#else
          do concurrent(i = 1:npl, pl%lmask(i))
+#endif
             pl%vh(:, i) = pl%vh(:, i) + pl%ah(:, i) * dt
          end do
       end associate
@@ -261,25 +282,38 @@ contains
       real(DP),                     intent(in)    :: dt     !! Stepsize
       logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, ntp
 
       if (self%nbody == 0) return
 
-      associate(tp => self, ntp => self%nbody)
+      associate(tp => self)
+         ntp = self%nbody
          if (tp%lfirst) then
+#ifdef DOCONLOC
+            do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp)
+#else
             do concurrent(i = 1:ntp, tp%lmask(i))
+#endif
                tp%ah(:, i) = 0.0_DP
             end do
             call tp%accel(nbody_system, param, t, lbeg=.true.)
             tp%lfirst = .false.
          end if
          if (.not.lbeg) then
+#ifdef DOCONLOC
+            do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp)
+#else
             do concurrent(i = 1:ntp, tp%lmask(i))
+#endif
                tp%ah(:, i) = 0.0_DP
             end do
             call tp%accel(nbody_system, param, t, lbeg)
          end if
+#ifdef DOCONLOC
+         do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp)
+#else
          do concurrent(i = 1:ntp, tp%lmask(i))
+#endif
             tp%vh(:, i) = tp%vh(:, i) + tp%ah(:, i) * dt
          end do
       end associate

@@ -104,7 +104,7 @@ contains
       n = size(A, 2)
       if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
-      do concurrent (i = 1:n) 
+      do i = 1,n 
          C(:,i) = operator_cross_sp(A(:,i), B(:,i))
       end do
       return
@@ -118,7 +118,7 @@ contains
       n = size(A, 2)
       if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
-      do concurrent (i = 1:n) 
+      do i = 1,n 
          C(:,i) = operator_cross_dp(A(:,i), B(:,i))
       end do
       return
@@ -132,7 +132,7 @@ contains
       n = size(A, 2)
       if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
-      do concurrent (i = 1:n) 
+      do i = 1,n 
          C(:,i) = operator_cross_qp(A(:,i), B(:,i))
       end do
       return
@@ -146,7 +146,7 @@ contains
       n = size(A, 2)
       if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
-      do concurrent (i = 1:n) 
+      do i = 1,n 
          C(:,i) = operator_cross_i1b(A(:,i), B(:,i))
       end do
       return
@@ -160,7 +160,7 @@ contains
       n = size(A, 2)
       if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
-      do concurrent (i = 1:n) 
+      do i = 1,n 
          C(:,i) = operator_cross_i2b(A(:,i), B(:,i))
       end do
       return
@@ -174,7 +174,7 @@ contains
       n = size(A, 2)
       if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
-      do concurrent (i = 1:n) 
+      do i = 1,n 
          C(:,i) = operator_cross_i4b(A(:,i), B(:,i))
       end do
       return
@@ -188,7 +188,7 @@ contains
       n = size(A, 2)
       if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
-      do concurrent (i = 1:n) 
+      do i = 1,n 
          C(:,i) = operator_cross_i8b(A(:,i), B(:,i))
       end do
       return

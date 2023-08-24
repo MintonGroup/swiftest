@@ -23,31 +23,44 @@
 
 #=============================================================================
 
-INCLUDE (${CMAKE_ROOT}/Modules/FindPackageHandleStandardArgs.cmake)
+INCLUDE (FindPackageHandleStandardArgs)
 
 STRING(TOUPPER "${CMAKE_BUILD_TYPE}" BT)
 IF(BT STREQUAL "DEBUG")
-    SET (Coarray_Fortran_FLAG_CANDIDATES
-        #Intel
-        "-coarray=single"
-        #Intel windows
-        "/Qcoarray:single" 
-        #Gnu
-        "-fcoarray=single"
-        #Empty, if compiler automatically accepts coarray
-        " "
+    IF (COMPILER_OPTIONS STREQUAL "Intel")
+        SET (Coarray_Fortran_FLAG_CANDIDATES
+            #Intel
+            "-coarray=single"
+            #Intel windows
+            "/Qcoarray:single" 
+            #Empty, if compiler automatically accepts coarray
+            " "
+        )
+    ELSEIF (COMPILER_OPTIONS STREQUAL "GNU")
+        SET (Coarray_Fortran_FLAG_CANDIDATES
+            #Gnu
+            "-fcoarray=single"
+            #Empty, if compiler automatically accepts coarray
+            " "
     )
+    ENDIF()
 ELSE()
-    SET (Coarray_Fortran_FLAG_CANDIDATES
-        #Intel
-        "-coarray=distributed"
-        #Intel windows
-        "/Qcoarray:distributed" 
-        #Gnu
-        "-fcoarray=lib -lcaf_mpi"
-        #Empty, if compiler automatically accepts coarray
-        " "
-    )
+    IF (COMPILER_OPTIONS STREQUAL "Intel")
+        SET (Coarray_Fortran_FLAG_CANDIDATES
+            #Intel
+            "-coarray=distributed"
+            #Intel windows
+            "/Qcoarray:distributed" 
+            #Empty, if compiler automatically accepts coarray
+            " "
+        )
+    ELSEIF (COMPILER_OPTIONS STREQUAL "GNU") 
+        SET (Coarray_Fortran_FLAG_CANDIDATES
+            #Gnu
+            "-fcoarray=lib -lcaf_mpi"
+            #Empty, if compiler automatically accepts coarray
+            " "
+        )
 ENDIF()
 
 

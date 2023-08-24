@@ -145,7 +145,7 @@ contains
 
       667 continue
       write(*,*) "Error creating encounter output file. " // trim(adjustl(errmsg))
-      call base_util_exit(FAILURE)
+      call base_util_exit(FAILURE,param%display_unit)
    end subroutine encounter_io_netcdf_initialize_output
 
 
@@ -231,7 +231,7 @@ contains
       class(base_parameters),      intent(inout) :: param             !! Current run configuration parameters
  
       ! Internals
-      integer(I4B)           :: i, idslot, old_mode, npl, ntp
+      integer(I4B)           :: i, idslot, old_mode, npl, ntp, tmp
       character(len=STRMAX) :: charstring
 
       select type(param)
@@ -284,7 +284,7 @@ contains
                call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp particle_type_varid"  )
             end do
 
-            call netcdf_io_check( nf90_set_fill(nc%id, old_mode, old_mode) )
+            call netcdf_io_check( nf90_set_fill(nc%id, old_mode, tmp) )
          end associate
       end select
       end select

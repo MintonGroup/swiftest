@@ -42,7 +42,6 @@ contains
       !! 
       !! Adapted from Hal Levison's Swift routine step_kdk_pl.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_step_pl.f90
-      !logical, save :: lfirst = .true.
       implicit none
       ! Arguments
       class(whm_pl),                intent(inout) :: self   !! WHM massive body particle data structure

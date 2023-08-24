@@ -134,6 +134,23 @@ contains
       if (n == 0) return
 
       aobl(:,:) = 0.0_DP
+#ifdef DOCONLOC
+      do concurrent(i = 1:n, lmask(i)) shared(lmask,rh,aobl) local(r2,irh,rinv2,t0,t1,t2,t3,fac1,fac2)
+#else
+      do concurrent(i = 1:n, lmask(i))
+#endif
+         r2 = dot_product(rh(:, i), rh(:, i))
+         irh = 1.0_DP / sqrt(r2)
+         rinv2 = irh**2
+         t0 = -GMcb * rinv2 * rinv2 * irh
+         t1 = 1.5_DP * j2rp2
+         t2 = rh(3, i) * rh(3, i) * rinv2
+         t3 = 1.875_DP * j4rp4 * rinv2
+         fac1 = t0 * (t1 - t3 - (5 * t1 - (14.0_DP - 21.0_DP * t2) * t3) * t2)
+         fac2 = 2 * t0 * (t1 - (2.0_DP - (14.0_DP * t2 / 3.0_DP)) * t3)
+         aobl(:, i) = fac1 * rh(:, i)
+         aobl(3, i) = fac2 * rh(3, i) + aobl(3, i)
+      end do
 
       ! If the rotation axis is along the z-axis, skip calculating the rotation matrix
       if (rot(1) == 0 .and. rot(2) == 0) then
@@ -198,14 +215,19 @@ contains
       class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
       class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, npl
 
       if (self%nbody == 0) return
 
-      associate(pl => self, npl => self%nbody, cb => nbody_system%cb)
-         call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rh, pl%lmask, pl%aobl, cb%rot, pl%Gmass, cb%aobl)
+      associate(pl => self, cb => nbody_system%cb)
+         npl = self%nbody
+         call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rh, pl%lmask, pl%aobl, pl%Gmass, cb%aobl)
 
+#ifdef DOCONLOC
+         do concurrent(i = 1:npl, pl%lmask(i)) shared(cb,pl)
+#else
          do concurrent(i = 1:npl, pl%lmask(i))
+#endif
             pl%ah(:, i) = pl%ah(:, i) + pl%aobl(:, i) - cb%aobl(:)
          end do
       end associate
@@ -228,19 +250,24 @@ contains
       class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       ! Internals
       real(DP), dimension(NDIM)                   :: aoblcb
-      integer(I4B) :: i
+      integer(I4B) :: i, ntp
 
       if (self%nbody == 0) return
 
-      associate(tp => self, ntp => self%nbody, cb => nbody_system%cb)
-         call swiftest_obl_acc(ntp, cb%Gmass, cb%j2rp2, cb%j4rp4, tp%rh, tp%lmask, tp%aobl, cb%rot)
+      associate(tp => self, cb => nbody_system%cb)
+         ntp = self%nbody
+         call swiftest_obl_acc(ntp, cb%Gmass, cb%j2rp2, cb%j4rp4, tp%rh, tp%lmask, tp%aobl)
          if (nbody_system%lbeg) then
             aoblcb = cb%aoblbeg
          else
             aoblcb = cb%aoblend
          end if
 
+#ifdef DOCONLOC
+         do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp,aoblcb)
+#else
          do concurrent(i = 1:ntp, tp%lmask(i))
+#endif
             tp%ah(:, i) = tp%ah(:, i) + tp%aobl(:, i) - aoblcb(:)
          end do
 
@@ -264,12 +291,17 @@ contains
       ! Arguments
       class(swiftest_nbody_system), intent(inout)  :: self   !! Swiftest nbody system object
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, npl
       real(DP), dimension(self%pl%nbody) :: oblpot_arr
 
-      associate(nbody_system => self, pl => self%pl, npl => self%pl%nbody, cb => self%cb)
+      associate(nbody_system => self, pl => self%pl, cb => self%cb)
+         npl = self%pl%nbody
          if (.not. any(pl%lmask(1:npl))) return
+#ifdef DOCONLOC
+         do concurrent (i = 1:npl, pl%lmask(i)) shared(cb,pl,oblpot_arr)
+#else
          do concurrent (i = 1:npl, pl%lmask(i))
+#endif
             oblpot_arr(i) = swiftest_obl_pot_one(cb%Gmass, pl%Gmass(i), cb%j2rp2, cb%j4rp4, pl%rh(3,i), 1.0_DP / norm2(pl%rh(:,i)))
          end do
          nbody_system%oblpot = sum(oblpot_arr, pl%lmask(1:npl))

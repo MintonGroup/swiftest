@@ -71,7 +71,7 @@ contains
       sync all
       if (this_image() == si) then
          do img = 1, num_images()
-         tmp[img] = var 
+            tmp[img] = var 
          end do
          sync images(*)
       else
@@ -117,7 +117,7 @@ contains
       allocate(tmp(n[si])[*])
       if (this_image() == si) then
          do img = 1, num_images()
-         tmp(:)[img] = var 
+            tmp(:)[img] = var 
          end do
          sync images(*)
       else
@@ -167,7 +167,7 @@ contains
       allocate(tmp(n1[si],n2[si])[*])
       if (this_image() == si) then
          do img = 1, num_images()
-         tmp(:,:)[img] = var(:,:)
+            tmp(:,:)[img] = var(:,:)
          end do
          sync images(*)
       else
@@ -252,7 +252,7 @@ contains
       allocate(tmp(NDIM,n[si])[*])
       if (this_image() == si) then
          do img = 1, num_images()
-         tmp(:,:)[img] = var(:,:)
+            tmp(:,:)[img] = var(:,:)
          end do
          sync images(*)
       else

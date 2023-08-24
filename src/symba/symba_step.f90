@@ -27,7 +27,6 @@ contains
       real(DP),                   intent(in)    :: dt     !! Current stepsize
       ! Internals
       logical :: lencounter
-      type(walltimer)        :: timer1,timer2,timer3 !! Object used for computing elapsed wall time
      
       select type(pl => self%pl)
       class is (symba_pl)
@@ -198,7 +197,7 @@ contains
                write(*, *) "SWIFTEST Warning:"
                write(*, *) "   In symba_step_recur_system, local time step is too small"
                write(*, *) "   Roundoff error will be important!"
-               call base_util_exit(FAILURE)
+               call base_util_exit(FAILURE,param%display_unit)
             END IF
             irecp = ireci + 1
             if (ireci == 0) then

@@ -111,7 +111,11 @@ contains
          if (impactors%regime == COLLRESOLVE_REGIME_MERGE) then
             volume = 4._DP / 3._DP * PI * sum(impactors%radius(:)**3)
             radius = (3._DP * volume / (4._DP * PI))**(THIRD)
+#ifdef DOCONLOC
+            do concurrent(i = 1:NDIM) shared(impactors,Ip,L_spin)
+#else
             do concurrent(i = 1:NDIM)
+#endif
                Ip(i) = sum(impactors%mass(:) * impactors%Ip(i,:)) 
                L_spin(i) = sum(impactors%L_orbit(i,:) + impactors%L_spin(i,:))
             end do

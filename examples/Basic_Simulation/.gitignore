@@ -1,5 +1,6 @@
 *
 !.gitignore
-!initial_conditions.py
+!basic_simulation.py
 !output_reader.py
+!errors.py
 !README.txt

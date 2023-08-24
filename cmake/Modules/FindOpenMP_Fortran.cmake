@@ -23,26 +23,43 @@
 
 #=============================================================================
 
-INCLUDE (${CMAKE_ROOT}/Modules/FindPackageHandleStandardArgs.cmake)
+INCLUDE (FindPackageHandleStandardArgs)
 
-SET (OpenMP_Fortran_FLAG_CANDIDATES
-     #Intel
-     "-qopenmp" 
-     #Intel windows
-     "/Qopenmp" 
-     #Gnu
-     "-fopenmp"
-     #Portland Group
-     "-mp"
-     #Empty, if compiler automatically accepts openmp
-     " "
-     #Sun
-     "-xopenmp"
-     #HP
-     "+Oopenmp"
-     #IBM XL C/c++
-     "-qsmp"
-)
+IF (COMPILER_OPTIONS STREQUAL "Intel")
+    MESSAGE(STATUS "CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
+    IF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        IF (USE_SIMD)
+            SET (OpenMP_Fortran_FLAG_CANDIDATES
+                "/Qopenmp" # Intel Windows
+            )
+        ELSE ()
+            SET (OpenMP_Fortran_FLAG_CANDIDATES
+                "/Qopenmp-simd-"             # Intel Windows
+            )
+        ENDIF (USE_SIMD)
+    ELSE ()
+        IF (USE_SIMD)
+            SET (OpenMP_Fortran_FLAG_CANDIDATES
+                "-qopenmp" # Intel
+            )
+        ELSE ()
+            SET (OpenMP_Fortran_FLAG_CANDIDATES
+                "-qopenmp -qno-openmp-simd"  # Intel
+            )
+        ENDIF (USE_SIMD)
+    ENDIF ()
+ELSEIF (COMPILER_OPTIONS STREQUAL "GNU")
+    IF (USE_SIMD)
+        SET (OpenMP_Fortran_FLAG_CANDIDATES
+            "-fopenmp" # GNU
+        )
+    ELSE ()
+        SET (OpenMP_Fortran_FLAG_CANDIDATES
+            "-fopenmp -fno-openmp-simd"                   # GNU
+        )
+    ENDIF (USE_SIMD)
+
+ENDIF ()
 
 IF (DEFINED OpenMP_Fortran_FLAGS)
     SET (OpenMP_Fortran_FLAG_CANDIDATES)

@@ -22,7 +22,7 @@ contains
       class(encounter_list), intent(in)           :: source       !! Source object to append
       logical, dimension(:), intent(in)           :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
-      integer(I4B) :: nold, nsrc
+      integer(I4B) :: nold
 
       nold = int(self%nenc, kind=I4B)
       call util_append(self%tcollision, source%tcollision,   nold, lsource_mask)
@@ -100,8 +100,6 @@ contains
       implicit none
       ! Arguments
       class(encounter_bounding_box), intent(inout) :: self !! Bounding box structure
-      ! Internals
-      integer(I4B) :: i
 
       call self%aabb%dealloc()
 
@@ -341,7 +339,7 @@ contains
       integer(I4B),                  intent(in)    :: n      !! Number of objects with bounding box extents
       integer(I4B),                  intent(in)    :: n_last !! Number of objects with bounding box extents the previous time this was called
       ! Internals
-      integer(I4B) :: next, next_last, k, dim
+      integer(I4B) :: next, next_last, k
       integer(I4B), dimension(:), allocatable :: itmp
 
       next = 2 * n

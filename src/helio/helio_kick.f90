@@ -104,11 +104,12 @@ contains
       real(DP),                     intent(in)    :: dt     !! Stepsize
       logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, npl
 
       if (self%nbody == 0) return
 
-      associate(pl => self, npl => self%nbody)
+      associate(pl => self)
+         npl = self%nbody
          pl%ah(:, 1:npl) = 0.0_DP
          call pl%accel(nbody_system, param, t, lbeg)
          if (lbeg) then
@@ -116,7 +117,11 @@ contains
          else
             call pl%set_beg_end(rend = pl%rh)
          end if
+#ifdef DOCONLOC
+         do concurrent(i = 1:npl, pl%lmask(i)) shared(pl,dt)
+#else
          do concurrent(i = 1:npl, pl%lmask(i)) 
+#endif
             pl%vb(1, i) = pl%vb(1, i) + pl%ah(1, i) * dt
             pl%vb(2, i) = pl%vb(2, i) + pl%ah(2, i) * dt
             pl%vb(3, i) = pl%vb(3, i) + pl%ah(3, i) * dt
@@ -143,14 +148,19 @@ contains
       real(DP),                     intent(in)    :: dt    !! Stepsize
       logical,                      intent(in)    :: lbeg  !! Logical flag indicating whether this is the beginning of the half step or not. 
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, ntp
 
       if (self%nbody == 0) return
 
-      associate(tp => self, ntp => self%nbody)
+      associate(tp => self)
+         ntp = self%nbody
          tp%ah(:, 1:ntp) = 0.0_DP
          call tp%accel(nbody_system, param, t, lbeg)
+#ifdef DOCONLOC
+         do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp,dt)
+#else
          do concurrent(i = 1:ntp, tp%lmask(i)) 
+#endif
             tp%vb(:, i) = tp%vb(:, i) + tp%ah(:, i) * dt
          end do
       end associate

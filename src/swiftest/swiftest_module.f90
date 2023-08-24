@@ -94,8 +94,30 @@ module swiftest
       integer(I4B), dimension(:), allocatable :: child  !! Index of children particles
    contains
       procedure :: dealloc  => swiftest_util_dealloc_kin !! Deallocates all allocatable arrays
+#ifdef COARRAY
+      procedure :: coclone => swiftest_coarray_coclone_kin !! Clones the image 1 body object to all other images in the coarray structure.
+#endif
       final     ::             swiftest_final_kin        !! Finalizes the Swiftest kinship object - deallocates all allocatables
    end type swiftest_kinship
+
+
+   type, extends(base_particle_info) :: swiftest_particle_info
+      character(len=NAMELEN)    :: name            !! Non-unique name
+      character(len=NAMELEN)    :: particle_type   !! String containing a description of the particle type (e.g. Central Body, Massive Body, Test Particle)
+      character(len=NAMELEN)    :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
+      real(DP)                  :: origin_time     !! The time of the particle's formation
+      integer(I4B)              :: collision_id    !! The ID of the collision that formed the particle
+      real(DP), dimension(NDIM) :: origin_rh       !! The heliocentric distance vector at the time of the particle's formation
+      real(DP), dimension(NDIM) :: origin_vh       !! The heliocentric velocity vector at the time of the particle's formation
+      real(DP)                  :: discard_time    !! The time of the particle's discard
+      character(len=NAMELEN)    :: status          !! Particle status description: Active, Merged, Fragmented, etc.
+      real(DP), dimension(NDIM) :: discard_rh      !! The heliocentric distance vector at the time of the particle's discard
+      real(DP), dimension(NDIM) :: discard_vh      !! The heliocentric velocity vector at the time of the particle's discard
+      integer(I4B)              :: discard_body_id !! The id of the other body involved in the discard (0 if no other body involved)
+   contains
+      procedure :: copy      => swiftest_util_copy_particle_info  !! Copies one set of information object components into another, component-by-component
+      procedure :: set_value => swiftest_util_set_particle_info   !! Sets one or more values of the particle information metadata object
+   end type swiftest_particle_info
 
 
    !> An abstract class for a generic collection of Swiftest bodies
@@ -168,25 +190,6 @@ module swiftest
    end type swiftest_body
 
 
-   type, extends(base_particle_info) :: swiftest_particle_info
-      character(len=NAMELEN)    :: name            !! Non-unique name
-      character(len=NAMELEN)    :: particle_type   !! String containing a description of the particle type (e.g. Central Body, Massive Body, Test Particle)
-      character(len=NAMELEN)    :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
-      real(DP)                  :: origin_time     !! The time of the particle's formation
-      integer(I4B)              :: collision_id    !! The ID of the collision that formed the particle
-      real(DP), dimension(NDIM) :: origin_rh       !! The heliocentric distance vector at the time of the particle's formation
-      real(DP), dimension(NDIM) :: origin_vh       !! The heliocentric velocity vector at the time of the particle's formation
-      real(DP)                  :: discard_time    !! The time of the particle's discard
-      character(len=NAMELEN)    :: status          !! Particle status description: Active, Merged, Fragmented, etc.
-      real(DP), dimension(NDIM) :: discard_rh      !! The heliocentric distance vector at the time of the particle's discard
-      real(DP), dimension(NDIM) :: discard_vh      !! The heliocentric velocity vector at the time of the particle's discard
-      integer(I4B)              :: discard_body_id !! The id of the other body involved in the discard (0 if no other body involved)
-   contains
-      procedure :: copy      => swiftest_util_copy_particle_info  !! Copies one set of information object components into another, component-by-component
-      procedure :: set_value => swiftest_util_set_particle_info   !! Sets one or more values of the particle information metadata object
-   end type swiftest_particle_info
-
-
    type, abstract, extends(base_object) :: swiftest_cb
    !> An abstract class for a generic central body in a Swiftest simulation
       class(swiftest_particle_info), allocatable  :: info              !! Particle metadata information
@@ -249,7 +252,7 @@ module swiftest
       integer(I8B)                                         :: nplpl   !! Number of body-body comparisons in the flattened upper triangular matrix
       type(swiftest_kinship),  dimension(:),   allocatable :: kin        !! Array of merger relationship structures that can account for multiple pairwise mergers in a single step
       logical,                 dimension(:),   allocatable :: lmtiny     !! flag indicating whether this body is below the GMTINY cutoff value
-      integer(I4B)                                         :: nplm       !! number of bodies above the GMTINY limit
+      integer(I4B)                                         :: nplm = 0   !! number of bodies above the GMTINY limit
       integer(I8B)                                         :: nplplm     !! Number of body (all massive)-body (only those above GMTINY) comparisons in the flattened upper triangular matrix 
       integer(I4B),            dimension(:),   allocatable :: nplenc     !! number of encounters with other planets this time step
       integer(I4B),            dimension(:),   allocatable :: ntpenc     !! number of encounters with test particles this time step
@@ -393,6 +396,8 @@ module swiftest
       logical                         :: lbeg                 !! True if this is the beginning of a step. This is used so that test particle steps can be calculated 
                                                               !!    separately from massive bodies.  Massive body variables are saved at half steps, and passed to 
                                                               !!    the test particles
+      logical                         :: lfirst_io   = .true.  !! Flag to indicate that this is the first time to write to a file
+      logical                         :: lfirst_peri = .true.  !! Flag to indicate that this is the first pericenter passage
    contains
       !> Each integrator will have its own version of the step
       procedure(abstract_step_system), deferred :: step
@@ -534,6 +539,13 @@ module swiftest
          integer(I4B), intent(out)      :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine swiftest_drift_one
 
+      module subroutine swiftest_driver(integrator, param_file_name, display_style)
+         implicit none
+         character(len=:), intent(in), allocatable :: integrator      !! Symbolic code of the requested integrator  
+         character(len=:), intent(in), allocatable :: param_file_name !! Name of the input parameters file
+         character(len=:), intent(in), allocatable :: display_style   !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD" 
+      end subroutine swiftest_driver
+
       pure module subroutine swiftest_gr_kick_getaccb_ns_body(self, nbody_system, param)
          implicit none
          class(swiftest_body),              intent(inout) :: self   !! Swiftest generic body object
@@ -551,12 +563,12 @@ module swiftest
          real(DP), dimension(:,:),   intent(out) :: agr    !! Accelerations
       end subroutine swiftest_gr_kick_getacch
 
-      pure module subroutine swiftest_gr_p4_pos_kick(param, x, v, dt)
+      pure elemental module subroutine swiftest_gr_p4_pos_kick(inv_c2, rx, ry, rz, vx, vy, vz, dt)
          implicit none
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
-         real(DP), dimension(:),     intent(inout) :: x     !! Position vector
-         real(DP), dimension(:),     intent(in)    :: v     !! Velocity vector
-         real(DP),                   intent(in)    :: dt    !! Step size
+         real(DP),  intent(in)    :: inv_c2     !! One over speed of light squared (1/c**2)
+         real(DP),  intent(inout) :: rx, ry, rz !! Position vector
+         real(DP),  intent(in)    :: vx, vy, vz !! Velocity vector
+         real(DP),  intent(in)    :: dt         !! Step size
       end subroutine swiftest_gr_p4_pos_kick
 
       pure module subroutine swiftest_gr_pseudovel2vel(param, mu, rh, pv, vh) 
@@ -630,11 +642,12 @@ module swiftest
          class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
       end subroutine swiftest_io_dump_storage
 
-      module subroutine swiftest_io_get_args(integrator, param_file_name, display_style) 
+      module subroutine swiftest_io_get_args(integrator, param_file_name, display_style, from_cli) 
          implicit none
          character(len=:), allocatable, intent(inout) :: integrator      !! Symbolic code of the requested integrator  
          character(len=:), allocatable, intent(inout) :: param_file_name !! Name of the input parameters file
          character(len=:), allocatable, intent(inout) :: display_style   !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
+         logical,                       intent(in)    :: from_cli        !! If true, get command-line arguments. Otherwise, use the values of the input variables
       end subroutine swiftest_io_get_args
 
       module function swiftest_io_get_token(buffer, ifirst, ilast, ierr) result(token)
@@ -672,11 +685,13 @@ module swiftest
          class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       end subroutine swiftest_io_netcdf_get_t0_values_system
 
-      module subroutine swiftest_io_netcdf_get_valid_masks(self, plmask, tpmask)
+      module subroutine swiftest_io_netcdf_get_valid_masks(self, plmask, tpmask, plmmask, Gmtiny)
          implicit none
-         class(swiftest_netcdf_parameters),  intent(inout) :: self   !! Parameters used to identify a particular NetCDF dataset
-         logical, dimension(:), allocatable, intent(out)   :: plmask !! Logical mask indicating which bodies are massive bodies
-         logical, dimension(:), allocatable, intent(out)   :: tpmask !! Logical mask indicating which bodies are test particles
+         class(swiftest_netcdf_parameters),  intent(inout)          :: self    !! Parameters used to identify a particular NetCDF dataset
+         logical, dimension(:), allocatable, intent(out)            :: plmask  !! Logical mask indicating which bodies are massive bodies
+         logical, dimension(:), allocatable, intent(out)            :: tpmask  !! Logical mask indicating which bodies are test particles
+         logical, dimension(:), allocatable, intent(out), optional  :: plmmask !! Logical mask indicating which bodies are fully interacting massive bodies
+         real(DP),                           intent(in),  optional  :: Gmtiny  !! The cutoff G*mass between semi-interacting and fully interacting massive bodies
       end subroutine swiftest_io_netcdf_get_valid_masks
 
       module subroutine swiftest_io_netcdf_initialize_output(self, param)
@@ -1783,6 +1798,11 @@ module swiftest
          implicit none
          class(swiftest_cb),intent(inout),codimension[*]  :: self  !! Swiftest cb object
       end subroutine swiftest_coarray_coclone_cb
+
+      module subroutine swiftest_coarray_coclone_kin(self)
+         implicit none
+         class(swiftest_kinship),intent(inout),codimension[*]  :: self  !! Swiftest kinship object
+      end subroutine swiftest_coarray_coclone_kin
 
       module subroutine swiftest_coarray_coclone_nc(self)
          implicit none

@@ -16,7 +16,7 @@ module solver
    use lambda_function
    use, intrinsic :: ieee_exceptions
    private
-   public :: solve_linear_system, solve_rkf45, solve_roots
+   public :: solve_linear_system, solve_roots !, solve_rkf45 
 
    interface solve_linear_system
       module procedure solve_linear_system_dp
@@ -424,22 +424,25 @@ module solver
             ! returns the minimum of two real numbers
             real(DP) Function Minimum(x1,x2) 
                real(DP) x1,x2,resultat
+
                if (x1 < x2) then
-               resultat = x1
+                  resultat = x1
                else 
-               resultat = x2
+                  resultat = x2
                endif
+
                Minimum = resultat
             end function Minimum
             
             ! TRUE if x1*x2 negative
-            integer Function RootBracketed(x1,x2)
+            logical Function RootBracketed(x1,x2)
                real(DP) x1,x2 
-               integer resultat
+               logical resultat
+
                if ((x1 > 0.and.x2 > 0).or.(x1 < 0.and.x2 < 0)) then 
-               resultat = 0
+                  resultat = .false.
                else
-               resultat = 1
+                  resultat = .true.
                endif
                RootBracketed = resultat
             end function RootBracketed

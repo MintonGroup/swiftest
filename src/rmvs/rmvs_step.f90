@@ -293,7 +293,7 @@ contains
                                        vtmp(:,i), new_line('a'), &
                                        " STOPPING "
                      call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
-                     call base_util_exit(failure)
+                     call base_util_exit(FAILURE,param%display_unit)
                   end if
                end do
             end if
@@ -317,7 +317,7 @@ contains
                      write(*, *) xtmp(:,i)
                      write(*, *) vtmp(:,i)
                      write(*, *) " STOPPING "
-                     call base_util_exit(failure)
+                     call base_util_exit(FAILURE,param%display_unit)
                   end if
                end do
             end if
@@ -541,9 +541,8 @@ contains
       integer(I4B),               intent(in)    :: ipleP     !!  index of RMVS planet being closely encountered
       class(swiftest_parameters), intent(in)    :: param    !! Current run configuration parameters
       ! Internals
-      integer(I4B)              :: i, id1, id2
-      real(DP)                  :: r2, mu, rhill2, vdotr, a, peri, capm, tperi, rpl
-      real(DP), dimension(NDIM) :: rh1, rh2, vh1, vh2
+      integer(I4B)              :: i
+      real(DP)                  :: r2, mu, rhill2, vdotr, a, peri, capm, tperi
 
       rhill2 = pl%rhill(ipleP)**2
       mu = pl%Gmass(ipleP)

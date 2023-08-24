@@ -61,11 +61,6 @@ contains
       integer(I4B), dimension(:), allocatable, intent(out)   :: index2 !! List of indices for body 2 in each encounter
       logical,      dimension(:), allocatable, intent(out)   :: lvdotr !! Logical flag indicating the sign of v .dot. x
       ! Internals
-      ! type(interaction_timer), save :: itimer
-      logical, save :: lfirst = .true.
-      logical, save :: skipit = .false.
-      integer(I8B) :: nplplm = 0_I8B
-      integer(I4B) :: npl
       logical,      dimension(:), allocatable :: plmplt_lvdotr !! Logical flag indicating the sign of v .dot. x in the plm-plt group
       integer(I4B), dimension(:), allocatable :: plmplt_index1 !! List of indices for body 1 in each encounter in the plm-plt group
       integer(I4B), dimension(:), allocatable :: plmplt_index2 !! List of indices for body 2 in each encounter in the plm-lt group
@@ -179,8 +174,12 @@ contains
          npl_last = npl
       end if
 
+#ifdef DOCONLOC
+      do concurrent (i = 1:npl) shared(r,renc,rmin,rmax) local(rmag)
+#else
       do concurrent (i = 1:npl)
-         rmag = .mag.r(:,i)
+#endif
+         rmag = norm2(r(:,i))
          rmax(i) = rmag + RSWEEP_FACTOR * renc(i)
          rmin(i) = rmag - RSWEEP_FACTOR * renc(i)
       end do
@@ -232,13 +231,21 @@ contains
          ntot_last = ntot
       end if
 
+#ifdef DOCONLOC
+      do concurrent (i = 1:nplm) shared(rmin,rmax,rplm,rencm) local(rmag)
+#else
       do concurrent (i = 1:nplm)
-         rmag = .mag.rplm(:,i)
+#endif
+         rmag = norm2(rplm(:,i))
          rmax(i) = rmag + RSWEEP_FACTOR * rencm(i)
          rmin(i) = rmag - RSWEEP_FACTOR * rencm(i)
       end do
+#ifdef DOCONLOC
+      do concurrent (i = 1:nplt) shared(rmin,rmax,rplt,renct) local(rmag)
+#else
       do concurrent (i = 1:nplt)
-         rmag = .mag.rplt(:,i)
+#endif
+         rmag = norm2(rplt(:,i))
          rmax(nplm+i) = rmag + RSWEEP_FACTOR * renct(i)
          rmin(nplm+i) = rmag - RSWEEP_FACTOR * renct(i)
       end do
@@ -292,13 +299,21 @@ contains
 
       renctp(:) = 0.0_DP
 
+#ifdef DOCONLOC
+      do concurrent (i = 1:npl) shared(rmin,rmax,rpl,rencpl) local(rmag)
+#else
       do concurrent (i = 1:npl)
-         rmag = .mag.rpl(:,i)
+#endif
+         rmag = norm2(rpl(:,i))
          rmax(i) = rmag + RSWEEP_FACTOR * rencpl(i)
          rmin(i) = rmag - RSWEEP_FACTOR * rencpl(i)
       end do
-      do concurrent (i = 1:ntp)
-         rmag = .mag.rtp(:,i)
+#ifdef DOCONLOC
+      do concurrent (i = 1:ntp) shared(rmin,rmax,rtp,renctp) local(rmag)
+#else
+      do concurrent (i = 1:ntp) 
+#endif
+         rmag = norm2(rtp(:,i))
          rmax(npl+i) = rmag + RSWEEP_FACTOR * renctp(i)
          rmin(npl+i) = rmag - RSWEEP_FACTOR * renctp(i)
       end do
@@ -340,7 +355,11 @@ contains
       logical, dimension(n) :: lencounteri, lvdotri
 
       lencounteri(:) = .false.
+#ifdef DOCONLOC
+      do concurrent(j = 1:n, lgood(j)) shared(lgood,lencounteri,lvdotri,x,y,z,vx,vy,vz,renci,renc) local(xr,yr,zr,vxr,vyr,vzr,renc12)
+#else
       do concurrent(j = 1:n, lgood(j))
+#endif
          xr = x(j) - xi
          yr = y(j) - yi
          zr = z(j) - zi
@@ -387,7 +406,11 @@ contains
       real(DP) :: xr, yr, zr, vxr, vyr, vzr, renc12
       logical, dimension(n) :: lencounteri, lvdotri
 
+#ifdef DOCONLOC
+      do concurrent(j = i+1:n) shared(lencounteri, lvdotri, renci, renc) local(xr,yr,zr,vxr,vyr,vzr,renc12)
+#else
       do concurrent(j = i+1:n)
+#endif
          xr = x(j) - xi
          yr = y(j) - yi
          zr = z(j) - zi
@@ -605,15 +628,15 @@ contains
       implicit none
       ! Arguments
       class(encounter_list), dimension(:),              intent(in)            :: ragged_list !! The ragged encounter list
-      integer(I4B),                                    intent(in)            :: n1          !! Number of bodies 1
-      integer(I8B),                                    intent(out)           :: nenc        !! Total number of encountersj 
-      integer(I4B),         dimension(:), allocatable, intent(out)           :: index1      !! Array of indices for body 1
-      integer(I4B),         dimension(:), allocatable, intent(out)           :: index2      !! Array of indices for body 1
-      logical,              dimension(:), allocatable, intent(out), optional :: lvdotr      !! Array indicating which bodies are approaching
+      integer(I4B),                                     intent(in)            :: n1          !! Number of bodies 1
+      integer(I8B),                                     intent(out)           :: nenc        !! Total number of encountersj 
+      integer(I4B),          dimension(:), allocatable, intent(out)           :: index1      !! Array of indices for body 1
+      integer(I4B),          dimension(:), allocatable, intent(out)           :: index2      !! Array of indices for body 1
+      logical,               dimension(:), allocatable, intent(out), optional :: lvdotr      !! Array indicating which bodies are approaching
       ! Internals
       integer(I4B) :: i
       integer(I8B) :: j1, j0, nenci
-      integer(I4B), dimension(n1) :: ibeg
+      integer(I8B), dimension(n1) :: ibeg
 
       associate(nenc_arr => ragged_list(:)%nenc)
          nenc = sum(nenc_arr(:))
@@ -701,7 +724,11 @@ contains
       ! Sort on the second index and remove duplicates 
       if (allocated(itmp)) deallocate(itmp)
       allocate(itmp, source=index2)
+#ifdef DOCONLOC
+      do concurrent(i = 1:n, iend(i) - ibeg(i) > 0_I8B) shared(iend,ibeg,index2,lencounter,itmp) local(klo,khi,nenci,j)
+#else
       do concurrent(i = 1:n, iend(i) - ibeg(i) > 0_I8B)
+#endif
          klo = ibeg(i)
          khi = iend(i)
          nenci = khi - klo + 1_I8B
@@ -748,7 +775,11 @@ contains
 
       call util_sort(extent_arr, self%ind)
 
+#ifdef DOCONLOC
+      do concurrent(k = 1_I8B:2_I8B * n) shared(self,n) local(i)
+#else
       do concurrent(k = 1_I8B:2_I8B * n)
+#endif
          i = self%ind(k)
          if (i <= n) then
             self%ibeg(i) = k
@@ -834,7 +865,7 @@ contains
          if (loverlap(i)) then
             ibeg =  self%aabb%ibeg(i) + 1_I8B
             iend =  self%aabb%iend(i) - 1_I8B
-            nbox = iend - ibeg + 1
+            nbox = int(iend - ibeg, kind=I4B) + 1
             call encounter_check_all_sweep_one(i, nbox, r1(1,i), r1(2,i), r1(3,i), v1(1,i), v1(2,i), v1(3,i), &
                                                          xind(ibeg:iend), yind(ibeg:iend), zind(ibeg:iend),&
                                                          vxind(ibeg:iend), vyind(ibeg:iend), vzind(ibeg:iend), &
@@ -850,7 +881,7 @@ contains
          if (loverlap(i)) then
             ibeg =  self%aabb%ibeg(i) + 1_I8B
             iend =  self%aabb%iend(i) - 1_I8B
-            nbox = iend - ibeg + 1
+            nbox = int(iend - ibeg, kind=I4B) + 1
             ii = i - n1
             call encounter_check_all_sweep_one(ii, nbox, r2(1,ii), r2(2,ii), r2(3,ii), v2(1,ii), v2(2,ii), v2(3,ii), &
                                                           xind(ibeg:iend), yind(ibeg:iend), zind(ibeg:iend),&
@@ -927,7 +958,7 @@ contains
          if (loverlap(i)) then
             ibeg =  self%aabb%ibeg(i) + 1_I8B
             iend =  self%aabb%iend(i) - 1_I8B
-            nbox = int(iend - ibeg + 1, kind=I4B)
+            nbox = int(iend - ibeg, kind=I4B) + 1
             lencounteri(ibeg:iend) = .true.
             call encounter_check_all_sweep_one(i, nbox, r(1,i), r(2,i), r(3,i), v(1,i), v(2,i), v(3,i), &
                                                       xind(ibeg:iend), yind(ibeg:iend), zind(ibeg:iend),&
@@ -941,7 +972,11 @@ contains
       call encounter_check_collapse_ragged_list(lenc, n, nenc, index1, index2, lvdotr)
 
       ! By convention, we always assume that index1 < index2, and so we must swap any that are out of order
+#ifdef DOCONLOC
+      do concurrent(k = 1_I8B:nenc, index1(k) > index2(k)) shared(index1,index2) local(itmp)
+#else
       do concurrent(k = 1_I8B:nenc, index1(k) > index2(k))
+#endif
          itmp = index1(k)
          index1(k) = index2(k)
          index2(k) = itmp
