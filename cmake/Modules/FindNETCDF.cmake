@@ -9,7 +9,14 @@
 
 # - Finds the NetCDF libraries 
 
-IF (NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
+FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/_dependencies/${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR}_${COMPILER_OPTIONS}" NXPREFIX_CANDIDATE)
+IF (EXISTS ${NXPREFIX_CANDIDATE})
+   SET(NCPREFIX_DIR ${NXPREFIX_CANDIDATE} CACHE PATH "Location of provided NetCDF-C dependencies")
+   SET(NFPREFIX_DIR ${NXPREFIX_CANDIDATE} CACHE PATH "Location of provided NetCDF-Fortran dependencies")
+   SET(H5PREFIX_DIR ${NXPREFIX_CANDIDATE} CACHE PATH "Location of provided HDF5 dependencies")
+   SET(ZPREFIX_DIR  ${NXPREFIX_CANDIDATE} CACHE PATH "Location of provided zlib dependencies")
+   SET(NFINCLUDE_DIR "${NFPREFIX_DIR}/include" CACHE PATH "Location of provided netcdf.mod")
+ELSEIF(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
    FIND_PATH(NFBIN
    NAMES nf-config
    HINTS 
@@ -67,14 +74,19 @@ MESSAGE(STATUS "NetCDF-Fortran include directory: ${NETCDF_INCLUDE_DIR}")
 
 IF (BUILD_SHARED_LIBS) 
    SET(NETCDFF "netcdff")
-   SET(NETCDF "netcdf")
 ELSE ()
    IF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
       SET(NETCDFF "netcdff.lib")
       SET(NETCDF  "netcdf.lib")
+      SET(HDF5    "libhdf5.lib")
+      SET(HDF5_HL "libhdf5_hl.lib")
+      SET(ZLIB    "zlibstatic.lib")
    ELSE ()
       SET(NETCDFF "libnetcdff.a")
       SET(NETCDF  "libnetcdf.a")
+      SET(HDF5    "libhdf5.a")
+      SET(HDF5_HL "libhdf5_hl.a")
+      SET(ZLIB    "libz.a")
    ENDIF()
 ENDIF()
 
@@ -99,6 +111,7 @@ ELSE ()
    FIND_LIBRARY(NETCDF_LIBRARY 
       NAMES ${NETCDF} 
       HINTS
+         ${NCPREFIX_DIR}
          ENV NETCDF_HOME
          ENV LD_LIBRARY_PATH
       PATH_SUFFIXES
@@ -108,7 +121,46 @@ ELSE ()
    )
 
    MESSAGE(STATUS "NetCDF-C Library: ${NETCDF_LIBRARY}")
-   IF (NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
+   IF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+      FIND_LIBRARY(HDF5_LIBRARY 
+         NAMES ${HDF5}
+         HINTS 
+            ${H5PREFIX_DIR}
+            ENV HDF5_ROOT
+            ENV LD_LIBRARY_PATH
+         PATH_SUFFIXES
+            lib
+            ${CMAKE_LIBRARY_ARCHITECTURE}
+         REQUIRED
+      )
+
+      FIND_LIBRARY(HDF5_HL_LIBRARY 
+         NAMES ${HDF5_HL}
+         HINTS 
+            ${H5PREFIX_DIR}
+            ENV HDF5_ROOT
+            ENV LD_LIBRARY_PATH
+         PATH_SUFFIXES
+            lib
+            ${CMAKE_LIBRARY_ARCHITECTURE}
+         REQUIRED
+      )
+
+      FIND_LIBRARY(Z_LIBRARY 
+         NAMES ${ZLIB}
+         HINTS 
+            ${ZPREFIX_DIR}
+            ENV ZLIB_ROOT
+            ENV LD_LIBRARY_PATH
+         PATH_SUFFIXES
+            lib
+            ${CMAKE_LIBRARY_ARCHITECTURE}
+         REQUIRED
+      )
+
+      LIST(APPEND EXTRA_FLAGS ${HDF5_LIBRARY} ${HDF5_HL_LIBRARY} ${Z_LIBRARY})
+      
+   ELSE ()
       FIND_PATH(NCBIN
          NAMES nc-config
          HINTS 
@@ -143,13 +195,14 @@ ELSE ()
    
    IF (DEFINED ENV{LIBS})
       STRING(STRIP "$ENV{LIBS}" LIBS)
-      SEPARATE_ARGUMENTS(LIBS NATIVE_COMMAND "$LIBS")
+      SEPARATE_ARGUMENTS(LIBS NATIVE_COMMAND "${LIBS}")
       LIST(APPEND EXTRA_FLAGS ${LIBS})
    ENDIF()
 
    # Note for posterity: When building static libraries, NETCDF_FORTRAN_LIBRARY must come *before* NETCDF_LIBRARY. Otherwise you get a bunch of "undefined reference to" errors
    SET(NETCDF_LIBRARIES ${NETCDF_FORTRAN_LIBRARY} ${NETCDF_LIBRARY} ${EXTRA_FLAGS} CACHE STRING "NetCDF Fortran and dependant static libraries")
 ENDIF ()
+MESSAGE(STATUS "NetCDF dependencies: ${NETCDF_LIBRARIES}")
 
 SET(NETCDF_FOUND TRUE)
 MARK_AS_ADVANCED(NETCDF_LIBRARIES NETCDF_INCLUDE_DIR)
