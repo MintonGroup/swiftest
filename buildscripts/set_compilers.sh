@@ -115,7 +115,7 @@ case $OS in
             CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype ${CFLAGS}"
         else
             if $(brew --version &> /dev/null); then 
-                brew install gcc
+                brew install gcc libomp
             else
                 echo \"Please install Homebrew first\" 
                 exit 1 
@@ -129,9 +129,9 @@ case $OS in
             RANLIB=${RANLIB:-${COMPILER_PREFIX}/bin/gcc-ranlib-13}
             FC=${FC:-${COMPILER_PREFIX}/bin/gfortran-13}
             LD_LIBRARY_PATH="${COMPILER_PREFIX}/lib/gcc/13:${LD_LIBRARY_PATH}"
-            LDFLAGS="-L${HOMEBREW_PREFIX}/opt/llvm/lib/c++ -Wl,-rpath,${HOMEBREW_PREFIX}/opt/llvm/lib/c+  -Wl,-no_compact_unwind"
+            LDFLAGS="-L${HOMEBREW_PREFIX}/opt/llvm/lib/c++ -Wl,-rpath,${HOMEBREW_PREFIX}/opt/llvm/lib/c+ -L${HOMEBREW_PREFIX}/opt/libomp/lib -Wl,-no_compact_unwind"
             CPPFLAGS="-isystem ${HOMEBREW_PREFIX}/opt/libomp/include"
-            LIBS="-lgomp ${LIBS}"
+            LIBS="-lomp ${LIBS}"
             CPATH="${FROOT}/include:${CPATH}"
             CXXFLAGS="${CFLAGS} ${CXXFLAGS}"
             FCFLAGS="${CFLAGS} ${FCFLAGS}"

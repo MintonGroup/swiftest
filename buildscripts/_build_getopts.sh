@@ -14,10 +14,10 @@ SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 
 # Parse arguments
-USTMT="Usage: ${0} <-d /path/to/dependency/source> [-p /prefix/path|{/usr/local}] [-m MACOSX_DEPLOYMENT_TARGET|{11.0}]"
+USTMT="Usage: ${0} <-d /path/to/dependency/source> [-p /prefix/path|{/usr/local}] [-m MACOSX_DEPLOYMENT_TARGET|{10.9}]"
 PREFIX=/usr/local
 DEPENDENCY_DIR="${ROOT_DIR}/_dependencies"
-MACOSX_DEPLOYMENT_TARGET="13.0"
+MACOSX_DEPLOYMENT_TARGET="10.9"
 while getopts ":d:p:m:h" ARG; do
     case "${ARG}" in
     d)
@@ -62,6 +62,7 @@ if [ -z ${DEPENDENCY_ENV_VARS+x} ]; then
     NCDIR="${PREFIX}"
     NFDIR="${PREFIX}"
     NETCDF_FORTRAN_HOME=${NFDIR}
+    NETCDF_INCLUDE=${NFDIR}/include
     NETCDF_HOME=${NCDIR}
 
     DEPENDENCY_ENV_VARS=true
