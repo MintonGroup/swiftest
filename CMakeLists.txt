@@ -85,6 +85,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN})
 # Have the .mod files placed in the lib folder
 SET(CMAKE_Fortran_MODULE_DIRECTORY ${MOD})
 
+# Set the name of the swiftest library
+SET(SWIFTEST_LIBRARY swiftest)
+
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${BIN})
 

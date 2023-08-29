@@ -53,7 +53,7 @@ if [ -z ${DEPENDENCY_ENV_VARS+x} ]; then
     LD_LIBRARY_PATH="${PREFIX}/lib:${LD_LIBRARY_PATH}"
     CPPFLAGS="${CPPFLAGS} -isystem ${PREFIX}/include"
     LDFLAGS="${LDFLAGS} -L${PREFIX}/lib"
-    CPATH="${CPATH} ${PREFIX}/include}"
+    CPATH="${PREFIX}/include:${CPATH}"
 
     HDF5_ROOT="${PREFIX}"
     HDF5_LIBDIR="${HDF5_ROOT}/lib"

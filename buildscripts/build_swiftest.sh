@@ -21,49 +21,39 @@ if [ ! -f "${ROOT_DIR}/setup.py" ]; then
     exit 1
 fi
 
+read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
+echo $OS $ARCH
+
 printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n\n"
 printf "Installing to ${PREFIX}\n"
 printf "Dependency libraries in ${PREFIX}\n"
 
-
-SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF"
-
-if [ $OS = "Intel" ]; then 
-    FCFLAGS="${CFLAGS} -standard-semantics"
-    SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DMACHINE_CODE_VALUE=\"SSE2\""
-else
-    SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DMACHINE_CODE_VALUE=\"generic\""
-fi
-
-read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
-echo $OS $ARCH
-
-cd $ROOT_DIR
-
-printf "\n"
-printf "*********************************************************\n"
-printf "*                   BUILDING SWIFTEST                   *\n"
-printf "*********************************************************\n"
-printf "LIBS: ${LIBS}\n"
-printf "CFLAGS: ${CFLAGS}\n"
-printf "FFLAGS: ${FFLAGS}\n"
-printf "FCFLAGS: ${FCFLAGS}\n"
-printf "CPPFLAGS: ${CPPFLAGS}\n"
-printf "CPATH: ${CPATH}\n"
-printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
-printf "LDFLAGS: ${LDFLAGS}\n"
-printf "NETCDF_FORTRAN_HOME: ${NETCDF_FORTRAN_HOME}\n"
-printf "NETCDF_INCLUDE: ${NETCDF_INCLUDE}\n"
-printf "SKBUILD_CONFIGURE_OPTIONS: ${SKBUILD_CONFIGURE_OPTIONS}\n"
-if [ $OS = "MacOSX" ]; then
-    printf "MACOSX_DEPLOYMENT_TARGET: ${MACOSX_DEPLOYMENT_TARGET}\n"
-fi
-printf "*********************************************************\n"
-
-python3 -m pip install build pip
-python3 -m build --sdist
-if [ $OS = "MacOSX" ]; then
-    cibuildwheel --platform macos
-elif [ $OS = "Linux" ]; then
+if [ $OS = "Linux" ]; then
     cibuildwheel --platform linux
+else
+    SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF"
+    SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DMACHINE_CODE_VALUE=\"generic\""
+    cd $ROOT_DIR
+
+    printf "\n"
+    printf "*********************************************************\n"
+    printf "*                   BUILDING SWIFTEST                   *\n"
+    printf "*********************************************************\n"
+    printf "LIBS: ${LIBS}\n"
+    printf "CFLAGS: ${CFLAGS}\n"
+    printf "FFLAGS: ${FFLAGS}\n"
+    printf "FCFLAGS: ${FCFLAGS}\n"
+    printf "CPPFLAGS: ${CPPFLAGS}\n"
+    printf "CPATH: ${CPATH}\n"
+    printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
+    printf "LDFLAGS: ${LDFLAGS}\n"
+    printf "NETCDF_FORTRAN_HOME: ${NETCDF_FORTRAN_HOME}\n"
+    printf "NETCDF_INCLUDE: ${NETCDF_INCLUDE}\n"
+    printf "SKBUILD_CONFIGURE_OPTIONS: ${SKBUILD_CONFIGURE_OPTIONS}\n"
+    printf "MACOSX_DEPLOYMENT_TARGET: ${MACOSX_DEPLOYMENT_TARGET}\n"
+    printf "*********************************************************\n"
+
+    python3 -m pip install build pip
+    python3 -m build --sdist
+    cibuildwheel --platform macos
 fi

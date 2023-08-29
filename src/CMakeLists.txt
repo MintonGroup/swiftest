@@ -140,7 +140,6 @@ ADD_EXECUTABLE(${SWIFTEST_DRIVER} ${DRIVER_src})
 # Add the needed libraries 
 #####################################################
 # Create a library from the source files, except the driver
-SET(SWIFTEST_LIBRARY swiftest)
 ADD_LIBRARY(${SWIFTEST_LIBRARY} ${SWIFTEST_src})
 IF (NOT BUILD_SHARED_LIBS) 
     SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY} PROPERTY POSITION_INDEPENDENT_CODE)
