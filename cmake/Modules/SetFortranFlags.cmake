@@ -93,6 +93,11 @@ IF (COMPILER_OPTIONS STREQUAL "GNU")
     SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
         Fortran "-ffree-line-length-512" # GNU (gfortran)
         )
+
+    # Sets the dialect standard
+    SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
+        Fortran "-std=f2018" 
+        )
 ELSEIF (COMPILER_OPTIONS STREQUAL "Intel")
     # Disables right margin wrapping in list-directed output
     IF (WINOPT)
@@ -144,19 +149,19 @@ IF (NOT BUILD_SHARED_LIBS AND NOT WINOPT)
         ENDIF (USE_OPENMP)
 
     ELSEIF (COMPILER_OPTIONS STREQUAL "GNU") 
-        # Set GNU static libraries
-        SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
-                Fortran  "-static-libgfortran" 
-        )
-        SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
-                Fortran  "-static-libgcc" 
-        )
-        SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
-                Fortran  "-static-libstdc++" 
-        )
-        SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
-                Fortran  "-static-libquadmath" 
-        )
+        # # Set GNU static libraries
+        # SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
+        #         Fortran  "-static-libgfortran" 
+        # )
+        # SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
+        #         Fortran  "-static-libgcc" 
+        # )
+        # SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
+        #         Fortran  "-static-libstdc++" 
+        # )
+        # SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
+        #         Fortran  "-static-libquadmath" 
+        # )
 
         IF (USE_OPENMP)
             SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"

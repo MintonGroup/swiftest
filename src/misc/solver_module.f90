@@ -20,7 +20,9 @@ module solver
 
    interface solve_linear_system
       module procedure solve_linear_system_dp
+#ifdef QUADPREC
       module procedure solve_linear_system_qp
+#endif
    end interface
 
    interface solve_roots
@@ -81,7 +83,7 @@ module solver
          return
       end function solve_linear_system_dp
 
-
+#ifdef QUADPREC
       function solve_linear_system_qp(A,b,n,lerr) result(x)
          !! Author: David A. Minton
          !!
@@ -115,7 +117,7 @@ module solver
 
          return
       end function solve_linear_system_qp
-
+#endif
 
       function solve_wbs(u) result(x) ! solve with backward substitution
          !! Based on code available on Rosetta Code: https://rosettacode.org/wiki/Gaussian_elimination#Fortran

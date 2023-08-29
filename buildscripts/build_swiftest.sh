@@ -33,12 +33,19 @@ if [ $OS = "Linux" ]; then
 else
     SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF"
     SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DMACHINE_CODE_VALUE=\"generic\""
+    OMPROOT=${DEVTOOLDIR}/MacOSX${MACOSX_DEPLOYMENT_TARGET}/${ARCH}/usr/local
+    CPPFLAGS="${CPPFLAGS} -Xclang -fopenmp"
+    LIBS="${LIBS} -lomp"
+    LDFLAGS="-Wl,-rpath,${OMPROOT}/lib" 
+    CPATH="${OMPROOT}/include:${CPATH}"
+    LD_LIBRARY_PATH="${OMPROOT}/lib:${LD_LIBRARY_PATH}"
     cd $ROOT_DIR
 
     printf "\n"
     printf "*********************************************************\n"
     printf "*                   BUILDING SWIFTEST                   *\n"
     printf "*********************************************************\n"
+    printf "OMPROOT: ${OMPROOT}\n"
     printf "LIBS: ${LIBS}\n"
     printf "CFLAGS: ${CFLAGS}\n"
     printf "FFLAGS: ${FFLAGS}\n"
@@ -47,6 +54,7 @@ else
     printf "CPATH: ${CPATH}\n"
     printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
     printf "LDFLAGS: ${LDFLAGS}\n"
+    printf "LIBS: ${LIBS}\n"
     printf "NETCDF_FORTRAN_HOME: ${NETCDF_FORTRAN_HOME}\n"
     printf "NETCDF_INCLUDE: ${NETCDF_INCLUDE}\n"
     printf "SKBUILD_CONFIGURE_OPTIONS: ${SKBUILD_CONFIGURE_OPTIONS}\n"

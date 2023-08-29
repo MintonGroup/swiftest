@@ -2774,7 +2774,7 @@ contains
       return
    end subroutine swiftest_io_param_writer_one_logical
 
-
+#ifdef QUADPREC
    module subroutine swiftest_io_param_writer_one_QP(param_name, param_value, unit)
       !! author: David A. Minton
       !!
@@ -2794,7 +2794,7 @@ contains
 
       return
    end subroutine swiftest_io_param_writer_one_QP
-
+#endif
 
    module subroutine swiftest_io_read_in_body(self, param) 
       !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott

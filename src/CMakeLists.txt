@@ -168,10 +168,9 @@ IF(USE_COARRAY)
 ENDIF(USE_COARRAY)
 
 # Check to see if the compiler allows for local-spec in do concurrent statements. Set a preprocessor variable if it does
-IF (USE_OPENMP)
-    SET(TESTFILE "${CMAKE_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}")
-    SET(TESTFILE "${TESTFILE}/CMakeTmp/testFortranDoConcurrentLoc.f90")
-    FILE(WRITE "${TESTFILE}"
+SET(TESTFILE "${CMAKE_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}")
+SET(TESTFILE "${TESTFILE}/CMakeTmp/testFortranDoConcurrentLoc.f90")
+FILE(WRITE "${TESTFILE}"
 "
 program TestDoConcurrentLoc
 integer :: i
@@ -181,12 +180,31 @@ do concurrent(i = 1:10) shared(a)
 end do
 end program TestDoConcurrentLoc
 ")
-    TRY_COMPILE(DOCONLOC_WORKS ${CMAKE_BINARY_DIR} ${TESTFILE}
-    COMPILE_DEFINITIONS "${CMAKE_Fortran_FLAGS}" OUTPUT_VARIABLE OUTPUT)
-    IF (DOCONLOC_WORKS)
-        TARGET_COMPILE_DEFINITIONS(${SWIFTEST_DRIVER} PRIVATE -DDOCONLOC)
-    ENDIF (DOCONLOC_WORKS)
-ENDIF (USE_OPENMP)
+TRY_COMPILE(DOCONLOC_WORKS ${CMAKE_BINARY_DIR} ${TESTFILE} COMPILE_DEFINITIONS "${CMAKE_Fortran_FLAGS}" OUTPUT_VARIABLE OUTPUT)
+IF (DOCONLOC_WORKS)
+    MESSAGE(STATUS "DO CONCURRENT supports locality-spec")
+    TARGET_COMPILE_DEFINITIONS(${SWIFTEST_DRIVER} PRIVATE -DDOCONLOC)
+ELSE ()
+    MESSAGE(STATUS "DO CONCURRENT does not support locality-spec")
+ENDIF (DOCONLOC_WORKS)
+
+# Check to see if quad precision is supported
+SET(TESTFILE "${CMAKE_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}")
+SET(TESTFILE "${TESTFILE}/CMakeTmp/testFortranQuadPrecisionReal.f90")
+FILE(WRITE "${TESTFILE}"
+"
+program TestQuadPrecisionReal
+integer, parameter :: QP = selected_Real_kind(30) 
+real(QP) :: x
+end program TestQuadPrecisionReal
+")
+TRY_COMPILE(QUADPREC ${CMAKE_BINARY_DIR} ${TESTFILE} COMPILE_DEFINITIONS "${CMAKE_Fortran_FLAGS}" OUTPUT_VARIABLE OUTPUT)
+IF (QUADPREC)
+    MESSAGE(STATUS "Quad precision real is supported")
+    TARGET_COMPILE_DEFINITIONS(${SWIFTEST_DRIVER} PRIVATE -DQUADPREC)
+ELSE ()
+    MESSAGE(STATUS "Quad precision real is not supported")
+ENDIF ()
 
 
 #####################################

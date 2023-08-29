@@ -37,12 +37,14 @@ module operators
          real(DP), dimension(NDIM) :: C
       end function operator_cross_dp
 
+#ifdef QUADPREC
       pure module function operator_cross_qp(A, B) result(C)
          !$omp declare simd(operator_cross_qp)
          implicit none
          real(QP), dimension(:), intent(in) :: A, B
          real(QP), dimension(NDIM) :: C
       end function operator_cross_qp
+#endif
 
       pure module function operator_cross_i1b(A, B) result(C)
          !$omp declare simd(operator_cross_i1b)
@@ -84,11 +86,13 @@ module operators
          real(DP), dimension(:,:), allocatable :: C
       end function operator_cross_el_dp
 
+#ifdef QUADPREC
       pure module function operator_cross_el_qp(A, B) result(C)
          implicit none
          real(QP), dimension(:,:), intent(in) :: A, B
          real(QP), dimension(:,:), allocatable :: C
       end function operator_cross_el_qp
+#endif
 
       pure module function operator_cross_el_i1b(A, B) result(C)
          implicit none
@@ -134,13 +138,14 @@ module operators
          real(DP)                           :: B
       end function operator_mag_dp
 
+#ifdef QUADPREC
       pure module function operator_mag_qp(A) result(B)
          !$omp declare simd(operator_mag_qp)
          implicit none
          real(QP), dimension(:), intent(in) :: A
          real(QP)                           :: B
       end function operator_mag_qp
-
+#endif
       pure module function operator_mag_el_sp(A) result(B)
          implicit none
          real(SP), dimension(:,:), intent(in) :: A
@@ -153,11 +158,14 @@ module operators
          real(DP), dimension(:), allocatable  :: B
       end function operator_mag_el_dp
 
+#ifdef QUADPREC
       pure module function operator_mag_el_qp(A) result(B)
          implicit none
          real(QP), dimension(:,:), intent(in) :: A
          real(QP), dimension(:), allocatable  :: B
       end function operator_mag_el_qp
+#endif
+
    end interface
 
 
@@ -180,12 +188,14 @@ module operators
          real(DP), dimension(NDIM)              :: B
       end function operator_unit_dp
 
+#ifdef QUADPREC
       pure module function operator_unit_qp(A) result(B)
          !$omp declare simd(operator_unit_qp)
          implicit none
          real(QP), dimension(:), intent(in)  :: A
          real(QP), dimension(NDIM)              :: B
       end function operator_unit_qp
+#endif
 
       pure module function operator_unit_el_sp(A) result(B)
          implicit none
@@ -199,11 +209,13 @@ module operators
          real(DP), dimension(:,:), allocatable  :: B
       end function operator_unit_el_dp
 
+#ifdef QUADPREC
       pure module function operator_unit_el_qp(A) result(B)
          implicit none
          real(QP), dimension(:,:), intent(in)  :: A
          real(QP), dimension(:,:), allocatable :: B
       end function operator_unit_el_qp
+#endif
    end interface
 
 

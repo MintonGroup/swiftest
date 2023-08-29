@@ -71,11 +71,13 @@ module coarray
          integer(I4B), intent(in),optional :: src_img
       end subroutine coarray_component_clone_lgt_arr1D
 
+#ifdef QUADPREC
       module subroutine coarray_component_clone_QP(var,src_img)
          implicit none
          real(QP), intent(inout) :: var
          integer(I4B), intent(in),optional :: src_img
       end subroutine coarray_component_clone_QP 
+#endif
    end interface
 
 
