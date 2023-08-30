@@ -10,7 +10,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
-environment = {SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=ON"}
+environment = {SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=ON -DUSE_SIMD=OFF"}
 test-command = "pytest {package}/tests"
 test-requires = ['pytest','cython']
 test-skip = "cp312-*"

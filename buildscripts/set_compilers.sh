@@ -42,8 +42,19 @@ case $OS in
         AR=${AR:-${COMPILER_PREFIX}/bin/ar}
         NM=${NM:-${COMPILER_PREFIX}/bin/nm}
         RANLIB=${RANLIB:-${COMPILER_PREFIX}/bin/ranlib}
-        FC=${FC:-$(command -v gfortran)}
-        FROOT=$(realpath $(dirname $(command -v $FC))/..) 
+        
+        # Use custom gfortran location for a given MacOS Target version if vailable
+        FROOT=${DEVTOOLDIR}/MacOSX${MACOSX_DEPLOYMENT_TARGET}/${ARCH}/usr/local
+        if [ -f ${FROOT}/bin/gfortran ]; then
+            FC=${FROOT}/bin/gfortran
+        else
+            FC=${FC:-$(command -v gfortran)}
+            FROOT=$(realpath $(dirname $(command -v $FC))/..) 
+        fi
+        if [ ! -f ${FC} ]; then
+            printf "No working fortran compiler found!\n"
+            exit 1
+        fi
         LD_LIBRARY_PATH="${COMPILER_PREFIX}/lib:${FROOT}/lib:${LD_LIBRARY_PATH}"
         LDFLAGS="${LDFLAGS} -Wl,-rpath,${COMPILER_PREFIX}/lib -Wl,-no_compact_unwind"
         CPPFLAGS="${CPPFLAGS} -isystem ${COMPILER_PREFIX}/include" 

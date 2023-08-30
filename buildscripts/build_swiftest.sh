@@ -28,7 +28,10 @@ echo $OS $ARCH
 printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n\n"
 printf "Installing to ${PREFIX}\n"
 printf "Dependency libraries in ${PREFIX}\n"
+read -rsn1 -p"Press any key to continue";echo
+
 ${SCRIPT_DIR}/build_dependencies.sh ${ARGS}
+
 
 if [ $OS = "Linux" ]; then
     cibuildwheel --platform linux
