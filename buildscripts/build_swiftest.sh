@@ -32,13 +32,20 @@ read -rsn1 -p"Press any key to continue";echo
 
 ${SCRIPT_DIR}/build_dependencies.sh ${ARGS}
 
-
 if [ $OS = "Linux" ]; then
     cibuildwheel --platform linux
 else
     SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=ON -DUSE_SIMD=OFF"
     SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DMACHINE_CODE_VALUE=\"generic\""
     OMPROOT=${DEVTOOLDIR}/MacOSX${MACOSX_DEPLOYMENT_TARGET}/${ARCH}/usr/local
+    rsync -a ${OMPROOT}/lib/libgfortran*dylib ${ROOT_DIR}/lib/
+    rsync -a ${OMPROOT}/lib/libgomp*dylib ${ROOT_DIR}/lib/
+    rsync -a ${OMPROOT}/lib/libomp*dylib ${ROOT_DIR}/lib/
+    rsync -a ${OMPROOT}/lib/libquadmath*dylib ${ROOT_DIR}/lib/
+
+    NETCDF_FORTRAN_HOME=${ROOT_DIR}
+    NETCDF_INCLUDE=${ROOT_DIR}/include
+
     CPPFLAGS="${CPPFLAGS} -Xclang -fopenmp"
     LIBS="${LIBS} -lomp"
     LDFLAGS="-Wl,-rpath,${OMPROOT}/lib -Wl,-rpath,${ROOT_DIR}/lib" 

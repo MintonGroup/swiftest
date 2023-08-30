@@ -27,7 +27,6 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/zlib-*
-#./configure --prefix=${PREFIX} --static 
 ./configure --prefix=${PREFIX}
 make 
 if [ -w ${PREFIX} ]; then
@@ -35,6 +34,7 @@ if [ -w ${PREFIX} ]; then
 else
     sudo make install
 fi
+rsync -va ${PREFIX}/lib/libz* ${ROOT_DIR}/lib/
 
 if [ $? -ne 0 ]; then
    printf "zlib could not be compiled.\n"
