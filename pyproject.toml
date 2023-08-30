@@ -10,7 +10,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
-environment = {SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF"}
+environment = {SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=ON"}
 test-command = "pytest {package}/tests"
 test-requires = ['pytest','cython']
 test-skip = "cp312-*"
@@ -20,12 +20,5 @@ skip = "pp* *i686 *-manylinux_i686 *_ppc64le *_s390x *-musllinux* *-win32"
 environment = {FFLAGS="${FFLAGS} -fPIC", CFLAGS="${CFLAGS} -fPIC", LDFLAGS="${LDFLAGS} -fPIE", LIBS="-lgomp"}
 before-all = [
     "yum install doxygen  -y ||  apt-get install doxygen -y",
-    "buildscripts/build_dependencies.sh -d /_dependencies -p /usr/local",
+    "buildscripts/build_dependencies.sh -p /usr/local",
 ]
-
-[tool.cibuildwheel.macos]
-before-all = [
-    "buildscripts/build_dependencies.sh -d ${TMPDIR} -p ${TMPDIR} -m ${MACOSX_DEPLOYMENT_TARGET}"
-]
-
-    

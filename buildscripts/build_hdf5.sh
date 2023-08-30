@@ -17,7 +17,7 @@ ARGS=$@
 
 printf "\n"
 printf "*********************************************************\n"
-printf "*            BUILDING HDF5 STATIC LIBRARY               *\n"
+printf "*               BUILDING HDF5 LIBRARY                   *\n"
 printf "*********************************************************\n"
 printf "LIBS: ${LIBS}\n"
 printf "CFLAGS: ${CFLAGS}\n"
@@ -35,7 +35,8 @@ if [ $OS = "MacOSX" ]; then
       printf "echo arm-apple-darwin" > bin/config.sub 
    fi
 fi
-COPTS="--disable-shared --enable-build-mode=production --enable-tests=no --enable-tools=no --disable-fortran --disable-java --disable-cxx --prefix=${PREFIX} --with-zlib=${PREFIX}"
+#COPTS="--disable-shared --enable-build-mode=production --enable-tests=no --enable-tools=no --disable-fortran --disable-java --disable-cxx --prefix=${PREFIX} --with-zlib=${PREFIX}"
+COPTS="--enable-build-mode=production --enable-tests=no --enable-tools=no --disable-fortran --disable-java --disable-cxx --prefix=${PREFIX} --with-zlib=${PREFIX}"
 ./configure ${COPTS}
 make 
 if [ -w ${PREFIX} ]; then

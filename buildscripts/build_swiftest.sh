@@ -13,6 +13,7 @@ set -a
 if [ -z ${SCRIPT_DIR+x} ]; then SCRIPT_DIR=$(realpath $(dirname $0)); fi
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
+ARGS="-p ${PREFIX} -d ${DEPENDENCY_DIR} -m ${MACOSX_DEPLOYMENT_TARGET}"
 
 # Determine if we are in the correct directory (the script can either be run from the Swiftest project root directory or the
 # buildscripts directory)
@@ -27,18 +28,20 @@ echo $OS $ARCH
 printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n\n"
 printf "Installing to ${PREFIX}\n"
 printf "Dependency libraries in ${PREFIX}\n"
+${SCRIPT_DIR}/build_dependencies.sh ${ARGS}
 
 if [ $OS = "Linux" ]; then
     cibuildwheel --platform linux
 else
-    SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=OFF"
+    SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=ON -DUSE_SIMD=OFF"
     SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DMACHINE_CODE_VALUE=\"generic\""
     OMPROOT=${DEVTOOLDIR}/MacOSX${MACOSX_DEPLOYMENT_TARGET}/${ARCH}/usr/local
     CPPFLAGS="${CPPFLAGS} -Xclang -fopenmp"
     LIBS="${LIBS} -lomp"
-    LDFLAGS="-Wl,-rpath,${OMPROOT}/lib" 
+    LDFLAGS="-Wl,-rpath,${OMPROOT}/lib -Wl,-rpath,${ROOT_DIR}/lib" 
     CPATH="${OMPROOT}/include:${CPATH}"
-    LD_LIBRARY_PATH="${OMPROOT}/lib:${LD_LIBRARY_PATH}"
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}"
+    LIBRARY_PATH="${LD_LIBRARY_PATH}"
     cd $ROOT_DIR
 
     printf "\n"

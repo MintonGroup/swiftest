@@ -14,10 +14,19 @@ SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 
 # Parse arguments
-USTMT="Usage: ${0} <-d /path/to/dependency/source> [-p /prefix/path|{/usr/local}] [-m MACOSX_DEPLOYMENT_TARGET|{10.9}]"
-PREFIX=/usr/local
-DEPENDENCY_DIR="${ROOT_DIR}/_dependencies"
-MACOSX_DEPLOYMENT_TARGET="10.9"
+USTMT="Usage: ${0} [-d /path/to/dependency/source] [-p /prefix/path] [-m MACOSX_DEPLOYMENT_TARGET|{11.0}]"
+MACOSX_DEPLOYMENT_TARGET="11.0"
+
+read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
+BUILD_DIR=${BUILD_DIR:-$(mktemp -ut swiftest_build)}
+if [ $OS = "MacOSX" ]; then
+    PREFIX=${PREFIX:-${BUILD_DIR}/${OS}${MACOSX_DEPLOYMENT_TARGET}/${ARCH}}
+else
+    PREFIX=${PREFIX:-${BUILD_DIR}/${OS}/${ARCH}}
+fi
+
+DEPENDENCY_DIR=${DEPENDENCY_DIR:-${BUILD_DIR}/downloads}
+
 while getopts ":d:p:m:h" ARG; do
     case "${ARG}" in
     d)
@@ -45,7 +54,12 @@ while getopts ":d:p:m:h" ARG; do
     esac
 done
 
-read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
+if [ $OS = "MacOSX" ]; then
+    printf "MACOSX_DEPLOYMENT_TARGET: ${MACOSX_DEPLOYMENT_TARGET}\n" 
+fi
+printf "DEPENDENCY_DIR: ${DEPENDENCY_DIR}\n" 
+printf "PREFIX        : ${PREFIX}\n" 
+
 
 if [ -z ${DEPENDENCY_ENV_VARS+x} ]; then
     . ${SCRIPT_DIR}/set_compilers.sh 

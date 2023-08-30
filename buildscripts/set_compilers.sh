@@ -15,7 +15,7 @@
 # If not, see: https://www.gnu.org/licenses. 
 # Parse arguments
 case "$OS" in
-    Intel|Linux|MacOSX)
+    Linux|MacOSX)
         ;;
     *)
         echo "Unknown compiler type: $OS"
@@ -28,60 +28,6 @@ esac
 set -a
 # Only replace compiler definitions if they are not already set
 case $OS in
-    Intel)
-        if [ ! -v FC ]; then
-            if command -v ifx &> /dev/null; then
-                FC=$(command -v ifx)
-            elif command -v ifort &> /dev/null; then
-                FC=$(command -v mpiifort)
-            else
-                printf "Error. Cannot find valid Intel Fortran compiler.\n"
-                exit 1
-            fi
-        fi
-        if [ ! -v F77 ]; then
-            F77="${FC}"
-        fi
-
-        if [ ! -v CC ]; then
-            if command -v icx &> /dev/null; then 
-                CC=$(command -v icx)
-            elif command -v icc &> /dev/null; then
-                CC=$(command -v icc)
-            else
-                printf "Error. Cannot find valid Intel C compiler.\n"
-                exit 1
-            fi
-        fi
-
-        if [ ! -v CXX ]; then
-            if command -v icpx &> /dev/null; then
-                CXX=$(command -v icpx)
-            elif command -v icpc &> /dev/null; then
-                CXX=$(command -v icpc)
-            else
-                printf "Error. Cannot find valid Intel C++ compiler.\n"
-                exit 1
-            fi
-        fi
-
-        if command -v mpiifort &> /dev/null; then
-            I_MPI_F90=${FC}
-            FC=$(command -v mpiifort)
-        fi
-
-        if command -v mpiicc &> /dev/null; then
-            I_MPI_CC =${CC}
-            CC=$(command -v mpiicc)
-        fi
-
-        if command -v mpiicpc &> /dev/null; then
-            I_MPI_CXX =${CXX}
-            CXX=$(command -v mpiicpc)
-        fi
-
-        CPP=${CPP:-$HOMEBRE_PREFIX/bin/cpp-13}
-        ;;
     Linux)
         FC=${FC:-$(command -v gfortran)}
         CC=${CC:-$(command -v gcc)}
