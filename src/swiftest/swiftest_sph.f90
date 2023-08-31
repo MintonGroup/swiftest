@@ -100,7 +100,7 @@ contains
             do concurrent(i = 1:npl, pl%lmask(i))
                 r_mag = .mag. rh(1:3,i)
                 theta = atan2(sqrt(rh(1,i)**2 + rh(2,i)**2), rh(3,i))
-                phi = atan2(rh(2,i), rh(1,i)) - cb%phase ! CALCULATE CB PHASE VALUE FOR PHI
+                phi = atan2(rh(2,i), rh(1,i)) - cb%rotphase ! CALCULATE CB PHASE VALUE FOR PHI
 
                 call swiftest_sph_g_acc_one(cb%Gmass, r_mag, phi, theta, rh(:,i), cb%c_lm, g_sph, pl%Gmass, cb%aobl)
                 pl%ah(:, i) = pl%ah(:, i) + g_sph(:) - cb%aobl(:)
