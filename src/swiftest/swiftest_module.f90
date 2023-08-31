@@ -211,6 +211,7 @@ module swiftest
       real(DP), dimension(NDIM)                   :: agr      = 0.0_DP !! Acceleration due to post-Newtonian correction
       real(DP), dimension(NDIM)                   :: Ip       = 0.0_DP !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
       real(DP), dimension(NDIM)                   :: rot      = 0.0_DP !! Body rotation vector in inertial coordinate frame (units rad / TU)
+      real(DP)                                    :: rotphase = 0.0_DP !! Body rotation phase about the rotation pole
       real(DP)                                    :: k2       = 0.0_DP !! Tidal Love number
       real(DP)                                    :: Q        = 0.0_DP !! Tidal quality factor
       real(DP)                                    :: tlag     = 0.0_DP !! Tidal phase lag angle
@@ -1827,13 +1828,11 @@ module swiftest
       end subroutine swiftest_coarray_coclone_system
 
       module subroutine swiftest_coarray_cocollect_body(self)
-         !! Collects all body object array components from all images and combines them into the image 1 body object
          implicit none
          class(swiftest_body),intent(inout), codimension[*] :: self !! Swiftest body object
       end subroutine swiftest_coarray_cocollect_body
 
       module subroutine swiftest_coarray_cocollect_tp(self)
-         !! Collects all body object array components from all images and combines them into the image 1 body object
          implicit none
          class(swiftest_tp),intent(inout), codimension[*] :: self !! Swiftest tp object
       end subroutine swiftest_coarray_cocollect_tp
@@ -1843,51 +1842,29 @@ module swiftest
 
    interface
       module subroutine swiftest_sph_g_acc_one(GMcb, r_0, phi, theta, rh, c_lm, g_sph, GMpl, aoblcb)
-         !! author: Kaustub P. Anand
-         !!
-         !! Calculate the acceleration terms for one pair of bodies given c_lm, theta, phi, r
-         !!
-
          implicit none
-         ! Arguments
          real(DP), intent(in)        :: GMcb                        !! GMass of the central body
          real(DP), intent(in)        :: r_0                         !! radius of the central body
          real(DP), intent(in)        :: phi                         !! Azimuthal/Phase angle (radians)
          real(DP), intent(in)        :: theta                       !! Inclination/Zenith angle (radians)
-         real(DP), intent(in), dimension(NDIM)       :: rh          !! distance vector of body
-         real(DP), intent(in), dimension(2, :, :)    :: c_lm        !! Spherical Harmonic coefficients
-         real(DP), intent(out), dimension(NDIM)      :: g_sph       !! acceleration vector
+         real(DP), intent(in), dimension(:)       :: rh          !! distance vector of body
+         real(DP), intent(in), dimension(:, :, :)    :: c_lm        !! Spherical Harmonic coefficients
+         real(DP), intent(out), dimension(:)      :: g_sph       !! acceleration vector
          real(DP), dimension(:),   intent(in),  optional :: GMpl    !! Masses of input bodies if they are not test particles
          real(DP), dimension(:),   intent(inout), optional :: aoblcb  !! Barycentric acceleration of central body (only needed if input bodies are massive)
-      end module subroutine swiftest_sph_g_acc_one
+      end subroutine swiftest_sph_g_acc_one
 
       module subroutine swiftest_sph_g_acc_pl_all(self, nbody_system)
-         !! author: Kaustub P. Anand
-         !!
-         !! Calculate the acceleration terms for all massive bodies given c_lm
-         !!
          implicit none
-         ! Arguments
          class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
          class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      end module subroutine swiftest_sph_g_acc_pl_all
+      end subroutine swiftest_sph_g_acc_pl_all
       
       module subroutine swiftest_sph_g_acc_tp_all(self, nbody_system)
-         !! author: Kaustub P. Anand
-         !!
-         !! Calculate the acceleration terms for all test particles given c_lm
-         !!
          implicit none
-         ! Arguments
          class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
          class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-         ! Internals
-         integer(I4B)    :: i
-         real(DP)        :: r_mag, theta, phi       !! magnitude of the position vector, zenith angle, and azimuthal angle
-         real(DP), dimension(NDIM)  :: rh           !! Position vector of the test particle
-         real(DP), dimension(NDIM)  :: g_sph        !! Gravitational terms from Spherical Harmonics
-         real(DP), dimension(NDIM)  :: aoblcb       !! Temporary variable for central body oblateness acceleration
-      end module subroutine swiftest_sph_g_acc_tp_all
+      end subroutine swiftest_sph_g_acc_tp_all
       
    end interface
 

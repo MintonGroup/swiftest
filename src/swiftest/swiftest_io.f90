@@ -2948,7 +2948,7 @@ contains
 
       param%lshgrav = (size(self%cb%c_lm) /= 0.0_DP)
 
-      param%loblatecb = ((self%cb%j2rp2 /= 0.0_DP) .or. (self%cb%j4rp4 /= 0.0_DP)) .and. (param%lshgrav == .FALSE.)
+      param%loblatecb = ((self%cb%j2rp2 /= 0.0_DP) .or. (self%cb%j4rp4 /= 0.0_DP)) .and. (.not.param%lshgrav)
       if (.not.param%loblatecb) then
          if (allocated(self%pl%aobl)) deallocate(self%pl%aobl)
          if (allocated(self%tp%aobl)) deallocate(self%tp%aobl)

@@ -110,8 +110,7 @@ def clm_from_relief(mass, density, grid, lmax = 6, ref_radius = True):
 
     """
 
-    G = swiftest.constants.GC
-    Gmass = G * mass # SHTOOLS uses an SI G value, and divides it before using the mass; NO NEED TO CHANGE UNITS
+    Gmass = swiftest.constants.GC * mass # SHTOOLS uses an SI G value, and divides it before using the mass; NO NEED TO CHANGE UNITS
 
     # cap lmax to 20 to ensure fast performance
     lmax_limit = 6
