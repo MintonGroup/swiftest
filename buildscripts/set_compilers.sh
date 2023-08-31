@@ -25,44 +25,42 @@ case "$OS" in
         ;;
 esac
 
+
 set -a
 # Only replace compiler definitions if they are not already set
 case $OS in
     Linux)
-        FC=${FC:-$(command -v gfortran)}
-        CC=${CC:-$(command -v gcc)}
-        CXX=${CXX:-$(command -v g++)}
-        CPP=${CPP:-$(command -v cpp)}
+        FC=${$(command -v gfortran)}
+        CC=${$(command -v gcc)}
+        CXX=${$(command -v g++)}
+        CPP=${$(command -v cpp)}
         ;;
     MacOSX)
-        COMPILER_PREFIX=${COMPILER_PREFIX:-"/usr"}
-        CC=${CC:-${COMPILER_PREFIX}/bin/clang}
-        CXX=${CXX:-${COMPILER_PREFIX}/bin/clang++}
-        CPP=${CPP:-${COMPILER_PREFIX}/bin/cpp}
-        AR=${AR:-${COMPILER_PREFIX}/bin/ar}
-        NM=${NM:-${COMPILER_PREFIX}/bin/nm}
-        RANLIB=${RANLIB:-${COMPILER_PREFIX}/bin/ranlib}
+        COMPILER_PREFIX="/usr"
+        CC=${COMPILER_PREFIX}/bin/clang
+        CXX=${COMPILER_PREFIX}/bin/clang++
+        CPP=${COMPILER_PREFIX}/bin/cpp
+        AR=${COMPILER_PREFIX}/bin/ar
+        NM=${COMPILER_PREFIX}/bin/nm
+        RANLIB=${COMPILER_PREFIX}/bin/ranlib
         
         # Use custom gfortran location for a given MacOS Target version if vailable
         FROOT=${DEVTOOLDIR}/MacOSX${MACOSX_DEPLOYMENT_TARGET}/${ARCH}/usr/local
+        printf "FROOT: ${FROOT}\n"
         if [ -f ${FROOT}/bin/gfortran ]; then
             FC=${FROOT}/bin/gfortran
         else
-            FC=${FC:-$(command -v gfortran)}
+            FC=$(command -v gfortran)
             FROOT=$(realpath $(dirname $(command -v $FC))/..) 
         fi
         if [ ! -f ${FC} ]; then
             printf "No working fortran compiler found!\n"
             exit 1
         fi
-        LD_LIBRARY_PATH="${COMPILER_PREFIX}/lib:${FROOT}/lib:${LD_LIBRARY_PATH}"
-        LDFLAGS="${LDFLAGS} -Wl,-rpath,${COMPILER_PREFIX}/lib -Wl,-no_compact_unwind"
-        CPPFLAGS="${CPPFLAGS} -isystem ${COMPILER_PREFIX}/include" 
-        LIBS="${LIBS}"
-        CPATH="${FROOT}/include:${CPATH}"
-        CXXFLAGS="${CFLAGS} ${CXXFLAGS}"
-        FCFLAGS="${CFLAGS} ${FCFLAGS}"
-        CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype ${CFLAGS}"
+        LDFLAGS="-Wl,-no_compact_unwind"
+        CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype"
+        LD_LIBRARY_PATH=""
+        CPATH=""
         ;;
     *)
         printf "Unknown compiler type: ${OS}\n"

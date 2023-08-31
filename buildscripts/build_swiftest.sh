@@ -12,6 +12,7 @@
 set -a
 if [ -z ${SCRIPT_DIR+x} ]; then SCRIPT_DIR=$(realpath $(dirname $0)); fi
 ARGS=$@
+
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 ARGS="-p ${PREFIX} -d ${DEPENDENCY_DIR} -m ${MACOSX_DEPLOYMENT_TARGET}"
 
@@ -28,8 +29,6 @@ echo $OS $ARCH
 printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n\n"
 printf "Installing to ${PREFIX}\n"
 printf "Dependency libraries in ${PREFIX}\n"
-read -rsn1 -p"Press any key to continue";echo
-
 ${SCRIPT_DIR}/build_dependencies.sh ${ARGS}
 
 if [ $OS = "Linux" ]; then
@@ -38,19 +37,16 @@ else
     SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=ON -DUSE_SIMD=OFF"
     SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DMACHINE_CODE_VALUE=\"generic\""
     OMPROOT=${DEVTOOLDIR}/MacOSX${MACOSX_DEPLOYMENT_TARGET}/${ARCH}/usr/local
-    rsync -a ${OMPROOT}/lib/libgfortran*dylib ${ROOT_DIR}/lib/
-    rsync -a ${OMPROOT}/lib/libgomp*dylib ${ROOT_DIR}/lib/
-    rsync -a ${OMPROOT}/lib/libomp*dylib ${ROOT_DIR}/lib/
-    rsync -a ${OMPROOT}/lib/libquadmath*dylib ${ROOT_DIR}/lib/
+    rsync -va ${OMPROOT}/* ${ROOT_DIR}/
 
     NETCDF_FORTRAN_HOME=${ROOT_DIR}
     NETCDF_INCLUDE=${ROOT_DIR}/include
 
-    CPPFLAGS="${CPPFLAGS} -Xclang -fopenmp"
-    LIBS="${LIBS} -lomp"
-    LDFLAGS="-Wl,-rpath,${OMPROOT}/lib -Wl,-rpath,${ROOT_DIR}/lib" 
-    CPATH="${OMPROOT}/include:${CPATH}"
-    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}"
+    CPPFLAGS="-Xclang -fopenmp"
+    LIBS="-lomp"
+    LDFLAGS="-Wl,-rpath,${ROOT_DIR}/lib" 
+    CPATH="${ROOT_DIR}/include"
+    LD_LIBRARY_PATH="${ROOT_DIR}/lib"
     LIBRARY_PATH="${LD_LIBRARY_PATH}"
     cd $ROOT_DIR
 
@@ -58,7 +54,6 @@ else
     printf "*********************************************************\n"
     printf "*                   BUILDING SWIFTEST                   *\n"
     printf "*********************************************************\n"
-    printf "OMPROOT: ${OMPROOT}\n"
     printf "LIBS: ${LIBS}\n"
     printf "CFLAGS: ${CFLAGS}\n"
     printf "FFLAGS: ${FFLAGS}\n"
@@ -74,7 +69,5 @@ else
     printf "MACOSX_DEPLOYMENT_TARGET: ${MACOSX_DEPLOYMENT_TARGET}\n"
     printf "*********************************************************\n"
 
-    python3 -m pip install build pip
-    python3 -m build --sdist
     cibuildwheel --platform macos
 fi

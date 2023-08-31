@@ -46,17 +46,8 @@ done
 
 read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
 BUILD_DIR=${BUILD_DIR:-$(mktemp -ut swiftest_build)}
-if [ $OS = "MacOSX" ]; then
-    printf "MACOSX_DEPLOYMENT_TARGET: ${MACOSX_DEPLOYMENT_TARGET}\n" 
-    PREFIX=${PREFIX:-${BUILD_DIR}/${OS}${MACOSX_DEPLOYMENT_TARGET}/${ARCH}}
-else
-    PREFIX=${PREFIX:-${BUILD_DIR}/${OS}/${ARCH}}
-fi
-
+PREFIX=${PREFIX:-${ROOT_DIR}}
 DEPENDENCY_DIR=${DEPENDENCY_DIR:-${BUILD_DIR}/downloads}
-
-printf "DEPENDENCY_DIR: ${DEPENDENCY_DIR}\n" 
-printf "PREFIX        : ${PREFIX}\n" 
 
 if [ -z ${DEPENDENCY_ENV_VARS+x} ]; then
     . ${SCRIPT_DIR}/set_compilers.sh 
