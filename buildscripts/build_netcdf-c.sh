@@ -18,7 +18,7 @@ ARGS=$@
 
 printf "\n"
 printf "*********************************************************\n"
-printf "*          BUILDING NETCDF-C STATIC LIBRARY             *\n"
+printf "*              BUILDING NETCDF-C LIBRARY                *\n"
 printf "*********************************************************\n"
 printf "LIBS: ${LIBS}\n"
 printf "CFLAGS: ${CFLAGS}\n"
@@ -30,10 +30,7 @@ printf "HDF5_ROOT: ${HDF5_ROOT}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/netcdf-c-*
-COPTS="--disable-shared --disable-dap --disable-byterange --disable-testsets --prefix=${PREFIX}"
-if [ !  $OS = "MacOSX" ]; then
-    COPTS="${COPTS} --disable-libxml2"
-fi
+COPTS="--disable-testsets --prefix=${PREFIX}"
 printf "COPTS: ${COPTS}\n"
 ./configure $COPTS
 make && make check 
@@ -43,6 +40,7 @@ if [ -w ${PREFIX} ]; then
 else
     sudo make install
 fi
+rsync -va ${PREFIX}/lib/libnetcdf* ${ROOT_DIR}/lib/
 
 if [ $? -ne 0 ]; then
    printf "netcdf-c could not be compiled."\n

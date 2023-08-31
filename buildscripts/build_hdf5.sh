@@ -17,7 +17,7 @@ ARGS=$@
 
 printf "\n"
 printf "*********************************************************\n"
-printf "*            BUILDING HDF5 STATIC LIBRARY               *\n"
+printf "*               BUILDING HDF5 LIBRARY                   *\n"
 printf "*********************************************************\n"
 printf "LIBS: ${LIBS}\n"
 printf "CFLAGS: ${CFLAGS}\n"
@@ -35,7 +35,7 @@ if [ $OS = "MacOSX" ]; then
       printf "echo arm-apple-darwin" > bin/config.sub 
    fi
 fi
-COPTS="--disable-shared --enable-build-mode=production --enable-tests=no --enable-tools=no --disable-fortran --disable-java --disable-cxx --prefix=${PREFIX} --with-zlib=${PREFIX}"
+COPTS="--enable-build-mode=production --enable-tests=no --enable-tools=no --disable-fortran --disable-java --disable-cxx --prefix=${PREFIX} --with-zlib=${PREFIX}"
 ./configure ${COPTS}
 make 
 if [ -w ${PREFIX} ]; then
@@ -43,6 +43,8 @@ if [ -w ${PREFIX} ]; then
 else
     sudo make install
 fi
+
+rsync -va ${PREFIX}/lib/libhdf5* ${ROOT_DIR}/lib/
 
 if [ $? -ne 0 ]; then
    printf "hdf5 could not be compiled.\n"

@@ -19,7 +19,7 @@ LIBS="$(${PREFIX}/bin/nc-config --libs --static)"
 
 printf "\n"
 printf "*********************************************************\n"
-printf "*       BUILDING NETCDF-FORTRAN STATIC LIBRARY          *\n"
+printf "*          BUILDING NETCDF-FORTRAN LIBRARY              *\n"
 printf "*********************************************************\n"
 printf "LIBS: ${LIBS}\n"
 printf "CFLAGS: ${CFLAGS}\n"
@@ -30,13 +30,15 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/netcdf-fortran-*
-./configure --disable-shared --with-pic --disable-zstandard-plugin --enable-large-file-tests=no  --enable-filter-test=no --prefix=${PREFIX}  
+./configure --enable-large-file-tests=no  --enable-filter-test=no --prefix=${PREFIX}  
 make && make check i
 if [ -w ${PREFIX} ]; then
     make install
 else
     sudo make install
 fi
+rsync -a ${PREFIX}/lib/libnetcdff* ${ROOT_DIR}/lib/
+rsync -a ${PREFIX}/include/netcdf.mod ${ROOT_DIR}/include/
 
 if [ $? -ne 0 ]; then
    printf "netcdf-fortran could not be compiled.\n"

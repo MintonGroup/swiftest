@@ -17,6 +17,14 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.6.0...3.27.1)
 FILE(READ "version.txt" VERSION)
 PROJECT(swiftest VERSION ${VERSION} LANGUAGES C Fortran)
 
+IF (CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
+    SET(COMPILER_OPTIONS "Intel" CACHE STRING "Compiler identified as Intel")
+ELSEIF (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+    SET(COMPILER_OPTIONS "GNU" CACHE STRING "Compiler identified as gfortran")
+ELSE ()
+    MESSAGE(FATAL_ERROR "Compiler ${CMAKE_Fortran_COMPILER_ID} not recognized!") 
+ENDIF ()
+
 # Set some options the user may choose
 OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
 OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
@@ -76,6 +84,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN})
 
 # Have the .mod files placed in the lib folder
 SET(CMAKE_Fortran_MODULE_DIRECTORY ${MOD})
+
+# Set the name of the swiftest library
+SET(SWIFTEST_LIBRARY swiftest)
 
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${BIN})

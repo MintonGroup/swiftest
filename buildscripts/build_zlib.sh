@@ -16,7 +16,7 @@ ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 
 printf "*********************************************************\n"
-printf "*            BUILDING ZLIB STATIC LIBRARY               *\n"
+printf "*               BUILDING ZLIB LIBRARY                   *\n"
 printf "*********************************************************\n"
 printf "LIBS: ${LIBS}\n"
 printf "CFLAGS: ${CFLAGS}\n"
@@ -27,13 +27,14 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/zlib-*
-./configure --prefix=${PREFIX} --static 
+./configure --prefix=${PREFIX}
 make 
 if [ -w ${PREFIX} ]; then
     make install
 else
     sudo make install
 fi
+rsync -va ${PREFIX}/lib/libz* ${ROOT_DIR}/lib/
 
 if [ $? -ne 0 ]; then
    printf "zlib could not be compiled.\n"

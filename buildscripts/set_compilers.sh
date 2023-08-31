@@ -15,7 +15,7 @@
 # If not, see: https://www.gnu.org/licenses. 
 # Parse arguments
 case "$OS" in
-    Intel|Linux|MacOSX)
+    Linux|MacOSX)
         ;;
     *)
         echo "Unknown compiler type: $OS"
@@ -25,118 +25,42 @@ case "$OS" in
         ;;
 esac
 
+
 set -a
 # Only replace compiler definitions if they are not already set
 case $OS in
-    Intel)
-        if [ ! -v FC ]; then
-            if command -v ifx &> /dev/null; then
-                FC=$(command -v ifx)
-            elif command -v ifort &> /dev/null; then
-                FC=$(command -v mpiifort)
-            else
-                printf "Error. Cannot find valid Intel Fortran compiler.\n"
-                exit 1
-            fi
-        fi
-        if [ ! -v F77 ]; then
-            F77="${FC}"
-        fi
-
-        if [ ! -v CC ]; then
-            if command -v icx &> /dev/null; then 
-                CC=$(command -v icx)
-            elif command -v icc &> /dev/null; then
-                CC=$(command -v icc)
-            else
-                printf "Error. Cannot find valid Intel C compiler.\n"
-                exit 1
-            fi
-        fi
-
-        if [ ! -v CXX ]; then
-            if command -v icpx &> /dev/null; then
-                CXX=$(command -v icpx)
-            elif command -v icpc &> /dev/null; then
-                CXX=$(command -v icpc)
-            else
-                printf "Error. Cannot find valid Intel C++ compiler.\n"
-                exit 1
-            fi
-        fi
-
-        if command -v mpiifort &> /dev/null; then
-            I_MPI_F90=${FC}
-            FC=$(command -v mpiifort)
-        fi
-
-        if command -v mpiicc &> /dev/null; then
-            I_MPI_CC =${CC}
-            CC=$(command -v mpiicc)
-        fi
-
-        if command -v mpiicpc &> /dev/null; then
-            I_MPI_CXX =${CXX}
-            CXX=$(command -v mpiicpc)
-        fi
-
-        CPP=${CPP:-$HOMEBRE_PREFIX/bin/cpp-13}
-        ;;
     Linux)
-        FC=${FC:-$(command -v gfortran)}
-        CC=${CC:-$(command -v gcc)}
-        CXX=${CXX:-$(command -v g++)}
-        CPP=${CPP:-$(command -v cpp)}
+        FC=${$(command -v gfortran)}
+        CC=${$(command -v gcc)}
+        CXX=${$(command -v g++)}
+        CPP=${$(command -v cpp)}
         ;;
     MacOSX)
-        if [ $ARCH = "arm64" ]; then
-            if $(brew --version &> /dev/null); then 
-                brew install llvm@16 libomp 
-            else
-                echo \"Please install Homebrew first\" 
-                exit 1 
-            fi
-            COMPILER_PREFIX=${COMPILER_PREFIX:-"${HOMEBREW_PREFIX}/opt/llvm"}
-            CC=${CC:-${COMPILER_PREFIX}/bin/clang}
-            CXX=${CXX:-${COMPILER_PREFIX}/bin/clang++}
-            CPP=${CPP:-${COMPILER_PREFIX}/bin/clang-cpp}
-            AR=${AR:-${COMPILER_PREFIX}/bin/llvm-ar}
-            NM=${NM:-${COMPILER_PREFIX}/bin/llvm-nm}
-            RANLIB=${RANLIB:-${COMPILER_PREFIX}/bin/llvm-ranlib}
-            FROOT=$(realpath $(dirname $(command -v gfortran))/..) 
-            FC=$(command -v gfortran)
-            LD_LIBRARY_PATH="${COMPILER_PREFIX}/lib:${FROOT}/lib:${LD_LIBRARY_PATH}"
-            LDFLAGS="-L${HOMEBREW_PREFIX}/opt/llvm/lib/c++ -Wl,-rpath,${HOMEBREW_PREFIX}/opt/llvm/lib/c+ -L${HOMEBREW_PREFIX}/opt/libomp/lib -Wl,-no_compact_unwind"
-            CPPFLAGS="-isystem ${HOMEBREW_PREFIX}/opt/libomp/include"
-            LIBS="-lomp ${LIBS}"
-            CPATH="${FROOT}/include:${CPATH}"
-            CXXFLAGS="${CFLAGS} ${CXXFLAGS}"
-            FCFLAGS="${CFLAGS} ${FCFLAGS}"
-            CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype ${CFLAGS}"
+        COMPILER_PREFIX="/usr"
+        CC=${COMPILER_PREFIX}/bin/clang
+        CXX=${COMPILER_PREFIX}/bin/clang++
+        CPP=${COMPILER_PREFIX}/bin/cpp
+        AR=${COMPILER_PREFIX}/bin/ar
+        NM=${COMPILER_PREFIX}/bin/nm
+        RANLIB=${COMPILER_PREFIX}/bin/ranlib
+        
+        # Use custom gfortran location for a given MacOS Target version if vailable
+        FROOT=${DEVTOOLDIR}/MacOSX${MACOSX_DEPLOYMENT_TARGET}/${ARCH}/usr/local
+        printf "FROOT: ${FROOT}\n"
+        if [ -f ${FROOT}/bin/gfortran ]; then
+            FC=${FROOT}/bin/gfortran
         else
-            if $(brew --version &> /dev/null); then 
-                brew install gcc
-            else
-                echo \"Please install Homebrew first\" 
-                exit 1 
-            fi
-            COMPILER_PREFIX=${COMPILER_PREFIX:-"${HOMEBREW_PREFIX}/Cellar/gcc/13.1.0/"}
-            CC=${CC:-${COMPILER_PREFIX}/bin/gcc-13}
-            CXX=${CXX:-${COMPILER_PREFIX}/bin/g++-13}
-            CPP=${CPP:-${COMPILER_PREFIX}/bin/cpp-13}
-            AR=${AR:-${COMPILER_PREFIX}/bin/gcc-ar-13}
-            NM=${NM:-${COMPILER_PREFIX}/bin/gcc-nm-13}
-            RANLIB=${RANLIB:-${COMPILER_PREFIX}/bin/gcc-ranlib-13}
-            FC=${FC:-${COMPILER_PREFIX}/bin/gfortran-13}
-            LD_LIBRARY_PATH="${COMPILER_PREFIX}/lib/gcc/13:${LD_LIBRARY_PATH}"
-            LDFLAGS="-L${HOMEBREW_PREFIX}/opt/llvm/lib/c++ -Wl,-rpath,${HOMEBREW_PREFIX}/opt/llvm/lib/c+  -Wl,-no_compact_unwind"
-            CPPFLAGS="-isystem ${HOMEBREW_PREFIX}/opt/libomp/include"
-            LIBS="-lgomp ${LIBS}"
-            CPATH="${FROOT}/include:${CPATH}"
-            CXXFLAGS="${CFLAGS} ${CXXFLAGS}"
-            FCFLAGS="${CFLAGS} ${FCFLAGS}"
-            CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype ${CFLAGS}"
-        fi    
+            FC=$(command -v gfortran)
+            FROOT=$(realpath $(dirname $(command -v $FC))/..) 
+        fi
+        if [ ! -f ${FC} ]; then
+            printf "No working fortran compiler found!\n"
+            exit 1
+        fi
+        LDFLAGS="-Wl,-no_compact_unwind"
+        CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype"
+        LD_LIBRARY_PATH=""
+        CPATH=""
         ;;
     *)
         printf "Unknown compiler type: ${OS}\n"

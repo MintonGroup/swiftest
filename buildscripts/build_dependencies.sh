@@ -67,33 +67,15 @@ printf "Installing to ${PREFIX}\n"
 printf "\n"
 
 set -e
-if [ ! -f ${PREFIX}/lib/libz.a ]; then
-    ${SCRIPT_DIR}/build_zlib.sh ${ARGS}
-else
-    echo "Found: ${PREFIX}/lib/libz.a"
-fi
-
-if [ ! -f ${PREFIX}/lib/libhdf5.a ]; then
-    ${SCRIPT_DIR}/build_hdf5.sh ${ARGS}
-else
-    echo "Found: ${PREFIX}/lib/libhdf5.a"
-fi
-
-
-if [ ! -f ${PREFIX}/lib/libnetcdf.a ]; then
-    ${SCRIPT_DIR}/build_netcdf-c.sh ${ARGS}
-else
-    echo "Found: ${PREFIX}/lib/libnetcdf.a" 
-fi
-
-if [ ! -f ${PREFIX}/lib/libnetcdff.a ]; then
-    ${SCRIPT_DIR}/build_netcdf-fortran.sh ${ARGS}
-else
-    echo "Found: ${PREFIX}/lib/libnetcdff.a"
-fi
+${SCRIPT_DIR}/build_zlib.sh ${ARGS}
+${SCRIPT_DIR}/build_hdf5.sh ${ARGS}
+${SCRIPT_DIR}/build_netcdf-c.sh ${ARGS}
+${SCRIPT_DIR}/build_netcdf-fortran.sh ${ARGS}
 
 printf "\n"
 printf "*********************************************************\n"
 printf "*             DEPENDENCIES ARE BUILT                    *\n"
 printf "*********************************************************\n"
 printf "Dependencys are installed to: ${PREFIX}\n\n"
+
+

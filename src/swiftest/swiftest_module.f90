@@ -851,12 +851,14 @@ module swiftest
          integer(I4B),     intent(in)    :: unit        !! Open file unit number to print parameter to
       end subroutine swiftest_io_param_writer_one_logical
 
+#ifdef QUADPREC
       module subroutine swiftest_io_param_writer_one_QP(param_name, param_value, unit)
          implicit none
          character(len=*), intent(in)    :: param_name  !! Name of parameter to print
          real(QP),         intent(in)    :: param_value !! Value of parameter to print
          integer(I4B),     intent(in)    :: unit        !! Open file unit number to print parameter to
       end subroutine swiftest_io_param_writer_one_QP
+#endif
    end interface io_param_writer_one
 
    interface

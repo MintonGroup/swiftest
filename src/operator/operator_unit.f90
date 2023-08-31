@@ -56,7 +56,7 @@ contains
       return
    end function operator_unit_dp
 
-
+#ifdef QUADPREC
    pure module function operator_unit_qp(A) result(B)
       implicit none
       ! Arguments
@@ -75,7 +75,7 @@ contains
 
       return
    end function operator_unit_qp
-
+#endif
 
    pure module function operator_unit_el_sp(A) result(B)
       implicit none
@@ -116,6 +116,7 @@ contains
       return
    end function operator_unit_el_dp
 
+#ifdef QUADPREC
    pure module function operator_unit_el_qp(A) result(B)
       implicit none
       ! Arguments
@@ -134,6 +135,7 @@ contains
 
       return 
    end function operator_unit_el_qp
+#endif
 
 end submodule s_operator_unit
 
