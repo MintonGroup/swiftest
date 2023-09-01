@@ -34,7 +34,6 @@ if [ -w ${PREFIX} ]; then
 else
     sudo make install
 fi
-rsync -va ${PREFIX}/lib/libz* ${ROOT_DIR}/lib/
 
 if [ $? -ne 0 ]; then
    printf "zlib could not be compiled.\n"

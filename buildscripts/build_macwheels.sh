@@ -22,12 +22,18 @@ declare -a MACVER=("10.13" "11.0" "12.4" "13.0")
 
 for MACOSX_DEPLOYMENT_TARGET in "${MACVER[@]}"; do
     ARGS="-p ${PREFIX} -d ${DEPENDENCY_DIR} -m ${MACOSX_DEPLOYMENT_TARGET}"
+
     if [ "${MACOSX_DEPLOYMENT_TARGET}" != "10.13" ]; then
+        ${SCRIPT_DIR}/build_dependencies.sh ${ARGS}
         ${SCRIPT_DIR}/build_swiftest.sh ${ARGS}
         cmake -P distclean.cmake
     fi
-    arch -x86_64 /bin/bash -c "${SCRIPT_DIR}/build_swiftest.sh ${ARGS}"
-    cmake -P distclean.cmake
+
+    if [ "${MACOSX_DEPLOYMENT_TARGET}" != "13.0" ]; then
+        arch -x86_64 /bin/bash -c "${SCRIPT_DIR}/build_dependencies.sh ${ARGS}"
+        arch -x86_64 /bin/bash -c "${SCRIPT_DIR}/build_swiftest.sh ${ARGS}"
+        cmake -P distclean.cmake
+    fi
 done
 python3 -m build --sdist
 

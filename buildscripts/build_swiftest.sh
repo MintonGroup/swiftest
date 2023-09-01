@@ -26,18 +26,11 @@ fi
 read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
 echo $OS $ARCH
 
-printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n\n"
-printf "Installing to ${PREFIX}\n"
-printf "Dependency libraries in ${PREFIX}\n"
-${SCRIPT_DIR}/build_dependencies.sh ${ARGS}
-
 if [ $OS = "Linux" ]; then
     cibuildwheel --platform linux
 else
     SKBUILD_CONFIGURE_OPTIONS="-DBUILD_SHARED_LIBS=ON -DUSE_SIMD=OFF"
     SKBUILD_CONFIGURE_OPTIONS="${SKBUILD_CONFIGURE_OPTIONS} -DMACHINE_CODE_VALUE=\"generic\""
-    OMPROOT=${DEVTOOLDIR}/MacOSX${MACOSX_DEPLOYMENT_TARGET}/${ARCH}/usr/local
-    rsync -va ${OMPROOT}/* ${ROOT_DIR}/
 
     NETCDF_FORTRAN_HOME=${ROOT_DIR}
     NETCDF_INCLUDE=${ROOT_DIR}/include

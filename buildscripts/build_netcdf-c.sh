@@ -30,7 +30,7 @@ printf "HDF5_ROOT: ${HDF5_ROOT}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/netcdf-c-*
-COPTS="--disable-testsets --prefix=${PREFIX}"
+COPTS="--disable-testsets --disable-nczarr --prefix=${PREFIX}"
 printf "COPTS: ${COPTS}\n"
 ./configure $COPTS
 make && make check 
@@ -40,7 +40,6 @@ if [ -w ${PREFIX} ]; then
 else
     sudo make install
 fi
-rsync -va ${PREFIX}/lib/libnetcdf* ${ROOT_DIR}/lib/
 
 if [ $? -ne 0 ]; then
    printf "netcdf-c could not be compiled."\n

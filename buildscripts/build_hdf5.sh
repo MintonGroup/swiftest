@@ -44,8 +44,6 @@ else
     sudo make install
 fi
 
-rsync -va ${PREFIX}/lib/libhdf5* ${ROOT_DIR}/lib/
-
 if [ $? -ne 0 ]; then
    printf "hdf5 could not be compiled.\n"
    exit 1

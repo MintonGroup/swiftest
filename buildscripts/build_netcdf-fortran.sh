@@ -30,15 +30,13 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/netcdf-fortran-*
-./configure --enable-large-file-tests=no  --enable-filter-test=no --prefix=${PREFIX}  
+./configure --enable-large-file-tests=no --enable-static=no --enable-filter-test=no --prefix=${PREFIX}  
 make && make check i
 if [ -w ${PREFIX} ]; then
     make install
 else
     sudo make install
 fi
-rsync -a ${PREFIX}/lib/libnetcdff* ${ROOT_DIR}/lib/
-rsync -a ${PREFIX}/include/netcdf.mod ${ROOT_DIR}/include/
 
 if [ $? -ne 0 ]; then
    printf "netcdf-fortran could not be compiled.\n"
