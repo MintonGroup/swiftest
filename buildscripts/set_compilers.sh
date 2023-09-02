@@ -30,49 +30,26 @@ set -a
 # Only replace compiler definitions if they are not already set
 case $OS in
     Linux)
-        FC=${$(command -v gfortran)}
-        CC=${$(command -v gcc)}
-        CXX=${$(command -v g++)}
-        CPP=${$(command -v cpp)}
+        FC=$(command -v gfortran)
+        CC=$(command -v gcc)
+        CXX=$(command -v g++)
+        CPP=$(command -v cpp)
         ;;
     MacOSX)
-        # For Apple Silicon, use native clang for everything except gfortran, in which case we assume Homebrew
-        # For Intel, use Homebrew for everything
-        case $ARCH in
-            arm64)
-                COMPILER_PREFIX="/usr"
-                CC=${COMPILER_PREFIX}/bin/clang
-                CXX=${COMPILER_PREFIX}/bin/clang++
-                CPP=${COMPILER_PREFIX}/bin/cpp
-                AR=${COMPILER_PREFIX}/bin/ar
-                NM=${COMPILER_PREFIX}/bin/nm
-                RANLIB=${COMPILER_PREFIX}/bin/ranlib
-                
-                # Use Homebrew gfortran location for a given MacOS Target version if vailable
-                FROOT=/opt/homebrew
-                FC=${FROOT}/bin/gfortran
-                LDFLAGS="-Wl,-no_compact_unwind"
-                CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype"
-                LD_LIBRARY_PATH=""
-                CPATH=""
-                ;;
-            x86_64)
-                COMPILER_PREFIX=/usr/local
-                CC=${COMPILER_PREFIX}/bin/gcc-13
-                CXX=${COMPILER_PREFIX}/bin/g++-13
-                CPP=${COMPILER_PREFIX}/bin/cpp-13
-                AR=${COMPILER_PREFIX}/bin/gcc-ar-13
-                NM=${COMPILER_PREFIX}/bin/gcc-nm-13
-                RANLIB=${COMPILER_PREFIX}/bin/gcc-ranlib-13
-                
-                # Use custom gfortran location for a given MacOS Target version if vailable
-                FC=${COMPILER_PREFIX}/bin/gfortran-13
-                LDFLAGS="-Wl,-no_compact_unwind"
-                CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype"
-                LD_LIBRARY_PATH=""
-                CPATH=""
-                ;;
-        esac
+        FC=${HOMEBREW_PREFIX}/bin/gfortran-12
+        CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype -arch ${ARCH}"
+        FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -arch ${ARCH}"
+        FFLAGS=$FCFLAGS
+        LD_LIBRARY_PATH=""
+        CPATH=""
+        COMPILER_PREFIX="/usr"
+        CC=${COMPILER_PREFIX}/bin/clang
+        CXX=${COMPILER_PREFIX}/bin/clang++
+        CPP=${COMPILER_PREFIX}/bin/cpp
+        AR=${COMPILER_PREFIX}/bin/ar
+        NM=${COMPILER_PREFIX}/bin/nm
+        RANLIB=${COMPILER_PREFIX}/bin/ranlib
+        LDFLAGS="-Wl,-no_compact_unwind"
         ;;
     *)
         printf "Unknown compiler type: ${OS}\n"

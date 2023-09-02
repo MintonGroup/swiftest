@@ -45,9 +45,9 @@ while getopts ":d:p:m:h" ARG; do
 done
 
 read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
-BUILD_DIR=${BUILD_DIR:-$(mktemp -ut swiftest_build)}
+BUILD_DIR=${BUILD_DIR:-$(mktemp -ut swiftest_build.XXXXXXXX)}
 PREFIX=${PREFIX:-${ROOT_DIR}}
-DEPENDENCY_DIR=${DEPENDENCY_DIR:-${BUILD_DIR}/downloads}
+DEPENDENCY_DIR=${DEPENDENCY_DIR:-${BUILD_DIR}}
 
 if [ -z ${DEPENDENCY_ENV_VARS+x} ]; then
     . ${SCRIPT_DIR}/set_compilers.sh 

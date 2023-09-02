@@ -18,10 +18,13 @@ PREFIX=${ROOT_DIR}
 DEPENDENCY_DIR=${BUILD_DIR}/downloads
 
 # The versions of MacOS that we have development tools for
-declare -a MACVER=("10.13" "11.0" "12.4" "13.0")
+declare -a MACVER=("10.13" "11.0" "12.0" "13.0")
 
 for MACOSX_DEPLOYMENT_TARGET in "${MACVER[@]}"; do
     ARGS="-p ${PREFIX} -d ${DEPENDENCY_DIR} -m ${MACOSX_DEPLOYMENT_TARGET}"
+    printf "**********************************************************************\n"
+    printf "ARGS: ${ARGS}\n"
+    printf "**********************************************************************\n"
 
     if [ "${MACOSX_DEPLOYMENT_TARGET}" != "10.13" ]; then
         ${SCRIPT_DIR}/build_dependencies.sh ${ARGS}
@@ -30,8 +33,8 @@ for MACOSX_DEPLOYMENT_TARGET in "${MACVER[@]}"; do
     fi
 
     if [ "${MACOSX_DEPLOYMENT_TARGET}" != "13.0" ]; then
-        arch -x86_64 /bin/bash -c "${SCRIPT_DIR}/build_dependencies.sh ${ARGS}"
-        arch -x86_64 /bin/bash -c "${SCRIPT_DIR}/build_swiftest.sh ${ARGS}"
+        ${SCRIPT_DIR}/intelbash.sh ${SCRIPT_DIR}/build_dependencies.sh ${ARGS}
+        ${SCRIPT_DIR}/intelbash.sh ${SCRIPT_DIR}/build_swiftest.sh ${ARGS}
         cmake -P distclean.cmake
     fi
 done
