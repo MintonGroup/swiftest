@@ -455,6 +455,8 @@ def vec2xr(param: Dict, **kwargs: Any):
         instead of passing Ip1, Ip2, and Ip3 separately
     time : array of floats
         Time at start of simulation
+    c_lm : (2, lmax + 1, lmax + 1) array of floats, optional
+        Spherical Harmonics coefficients; lmax = max spherical harmonics order
     Returns
     -------
     ds : xarray dataset
@@ -462,10 +464,12 @@ def vec2xr(param: Dict, **kwargs: Any):
     scalar_dims = ['id']
     vector_dims = ['id','space']
     space_coords = np.array(["x","y","z"])
+    sph_dims = ['positive', 'l', 'm'] # Spherical Harmonics dimensions
 
     vector_vars = ["rh","vh","Ip","rot"]
     scalar_vars = ["name","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4"]
-    time_vars =  ["rh","vh","Ip","rot","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4"]
+    sph_vars = ["c_lm"]
+    time_vars =  ["rh","vh","Ip","rot","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4", "c_lm"]
 
     # Check for valid keyword arguments
     kwargs = {k:kwargs[k] for k,v in kwargs.items() if v is not None}
@@ -479,12 +483,13 @@ def vec2xr(param: Dict, **kwargs: Any):
     if "time" not in kwargs:
         kwargs["time"] = np.array([0.0])
 
-    valid_arguments = vector_vars + scalar_vars + ['time','id']
+    valid_arguments = vector_vars + scalar_vars + sph_vars + ['time','id']
 
     kwargs = {k:v for k,v in kwargs.items() if k in valid_arguments}
 
     data_vars = {k:(scalar_dims,v) for k,v in kwargs.items() if k in scalar_vars}
     data_vars.update({k:(vector_dims,v) for k,v in kwargs.items() if k in vector_vars})
+    data_vars.update({k:(sph_dims, v) for k,v in kwargs.item() if k in sph_vars})
     ds = xr.Dataset(data_vars=data_vars,
                     coords={
                         "id":(["id"],kwargs['id']),
