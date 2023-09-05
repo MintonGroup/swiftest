@@ -75,7 +75,7 @@ def clm_from_ellipsoid(mass, density, a, b = None, c = None, lmax = 6, ref_radiu
     clm = clm_class.to_array(normalization = 'ortho') # Change to orthonormal normalization
 
     # Return reference radius EQUALS the radius of the Central Body
-    print(f'Ensure that the Central Body radius equals the reference radius')
+    print(f'Ensure that the Central Body radius equals the reference radius.')
 
     if(ref_radius == True):
         ref_radius = shape_SH.expand(normalization = '4pi').coeffs[0, 0, 0]
@@ -127,10 +127,10 @@ def clm_from_relief(mass, density, grid, lmax = 6, ref_radius = True):
 
     # Return reference radius EQUALS the radius of the Central Body
 
-    print(f'Ensure that the Central Body radius equals the reference radius')
+    print(f'Ensure that the Central Body radius equals the reference radius.')
 
     if(ref_radius == True):
-        ref_radius = shape_SH.expand(normalization = 'ortho').coeffs[0, 0, 0]
+        ref_radius = shape_SH.expand(normalization = '4pi').coeffs[0, 0, 0]
         return clm, ref_radius
     else:
         return clm
