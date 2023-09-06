@@ -2443,9 +2443,20 @@ class Simulation(object):
 
             return val, n
         
-        def input_to_ND_array(val, shape):
-            # Create function to convert c_lm array to numpy
-
+        def input_to_clm_array(val, n):
+            # Create function to convert c_lm array to numpy array
+            if val is None:
+                return None, n
+            elif isinstance(val, np.ndarray):
+                pass
+            else:
+                try:
+                    val = np.array(val,dtype=np.float64)
+                except:
+                    raise ValueError(f"{val} cannot be converted to a numpy array")
+                ndims = len(val.shape)
+                if ndims != 3 or val.shape[0] != 2:
+                    raise ValueError(f'C_lm is an incorrect shape. Expected (2, l_max + 1, l_max + 1). got {val.shape} instead.')
             return val, n
 
         nbodies = None
@@ -2469,7 +2480,7 @@ class Simulation(object):
         rot,nbodies = input_to_array_3d(rot,nbodies)
         Ip,nbodies = input_to_array_3d(Ip,nbodies)
 
-        c_lm, nbodies = c_lm, nbodies
+        c_lm, nbodies = input_to_clm_array(c_lm, nbodies)
 
         if len(self.data) == 0:
             maxid = -1
@@ -2496,7 +2507,7 @@ class Simulation(object):
                 Gmass = self.GU * mass
 
         dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
-                                 Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, c_lm = c_lm, time=time)
+                                 Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, c_lm=c_lm, time=time)
 
         dsnew = self._combine_and_fix_dsnew(dsnew)
         self.save(verbose=False)
