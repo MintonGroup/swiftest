@@ -501,13 +501,14 @@ def vec2xr(param: Dict, **kwargs: Any):
 
     # create a C_lm Dataset and combine
 
-    clm_xr = xr.Dataset(data_vars = {k:(sph_dims, v) for k,v in kwargs.item() if k in sph_vars}, 
-                        coords = {
-                                'sign':(['sign'], [1, -1]),
-                                'l': (['l'], range(0, kwargs['c_lm'].shape[1])),
-                                'm':(['m'], range(0, kwargs['c_lm'].shape[2]))
-                        }
-                        )
-    ds = xr.combine_by_coords([ds, clm_xr])
+    if(kwargs['c_lm'] is not None):
+        clm_xr = xr.Dataset(data_vars = {k:(sph_dims, v) for k,v in kwargs.item() if k in sph_vars}, 
+                            coords = {
+                                    'sign':(['sign'], [1, -1]),
+                                    'l': (['l'], range(0, kwargs['c_lm'].shape[1])),
+                                    'm':(['m'], range(0, kwargs['c_lm'].shape[2]))
+                            }
+                            )
+        ds = xr.combine_by_coords([ds, clm_xr])
 
     return ds
