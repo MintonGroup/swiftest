@@ -25,6 +25,7 @@ dump*
 *ipynb_checkpoints
 **/.DS_Store
 !version.txt
+!LICENSE.txt
 !requirements.txt
 !pyproject.toml
 **/_skbuild
