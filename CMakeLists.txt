@@ -15,7 +15,15 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.6.0...3.27.1)
 
 # Get version stored in text file
 FILE(READ "version.txt" VERSION)
-PROJECT(swiftest VERSION ${VERSION} LANGUAGES C Fortran)
+PROJECT(${SKBUILD_PROJECT_NAME} LANGUAGES C Fortran VERSION ${VERSION})
+
+IF (CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
+    SET(COMPILER_OPTIONS "Intel" CACHE STRING "Compiler identified as Intel")
+ELSEIF (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+    SET(COMPILER_OPTIONS "GNU" CACHE STRING "Compiler identified as gfortran")
+ELSE ()
+    MESSAGE(FATAL_ERROR "Compiler ${CMAKE_Fortran_COMPILER_ID} not recognized!") 
+ENDIF ()
 
 # Set some options the user may choose
 OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
@@ -29,28 +37,7 @@ IF(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
 ENDIF()
 
 # Ensure scikit-build modules
-FIND_PACKAGE(Python3 COMPONENTS Interpreter Development.Module REQUIRED)
-IF (NOT SKBUILD)
-  EXECUTE_PROCESS(
-    COMMAND "${Python3_EXECUTABLE}"
-    -c "import os, skbuild; print(os.path.dirname(skbuild.__file__))"
-    OUTPUT_VARIABLE SKBLD_DIR
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
-  FILE(TO_CMAKE_PATH ${SKBLD_DIR} SKBLD_DIR)
-  LIST(APPEND CMAKE_MODULE_PATH "${SKBLD_DIR}/resources/cmake")
-  MESSAGE(STATUS "Looking in ${SKBLD_DIR}/resources/cmake for CMake modules")
-ENDIF()
-
-# Detect when building against a conda environment set the _using_conda variable
-# for use both in this file and in the parent
-GET_FILENAME_COMPONENT(_python_bin_dir ${Python3_EXECUTABLE} DIRECTORY)
-IF(EXISTS "${_python_bin_dir}/../conda-meta")
-  MESSAGE("-- Detected conda environment, setting INSTALL_RPATH_USE_LINK_PATH")
-  SET(_using_conda On)
-ELSE()
-  SET(_using_conda Off)
-ENDIF()
+FIND_PACKAGE(Python COMPONENTS Interpreter Development.Module REQUIRED)
 
 # Add our local modules to the module path
 FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" LOCAL_MODULE_PATH)
@@ -76,6 +63,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN})
 
 # Have the .mod files placed in the lib folder
 SET(CMAKE_Fortran_MODULE_DIRECTORY ${MOD})
+
+# Set the name of the swiftest library
+SET(SWIFTEST_LIBRARY swiftest)
 
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${BIN})

@@ -71,7 +71,7 @@ FUNCTION(SET_COMPILE_FLAG FLAGVAR FLAGVAL LANG)
 
     # Now, loop over each flag
     FOREACH(flag ${FLAGLIST})
-
+        EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E echo_append "Checking compiler option ${flag}: ")
         UNSET(FLAG_WORKS)
         # Check the flag for the given language
         IF(LANG STREQUAL "C")
@@ -105,11 +105,14 @@ end program dummyprog
 
         # If this worked, use these flags, otherwise use other flags
         IF(FLAG_WORKS)
+            EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E echo "OK")
             # Append this flag to the end of the list that already exists
             SET(${FLAGVAR} "${FLAGVAL} ${flag}" CACHE STRING
                  "Set the ${FLAGVAR} flags" FORCE)
             SET(FLAG_FOUND TRUE)
             BREAK() # We found something that works, so exit
+        ELSE(FLAG_WORKS)
+            EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E echo "NO")
         ENDIF(FLAG_WORKS)
 
     ENDFOREACH(flag ${FLAGLIST})

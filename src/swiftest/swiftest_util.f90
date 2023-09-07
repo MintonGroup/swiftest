@@ -3331,22 +3331,22 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine: util_version.f90
       implicit none
       write(*, 200) VERSION
-      200 format(/, "************* Swiftest: Version ", f3.1, " *************", //, &
-            "Based off of Swifter:", //,                                         &
-            "Authors:", //,                                                      &
-            "    The Purdue University Swiftest Development team ", /,           &
-            "    Lead by David A. Minton ", /,                                   &
-            "    Carlisle Wishard, Jennifer Pouplin, Jacob Elliott, Dana Singh." &
-            "Please address comments and questions to:", //,                     &
-            "    David A. Minton", /,                                            &
-            "    Department Earth, Atmospheric, & Planetary Sciences ",/,        &
-            "    Purdue University", /,                                          &
-            "    550 Stadium Mall Drive", /,                                     &
-            "    West Lafayette, Indiana 47907", /,                              &
-            "    765-250-8034 ", /,                                              &
-            "    daminton@purdue.edu", /,                                        &
-            "Special thanks to Hal Levison and Martin Duncan for the original",/,&
-            "SWIFTER and SWIFT codes that made this possible.", //,              &
+      200 format(/, "************* Swiftest: Version ", f3.1, " *************",/,  &
+            "Based off of Swifter:",/,                                             &
+            "Authors:",/,                                                          &
+            "    The Purdue University Swiftest Development team ",/,              &
+            "    Lead by David A. Minton ",/,                                      &
+            "    Carlisle Wishard, Jennifer Pouplin, Jacob Elliott, Dana Singh.",/,&
+            "Please address comments and questions to:",/,                         &
+            "    David A. Minton",/,                                               &
+            "    Department Earth, Atmospheric, & Planetary Sciences ",/,          &
+            "    Purdue University",/,                                             &
+            "    550 Stadium Mall Drive",/,                                        &
+            "    West Lafayette, Indiana 47907", /,                                &
+            "    765-494-3292 ",/,                                                 &
+            "    daminton@purdue.edu",/,                                           &
+            "Special thanks to Hal Levison, Martin Duncan, and David Kaufmann",/,  &
+            "for the original SWIFTER and SWIFT codes that made this possible.",/, &
             "************************************************", /)
 
 

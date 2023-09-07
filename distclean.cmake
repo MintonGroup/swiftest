@@ -19,7 +19,7 @@ ELSE()
     SET(TOPDIR "${CMAKE_SOURCE_DIR}")
 ENDIF()
 
-SET(CIBW_DIR "_skbuild" "swiftest.egg-info")
+SET(CIBW_DIR "_skbuild" "swiftest.egg-info" "_cmake_test_compile")
 
 MACRO(GET_PARENT_DIRECTORIES search_string return_list grandparents)
     FILE(GLOB_RECURSE new_list ${search_string})
@@ -46,8 +46,10 @@ FILE(GLOB_RECURSE CMAKEINSTALL "${TOPDIR}/*cmake_install.cmake"
 FILE(GLOB_RECURSE MAKEFILE "${TOPDIR}/*Makefile")
 FILE(GLOB_RECURSE CMAKETESTFILES "${TOPDIR}/*CTestTestfile.cmake")
 SET(TOPDIRECTORIES "${TOPDIR}/lib" 
+                   "${TOPDIR}/libexec"
                    "${TOPDIR}/bin"
                    "${TOPDIR}/include"
+                   "${TOPDIR}/share"
 )
 
 # CMake has trouble finding directories recursively, so locate these

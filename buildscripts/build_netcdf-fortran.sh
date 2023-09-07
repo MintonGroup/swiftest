@@ -15,11 +15,19 @@ set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 
-LIBS="$(${PREFIX}/bin/nc-config --libs --static)"
+NF_VER="4.6.1"
+printf "*********************************************************\n"
+printf "*          FETCHING NETCDF-FORTRAN SOURCE                  *\n"
+printf "*********************************************************\n"
+printf "Copying files to ${DEPENDENCY_DIR}\n"
+if [ ! -d ${DEPENDENCY_DIR}/netcdf-fortran-${NF_VER} ]; then
+    [ -d ${DEPENDENCY_DIR}/netcdf-fortran-* ] && rm -rf ${DEPENDENCY_DIR}/netcdf-fortran-*
+    curl -s -L https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v${NF_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+fi 
 
 printf "\n"
 printf "*********************************************************\n"
-printf "*       BUILDING NETCDF-FORTRAN STATIC LIBRARY          *\n"
+printf "*          BUILDING NETCDF-FORTRAN LIBRARY              *\n"
 printf "*********************************************************\n"
 printf "LIBS: ${LIBS}\n"
 printf "CFLAGS: ${CFLAGS}\n"
@@ -30,7 +38,7 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/netcdf-fortran-*
-./configure --disable-shared --with-pic --disable-zstandard-plugin --enable-large-file-tests=no  --enable-filter-test=no --prefix=${PREFIX}  
+./configure --enable-large-file-tests=no --enable-static=no --enable-filter-test=no --prefix=${PREFIX}  
 make && make check i
 if [ -w ${PREFIX} ]; then
     make install
@@ -42,6 +50,3 @@ if [ $? -ne 0 ]; then
    printf "netcdf-fortran could not be compiled.\n"
    exit 1
 fi
-
-make distclean
-

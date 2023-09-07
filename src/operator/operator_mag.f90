@@ -65,6 +65,7 @@ contains
       return 
    end function operator_mag_el_dp
 
+#ifdef QUADPREC
    pure module function operator_mag_el_qp(A) result(B)
       implicit none
       real(QP), dimension(:,:), intent(in) :: A
@@ -79,6 +80,7 @@ contains
       end do
       return 
    end function operator_mag_el_qp
+#endif
 
 end submodule s_operator_mag
 
