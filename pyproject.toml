@@ -65,5 +65,6 @@ build-verbosity = 1
 repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
 environment = {NETCDF_FORTRAN_HOME="/usr/local", NETCDF_INCLUDE="/usr/local/include", LD_LIBRARY_PATH="/usr/local/lib:/project/lib", CPATH="/usr/local/include:/project/include"}
 before-all = [
-    "yum install -y epel-release  && yum install -y netcdf-fortran netcdf-devel ||  apt-get install -y netcdf-fortran",
+    "yum install doxygen libxml2-devel libcurl-devel -y",
+    "buildscripts/build_dependencies.sh -p /usr/local"
 ]

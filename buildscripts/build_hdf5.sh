@@ -15,6 +15,29 @@ set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 
+HDF5_VER="1_14_2"
+printf "*********************************************************\n"
+printf "*             FETCHING HDF5 SOURCE                      *\n"
+printf "*********************************************************\n"
+printf "Copying files to ${DEPENDENCY_DIR}\n"
+
+printf "Checking if HDF5 source exists\n"
+if [[ (-d ${DEPENDENCY_DIR}/hdfsrc) && (-f ${DEPENDENCY_DIR}/hdfsrc/README.md) ]]; then
+    OLDVER=$(grep version ${DEPENDENCY_DIR}/hdfsrc/README.md | awk '{print $3}' | sed 's/\./_/g')
+    printf "Existing copy of HDF5 source detected\n"
+    printf "Existing version : ${OLDVER}\n"
+    printf "Requested version: ${HDF5_VER}\n"
+    if [ "$OLDVER" != "${HDF5_VER}" ]; then
+        printf "Existing version of HDF5 source doesn't match requested. Deleting\n"
+        rm -rf ${DEPENDENCY_DIR}/hdfsrc
+    fi
+fi
+
+if [ ! -d ${DEPENDENCY_DIR}/hdfsrc ]; then
+    curl -s -L https://github.com/HDFGroup/hdf5/releases/download/hdf5-${HDF5_VER}/hdf5-${HDF5_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+fi
+
+
 printf "\n"
 printf "*********************************************************\n"
 printf "*               BUILDING HDF5 LIBRARY                   *\n"
