@@ -18,6 +18,7 @@ swiftest_driver.sh
 !README.swifter 
 dump*
 !**/.gitignore
+!.github/workflows/build_wheels.yml
 !setup.py
 !examples/**
 !swiftest/**

@@ -25,6 +25,11 @@ printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
 printf "Installing to ${PREFIX}\n"
 printf "\n"
 
+# Get the OpenMP Libraries
+if [ $OS == "MacOSX" ]; then
+    ${SCRIPT_DIR}/get_lomp.sh ${ARGS}
+fi
+
 set -e
 ${SCRIPT_DIR}/build_zlib.sh ${ARGS}
 ${SCRIPT_DIR}/build_hdf5.sh ${ARGS}

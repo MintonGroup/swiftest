@@ -60,10 +60,47 @@ test-requires = ['pytest']
 skip = "cp312-* pp* *i686 *-manylinux_i686 *_ppc64le *_s390x *-musllinux* *-win32"
 build-verbosity = 1
 
+[tool.cibuildwheel.macos.environment]
+ROOT_DIR="$(pwd)"
+ARCH="$(uname -m)"
+MACOSX_DEPLOYMENT_TARGET="$(sw_vers --ProductVersion)"
+PREFIX="${ROOT_DIR}"
+LD_LIBRARY_PATH="/usr/local/lib:${PREFIX}/lib:${HOMEBREW_PREFIX}/lib"
+LDFLAGS="-Wl,-rpath,${ROOT_DIR}/lib -Wl,-rpath,${PREFIX}/lib -Wl,-rpath,/usr/local/lib -Wl,-no_compact_unwind -L${PREFIX}/lib" 
+CPATH="/usr/local/include:${PREFIX}/include:${HOMEBREW_PREFIX}/include:${ROOT_DIR}/include"
+CPPFLAGS="-isystem ${PREFIX}/include -isystem /usr/local/include"
+LIBS="-lomp"
+CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype -arch ${ARCH}"
+FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -arch ${ARCH}"
+FFFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -arch ${ARCH}"
+HDF5_ROOT="${PREFIX}"
+HDF5_LIBDIR="${HDF5_ROOT}/lib"
+HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
+HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
+NETCDF_FORTRAN_HOME="${PREFIX}"
+NETCDF_INCLUDE="${PREFIX}"
+NCDIR="${PREFIX}"
+NFDIR="${PREFIX}"
+FC="${HOMEBREW_PREFIX}/bin/gfortran-12"
+CC="/usr/bin/clang"
+CXX="/usr/bin/clang++"
+CPP="/usr/bin/cpp"
+AR="/usr/bin/ar"
+NM="/usr/bin/nm"
+RANLIB="/usr/bin/ranlib"
+
+[tool.cibuildwheel.macos]
+before-all = [
+    "LIBS=\"\" buildscripts/build_dependencies.sh -p ${PREFIX} -d ${TMPDIR}/swiftest.build -m ${MACOSX_DEPLOYMENT_TARGET}"
+]
+
 [tool.cibuildwheel.linux]
-repair-wheel-command = "auditwheel repair -w {dest_dir} {wheel}"
-environment = {NETCDF_FORTRAN_HOME="/usr/local", NETCDF_INCLUDE="/usr/local/include", LD_LIBRARY_PATH="/usr/local/lib:/project/lib", CPATH="/usr/local/include:/project/include"}
 before-all = [
     "yum install doxygen libxml2-devel libcurl-devel -y",
     "buildscripts/build_dependencies.sh -p /usr/local"
 ]
+[tool.cibuildwheel.linux.environment]
+NETCDF_FORTRAN_HOME="/usr/local"
+NETCDF_INCLUDE="/usr/local/include"
+LD_LIBRARY_PATH="/usr/local/lib:/project/lib"
+CPATH="/usr/local/include:/project/include"
