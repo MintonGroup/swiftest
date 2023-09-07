@@ -26,7 +26,7 @@ printf "Installing to ${PREFIX}\n"
 printf "\n"
 
 # Get the OpenMP Libraries
-if [ $OS == "MacOSX" ]; then
+if [ $OS = "MacOSX" ]; then
     ${SCRIPT_DIR}/get_lomp.sh ${ARGS}
 fi
 
