@@ -67,7 +67,7 @@ MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion)"
 PREFIX="${ROOT_DIR}"
 HOMEBREW_PREFIX="$(brew --prefix)"
 LD_LIBRARY_PATH="/usr/local/lib:${PREFIX}/lib:${HOMEBREW_PREFIX}/lib"
-LDFLAGS="-Wl,-rpath,${ROOT_DIR}/lib -Wl,-rpath,${PREFIX}/lib -Wl,-rpath,/usr/local/lib -Wl,-no_compact_unwind -L${PREFIX}/lib" 
+LDFLAGS="-Wl,-rpath,${ROOT_DIR}/lib  -Wl,-no_compact_unwind -L${PREFIX}/lib -L${HOMEBREW_PREFIX}/lib" 
 CPATH="/usr/local/include:${PREFIX}/include:${HOMEBREW_PREFIX}/include:${ROOT_DIR}/include"
 CPPFLAGS="-isystem ${PREFIX}/include -isystem /usr/local/include"
 LIBS="-lomp"
@@ -92,7 +92,7 @@ RANLIB="/usr/bin/ranlib"
 
 [tool.cibuildwheel.macos]
 before-all = [
-    "brew install coreutils libzip",
+    "brew install coreutils",
     "LIBS=\"\" buildscripts/build_dependencies.sh -p ${PREFIX} -d ${TMPDIR}/swiftest.build -m ${MACOSX_DEPLOYMENT_TARGET}"
 ]
 
