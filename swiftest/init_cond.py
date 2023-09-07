@@ -464,12 +464,12 @@ def vec2xr(param: Dict, **kwargs: Any):
     scalar_dims = ['id']
     vector_dims = ['id','space']
     space_coords = np.array(["x","y","z"])
-    sph_dims = ['positive', 'l', 'm'] # Spherical Harmonics dimensions
+    sph_dims = ['sign', 'l', 'm'] # Spherical Harmonics dimensions
 
     vector_vars = ["rh","vh","Ip","rot"]
     scalar_vars = ["name","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4"]
     sph_vars = ["c_lm"]
-    time_vars =  ["rh","vh","Ip","rot","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4", "c_lm"]
+    time_vars =  ["rh","vh","Ip","rot","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4"]
 
     # Check for valid keyword arguments
     kwargs = {k:kwargs[k] for k,v in kwargs.items() if v is not None}
@@ -489,7 +489,6 @@ def vec2xr(param: Dict, **kwargs: Any):
 
     data_vars = {k:(scalar_dims,v) for k,v in kwargs.items() if k in scalar_vars}
     data_vars.update({k:(vector_dims,v) for k,v in kwargs.items() if k in vector_vars})
-    data_vars.update({k:(sph_dims, v) for k,v in kwargs.item() if k in sph_vars})
     ds = xr.Dataset(data_vars=data_vars,
                     coords={
                         "id":(["id"],kwargs['id']),
@@ -499,5 +498,16 @@ def vec2xr(param: Dict, **kwargs: Any):
     time_vars = [v for v in time_vars if v in ds]
     for v in time_vars:
         ds[v] = ds[v].expand_dims({"time":1}).assign_coords({"time": kwargs['time']})
+
+    # create a C_lm Dataset and combine
+
+    clm_xr = xr.Dataset(data_vars = {k:(sph_dims, v) for k,v in kwargs.item() if k in sph_vars}, 
+                        coords = {
+                                'sign':(['sign'], [1, -1]),
+                                'l': (['l'], range(0, kwargs['c_lm'].shape[1])),
+                                'm':(['m'], range(0, kwargs['c_lm'].shape[2]))
+                        }
+                        )
+    ds = xr.combine_by_coords([ds, clm_xr])
 
     return ds
