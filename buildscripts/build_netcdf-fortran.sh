@@ -42,6 +42,3 @@ if [ $? -ne 0 ]; then
    printf "netcdf-fortran could not be compiled.\n"
    exit 1
 fi
-
-make distclean
-

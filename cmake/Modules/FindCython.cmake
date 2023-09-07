@@ -20,7 +20,6 @@
 #
 #=============================================================================
 # Copyright 2011 Kitware, Inc.
-# Modified 2023 by David A. Minton (daminton@purdue.edu)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -57,7 +56,7 @@ else()
 endif()
 
 if(CYTHON_EXECUTABLE)
-  set(CYTHON_version_command "${CYTHON_EXECUTABLE} --version") # Added quotes to prevent the string from having a ; inserted in the space
+  set(CYTHON_version_command ${CYTHON_EXECUTABLE} --version)
 
   execute_process(COMMAND ${CYTHON_version_command}
                   OUTPUT_VARIABLE CYTHON_version_output
