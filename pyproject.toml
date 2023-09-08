@@ -93,6 +93,7 @@ RANLIB="/usr/bin/ranlib"
 [tool.cibuildwheel.macos]
 before-all = [
     "brew install coreutils",
+    "pip install --upgrade pip",
     "LIBS=\"\" buildscripts/build_dependencies.sh -p ${PREFIX} -d ${TMPDIR}/swiftest.build -m ${MACOSX_DEPLOYMENT_TARGET}"
 ]
 
