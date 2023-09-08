@@ -71,9 +71,10 @@ LDFLAGS="-Wl,-rpath,${ROOT_DIR}/lib  -Wl,-no_compact_unwind -L${PREFIX}/lib -L${
 CPATH="/usr/local/include:${PREFIX}/include:${HOMEBREW_PREFIX}/include:${ROOT_DIR}/include"
 CPPFLAGS="-isystem ${PREFIX}/include -isystem /usr/local/include"
 LIBS="-lomp"
-CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype -arch ${ARCH}"
-FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -arch ${ARCH}"
-FFFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -arch ${ARCH}"
+FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET}"
+FFFLAGS="${FCFLAGS}"
+CFLAGS="${FCFLAGS} -Wno-deprecated-non-prototype"
+CXXFLAGS="${CFLAGS}"
 HDF5_ROOT="${PREFIX}"
 HDF5_LIBDIR="${HDF5_ROOT}/lib"
 HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
@@ -93,8 +94,7 @@ RANLIB="/usr/bin/ranlib"
 [tool.cibuildwheel.macos]
 before-all = [
     "brew install coreutils",
-    "pip install --upgrade pip",
-    "LIBS=\"\" buildscripts/build_dependencies.sh -p ${PREFIX} -d ${TMPDIR}/swiftest.build -m ${MACOSX_DEPLOYMENT_TARGET}"
+    "LIBS=\"\" FCFLAGS=\"${FCFLAGS} -arch x86_64 -arch arm64\" CFLAGS=\"${CFLAGS} -arch x86_64 -arch arm64\" FFLAGS=$FCFLAGS CXXFLAGS=$CFLAGS buildscripts/build_dependencies.sh -p ${PREFIX} -d ${TMPDIR}/swiftest.build -m ${MACOSX_DEPLOYMENT_TARGET}"
 ]
 
 [tool.cibuildwheel.linux]
