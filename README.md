@@ -129,7 +129,8 @@ The Swiftest CMake configuration comes with several customization options:
 | Set Fortran compiler path       | \-DCMAKE_Fortran_COMPILER=/path/to/fortran/compiler        |
 | Set path to make program        | \-DCMAKE_MAKE_PROGRAM=/path/to/make                        |
 | Enable/Disable shared libraries (Intel only) | \-DBUILD_SHARED_LIBS=[**ON\|OFF]              |
-| Add additional include path     | \-DCMAKE_Fortran_FLAGS="-I/path/to/libries                 |
+| Add additional include path     | \-DCMAKE_Fortran_FLAGS="-I/path/to/libraries               |
+| Install prefix                  | \-DCMAKE_INSTALL_PREFIX=["/path/to/install"\|**"/usr/local"**] |
 
 
 To see a list of all possible options available to CMake:
@@ -137,7 +138,7 @@ To see a list of all possible options available to CMake:
 $ cmake -B build -S . -LA
 ```
 
-The Swiftest executable, called ```swiftest_driver```, should now be created in the ```bin/``` directory.
+The Swiftest executable, called `swiftest_driver`, should now be created in the `bin/` directory.
 
 
 **Download the `swiftest_driver` as a Docker or Singularity container.**

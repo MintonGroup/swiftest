@@ -136,6 +136,9 @@ ENDIF()
 SET(SWIFTEST_DRIVER swiftest_driver)
 ADD_EXECUTABLE(${SWIFTEST_DRIVER} ${DRIVER_src})
 
+# Be sure the executable gets packaged with the wheel
+SET_PROPERTY(TARGET ${SWIFTEST_DRIVER} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${SKBUILD_SCRIPTS_DIR})
+
 #####################################################
 # Add the needed libraries 
 #####################################################

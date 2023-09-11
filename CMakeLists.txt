@@ -12,6 +12,8 @@
 # Define the project and the depencies that it has
 ##################################################
 CMAKE_MINIMUM_REQUIRED(VERSION 3.6.0...3.27.1)
+SET(SKBUILD_PROJECT_NAME "swiftest" CACHE STRING "Name of project set by scikit-build")
+SET(SKBUILD_SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/bin" CACHE STRING "Install location of binary executable")
 
 # Get version stored in text file
 FILE(READ "version.txt" VERSION)
@@ -29,7 +31,7 @@ ENDIF ()
 OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
 OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
 OPTION(USE_SIMD "Use SIMD vectorization" ON)
-OPTION(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
+OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
 # The following section is modified from Numpy f2py documentation
 IF(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)

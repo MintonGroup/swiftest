@@ -1,6 +1,6 @@
 [project]
 name = "swiftest"
-version = "2023.9.0"
+version = "2023.9.1"
 authors=[
     {name = 'David A. Minton', email='daminton@purdue.edu'},
     {name = 'Carlisle Wishard'},
@@ -51,7 +51,7 @@ requires = [
 build-backend = "scikit_build_core.build"
 
 [tool.scikit-build]
-cmake.args = ["-DBUILD_SHARED_LIBS=ON","-DUSE_SIMD=OFF"]
+cmake.args = ["-DUSE_SIMD=OFF"]
 sdist.include = ["src/globals/globals_module.f90.in","swiftest/*.py","swiftest/*.pyx","swiftest/*.h"]
 
 [tool.cibuildwheel]
@@ -108,3 +108,8 @@ NETCDF_FORTRAN_HOME="/usr/local"
 NETCDF_INCLUDE="/usr/local/include"
 LD_LIBRARY_PATH="/usr/local/lib:/project/lib"
 CPATH="/usr/local/include:/project/include"
+
+[[tool.scikit-build.generate]]
+path = "version.txt"
+location = "source"
+template = '''${version}'''
