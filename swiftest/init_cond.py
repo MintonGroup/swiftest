@@ -501,7 +501,7 @@ def vec2xr(param: Dict, **kwargs: Any):
 
     # create a C_lm Dataset and combine
 
-    if(kwargs['c_lm'] is not None):
+    if "c_lm" in kwargs:
         clm_xr = xr.Dataset(data_vars = {k:(sph_dims, v) for k,v in kwargs.item() if k in sph_vars}, 
                             coords = {
                                     'sign':(['sign'], [1, -1]),

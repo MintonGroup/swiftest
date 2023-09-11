@@ -58,8 +58,7 @@ def clm_from_ellipsoid(mass, density, a, b = None, c = None, lmax = 6, ref_radiu
         where i=0 corresponds to positive orders and i=1 to negative orders.
 
     """
-    G = swiftest.constants.GC
-    Gmass = G * mass # SHTOOLS uses an SI G value, and divides it before using the mass; NO NEED TO CHANGE UNITS
+    Gmass = swiftest.constants.GC * mass # SHTOOLS uses an SI G value, and divides it before using the mass; NO NEED TO CHANGE UNITS
 
     # cap lmax to ensure fast performance without giving up accuracy
     lmax_limit = 6              # lmax_limit = 6 derived from Jean's Law; characteristic wavelength = the radius of the CB

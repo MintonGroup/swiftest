@@ -2455,7 +2455,7 @@ class Simulation(object):
                 except:
                     raise ValueError(f"{val} cannot be converted to a numpy array")
                 ndims = len(val.shape)
-                if ndims != 3 or val.shape[0] != 2:
+                if ndims != 3 or val.shape[0] != 2 or val.shape[1] != val.shape[2]:
                     raise ValueError(f'C_lm is an incorrect shape. Expected (2, l_max + 1, l_max + 1). got {val.shape} instead.')
             return val, n
 
