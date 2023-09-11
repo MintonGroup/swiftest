@@ -1,0 +1,33 @@
+#!/bin/bash
+# Sets environment flags on MacOS
+set -a
+SCRIPT_DIR=$(realpath $(dirname $0))
+ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion)"
+PREFIX="/usr/local"
+HOMEBREW_PREFIX="$(brew --prefix)"
+LD_LIBRARY_PATH="/usr/local/lib:${PREFIX}/lib:${HOMEBREW_PREFIX}/lib"
+LDFLAGS="-Wl,-rpath,${ROOT_DIR}/lib  -Wl,-no_compact_unwind -L${PREFIX}/lib -L${HOMEBREW_PREFIX}/lib" 
+CPATH="/usr/local/include:${PREFIX}/include:${HOMEBREW_PREFIX}/include:${ROOT_DIR}/include"
+CPPFLAGS="-isystem ${PREFIX}/include -isystem /usr/local/include"
+LIBS="-lomp"
+FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET}"
+FFFLAGS="${FCFLAGS}"
+CFLAGS="${FCFLAGS} -Wno-deprecated-non-prototype"
+CXXFLAGS="${CFLAGS}"
+HDF5_ROOT="${PREFIX}"
+HDF5_LIBDIR="${HDF5_ROOT}/lib"
+HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
+HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
+NETCDF_FORTRAN_HOME="${PREFIX}"
+NETCDF_INCLUDE="${PREFIX}"
+NCDIR="${PREFIX}"
+NFDIR="${PREFIX}"
+FC="$(command -v gfortran-12)"
+F77="${FC}"
+CC="/usr/bin/clang"
+CXX="/usr/bin/clang++"
+CPP="/usr/bin/cpp"
+AR="/usr/bin/ar"
+NM="/usr/bin/nm"
+RANLIB="/usr/bin/ranlib"
