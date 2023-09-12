@@ -54,17 +54,29 @@ ENDIF()
 # Ensure scikit-build modules
 FIND_PACKAGE(Python COMPONENTS Interpreter Development.Module REQUIRED)
 
-
 # Define some directories that are important to the build
 SET(SRC "${CMAKE_SOURCE_DIR}/src")
 SET(PY "${CMAKE_SOURCE_DIR}/swiftest")
 
+#####################################
+# Tell how to install this executable
+#####################################
+IF(WIN32)
+    SET(CMAKE_INSTALL_PREFIX "C:\\Program Files\\swiftest")
+    FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX} CMAKE_INSTALL_PREFIX)
+ELSE()
+    SET(CMAKE_INSTALL_PREFIX /usr/local)
+ENDIF(WIN32)
+
 # Make sure paths are correct for Unix or Windows style
 FILE(TO_CMAKE_PATH ${SRC} SRC)
 FILE(TO_CMAKE_PATH ${PY} PY)
+FILE(TO_CMAKE_PATH "bin" CMAKE_INSTALL_BINDIR)
+FILE(TO_CMAKE_PATH "lib" CMAKE_INSTALL_LIBDIR)
+FILE(TO_CMAKE_PATH "include" CMAKE_INSTALL_INCLUDEDIR)
 
-# Have the .mod files placed in the lib folder
-SET(CMAKE_Fortran_MODULE_DIRECTORY ${MOD})
+# Have the .mod files placed in the include folder
+SET(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_SOURCE_DIR}/${CMAKE_INSTALL_INCLUDEDIR})
 
 # use, i.e. don't skip the full RPATH for the build tree
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
@@ -73,7 +85,7 @@ set(CMAKE_SKIP_BUILD_RPATH FALSE)
 # (but later on when installing)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 
-# If we are using Scikit-Build, be sure
+# If we are using Scikit-Build, be sure to set install paths correctly
 if (SKBUILD)
     find_package(PythonExtensions REQUIRED)
     set(lib_path "${PYTHON_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
