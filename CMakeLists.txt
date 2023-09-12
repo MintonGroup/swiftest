@@ -20,7 +20,9 @@ FILE(READ "version.txt" VERSION)
 PROJECT(${SKBUILD_PROJECT_NAME} LANGUAGES C Fortran VERSION ${VERSION})
 
 # Use the old method to get Python packages, as that's what scikit-build uses
-CMAKE_POLICY(SET CMP0148 OLD)
+IF (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.27")
+    CMAKE_POLICY(SET CMP0148 OLD)
+ENDIF ()
 
 # Add our local modules to the module path
 FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" LOCAL_MODULE_PATH)
@@ -103,9 +105,11 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 SET(SWIFTEST_LIBRARY swiftest)
 
 # The source for the SWIFTEST binary and have it placed in the bin folder
-ADD_SUBDIRECTORY(${SRC} ${BIN})
+
+ADD_SUBDIRECTORY(${SRC} ${CMAKE_INSTALL_BINDIR})
 
 ADD_SUBDIRECTORY(${PY})
+
 
 # Add a distclean target to the Makefile
 ADD_CUSTOM_TARGET(distclean 
