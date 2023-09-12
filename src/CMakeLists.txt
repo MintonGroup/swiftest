@@ -224,10 +224,11 @@ INSTALL(TARGETS ${SWIFTEST_DRIVER} ${SWIFTEST_LIBRARY}
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
+MESSAGE(STATUS "Setting rpaths")
 # the RPATH to be used when installing, but only if it's not a system directory
 LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
 IF("${isSystemDir}" STREQUAL "-1")
-    SET_TARGET_PROPERTIES(${CTEM_DRIVER} PROPERTIES
+    SET_TARGET_PROPERTIES(${SWIFTEST_DRIVER} PROPERTIES
         INSTALL_RPATH_USE_LINK_PATH TRUE
         INSTALL_RPATH "${lib_path}")
     # The following is necessary for installation in a virtual
@@ -236,4 +237,4 @@ IF("${isSystemDir}" STREQUAL "-1")
         INSTALL_RPATH_USE_LINK_PATH TRUE
         INSTALL_RPATH "${lib_path}")
 endif("${isSystemDir}" STREQUAL "-1")
-
+MESSAGE(STATUS "rpaths are set")
