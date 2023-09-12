@@ -19,6 +19,19 @@ SET(SKBUILD_SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/bin" CACHE STRING "Install location
 FILE(READ "version.txt" VERSION)
 PROJECT(${SKBUILD_PROJECT_NAME} LANGUAGES C Fortran VERSION ${VERSION})
 
+# Use the old method to get Python packages, as that's what scikit-build uses
+CMAKE_POLICY(SET CMP0148 OLD)
+
+# Add our local modules to the module path
+FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" LOCAL_MODULE_PATH)
+LIST(APPEND CMAKE_MODULE_PATH ${LOCAL_MODULE_PATH})
+
+SET(CYTHON_FLAGS
+    "--directive binding=True,boundscheck=False,wraparound=False,embedsignature=True,always_allow_keywords=True"
+    CACHE STRING "The directives for Cython compilation.")
+FIND_PACKAGE(Cython REQUIRED)
+FIND_PACKAGE(PythonExtensions REQUIRED)
+
 IF (CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
     SET(COMPILER_OPTIONS "Intel" CACHE STRING "Compiler identified as Intel")
 ELSEIF (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
@@ -41,30 +54,38 @@ ENDIF()
 # Ensure scikit-build modules
 FIND_PACKAGE(Python COMPONENTS Interpreter Development.Module REQUIRED)
 
-# Add our local modules to the module path
-FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" LOCAL_MODULE_PATH)
-LIST(APPEND CMAKE_MODULE_PATH ${LOCAL_MODULE_PATH})
 
 # Define some directories that are important to the build
 SET(SRC "${CMAKE_SOURCE_DIR}/src")
-SET(LIB "${CMAKE_SOURCE_DIR}/lib")
-SET(BIN "${CMAKE_SOURCE_DIR}/bin")
-SET(MOD "${CMAKE_SOURCE_DIR}/include")
 SET(PY "${CMAKE_SOURCE_DIR}/swiftest")
 
 # Make sure paths are correct for Unix or Windows style
 FILE(TO_CMAKE_PATH ${SRC} SRC)
-FILE(TO_CMAKE_PATH ${LIB} LIB)
-FILE(TO_CMAKE_PATH ${BIN} BIN)
-FILE(TO_CMAKE_PATH ${MOD} MOD)
 FILE(TO_CMAKE_PATH ${PY} PY)
-
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIB})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${LIB})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BIN})
 
 # Have the .mod files placed in the lib folder
 SET(CMAKE_Fortran_MODULE_DIRECTORY ${MOD})
+
+# use, i.e. don't skip the full RPATH for the build tree
+set(CMAKE_SKIP_BUILD_RPATH FALSE)
+
+# when building, don't use the install RPATH already
+# (but later on when installing)
+set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+
+# If we are using Scikit-Build, be sure
+if (SKBUILD)
+    find_package(PythonExtensions REQUIRED)
+    set(lib_path "${PYTHON_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+else()
+    set(lib_path "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+endif()
+
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+
+# add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Set the name of the swiftest library
 SET(SWIFTEST_LIBRARY swiftest)

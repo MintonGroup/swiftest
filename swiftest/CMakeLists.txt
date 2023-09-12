@@ -7,15 +7,6 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 
-# Use the old method to get Python packages, as that's what scikit-build uses
-CMAKE_POLICY(SET CMP0148 OLD)
-
-SET(CYTHON_FLAGS
-    "--directive binding=True,boundscheck=False,wraparound=False,embedsignature=True,always_allow_keywords=True"
-    CACHE STRING "The directives for Cython compilation.")
-FIND_PACKAGE(Cython REQUIRED)
-FIND_PACKAGE(PythonExtensions REQUIRED)
-
 # Avoid Cython/Python3.8 minor incompatibility warnings, see
 # https://github.com/cython/cython/issues/3474. Note that this option is a bit
 # expansive, but it's a temporary fix and we'll be testing on other Python
