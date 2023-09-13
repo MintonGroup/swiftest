@@ -24,6 +24,7 @@ IF (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.27")
     CMAKE_POLICY(SET CMP0148 OLD)
 ENDIF ()
 
+INCLUDE(GNUInstallDirs)
 # Add our local modules to the module path
 FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" LOCAL_MODULE_PATH)
 LIST(APPEND CMAKE_MODULE_PATH ${LOCAL_MODULE_PATH})
@@ -73,12 +74,9 @@ ENDIF(WIN32)
 # Make sure paths are correct for Unix or Windows style
 FILE(TO_CMAKE_PATH ${SRC} SRC)
 FILE(TO_CMAKE_PATH ${PY} PY)
-FILE(TO_CMAKE_PATH "bin" CMAKE_INSTALL_BINDIR)
-FILE(TO_CMAKE_PATH "lib" CMAKE_INSTALL_LIBDIR)
-FILE(TO_CMAKE_PATH "include" CMAKE_INSTALL_INCLUDEDIR)
 
 # Have the .mod files placed in the include folder
-SET(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_SOURCE_DIR}/${CMAKE_INSTALL_INCLUDEDIR})
+SET(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_INSTALL_INCLUDEDIR})
 
 # use, i.e. don't skip the full RPATH for the build tree
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
@@ -102,14 +100,11 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Set the name of the swiftest library
-SET(SWIFTEST_LIBRARY swiftest)
+SET(SWIFTEST_LIBRARY ${SKBUILD_PROJECT_NAME})
 
 # The source for the SWIFTEST binary and have it placed in the bin folder
-
 ADD_SUBDIRECTORY(${SRC} ${CMAKE_INSTALL_BINDIR})
-
 ADD_SUBDIRECTORY(${PY})
-
 
 # Add a distclean target to the Makefile
 ADD_CUSTOM_TARGET(distclean 

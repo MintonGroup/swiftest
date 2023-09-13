@@ -53,6 +53,9 @@ build-backend = "scikit_build_core.build"
 [tool.scikit-build]
 cmake.args = ["-DUSE_SIMD=OFF"]
 sdist.include = ["src/globals/globals_module.f90.in","swiftest/*.py","swiftest/*.pyx","swiftest/*.h"]
+build-dir = "build/{wheel_tag}"
+cmake.verbose = true
+logging.level = "INFO"
 
 [tool.cibuildwheel]
 test-command = "pytest {package}/tests"
@@ -95,7 +98,7 @@ RANLIB="/usr/bin/ranlib"
 [tool.cibuildwheel.macos]
 before-all = [
     "brew install coreutils",
-    "LIBS=\"\" buildscripts/build_dependencies.sh -p ${PREFIX} -d ${TMPDIR}/swiftest.build -m ${MACOSX_DEPLOYMENT_TARGET}"
+    "LIBS=\"\" buildscripts/build_dependencies.sh -p ${PREFIX} -d ${PREFIX}/build -m ${MACOSX_DEPLOYMENT_TARGET}"
 ]
 
 [tool.cibuildwheel.linux]
