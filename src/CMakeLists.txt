@@ -208,22 +208,10 @@ ELSE ()
     MESSAGE(STATUS "Quad precision real is not supported")
 ENDIF ()
 
-# the RPATH to be used when installing, but only if it's not a system directory
-LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
-IF("${isSystemDir}" STREQUAL "-1")
-    SET_TARGET_PROPERTIES(${SWIFTEST_DRIVER} PROPERTIES
-        INSTALL_RPATH_USE_LINK_PATH TRUE
-        INSTALL_RPATH "${lib_path}")
-    # The following is necessary for installation in a virtual
-    # environment `python -m pip venv env`
-    set_target_properties(${SWIFTEST_LIBRARY} PROPERTIES
-        INSTALL_RPATH_USE_LINK_PATH TRUE
-        INSTALL_RPATH "${lib_path}")
-endif("${isSystemDir}" STREQUAL "-1")
-
+# Define the install locations
 INSTALL(TARGETS ${SWIFTEST_DRIVER} ${SWIFTEST_LIBRARY} 
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    RUNTIME DESTINATION ${INSTALL_BINDIR}
+    LIBRARY DESTINATION ${INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${INSTALL_LIBDIR}
+    INCLUDES DESTINATION ${INSTALL_INCLUDEDIR}
 )

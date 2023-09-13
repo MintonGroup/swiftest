@@ -25,15 +25,23 @@ IF (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.27")
 ENDIF ()
 
 INCLUDE(GNUInstallDirs)
+IF (SKBUILD)
+    SET(INSTALL_BINDIR ${SKBUILD_PLATLIB_DIR}/${SKBUILD_PROJECT_NAME}) 
+    SET(INSTALL_LIBDIR ${SKBUILD_PLATLIB_DIR}/${SKBUILD_PROJECT_NAME}) 
+    SET(INSTALL_INCLUDEDIR ${INSTALL_LIBDIR}) 
+ELSE ()
+    SET(INSTALL_BINDIR ${CMAKE_INSTALL_BINDIR})
+    SET(INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR})
+    SET(INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR})
+ENDIF ()
+
+
+# Have the .mod files placed in the include folder
+SET(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mod)
+
 # Add our local modules to the module path
 FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" LOCAL_MODULE_PATH)
 LIST(APPEND CMAKE_MODULE_PATH ${LOCAL_MODULE_PATH})
-
-SET(CYTHON_FLAGS
-    "--directive binding=True,boundscheck=False,wraparound=False,embedsignature=True,always_allow_keywords=True"
-    CACHE STRING "The directives for Cython compilation.")
-FIND_PACKAGE(Cython REQUIRED)
-FIND_PACKAGE(PythonExtensions REQUIRED)
 
 IF (CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
     SET(COMPILER_OPTIONS "Intel" CACHE STRING "Compiler identified as Intel")
@@ -74,30 +82,6 @@ ENDIF(WIN32)
 # Make sure paths are correct for Unix or Windows style
 FILE(TO_CMAKE_PATH ${SRC} SRC)
 FILE(TO_CMAKE_PATH ${PY} PY)
-
-# Have the .mod files placed in the include folder
-SET(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_INSTALL_INCLUDEDIR})
-
-# use, i.e. don't skip the full RPATH for the build tree
-set(CMAKE_SKIP_BUILD_RPATH FALSE)
-
-# when building, don't use the install RPATH already
-# (but later on when installing)
-set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
-
-# If we are using Scikit-Build, be sure to set install paths correctly
-if (SKBUILD)
-    find_package(PythonExtensions REQUIRED)
-    set(lib_path "${PYTHON_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
-else()
-    set(lib_path "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
-endif()
-
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-
-# add the automatically determined parts of the RPATH
-# which point to directories outside the build tree to the install RPATH
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Set the name of the swiftest library
 SET(SWIFTEST_LIBRARY ${SKBUILD_PROJECT_NAME})

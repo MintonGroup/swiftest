@@ -54,8 +54,6 @@ build-backend = "scikit_build_core.build"
 cmake.args = ["-DUSE_SIMD=OFF"]
 sdist.include = ["src/globals/globals_module.f90.in","swiftest/*.py","swiftest/*.pyx","swiftest/*.h"]
 build-dir = "build/{wheel_tag}"
-cmake.verbose = true
-logging.level = "INFO"
 
 [tool.cibuildwheel]
 test-command = "pytest {package}/tests"
