@@ -1322,6 +1322,13 @@ contains
             cb%j4rp4 = 0.0_DP
          end if
 
+         status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
+         if (status == NF90_NOERR) then
+            call netcdf_io_check( nf90_get_var(nc%id, nc%c_lm_varid, cb%c_lm, START = [ASK_DAVE] count = [2, l (ASK_DAVE), ASK_DAVE ]), "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
+         else 
+            cb%c_lm = 0.0_DP
+         end if
+
          call self%read_particle_info(nc, param, plmask, tpmask) 
 
          if (param%in_form == "EL") then

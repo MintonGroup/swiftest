@@ -99,6 +99,8 @@ module netcdf_io
       integer(I4B)       :: j2rp2_varid                                 !! ID for the j2 variable
       character(NAMELEN) :: j4rp4_varname           = "j4rp4"           !! name of the j4pr4 variable
       integer(I4B)       :: j4rp4_varid                                 !! ID for the j4 variable
+      character(NAMELEN) :: c_lm_varname            = "c_lm"            !! name for the c_lm array
+      integer(I4B)       :: c_lm_varid                                  !! ID for the c_lm aqrray
       character(NAMELEN) :: k2_varname              = "k2"              !! name of the Love number variable
       integer(I4B)       :: k2_varid                                    !! ID for the Love number variable
       character(NAMELEN) :: q_varname               = "Q"               !! name of the energy dissipation variable
