@@ -1324,7 +1324,9 @@ contains
 
          status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
          if (status == NF90_NOERR) then
-            call netcdf_io_check( nf90_get_var(nc%id, nc%c_lm_varid, cb%c_lm, START = [ASK_DAVE] count = [2, l (ASK_DAVE), ASK_DAVE ]), "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
+            call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%name_dimid, len=idmax), "netcdf_io_read_frame_system nf90_inquire_dimension name_dimid"  ) ! CHECK
+            allocate(cb%c_lm(shape_from_above))
+            call netcdf_io_check( nf90_get_var(nc%id, nc%c_lm_varid, cb%c_lm, start = [ASK_DAVE] count = [2, l (ASK_DAVE), ASK_DAVE ]), "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
          else 
             cb%c_lm = 0.0_DP
          end if
