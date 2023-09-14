@@ -25,7 +25,7 @@ dump*
 !tests/**
 *ipynb_checkpoints
 **/.DS_Store
-version.txt
+!version.txt
 !LICENSE.txt
 !requirements.txt
 !pyproject.toml
