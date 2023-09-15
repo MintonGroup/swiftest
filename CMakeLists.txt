@@ -79,8 +79,9 @@ SET(PY "${CMAKE_SOURCE_DIR}/swiftest")
 IF(WIN32)
     SET(CMAKE_INSTALL_PREFIX "C:\\Program Files\\swiftest")
     FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX} CMAKE_INSTALL_PREFIX)
+    SET(CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX} CACHE PATH "Path for install")
 ELSE()
-    SET(CMAKE_INSTALL_PREFIX /usr/local)
+    SET(CMAKE_INSTALL_PREFIX /usr/local CACHE PATH "Path for install")
 ENDIF(WIN32)
 
 # Make sure paths are correct for Unix or Windows style
