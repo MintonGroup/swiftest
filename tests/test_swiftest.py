@@ -253,7 +253,7 @@ class TestSwiftest(unittest.TestCase):
             varpi_sim = sim.data['varpi'].sel(name="Mercury")
             dvarpi_gr = np.diff(varpi_sim) / tstep_out
             dvarpi_err = np.mean(dvarpi_obs - dvarpi_gr) / dvarpi_obs_mean
-            self.assertLess(np.abs(dvarpi_err),msg=f'Mercury precession rate error of of {dvarpi_err:.2e} "/{sim.TU_name} higher than threshold value of {dvarpi_limit:.2e} "/{sim.TU_name}')
+            self.assertLess(np.abs(dvarpi_err),dvarpi_limit,msg=f'Mercury precession rate error of of {dvarpi_err:.2e} "/{sim.TU_name} higher than threshold value of {dvarpi_limit:.2e} "/{sim.TU_name}')
 
         return
        
