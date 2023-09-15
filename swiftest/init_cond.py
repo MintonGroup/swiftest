@@ -147,7 +147,7 @@ def horizons_get_physical_properties(altid,**kwargs):
         rot = np.full(3,np.nan) 
     else:
         print(f"Physical properties found for {namelist[0]}") 
-        Gmass *= 1e-9  # JPL returns GM in units of km**3 / s**2
+        Gmass *= 1e9  # JPL returns GM in units of km**3 / s**2, so convert to SI
 
         rotrate = get_rotrate(jpl.raw_response)
         if rotrate is None:
@@ -389,6 +389,9 @@ def solar_system_horizons(name: str,
             Gmass += Gmass_charon 
         
         if Gmass is not None:
+            # Convert from SI to system units
+            Gmass *= param['TU2S'] ** 2 / param['DU2M'] ** 3
+            
             if param['CHK_CLOSE']:
                 Rpl /= param['DU2M']
 
