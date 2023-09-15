@@ -15,6 +15,19 @@ set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 
+
+ZLIB_VER="1.3"
+
+printf "*********************************************************\n"
+printf "*             FETCHING ZLIB SOURCE                      *\n"
+printf "*********************************************************\n"
+printf "Copying files to ${DEPENDENCY_DIR}\n"
+mkdir -p ${DEPENDENCY_DIR}
+if [ ! -d ${DEPENDENCY_DIR}/zlib-${ZLIB_VER} ]; then
+    [ -d ${DEPENDENCY_DIR}/zlib-* ] && rm -rf ${DEPENDENCY_DIR}/zlib-*
+    curl -L https://github.com/madler/zlib/releases/download/v${ZLIB_VER}/zlib-${ZLIB_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+fi
+
 printf "*********************************************************\n"
 printf "*               BUILDING ZLIB LIBRARY                   *\n"
 printf "*********************************************************\n"
@@ -34,11 +47,8 @@ if [ -w ${PREFIX} ]; then
 else
     sudo make install
 fi
-rsync -va ${PREFIX}/lib/libz* ${ROOT_DIR}/lib/
 
 if [ $? -ne 0 ]; then
    printf "zlib could not be compiled.\n"
    exit 1
 fi
-
-make distclean

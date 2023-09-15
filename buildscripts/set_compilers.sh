@@ -30,12 +30,18 @@ set -a
 # Only replace compiler definitions if they are not already set
 case $OS in
     Linux)
-        FC=${$(command -v gfortran)}
-        CC=${$(command -v gcc)}
-        CXX=${$(command -v g++)}
-        CPP=${$(command -v cpp)}
+        FC=$(command -v gfortran)
+        CC=$(command -v gcc)
+        CXX=$(command -v g++)
+        CPP=$(command -v cpp)
         ;;
     MacOSX)
+        FC=${HOMEBREW_PREFIX}/bin/gfortran-12
+        CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype -arch ${ARCH}"
+        FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -arch ${ARCH}"
+        FFLAGS=$FCFLAGS
+        LD_LIBRARY_PATH=""
+        CPATH=""
         COMPILER_PREFIX="/usr"
         CC=${COMPILER_PREFIX}/bin/clang
         CXX=${COMPILER_PREFIX}/bin/clang++
@@ -43,24 +49,7 @@ case $OS in
         AR=${COMPILER_PREFIX}/bin/ar
         NM=${COMPILER_PREFIX}/bin/nm
         RANLIB=${COMPILER_PREFIX}/bin/ranlib
-        
-        # Use custom gfortran location for a given MacOS Target version if vailable
-        FROOT=${DEVTOOLDIR}/MacOSX${MACOSX_DEPLOYMENT_TARGET}/${ARCH}/usr/local
-        printf "FROOT: ${FROOT}\n"
-        if [ -f ${FROOT}/bin/gfortran ]; then
-            FC=${FROOT}/bin/gfortran
-        else
-            FC=$(command -v gfortran)
-            FROOT=$(realpath $(dirname $(command -v $FC))/..) 
-        fi
-        if [ ! -f ${FC} ]; then
-            printf "No working fortran compiler found!\n"
-            exit 1
-        fi
         LDFLAGS="-Wl,-no_compact_unwind"
-        CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype"
-        LD_LIBRARY_PATH=""
-        CPATH=""
         ;;
     *)
         printf "Unknown compiler type: ${OS}\n"
@@ -70,3 +59,5 @@ case $OS in
         ;;
 esac
 F77=${FC}
+
+printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n\n"

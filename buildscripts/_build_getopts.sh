@@ -15,7 +15,7 @@ ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 
 # Parse arguments
 USTMT="Usage: ${0} [-d /path/to/dependency/source] [-p /prefix/path] [-m MACOSX_DEPLOYMENT_TARGET]"
-MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-"11.0"}
+MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-"$(sw_vers --ProductVersion)"}
 
 while getopts ":d:p:m:h" ARG; do
     case "${ARG}" in
@@ -45,30 +45,9 @@ while getopts ":d:p:m:h" ARG; do
 done
 
 read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
-BUILD_DIR=${BUILD_DIR:-$(mktemp -ut swiftest_build)}
+BUILD_DIR=${BUILD_DIR:-$(mktemp -ut swiftest_build.XXXXXXXX)}
 PREFIX=${PREFIX:-${ROOT_DIR}}
-DEPENDENCY_DIR=${DEPENDENCY_DIR:-${BUILD_DIR}/downloads}
-
-if [ -z ${DEPENDENCY_ENV_VARS+x} ]; then
-    . ${SCRIPT_DIR}/set_compilers.sh 
-
-    LD_LIBRARY_PATH="${PREFIX}/lib:${LD_LIBRARY_PATH}"
-    CPPFLAGS="${CPPFLAGS} -isystem ${PREFIX}/include"
-    LDFLAGS="${LDFLAGS} -L${PREFIX}/lib"
-    CPATH="${PREFIX}/include:${CPATH}"
-
-    HDF5_ROOT="${PREFIX}"
-    HDF5_LIBDIR="${HDF5_ROOT}/lib"
-    HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
-    HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
-    NCDIR="${PREFIX}"
-    NFDIR="${PREFIX}"
-    NETCDF_FORTRAN_HOME=${NFDIR}
-    NETCDF_INCLUDE=${NFDIR}/include
-    NETCDF_HOME=${NCDIR}
-
-    DEPENDENCY_ENV_VARS=true
-fi
+DEPENDENCY_DIR=${DEPENDENCY_DIR:-${BUILD_DIR}}
 
 mkdir -p ${DEPENDENCY_DIR}
 mkdir -p ${PREFIX}/lib

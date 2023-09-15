@@ -16,6 +16,19 @@ set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 
+
+NC_VER="4.9.2"
+
+printf "*********************************************************\n"
+printf "*            FETCHING NETCDF-C SOURCE                   *\n"
+printf "*********************************************************\n"
+printf "Copying files to ${DEPENDENCY_DIR}\n"
+
+if [ ! -d ${DEPENDENCY_DIR}/netcdf-c-${NC_VER} ]; then
+    [ -d ${DEPENDENCY_DIR}/netcdf-c-* ] && rm -rf ${DEPENDENCY_DIR}/netcdf-c-*
+    curl -s -L https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NC_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+fi
+
 printf "\n"
 printf "*********************************************************\n"
 printf "*              BUILDING NETCDF-C LIBRARY                *\n"
@@ -30,7 +43,7 @@ printf "HDF5_ROOT: ${HDF5_ROOT}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/netcdf-c-*
-COPTS="--disable-testsets --prefix=${PREFIX}"
+COPTS="--disable-testsets --disable-nczarr --prefix=${PREFIX}"
 printf "COPTS: ${COPTS}\n"
 ./configure $COPTS
 make && make check 
@@ -40,11 +53,8 @@ if [ -w ${PREFIX} ]; then
 else
     sudo make install
 fi
-rsync -va ${PREFIX}/lib/libnetcdf* ${ROOT_DIR}/lib/
 
 if [ $? -ne 0 ]; then
    printf "netcdf-c could not be compiled."\n
    exit 1
 fi
-
-make distclean
