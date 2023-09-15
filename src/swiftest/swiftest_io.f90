@@ -317,6 +317,7 @@ contains
          if (phase_val == -1) then
             write(param%display_unit, *)" *************** Swiftest stop " // trim(adjustl(param%integrator)) // " *************** "
             if (param%display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // trim(adjustl(param%integrator))
+            if (param%log_output) close(param%display_unit)
          end if
 
 #ifdef COARRAY
