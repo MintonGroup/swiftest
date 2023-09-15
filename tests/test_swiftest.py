@@ -228,7 +228,8 @@ class TestSwiftest(unittest.TestCase):
         integrators= ["whm","helio","rmvs","symba"] 
         
         # Initialize the simulation object as a variable. Define the directory in which the output will be placed.
-        sim = swiftest.Simulation(tstop=1000.0, dt=0.005, tstep_out=10.0, dump_cadence=0,general_relativity=True)
+        tstep_out = 10.0
+        sim = swiftest.Simulation(tstop=1000.0, dt=0.005, tstep_out=tstep_out, dump_cadence=0,general_relativity=True)
         sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune"])
 
         # Get the start and end date of the simulation so we can compare with the real solar system.
@@ -250,7 +251,7 @@ class TestSwiftest(unittest.TestCase):
         for i in integrators:
             sim.run(integrator=i)
             varpi_sim = sim.data['varpi'].sel(name="Mercury")
-            dvarpi_gr = np.diff(varpi_sim) / sim.param['tstep_out']
+            dvarpi_gr = np.diff(varpi_sim) / tstep_out
             dvarpi_err = np.mean(dvarpi_obs - dvarpi_gr) / dvarpi_obs_mean
             self.assertLess(np.abs(dvarpi_err),msg=f'Mercury precession rate error of of {dvarpi_err:.2e} "/{sim.TU_name} higher than threshold value of {dvarpi_limit:.2e} "/{sim.TU_name}')
 
