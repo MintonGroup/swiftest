@@ -1141,6 +1141,7 @@ contains
       integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
       ! Internals
       integer(I4B)                              :: i, idmax, npl_check, ntp_check, str_max, status, npl, ntp
+      integer(I4B)                              :: l_dim_max, m_dim_max ! dimensions for c_lm array
       real(DP), dimension(:), allocatable       :: rtemp
       real(DP), dimension(:,:), allocatable     :: vectemp
       integer(I4B), dimension(:), allocatable   :: itemp
@@ -1324,9 +1325,11 @@ contains
 
          status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
          if (status == NF90_NOERR) then
-            call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%name_dimid, len=idmax), "netcdf_io_read_frame_system nf90_inquire_dimension name_dimid"  ) ! CHECK
-            allocate(cb%c_lm(shape_from_above))
-            call netcdf_io_check( nf90_get_var(nc%id, nc%c_lm_varid, cb%c_lm, start = [ASK_DAVE] count = [2, l (ASK_DAVE), ASK_DAVE ]), "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
+            call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%l_dimid, len = l_dim_max), "netcdf_io_read_frame_system nf90_inquire_dimension l_dimid"  )
+            call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%m_dimid, len = m_dim_max), "netcdf_io_read_frame_system nf90_inquire_dimension m_dimid")
+            
+            allocate(cb%c_lm(2, l_dim_max, m_dim_max))
+            call netcdf_io_check( nf90_get_var(nc%id, nc%c_lm_varid, cb%c_lm, count = (2, l_dim_max, m_dim_max)), "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
          else 
             cb%c_lm = 0.0_DP
          end if

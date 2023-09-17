@@ -43,6 +43,13 @@ module netcdf_io
       integer(I4B)       :: space_dimid                                 !! ID for the space dimension
       integer(I4B)       :: space_varid                                 !! ID for the space variable
       character(len=1), dimension(3) :: space_coords = ["x","y","z"]    !! The space dimension coordinate labels
+      character(NAMELEN) :: l_dimname               = "l"               !! name of l dimension for c_lm
+      integer(I4B)       :: l_dimid                                     !! ID for the l dimension for c_lm
+      integer(I4B)       :: l_varid                                     !! ID for the l variable
+      character(NAMELEN) :: m_dimname               = "m"               !! name of m dimension for c_lm
+      integer(I4B)       :: m_dimid                                     !! ID for the m dimension for c_lm
+      integer(I4B)       :: m_varid                                     !! ID for the m variable
+
 
       ! Non-dimension ids and variable names
       character(NAMELEN) :: id_varname              = "id"              !! name of the particle id variable
