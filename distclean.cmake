@@ -12,6 +12,7 @@
 
 # We want to start from the top of the source dir, so if we are in build
 # we want to start one directory up
+CMAKE_POLICY(SET CMP0009 NEW)
 GET_FILENAME_COMPONENT(BASEDIR ${CMAKE_SOURCE_DIR} NAME)
 IF(${BASEDIR} STREQUAL "build")
     SET(TOPDIR "${CMAKE_SOURCE_DIR}/..")

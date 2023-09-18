@@ -9,13 +9,25 @@
 
 SET(SWIFTEST_BINDINGS _bindings)
 
-FIND_PROGRAM(CYTHON "cython")
+# Find the Cython executable, but don't look in the cmake root directory (due how cmake and cython are installed on the RCAC system)
+FIND_PROGRAM(CYTHON 
+            NAMES "cython" 
+            NO_CMAKE_PATH
+            NO_CMAKE_ENVIRONMENT_PATH
+            NO_CMAKE_SYSTEM_PATH
+            NO_CMAKE_FIND_ROOT_PATH
+            )
+MESSAGE(STATUS "Cython executable path: ${CYTHON}")
+SET(CYTHON_ARGS "${CMAKE_CURRENT_SOURCE_DIR}/${SWIFTEST_BINDINGS}.pyx" "--output-file" "${CMAKE_CURRENT_BINARY_DIR}/${SWIFTEST_BINDINGS}.c")
+STRING(TOUPPER "${CMAKE_BUILD_TYPE}" BT)
+IF (BT STREQUAL "DEBUG")
+    LIST(APPEND CYTHON_ARGS "--gdb")
+endif ()
 ADD_CUSTOM_COMMAND(
   OUTPUT "${SWIFTEST_BINDINGS}.c"
   DEPENDS "${SWIFTEST_BINDINGS}.pyx"
   VERBATIM
-  COMMAND "${CYTHON}" "${CMAKE_CURRENT_SOURCE_DIR}/${SWIFTEST_BINDINGS}.pyx" --output-file
-          "${CMAKE_CURRENT_BINARY_DIR}/${SWIFTEST_BINDINGS}.c")
+  COMMAND "${CYTHON}" ${CYTHON_ARGS} )
 
 PYTHON_ADD_LIBRARY(${SWIFTEST_BINDINGS} MODULE "${CMAKE_CURRENT_BINARY_DIR}/${SWIFTEST_BINDINGS}.c" WITH_SOABI)
 
