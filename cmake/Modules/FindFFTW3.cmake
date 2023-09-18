@@ -7,10 +7,9 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 
-# - Finds the SHTOOLS library
-find_path(SHTOOLS_INCLUDE_DIR NAMES shtools.h HINTS ENV SHTOOLS_HOME PATH_SUFFIXES include)
-find_library(SHTOOLS_LIBRARY NAMES libSHTOOLS.a HINTS ENV SHTOOLS_HOME PATH_SUFFIXES lib)
-find_library(SHTOOLS_LIBRARY_MP NAMES libSHTOOLS-mp.a HINTS ENV SHTOOLS_HOME PATH_SUFFIXES lib)
+# - Finds the FFTW3 library
+find_path(FFTW3_INCLUDE_DIR NAMES fftw3.h HINTS ENV FFTW3_HOME PATH_SUFFIXES include)
+find_library(FFTW3_LIBRARY NAMES libfftw.a HINTS ENV FFTW3_HOME PATH_SUFFIXES lib)
 
-set(SHTOOLS_FOUND TRUE)
-mark_as_advanced(SHTOOLS_LIBRARY SHTOOLS_LIBRARY_MP SHTOOLS_INCLUDE_DIR)
+set(FFTW3_FOUND TRUE)
+mark_as_advanced(FFTW3_LIBRARY FFTW3_INCLUDE_DIR)
