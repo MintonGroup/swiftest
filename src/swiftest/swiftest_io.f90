@@ -1526,7 +1526,8 @@ contains
             allocate(cb%c_lm(2, l_dim_max, m_dim_max))
             call netcdf_io_check( nf90_get_var(nc%id, nc%c_lm_varid, cb%c_lm, count = (2, l_dim_max, m_dim_max)), "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
          else 
-            cb%c_lm = 0.0_DP
+            allocate(cb%c_lm(1, 0, 0))
+            cb%c_lm(:) = 0.0_DP
          end if
 
          call self%read_particle_info(nc, param, plmask, tpmask) 
