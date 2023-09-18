@@ -79,8 +79,9 @@ SET(PY "${CMAKE_SOURCE_DIR}/swiftest")
 IF(WIN32)
     SET(CMAKE_INSTALL_PREFIX "C:\\Program Files\\swiftest")
     FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX} CMAKE_INSTALL_PREFIX)
+    SET(CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX} CACHE PATH "Path for install")
 ELSE()
-    SET(CMAKE_INSTALL_PREFIX /usr/local)
+    SET(CMAKE_INSTALL_PREFIX /usr/local CACHE PATH "Path for install")
 ENDIF(WIN32)
 
 # Make sure paths are correct for Unix or Windows style
@@ -89,6 +90,11 @@ FILE(TO_CMAKE_PATH ${PY} PY)
 
 # Set the name of the swiftest library
 SET(SWIFTEST_LIBRARY ${SKBUILD_PROJECT_NAME})
+
+
+# This INCLUDE statement executes code that sets the compile flags for DEBUG,
+# RELEASE, PROFILING, and TESTING.  
+INCLUDE(SetSwiftestFlags) 
 
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${CMAKE_INSTALL_BINDIR})
