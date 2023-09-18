@@ -9,7 +9,15 @@
 
 SET(SWIFTEST_BINDINGS _bindings)
 
-FIND_PROGRAM(CYTHON "cython")
+# Find the Cython executable, but don't look in the cmake root directory (due how cmake and cython are installed on the RCAC system)
+FIND_PROGRAM(CYTHON 
+            NAMES "cython" 
+            NO_CMAKE_PATH
+            NO_CMAKE_ENVIRONMENT_PATH
+            NO_CMAKE_SYSTEM_PATH
+            NO_CMAKE_FIND_ROOT_PATH
+            )
+MESSAGE(STATUS "Cython executable path: ${CYTHON}")
 ADD_CUSTOM_COMMAND(
   OUTPUT "${SWIFTEST_BINDINGS}.c"
   DEPENDS "${SWIFTEST_BINDINGS}.pyx"
