@@ -1525,8 +1525,7 @@ contains
             
             allocate(cb%c_lm(2, l_dim_max, m_dim_max))
             call netcdf_io_check( nf90_get_var(nc%id, nc%c_lm_varid, cb%c_lm, count = (2, l_dim_max, m_dim_max)), "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
-         else 
-            cb%c_lm = 0.0_DP
+
          end if
 
          call self%read_particle_info(nc, param, plmask, tpmask) 
@@ -3305,7 +3304,7 @@ contains
          if (ierr /=0) call base_util_exit(FAILURE,param%display_unit)
       end if
 
-      param%lshgrav = (size(self%cb%c_lm) /= 0.0_DP)
+      param%lshgrav = allocated(cb%c_lm) !! .and. (size(self%cb%c_lm) /= 0) 
 
       param%loblatecb = ((self%cb%j2rp2 /= 0.0_DP) .or. (self%cb%j4rp4 /= 0.0_DP)) .and. (.not. param%lshgrav)
       if (.not.param%loblatecb) then

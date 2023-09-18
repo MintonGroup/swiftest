@@ -200,7 +200,7 @@ module swiftest
       real(DP)                                    :: density  = 1.0_DP !! Central body mass density - calculated internally (units MU / DU**3)
       real(DP)                                    :: j2rp2    = 0.0_DP !! J2*R^2 term for central body
       real(DP)                                    :: j4rp4    = 0.0_DP !! J4*R^4 term for central body
-      real(DP), dimension(:,:,:), allocatable     :: c_lm     = 0.0_DP !! Spherical Harmonics coefficients for the central body
+      real(DP), dimension(:,:,:), allocatable     :: c_lm              !! Spherical Harmonics coefficients for the central body
       real(DP), dimension(NDIM)                   :: aobl     = 0.0_DP !! Barycentric acceleration due to central body oblatenes
       real(DP), dimension(NDIM)                   :: atide    = 0.0_DP !! Barycentric acceleration due to central body oblatenes
       real(DP), dimension(NDIM)                   :: aoblbeg  = 0.0_DP !! Barycentric acceleration due to central body oblatenes at beginning of step
