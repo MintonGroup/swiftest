@@ -91,6 +91,11 @@ FILE(TO_CMAKE_PATH ${PY} PY)
 # Set the name of the swiftest library
 SET(SWIFTEST_LIBRARY ${SKBUILD_PROJECT_NAME})
 
+
+# This INCLUDE statement executes code that sets the compile flags for DEBUG,
+# RELEASE, PROFILING, and TESTING.  
+INCLUDE(SetSwiftestFlags) 
+
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${CMAKE_INSTALL_BINDIR})
 ADD_SUBDIRECTORY(${PY})

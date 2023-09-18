@@ -22,10 +22,6 @@ IF (COMPILER_OPTIONS STREQUAL "Intel" AND NOT CMAKE_SYSTEM_NAME STREQUAL "Window
     INCLUDE(SetMKL)
 ENDIF ()
 
-# This INCLUDE statement executes code that sets the compile flags for DEBUG,
-# RELEASE, PROFILING, and TESTING.  
-INCLUDE(SetFortranFlags) 
-
 # Add the source files
 SET(STRICT_MATH_FILES
             ${SRC}/collision/collision_generate.f90
@@ -135,9 +131,6 @@ ENDIF()
 # Define the executable name
 SET(SWIFTEST_DRIVER swiftest_driver)
 ADD_EXECUTABLE(${SWIFTEST_DRIVER} ${DRIVER_src})
-
-# Be sure the executable gets packaged with the wheel
-#SET_PROPERTY(TARGET ${SWIFTEST_DRIVER} PROPERTY RUNTIME_OUTPUT_DIRECTORY ${SKBUILD_SCRIPTS_DIR})
 
 #####################################################
 # Add the needed libraries 
