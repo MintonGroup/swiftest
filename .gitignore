@@ -58,3 +58,5 @@ netcdf-fortran-*
 zlib-*
 
 actions-runner*
+
+env/**
