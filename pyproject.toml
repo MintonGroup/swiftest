@@ -96,13 +96,13 @@ RANLIB="/usr/bin/ranlib"
 
 [tool.cibuildwheel.macos]
 before-all = [
-    "brew install coreutils",
+    "brew install coreutils shtools",
     "LIBS=\"\" buildscripts/build_dependencies.sh -p ${PREFIX} -d ${PREFIX}/build -m ${MACOSX_DEPLOYMENT_TARGET}"
 ]
 
 [tool.cibuildwheel.linux]
 before-all = [
-    "yum install doxygen libxml2-devel libcurl-devel -y",
+    "yum install doxygen libxml2-devel libcurl-devel libfftw3-dev libblas-dev liblapack-dev -y",
     "buildscripts/build_dependencies.sh -p /usr/local"
 ]
 [tool.cibuildwheel.linux.environment]
