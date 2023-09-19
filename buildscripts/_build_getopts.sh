@@ -15,7 +15,9 @@ ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 
 # Parse arguments
 USTMT="Usage: ${0} [-d /path/to/dependency/source] [-p /prefix/path] [-m MACOSX_DEPLOYMENT_TARGET]"
-MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-"$(sw_vers --ProductVersion)"}
+if [ $OS = "MacOSX" ]; then
+    MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-"$(sw_vers --ProductVersion)"}
+fi
 
 while getopts ":d:p:m:h" ARG; do
     case "${ARG}" in

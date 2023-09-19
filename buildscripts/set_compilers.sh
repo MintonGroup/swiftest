@@ -13,7 +13,10 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
-# Parse arguments
+set -a
+SCRIPT_DIR=$(realpath $(dirname $0))
+ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
 case "$OS" in
     Linux|MacOSX)
         ;;
@@ -24,7 +27,6 @@ case "$OS" in
         exit 1
         ;;
 esac
-
 
 set -a
 # Only replace compiler definitions if they are not already set
@@ -59,5 +61,6 @@ case $OS in
         ;;
 esac
 F77=${FC}
+F95=${FC}
 
 printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n\n"

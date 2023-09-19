@@ -21,7 +21,6 @@
 OS=$(uname -s)
 ARCH=$(uname -m)
 
-
 case $ARCH in
     x86_64)
         ;;
@@ -43,7 +42,6 @@ case $ARCH in
         exit 1
         ;;
 esac
-
 
 case $OS in
     Linux)
