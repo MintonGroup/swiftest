@@ -785,6 +785,7 @@ contains
       class(swiftest_parameters),        intent(in)    :: param !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: nvar, varid, vartype
+      integer(I4B) :: status
       real(DP) :: dfill
       real(SP) :: sfill
       integer(I4B), parameter :: NO_FILL = 0
@@ -1080,9 +1081,9 @@ contains
 
          status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
          if (status == NF90_NOERR) then
-            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%l_dimname, cs%l_dimid), &
+            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%l_dimname, nc%l_dimid), &
                                     "swiftest_io_netcdf_open nf90_inq_dimid l_dimid")
-            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%m_dimname, cs%m_dimid), &
+            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%m_dimname, nc%m_dimid), &
                                     "swiftest_io_netcdf_open nf90_inq_dimid m_dimid")
          end if
 
@@ -1095,9 +1096,9 @@ contains
                                   "swiftest_io_netcdf_open nf90_inq_varid name_varid" )
          status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
          if (status == NF90_NOERR) then
-            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%l_dimname, cs%l_varid), &
+            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%l_dimname, nc%l_varid), &
                                     "swiftest_io_netcdf_open nf90_inq_dimid l_varid")
-            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%m_dimname, cs%m_varid), &
+            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%m_dimname, nc%m_varid), &
                                     "swiftest_io_netcdf_open nf90_inq_dimid m_varid")
          end if
 
@@ -2036,12 +2037,13 @@ contains
       !! Write a frame of output of the central body
       implicit none
       ! Arguments
-      class(swiftest_cb),                intent(in)    :: self  !! Swiftest base object
+      class(swiftest_cb),                intent(inout)    :: self  !! Swiftest base object
       class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       ! Internals
       integer(I4B)                              :: idslot, old_mode, tmp
       integer(I4B)                              :: l_dim_max, m_dim_max
+      integer(I4B) :: status
 
       associate(tslot => nc%tslot)
          call self%write_info(nc, param)
@@ -2078,12 +2080,9 @@ contains
             call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%l_dimid, len = l_dim_max), "netcdf_io_read_frame_system nf90_inquire_dimension l_dimid"  )
             call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%m_dimid, len = m_dim_max), "netcdf_io_read_frame_system nf90_inquire_dimension m_dimid")
             
-            !! allocate(cb%c_lm(2, l_dim_max, m_dim_max))
-            call netcdf_io_check( nf90_put_var(nc%id, nc%c_lm_varid, cb%c_lm, count = [2, l_dim_max, m_dim_max]), "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
-         else 
-            cb%c_lm = 0.0_DP
+            allocate(self%c_lm(2, l_dim_max, m_dim_max))
+            call netcdf_io_check( nf90_put_var(nc%id, nc%c_lm_varid, self%c_lm, count = [2, l_dim_max, m_dim_max]), "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
          end if
-         !!end if
 
          call netcdf_io_check( nf90_set_fill(nc%id, old_mode, tmp), &
                                   "swiftest_io_netcdf_write_frame_cb nf90_set_fill old_mode"  )
@@ -3304,7 +3303,7 @@ contains
          if (ierr /=0) call base_util_exit(FAILURE,param%display_unit)
       end if
 
-      param%lshgrav = allocated(cb%c_lm) !! .and. (size(self%cb%c_lm) /= 0) 
+      param%lshgrav = allocated(self%cb%c_lm) !! .and. (size(self%cb%c_lm) /= 0) 
 
       param%loblatecb = ((self%cb%j2rp2 /= 0.0_DP) .or. (self%cb%j4rp4 /= 0.0_DP)) .and. (.not. param%lshgrav)
       if (.not.param%loblatecb) then

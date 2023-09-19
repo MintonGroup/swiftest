@@ -742,7 +742,7 @@ module swiftest
 
       module subroutine swiftest_io_netcdf_write_frame_cb(self, nc, param)
          implicit none
-         class(swiftest_cb),                intent(in)    :: self  !! Swiftest base object
+         class(swiftest_cb),                intent(inout)    :: self  !! Swiftest base object
          class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
          class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       end subroutine swiftest_io_netcdf_write_frame_cb
