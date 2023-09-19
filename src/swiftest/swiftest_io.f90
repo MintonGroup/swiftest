@@ -1524,7 +1524,7 @@ contains
             call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%m_dimid, len = m_dim_max), "netcdf_io_read_frame_system nf90_inquire_dimension m_dimid")
             
             allocate(cb%c_lm(2, l_dim_max, m_dim_max))
-            call netcdf_io_check( nf90_get_var(nc%id, nc%c_lm_varid, cb%c_lm, count = (2, l_dim_max, m_dim_max)), "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
+            call netcdf_io_check( nf90_get_var(nc%id, nc%c_lm_varid, cb%c_lm, count = [2, l_dim_max, m_dim_max]), "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
 
          end if
 
@@ -2079,7 +2079,7 @@ contains
             call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%m_dimid, len = m_dim_max), "netcdf_io_read_frame_system nf90_inquire_dimension m_dimid")
             
             !! allocate(cb%c_lm(2, l_dim_max, m_dim_max))
-            call netcdf_io_check( nf90_put_var(nc%id, nc%c_lm_varid, cb%c_lm, count = (2, l_dim_max, m_dim_max)), "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
+            call netcdf_io_check( nf90_put_var(nc%id, nc%c_lm_varid, cb%c_lm, count = [2, l_dim_max, m_dim_max]), "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
          else 
             cb%c_lm = 0.0_DP
          end if
