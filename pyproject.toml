@@ -102,7 +102,7 @@ before-all = [
 
 [tool.cibuildwheel.linux]
 before-all = [
-    "yum install doxygen libxml2-devel libcurl-devel libfftw3-dev libblas-dev liblapack-dev -y",
+    "yum install doxygen libxml2-devel libcurl-devel ftw3-devel libblas-devel lapack-devel -y",
     "buildscripts/build_dependencies.sh -p /usr/local"
 ]
 [tool.cibuildwheel.linux.environment]
