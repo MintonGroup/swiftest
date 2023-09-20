@@ -8,9 +8,48 @@
 # If not, see: https://www.gnu.org/licenses. 
 
 # - Finds the NetCDF libraries 
+# Begin searches with "typical" install locations of dependent libraries. These can be overrided in the cache or supplemented
+# with environment variables
+IF (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+   SET(NFPREFIX_DIR "/usr/local" CACHE PATH "Location of provided NetCDF-Fortran dependencies")
+   SET(NFINCLUDE_DIR "/usr/local/include" CACHE PATH "Location of provided netcdf.mod")
+   IF (NOT BUILD_SHARED_LIBS)
+      SET(NCPREFIX_DIR "/usr/local" CACHE PATH "Location of provided NetCDF-C dependencies")
+      SET(H5PREFIX_DIR "/usr/local" CACHE PATH "Location of provided HDF5 dependencies")
+      SET(ZPREFIX_DIR  "/usr/local" CACHE PATH "Location of provided zlib dependencies")
+   ENDIF ()
+ELSEIF (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+   IF (DEFINED ENV{HOMEBREW_PREFIX})
+      SET(LIBPREFIX "$ENV{HOMEBREW_PREFIX}")
+   ELSE ()
+      SET(LIBPREFIX "/usr/local")
+   ENDIF()
 
-SET(NFPREFIX_DIR ${CMAKE_SOURCE_DIR} CACHE PATH "Location of provided NetCDF-Fortran dependencies")
-SET(NFINCLUDE_DIR "${NFPREFIX_DIR}/include" CACHE PATH "Location of provided netcdf.mod")
+   SET(NFPREFIX_DIR "${LIBPREFIX}" CACHE PATH "Location of provided NetCDF-Fortran dependencies")
+   SET(NFINCLUDE_DIR "${LIBPREFIX}/include" CACHE PATH "Location of provided netcdf.mod")
+   IF (NOT BUILD_SHARED_LIBS)
+      SET(NCPREFIX_DIR "${LIBPREFIX}" CACHE PATH "Location of provided NetCDF-C dependencies")
+      SET(H5PREFIX_DIR "${LIBPREFIX}" CACHE PATH "Location of provided HDF5 dependencies")
+      SET(ZPREFIX_DIR  "${LIBPREFIX}" CACHE PATH "Location of provided zlib dependencies")
+   ENDIF ()
+ELSEIF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+   FILE(GLOB LIBDIRS "C:/Program Files*/NC4F")
+   LIST(SORT LIBDIRS)
+   LIST(GET LIBDIRS -1 LIBPREFIX)
+   SET(NFPREFIX_DIR "${LIBPREFIX}" CACHE PATH "Location of provided NetCDF-Fortran dependencies")
+   SET(NFINCLUDE_DIR "${LIBPREFIX}/include" CACHE PATH "Location of provided netcdf.mod")
+   IF (NOT BUILD_SHARED_LIBS)
+      # Assumes that the dependency libraries are packaged with NetCDF-C.
+      FILE(GLOB LIBDIRS "C:/Program Files*/netCDF*")
+      LIST(SORT LIBDIRS)
+      LIST(GET LIBDIRS -1 LIBPREFIX)
+      SET(NCPREFIX_DIR "${LIBPREFIX}" CACHE PATH "Location of provided NetCDF-C dependencies")
+      SET(H5PREFIX_DIR "${LIBPREFIX}" CACHE PATH "Location of provided HDF5 dependencies")
+      SET(ZPREFIX_DIR  "${LIBPREFIX}" CACHE PATH "Location of provided zlib dependencies")
+   ENDIF ()
+ENDIF ()
+MESSAGE(STATUS "NFPREFIX_DIR: ${NFPREFIX_DIR}")
+
 IF(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
    FIND_PATH(NFBIN
    NAMES nf-config
@@ -66,15 +105,8 @@ FIND_PATH(NETCDF_INCLUDE_DIR
 )
 
 IF (BUILD_SHARED_LIBS) 
-   IF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-      SET(NETCDFF "netcdff.dll")
-   ELSE ()
-      SET(NETCDFF "netcdff")
-   ENDIF ()
+   SET(NETCDFF "netcdff")
 ELSE ()
-   SET(NCPREFIX_DIR ${CMAKE_SOURCE_DIR} CACHE PATH "Location of provided NetCDF-C dependencies")
-   SET(H5PREFIX_DIR ${CMAKE_SOURCE_DIR} CACHE PATH "Location of provided HDF5 dependencies")
-   SET(ZPREFIX_DIR  ${CMAKE_SOURCE_DIR} CACHE PATH "Location of provided zlib dependencies")
    IF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
       SET(NETCDFF "netcdff.lib")
       SET(NETCDF  "netcdf.lib")
@@ -92,14 +124,13 @@ ENDIF()
 
 FIND_LIBRARY(NETCDF_FORTRAN_LIBRARY 
    NAMES ${NETCDFF} 
-   HINTS
+   PATHS
       ${NFPREFIX_DIR}
       ENV NETCDF_FORTRAN_HOME
       ENV NETCDF_HOME
       ENV LD_LIBRARY_PATH
    PATH_SUFFIXES
       lib
-      bin
       ${CMAKE_LIBRARY_ARCHITECTURE} 
    REQUIRED
 )
