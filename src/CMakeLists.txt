@@ -51,6 +51,7 @@ SET(STRICT_MATH_FILES
             ${SRC}/swiftest/swiftest_user.f90
             ${SRC}/swiftest/swiftest_obl.f90    
             ${SRC}/swiftest/swiftest_orbel.f90
+            ${SRC}/swiftest/swiftest_sph.f90
             ${SRC}/symba/symba_drift.f90
             ${SRC}/symba/symba_gr.f90
             ${SRC}/symba/symba_kick.f90
