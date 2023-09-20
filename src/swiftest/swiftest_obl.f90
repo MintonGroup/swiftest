@@ -256,7 +256,7 @@ contains
 
       associate(tp => self, cb => nbody_system%cb)
          ntp = self%nbody
-         call swiftest_obl_acc(ntp, cb%Gmass, cb%j2rp2, cb%j4rp4, tp%rh, tp%lmask, tp%aobl)
+         call swiftest_obl_acc(ntp, cb%Gmass, cb%j2rp2, cb%j4rp4, tp%rh, tp%lmask, tp%aobl, cb%rot)
          if (nbody_system%lbeg) then
             aoblcb = cb%aoblbeg
          else
