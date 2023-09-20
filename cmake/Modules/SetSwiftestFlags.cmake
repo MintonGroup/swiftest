@@ -504,11 +504,11 @@ IF (CMAKE_BUILD_TYPE STREQUAL "RELEASE" OR CMAKE_BUILD_TYPE STREQUAL "PROFILE")
         IF (WINOPT)
             # Unroll loops
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                Fortran "/unroll"    # Intel Windows
+                Fortran "/Qunroll"    # Intel Windows
             )
             # Inline functions
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                Fortran "/Qinline"       # Intel Windows
+                Fortran "/inline"       # Intel Windows
             )
             # Calls the Matrix Multiply library
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
@@ -520,7 +520,7 @@ IF (CMAKE_BUILD_TYPE STREQUAL "RELEASE" OR CMAKE_BUILD_TYPE STREQUAL "PROFILE")
             )
             # No floating-point exceptions
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                Fortran "/fp:no-except"       # Intel Windows
+                Fortran "/fp:except-"       # Intel Windows
             )
             # Generate fused multiply-add instructions
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"

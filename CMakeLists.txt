@@ -91,9 +91,15 @@ FILE(TO_CMAKE_PATH ${PY} PY)
 # Set the name of the swiftest library
 SET(SWIFTEST_LIBRARY ${SKBUILD_PROJECT_NAME})
 
+# Determine compiler options
+IF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
+    MESSAGE(FATAL_ERROR "Fortran compiler does not support F90")
+ENDIF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
+INCLUDE(SetParallelizationLibrary)
 
-# This INCLUDE statement executes code that sets the compile flags for DEBUG,
-# RELEASE, PROFILING, and TESTING.  
+IF (COMPILER_OPTIONS STREQUAL "Intel" AND NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    INCLUDE(SetMKL)
+ENDIF ()
 INCLUDE(SetSwiftestFlags) 
 
 # The source for the SWIFTEST binary and have it placed in the bin folder
