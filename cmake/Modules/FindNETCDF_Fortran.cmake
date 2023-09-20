@@ -50,7 +50,7 @@ ELSEIF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
 ENDIF ()
 
 IF(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
-   FIND_PATH(NFBIN
+   FIND_FILE(NFBIN
    NAMES nf-config
    HINTS 
       NFPREFIX_DIR
@@ -61,7 +61,7 @@ IF(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
    )
 
    IF (NFBIN)
-      SET(CMD "${NFBIN}/nf-config")
+      SET(CMD "${NFBIN}")
       LIST(APPEND CMD "--includedir")
       MESSAGE(STATUS "Searching for NetCDF-Fortran include directory using ${CMD}")
       EXECUTE_PROCESS(COMMAND ${CMD} OUTPUT_VARIABLE NFINCLUDE_DIR ERROR_VARIABLE ERR RESULT_VARIABLE RES OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -74,7 +74,7 @@ IF(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
          MESSAGE(STATUS "ERROR : ${ERR}")
       ENDIF ()
 
-      SET(CMD "${NFBIN}/nf-config")
+      SET(CMD "${NFBIN}")
       LIST(APPEND CMD "--prefix")
       MESSAGE(STATUS "Searching for NetCDF-Fortran library directory using ${CMD}")
       EXECUTE_PROCESS(COMMAND ${CMD} OUTPUT_VARIABLE NFPREFIX_DIR ERROR_VARIABLE ERR RESULT_VARIABLE RES OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -89,7 +89,7 @@ IF(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
    ENDIF()
 ENDIF()
 
-FIND_PATH(NETCDF_INCLUDE_DIR 
+FIND_PATH(NETCDF_FORTRAN_INCLUDE_DIR 
    NAMES netcdf.mod 
    HINTS 
       ${NFINCLUDE_DIR}
@@ -121,7 +121,7 @@ ELSE ()
    ENDIF()
 ENDIF()
 
-FIND_LIBRARY(NETCDF_FORTRAN_LIBRARY 
+FIND_LIBRARY(NFLIB 
    NAMES ${NETCDFF} 
    PATHS
       ${NFPREFIX_DIR}
@@ -133,105 +133,33 @@ FIND_LIBRARY(NETCDF_FORTRAN_LIBRARY
       ${CMAKE_LIBRARY_ARCHITECTURE} 
    REQUIRED
 )
-
-IF (BUILD_SHARED_LIBS)
-   SET(NETCDF_LIBRARIES ${NETCDF_FORTRAN_LIBRARY} CACHE STRING "NetCDF Fortran library")
-ELSE ()
-   FIND_LIBRARY(NETCDF_LIBRARY 
-      NAMES ${NETCDF} 
-      HINTS
-         ${NCPREFIX_DIR}
-         ENV NETCDF_HOME
-         ENV LD_LIBRARY_PATH
+ADD_LIBRARY(NETCDF_FORTRAN_LIBRARY SHARED IMPORTED)
+IF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+   # Get the DLL added in
+   FIND_FILE(NFDLL
+      NAMES "netcdff.dll"
+      HINTS 
+         NFPREFIX_DIR
+         ENV NETCDF_FORTRAN_HOME
+         ENV PATH
       PATH_SUFFIXES
-         lib
-         ${CMAKE_LIBRARY_ARCHITECTURE} 
-      REQUIRED
+         bin
    )
+   SET_TARGET_PROPERTIES(NETCDF_FORTRAN_LIBRARY PROPERTIES 
+                        IMPORTED_IMPLIB "${NFLIB}"
+                        IMPORTED_LOCATION "${NFDLL}"
+                        INTERFACE_INCLUDE_DIRECTORIES "${NETCDF_FORTRAN_INCLUDE_DIR}"
+                        )
+   MESSAGE(STATUS "NetCDF-Fortran dll: ${NFDLL}")
+ELSE ()
+   SET_TARGET_PROPERTIES(NETCDF_FORTRAN_LIBRARY PROPERTIES 
+                        IMPORTED_LOCATION "${NFLIB}"
+                        INTERFACE_INCLUDE_DIRECTORIES "${NETCDF_FORTRAN_INCLUDE_DIR}"
+                        )
+ENDIF()
+ 
+MESSAGE(STATUS "NetCDF-Fortran library: ${NFLIB}")
+MESSAGE(STATUS "NetCDF-Fortran include directory: ${NETCDF_FORTRAN_INCLUDE_DIR}")
 
-   IF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-      FIND_LIBRARY(HDF5_LIBRARY 
-         NAMES ${HDF5}
-         HINTS 
-            ${H5PREFIX_DIR}
-            ENV HDF5_ROOT
-            ENV LD_LIBRARY_PATH
-         PATH_SUFFIXES
-            lib
-            ${CMAKE_LIBRARY_ARCHITECTURE}
-         REQUIRED
-      )
-
-      FIND_LIBRARY(HDF5_HL_LIBRARY 
-         NAMES ${HDF5_HL}
-         HINTS 
-            ${H5PREFIX_DIR}
-            ENV HDF5_ROOT
-            ENV LD_LIBRARY_PATH
-         PATH_SUFFIXES
-            lib
-            ${CMAKE_LIBRARY_ARCHITECTURE}
-         REQUIRED
-      )
-
-      FIND_LIBRARY(Z_LIBRARY 
-         NAMES ${ZLIB}
-         HINTS 
-            ${ZPREFIX_DIR}
-            ENV ZLIB_ROOT
-            ENV LD_LIBRARY_PATH
-         PATH_SUFFIXES
-            lib
-            ${CMAKE_LIBRARY_ARCHITECTURE}
-         REQUIRED
-      )
-
-      LIST(APPEND EXTRA_FLAGS ${HDF5_LIBRARY} ${HDF5_HL_LIBRARY} ${Z_LIBRARY})
-      
-   ELSE ()
-      FIND_PATH(NCBIN
-         NAMES nc-config
-         HINTS 
-            ENV NETCDF_HOME
-            ENV PATH
-         PATH_SUFFIXES
-            bin
-      )
-
-      IF (NCBIN) # The nc-config utility is available. Parse its output for unique flags
-         SET(CMD "${NCBIN}/nc-config")
-         LIST(APPEND CMD "--libs")
-         LIST(APPEND CMD "--static")
-         MESSAGE(STATUS "NetCDF configuration command: ${CMD}")
-         EXECUTE_PROCESS(COMMAND ${CMD} OUTPUT_VARIABLE EXTRA_FLAGS ERROR_VARIABLE ERR RESULT_VARIABLE RES OUTPUT_STRIP_TRAILING_WHITESPACE)
-         IF (EXTRA_FLAGS)
-            SEPARATE_ARGUMENTS(EXTRA_FLAGS NATIVE_COMMAND "${EXTRA_FLAGS}")
-            LIST(REMOVE_DUPLICATES EXTRA_FLAGS)
-            LIST(FILTER EXTRA_FLAGS EXCLUDE REGEX "netcdf+")
-            MESSAGE(STATUS "Extra library flags: ${EXTRA_FLAGS}")
-         ELSE ()
-            MESSAGE(STATUS "Cannot execute ${CMD}")
-            MESSAGE(STATUS "OUTPUT: ${EXTRA_FLAGS}")
-            MESSAGE(STATUS "RESUL : ${RES}")
-            MESSAGE(STATUS "ERROR : ${ERR}")
-            MESSAGE(FATAL_ERROR "Cannot configure NetCDF for static")
-         ENDIF ()
-      ELSE ()
-         MESSAGE(FATAL_ERROR "Cannot find nc-config")
-      ENDIF ()
-   ENDIF()
-   
-   IF (DEFINED ENV{LIBS})
-      STRING(STRIP "$ENV{LIBS}" LIBS)
-      SEPARATE_ARGUMENTS(LIBS NATIVE_COMMAND "${LIBS}")
-      LIST(APPEND EXTRA_FLAGS ${LIBS})
-   ENDIF()
-
-   # Note for posterity: When building static libraries, NETCDF_FORTRAN_LIBRARY must come *before* NETCDF_LIBRARY. Otherwise you get a bunch of "undefined reference to" errors
-   SET(NETCDF_LIBRARIES ${NETCDF_FORTRAN_LIBRARY} ${NETCDF_LIBRARY} ${EXTRA_FLAGS} CACHE STRING "NetCDF Fortran and dependant static libraries")
-ENDIF ()
-MESSAGE(STATUS "NetCDF libraries: ${NETCDF_LIBRARIES}")
-MESSAGE(STATUS "NetCDF include directory: ${NETCDF_INCLUDE_DIR}")
-
-SET(NETCDF_FOUND TRUE)
-MARK_AS_ADVANCED(NETCDF_LIBRARIES NETCDF_INCLUDE_DIR)
+SET(NETCDF_FORTRAN_FOUND TRUE)
+MARK_AS_ADVANCED(NETCDF_FORTRAN_LIBRARY NETCDF_FORTRAN_INCLUDE_DIR)
