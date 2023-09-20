@@ -43,7 +43,7 @@ ENDIF ()
 # Have the .mod files placed in the include folder
 SET(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mod)
 
-# Add our local modules to the module path
+# Add our local modules to the module ldpath
 FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" LOCAL_MODULE_PATH)
 LIST(APPEND CMAKE_MODULE_PATH ${LOCAL_MODULE_PATH})
 

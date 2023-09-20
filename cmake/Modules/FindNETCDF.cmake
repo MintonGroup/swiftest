@@ -66,7 +66,11 @@ FIND_PATH(NETCDF_INCLUDE_DIR
 )
 
 IF (BUILD_SHARED_LIBS) 
-   SET(NETCDFF "netcdff")
+   IF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+      SET(NETCDFF "netcdff.dll")
+   ELSE ()
+      SET(NETCDFF "netcdff")
+   ENDIF ()
 ELSE ()
    SET(NCPREFIX_DIR ${CMAKE_SOURCE_DIR} CACHE PATH "Location of provided NetCDF-C dependencies")
    SET(H5PREFIX_DIR ${CMAKE_SOURCE_DIR} CACHE PATH "Location of provided HDF5 dependencies")
@@ -95,6 +99,7 @@ FIND_LIBRARY(NETCDF_FORTRAN_LIBRARY
       ENV LD_LIBRARY_PATH
    PATH_SUFFIXES
       lib
+      bin
       ${CMAKE_LIBRARY_ARCHITECTURE} 
    REQUIRED
 )
