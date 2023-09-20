@@ -312,7 +312,7 @@ module swiftest
       procedure :: accel_obl => swiftest_obl_acc_tp             !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure :: accel_sph => swiftest_sph_g_acc_tp_all       !! acceleration due to spherical harmonics
       procedure :: setup     => swiftest_util_setup_tp          !! A base constructor that sets the number of bodies and 
-      procedure :: append    => swiftest_util_append_tp         !! Appends elements from one structure to another
+      procedure :: append    => swiftest_util_append_tp    git      !! Appends elements from one structure to another
       procedure :: h2b       => swiftest_util_coord_h2b_tp      !! Convert test particles from heliocentric to barycentric coordinates (position and velocity)
       procedure :: b2h       => swiftest_util_coord_b2h_tp      !! Convert test particles from barycentric to heliocentric coordinates (position and velocity)
       procedure :: vb2vh     => swiftest_util_coord_vb2vh_tp    !! Convert test particles from barycentric to heliocentric coordinates (velocity only)
