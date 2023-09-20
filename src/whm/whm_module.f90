@@ -38,6 +38,7 @@ module whm
       procedure :: drift       => whm_drift_pl               !! Loop through massive bodies and call Danby drift routine to jacobi coordinates
       procedure :: accel_gr    => whm_gr_kick_getacch_pl     !! Acceleration term arising from the post-Newtonian correction
       procedure :: gr_pos_kick => whm_gr_p4_pl               !! Position kick due to p**4 term in the post-Newtonian correction
+      procedure :: accel_sph   => swiftest_sph_g_acc_pl_all  !! Acceleration due ot spherical harmonics terms
       procedure :: accel       => whm_kick_getacch_pl        !! Compute heliocentric accelerations of massive bodies
       procedure :: kick        => whm_kick_vh_pl             !! Kick heliocentric velocities of massive bodies
       procedure :: append      => whm_util_append_pl         !! Appends elements from one structure to another
@@ -66,6 +67,7 @@ module whm
       procedure :: accel_gr    => whm_gr_kick_getacch_tp !! Acceleration term arising from the post-Newtonian correction
       procedure :: gr_pos_kick => whm_gr_p4_tp           !! Position kick due to p**4 term in the post-Newtonian correction
       procedure :: accel       => whm_kick_getacch_tp    !! Compute heliocentric accelerations of test particles
+      procedure :: accel_sph   => swiftest_sph_g_acc_tp_all !! acceleration due to spherical harmonics
       procedure :: kick        => whm_kick_vh_tp         !! Kick heliocentric velocities of test particles
       procedure :: step        => whm_step_tp            !! Steps the particle forward one stepsize
       final     ::                whm_final_tp      !! Finalizes the WHM test particle object - deallocates all allocatables 
