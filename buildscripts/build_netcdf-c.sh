@@ -11,11 +11,21 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 SCRIPT_DIR=$(realpath $(dirname $0))
-
 set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
+. ${SCRIPT_DIR}/set_compilers.sh
+# Get the OpenMP Libraries
+if [ $OS = "MacOSX" ]; then
+    ${SCRIPT_DIR}/get_lomp.sh ${ARGS}
+fi
 
+printf "*********************************************************\n"
+printf "*          STARTING DEPENDENCY BUILD                    *\n"
+printf "*********************************************************\n"
+printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
+printf "Installing to ${PREFIX}\n"
+printf "\n"
 
 NC_VER="4.9.2"
 
@@ -43,15 +53,12 @@ printf "HDF5_ROOT: ${HDF5_ROOT}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/netcdf-c-*
-COPTS="--disable-testsets --disable-nczarr --prefix=${PREFIX}"
-printf "COPTS: ${COPTS}\n"
-./configure $COPTS
-make && make check 
-
+cmake -B build -S . -G Ninja 
+cmake --build build -j${NPROC}
 if [ -w ${PREFIX} ]; then
-    make install
+    cmake --install build --prefix ${PREFIX}
 else
-    sudo make install
+    sudo cmake --install build --prefix ${PREFIX}
 fi
 
 if [ $? -ne 0 ]; then

@@ -13,9 +13,8 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
-# Parse arguments
 case "$OS" in
-    Linux|MacOSX)
+    Linux|MacOSX|Intel)
         ;;
     *)
         echo "Unknown compiler type: $OS"
@@ -24,7 +23,6 @@ case "$OS" in
         exit 1
         ;;
 esac
-
 
 set -a
 # Only replace compiler definitions if they are not already set
@@ -51,6 +49,12 @@ case $OS in
         RANLIB=${COMPILER_PREFIX}/bin/ranlib
         LDFLAGS="-Wl,-no_compact_unwind"
         ;;
+    Intel)
+        FC=$(command -v ifx)
+        CC=$(command -v icx)
+        CXX=$(command -v icpx)
+        CPP=$(command -v cpp)
+        ;;
     *)
         printf "Unknown compiler type: ${OS}\n"
         echo "Valid options are Intel, Linux, or MacOSX"
@@ -59,5 +63,4 @@ case $OS in
         ;;
 esac
 F77=${FC}
-
-printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n\n"
+F95=${FC}

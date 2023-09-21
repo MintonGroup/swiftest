@@ -14,6 +14,18 @@ SCRIPT_DIR=$(realpath $(dirname $0))
 set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
+. ${SCRIPT_DIR}/set_compilers.sh
+# Get the OpenMP Libraries
+if [ $OS = "MacOSX" ]; then
+    ${SCRIPT_DIR}/get_lomp.sh ${ARGS}
+fi
+
+printf "*********************************************************\n"
+printf "*          STARTING DEPENDENCY BUILD                    *\n"
+printf "*********************************************************\n"
+printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
+printf "Installing to ${PREFIX}\n"
+printf "\n"
 
 HDF5_VER="1_14_2"
 printf "*********************************************************\n"
@@ -51,20 +63,13 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/hdfsrc
-if [ $OS = "MacOSX" ]; then
-   read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
-   if [ $ARCH  = "arm64" ]; then
-      printf "Manually setting bin/config.sub to arm-apple-darwin\n"
-      printf "echo arm-apple-darwin" > bin/config.sub 
-   fi
-fi
-COPTS="--enable-build-mode=production --enable-tests=no --enable-tools=no --disable-fortran --disable-java --disable-cxx --prefix=${PREFIX} --with-zlib=${PREFIX}"
-./configure ${COPTS}
-make 
+ZLIB_ROOT=${PREFIX}
+cmake -B build -S . -G Ninja 
+cmake --build build -j${NPROC}
 if [ -w ${PREFIX} ]; then
-    make install
+    cmake --install build --prefix ${PREFIX}
 else
-    sudo make install
+    sudo cmake --install build --prefix ${PREFIX}
 fi
 
 if [ $? -ne 0 ]; then

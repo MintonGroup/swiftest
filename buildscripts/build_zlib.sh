@@ -14,7 +14,18 @@ SCRIPT_DIR=$(realpath $(dirname $0))
 set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
+. ${SCRIPT_DIR}/set_compilers.sh
+# Get the OpenMP Libraries
+if [ $OS = "MacOSX" ]; then
+    ${SCRIPT_DIR}/get_lomp.sh ${ARGS}
+fi
 
+printf "*********************************************************\n"
+printf "*          STARTING DEPENDENCY BUILD                    *\n"
+printf "*********************************************************\n"
+printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
+printf "Installing to ${PREFIX}\n"
+printf "\n"
 
 ZLIB_VER="1.3"
 
@@ -40,12 +51,12 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/zlib-*
-./configure --prefix=${PREFIX}
-make 
+cmake -B build -S . -G Ninja
+cmake --build build -j${NPROC}
 if [ -w ${PREFIX} ]; then
-    make install
+    cmake --install build --prefix ${PREFIX}
 else
-    sudo make install
+    sudo cmake --install build --prefix ${PREFIX}
 fi
 
 if [ $? -ne 0 ]; then

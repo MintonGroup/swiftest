@@ -16,19 +16,9 @@ SCRIPT_DIR=$(realpath $(dirname $0))
 set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
+NPROC=$(nproc)
 
 cd $ROOT_DIR
-printf "*********************************************************\n"
-printf "*          STARTING DEPENDENCY BUILD                    *\n"
-printf "*********************************************************\n"
-printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
-printf "Installing to ${PREFIX}\n"
-printf "\n"
-
-# Get the OpenMP Libraries
-if [ $OS = "MacOSX" ]; then
-    ${SCRIPT_DIR}/get_lomp.sh ${ARGS}
-fi
 
 set -e
 ${SCRIPT_DIR}/build_zlib.sh ${ARGS}

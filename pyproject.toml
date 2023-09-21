@@ -93,11 +93,12 @@ CPP="/usr/bin/cpp"
 AR="/usr/bin/ar"
 NM="/usr/bin/nm"
 RANLIB="/usr/bin/ranlib"
+netCDF-Fortran_DIR="${PREFIX}/lib/cmake/netCDF"
 
 [tool.cibuildwheel.macos]
 before-all = [
     "brew install coreutils",
-    "LIBS=\"\" buildscripts/build_dependencies.sh -p ${PREFIX} -d ${PREFIX}/build -m ${MACOSX_DEPLOYMENT_TARGET}"
+    "LIBS=\"\" buildscripts/build_dependencies.sh -p ${PREFIX} -d ${HOME}/Downloads -m ${MACOSX_DEPLOYMENT_TARGET}"
 ]
 
 [tool.cibuildwheel.linux]
@@ -110,6 +111,7 @@ NETCDF_FORTRAN_HOME="/usr/local"
 NETCDF_INCLUDE="/usr/local/include"
 LD_LIBRARY_PATH="/usr/local/lib:/project/lib"
 CPATH="/usr/local/include:/project/include"
+netCDF-Fortran_DIR="${PREFIX}/lib/cmake/netCDF"
 
 [[tool.scikit-build.generate]]
 path = "version.txt"
