@@ -11,9 +11,8 @@
 !! Swiftest submodule to calculate higher order terms for gravitational acceleration given spherical harmonic coefficients (c_lm)
 
 submodule (swiftest) s_swiftest_sph
-use swiftest
 use operators
-use SHTOOLS, only : PlmIndex, PlmON_d1
+use SHTOOLS
 
 contains
 
