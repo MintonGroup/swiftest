@@ -13,11 +13,11 @@
 submodule (swiftest) s_swiftest_sph
 use swiftest
 use operators
-use SHTOOLS
+use SHTOOLS, only : PlmIndex, PlmON_d1
 
 contains
 
-    module subroutine swiftest_sph_g_acc_one(GMcb, r_0, phi, theta, rh, c_lm, g_sph, GMpl, aoblcb)
+    pure module subroutine swiftest_sph_g_acc_one(GMcb, r_0, phi, theta, rh, c_lm, g_sph, GMpl, aoblcb)
         !! author: Kaustub P. Anand
         !!
         !! Calculate the acceleration terms for one pair of bodies given c_lm, theta, phi, r
@@ -95,7 +95,7 @@ contains
         class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
         ! Internals
-        integer(I4B) :: i
+        integer(I4B)    :: i
         real(DP)        :: r_mag, theta, phi    !! magnitude of the position vector, zenith angle, and azimuthal angle
         real(DP), dimension(NDIM)  :: g_sph        !! Gravitational terms from Spherical Harmonics
 
@@ -138,7 +138,7 @@ contains
                 aoblcb = cb%aoblend
              end if
 
-            do concurrent(i = 1:ntp, tp%lmask(i))
+            do concurrent (i = 1:ntp, tp%lmask(i))
                 r_mag = .mag. rh(1:3,i)
                 theta = atan2(sqrt(rh(1,i)**2 + rh(2,i)**2), rh(3,i))
                 phi = atan2(rh(2,i), rh(1,i)) - cb%rotphase ! CALCULATE CB PHASE VALUE FOR PHI
@@ -151,3 +151,4 @@ contains
         return
         end subroutine swiftest_sph_g_acc_tp_all
     
+end submodule s_swiftest_sph
