@@ -66,7 +66,7 @@ IF(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
   MESSAGE(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.\n")
 ENDIF()
 
-FIND_PACKAGE(NETCDF_FORTRAN REQUIRED)
+FIND_PACKAGE(NETCDF_Fortran REQUIRED)
 
 # Ensure scikit-build modules
 FIND_PACKAGE(Python COMPONENTS Interpreter Development.Module REQUIRED)
