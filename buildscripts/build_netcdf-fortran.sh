@@ -57,12 +57,12 @@ if [ $OS = "MacOSX" ]; then
 else
     netCDF_LIBRARIES="${PREFIX}/lib/libnetcdf.so"
 fi
-cmake -B build -S . -G Ninja -DnetCDF_INCLUDE_DIR="${PREFIX}/include" -DnetCDF_LIBRARIES="${netCDF_LIBRARIES}"
+cmake -B build -S . -G Ninja -DnetCDF_INCLUDE_DIR="${PREFIX}/include" -DnetCDF_LIBRARIES="${netCDF_LIBRARIES}"  -DCMAKE_INSTALL_PREFIX=${PREFIX}
 cmake --build build -j${NPROC}
 if [ -w ${PREFIX} ]; then
-    cmake --install build --prefix ${PREFIX}
+    cmake --install build 
 else
-    sudo cmake --install build --prefix ${PREFIX}
+    sudo cmake --install build
 fi
 
 if [ $? -ne 0 ]; then
