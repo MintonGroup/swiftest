@@ -12,6 +12,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-11, macos-12, macos-13]
         cibw_archs: [x86_64]
+        include:
+          - os: ubuntu-latest
+            cibw_archs: "aarch64"
     env:
       SYSTEM_VERSION_COMPAT: 0
 
