@@ -223,6 +223,7 @@ module swiftest
       real(DP)                                    :: R0       = 0.0_DP !! Initial radius of the central body
       real(DP)                                    :: dR       = 0.0_DP !! Change in the radius of the central body
    contains
+      procedure :: rotphase_update => swiftest_drift_cb_rotphase_update !! updates the central body rotation phase
       procedure :: dealloc      => swiftest_util_dealloc_cb          !! Deallocates all allocatables and resets all values to defaults 
       procedure :: read_in      => swiftest_io_read_in_cb            !! Read in central body initial conditions from an ASCII file
       procedure :: write_frame  => swiftest_io_netcdf_write_frame_cb !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
@@ -542,6 +543,18 @@ module swiftest
          real(DP),     intent(in)       :: dt    !! Step size
          integer(I4B), intent(out)      :: iflag !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       end subroutine swiftest_drift_one
+
+      module subroutine swiftest_drift_cb_rotphase_update(self, param, dt)
+         !! Author : Kaustub Anand
+         !! subroutine to update the rotation phase of the central body
+         !! Units: Radians
+         !! initial 0 is set at the x-axis 
+   
+         ! Arguments
+         class(swiftest_cb),           intent(inout) :: self   !! Swiftest central body data structure
+         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: dt     !! Stepsize
+      end subroutine
 
       module subroutine swiftest_driver(integrator, param_file_name, display_style)
          implicit none

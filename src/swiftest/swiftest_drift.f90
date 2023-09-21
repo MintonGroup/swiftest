@@ -580,5 +580,20 @@ contains
       return
    end subroutine swiftest_drift_kepu_stumpff
 
+   module subroutine swiftest_drift_cb_rotphase_update(self, param, dt)
+      !! Author : Kaustub Anand
+      !! subroutine to update the rotation phase of the central body
+      !! Units: Radians
+      !! initial 0 is set at the x-axis 
+
+      ! Arguments
+      class(swiftest_cb),           intent(inout) :: self   !! Swiftest central body data structure
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: dt     !! Stepsize
+
+      self%rotphase = MOD((.mag. self%rot(:)) * dt * param%TU2S, 2 * PI) ! radians
+
+   end subroutine swiftest_drift_cb_rotphase_update
+
 
 end submodule s_swiftest_drift
