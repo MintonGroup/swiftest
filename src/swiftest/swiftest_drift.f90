@@ -49,6 +49,7 @@ contains
                end if
             end do
          end if
+
       end associate
 
       deallocate(iflag)

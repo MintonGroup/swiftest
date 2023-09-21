@@ -29,41 +29,45 @@ contains
         real(DP), intent(in)        :: r_0                         !! radius of the central body
         real(DP), intent(in)        :: phi                         !! Azimuthal/Phase angle (radians)
         real(DP), intent(in)        :: theta                       !! Inclination/Zenith angle (radians)
-        real(DP), intent(in), dimension(:)       :: rh          !! distance vector of body
+        real(DP), intent(in), dimension(:)          :: rh          !! distance vector of body
         real(DP), intent(in), dimension(:, :, :)    :: c_lm        !! Spherical Harmonic coefficients
-        real(DP), intent(out), dimension(:)      :: g_sph       !! acceleration vector
+        real(DP), intent(out), dimension(:)         :: g_sph       !! acceleration vector
         real(DP), dimension(:),   intent(in),  optional :: GMpl    !! Masses of input bodies if they are not test particles
-        real(DP), dimension(:),   intent(inout), optional :: aoblcb  !! Barycentric acceleration of central body (only needed if input bodies are massive)
+        real(DP), dimension(:),   intent(inout), optional :: aoblcb  !! Barycentric acceleration of central body (only for massive input bodies)
      
         ! Internals
         integer        :: l, m              !! SPH coefficients
-        real(DP)       :: r_mag             !! magnitude of rh
-        real(DP), dimension(:), allocatable  :: p, p_deriv             !! Associated Lengendre Polynomials at a given cos(theta)
         integer        :: l_max             !! max Spherical Harmonic l order value
+        integer(I4B)   :: N, lmindex        !! Length of Legendre polynomials and index at a given l, m
+        real(DP)       :: r_mag             !! magnitude of rh
         real(DP)       :: plm, dplm         !! Associated Legendre polynomials at a given l, m
-        integer(I4B)   :: N
+        real(DP)       :: ccss, cssc        !! See definition in source code
+        real(DP), dimension(:), allocatable  :: p, p_deriv   !! Associated Lengendre Polynomials at a given cos(theta)
 
         g_sph(:) = 0.0_DP
         r_mag = sqrt(dot_product(rh(:), rh(:)))
         l_max = size(c_lm, 2) - 1
         N = (l_max + 1) * (l_max + 2) / 2
         allocate(p(N),p_deriv(N))
-        PlmON_d1(p, p_deriv, l_max, cos(theta))      ! Orthonormalized Associated Legendre Polynomials and the 1st Derivative
+        call PlmON_d1(p, p_deriv, l_max, cos(theta))      ! Orthonormalized Associated Legendre Polynomials and the 1st Derivative
 
         do l = 1, l_max
             do m = 0, l
 
-                ! Associated Legendre Polynomials   
-                plm = p(PlmIndex(l, m))         ! p_l,m
-                dplm = p_deriv(PlmIndex(l, m))       ! d(p_l,m)
+                ! Associated Legendre Polynomials 
+                lmindex = PlmIndex(l, m)  
+                plm = p(lmindex)              ! p_l,m
+                dplm = p_deriv(lmindex)       ! d(p_l,m)
 
                 ! C_lm and S_lm with Cos and Sin of m * phi
-                ccss = c_lm(1, l+1, m+1) * cos(m * phi) + c_lm(2, l+1, m+1) * sin(m * phi)          ! C_lm * cos(m * phi) + S_lm * sin(m * phi)
-                cssc = -1 * c_lm(1, l+1, m+1) * sin(m * phi) + c_lm(2, l+1, m+1) * cos(m * phi)   ! - C_lm * sin(m * phi) + S_lm * cos(m * phi) 
-                                                                                            ! cssc * m = first derivative of ccss with respect to phi
+                ccss = c_lm(1, l+1, m+1) * cos(m * phi) & 
+                        + c_lm(2, l+1, m+1) * sin(m * phi)      ! C_lm * cos(m * phi) + S_lm * sin(m * phi)
+                cssc = -1.0_DP * c_lm(1, l+1, m+1) * sin(m * phi) & 
+                        + c_lm(2, l+1, m+1) * cos(m * phi)      ! - C_lm * sin(m * phi) + S_lm * cos(m * phi) 
+                                                                ! cssc * m = first derivative of ccss with respect to phi
 
                 ! m > 0
-                g_sph(1) = g_sph(1) - GMcb * r_0**l / r_mag**(l + 1) * (cssc * -1 * m * plm / rh(2) &
+                g_sph(1) = g_sph(1) - GMcb * r_0**l / r_mag**(l + 1) * (-1.0_DP * cssc * m * plm / rh(2) &
                                                               - ccss * (dplm * sin(theta) / (rh(3) * cos(phi)) &    
                                                                         + plm * (l + 1) * rh(1) / r_mag**2)) ! g_x
                 g_sph(2) = g_sph(2) - GMcb * r_0**l / r_mag**(l + 1) * (cssc * m * plm / rh(1) &
@@ -137,7 +141,7 @@ contains
             do concurrent(i = 1:ntp, tp%lmask(i))
                 r_mag = .mag. rh(1:3,i)
                 theta = atan2(sqrt(rh(1,i)**2 + rh(2,i)**2), rh(3,i))
-                phi = atan2(rh(2,i), rh(1,i)) - cb%phase ! CALCULATE CB PHASE VALUE FOR PHI
+                phi = atan2(rh(2,i), rh(1,i)) - cb%rotphase ! CALCULATE CB PHASE VALUE FOR PHI
 
                 call swiftest_sph_g_acc_one(cb%Gmass, r_mag, phi, theta, rh(:,i), cb%c_lm, g_sph)
                 tp%ah(:, i) = tp%ah(:, i) + g_sph(:) - aoblcb(:)

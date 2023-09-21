@@ -30,6 +30,9 @@ contains
          call pl%step(nbody_system, param, t, dt)
          call tp%step(nbody_system, param, t, dt)
          ! if (param%ltides) call nbody_system%step_spin(param, t, dt)
+
+         ! ! Update central body rotation phase
+         ! cb%rotphase = (.mag. cb%rot) * dt * param%TU2S
       end associate
       return
    end subroutine whm_step_system 

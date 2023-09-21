@@ -212,7 +212,7 @@ module swiftest
       real(DP), dimension(NDIM)                   :: agr      = 0.0_DP !! Acceleration due to post-Newtonian correction
       real(DP), dimension(NDIM)                   :: Ip       = 0.0_DP !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
       real(DP), dimension(NDIM)                   :: rot      = 0.0_DP !! Body rotation vector in inertial coordinate frame (units rad / TU)
-      real(DP)                                    :: rotphase = 0.0_DP !! Body rotation phase about the rotation pole
+      real(DP)                                    :: rotphase = 0.0_DP !! Body rotation phase about the rotation pole (0 to 2*pi)
       real(DP)                                    :: k2       = 0.0_DP !! Tidal Love number
       real(DP)                                    :: Q        = 0.0_DP !! Tidal quality factor
       real(DP)                                    :: tlag     = 0.0_DP !! Tidal phase lag angle
@@ -1850,11 +1850,11 @@ module swiftest
          real(DP), intent(in)        :: r_0                         !! radius of the central body
          real(DP), intent(in)        :: phi                         !! Azimuthal/Phase angle (radians)
          real(DP), intent(in)        :: theta                       !! Inclination/Zenith angle (radians)
-         real(DP), intent(in), dimension(:)       :: rh          !! distance vector of body
+         real(DP), intent(in), dimension(:)          :: rh          !! distance vector of body
          real(DP), intent(in), dimension(:, :, :)    :: c_lm        !! Spherical Harmonic coefficients
-         real(DP), intent(out), dimension(:)      :: g_sph       !! acceleration vector
+         real(DP), intent(out), dimension(:)         :: g_sph       !! acceleration vector
          real(DP), dimension(:),   intent(in),  optional :: GMpl    !! Masses of input bodies if they are not test particles
-         real(DP), dimension(:),   intent(inout), optional :: aoblcb  !! Barycentric acceleration of central body (only needed if input bodies are massive)
+         real(DP), dimension(:),   intent(inout), optional :: aoblcb  !! Barycentric acceleration of central body (only for massive input bodies)
       end subroutine swiftest_sph_g_acc_one
 
       module subroutine swiftest_sph_g_acc_pl_all(self, nbody_system)
