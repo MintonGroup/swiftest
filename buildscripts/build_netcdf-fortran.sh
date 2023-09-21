@@ -52,10 +52,11 @@ printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/netcdf-fortran-*
 
+NCLIBDIR=$(${PREFIX}/bin/nc-config --libdir)
 if [ $OS = "MacOSX" ]; then
-    netCDF_LIBRARIES="${PREFIX}/lib/libnetcdf.dylib"
+    netCDF_LIBRARIES="${NCLIBDIR}/ibnetcdf.dylib"
 else
-    netCDF_LIBRARIES="${PREFIX}/lib/libnetcdf.so"
+    netCDF_LIBRARIES="${NCLIBDIR}/libnetcdf.so"
 fi
 cmake -B build -S . -G Ninja -DnetCDF_INCLUDE_DIR="${PREFIX}/include" -DnetCDF_LIBRARIES="${netCDF_LIBRARIES}"  -DCMAKE_INSTALL_PREFIX=${PREFIX}
 cmake --build build -j${NPROC}
