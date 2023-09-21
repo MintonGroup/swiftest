@@ -17,7 +17,7 @@ use SHTOOLS, only : PlmIndex, PlmON_d1
 
 contains
 
-    pure module subroutine swiftest_sph_g_acc_one(GMcb, r_0, phi, theta, rh, c_lm, g_sph, GMpl, aoblcb)
+    module subroutine swiftest_sph_g_acc_one(GMcb, r_0, phi, theta, rh, c_lm, g_sph, GMpl, aoblcb)
         !! author: Kaustub P. Anand
         !!
         !! Calculate the acceleration terms for one pair of bodies given c_lm, theta, phi, r
@@ -95,13 +95,15 @@ contains
         class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
         ! Internals
-        integer(I4B)    :: i
+        integer(I4B)    :: i = 1
         real(DP)        :: r_mag, theta, phi    !! magnitude of the position vector, zenith angle, and azimuthal angle
         real(DP), dimension(NDIM)  :: g_sph        !! Gravitational terms from Spherical Harmonics
 
         associate(pl => self, npl => self%nbody, cb => nbody_system%cb, rh => self%rh)
             cb%aobl(:) = 0.0_DP
-            do concurrent(i = 1:npl, pl%lmask(i))
+
+            ! do i = 1, npl, pl%lmask(i)
+            do while ((i .lt. npl) .and. pl%lmask(i))
                 r_mag = .mag. rh(1:3,i)
                 theta = atan2(sqrt(rh(1,i)**2 + rh(2,i)**2), rh(3,i))
                 phi = atan2(rh(2,i), rh(1,i)) - cb%rotphase ! CALCULATE CB PHASE VALUE FOR PHI
@@ -109,6 +111,8 @@ contains
                 call swiftest_sph_g_acc_one(cb%Gmass, r_mag, phi, theta, rh(:,i), cb%c_lm, g_sph, pl%Gmass, cb%aobl)
                 pl%ah(:, i) = pl%ah(:, i) + g_sph(:) - cb%aobl(:)
                 pl%aobl(:, i) = g_sph(:)
+
+                i = i + 1
             end do
         end associate
         return 
@@ -124,7 +128,7 @@ contains
         class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
         ! Internals
-        integer(I4B)    :: i
+        integer(I4B)    :: i = 1
         real(DP)        :: r_mag, theta, phi       !! magnitude of the position vector, zenith angle, and azimuthal angle
         real(DP), dimension(NDIM)  :: rh           !! Position vector of the test particle
         real(DP), dimension(NDIM)  :: g_sph        !! Gravitational terms from Spherical Harmonics
@@ -138,14 +142,17 @@ contains
                 aoblcb = cb%aoblend
              end if
 
-            do concurrent (i = 1:ntp, tp%lmask(i))
+            ! do i = 1, ntp, tp%lmask(i)
+            do while ((i .lt. ntp) .and. tp%lmask(i))
                 r_mag = .mag. rh(1:3,i)
                 theta = atan2(sqrt(rh(1,i)**2 + rh(2,i)**2), rh(3,i))
-                phi = atan2(rh(2,i), rh(1,i)) - cb%rotphase ! CALCULATE CB PHASE VALUE FOR PHI
+                phi = atan2(rh(2,i), rh(1,i)) - cb%rotphase
 
                 call swiftest_sph_g_acc_one(cb%Gmass, r_mag, phi, theta, rh(:,i), cb%c_lm, g_sph)
                 tp%ah(:, i) = tp%ah(:, i) + g_sph(:) - aoblcb(:)
                 tp%aobl(:, i) = g_sph(:)
+                
+                i = i + 1
             end do
         end associate
         return

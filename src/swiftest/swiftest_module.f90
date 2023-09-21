@@ -1857,7 +1857,7 @@ module swiftest
 #endif
 
    interface
-      pure module subroutine swiftest_sph_g_acc_one(GMcb, r_0, phi, theta, rh, c_lm, g_sph, GMpl, aoblcb)
+      module subroutine swiftest_sph_g_acc_one(GMcb, r_0, phi, theta, rh, c_lm, g_sph, GMpl, aoblcb)
          implicit none
          real(DP), intent(in)        :: GMcb                        !! GMass of the central body
          real(DP), intent(in)        :: r_0                         !! radius of the central body
