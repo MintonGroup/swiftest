@@ -98,7 +98,7 @@ netCDF-Fortran_DIR="${PREFIX}/lib/cmake/netCDF"
 [tool.cibuildwheel.macos]
 before-all = [
     "brew install coreutils",
-    "LIBS=\"\" sudo buildscripts/build_dependencies.sh -p ${PREFIX} -d ${HOME}/Downloads -m ${MACOSX_DEPLOYMENT_TARGET}"
+    "LIBS=\"\" buildscripts/build_dependencies.sh -p ${PREFIX} -d ${HOME}/Downloads -m ${MACOSX_DEPLOYMENT_TARGET}"
 ]
 
 [tool.cibuildwheel.linux]

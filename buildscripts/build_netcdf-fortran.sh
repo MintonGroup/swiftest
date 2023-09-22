@@ -54,7 +54,7 @@ cd ${DEPENDENCY_DIR}/netcdf-fortran-*
 
 NCLIBDIR=$(${PREFIX}/bin/nc-config --libdir)
 if [ $OS = "MacOSX" ]; then
-    netCDF_LIBRARIES="${NCLIBDIR}/ibnetcdf.dylib"
+    netCDF_LIBRARIES="${NCLIBDIR}/libnetcdf.dylib"
 else
     netCDF_LIBRARIES="${NCLIBDIR}/libnetcdf.so"
 fi
