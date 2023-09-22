@@ -74,6 +74,7 @@ IF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
 ENDIF ()
 MESSAGE(STATUS "Looking for netCDF-FortranConfig.cmake in ${netCDF-Fortran_DIR}")
 FIND_PACKAGE(netCDF-Fortran REQUIRED)
+FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
 
 # Ensure scikit-build modules
 FIND_PACKAGE(Python COMPONENTS Interpreter Development.Module REQUIRED)
