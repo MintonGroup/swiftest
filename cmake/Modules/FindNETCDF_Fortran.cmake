@@ -138,7 +138,7 @@ ELSE ()
       ENDIF()
    ENDIF()
 
-   FIND_LIBRARY(netCDF::netcdff
+   FIND_LIBRARY(NFLIB
       NAMES ${NETCDFF} 
       PATHS
          ${NFPREFIX_DIR}
