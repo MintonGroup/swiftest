@@ -111,7 +111,7 @@ NETCDF_FORTRAN_HOME="/usr/local"
 NETCDF_INCLUDE="/usr/local/include"
 LD_LIBRARY_PATH="/usr/local/lib:/project/lib"
 CPATH="/usr/local/include:/project/include"
-netCDF-Fortran_DIR="${PREFIX}/lib64/cmake/netCDF"
+netCDF-Fortran_DIR="/usr/local/lib64/cmake/netCDF"
 
 [[tool.scikit-build.generate]]
 path = "version.txt"
