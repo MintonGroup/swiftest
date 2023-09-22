@@ -53,12 +53,25 @@ printf "HDF5_ROOT: ${HDF5_ROOT}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/netcdf-c-*
-cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${PREFIX}
-cmake --build build -j${NPROC}
+NCDIR="${PREFIX}"
+ZLIB_ROOT=${PREFIX}
+cmake -B build -S . -G Ninja \
+    -DCMAKE_BUILD_TYPE:STRING="Release" \
+    -DHDF5_DIR:PATH=${HDF5_ROOT}/cmake \
+    -DCMAKE_INSTALL_PREFIX:STRING="${NCDIR}" \
+    -DENABLE_DAP:BOOL=OFF \
+    -DENABLE_BYTERANGE:BOOL=OFF \
+    -DENABLE_NCZARR:BOOL=OFF \
+    -DENABLE_NCZARR_FILTERS:BOOL=OFF \
+    -DENABLE_NCZARR_FILTER_TESTING:BOOL=OFF \
+    -DENABLE_NCZARR_FILTERS_TESTING:BOOL=OFF \
+    -DENABLE_LIBXML2:BOOL=OFF \
+
+cmake --build build -j${NPROC} 
 if [ -w ${PREFIX} ]; then
-    cmake --install build
+    cmake --install build 
 else
-    sudo cmake --install build
+    sudo cmake --install build 
 fi
 
 if [ $? -ne 0 ]; then

@@ -10,6 +10,12 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
+
+HDF5_VER="1_14_2"
+PLUGIN_VER="1.14.0"
+ZLIB_VER="1.3"
+AEC_VER="1.0.6"
+
 SCRIPT_DIR=$(realpath $(dirname $0))
 set -a
 ARGS=$@
@@ -27,7 +33,6 @@ printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
 printf "Installing to ${PREFIX}\n"
 printf "\n"
 
-HDF5_VER="1_14_2"
 printf "*********************************************************\n"
 printf "*             FETCHING HDF5 SOURCE                      *\n"
 printf "*********************************************************\n"
@@ -63,8 +68,39 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/hdfsrc
+ZLIB_TGZ_NAME="zlib-${ZLIB_VER}.tar.gz"
+ZLIB_TGZ_ORIGPATH="https://github.com/madler/zlib/releases/download/v${ZLIB_VER}/"
+LIBAEC_TGZ_NAME="libaec-${AEC_VER}.tar.gz"
+LIBAEC_TGZ_ORIGPATH="https://github.com/MathisRosenhauer/libaec/releases/download/v${AEC_VER}/"
+
+HDF5_ROOT="${PREFIX}/HDF_Group/HDF5/1.14.2"
 ZLIB_ROOT=${PREFIX}
-cmake -B build -S . -G Ninja  -DCMAKE_INSTALL_PREFIX=${PREFIX}
+SZIP_ROOT=${PREFIX}
+if [ $OS = "MacOSX" ]; then
+    ZLIB_LIBRARY="${ZLIB_ROOT}/lib/libz.dylib"
+    SZIP_LIBRARY="${SZIP_ROOT}/lib/libsz.dylib"
+else
+    ZLIB_LIBRARY="${ZLIB_ROOT}/lib/libz.so"
+    SZIP_LIBRARY="${SZIP_ROOT}/lib/libsz.so"
+fi
+
+cmake -B build -C ./config/cmake/cacheinit.cmake -G Ninja \
+    -DCMAKE_INSTALL_PREFIX:PATH=${HDF5_ROOT} \
+    -DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING="TGZ" \
+    -DBUILD_ZLIB_WITH_FETCHCONTENT:BOOL=ON \
+    -DZLIB_USE_LOCALCONTENT:BOOL=OFF \
+    -DZLIB_TGZ_ORIGNAME:STRING="${ZLIB_TGZ_NAME}" \
+    -DZLIB_TGZ_ORIGPATH:STRING="${ZLIB_TGZ_ORIGPATH}" \
+    -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=ON \
+    -DBUILD_SZIP_WITH_FETCHCONTENT:BOOL=ON \
+    -DLIBAEC_USE_LOCALCONTENT:BOOL=OFF \
+    -DLIBAEC_TGZ_ORIGNAME:STRING="${LIBAEC_TGZ_NAME}" \
+    -DLIBAEC_TGZ_ORIGPATH:STRING="${LIBAEC_TGZ_ORIGPATH}" \
+    -DHDF5_ENABLE_PLUGIN_SUPPORT:BOOL=OFF \
+    -DHDF5_BUILD_CPP_LIB:BOOL=OFF \
+    -DHDF5_BUILD_FORTRAN:BOOL=OFF \
+    -DHDF5_BUILD_JAVA:BOOL=OFF  .
+
 cmake --build build -j${NPROC}
 if [ -w ${PREFIX} ]; then
     cmake --install build 

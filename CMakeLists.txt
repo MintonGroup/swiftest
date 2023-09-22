@@ -66,14 +66,7 @@ IF(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
   MESSAGE(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.\n")
 ENDIF()
 
-IF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-   FILE(GLOB LIBDIRS "C:/Program Files*/NC4F")
-   LIST(SORT LIBDIRS)
-   LIST(GET LIBDIRS -1 LIBPREFIX)
-   SET(netCDF-Fortran_DIR "${LIBPREFIX}/lib/cmake/netCDF" CACHE PATH "Location of provided netCDF-FortranConfig.cmake file")
-ENDIF ()
-MESSAGE(STATUS "Looking for netCDF-FortranConfig.cmake in ${netCDF-Fortran_DIR}")
-FIND_PACKAGE(netCDF-Fortran REQUIRED)
+FIND_PACKAGE(NETCDF_Fortran REQUIRED)
 FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
 
 # Ensure scikit-build modules
