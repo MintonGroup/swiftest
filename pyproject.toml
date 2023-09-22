@@ -65,7 +65,7 @@ build-verbosity = 1
 [tool.cibuildwheel.macos.environment]
 ROOT_DIR="$(pwd)"
 MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion)"
-PREFIX="${ROOT_DIR}"
+PREFIX="/usr/local"
 HOMEBREW_PREFIX="$(brew --prefix)"
 ARCH="$(uname -m)"
 LD_LIBRARY_PATH="/usr/local/lib:${PREFIX}/lib:${HOMEBREW_PREFIX}/lib"
@@ -98,7 +98,7 @@ netCDF-Fortran_DIR="${PREFIX}/lib/cmake/netCDF"
 [tool.cibuildwheel.macos]
 before-all = [
     "brew install coreutils",
-    "LIBS=\"\" buildscripts/build_dependencies.sh -p ${TMPDIR}/build -d ${HOME}/Downloads -m ${MACOSX_DEPLOYMENT_TARGET}"
+    "LIBS=\"\" sudo buildscripts/build_dependencies.sh -p ${PREFIX} -d ${HOME}/Downloads -m ${MACOSX_DEPLOYMENT_TARGET}"
 ]
 
 [tool.cibuildwheel.linux]
@@ -109,7 +109,7 @@ before-all = [
 [tool.cibuildwheel.linux.environment]
 NETCDF_FORTRAN_HOME="/usr/local"
 NETCDF_INCLUDE="/usr/local/include"
-LD_LIBRARY_PATH="/usr/local/lib:/project/lib"
+LD_LIBRARY_PATH="/usr/local/lib:/usr/local/lib64:/project/lib"
 CPATH="/usr/local/include:/project/include"
 netCDF-Fortran_DIR="/usr/local/lib64/cmake/netCDF"
 
