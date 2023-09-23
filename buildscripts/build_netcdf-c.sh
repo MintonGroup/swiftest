@@ -66,6 +66,7 @@ cmake -B build -S . -G Ninja \
     -DENABLE_NCZARR_FILTER_TESTING:BOOL=OFF \
     -DENABLE_NCZARR_FILTERS_TESTING:BOOL=OFF \
     -DENABLE_LIBXML2:BOOL=OFF \
+    -DCMAKE_INSTALL_LIBDIR="lib"
 
 cmake --build build -j${NPROC} 
 if [ -w ${PREFIX} ]; then

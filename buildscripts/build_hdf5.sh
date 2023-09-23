@@ -73,7 +73,7 @@ ZLIB_TGZ_ORIGPATH="https://github.com/madler/zlib/releases/download/v${ZLIB_VER}
 LIBAEC_TGZ_NAME="libaec-${AEC_VER}.tar.gz"
 LIBAEC_TGZ_ORIGPATH="https://github.com/MathisRosenhauer/libaec/releases/download/v${AEC_VER}/"
 
-HDF5_ROOT="${PREFIX}/HDF_Group/HDF5/1.14.2"
+HDF5_ROOT=${PREFIX}
 ZLIB_ROOT=${PREFIX}
 SZIP_ROOT=${PREFIX}
 if [ $OS = "MacOSX" ]; then

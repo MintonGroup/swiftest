@@ -51,7 +51,10 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/zlib-*
-cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${PREFIX}
+cmake -B build -S . -G Ninja \
+    -DCMAKE_INSTALL_PREFIX=${PREFIX} \
+    -DCMAKE_INSTALL_LIBDIR="lib"
+    
 cmake --build build -j${NPROC}
 if [ -w ${PREFIX} ]; then
     cmake --install build 

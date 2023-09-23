@@ -61,7 +61,8 @@ fi
 cmake -B build -S . -G Ninja \
     -DnetCDF_INCLUDE_DIR:PATH="${NCDIR}/include" \
     -DnetCDF_LIBRARIES:FILEPATH="${netCDF_LIBRARIES}"  \
-    -DCMAKE_INSTALL_PREFIX:PATH=${NFDIR}
+    -DCMAKE_INSTALL_PREFIX:PATH=${NFDIR} \
+    -DCMAKE_INSTALL_LIBDIR="lib"
 cmake --build build -j${NPROC} 
 if [ -w ${PREFIX} ]; then
     cmake --install build 

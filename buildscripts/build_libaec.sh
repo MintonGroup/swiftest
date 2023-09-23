@@ -55,7 +55,7 @@ printf "*********************************************************\n"
 cd ${DEPENDENCY_DIR}/libaec-*
 mkdir build
 cd build
-cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${PREFIX}
+cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${PREFIX} -DCMAKE_INSTALL_LIBDIR="lib"
 cmake --build build -j${NPROC}
 if [ -w ${PREFIX} ]; then
     make install
