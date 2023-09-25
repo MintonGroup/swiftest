@@ -852,11 +852,11 @@ contains
          call netcdf_io_check( nf90_def_var(nc%id, nc%name_dimname, NF90_CHAR, [nc%str_dimid, nc%name_dimid], nc%name_varid), &
                                "netcdf_io_initialize_output nf90_def_var name_varid"  )
 
-         call netcdf_io_check( nf90_def_var(nc%id, nc%sign_dimname, NF90_INT, nc%sign_dimid, nc%sign_varid), &
+         call netcdf_io_check( nf90_def_var(nc%id, nc%sign_dimname, nc%out_type, nc%sign_dimid, nc%sign_varid), &
                                "swiftest_io_netcdf_open nf90_def_var sign_varid")
-         call netcdf_io_check( nf90_def_var(nc%id, nc%l_dimname, NF90_INT, nc%l_dimid nc%l_varid), &
+         call netcdf_io_check( nf90_def_var(nc%id, nc%l_dimname, nc%out_type, nc%l_dimid, nc%l_varid), &
                                "swiftest_io_netcdf_open nf90_def_var l_varid")
-         call netcdf_io_check( nf90_def_var(nc%id, nc%m_dimname, NF90_INT, nc%m_dimid, nc%m_varid), &
+         call netcdf_io_check( nf90_def_var(nc%id, nc%m_dimname, nc%out_type, nc%m_dimid, nc%m_varid), &
                                "swiftest_io_netcdf_open nf90_def_var m_varid")
 
          ! Variables
