@@ -20,6 +20,8 @@ if [ $OS = "MacOSX" ]; then
     ${SCRIPT_DIR}/get_lomp.sh ${ARGS}
 fi
 
+NPROC=$(nproc)
+
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
 printf "*********************************************************\n"
@@ -55,10 +57,11 @@ printf "*********************************************************\n"
 cd ${DEPENDENCY_DIR}/netcdf-c-*
 NCDIR="${PREFIX}"
 ZLIB_ROOT=${PREFIX}
-cmake -B build -S . -G Ninja \
+cmake -B build -S . -G Ninja --debug-find \
     -DCMAKE_BUILD_TYPE:STRING="Release" \
     -DHDF5_DIR:PATH=${HDF5_ROOT}/cmake \
     -DHDF5_ROOT:PATH=${HDF5_ROOT} \
+    -DCMAKE_FIND_ROOT_PATH:PATH="${PREFIX}" \
     -DCMAKE_INSTALL_PREFIX:STRING="${NCDIR}" \
     -DENABLE_DAP:BOOL=OFF \
     -DENABLE_BYTERANGE:BOOL=OFF \
@@ -67,7 +70,8 @@ cmake -B build -S . -G Ninja \
     -DENABLE_NCZARR_FILTER_TESTING:BOOL=OFF \
     -DENABLE_NCZARR_FILTERS_TESTING:BOOL=OFF \
     -DENABLE_LIBXML2:BOOL=OFF \
-    -DCMAKE_INSTALL_LIBDIR="lib"
+    -DCMAKE_INSTALL_LIBDIR="lib" \
+    -DENABLE_REMOTE_FORTRAN_BOOTSTRAP:BOOL=ON
 
 cmake --build build -j${NPROC} 
 if [ -w ${PREFIX} ]; then

@@ -20,6 +20,8 @@ if [ $OS = "MacOSX" ]; then
     ${SCRIPT_DIR}/get_lomp.sh ${ARGS}
 fi
 
+NPROC=$(nproc)
+
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
 printf "*********************************************************\n"
@@ -51,9 +53,7 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/zlib-*
-cmake -B build -S . -G Ninja \
-    -DCMAKE_INSTALL_PREFIX=${PREFIX} \
-    -DCMAKE_INSTALL_LIBDIR="lib"
+cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${PREFIX} 
     
 cmake --build build -j${NPROC}
 if [ -w ${PREFIX} ]; then

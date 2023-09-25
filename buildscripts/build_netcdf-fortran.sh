@@ -20,6 +20,8 @@ if [ $OS = "MacOSX" ]; then
     ${SCRIPT_DIR}/get_lomp.sh ${ARGS}
 fi
 
+NPROC=$(nproc)
+
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
 printf "*********************************************************\n"

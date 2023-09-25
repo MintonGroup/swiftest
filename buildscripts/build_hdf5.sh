@@ -26,6 +26,8 @@ if [ $OS = "MacOSX" ]; then
     ${SCRIPT_DIR}/get_lomp.sh ${ARGS}
 fi
 
+NPROC=$(nproc)
+
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
 printf "*********************************************************\n"
@@ -54,7 +56,6 @@ if [ ! -d ${DEPENDENCY_DIR}/hdfsrc ]; then
     curl -s -L https://github.com/HDFGroup/hdf5/releases/download/hdf5-${HDF5_VER}/hdf5-${HDF5_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
 fi
 
-
 printf "\n"
 printf "*********************************************************\n"
 printf "*               BUILDING HDF5 LIBRARY                   *\n"
@@ -72,6 +73,7 @@ ZLIB_TGZ_NAME="zlib-${ZLIB_VER}.tar.gz"
 ZLIB_TGZ_ORIGPATH="https://github.com/madler/zlib/releases/download/v${ZLIB_VER}/"
 LIBAEC_TGZ_NAME="libaec-${AEC_VER}.tar.gz"
 LIBAEC_TGZ_ORIGPATH="https://github.com/MathisRosenhauer/libaec/releases/download/v${AEC_VER}/"
+curl -L "https://github.com/HDFGroup/hdf5_plugins/archive/refs/tags/${PLUGIN_VER}.tar.gz" -o hdf5_plugins.tar.gz
 
 HDF5_ROOT=${PREFIX}
 ZLIB_ROOT=${PREFIX}
@@ -85,20 +87,19 @@ else
 fi
 
 ARGLIST="-DCMAKE_INSTALL_PREFIX:PATH=${HDF5_ROOT} \
+    -DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING="NO" \
     -DCMAKE_BUILD_TYPE:STRING="Release" \
-    -DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ \
-    -DBUILD_ZLIB_WITH_FETCHCONTENT:BOOL=ON \
-    -DZLIB_USE_LOCALCONTENT:BOOL=OFF \
-    -DZLIB_TGZ_ORIGNAME:STRING=${ZLIB_TGZ_NAME} \
-    -DZLIB_TGZ_ORIGPATH:STRING=${ZLIB_TGZ_ORIGPATH} \
-    -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=ON \
-    -DBUILD_SZIP_WITH_FETCHCONTENT:BOOL=ON \
-    -DLIBAEC_USE_LOCALCONTENT:BOOL=OFF \
-    -DLIBAEC_TGZ_ORIGNAME:STRING=${LIBAEC_TGZ_NAME} \
-    -DLIBAEC_TGZ_ORIGPATH:STRING=${LIBAEC_TGZ_ORIGPATH} \
+    -DZLIB_LIBRARY:FILEPATH=${ZLIB_LIBRARY} \
+    -DZLIB_INCLUDE_DIR:PATH=${ZLIB_ROOT}/include \
+    -DZLIB_USE_EXTERNAL:BOOL=OFF \
+    -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=ON  \
+    -DSZIP_LIBRARY:FILEPATH=${SZIP_LIBRARY} \
+    -DSZIP_INCLUDE_DIR:PATH=${SZIP_ROOT}/include \
     -DHDF5_ENABLE_PLUGIN_SUPPORT:BOOL=OFF \
     -DHDF5_BUILD_CPP_LIB:BOOL=OFF \
     -DHDF5_BUILD_FORTRAN:BOOL=OFF \
+    -DHDF5_BUILD_EXAMPLES:BOOL=ON \
+    -DBUILD_TESTING:BOOL=ON \
     -DHDF5_BUILD_JAVA:BOOL=OFF"
 
 
@@ -108,12 +109,24 @@ fi
 
 cmake -B build -C ./config/cmake/cacheinit.cmake -G Ninja ${ARGLIST} .
 
-cmake --build build -j${NPROC}
+cmake --build build -j${NPROC} --config Release
 if [ -w ${PREFIX} ]; then
     cmake --install build 
 else
     sudo cmake --install build 
 fi
+
+# tar xvzf hdf5_plugins.tar.gz
+# PLUGIN_SOURCE=hdf5_plugins-${PLUGIN_VER}
+
+# BUILD_OPTIONS="-DTGZPATH:PATH=${PLUGIN_SOURCE}/libs -DH5PL_ALLOW_EXTERNAL_SUPPORT:STRING=\"TGZ\""
+# cmake -B ${PLUGIN_SOURCE}/build -C ${PLUGIN_SOURCE}/config/cmake/cacheinit.cmake -DCMAKE_BUILD_TYPE:STRING=Release ${BUILD_OPTIONS} -G Ninja ${PLUGIN_SOURCE}
+# cmake --build ${PLUGIN_SOURCE}/build -j${NPROC} --config Release
+# if [ -w ${PREFIX} ]; then
+#     cmake --install ${PLUGIN_SOURCE}/build 
+# else
+#     sudo cmake --install ${PLUGIN_SOURCE}/build 
+# fi
 
 if [ $? -ne 0 ]; then
    printf "hdf5 could not be compiled.\n"
