@@ -764,6 +764,15 @@ contains
             call netcdf_io_check( nf90_get_var(nc%id, nc%E_untracked_varid,  self%E_untracked,  start=[tslot]), &
                                    "netcdf_io_get_t0_values_system E_untracked_varid" )
 
+            ! ! SH gravity variable dimensions
+
+            ! call netcdf_io_check( nf90_get_var(nc%id, nc%sign_dimname, nc%sign_dimid), &
+            !                        "swiftest_io_netcdf_open nf90_inq_dimid sign_dimid")
+            ! call netcdf_io_check( nf90_inq_dimid(nc%id, nc%l_dimname, nc%l_dimid), &
+            !                        "swiftest_io_netcdf_open nf90_inq_dimid l_dimid")
+            ! call netcdf_io_check( nf90_inq_dimid(nc%id, nc%m_dimname, nc%m_dimid), &
+            !                        "swiftest_io_netcdf_open nf90_inq_dimid m_dimid")      
+
          end if
 
          deallocate(vals)
@@ -827,6 +836,13 @@ contains
                                "netcdf_io_initialize_output nf90_def_dim name_dimid" ) ! dimension to store particle id numbers
          call netcdf_io_check( nf90_def_dim(nc%id, nc%str_dimname, NAMELEN, nc%str_dimid), &
                                "netcdf_io_initialize_output nf90_def_dim str_dimid"  )  ! Dimension for string variables 
+         
+         call netcdf_io_check( nf90_def_dim(nc%id, nc%sign_dimname, NF90_UNLIMITED, nc%sign_dimid), &
+                               "swiftest_io_netcdf_open nf90_def_dim sign_dimid")
+         call netcdf_io_check( nf90_def_dim(nc%id, nc%l_dimname, NF90_UNLIMITED, nc%l_dimid), &
+                               "swiftest_io_netcdf_open nf90_def_dim l_dimid")
+         call netcdf_io_check( nf90_def_dim(nc%id, nc%m_dimname, NF90_UNLIMITED, nc%m_dimid), &
+                               "swiftest_io_netcdf_open nf90_def_dim m_dimid")
 
          ! Dimension coordinates
          call netcdf_io_check( nf90_def_var(nc%id, nc%time_dimname, nc%out_type, nc%time_dimid, nc%time_varid), &
@@ -835,6 +851,13 @@ contains
                                "netcdf_io_initialize_output nf90_def_var space_varid"  )
          call netcdf_io_check( nf90_def_var(nc%id, nc%name_dimname, NF90_CHAR, [nc%str_dimid, nc%name_dimid], nc%name_varid), &
                                "netcdf_io_initialize_output nf90_def_var name_varid"  )
+
+         call netcdf_io_check( nf90_def_var(nc%id, nc%sign_dimname, NF90_INT, nc%sign_dimid, nc%sign_varid), &
+                               "swiftest_io_netcdf_open nf90_def_var sign_varid")
+         call netcdf_io_check( nf90_def_var(nc%id, nc%l_dimname, NF90_INT, nc%l_dimid nc%l_varid), &
+                               "swiftest_io_netcdf_open nf90_def_var l_varid")
+         call netcdf_io_check( nf90_def_var(nc%id, nc%m_dimname, NF90_INT, nc%m_dimid, nc%m_varid), &
+                               "swiftest_io_netcdf_open nf90_def_var m_varid")
 
          ! Variables
          call netcdf_io_check( nf90_def_var(nc%id, nc%id_varname, NF90_INT, nc%name_dimid, nc%id_varid), &
@@ -985,7 +1008,7 @@ contains
 
          status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
          if (status == NF90_NOERR) then
-            call netcdf_io_check( nf90_def_var(nc%id, nc%c_lm_varname, nc%out_type, [2, nc%l_dimid, nc%m_dimid], nc%c_lm_varid), & 
+            call netcdf_io_check( nf90_def_var(nc%id, nc%c_lm_varname, nc%out_type, [nc%sign_dimid, nc%l_dimid, nc%m_dimid], nc%c_lm_varid), & 
                                     "netcdf_io_initialize_output nf90_def_var c_lm_varid" )
          end if
 
@@ -1081,6 +1104,8 @@ contains
 
          status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
          if (status == NF90_NOERR) then
+            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%sign_dimname, nc%sign_dimid), &
+                                    "swiftest_io_netcdf_open nf90_inq_dimid sign_dimid")
             call netcdf_io_check( nf90_inq_dimid(nc%id, nc%l_dimname, nc%l_dimid), &
                                     "swiftest_io_netcdf_open nf90_inq_dimid l_dimid")
             call netcdf_io_check( nf90_inq_dimid(nc%id, nc%m_dimname, nc%m_dimid), &
@@ -1096,10 +1121,12 @@ contains
                                   "swiftest_io_netcdf_open nf90_inq_varid name_varid" )
          status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
          if (status == NF90_NOERR) then
-            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%l_dimname, nc%l_varid), &
-                                    "swiftest_io_netcdf_open nf90_inq_dimid l_varid")
-            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%m_dimname, nc%m_varid), &
-                                    "swiftest_io_netcdf_open nf90_inq_dimid m_varid")
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%sign_dimname, nc%sign_varid), &
+                                    "swiftest_io_netcdf_open nf90_inq_varid sign_varid")
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%l_dimname, nc%l_varid), &
+                                    "swiftest_io_netcdf_open nf90_inq_varid l_varid")
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%m_dimname, nc%m_varid), &
+                                    "swiftest_io_netcdf_open nf90_inq_varid m_varid")
          end if
 
          ! Required Variables

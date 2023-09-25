@@ -43,6 +43,9 @@ module netcdf_io
       integer(I4B)       :: space_dimid                                 !! ID for the space dimension
       integer(I4B)       :: space_varid                                 !! ID for the space variable
       character(len=1), dimension(3) :: space_coords = ["x","y","z"]    !! The space dimension coordinate labels
+      character(NAMELIN) :: sign_dimname            = "sign"            !! name of the sign dimension for c_lm
+      integer(I4B)       :: sign_dimid                                  !! ID for sign dimension
+      integer(I4B)       :: sign_varid                                  !! ID for sign variable
       character(NAMELEN) :: l_dimname               = "l"               !! name of l dimension for c_lm
       integer(I4B)       :: l_dimid                                     !! ID for the l dimension for c_lm
       integer(I4B)       :: l_varid                                     !! ID for the l variable
