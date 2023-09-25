@@ -1006,11 +1006,11 @@ contains
          call netcdf_io_check( nf90_def_var(nc%id, nc%j4rp4_varname, nc%out_type, nc%time_dimid, nc%j4rp4_varid), &
                                   "netcdf_io_initialize_output nf90_def_var j4rp4_varid"  )
 
-         status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
-         if (status == NF90_NOERR) then
-            call netcdf_io_check( nf90_def_var(nc%id, nc%c_lm_varname, nc%out_type, [nc%sign_dimid, nc%l_dimid, nc%m_dimid], nc%c_lm_varid), & 
+         ! status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
+         ! if (status == NF90_NOERR) then
+         call netcdf_io_check( nf90_def_var(nc%id, nc%c_lm_varname, nc%out_type, [nc%sign_dimid, nc%l_dimid, nc%m_dimid], nc%c_lm_varid), & 
                                     "netcdf_io_initialize_output nf90_def_var c_lm_varid" )
-         end if
+         ! end if
 
          ! Set fill mode to NaN for all variables
          call netcdf_io_check( nf90_inquire(nc%id, nVariables=nvar), "netcdf_io_initialize_output nf90_inquire nVariables" )
