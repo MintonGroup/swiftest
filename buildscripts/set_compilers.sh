@@ -13,6 +13,8 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
+SCRIPT_DIR=$(realpath $(dirname $0))
+ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 case "$OS" in
     Linux|MacOSX|Intel)
         ;;
@@ -25,15 +27,16 @@ case "$OS" in
 esac
 
 set -a
-# Only replace compiler definitions if they are not already set
 case $OS in
     Linux)
+        . ${SCRIPT_DIR}/set_environment_linux.sh
         FC=$(command -v gfortran)
         CC=$(command -v gcc)
         CXX=$(command -v g++)
         CPP=$(command -v cpp)
         ;;
     MacOSX)
+        . ${SCRIPT_DIR}/set_environment_macos.sh
         FC=${HOMEBREW_PREFIX}/bin/gfortran-12
         CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype -arch ${ARCH}"
         FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -arch ${ARCH}"
