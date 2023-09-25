@@ -11,4 +11,4 @@
 
 from .constants import *
 from .simulation_class import Simulation
-from .sph_harmonics_gravity import Sph_Harmonics
+from .sph_harmonics import Sph_Harmonics
