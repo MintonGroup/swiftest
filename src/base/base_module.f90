@@ -99,7 +99,8 @@ module base
                                           !!    is input)
       logical :: lrotation      = .false. !! Include rotation states of big bodies
       logical :: ltides         = .false. !! Include tidal dissipation 
-      logical :: lshgrav        = .false. !! Calculate acceleration from spherical harmonics terms for the central body (automatically turns true if clm array is input)
+      logical :: lshgrav        = .false. !! Calculate acceleration from spherical harmonics terms for the central body 
+                                          !! (automatically turns true if clm array is inputted)
 
       ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be 
       ! updated with initial conditions values)
