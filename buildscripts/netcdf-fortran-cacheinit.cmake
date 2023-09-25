@@ -1,0 +1,5 @@
+SET(netCDF_INCLUDE_DIR "C:/Program Files/netCDF 4.9.2/include" CACHE PATH "Path to NetCDF-C include directory" FORCE)
+SET(netCDF_LIBRARIES "C:/Program Files/netCDF 4.9.2/lib/netcdf.lib" CACHE FILEPATH "Location of NetCDF-C library file" FORCE)
+SET(BUILD_SHARED_LIBS OFF CACHE BOOL "Use shared libraries" FORCE)
+SET(CMAKE_INSTALL_PREFIX "C:/Program Files/NC4F" CACHE PATH "Installation location" FORCE)
+SET(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Compile build type" FORCE)
