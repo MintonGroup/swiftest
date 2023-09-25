@@ -57,7 +57,7 @@ printf "*********************************************************\n"
 cd ${DEPENDENCY_DIR}/netcdf-c-*
 NCDIR="${PREFIX}"
 ZLIB_ROOT=${PREFIX}
-cmake -B build -S . -G Ninja --debug-find \
+cmake -B build -S . -G Ninja  \
     -DCMAKE_BUILD_TYPE:STRING="Release" \
     -DHDF5_DIR:PATH=${HDF5_ROOT}/cmake \
     -DHDF5_ROOT:PATH=${HDF5_ROOT} \
@@ -67,8 +67,6 @@ cmake -B build -S . -G Ninja --debug-find \
     -DENABLE_BYTERANGE:BOOL=OFF \
     -DENABLE_NCZARR:BOOL=OFF \
     -DENABLE_NCZARR_FILTERS:BOOL=OFF \
-    -DENABLE_NCZARR_FILTER_TESTING:BOOL=OFF \
-    -DENABLE_NCZARR_FILTERS_TESTING:BOOL=OFF \
     -DENABLE_LIBXML2:BOOL=OFF \
     -DCMAKE_INSTALL_LIBDIR="lib" \
     -DENABLE_REMOTE_FORTRAN_BOOTSTRAP:BOOL=ON
