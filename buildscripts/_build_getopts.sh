@@ -49,8 +49,8 @@ while getopts ":d:p:m:h" ARG; do
     esac
 done
 
-BUILD_DIR=${BUILD_DIR:-$(mktemp -ut swiftest_build.XXXXXXXX)}
-PREFIX=${PREFIX:-${ROOT_DIR}}
+BUILD_DIR=${BUILD_DIR:-"${HOME}/Downloads"}
+PREFIX=${PREFIX:-"/usr/local"}
 DEPENDENCY_DIR=${DEPENDENCY_DIR:-${BUILD_DIR}}
 
 mkdir -p ${DEPENDENCY_DIR}
