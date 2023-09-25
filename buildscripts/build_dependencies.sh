@@ -41,7 +41,6 @@ if ! command -v ninja &> /dev/null; then
     fi
 fi
 
-${SCRIPT_DIR}/build_libaec.sh ${ARGS}
 ${SCRIPT_DIR}/build_zlib.sh ${ARGS}
 ${SCRIPT_DIR}/build_hdf5.sh ${ARGS}
 ${SCRIPT_DIR}/build_netcdf-c.sh ${ARGS}

@@ -14,7 +14,6 @@
 HDF5_VER="1_14_2"
 PLUGIN_VER="1.14.0"
 ZLIB_VER="1.3"
-AEC_VER="1.0.6"
 
 SCRIPT_DIR=$(realpath $(dirname $0))
 set -a
@@ -71,8 +70,6 @@ printf "*********************************************************\n"
 cd ${DEPENDENCY_DIR}/hdfsrc
 ZLIB_TGZ_NAME="zlib-${ZLIB_VER}.tar.gz"
 ZLIB_TGZ_ORIGPATH="https://github.com/madler/zlib/releases/download/v${ZLIB_VER}/"
-LIBAEC_TGZ_NAME="libaec-${AEC_VER}.tar.gz"
-LIBAEC_TGZ_ORIGPATH="https://github.com/MathisRosenhauer/libaec/releases/download/v${AEC_VER}/"
 curl -L "https://github.com/HDFGroup/hdf5_plugins/archive/refs/tags/${PLUGIN_VER}.tar.gz" -o hdf5_plugins.tar.gz
 
 HDF5_ROOT=${PREFIX}
@@ -80,10 +77,8 @@ ZLIB_ROOT=${PREFIX}
 SZIP_ROOT=${PREFIX}
 if [ $OS = "MacOSX" ]; then
     ZLIB_LIBRARY="${ZLIB_ROOT}/lib/libz.dylib"
-    SZIP_LIBRARY="${SZIP_ROOT}/lib/libsz.dylib"
 else
     ZLIB_LIBRARY="${ZLIB_ROOT}/lib/libz.so"
-    SZIP_LIBRARY="${SZIP_ROOT}/lib/libsz.so"
 fi
 
 ARGLIST="-DCMAKE_INSTALL_PREFIX:PATH=${HDF5_ROOT} \
@@ -92,16 +87,13 @@ ARGLIST="-DCMAKE_INSTALL_PREFIX:PATH=${HDF5_ROOT} \
     -DZLIB_LIBRARY:FILEPATH=${ZLIB_LIBRARY} \
     -DZLIB_INCLUDE_DIR:PATH=${ZLIB_ROOT}/include \
     -DZLIB_USE_EXTERNAL:BOOL=OFF \
-    -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=ON  \
-    -DSZIP_LIBRARY:FILEPATH=${SZIP_LIBRARY} \
-    -DSZIP_INCLUDE_DIR:PATH=${SZIP_ROOT}/include \
+    -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=OFF  \
     -DHDF5_ENABLE_PLUGIN_SUPPORT:BOOL=OFF \
     -DHDF5_BUILD_CPP_LIB:BOOL=OFF \
     -DHDF5_BUILD_FORTRAN:BOOL=OFF \
     -DHDF5_BUILD_EXAMPLES:BOOL=ON \
     -DBUILD_TESTING:BOOL=ON \
     -DHDF5_BUILD_JAVA:BOOL=OFF"
-
 
 if [ $OS = "MacOSX" ]; then
     ARGLIST="${ARGLIST} -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=OFF"
