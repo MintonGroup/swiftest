@@ -1551,9 +1551,10 @@ contains
             call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%l_dimid, len = l_dim_max), "netcdf_io_read_frame_system nf90_inquire_dimension l_dimid"  )
             call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%m_dimid, len = m_dim_max), "netcdf_io_read_frame_system nf90_inquire_dimension m_dimid")
             
-            allocate(cb%c_lm(2, l_dim_max, m_dim_max))
-            call netcdf_io_check( nf90_get_var(nc%id, nc%c_lm_varid, cb%c_lm, count = [2, l_dim_max, m_dim_max]), "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
-
+            allocate(cb%c_lm(m_dim_max, l_dim_max, 2)) 
+            call netcdf_io_check( nf90_get_var(nc%id, nc%c_lm_varid, cb%c_lm, count = [m_dim_max, l_dim_max, 2]), "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
+            
+            ! ordering of dimensions above seen to stackoverflow to prevent error 'NetCDF: Start + count exceeds dimension bound'
          end if
 
          call self%read_particle_info(nc, param, plmask, tpmask) 
