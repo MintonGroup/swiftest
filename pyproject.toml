@@ -59,13 +59,13 @@ cmake.verbose = true
 [tool.cibuildwheel]
 test-command = "pytest {package}/tests"
 test-requires = ['pytest']
-skip = "cp312-* pp* *i686 *-manylinux_i686 *_ppc64le *_s390x *-musllinux* *-win32"
+skip = "pp* *i686 *-manylinux_i686 *_ppc64le *_s390x *-musllinux* *-win32"
 build-verbosity = 1
 
 [tool.cibuildwheel.macos.environment]
 ROOT_DIR="$(pwd)"
 MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion)"
-PREFIX="${ROOT_DIR}"
+PREFIX="/usr/local"
 HOMEBREW_PREFIX="$(brew --prefix)"
 ARCH="$(uname -m)"
 LD_LIBRARY_PATH="/usr/local/lib:${PREFIX}/lib:${HOMEBREW_PREFIX}/lib"
@@ -73,7 +73,7 @@ LDFLAGS="-Wl,-rpath,${ROOT_DIR}/lib  -Wl,-no_compact_unwind -L${PREFIX}/lib -L${
 CPATH="/usr/local/include:${PREFIX}/include:${HOMEBREW_PREFIX}/include:${ROOT_DIR}/include"
 CPPFLAGS="-isystem ${PREFIX}/include -isystem /usr/local/include"
 LIBS="-lomp"
-FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -arch ${ARCH}"
+FCFLAGS="-mmacos-version-min=${MACOSX_DEPLOYMENT_TARGET} -arch ${ARCH}"
 FFFLAGS="${FCFLAGS}"
 CFLAGS="${FCFLAGS} -Wno-deprecated-non-prototype -arch ${ARCH}"
 CXXFLAGS="${CFLAGS}"
@@ -81,10 +81,10 @@ HDF5_ROOT="${PREFIX}"
 HDF5_LIBDIR="${HDF5_ROOT}/lib"
 HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
 HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
-NETCDF_FORTRAN_HOME="${PREFIX}"
-NETCDF_INCLUDE="${PREFIX}"
 NCDIR="${PREFIX}"
 NFDIR="${PREFIX}"
+NETCDF_FORTRAN_HOME="${NFDIR}"
+NETCDF_FORTRAN_INCLUDE="${NFDIR}/include"
 FC="$(command -v gfortran-12)"
 F77="${FC}"
 CC="/usr/bin/clang"
@@ -93,6 +93,7 @@ CPP="/usr/bin/cpp"
 AR="/usr/bin/ar"
 NM="/usr/bin/nm"
 RANLIB="/usr/bin/ranlib"
+netCDF-Fortran_DIR="${PREFIX}/lib/cmake/netCDF"
 
 [tool.cibuildwheel.macos]
 before-all = [
@@ -101,15 +102,27 @@ before-all = [
 ]
 
 [tool.cibuildwheel.linux]
+skip = "cp312-*"
 before-all = [
     "yum install doxygen libxml2-devel libcurl-devel ftw3-devel libblas-devel lapack-devel -y",
     "buildscripts/build_dependencies.sh -p /usr/local"
 ]
 [tool.cibuildwheel.linux.environment]
-NETCDF_FORTRAN_HOME="/usr/local"
-NETCDF_INCLUDE="/usr/local/include"
-LD_LIBRARY_PATH="/usr/local/lib:/project/lib"
-CPATH="/usr/local/include:/project/include"
+PREFIX="/usr/local"
+NCDIR="${PREFIX}"
+NFDIR="${PREFIX}"
+NETCDF_FORTRAN_HOME="${NFDIR}"
+NETCDF_FORTRAN_INCLUDE="${NFDIR}/include"
+HDF5_ROOT="${PREFIX}"
+HDF5_LIBDIR="${HDF5_ROOT}/lib"
+HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
+HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
+LD_LIBRARY_PATH="${PREFIX}/lib:/project/lib:${HDF5_LIBDIR}"
+CPATH="${PREFIX}/include:/project/include:${HDF5_INCLUDE_DIR}"
+netCDF-Fortran_DIR="${PREFIX}/lib/cmake/netCDF"
+HDF5_DIR="${HDF5_ROOT}/cmake"
+PATH="${HDF5_ROOT}/bin:${PATH}"
+CMAKE_INSTALL_LIBDIR="lib"
 
 [[tool.scikit-build.generate]]
 path = "version.txt"

@@ -415,10 +415,6 @@ IF (CMAKE_BUILD_TYPE STREQUAL "DEBUG" OR CMAKE_BUILD_TYPE STREQUAL "TESTING" )
         SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
             Fortran "-Wno-unused-dummy-argument" # GNU
         )
-        # Tells the compiler to issue compile-time messages for nonstandard language elements (Fortran 2018).    
-        SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
-            Fortran "-fstd=f2018" # GNU
-        )  
         # Traceback
         SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
             Fortran "-fbacktrace"  # GNU (gfortran)
@@ -507,11 +503,11 @@ IF (CMAKE_BUILD_TYPE STREQUAL "RELEASE" OR CMAKE_BUILD_TYPE STREQUAL "PROFILE")
         IF (WINOPT)
             # Unroll loops
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                Fortran "/unroll"    # Intel Windows
+                Fortran "/Qunroll"    # Intel Windows
             )
             # Inline functions
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                Fortran "/Qinline"       # Intel Windows
+                Fortran "/inline"       # Intel Windows
             )
             # Calls the Matrix Multiply library
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
@@ -523,7 +519,7 @@ IF (CMAKE_BUILD_TYPE STREQUAL "RELEASE" OR CMAKE_BUILD_TYPE STREQUAL "PROFILE")
             )
             # No floating-point exceptions
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                Fortran "/fp:no-except"       # Intel Windows
+                Fortran "/fp:except-"       # Intel Windows
             )
             # Generate fused multiply-add instructions
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"

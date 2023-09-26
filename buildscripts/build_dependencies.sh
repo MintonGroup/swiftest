@@ -16,21 +16,31 @@ SCRIPT_DIR=$(realpath $(dirname $0))
 set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
-
+set -e
 cd $ROOT_DIR
-printf "*********************************************************\n"
-printf "*          STARTING DEPENDENCY BUILD                    *\n"
-printf "*********************************************************\n"
-printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
-printf "Installing to ${PREFIX}\n"
-printf "\n"
 
-# Get the OpenMP Libraries
-if [ $OS = "MacOSX" ]; then
-    ${SCRIPT_DIR}/get_lomp.sh ${ARGS}
+if ! command -v ninja &> /dev/null; then
+    NINJA_VER="1.11.1"
+
+    printf "*********************************************************\n"
+    printf "*             FETCHING NINJA SOURCE                      *\n"
+    printf "*********************************************************\n"
+    printf "Copying files to ${DEPENDENCY_DIR}\n"
+    mkdir -p ${DEPENDENCY_DIR}
+    if [ ! -d ${DEPENDENCY_DIR}/ninja-${NINJA_VER} ]; then
+        [ -d ${DEPENDENCY_DIR}/zlib-* ] && rm -rf ${DEPENDENCY_DIR}/zlib-*
+        curl -L https://github.com/ninja-build/ninja/archive/refs/tags/v${NINJA_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+    fi
+    cd ${DEPENDENCY_DIR}/ninja-*
+    cmake -B build -S . -DCMAKE_INSTALL_PREFIX=${PREFIX}
+    cmake --build build 
+    if [ -w ${PREFIX} ]; then
+        cmake --install build 
+    else
+        sudo cmake --install build
+    fi
 fi
 
-set -e
 ${SCRIPT_DIR}/build_zlib.sh ${ARGS}
 ${SCRIPT_DIR}/build_hdf5.sh ${ARGS}
 ${SCRIPT_DIR}/build_netcdf-c.sh ${ARGS}

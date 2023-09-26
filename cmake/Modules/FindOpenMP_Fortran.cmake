@@ -34,7 +34,7 @@ IF (COMPILER_OPTIONS STREQUAL "Intel")
             )
         ELSE ()
             SET (OpenMP_Fortran_FLAG_CANDIDATES
-                "/Qopenmp-simd-"             # Intel Windows
+                "/Qopenmp /Qopenmp-simd-"             # Intel Windows
             )
         ENDIF (USE_SIMD)
     ELSE ()

@@ -10,12 +10,30 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
+
+HDF5_VER="1_14_2"
+PLUGIN_VER="1.14.0"
+ZLIB_VER="1.3"
+
 SCRIPT_DIR=$(realpath $(dirname $0))
 set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
+. ${SCRIPT_DIR}/set_compilers.sh
+# Get the OpenMP Libraries
+if [ $OS = "MacOSX" ]; then
+    ${SCRIPT_DIR}/get_lomp.sh ${ARGS}
+fi
 
-HDF5_VER="1_14_2"
+NPROC=$(nproc)
+
+printf "*********************************************************\n"
+printf "*          STARTING DEPENDENCY BUILD                    *\n"
+printf "*********************************************************\n"
+printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
+printf "Installing to ${PREFIX}\n"
+printf "\n"
+
 printf "*********************************************************\n"
 printf "*             FETCHING HDF5 SOURCE                      *\n"
 printf "*********************************************************\n"
@@ -37,7 +55,6 @@ if [ ! -d ${DEPENDENCY_DIR}/hdfsrc ]; then
     curl -s -L https://github.com/HDFGroup/hdf5/releases/download/hdf5-${HDF5_VER}/hdf5-${HDF5_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
 fi
 
-
 printf "\n"
 printf "*********************************************************\n"
 printf "*               BUILDING HDF5 LIBRARY                   *\n"
@@ -51,21 +68,57 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/hdfsrc
+ZLIB_TGZ_NAME="zlib-${ZLIB_VER}.tar.gz"
+ZLIB_TGZ_ORIGPATH="https://github.com/madler/zlib/releases/download/v${ZLIB_VER}/"
+curl -L "https://github.com/HDFGroup/hdf5_plugins/archive/refs/tags/${PLUGIN_VER}.tar.gz" -o hdf5_plugins.tar.gz
+
+HDF5_ROOT=${PREFIX}
+ZLIB_ROOT=${PREFIX}
+SZIP_ROOT=${PREFIX}
 if [ $OS = "MacOSX" ]; then
-   read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
-   if [ $ARCH  = "arm64" ]; then
-      printf "Manually setting bin/config.sub to arm-apple-darwin\n"
-      printf "echo arm-apple-darwin" > bin/config.sub 
-   fi
-fi
-COPTS="--enable-build-mode=production --enable-tests=no --enable-tools=no --disable-fortran --disable-java --disable-cxx --prefix=${PREFIX} --with-zlib=${PREFIX}"
-./configure ${COPTS}
-make 
-if [ -w ${PREFIX} ]; then
-    make install
+    ZLIB_LIBRARY="${ZLIB_ROOT}/lib/libz.dylib"
 else
-    sudo make install
+    ZLIB_LIBRARY="${ZLIB_ROOT}/lib/libz.so"
 fi
+
+ARGLIST="-DCMAKE_INSTALL_PREFIX:PATH=${HDF5_ROOT} \
+    -DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING="NO" \
+    -DCMAKE_BUILD_TYPE:STRING="Release" \
+    -DZLIB_LIBRARY:FILEPATH=${ZLIB_LIBRARY} \
+    -DZLIB_INCLUDE_DIR:PATH=${ZLIB_ROOT}/include \
+    -DZLIB_USE_EXTERNAL:BOOL=OFF \
+    -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=OFF  \
+    -DHDF5_ENABLE_PLUGIN_SUPPORT:BOOL=OFF \
+    -DHDF5_BUILD_CPP_LIB:BOOL=OFF \
+    -DHDF5_BUILD_FORTRAN:BOOL=OFF \
+    -DHDF5_BUILD_EXAMPLES:BOOL=ON \
+    -DBUILD_TESTING:BOOL=ON \
+    -DHDF5_BUILD_JAVA:BOOL=OFF"
+
+if [ $OS = "MacOSX" ]; then
+    ARGLIST="${ARGLIST} -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=OFF"
+fi
+
+cmake -B build -C ./config/cmake/cacheinit.cmake -G Ninja ${ARGLIST} .
+
+cmake --build build -j${NPROC} --config Release
+if [ -w ${PREFIX} ]; then
+    cmake --install build 
+else
+    sudo cmake --install build 
+fi
+
+# tar xvzf hdf5_plugins.tar.gz
+# PLUGIN_SOURCE=hdf5_plugins-${PLUGIN_VER}
+
+# BUILD_OPTIONS="-DTGZPATH:PATH=${PLUGIN_SOURCE}/libs -DH5PL_ALLOW_EXTERNAL_SUPPORT:STRING=\"TGZ\""
+# cmake -B ${PLUGIN_SOURCE}/build -C ${PLUGIN_SOURCE}/config/cmake/cacheinit.cmake -DCMAKE_BUILD_TYPE:STRING=Release ${BUILD_OPTIONS} -G Ninja ${PLUGIN_SOURCE}
+# cmake --build ${PLUGIN_SOURCE}/build -j${NPROC} --config Release
+# if [ -w ${PREFIX} ]; then
+#     cmake --install ${PLUGIN_SOURCE}/build 
+# else
+#     sudo cmake --install ${PLUGIN_SOURCE}/build 
+# fi
 
 if [ $? -ne 0 ]; then
    printf "hdf5 could not be compiled.\n"

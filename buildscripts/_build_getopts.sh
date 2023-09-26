@@ -13,6 +13,9 @@ set -a
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 
+# Get platform and architecture
+read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
+
 # Parse arguments
 USTMT="Usage: ${0} [-d /path/to/dependency/source] [-p /prefix/path] [-m MACOSX_DEPLOYMENT_TARGET]"
 if [ $OS = "MacOSX" ]; then
@@ -46,9 +49,8 @@ while getopts ":d:p:m:h" ARG; do
     esac
 done
 
-read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
-BUILD_DIR=${BUILD_DIR:-$(mktemp -ut swiftest_build.XXXXXXXX)}
-PREFIX=${PREFIX:-${ROOT_DIR}}
+BUILD_DIR=${BUILD_DIR:-"${HOME}/Downloads"}
+PREFIX=${PREFIX:-"/usr/local"}
 DEPENDENCY_DIR=${DEPENDENCY_DIR:-${BUILD_DIR}}
 
 mkdir -p ${DEPENDENCY_DIR}
