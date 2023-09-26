@@ -13,6 +13,7 @@ SCRIPT_DIR=$(realpath $(dirname $0))
 set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
+. ${SCRIPT_DIR}/set_compilers.sh
 
 SHTOOLS_VER="4.10.4"
 
@@ -38,7 +39,6 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/SHTOOLS-*
-make F95="${FC}" CXX="${CXX}" fortran
 make F95="${FC}" CXX="${CXX}" fortran-mp
 if [ -w ${PREFIX} ]; then
     make PREFIX="${PREFIX}" install
