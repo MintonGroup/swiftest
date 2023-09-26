@@ -37,6 +37,7 @@ dependencies = [
     'astroquery>=0.4.6',
     'tqdm>=4.65.0',
     'cython>=3.0.0',
+    'pyshtools>=4.10'
 ]
 
 [project.urls]
