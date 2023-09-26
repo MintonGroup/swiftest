@@ -105,7 +105,7 @@ before-all = [
 [tool.cibuildwheel.linux]
 skip = "cp312-*"
 before-all = [
-    "yum install doxygen libxml2-devel libcurl-devel ftw3-devel libblas-devel lapack-devel -y",
+    "yum install doxygen libxml2-devel libcurl-devel ftw-devel libblas-devel lapack-devel -y",
     "buildscripts/build_dependencies.sh -p /usr/local"
 ]
 [tool.cibuildwheel.linux.environment]
