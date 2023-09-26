@@ -15,4 +15,13 @@ pip install --config-settings=editable.rebuild=true \
             --config-settings=cmake.args="-DUSE_SIMD=ON" \
             --config-settings=cmake.args="-DUSE_OPENMP=ON" \
             --no-build-isolation \
-            -ve . 
+            -ve .
+
+PACKAGE_PATH=$(realpath ${VENV_DIR}/lib/python*/site-packages/swiftest)
+
+libdiradd () {
+    if [ -d "$1" ] && [[ ":$LD_LIBRARY_PATH:" != *":$1:"* ]]; then
+        LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+"$LD_LIBRARY_PATH:"}$1"
+    fi
+}
+libdiradd $PACKAGE_PATH

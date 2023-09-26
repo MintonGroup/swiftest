@@ -613,7 +613,7 @@ IF (COMPILER_OPTIONS STREQUAL "Intel")
     ELSE ()
         # Some subroutines require more strict floating point operation optimizations for repeatability
         SET_COMPILE_FLAG(STRICTMATH_FLAGS "${STRICTMATH_FLAGS}"
-            Fortran "-fp-module=precise" # Intel 
+            Fortran "-fp-model=precise" # Intel 
         )
         SET_COMPILE_FLAG(STRICTMATH_FLAGS "${STRICTMATH_FLAGS}"
             Fortran "-prec-div" # Intel 

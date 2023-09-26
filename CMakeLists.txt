@@ -55,6 +55,7 @@ LIST(APPEND CMAKE_MODULE_PATH ${LOCAL_MODULE_PATH})
 
 IF (CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
     SET(COMPILER_OPTIONS "Intel" CACHE STRING "Compiler identified as Intel")
+    FIND_PACKAGE(MKL)
 ELSEIF (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
     SET(COMPILER_OPTIONS "GNU" CACHE STRING "Compiler identified as gfortran")
 ELSE ()
@@ -72,6 +73,7 @@ FIND_PACKAGE(SHTOOLS REQUIRED)
 
 # Ensure scikit-build modules
 FIND_PACKAGE(Python COMPONENTS Interpreter Development.Module REQUIRED)
+
 
 # Define some directories that are important to the build
 SET(SRC "${CMAKE_SOURCE_DIR}/src")
@@ -102,9 +104,6 @@ IF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
 ENDIF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
 INCLUDE(SetParallelizationLibrary)
 
-IF (COMPILER_OPTIONS STREQUAL "Intel" AND NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    INCLUDE(SetMKL)
-ENDIF ()
 INCLUDE(SetSwiftestFlags) 
 
 # The source for the SWIFTEST binary and have it placed in the bin folder
