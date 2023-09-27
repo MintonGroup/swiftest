@@ -25,12 +25,12 @@ set (HDF5_BUILD_EXAMPLES OFF CACHE BOOL "Build examples" FORCE)
 set (HDF5_ENABLE_ALL_WARNINGS OFF CACHE BOOL "Enable all warnings" FORCE)
 set (HDF5_ALLOW_EXTERNAL_SUPPORT "NO" CACHE STRING "Allow External Library Building (NO GIT TGZ)" FORCE)
 set_property (CACHE HDF5_ALLOW_EXTERNAL_SUPPORT PROPERTY STRINGS NO GIT TGZ)
-set (BUILD_SHARED_LIBS OFF CACHE BOOL "Build with shared libraries" FORCE)
+set (BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
 
 ########################
 # compression options
 ########################
-SET(ZLIB_LIBRARY "C:/Program Files (x86)/zlib/lib/zlibstatic.lib" CACHE FILEPATH "ZLIB library file" FORCE)
+SET(ZLIB_LIBRARY "C:/Program Files (x86)/zlib/lib/zlib.lib" CACHE FILEPATH "ZLIB library file" FORCE)
 SET(ZLIB_INCLUDE_DIR "C:/Program Files (x86)/zlib/include" CACHE PATH "ZLIB include directory" FORCE)
 set (ZLIB_PACKAGE_NAME "zlib" CACHE STRING "Name of ZLIB package" FORCE)
 set (ZLIB_USE_LOCALCONTENT OFF CACHE BOOL "Use local file for ZLIB FetchContent" FORCE)
