@@ -33,7 +33,7 @@ set (BUILD_SHARED_LIBS OFF CACHE BOOL "Build with shared libraries" FORCE)
 set (HDF5_DIR "C:/Program Files/HDF_Group/HDF5/1.14.2/cmake" CACHE PATH "Location of HDF5 cmake files" FORCE)
 set (HDF5_ROOT "C:/Program Files/HDF_Group/HDF5/1.14.2" CACHE PATH "Location of HDF5" FORCE)
 
-SET(ZLIB_LIBRARY "C:/Program Files (x86)/zlib/zlib.lib" CACHE FILEPATH "ZLIB library file" FORCE)
+SET(ZLIB_LIBRARY "C:/Program Files (x86)/zlib/lib/zlib.lib" CACHE FILEPATH "ZLIB library file" FORCE)
 SET(ZLIB_INCLUDE_DIR "C:/Program Files (x86)/zlib/include" CACHE PATH "ZLIB include directory" FORCE)
 
 # Set build type can be: empty, Debug, Release, RelWithDebInfo or MinSizeRel
