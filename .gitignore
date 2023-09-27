@@ -7,7 +7,8 @@
 swiftest_driver.sh
 !CMakeLists.txt
 !*.cmake
-!COPYING.txt
+!COPYING
+!LICENSE
 !CHANGELOG 
 !README.md
 !README_figs/**
@@ -26,7 +27,6 @@ dump*
 *ipynb_checkpoints
 **/.DS_Store
 !version.txt
-!LICENSE.txt
 !requirements.txt
 !pyproject.toml
 **/_skbuild

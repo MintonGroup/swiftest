@@ -128,7 +128,7 @@ ELSE ()
          SET(NETCDF  "netcdf.lib")
          SET(HDF5    "libhdf5.lib")
          SET(HDF5_HL "libhdf5_hl.lib")
-         SET(ZLIB    "zlibstatic.lib")
+         SET(ZLIB    "zlib.lib")
       ELSE ()
          SET(NETCDFF "libnetcdff.a")
          SET(NETCDF  "libnetcdf.a")
@@ -151,7 +151,7 @@ ELSE ()
       REQUIRED
    )
    ADD_LIBRARY(netCDF::netcdff UNKNOWN IMPORTED PUBLIC)
-   IF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+   IF (CMAKE_SYSTEM_NAME STREQUAL "Windows" AND BUILD_SHARED_LIBS)
       # Get the DLL added in
       FIND_FILE(NFDLL
          NAMES "netcdff.dll"
@@ -178,6 +178,7 @@ ELSE ()
    MESSAGE(STATUS "NetCDF-Fortran library: ${NFLIB}")
    MESSAGE(STATUS "NetCDF-Fortran include directory: ${NETCDF_FORTRAN_INCLUDE_DIR}")
 ENDIF ()
+
 
 SET(NETCDF_FORTRAN_FOUND TRUE)
 MARK_AS_ADVANCED(NETCDF_FORTRAN_LIBRARY NETCDF_FORTRAN_INCLUDE_DIR)
