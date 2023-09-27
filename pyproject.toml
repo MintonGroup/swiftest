@@ -14,7 +14,7 @@ maintainers = [
 ]
 readme = "README.md"
 requires-python=">=3.8"
-license={file = "LICENSE.txt"}
+license={file = "LICENSE"}
 classifiers=[
 'Development Status :: 3 - Alpha',
 'Intended Audience :: Science/Research',
