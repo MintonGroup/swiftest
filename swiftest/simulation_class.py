@@ -14,7 +14,7 @@ from swiftest import io
 from swiftest import init_cond
 from swiftest import tool
 from swiftest import constants
-from swiftest._bindings import driver
+# from swiftest._bindings import driver
 from swiftest import __file__ as _pyfile
 import json
 import os
