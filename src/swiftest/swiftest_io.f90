@@ -1551,7 +1551,9 @@ contains
             call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%l_dimid, len = l_dim_max), "netcdf_io_read_frame_system nf90_inquire_dimension l_dimid"  )
             call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%m_dimid, len = m_dim_max), "netcdf_io_read_frame_system nf90_inquire_dimension m_dimid")
             
-            allocate(cb%c_lm(m_dim_max, l_dim_max, 2)) 
+            if(.not. allocated(cb%c_lm)) then
+               allocate(cb%c_lm(m_dim_max, l_dim_max, 2)) 
+            end if
             call netcdf_io_check( nf90_get_var(nc%id, nc%c_lm_varid, cb%c_lm, count = [m_dim_max, l_dim_max, 2]), "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
             
             ! ordering of dimensions above seen to stackoverflow to prevent error 'NetCDF: Start + count exceeds dimension bound'
