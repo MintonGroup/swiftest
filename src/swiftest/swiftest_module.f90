@@ -1865,7 +1865,7 @@ module swiftest
          real(DP), intent(in)        :: theta                       !! Inclination/Zenith angle (radians)
          real(DP), intent(in), dimension(:)          :: rh          !! distance vector of body
          real(DP), intent(in), dimension(:, :, :)    :: c_lm        !! Spherical Harmonic coefficients
-         real(DP), intent(out), dimension(:)         :: g_sph       !! acceleration vector
+         real(DP), intent(out), dimension(NDIM)         :: g_sph       !! acceleration vector
          real(DP), intent(in),  optional :: GMpl                    !! Mass of input body if it is not a test particle
          real(DP), dimension(:),   intent(inout), optional :: aoblcb  !! Barycentric acceleration of central body (only for massive input bodies)
       end subroutine swiftest_sph_g_acc_one

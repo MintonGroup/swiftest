@@ -107,7 +107,7 @@ contains
                     theta = atan2(sqrt(rh(1,i)**2 + rh(2,i)**2), rh(3,i))
                     phi = atan2(rh(2,i), rh(1,i)) - cb%rotphase ! CALCULATE CB PHASE VALUE FOR PHI
     
-                    call swiftest_sph_g_acc_one(cb%Gmass, r_mag, phi, theta, rh(:,i), cb%c_lm, g_sph, pl%Gmass, cb%aobl)
+                    call swiftest_sph_g_acc_one(cb%Gmass, r_mag, phi, theta, rh(:,i), cb%c_lm, g_sph, pl%Gmass(i), cb%aobl)
                     pl%ah(:, i) = pl%ah(:, i) + g_sph(:) - cb%aobl(:)
                     pl%aobl(:, i) = g_sph(:)
                 end if
