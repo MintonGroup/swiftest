@@ -2539,7 +2539,7 @@ contains
       self%peri(:)   = 0.0_DP
       self%atp(:)    = 0.0_DP
 
-      if (param%loblatecb) then
+      if (param%loblatecb .or. param%lshgrav) then
          allocate(self%aobl(NDIM, n))
          self%aobl(:,:) = 0.0_DP
       end if
