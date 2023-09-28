@@ -101,17 +101,16 @@ contains
         associate(pl => self, npl => self%nbody, cb => nbody_system%cb, rh => self%rh)
             cb%aobl(:) = 0.0_DP
 
-            ! do i = 1, npl, pl%lmask(i)
-            do while ((i .lt. npl) .and. pl%lmask(i))
-                r_mag = .mag. rh(1:3,i)
-                theta = atan2(sqrt(rh(1,i)**2 + rh(2,i)**2), rh(3,i))
-                phi = atan2(rh(2,i), rh(1,i)) - cb%rotphase ! CALCULATE CB PHASE VALUE FOR PHI
-
-                call swiftest_sph_g_acc_one(cb%Gmass, r_mag, phi, theta, rh(:,i), cb%c_lm, g_sph, pl%Gmass, cb%aobl)
-                pl%ah(:, i) = pl%ah(:, i) + g_sph(:) - cb%aobl(:)
-                pl%aobl(:, i) = g_sph(:)
-
-                i = i + 1
+            do i = 1, npl
+                if (pl%lmask(i)) then
+                    r_mag = .mag. rh(:,i)
+                    theta = atan2(sqrt(rh(1,i)**2 + rh(2,i)**2), rh(3,i))
+                    phi = atan2(rh(2,i), rh(1,i)) - cb%rotphase ! CALCULATE CB PHASE VALUE FOR PHI
+    
+                    call swiftest_sph_g_acc_one(cb%Gmass, r_mag, phi, theta, rh(:,i), cb%c_lm, g_sph, pl%Gmass, cb%aobl)
+                    pl%ah(:, i) = pl%ah(:, i) + g_sph(:) - cb%aobl(:)
+                    pl%aobl(:, i) = g_sph(:)
+                end if
             end do
         end associate
         return 
