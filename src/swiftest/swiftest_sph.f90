@@ -108,8 +108,8 @@ contains
                 phi = atan2(rh(2,i), rh(1,i)) - cb%rotphase ! CALCULATE CB PHASE VALUE FOR PHI
 
                 call swiftest_sph_g_acc_one(cb%Gmass, r_mag, phi, theta, rh(:,i), cb%c_lm, g_sph, pl%Gmass, cb%aobl)
-                pl%ah(i, :) = pl%ah(:, i) + g_sph(:) - cb%aobl(:)
-                pl%aobl(i, :) = g_sph(:)
+                pl%ah(:, i) = pl%ah(:, i) + g_sph(:) - cb%aobl(:)
+                pl%aobl(:, i) = g_sph(:)
 
                 i = i + 1
             end do
@@ -148,8 +148,8 @@ contains
                 phi = atan2(rh(2,i), rh(1,i)) - cb%rotphase
 
                 call swiftest_sph_g_acc_one(cb%Gmass, r_mag, phi, theta, rh(:,i), cb%c_lm, g_sph)
-                tp%ah(i, :) = tp%ah(:, i) + g_sph(:) - aoblcb(:)
-                tp%aobl(i, :) = g_sph(:)
+                tp%ah(:, i) = tp%ah(:, i) + g_sph(:) - aoblcb(:)
+                tp%aobl(:, i) = g_sph(:)
                 
                 i = i + 1
             end do
