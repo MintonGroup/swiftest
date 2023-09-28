@@ -59,10 +59,10 @@ contains
                 dplm = p_deriv(lmindex)       ! d(p_l,m)
 
                 ! C_lm and S_lm with Cos and Sin of m * phi
-                ccss = c_lm(1, l+1, m+1) * cos(m * phi) & 
-                        + c_lm(2, l+1, m+1) * sin(m * phi)      ! C_lm * cos(m * phi) + S_lm * sin(m * phi)
-                cssc = -1.0_DP * c_lm(1, l+1, m+1) * sin(m * phi) & 
-                        + c_lm(2, l+1, m+1) * cos(m * phi)      ! - C_lm * sin(m * phi) + S_lm * cos(m * phi) 
+                ccss = c_lm(m+1, l+1, 1) * cos(m * phi) & 
+                        + c_lm(m+1, l+1, 2) * sin(m * phi)      ! C_lm * cos(m * phi) + S_lm * sin(m * phi)
+                cssc = -1.0_DP * c_lm(m+1, l+1, 1) * sin(m * phi) & 
+                        + c_lm(m+1, l+1, 2) * cos(m * phi)      ! - C_lm * sin(m * phi) + S_lm * cos(m * phi) 
                                                                 ! cssc * m = first derivative of ccss with respect to phi
 
                 ! m > 0
