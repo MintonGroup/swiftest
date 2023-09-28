@@ -31,7 +31,7 @@ contains
         real(DP), intent(in), dimension(:)          :: rh          !! distance vector of body
         real(DP), intent(in), dimension(:, :, :)    :: c_lm        !! Spherical Harmonic coefficients
         real(DP), intent(out), dimension(:)         :: g_sph       !! acceleration vector
-        real(DP), dimension(:),   intent(in),  optional :: GMpl    !! Masses of input bodies if they are not test particles
+        real(DP), intent(in),  optional :: GMpl                    !! Mass of input body if it is not a test particle
         real(DP), dimension(:),   intent(inout), optional :: aoblcb  !! Barycentric acceleration of central body (only for massive input bodies)
      
         ! Internals
