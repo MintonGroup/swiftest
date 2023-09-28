@@ -141,17 +141,16 @@ contains
                 aoblcb = cb%aoblend
              end if
 
-            ! do i = 1, ntp, tp%lmask(i)
-            do while ((i .lt. ntp) .and. tp%lmask(i))
-                r_mag = .mag. rh(1:3,i)
-                theta = atan2(sqrt(rh(1,i)**2 + rh(2,i)**2), rh(3,i))
-                phi = atan2(rh(2,i), rh(1,i)) - cb%rotphase
+            do i = 1, ntp
+                if (tp%lmask(i)) then
+                    r_mag = .mag. rh(:,i)
+                    theta = atan2(sqrt(rh(1,i)**2 + rh(2,i)**2), rh(3,i))
+                    phi = atan2(rh(2,i), rh(1,i)) - cb%rotphase
 
-                call swiftest_sph_g_acc_one(cb%Gmass, r_mag, phi, theta, rh(:,i), cb%c_lm, g_sph)
-                tp%ah(:, i) = tp%ah(:, i) + g_sph(:) - aoblcb(:)
-                tp%aobl(:, i) = g_sph(:)
-                
-                i = i + 1
+                    call swiftest_sph_g_acc_one(cb%Gmass, r_mag, phi, theta, rh(:,i), cb%c_lm, g_sph)
+                    tp%ah(:, i) = tp%ah(:, i) + g_sph(:) - aoblcb(:)
+                    tp%aobl(:, i) = g_sph(:)
+                end if
             end do
         end associate
         return
