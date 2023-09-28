@@ -2108,7 +2108,9 @@ contains
             call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%l_dimid, len = l_dim_max), "netcdf_io_write_frame_cb nf90_inquire_dimension l_dimid")
             call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%m_dimid, len = m_dim_max), "netcdf_io_write_frame_cb nf90_inquire_dimension m_dimid")
             
-            allocate(self%c_lm(2, l_dim_max, m_dim_max))
+            if(.not. allocated(self%c_lm)) then
+               allocate(self%c_lm(2, l_dim_max, m_dim_max))
+            end if
             call netcdf_io_check( nf90_put_var(nc%id, nc%c_lm_varid, self%c_lm, count = [2, l_dim_max, m_dim_max]), "netcdf_io_write_frame_cb nf90_getvar c_lm_varid")
          end if
 
