@@ -2102,7 +2102,10 @@ contains
                                   "swiftest_io_netcdf_write_frame_cb nf90_put_var cb Ip_varid"  )
             call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, self%rot(:) * RAD2DEG, start=[1, idslot, tslot], &
                                                count=[NDIM,1,1]), &
-                                  "swiftest_io_netcdf_write_frame_cby nf90_put_var cb rot_varid"  )
+                                  "swiftest_io_netcdf_write_frame_cb nf90_put_var cb rot_varid"  )
+            ! ADD
+            ! call netcdf_io_check( nf90_put_var(nc%id, nc%rotphase_varid, self%rotphase(:), start = [1, idslot, tslot]), &
+                                 !  "swiftest_io_netcdf_write_frame_cb nf90_put_var cb rotphase")
          end if
 
          status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
