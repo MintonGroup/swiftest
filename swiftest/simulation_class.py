@@ -413,7 +413,7 @@ class Simulation(object):
             self.set_parameter(**kwargs)
 
         # Write out the current parameter set before executing run
-        self.write_param()
+        self.save(verbose=False)
 
         if self.codename != "Swiftest":
             warnings.warn(f"Running an integration is not yet supported for {self.codename}",stacklevel=2)
