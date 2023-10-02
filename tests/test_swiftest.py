@@ -36,7 +36,7 @@ param = {}
 
 class TestSwiftest(unittest.TestCase):
     
-    def test01_gen_ic(self):
+    def test_gen_ic(self):
         """
         Tests that Swiftest is able to successfully generate a set of initial conditions in a file without any exceptions being raised
         """
@@ -50,9 +50,6 @@ class TestSwiftest(unittest.TestCase):
 
         # Add the modern planets and the Sun using the JPL Horizons Database.
         sim.add_solar_system_body(major_bodies)
-    
-        # Display the run configuration parameters.
-        param = sim.get_parameter(verbose=False)
         sim.save()
         
         for f in file_list:
@@ -60,12 +57,17 @@ class TestSwiftest(unittest.TestCase):
         return
 
             
-    def test02_read_ic(self):
+    def test_read_ic(self):
         """
         Tests that Swiftest is able to read a set of pre-existing initial conditions files and that they contain the correct data
         """
         print("\ntest_read_ic: Test whether we can read back initial conditions files created by test_gen_ic")
-        sim = swiftest.Simulation(read_param=True)
+        sim = swiftest.Simulation()
+        sim.clean()
+
+        # Add the modern planets and the Sun using the JPL Horizons Database.
+        sim.add_solar_system_body(major_bodies)
+        sim.save()
         # Check if all names in Dataset read in from file match the expected list of names
         self.assertTrue((major_bodies == sim.init_cond['name']).all(), msg="Name mismatch in Dataset")
         
@@ -74,23 +76,26 @@ class TestSwiftest(unittest.TestCase):
         return
 
       
-    def test03_integrators(self):
+    def test_integrators(self):
         """
         Tests that Swiftest is able to integrate a collection of massive bodies and test particles with all available integrators
         """ 
         print("\ntest_integrators: Tests that Swiftest is able to integrate a collection of massive bodies and test particles with all available integrators")
-        sim = swiftest.Simulation(read_param=True)
+        sim = swiftest.Simulation()
+
+        # Add the modern planets and the Sun using the JPL Horizons Database.
+        sim.add_solar_system_body(major_bodies)
         
         # Add 10 user-defined test particles.
         ntp = 10
 
-        name_tp      = [f"TestParticle_{i:02}" for i in range(1,ntp+1)]
-        a_tp          = rng.uniform(0.3, 1.5, ntp)
-        e_tp          = rng.uniform(0.0, 0.2, ntp)
-        inc_tp        = rng.uniform(0.0, 10, ntp)
-        capom_tp     = rng.uniform(0.0, 360.0, ntp)
-        omega_tp     = rng.uniform(0.0, 360.0, ntp)
-        capm_tp      = rng.uniform(0.0, 360.0, ntp)
+        name_tp  = [f"TestParticle_{i:02}" for i in range(1,ntp+1)]
+        a_tp     = rng.uniform(0.3, 1.5, ntp)
+        e_tp     = rng.uniform(0.0, 0.2, ntp)
+        inc_tp   = rng.uniform(0.0, 10, ntp)
+        capom_tp = rng.uniform(0.0, 360.0, ntp)
+        omega_tp = rng.uniform(0.0, 360.0, ntp)
+        capm_tp  = rng.uniform(0.0, 360.0, ntp)
 
         integrators= ["whm","helio","rmvs","symba"]
         sim.add_body(name=name_tp, a=a_tp, e=e_tp, inc=inc_tp, capom=capom_tp, omega=omega_tp, capm=capm_tp)
@@ -98,12 +103,13 @@ class TestSwiftest(unittest.TestCase):
         integrators= ["whm","helio","rmvs","symba"]
         for i in integrators:
             try:
+                sim.clean()
                 sim.run(integrator=i)
             except:
                 self.fail(f"Failed with integrator {i}")
         return    
             
-    def test04_conservation(self):
+    def test_conservation(self):
         """
         Tests that Swiftest conserves mass, energy, and momentum to within acceptable tolerances.
         """
@@ -163,7 +169,7 @@ class TestSwiftest(unittest.TestCase):
         self.assertLess(np.abs(GM_final),GM_limit, msg=f"Mass Error of {GM_final:.2e} higher than threshold value of {GM_limit:.2e}")
         return 
         
-    def test05_gr(self):
+    def test_gr(self):
         """
         Tests that GR is working correctly by computing the precession of Mercury's longitude of periapsis and comparing it to
         values obtained from the JPL/Horizons ephemeris service
