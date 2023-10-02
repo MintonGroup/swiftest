@@ -12,7 +12,6 @@
 # If not, see: https://www.gnu.org/licenses. 
 
 HDF5_VER="1_14_2"
-PLUGIN_VER="1.14.0"
 ZLIB_VER="1.3"
 
 SCRIPT_DIR=$(realpath $(dirname $0))
@@ -46,13 +45,6 @@ if [[ (-d ${DEPENDENCY_DIR}/hdfsrc) && (-f ${DEPENDENCY_DIR}/hdfsrc/README.md) ]
         printf "Existing version of HDF5 source doesn't match requested. Deleting\n"
         rm -rf ${DEPENDENCY_DIR}/hdfsrc
     fi
-fi
-
-if [ ! -d ${DEPENDENCY_DIR}/hdfsrc ]; then
-    curl -s -L https://github.com/HDFGroup/hdf5/releases/download/hdf5-${HDF5_VER}/hdf5-${HDF5_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
-    ZLIB_TGZ_NAME="zlib-${ZLIB_VER}.tar.gz"
-    ZLIB_TGZ_ORIGPATH="https://github.com/madler/zlib/releases/download/v${ZLIB_VER}/"
-    curl -L "https://github.com/HDFGroup/hdf5_plugins/archive/refs/tags/${PLUGIN_VER}.tar.gz" -o hdfsrc/hdf5_plugins.tar.gz
 fi
 
 printf "\n"
@@ -104,18 +96,6 @@ if [ -w ${PREFIX} ]; then
 else
     sudo cmake --install build 
 fi
-
-# tar xvzf hdf5_plugins.tar.gz
-# PLUGIN_SOURCE=hdf5_plugins-${PLUGIN_VER}
-
-# BUILD_OPTIONS="-DTGZPATH:PATH=${PLUGIN_SOURCE}/libs -DH5PL_ALLOW_EXTERNAL_SUPPORT:STRING=\"TGZ\""
-# cmake -B ${PLUGIN_SOURCE}/build -C ${PLUGIN_SOURCE}/config/cmake/cacheinit.cmake -DCMAKE_BUILD_TYPE:STRING=Release ${BUILD_OPTIONS} -G Ninja ${PLUGIN_SOURCE}
-# cmake --build ${PLUGIN_SOURCE}/build -j${NPROC} --config Release
-# if [ -w ${PREFIX} ]; then
-#     cmake --install ${PLUGIN_SOURCE}/build 
-# else
-#     sudo cmake --install ${PLUGIN_SOURCE}/build 
-# fi
 
 if [ $? -ne 0 ]; then
    printf "hdf5 could not be compiled.\n"
