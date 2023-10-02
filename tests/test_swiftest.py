@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 """
  Copyright 2023 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
  This file is part of Swiftest.
@@ -25,68 +24,15 @@ None
 import swiftest
 import unittest
 import os
-import shutil
 import numpy as np
 from numpy.random import default_rng
 from astroquery.jplhorizons import Horizons
 import datetime
 
-
 rng = default_rng(seed=123)
 
 major_bodies = ["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune"]
 param = {}
-
-
-class TestSwiftest(unittest.TestCase):
-    
-    def test01_gen_ic(self):
-        """
-        Tests that Swiftest is able to successfully generate a set of initial conditions in a file without any exceptions being raised
-        """
-        print("\ntest_gen_ic: Test whether we can generate simulation initial conditions test")
-        # Files that are expected to be generated:
-        simdir = "simdata"
-        file_list = [simdir, os.path.join(simdir,"param.in"), os.path.join(simdir,"init_cond.nc")]
-        
-        sim = swiftest.Simulation()
-        sim.clean()
-#!/usr/bin/env python3
-
-"""
- Copyright 2023 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
- This file is part of Swiftest.
- Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
- as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
- Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
- of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- You should have received a copy of the GNU General Public License along with Swiftest. 
- If not, see: https://www.gnu.org/licenses. 
-"""
-
-"""
-Tests that energy and momentum errors are within tolerances in a Swiftest simulation
-
-Input
-------
-
-Output
-------
-None
-"""
-
-import swiftest
-import unittest
-import os
-import shutil
-import numpy as np
-from numpy.random import default_rng
-
-rng = default_rng(seed=123)
-
-major_bodies = ["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune"]
-param = {}
-
 
 class TestSwiftest(unittest.TestCase):
     
@@ -102,7 +48,6 @@ class TestSwiftest(unittest.TestCase):
         sim = swiftest.Simulation()
         sim.clean()
 
-        # Add the modern planets and the Sun using the JPL Horizons Database.
         # Add the modern planets and the Sun using the JPL Horizons Database.
         sim.add_solar_system_body(major_bodies)
     
@@ -112,7 +57,8 @@ class TestSwiftest(unittest.TestCase):
         
         for f in file_list:
             self.assertTrue(os.path.exists(f))
-        
+        return
+
             
     def test02_read_ic(self):
         """
@@ -125,7 +71,8 @@ class TestSwiftest(unittest.TestCase):
         
         # Check to see if all parameter values read in from file match the expected parameters saved when generating the file
         self.assertTrue(all([v == param[k] for k,v in sim.param.items() if k in param]))
-    
+        return
+
       
     def test03_integrators(self):
         """
@@ -154,7 +101,7 @@ class TestSwiftest(unittest.TestCase):
                 sim.run(integrator=i)
             except:
                 self.fail(f"Failed with integrator {i}")
-            
+        return    
             
     def test04_conservation(self):
         """
@@ -214,7 +161,7 @@ class TestSwiftest(unittest.TestCase):
         self.assertLess(np.abs(L_slope),L_slope_limit, msg=f"Angular Momentum Error of {L_slope:.2e}/{sim.TU_name} higher than threshold value of {L_slope_limit:.2e}/{sim.TU_name}")
         self.assertLess(np.abs(E_slope),E_slope_limit, msg=f"Energy Error of {E_slope:.2e}/{sim.TU_name} higher than threshold value of {E_slope_limit:.2e}/{sim.TU_name}")
         self.assertLess(np.abs(GM_final),GM_limit, msg=f"Mass Error of {GM_final:.2e} higher than threshold value of {GM_limit:.2e}")
-       
+        return 
         
     def test05_gr(self):
         """
@@ -253,7 +200,8 @@ class TestSwiftest(unittest.TestCase):
             varpi_sim = sim.data['varpi'].sel(name="Mercury")
             dvarpi_gr = np.diff(varpi_sim) / tstep_out
             dvarpi_err = np.mean(dvarpi_obs - dvarpi_gr) / dvarpi_obs_mean
-            self.assertLess(np.abs(dvarpi_err),dvarpi_limit,msg=f'Mercury precession rate error of of {dvarpi_err:.2e} "/{sim.TU_name} higher than threshold value of {dvarpi_limit:.2e} "/{sim.TU_name}')
+            print(f'{i}: Mercury precession rate error {dvarpi_err:.2e} "/{sim.TU_name}')
+            self.assertLess(np.abs(dvarpi_err),dvarpi_limit,msg=f'{dvarpi_err:.2e} /{sim.TU_name} is higher than threshold value of {dvarpi_limit:.2e} "/{sim.TU_name}')
 
         return
        
