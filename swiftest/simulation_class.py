@@ -412,15 +412,16 @@ class Simulation(object):
         if len(kwargs) > 0:
             self.set_parameter(**kwargs)
 
-        # Write out the current parameter set before executing run
-        self.save(verbose=False)
-
         if self.codename != "Swiftest":
             warnings.warn(f"Running an integration is not yet supported for {self.codename}",stacklevel=2)
             return
 
+        # Save initial conditions
         if not self.restart:
             self.clean()
+            
+        # Write out the current parameter set before executing run
+        self.write_param(verbose=False,**kwargs)
 
         print(f"Running a {self.codename} {self.integrator} run from tstart={self.param['TSTART']} {self.TU_name} to tstop={self.param['TSTOP']} {self.TU_name}")
 

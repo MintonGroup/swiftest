@@ -85,6 +85,7 @@ class TestSwiftest(unittest.TestCase):
 
         # Add the modern planets and the Sun using the JPL Horizons Database.
         sim.add_solar_system_body(major_bodies)
+        sim.clean()
         
         # Add 10 user-defined test particles.
         ntp = 10
@@ -103,7 +104,6 @@ class TestSwiftest(unittest.TestCase):
         integrators= ["whm","helio","rmvs","symba"]
         for i in integrators:
             try:
-                sim.clean()
                 sim.run(integrator=i)
             except:
                 self.fail(f"Failed with integrator {i}")
@@ -213,4 +213,5 @@ class TestSwiftest(unittest.TestCase):
        
         
 if __name__ == '__main__':
+    os.environ["HDF5_USE_FILE_LOCKING"]="FALSE"
     unittest.main()
