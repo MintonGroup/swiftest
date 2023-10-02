@@ -20,10 +20,7 @@ set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 . ${SCRIPT_DIR}/set_compilers.sh
-# Get the OpenMP Libraries
-if [ $OS = "MacOSX" ]; then
-    ${SCRIPT_DIR}/get_lomp.sh ${ARGS}
-fi
+
 
 NPROC=$(nproc)
 
@@ -53,6 +50,9 @@ fi
 
 if [ ! -d ${DEPENDENCY_DIR}/hdfsrc ]; then
     curl -s -L https://github.com/HDFGroup/hdf5/releases/download/hdf5-${HDF5_VER}/hdf5-${HDF5_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+    ZLIB_TGZ_NAME="zlib-${ZLIB_VER}.tar.gz"
+    ZLIB_TGZ_ORIGPATH="https://github.com/madler/zlib/releases/download/v${ZLIB_VER}/"
+    curl -L "https://github.com/HDFGroup/hdf5_plugins/archive/refs/tags/${PLUGIN_VER}.tar.gz" -o hdfsrc/hdf5_plugins.tar.gz
 fi
 
 printf "\n"
@@ -68,9 +68,6 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/hdfsrc
-ZLIB_TGZ_NAME="zlib-${ZLIB_VER}.tar.gz"
-ZLIB_TGZ_ORIGPATH="https://github.com/madler/zlib/releases/download/v${ZLIB_VER}/"
-curl -L "https://github.com/HDFGroup/hdf5_plugins/archive/refs/tags/${PLUGIN_VER}.tar.gz" -o hdf5_plugins.tar.gz
 
 HDF5_ROOT=${PREFIX}
 ZLIB_ROOT=${PREFIX}
