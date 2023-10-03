@@ -103,7 +103,7 @@ before-all = [
 ]
 
 [tool.cibuildwheel.linux]
-skip = "cp312-*"
+skip = "cp312-* pp* -manylinux_i686* *-musllinux*"
 before-all = [
     "yum install doxygen libxml2-devel libcurl-devel -y",
     "buildscripts/build_dependencies.sh -p /usr/local"
