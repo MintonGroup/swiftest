@@ -47,6 +47,9 @@ if [[ (-d ${DEPENDENCY_DIR}/hdfsrc) && (-f ${DEPENDENCY_DIR}/hdfsrc/README.md) ]
     fi
 fi
 
+if [ ! -d ${DEPENDENCY_DIR}/hdfsrc ]; then
+    curl -s -L https://github.com/HDFGroup/hdf5/releases/download/hdf5-${HDF5_VER}/hdf5-${HDF5_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+fi
 printf "\n"
 printf "*********************************************************\n"
 printf "*               BUILDING HDF5 LIBRARY                   *\n"
