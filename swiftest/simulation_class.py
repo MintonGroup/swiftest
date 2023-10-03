@@ -2177,10 +2177,8 @@ class Simulation(object):
         dsnew = init_cond.vec2xr(self.param,**kwargs)
 
         dsnew = self._combine_and_fix_dsnew(dsnew)
-        if dsnew['npl'] > 0 or dsnew['ntp'] > 0:
+        if dsnew['id'].max(dim='name') > 0 and dsnew['name'].size > 0:
            self.save(verbose=False)
-           
-           
 
         self.init_cond = self.data.copy(deep=True)
 
