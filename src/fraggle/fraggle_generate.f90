@@ -644,8 +644,8 @@ contains
       real(DP), parameter     :: hitandrun_vscale = 0.25_DP 
       real(DP)                :: vmin_guess 
       real(DP)                :: vmax_guess 
-      integer(I4B), parameter :: MAXLOOP = 25
-      integer(I4B), parameter :: MAXTRY  = 10
+      integer(I4B), parameter :: MAXLOOP = 50
+      integer(I4B), parameter :: MAXTRY  = 50
       integer(I4B), parameter :: MAXANGMTM = 1000
       class(collision_fraggle), allocatable :: collider_local
       character(len=STRMAX) :: message
