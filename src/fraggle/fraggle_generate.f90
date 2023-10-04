@@ -635,7 +635,7 @@ contains
       real(DP), dimension(NDIM) :: vimp_unit, rimp, vrot, vdisp, L_residual, L_residual_unit, L_residual_best, dL, drot, rot_new 
       real(DP), dimension(NDIM) :: dL_metric
       real(DP) :: vimp, vmag, vesc, dE, E_residual, E_residual_best, E_residual_last, ke_avail, ke_remove, dE_best, fscale 
-      real(DP) :: dE_metric, mfrag, rn, dL1_mag, dE_conv, vumag
+      real(DP) :: dE_metric, mfrag, rn, dL1_mag, dE_conv, vumag, L_mag_factor
       integer(I4B), dimension(:), allocatable :: vsign
       real(DP), dimension(:), allocatable :: vscale
       real(DP), dimension(:), allocatable :: dLi_mag
@@ -754,9 +754,10 @@ contains
                   ! Try to put residual angular momentum into the spin, but if this would go past the spin barrier, then put it into
                   ! velocity shear instead 
                   call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
-                  L_residual(:) = (collider_local%L_total(:,2) - collider_local%L_total(:,1))
+                  L_mag_factor = .mag.(collider_local%L_total(:,1) + collider_local%L_total(:,2))
+                  L_residual(:) = (collider_local%L_total(:,2) / L_mag_factor - collider_local%L_total(:,1) / L_mag_factor)
                   L_residual_unit(:) = .unit. L_residual(:)
-                  if (nsteps == 1) L_residual_best(:) = L_residual(:)
+                  if (nsteps == 1) L_residual_best(:) = L_residual(:) * L_mag_factor
 
                   ! Use equipartition of spin kinetic energy to distribution spin angular momentum
 #ifdef DOCONLOC
@@ -768,7 +769,7 @@ contains
                                    (fragments%radius(i) / fragments%radius(istart))**2 * &
                                    (fragments%Ip(3,i) / fragments%Ip(3,istart)))**(1.5_DP)
                   end do
-                  dL1_mag = .mag.L_residual(:) / sum(dLi_mag(istart:fragments%nbody))
+                  dL1_mag = .mag.L_residual(:) * L_mag_factor / sum(dLi_mag(istart:fragments%nbody))
 
                   do i = istart,fragments%nbody
                      dL(:) = -dL1_mag * dLi_mag(i) * L_residual_unit(:)
@@ -789,20 +790,22 @@ contains
                            fragments%rot(:,i) = fragments%rotmag(i) * .unit. fragments%rot(:,i)
                         end if
                      end if
-                     L_residual(:) = L_residual(:) + drot(:) * fragments%Ip(3,i) * fragments%mass(i) * fragments%radius(i)**2 
+                     L_residual(:) = L_residual(:) + drot(:) * fragments%Ip(3,i) * fragments%mass(i) * fragments%radius(i)**2 & 
+                                                      / L_mag_factor
                   end do
 
                   ! Put any remaining residual into velocity shear
                   angmtm: do j = 1, MAXANGMTM
                      if (j == MAXANGMTM) exit inner
                      call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
-                     L_residual(:) = (collider_local%L_total(:,2) - collider_local%L_total(:,1))
-                     dL_metric(:) = abs(L_residual(:)) / .mag.(collider_local%L_total(:,1)) / MOMENTUM_SUCCESS_METRIC
+                     L_mag_factor = .mag.(collider_local%L_total(:,1) + collider_local%L_total(:,2))
+                     L_residual(:) = (collider_local%L_total(:,2) / L_mag_factor - collider_local%L_total(:,1)/L_mag_factor)
+                     dL_metric(:) = abs(L_residual(:)) / MOMENTUM_SUCCESS_METRIC
 
                      if (all(dL_metric(:) <= 1.0_DP)) exit angmtm
    
                      do i = istart, fragments%nbody
-                        dL(:) = -L_residual(:) * fragments%mass(i) / sum(fragments%mass(istart:fragments%nbody))
+                        dL(:) = -L_residual(:) * L_mag_factor * fragments%mass(i) / sum(fragments%mass(istart:fragments%nbody))
                         call collision_util_velocity_torque(dL, fragments%mass(i), fragments%rc(:,i), fragments%vc(:,i))
                      end do
                      call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)  
@@ -817,8 +820,9 @@ contains
                   E_residual_last = E_residual
                   E_residual = dE + impactors%Qloss
 
-                  L_residual(:) = (collider_local%L_total(:,2) - collider_local%L_total(:,1))
-                  dL_metric(:) = abs(L_residual(:)) / .mag.collider_local%L_total(:,1) / MOMENTUM_SUCCESS_METRIC
+                  L_mag_factor = .mag.(collider_local%L_total(:,1) + collider_local%L_total(:,2))
+                  L_residual(:) = (collider_local%L_total(:,2) / L_mag_factor - collider_local%L_total(:,1) / L_mag_factor)
+                  dL_metric(:) = abs(L_residual(:)) / MOMENTUM_SUCCESS_METRIC
                   dE_conv = abs(E_residual - E_residual_last) / abs(E_residual_last) 
 
                   ! Check if we've converged on our constraints
@@ -826,7 +830,7 @@ contains
                      if ((abs(E_residual) < abs(E_residual_best)) .or. ((dE < 0.0_DP) .and. (dE_best >= 0.0_DP))) then 
                         ! This is our best case so far. Save it for posterity
                         E_residual_best = E_residual
-                        L_residual_best(:) = L_residual(:)
+                        L_residual_best(:) = L_residual(:) * L_mag_factor
                         dE_best = dE
                         nsteps_best = nsteps
 
@@ -877,8 +881,9 @@ contains
                                                               // trim(adjustl(message)) // " steps.")
 
             call collider%get_energy_and_momentum(nbody_system, param, phase="after")
-            L_residual(:) = (collider%L_total(:,2) - collider%L_total(:,1))
-            call collision_util_velocity_torque(-L_residual(:), collider%fragments%mtot, impactors%rbcom, impactors%vbcom)
+            L_mag_factor = .mag.(collider%L_total(:,1) + collider%L_total(:,2))
+            L_residual(:) = (collider%L_total(:,2) / L_mag_factor - collider%L_total(:,1)) / L_mag_factor
+            call collision_util_velocity_torque(-L_residual(:) * L_mag_factor, collider%fragments%mtot, impactors%rbcom, impactors%vbcom)
 
 #ifdef DOCONLOC
             do concurrent(i = 1:nfrag) shared(collider, impactors)
