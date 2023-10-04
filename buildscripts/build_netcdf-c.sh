@@ -15,10 +15,6 @@ set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 . ${SCRIPT_DIR}/set_compilers.sh
-# Get the OpenMP Libraries
-if [ $OS = "MacOSX" ]; then
-    ${SCRIPT_DIR}/get_lomp.sh ${ARGS}
-fi
 
 NPROC=$(nproc)
 

@@ -412,15 +412,16 @@ class Simulation(object):
         if len(kwargs) > 0:
             self.set_parameter(**kwargs)
 
-        # Write out the current parameter set before executing run
-        self.write_param()
-
         if self.codename != "Swiftest":
             warnings.warn(f"Running an integration is not yet supported for {self.codename}",stacklevel=2)
             return
 
+        # Save initial conditions
         if not self.restart:
             self.clean()
+            
+        # Write out the current parameter set before executing run
+        self.write_param(verbose=False,**kwargs)
 
         print(f"Running a {self.codename} {self.integrator} run from tstart={self.param['TSTART']} {self.TU_name} to tstop={self.param['TSTOP']} {self.TU_name}")
 
@@ -2176,10 +2177,8 @@ class Simulation(object):
         dsnew = init_cond.vec2xr(self.param,**kwargs)
 
         dsnew = self._combine_and_fix_dsnew(dsnew)
-        if dsnew['npl'] > 0 or dsnew['ntp'] > 0:
+        if dsnew['id'].max(dim='name') > 0 and dsnew['name'].size > 0:
            self.save(verbose=False)
-           
-           
 
         self.init_cond = self.data.copy(deep=True)
 
