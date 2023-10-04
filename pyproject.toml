@@ -26,18 +26,19 @@ keywords=['astronomy','astrophysics', 'planetary', 'nbody integrator', 'symplect
 dependencies = [
     'numpy>=1.24.3',
     'scipy>=1.10.1',
-    'xarray>=2022.11.0',
-    'dask>=2022.1',
-    'distributed>=2022.1',
-    'bottleneck>=1.3.5',
-    'h5netcdf',
-    'h5py',
-    'netcdf4',
-    'matplotlib>=3.7.1',
-    'astropy>=5.1',
+    'xarray>=2023.1',
+    'dask>=2023.5',
+    'distributed>=2023.5',
+    'bottleneck>=1.3',
+    'h5netcdf>=1.1',
+    'h5py>=3.9',
+    'netcdf4>=1.6.4',
+    'matplotlib>=3.7',
+    'astropy>=5.2',
     'astroquery>=0.4.6',
-    'tqdm>=4.65.0',
+    'tqdm>=4.66',
     'cython>=3.0.0',
+    'pyshtools>=4.10'
 ]
 
 [project.urls]
@@ -98,14 +99,14 @@ netCDF-Fortran_DIR="${PREFIX}/lib/cmake/netCDF"
 
 [tool.cibuildwheel.macos]
 before-all = [
-    "brew install coreutils",
-    "LIBS=\"\" buildscripts/build_dependencies.sh -p ${PREFIX} -d ${HOME}/Downloads -m ${MACOSX_DEPLOYMENT_TARGET}"
+    "brew install coreutils shtools",
+    "LIBS=\"\" buildscripts/build_dependencies.sh -p ${PREFIX} -d ${PREFIX}/build -m ${MACOSX_DEPLOYMENT_TARGET}"
 ]
 
 [tool.cibuildwheel.linux]
 skip = "cp312-* pp* -manylinux_i686* *-musllinux*"
 before-all = [
-    "yum install doxygen libxml2-devel libcurl-devel -y",
+    "yum install doxygen libxml2-devel libcurl-devel fftw-devel blas-devel lapack-devel -y",
     "buildscripts/build_dependencies.sh -p /usr/local"
 ]
 [tool.cibuildwheel.linux.environment]
