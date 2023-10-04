@@ -32,7 +32,8 @@ from numpy.random import default_rng
 import matplotlib.pyplot as plt
 
 # Initialize simulation object
-sim = swiftest.Simulation(compute_conservation_values=True,  rotation=True, init_cond_format="EL",collision_model="fraggle",encounter_save="none")
+sim = swiftest.Simulation(compute_conservation_values=True, rotation=True, init_cond_format="EL",collision_model="fraggle",encounter_save="none")
+sim.clean()
 
 # Add bodies described in Chambers (2013) Sec. 2.1, with the uniform spatial distribution and two bodies sizes (big and small)
 Nb = 14
@@ -40,6 +41,7 @@ Ns = 140
 Mb = 2.8e-7 * 14 / Nb
 Ms = 2.8e-8 * 140 / Ns
 dens = 3000.0 * sim.KG2MU / sim.M2DU**3
+rot = 1e-6 / sim.TU2S # Use a small but non-zero value for the initial rotation state to prevent divide-by-zero errors in analysis
 
 mtiny = 1e-2 * Ms
 minimum_fragment_mass = 1e-5 * Ms
@@ -55,37 +57,33 @@ def a_profile(n_bodies):
     The region with a < 0.7 AU deviates from this law, declining linearly with decreasing distance until R = 0 at 0.3 AU. 
     The outer edge of the disk is 2 AU in all cases.
     """
-    def sample(r_inner, r_break, r_outer, slope1, slope2):
-       """ 
-       Define the functions to pull random semi-major axes from a distribution using a rejection sampling method
-       This defines a 2-slope model with a break at r_break
-       Based on (https://stackoverflow.com/questions/66874819/random-numbers-with-user-defined-continuous-probability-distribution)
-       """
-       while True:
-          x = rng.uniform(r_inner, r_outer, size=1)
+    def sample(r_inner, r_break, r_outer, slope1, slope2, size):
+        """ 
+        Define the functions to pull random semi-major axes from a distribution using a rejection sampling method
+        This defines a 2-slope model with a break at r_break
+        Based on (https://stackoverflow.com/questions/66874819/random-numbers-with-user-defined-continuous-probability-distribution)
+        """
+        y=np.ones([size])
+        pdf=np.zeros([size])
+        x=np.empty_like(y)
+        while np.any(y>pdf): 
+            x = np.where(y>pdf,rng.uniform(r_inner, r_outer, size=size),x)
           
-          # The proportionality factor A ensures that the PDF approaches the same value on either side of the break point
-          # Assumes the break point is the max of the PDF
-          if x < r_break:
-              slope = slope1 + 1
-              A = 1.0
-          else:
-              slope = slope2 + 1
-              A = r_break**(slope1-slope2) 
-          y = rng.uniform(0, A*r_break**slope, size=1)
-          pdf = A*x**(slope)
-          if (y < pdf):
-                return x
-
+            # The proportionality factor A ensures that the PDF approaches the same value on either side of the break point
+            # Assumes the break point is the max of the PDF
+            A=np.where(x < r_break,1.0,r_break**(slope1-slope2))
+            slope=np.where(x < r_break,slope1+1,slope2+1)
+            y = np.where(y>pdf,rng.uniform(0, A*r_break**slope, size=size),y)
+            pdf = np.where(y>pdf,A*x**(slope),pdf)
+        return x
+    
     a_inner = 0.3
     a_break = 0.7
     a_outer = 2.0
     slope1 = 1.0
     slope2 = -1.5
-    
-    a_vals = np.zeros(n_bodies)
-    for k in range(n_bodies):
-        a_vals[k] = sample(a_inner, a_break, a_outer, slope1, slope2)
+   
+    a_vals = sample(a_inner, a_break, a_outer, slope1, slope2, n_bodies)
     return a_vals
 
 # Define the initial orbital elements of the big and small bodies
@@ -107,8 +105,8 @@ capmvalb = rng.uniform(0.0, 360.0, Nb)
 capmvals = rng.uniform(0.0, 360.0, Ns)
 Ipvalb = np.full((Nb,3), 0.4)
 Ipvals = np.full((Ns,3), 0.4)
-rotvalb = np.zeros_like(Ipvalb)
-rotvals = np.zeros_like(Ipvals)
+rotvalb = np.full_like(Ipvalb,rot)
+rotvals = np.full_like(Ipvals,rot)
 
 noise_digits = 4 # Approximately the number of digits of precision to vary the mass values to avoid duplicate masses
 epsilon = np.finfo(float).eps
@@ -132,8 +130,7 @@ sim.add_body(name=names, a=avals, e=evals, inc=incvals, capom=capomvals, omega=o
 sim.set_parameter(mtiny=mtiny, minimum_fragment_mass=minimum_fragment_mass, nfrag_reduction=nfrag_reduction)
 
 sim.set_parameter(tstop=3e8, dt=6.0875/365.25, istep_out=60000, dump_cadence=10)
-sim.clean()
-sim.write_param()
+sim.save()
 
 # Plot the initial conditions
 fig = plt.figure(figsize=(8.5, 11))
