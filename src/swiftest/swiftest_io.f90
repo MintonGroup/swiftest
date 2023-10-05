@@ -22,14 +22,16 @@ contains
       interface fmt
          !! author: David Minton
          !!
-         !! Formats a pair of variables and corresponding values for the compact display output. Generic interface for different variable types to format.
+         !! Formats a pair of variables and corresponding values for the compact display output. Generic interface for different 
+         !! variable types to format.
          procedure :: fmt_I4B, fmt_I8B, fmt_DP
       end interface
 
       ! Arguments
       class(swiftest_nbody_system), intent(in) :: self  !! Swiftest nbody system object   
       class(swiftest_parameters),   intent(in) :: param !! Input colleciton of user-defined parameters
-      class(*),                     intent(in) :: timer !! Object used for computing elapsed wall time  (must be unlimited polymorphic because the walltimer module requires base)
+      class(*),                     intent(in) :: timer !! Object used for computing elapsed wall time  (must be unlimited 
+                                                        !! polymorphic because the walltimer module requires base)
       ! Internals
       character(len=:), allocatable :: formatted_output
 
@@ -41,17 +43,20 @@ contains
             formatted_output = formatted_output // fmt("NPLM",pl%nplm)
          end select
          if (param%lenergy) then
-            formatted_output = formatted_output // fmt("LTOTERR",self%L_total_error) // fmt("ETOTERR",self%te_error) // fmt("MTOTERR",self%Mtot_error) &
-                             // fmt("KEOERR",self%ke_orbit_error) // fmt("PEERR",self%pe_error) // fmt("EORBERR",self%E_orbit_error) &
-                             // fmt("EUNTRERR",self%E_untracked_error) // fmt("LESCERR",self%L_escape_error) // fmt("MESCERR",self%Mescape_error)
+            formatted_output = formatted_output // fmt("LTOTERR",self%L_total_error) // fmt("ETOTERR",self%te_error) &
+                             // fmt("MTOTERR",self%Mtot_error) // fmt("KEOERR",self%ke_orbit_error) // fmt("PEERR",self%pe_error) &
+                             // fmt("EORBERR",self%E_orbit_error) // fmt("EUNTRERR",self%E_untracked_error) &
+                             // fmt("LESCERR",self%L_escape_error) // fmt("MESCERR",self%Mescape_error)
             if (param%lclose) formatted_output = formatted_output // fmt("ECOLLERR",self%Ecoll_error)
-            if (param%lrotation) formatted_output = formatted_output // fmt("KESPINERR",self%ke_spin_error) // fmt("LSPINERR",self%L_spin_error) 
+            if (param%lrotation) formatted_output = formatted_output // fmt("KESPINERR",self%ke_spin_error) &
+                             // fmt("LSPINERR",self%L_spin_error) 
          end if
 
          if (.not. timer%main_is_started) then ! This is the start of a new run
             formatted_output =  formatted_output // fmt("WT",0.0_DP) // fmt("IWT",0.0_DP) // fmt("WTPS",0.0_DP) 
          else
-            formatted_output = formatted_output // fmt("WT",timer%wall_main) // fmt("IWT",timer%wall_step) // fmt("WTPS",timer%wall_per_substep)
+            formatted_output = formatted_output // fmt("WT",timer%wall_main) // fmt("IWT",timer%wall_step) &
+                                               // fmt("WTPS",timer%wall_per_substep)
          end if
          write(*,*) formatted_output
       end select
@@ -123,12 +128,13 @@ contains
       real(DP), dimension(NDIM)       :: L_total_now,  L_orbit_now,  L_spin_now
       real(DP)                        :: ke_orbit_now,  ke_spin_now,  pe_now,  E_orbit_now, be_now, be_cb_now, be_cb_orig, te_now
       real(DP)                        :: GMtot_now
-      character(len=*), parameter     :: EGYTERMFMT = '(" DL/L0 = ", ES12.5, "; DE_orbit/|E0| = ", ES12.5, "; DE_total/|E0| = ", ES12.5, "; DM/M0 = ", ES12.5)'
+      character(len=*), parameter     :: EGYTERMFMT = '(" DL/L0 = ", ES12.5, "; DE_orbit/|E0| = ", ES12.5,' &
+                                                     //'"; DE_total/|E0| = ", ES12.5, "; DM/M0 = ", ES12.5)'
 
       associate(nbody_system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, display_unit => param%display_unit)
 
          select type(self)
-         class is (helio_nbody_system) ! Don't convert vh to vb for Helio-based integrators, because they are already have that calculated
+         class is (helio_nbody_system) ! Don't convert vh to vb for Helio-based integrators, because it's already calculated
          class is (whm_nbody_system)
             call pl%vh2vb(cb)
          end select
@@ -168,12 +174,14 @@ contains
             nbody_system%pe_error = (pe_now - nbody_system%pe_orig) / abs(nbody_system%E_orbit_orig)
 
             be_cb_orig = -(3 * cb%GM0**2 / param%GU) / (5 * cb%R0)
-            nbody_system%be_error = (be_now - nbody_system%be_orig) / abs(nbody_system%te_orig) + (be_cb_now - be_cb_orig) / abs(nbody_system%te_orig)
+            nbody_system%be_error = (be_now - nbody_system%be_orig) / abs(nbody_system%te_orig) + (be_cb_now - be_cb_orig) & 
+                                    / abs(nbody_system%te_orig)
 
             nbody_system%E_orbit_error = (E_orbit_now - nbody_system%E_orbit_orig) / abs(nbody_system%E_orbit_orig)
             nbody_system%Ecoll_error = nbody_system%E_collisions / abs(nbody_system%te_orig)
             nbody_system%E_untracked_error = nbody_system%E_untracked / abs(nbody_system%te_orig)
-            nbody_system%te_error = (nbody_system%te - nbody_system%te_orig - nbody_system%E_collisions - nbody_system%E_untracked) / abs(nbody_system%te_orig) + (be_cb_now - be_cb_orig) / abs(nbody_system%te_orig)
+            nbody_system%te_error = (nbody_system%te - nbody_system%te_orig - nbody_system%E_collisions - nbody_system%E_untracked)&
+                                   / abs(nbody_system%te_orig) + (be_cb_now - be_cb_orig) / abs(nbody_system%te_orig)
 
             nbody_system%L_orbit_error = norm2(L_orbit_now(:) - nbody_system%L_orbit_orig(:)) / norm2(nbody_system%L_total_orig(:))
             nbody_system%L_spin_error = norm2(L_spin_now(:) - nbody_system%L_spin_orig(:)) / norm2(nbody_system%L_total_orig(:))
@@ -185,7 +193,8 @@ contains
    if (this_image() == 1 .or. param%log_output) then
 #endif 
             if (lterminal) then
-               write(display_unit, EGYTERMFMT) nbody_system%L_total_error, nbody_system%E_orbit_error, nbody_system%te_error,nbody_system%Mtot_error
+               write(display_unit, EGYTERMFMT) nbody_system%L_total_error, nbody_system%E_orbit_error, nbody_system%te_error, &
+                                               nbody_system%Mtot_error
                if (param%log_output) flush(display_unit)
             end if
 
@@ -251,9 +260,11 @@ contains
 #endif
          if (phase_val == 0) then
             if (param%lrestart) then
-               write(param%display_unit, *) " *************** Swiftest restart " // trim(adjustl(param%integrator)) // " *************** "
+               write(param%display_unit, *) " *************** Swiftest " // VERSION // " restart " // &
+                                               trim(adjustl(param%integrator)) // " *************** "
             else
-               write(param%display_unit, *) " *************** Swiftest start " // trim(adjustl(param%integrator)) // " *************** "
+               write(param%display_unit, *) " *************** Swiftest " // VERSION // " start " // &
+                                              trim(adjustl(param%integrator)) // " *************** "
             end if
             if (param%display_style == "PROGRESS") then
                call pbar%reset(param%nloops)
@@ -306,6 +317,7 @@ contains
          if (phase_val == -1) then
             write(param%display_unit, *)" *************** Swiftest stop " // trim(adjustl(param%integrator)) // " *************** "
             if (param%display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // trim(adjustl(param%integrator))
+            if (param%log_output) close(param%display_unit)
          end if
 
 #ifdef COARRAY
@@ -360,13 +372,17 @@ contains
       class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
       class(swiftest_storage),      intent(inout) :: system_history    !! Stores the system history between output dumps
       ! Internals
-      class(swiftest_parameters), allocatable :: param_restart !! Local parameters variable used to parameters change input file names 
-                                                            !! to dump file-specific values without changing the user-defined values
+      class(swiftest_parameters), allocatable :: param_restart !! Local parameters variable used to parameters change input file 
+                                                               !! names to dump file-specific values without changing the 
+                                                               !! user-defined values
       character(len=:), allocatable :: param_file_name
       character(len=STRMAX) :: time_text
    
       ! Dump the encounter history if necessary
-      if (param%lenc_save_trajectory .or. param%lenc_save_closest .and. allocated(self%encounter_history)) call self%encounter_history%dump(param)
+      if (param%lenc_save_trajectory &
+         .or. param%lenc_save_closest &
+         .and. allocated(self%encounter_history)) &
+            call self%encounter_history%dump(param)
       if (allocated(self%collision_history)) call self%collision_history%dump(param)
 
       ! Dump the nbody_system history to file
@@ -454,8 +470,10 @@ contains
       ! Arguments
       character(len=:), intent(inout), allocatable :: integrator      !! Symbolic code of the requested integrator  
       character(len=:), intent(inout), allocatable :: param_file_name !! Name of the input parameters file
-      character(len=:), intent(inout), allocatable :: display_style   !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
-      logical,          intent(in)                 :: from_cli        !! If true, get command-line arguments. Otherwise, use the values of the input variables
+      character(len=:), intent(inout), allocatable :: display_style   !! Style of the output display 
+                                                                      !! {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
+      logical,          intent(in)                 :: from_cli        !! If true, get command-line arguments. Otherwise, use the 
+                                                                      !! values of the input variables
       ! Internals
       character(len=STRMAX), dimension(:), allocatable :: arg
       character(len=STRMAX), dimension(3)              :: tmp_arg
@@ -543,7 +561,7 @@ contains
    module function swiftest_io_get_token(buffer, ifirst, ilast, ierr) result(token)
       !! author: David A. Minton
       !!
-      !! Retrieves a character token from an input string. Here a token is defined as any set of contiguous non-blank characters not 
+      !! Retrieves a character token from an input string. Here a token is defined as any set of contiguous non-blank characters not
       !! beginning with or containing "!". If "!" is present, any remaining part of the buffer including the "!" is ignored
       !!
       !! Adapted from David E. Kaufmann's Swifter routine swiftest_io_get_token.f90
@@ -675,35 +693,44 @@ contains
       associate (cb => self%cb)
          call nc%open(param, readonly=.true.)
          call nc%find_tslot(param%t0, tslot)
-         call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%time_dimid, len=itmax), "netcdf_io_get_t0_values_system time_dimid" )
-         call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%name_dimid, len=idmax), "netcdf_io_get_t0_values_system name_dimid" )
+         call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%time_dimid, len=itmax), "netcdf_io_get_t0_values_system time_dimid")
+         call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%name_dimid, len=idmax), "netcdf_io_get_t0_values_system name_dimid")
          allocate(vals(idmax))
-         call netcdf_io_check( nf90_get_var(nc%id, nc%time_varid, rtemp, start=[tslot], count=[1]), "netcdf_io_get_t0_values_system time_varid" )
+         call netcdf_io_check( nf90_get_var(nc%id, nc%time_varid, rtemp, start=[tslot], count=[1]), &
+                              "netcdf_io_get_t0_values_system time_varid" )
 
          if (param%lenergy) then
-            call netcdf_io_check( nf90_get_var(nc%id, nc%KE_orb_varid, rtemp, start=[tslot], count=[1]), "netcdf_io_get_t0_values_system KE_orb_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%KE_orb_varid, rtemp, start=[tslot], count=[1]), & 
+                                  "netcdf_io_get_t0_values_system KE_orb_varid" )
             self%ke_orbit_orig = rtemp(1)
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%KE_spin_varid, rtemp, start=[tslot], count=[1]), "netcdf_io_get_t0_values_system KE_spin_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%KE_spin_varid, rtemp, start=[tslot], count=[1]), &
+                                 "netcdf_io_get_t0_values_system KE_spin_varid" )
             self%ke_spin_orig = rtemp(1)
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%PE_varid, rtemp, start=[tslot], count=[1]), "netcdf_io_get_t0_values_system PE_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%PE_varid, rtemp, start=[tslot], count=[1]), &
+                                  "netcdf_io_get_t0_values_system PE_varid" )
             self%pe_orig = rtemp(1)
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%BE_varid, rtemp, start=[tslot], count=[1]), "netcdf_io_get_t0_values_system BE_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%BE_varid, rtemp, start=[tslot], count=[1]), &
+                                  "netcdf_io_get_t0_values_system BE_varid" )
             self%be_orig = rtemp(1)
             
-            call netcdf_io_check( nf90_get_var(nc%id, nc%TE_varid, rtemp, start=[tslot], count=[1]), "netcdf_io_get_t0_values_system TE_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%TE_varid, rtemp, start=[tslot], count=[1]), &
+                                  "netcdf_io_get_t0_values_system TE_varid" )
             self%te_orig = rtemp(1)
 
             self%E_orbit_orig = self%ke_orbit_orig + self%pe_orig
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%L_orbit_varid, self%L_orbit_orig(:), start=[1,tslot], count=[NDIM,1]), "netcdf_io_get_t0_values_system L_orbit_varid" )
-            call netcdf_io_check( nf90_get_var(nc%id, nc%L_spin_varid, self%L_spin_orig(:), start=[1,tslot], count=[NDIM,1]), "netcdf_io_get_t0_values_system L_spin_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%L_orbit_varid, self%L_orbit_orig(:), start=[1,tslot], count=[NDIM,1]), &
+                                  "netcdf_io_get_t0_values_system L_orbit_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%L_spin_varid, self%L_spin_orig(:), start=[1,tslot], count=[NDIM,1]), &
+                                  "netcdf_io_get_t0_values_system L_spin_varid" )
 
             self%L_total_orig(:) = self%L_orbit_orig(:) + self%L_spin_orig(:) 
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%Gmass_varid, vals, start=[1,tslot], count=[idmax,1]), "netcdf_io_get_t0_values_system Gmass_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%Gmass_varid, vals, start=[1,tslot], count=[idmax,1]), &
+                                  "netcdf_io_get_t0_values_system Gmass_varid" )
             call nc%get_valid_masks(plmask,tpmask)
             self%GMtot_orig = vals(1) + sum(vals(2:idmax), plmask(:))
 
@@ -711,13 +738,16 @@ contains
             cb%dGM = cb%Gmass - cb%GM0
             mass0 = cb%GM0 / param%GU
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%radius_varid, rtemp, start=[1,tslot], count=[1,1]), "netcdf_io_get_t0_values_system radius_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%radius_varid, rtemp, start=[1,tslot], count=[1,1]), &
+                                  "netcdf_io_get_t0_values_system radius_varid" )
             cb%R0 = rtemp(1) 
 
             if (param%lrotation) then
-               call netcdf_io_check( nf90_get_var(nc%id, nc%rot_varid, rot0, start=[1,1,tslot], count=[NDIM,1,1]), "netcdf_io_get_t0_values_system rot_varid" )
+               call netcdf_io_check( nf90_get_var(nc%id, nc%rot_varid, rot0, start=[1,1,tslot], count=[NDIM,1,1]), &
+                                     "netcdf_io_get_t0_values_system rot_varid" )
                rot0(:) = rot0(:) * DEG2RAD
-               call netcdf_io_check( nf90_get_var(nc%id, nc%Ip_varid, Ip0, start=[1,1,tslot], count=[NDIM,1,1]), "netcdf_io_get_t0_values_system Ip_varid" )
+               call netcdf_io_check( nf90_get_var(nc%id, nc%Ip_varid, Ip0, start=[1,1,tslot], count=[NDIM,1,1]), &
+                                     "netcdf_io_get_t0_values_system Ip_varid" )
                cb%L0(:) = Ip0(3) * mass0 * cb%R0**2 * rot0(:)
                L(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
                cb%dL(:) = L(:) - cb%L0
@@ -725,10 +755,14 @@ contains
 
             ! Retrieve the current bookkeeping variables
             call nc%find_tslot(self%t, tslot)
-            call netcdf_io_check( nf90_get_var(nc%id, nc%L_escape_varid, self%L_escape(:),  start=[1,tslot], count=[NDIM,1]), "netcdf_io_get_t0_values_system L_escape_varid" )
-            call netcdf_io_check( nf90_get_var(nc%id, nc%GMescape_varid,    self%GMescape,    start=[tslot]), "netcdf_io_get_t0_values_system GMescape_varid" )
-            call netcdf_io_check( nf90_get_var(nc%id, nc%E_collisions_varid, self%E_collisions, start=[tslot]), "netcdf_io_get_t0_values_system E_collisions_varid" )
-            call netcdf_io_check( nf90_get_var(nc%id, nc%E_untracked_varid,  self%E_untracked,  start=[tslot]), "netcdf_io_get_t0_values_system E_untracked_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%L_escape_varid, self%L_escape(:),  start=[1,tslot], count=[NDIM,1]), &
+                                  "netcdf_io_get_t0_values_system L_escape_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%GMescape_varid,    self%GMescape,    start=[tslot]), &
+                                  "netcdf_io_get_t0_values_system GMescape_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%E_collisions_varid, self%E_collisions, start=[tslot]), &
+                                  "netcdf_io_get_t0_values_system E_collisions_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%E_untracked_varid,  self%E_untracked,  start=[tslot]), &
+                                   "netcdf_io_get_t0_values_system E_untracked_varid" )
 
          end if
 
@@ -784,115 +818,194 @@ contains
          nc%lfile_is_open = .true.
 
          ! Dimensions
-         call netcdf_io_check( nf90_def_dim(nc%id, nc%time_dimname, NF90_UNLIMITED, nc%time_dimid), "netcdf_io_initialize_output nf90_def_dim time_dimid" ) ! Simulation time dimension
-         call netcdf_io_check( nf90_def_dim(nc%id, nc%space_dimname, NDIM, nc%space_dimid), "netcdf_io_initialize_output nf90_def_dim space_dimid" )           ! 3D space dimension
-         call netcdf_io_check( nf90_def_dim(nc%id, nc%name_dimname, NF90_UNLIMITED, nc%name_dimid), "netcdf_io_initialize_output nf90_def_dim name_dimid" )       ! dimension to store particle id numbers
-         call netcdf_io_check( nf90_def_dim(nc%id, nc%str_dimname, NAMELEN, nc%str_dimid), "netcdf_io_initialize_output nf90_def_dim str_dimid"  )          ! Dimension for string variables (aka character arrays)
+         call netcdf_io_check( nf90_def_dim(nc%id, nc%time_dimname, NF90_UNLIMITED, nc%time_dimid), &
+                               "netcdf_io_initialize_output nf90_def_dim time_dimid" ) ! Simulation time dimension
+         call netcdf_io_check( nf90_def_dim(nc%id, nc%space_dimname, NDIM, nc%space_dimid), &
+                               "netcdf_io_initialize_output nf90_def_dim space_dimid" ) ! 3D space dimension
+         call netcdf_io_check( nf90_def_dim(nc%id, nc%name_dimname, NF90_UNLIMITED, nc%name_dimid), &
+                               "netcdf_io_initialize_output nf90_def_dim name_dimid" ) ! dimension to store particle id numbers
+         call netcdf_io_check( nf90_def_dim(nc%id, nc%str_dimname, NAMELEN, nc%str_dimid), &
+                               "netcdf_io_initialize_output nf90_def_dim str_dimid"  )  ! Dimension for string variables 
 
          ! Dimension coordinates
-         call netcdf_io_check( nf90_def_var(nc%id, nc%time_dimname, nc%out_type, nc%time_dimid, nc%time_varid), "netcdf_io_initialize_output nf90_def_var time_varid"  )
-         call netcdf_io_check( nf90_def_var(nc%id, nc%space_dimname, NF90_CHAR, nc%space_dimid, nc%space_varid), "netcdf_io_initialize_output nf90_def_var space_varid"  )
-         call netcdf_io_check( nf90_def_var(nc%id, nc%name_dimname, NF90_CHAR, [nc%str_dimid, nc%name_dimid], nc%name_varid), "netcdf_io_initialize_output nf90_def_var name_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%time_dimname, nc%out_type, nc%time_dimid, nc%time_varid), &
+                              "netcdf_io_initialize_output nf90_def_var time_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%space_dimname, NF90_CHAR, nc%space_dimid, nc%space_varid), &
+                               "netcdf_io_initialize_output nf90_def_var space_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%name_dimname, NF90_CHAR, [nc%str_dimid, nc%name_dimid], nc%name_varid), &
+                               "netcdf_io_initialize_output nf90_def_var name_varid"  )
 
          ! Variables
-         call netcdf_io_check( nf90_def_var(nc%id, nc%id_varname, NF90_INT, nc%name_dimid, nc%id_varid), "netcdf_io_initialize_output nf90_def_var id_varid"  )
-         call netcdf_io_check( nf90_def_var(nc%id, nc%status_varname, NF90_INT, [nc%name_dimid, nc%time_dimid], nc%status_varid), "netcdf_io_initialize_output nf90_def_var status_varid"  )
-         call netcdf_io_check( nf90_def_var(nc%id, nc%npl_varname, NF90_INT, nc%time_dimid, nc%npl_varid), "netcdf_io_initialize_output nf90_def_var npl_varid"  )
-         call netcdf_io_check( nf90_def_var(nc%id, nc%ntp_varname, NF90_INT, nc%time_dimid, nc%ntp_varid), "netcdf_io_initialize_output nf90_def_var ntp_varid"  )
-         if (param%lmtiny_pl) call netcdf_io_check( nf90_def_var(nc%id, nc%nplm_varname, NF90_INT, nc%time_dimid, nc%nplm_varid), "netcdf_io_initialize_output nf90_def_var nplm_varid"  )
-         call netcdf_io_check( nf90_def_var(nc%id, nc%ptype_varname, NF90_CHAR, [nc%str_dimid, nc%name_dimid], nc%ptype_varid), "netcdf_io_initialize_output nf90_def_var ptype_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%id_varname, NF90_INT, nc%name_dimid, nc%id_varid), &
+                               "netcdf_io_initialize_output nf90_def_var id_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%status_varname, NF90_INT, [nc%name_dimid, nc%time_dimid], nc%status_varid), &
+                               "netcdf_io_initialize_output nf90_def_var status_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%npl_varname, NF90_INT, nc%time_dimid, nc%npl_varid), &
+                               "netcdf_io_initialize_output nf90_def_var npl_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%ntp_varname, NF90_INT, nc%time_dimid, nc%ntp_varid), &
+                               "netcdf_io_initialize_output nf90_def_var ntp_varid"  )
+         if (param%lmtiny_pl) call netcdf_io_check( nf90_def_var(nc%id, nc%nplm_varname, NF90_INT, nc%time_dimid, nc%nplm_varid), &
+                               "netcdf_io_initialize_output nf90_def_var nplm_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%ptype_varname, NF90_CHAR, [nc%str_dimid, nc%name_dimid], nc%ptype_varid), &
+                               "netcdf_io_initialize_output nf90_def_var ptype_varid"  )
 
          if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
-            call netcdf_io_check( nf90_def_var(nc%id, nc%rh_varname,  nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%rh_varid), "netcdf_io_initialize_output nf90_def_var rh_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%vh_varname,  nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%vh_varid), "netcdf_io_initialize_output nf90_def_var vh_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%rh_varname,  nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], &
+                                  nc%rh_varid), "netcdf_io_initialize_output nf90_def_var rh_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%vh_varname,  nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], &
+                                 nc%vh_varid), "netcdf_io_initialize_output nf90_def_var vh_varid"  )
 
-            !! When GR is enabled, we need to save the pseudovelocity vectors in addition to the true heliocentric velocity vectors, otherwise
-            !! we cannnot expect bit-identical runs from restarted runs with GR enabled due to floating point errors during the conversion.
+            !! When GR is enabled, we need to save the pseudovelocity vectors in addition to the true heliocentric velocity vectors,
+            !! otherwise !! we cannnot expect bit-identical runs from restarted runs with GR enabled due to floating point errors 
+            !! during the conversion.
             if (param%lgr) then
-               call netcdf_io_check( nf90_def_var(nc%id, nc%gr_pseudo_vh_varname, nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%gr_pseudo_vh_varid), "netcdf_io_initialize_output nf90_def_var gr_psuedo_vh_varid"  )
+               call netcdf_io_check( nf90_def_var(nc%id, nc%gr_pseudo_vh_varname, nc%out_type, &
+                                     [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%gr_pseudo_vh_varid), &
+                                     "netcdf_io_initialize_output nf90_def_var gr_psuedo_vh_varid"  )
                nc%lpseudo_vel_exists = .true.
             end if
 
          end if
       
          if ((param%out_form == "EL") .or. (param%out_form == "XVEL")) then
-            call netcdf_io_check( nf90_def_var(nc%id, nc%a_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%a_varid), "netcdf_io_initialize_output nf90_def_var a_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%e_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%e_varid), "netcdf_io_initialize_output nf90_def_var e_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%inc_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%inc_varid), "netcdf_io_initialize_output nf90_def_var inc_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%capom_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%capom_varid), "netcdf_io_initialize_output nf90_def_var capom_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%omega_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%omega_varid), "netcdf_io_initialize_output nf90_def_var omega_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%capm_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%capm_varid), "netcdf_io_initialize_output nf90_def_var capm_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%varpi_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%varpi_varid), "netcdf_io_initialize_output nf90_def_var varpi_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%lam_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%lam_varid), "netcdf_io_initialize_output nf90_def_var lam_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%f_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%f_varid), "netcdf_io_initialize_output nf90_def_var f_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%cape_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%cape_varid), "netcdf_io_initialize_output nf90_def_var cape_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%a_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%a_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var a_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%e_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%e_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var e_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%inc_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%inc_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var inc_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%capom_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], &
+                                               nc%capom_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var capom_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%omega_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], &
+                                               nc%omega_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var omega_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%capm_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], &
+                                               nc%capm_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var capm_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%varpi_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], &
+                                               nc%varpi_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var varpi_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%lam_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%lam_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var lam_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%f_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%f_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var f_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%cape_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%cape_varid),&
+                                  "netcdf_io_initialize_output nf90_def_var cape_varid"  )
          end if
 
-         call netcdf_io_check( nf90_def_var(nc%id, nc%Gmass_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%Gmass_varid), "netcdf_io_initialize_output nf90_def_var Gmass_varid"  )
-         call netcdf_io_check( nf90_def_var(nc%id, nc%mass_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%mass_varid), "netcdf_io_initialize_output nf90_def_var mass_varid"  )
-         call netcdf_io_check( nf90_def_var(nc%id, nc%rhill_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%rhill_varid), "netcdf_io_initialize_output nf90_def_var rhill_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%Gmass_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%Gmass_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var Gmass_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%mass_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%mass_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var mass_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%rhill_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%rhill_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var rhill_varid"  )
 
          if (param%lclose) then
-            call netcdf_io_check( nf90_def_var(nc%id, nc%radius_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%radius_varid), "netcdf_io_initialize_output nf90_def_var radius_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%radius_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], &
+                                               nc%radius_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var radius_varid"  )
 
-            call netcdf_io_check( nf90_def_var(nc%id, nc%origin_time_varname, nc%out_type, nc%name_dimid, nc%origin_time_varid), "netcdf_io_initialize_output nf90_def_var origin_time_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%origin_time_varname, nc%out_type, nc%name_dimid, nc%origin_time_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var origin_time_varid"  )
             call netcdf_io_check( nf90_def_var(nc%id, nc%origin_type_varname, NF90_CHAR, [nc%str_dimid, nc%name_dimid], &
-                                    nc%origin_type_varid), "netcdf_io_initialize_output nf90_create"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%origin_rh_varname, nc%out_type, [nc%space_dimid, nc%name_dimid], nc%origin_rh_varid), "netcdf_io_initialize_output nf90_def_var origin_rh_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%origin_vh_varname, nc%out_type, [nc%space_dimid, nc%name_dimid], nc%origin_vh_varid), "netcdf_io_initialize_output nf90_def_var origin_vh_varid"  )
+                                    nc%origin_type_varid), &
+                                  "netcdf_io_initialize_output nf90_create"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%origin_rh_varname, nc%out_type, [nc%space_dimid, nc%name_dimid], &
+                                               nc%origin_rh_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var origin_rh_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%origin_vh_varname, nc%out_type, [nc%space_dimid, nc%name_dimid], &
+                                               nc%origin_vh_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var origin_vh_varid"  )
 
-            call netcdf_io_check( nf90_def_var(nc%id, nc%collision_id_varname, NF90_INT, nc%name_dimid, nc%collision_id_varid), "netcdf_io_initialize_output nf90_def_var collision_id_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%discard_time_varname, nc%out_type, nc%name_dimid, nc%discard_time_varid), "netcdf_io_initialize_output nf90_def_var discard_time_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%discard_rh_varname, nc%out_type, [nc%space_dimid, nc%name_dimid], nc%discard_rh_varid), "netcdf_io_initialize_output nf90_def_var discard_rh_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%discard_vh_varname, nc%out_type, [nc%space_dimid, nc%name_dimid], nc%discard_vh_varid), "netcdf_io_initialize_output nf90_def_var discard_vh_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%discard_body_id_varname, NF90_INT, nc%name_dimid, nc%discard_body_id_varid), "netcdf_io_initialize_output nf90_def_var discard_body_id_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%collision_id_varname, NF90_INT, nc%name_dimid, nc%collision_id_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var collision_id_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%discard_time_varname, nc%out_type, nc%name_dimid, nc%discard_time_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var discard_time_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%discard_rh_varname, nc%out_type, [nc%space_dimid, nc%name_dimid], &
+                                               nc%discard_rh_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var discard_rh_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%discard_vh_varname, nc%out_type, [nc%space_dimid, nc%name_dimid], &
+                                               nc%discard_vh_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var discard_vh_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%discard_body_id_varname, NF90_INT, nc%name_dimid, &
+                                               nc%discard_body_id_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var discard_body_id_varid"  )
          end if
 
          if (param%lrotation) then
-            call netcdf_io_check( nf90_def_var(nc%id, nc%Ip_varname, nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%Ip_varid), "netcdf_io_initialize_output nf90_def_var Ip_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%rot_varname, nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%rot_varid), "netcdf_io_initialize_output nf90_def_var rot_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%Ip_varname, nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], &
+                                               nc%Ip_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var Ip_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%rot_varname, nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], &
+                                               nc%rot_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var rot_varid"  )
          end if
 
          ! if (param%ltides) then
-         !    call netcdf_io_check( nf90_def_var(nc%id, nc%k2_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%k2_varid), "netcdf_io_initialize_output nf90_def_var k2_varid"  )
-         !    call netcdf_io_check( nf90_def_var(nc%id, nc%q_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%Q_varid), "netcdf_io_initialize_output nf90_def_var Q_varid"  )
+         !    call netcdf_io_check( nf90_def_var(nc%id, nc%k2_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%k2_varid), &
+         !                        "netcdf_io_initialize_output nf90_def_var k2_varid"  )
+         !    call netcdf_io_check( nf90_def_var(nc%id, nc%q_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%Q_varid), &
+         !                        "netcdf_io_initialize_output nf90_def_var Q_varid"  )
          ! end if
 
          if (param%lenergy) then
-            call netcdf_io_check( nf90_def_var(nc%id, nc%ke_orb_varname, nc%out_type, nc%time_dimid, nc%KE_orb_varid), "netcdf_io_initialize_output nf90_def_var KE_orb_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%ke_spin_varname, nc%out_type, nc%time_dimid, nc%KE_spin_varid), "netcdf_io_initialize_output nf90_def_var KE_spin_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%pe_varname, nc%out_type, nc%time_dimid, nc%PE_varid), "netcdf_io_initialize_output nf90_def_var PE_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%be_varname, nc%out_type, nc%time_dimid, nc%BE_varid), "netcdf_io_initialize_output nf90_def_var BE_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%te_varname, nc%out_type, nc%time_dimid, nc%TE_varid), "netcdf_io_initialize_output nf90_def_var TE_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%L_orbit_varname, nc%out_type, [nc%space_dimid, nc%time_dimid], nc%L_orbit_varid), "netcdf_io_initialize_output nf90_def_var L_orbit_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%L_spin_varname, nc%out_type, [nc%space_dimid, nc%time_dimid], nc%L_spin_varid), "netcdf_io_initialize_output nf90_def_var L_spin_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%L_escape_varname, nc%out_type, [nc%space_dimid, nc%time_dimid], nc%L_escape_varid), "netcdf_io_initialize_output nf90_def_var L_escape_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%E_collisions_varname, nc%out_type, nc%time_dimid, nc%E_collisions_varid), "netcdf_io_initialize_output nf90_def_var E_collisions_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%E_untracked_varname, nc%out_type, nc%time_dimid, nc%E_untracked_varid), "netcdf_io_initialize_output nf90_def_var E_untracked_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%GMescape_varname, nc%out_type, nc%time_dimid, nc%GMescape_varid), "netcdf_io_initialize_output nf90_def_var GMescape_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%ke_orb_varname, nc%out_type, nc%time_dimid, nc%KE_orb_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var KE_orb_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%ke_spin_varname, nc%out_type, nc%time_dimid, nc%KE_spin_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var KE_spin_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%pe_varname, nc%out_type, nc%time_dimid, nc%PE_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var PE_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%be_varname, nc%out_type, nc%time_dimid, nc%BE_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var BE_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%te_varname, nc%out_type, nc%time_dimid, nc%TE_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var TE_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%L_orbit_varname, nc%out_type, [nc%space_dimid, nc%time_dimid], &
+                                               nc%L_orbit_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var L_orbit_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%L_spin_varname, nc%out_type, [nc%space_dimid, nc%time_dimid], &
+                                               nc%L_spin_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var L_spin_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%L_escape_varname, nc%out_type, [nc%space_dimid, nc%time_dimid], &
+                                               nc%L_escape_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var L_escape_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%E_collisions_varname, nc%out_type, nc%time_dimid, nc%E_collisions_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var E_collisions_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%E_untracked_varname, nc%out_type, nc%time_dimid, nc%E_untracked_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var E_untracked_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%GMescape_varname, nc%out_type, nc%time_dimid, nc%GMescape_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var GMescape_varid"  )
          end if
 
-         call netcdf_io_check( nf90_def_var(nc%id, nc%j2rp2_varname, nc%out_type, nc%time_dimid, nc%j2rp2_varid), "netcdf_io_initialize_output nf90_def_var j2rp2_varid"  )
-         call netcdf_io_check( nf90_def_var(nc%id, nc%j4rp4_varname, nc%out_type, nc%time_dimid, nc%j4rp4_varid), "netcdf_io_initialize_output nf90_def_var j4rp4_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%j2rp2_varname, nc%out_type, nc%time_dimid, nc%j2rp2_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var j2rp2_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%j4rp4_varname, nc%out_type, nc%time_dimid, nc%j4rp4_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var j4rp4_varid"  )
 
          ! Set fill mode to NaN for all variables
-         call netcdf_io_check( nf90_inquire(nc%id, nVariables=nvar), "netcdf_io_initialize_output nf90_inquire nVariables"  )
+         call netcdf_io_check( nf90_inquire(nc%id, nVariables=nvar), "netcdf_io_initialize_output nf90_inquire nVariables" )
          do varid = 1, nvar
-            call netcdf_io_check( nf90_inquire_variable(nc%id, varid, xtype=vartype, ndims=ndims), "netcdf_io_initialize_output nf90_inquire_variable"  )
+            call netcdf_io_check( nf90_inquire_variable(nc%id, varid, xtype=vartype, ndims=ndims), &
+                                  "netcdf_io_initialize_output nf90_inquire_variable"  )
             select case(vartype)
             case(NF90_INT)
                if (varid == nc%status_varid) then
                   ! Be sure the status variable fill value is the INACTIVE symbolic value
-                  call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, INACTIVE), "netcdf_io_netcdf_initialize_output nf90_def_var_fill status variable"  )
+                  call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, INACTIVE), &
+                                  "netcdf_io_netcdf_initialize_output nf90_def_var_fill status variable"  )
                else
-                  call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, NF90_FILL_INT), "netcdf_io_initialize_output nf90_def_var_fill NF90_INT"  )
+                  call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, NF90_FILL_INT), &
+                                  "netcdf_io_initialize_output nf90_def_var_fill NF90_INT"  )
                end if
             case(NF90_FLOAT)
-               call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, sfill), "netcdf_io_initialize_output nf90_def_var_fill NF90_FLOAT"  )
+               call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, sfill), &
+                                  "netcdf_io_initialize_output nf90_def_var_fill NF90_FLOAT"  )
             case(NF90_DOUBLE)
-               call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, dfill), "netcdf_io_initialize_output nf90_def_var_fill NF90_DOUBLE"  )
+               call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, dfill), &
+                                  "netcdf_io_initialize_output nf90_def_var_fill NF90_DOUBLE"  )
             case(NF90_CHAR)
-               call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, 0), "netcdf_io_initialize_output nf90_def_var_fill NF90_CHAR"  )
+               call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, 0), &
+                                  "netcdf_io_initialize_output nf90_def_var_fill NF90_CHAR"  )
             end select
          end do
 
@@ -900,9 +1013,11 @@ contains
          if (param%lclose) then
             select case (vartype)
             case(NF90_FLOAT)
-               call netcdf_io_check( nf90_def_var_fill(nc%id, nc%discard_time_varid, NO_FILL, huge(1.0_SP)), "netcdf_io_initialize_output nf90_def_var_fill discard_time NF90_FLOAT"  )
+               call netcdf_io_check( nf90_def_var_fill(nc%id, nc%discard_time_varid, NO_FILL, huge(1.0_SP)), &
+                                  "netcdf_io_initialize_output nf90_def_var_fill discard_time NF90_FLOAT"  )
             case(NF90_DOUBLE)
-               call netcdf_io_check( nf90_def_var_fill(nc%id, nc%discard_time_varid, NO_FILL, huge(1.0_DP)), "netcdf_io_initialize_output nf90_def_var_fill discard_time NF90_DOUBLE"  )
+               call netcdf_io_check( nf90_def_var_fill(nc%id, nc%discard_time_varid, NO_FILL, huge(1.0_DP)), &
+                                  "netcdf_io_initialize_output nf90_def_var_fill discard_time NF90_DOUBLE"  )
             end select
          end if
 
@@ -910,7 +1025,8 @@ contains
          call netcdf_io_check( nf90_enddef(nc%id), "netcdf_io_initialize_output nf90_enddef"  )
 
          ! Add in the space dimension coordinates
-         call netcdf_io_check( nf90_put_var(nc%id, nc%space_varid, nc%space_coords, start=[1], count=[NDIM]), "netcdf_io_initialize_output nf90_put_var space"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%space_varid, nc%space_coords, start=[1], count=[NDIM]), &
+                                  "netcdf_io_initialize_output nf90_put_var space"  )
 
       end associate
       return
@@ -945,57 +1061,82 @@ contains
          self%lfile_is_open = .true.
 
          ! Dimensions
-         call netcdf_io_check( nf90_inq_dimid(nc%id, nc%time_dimname, nc%time_dimid), "swiftest_io_netcdf_open nf90_inq_dimid time_dimid"  )
-         call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%time_dimid, nc%time_dimname, len=nc%max_tslot), "swiftest_io_netcdf_open nf90_inquire_dimension max_tslot"  )
-         call netcdf_io_check( nf90_inq_dimid(nc%id, nc%space_dimname, nc%space_dimid), "swiftest_io_netcdf_open nf90_inq_dimid space_dimid"  )
-         call netcdf_io_check( nf90_inq_dimid(nc%id, nc%name_dimname, nc%name_dimid), "swiftest_io_netcdf_open nf90_inq_dimid name_dimid"  )
-         call netcdf_io_check( nf90_inq_dimid(nc%id, nc%str_dimname, nc%str_dimid), "swiftest_io_netcdf_open nf90_inq_dimid str_dimid"  )
+         call netcdf_io_check( nf90_inq_dimid(nc%id, nc%time_dimname, nc%time_dimid), &
+                                  "swiftest_io_netcdf_open nf90_inq_dimid time_dimid"  )
+         call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%time_dimid, nc%time_dimname, len=nc%max_tslot), &
+                                  "swiftest_io_netcdf_open nf90_inquire_dimension max_tslot"  )
+         call netcdf_io_check( nf90_inq_dimid(nc%id, nc%space_dimname, nc%space_dimid), &
+                                  "swiftest_io_netcdf_open nf90_inq_dimid space_dimid"  )
+         call netcdf_io_check( nf90_inq_dimid(nc%id, nc%name_dimname, nc%name_dimid), &
+                                  "swiftest_io_netcdf_open nf90_inq_dimid name_dimid"  )
+         call netcdf_io_check( nf90_inq_dimid(nc%id, nc%str_dimname, nc%str_dimid), &
+                                  "swiftest_io_netcdf_open nf90_inq_dimid str_dimid"  )
 
          ! Dimension coordinates
-         call netcdf_io_check( nf90_inq_varid(nc%id, nc%time_dimname, nc%time_varid), "swiftest_io_netcdf_open nf90_inq_varid time_varid" )
-         call netcdf_io_check( nf90_inq_varid(nc%id, nc%space_dimname, nc%space_varid), "swiftest_io_netcdf_open nf90_inq_varid space_varid" )
-         call netcdf_io_check( nf90_inq_varid(nc%id, nc%name_dimname, nc%name_varid), "swiftest_io_netcdf_open nf90_inq_varid name_varid" )
+         call netcdf_io_check( nf90_inq_varid(nc%id, nc%time_dimname, nc%time_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid time_varid" )
+         call netcdf_io_check( nf90_inq_varid(nc%id, nc%space_dimname, nc%space_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid space_varid" )
+         call netcdf_io_check( nf90_inq_varid(nc%id, nc%name_dimname, nc%name_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid name_varid" )
 
          ! Required Variables
-         call netcdf_io_check( nf90_inq_varid(nc%id, nc%id_varname, nc%id_varid), "swiftest_io_netcdf_open nf90_inq_varid name_varid" )
-         call netcdf_io_check( nf90_inq_varid(nc%id, nc%Gmass_varname, nc%Gmass_varid), "swiftest_io_netcdf_open nf90_inq_varid Gmass_varid" )
+         call netcdf_io_check( nf90_inq_varid(nc%id, nc%id_varname, nc%id_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid name_varid" )
+         call netcdf_io_check( nf90_inq_varid(nc%id, nc%Gmass_varname, nc%Gmass_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid Gmass_varid" )
 
          if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%rh_varname, nc%rh_varid), "swiftest_io_netcdf_open nf90_inq_varid rh_varid" )
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%vh_varname, nc%vh_varid), "swiftest_io_netcdf_open nf90_inq_varid vh_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%rh_varname, nc%rh_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid rh_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%vh_varname, nc%vh_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid vh_varid" )
 
             if (param%lgr) then
-               !! check if pseudovelocity vectors exist in this file. If they are, set the correct flag so we know whe should not do the conversion.
+               !! check if pseudovelocity vectors exist in this file. If they are, set the correct flag so we know whe should not 
+               !! do the conversion.
                status = nf90_inq_varid(nc%id, nc%gr_pseudo_vh_varname, nc%gr_pseudo_vh_varid)
                nc%lpseudo_vel_exists = (status == NF90_NOERR)
                if (param%lrestart .and. .not.nc%lpseudo_vel_exists) then
-                  write(*,*) "Warning! Pseudovelocity not found in input file for GR enabled run. If this is a restarted run, bit-identical trajectories are not guarunteed!"
+                  write(*,*) "Warning! Pseudovelocity not found in input file for GR enabled run. " &
+                          // "If this is a restarted run, bit-identical trajectories are not guarunteed!"
                end if
 
             end if
          end if
 
          if ((param%out_form == "EL") .or. (param%out_form == "XVEL")) then
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%a_varname, nc%a_varid), "swiftest_io_netcdf_open nf90_inq_varid a_varid" )
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%e_varname, nc%e_varid), "swiftest_io_netcdf_open nf90_inq_varid e_varid" )
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%inc_varname, nc%inc_varid), "swiftest_io_netcdf_open nf90_inq_varid inc_varid" )
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%capom_varname, nc%capom_varid), "swiftest_io_netcdf_open nf90_inq_varid capom_varid" )
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%omega_varname, nc%omega_varid), "swiftest_io_netcdf_open nf90_inq_varid omega_varid" )
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%capm_varname, nc%capm_varid), "swiftest_io_netcdf_open nf90_inq_varid capm_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%a_varname, nc%a_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid a_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%e_varname, nc%e_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid e_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%inc_varname, nc%inc_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid inc_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%capom_varname, nc%capom_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid capom_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%omega_varname, nc%omega_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid omega_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%capm_varname, nc%capm_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid capm_varid" )
          end if
 
          if (param%lclose) then
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%radius_varname, nc%radius_varid), "swiftest_io_netcdf_open nf90_inq_varid radius_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%radius_varname, nc%radius_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid radius_varid" )
          end if 
 
          if (param%lrotation) then
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%Ip_varname, nc%Ip_varid), "swiftest_io_netcdf_open nf90_inq_varid Ip_varid" )
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%rot_varname, nc%rot_varid), "swiftest_io_netcdf_open nf90_inq_varid rot_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%Ip_varname, nc%Ip_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid Ip_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%rot_varname, nc%rot_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid rot_varid" )
          end if
 
          ! if (param%ltides) then
-         !    call netcdf_io_check( nf90_inq_varid(nc%id, nc%k2_varname, nc%k2_varid), "swiftest_io_netcdf_open nf90_inq_varid k2_varid" )
-         !    call netcdf_io_check( nf90_inq_varid(nc%id, nc%q_varname, nc%Q_varid), "swiftest_io_netcdf_open nf90_inq_varid Q_varid" )
+         !    call netcdf_io_check( nf90_inq_varid(nc%id, nc%k2_varname, nc%k2_varid), &
+         !                         "swiftest_io_netcdf_open nf90_inq_varid k2_varid" )
+         !    call netcdf_io_check( nf90_inq_varid(nc%id, nc%q_varname, nc%Q_varid), &
+         !                         "swiftest_io_netcdf_open nf90_inq_varid Q_varid" )
          ! end if
 
          ! Optional variables The User Doesn't Need to Know About
@@ -1049,17 +1190,22 @@ contains
    module subroutine swiftest_io_netcdf_get_valid_masks(self, plmask, tpmask, plmmask, Gmtiny)
       !! author: David A. Minton
       !!
-      !! Given an open NetCDF, returns logical masks indicating which bodies in the body arrays are active pl and tp type at the current time.
-      !! Uses the value of tslot stored in the NetCDF parameter object as the definition of current time
+      !! Given an open NetCDF, returns logical masks indicating which bodies in the body arrays are active pl and tp type at the 
+      !! current time. Uses the value of tslot stored in the NetCDF parameter object as the definition of current time
       use, intrinsic :: ieee_exceptions
       use, intrinsic :: ieee_arithmetic
       implicit none
       ! Arguments
-      class(swiftest_netcdf_parameters),  intent(inout)          :: self    !! Parameters used to identify a particular NetCDF dataset
-      logical, dimension(:), allocatable, intent(out)            :: plmask  !! Logical mask indicating which bodies are massive bodies
-      logical, dimension(:), allocatable, intent(out)            :: tpmask  !! Logical mask indicating which bodies are test particles
-      logical, dimension(:), allocatable, intent(out), optional  :: plmmask !! Logical mask indicating which bodies are fully interacting massive bodies
-      real(DP),                           intent(in),  optional  :: Gmtiny  !! The cutoff G*mass between semi-interacting and fully interacting massive bodies
+      class(swiftest_netcdf_parameters),  intent(inout)          :: self    !! Parameters used to identify a particular NetCDF 
+                                                                            !!   dataset
+      logical, dimension(:), allocatable, intent(out)            :: plmask  !! Logical mask indicating which bodies are massive 
+                                                                            !!   bodies
+      logical, dimension(:), allocatable, intent(out)            :: tpmask  !! Logical mask indicating which bodies are test 
+                                                                            !!   particles
+      logical, dimension(:), allocatable, intent(out), optional  :: plmmask !! Logical mask indicating which bodies are fully 
+                                                                            !!   interacting massive bodies
+      real(DP),                           intent(in),  optional  :: Gmtiny  !! The cutoff G*mass between semi-interacting and fully
+                                                                            !!   interacting massive bodies
       ! Internals
       real(DP), dimension(:), allocatable :: Gmass, a
       real(DP), dimension(:,:), allocatable :: rh
@@ -1071,7 +1217,8 @@ contains
       call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
       call ieee_set_halting_mode(IEEE_ALL,.false.)
 
-      call netcdf_io_check( nf90_inquire_dimension(self%id, self%name_dimid, len=idmax), "swiftest_io_netcdf_get_valid_masks nf90_inquire_dimension name_dimid"  )
+      call netcdf_io_check( nf90_inquire_dimension(self%id, self%name_dimid, len=idmax), &
+                                  "swiftest_io_netcdf_get_valid_masks nf90_inquire_dimension name_dimid"  )
 
       allocate(Gmass(idmax))
       allocate(tpmask(idmax))
@@ -1079,24 +1226,28 @@ contains
       allocate(lvalid(idmax))
       associate(tslot => self%tslot)
 
-         call netcdf_io_check( nf90_get_var(self%id, self%Gmass_varid, Gmass, start=[1,tslot], count=[idmax,1]), "swiftest_io_netcdf_get_valid_masks nf90_getvar Gmass_varid"  )
+         call netcdf_io_check( nf90_get_var(self%id, self%Gmass_varid, Gmass, start=[1,tslot], count=[idmax,1]), &
+                                  "swiftest_io_netcdf_get_valid_masks nf90_getvar Gmass_varid"  )
 
          status = nf90_inq_varid(self%id, self%status_varname, self%status_varid) 
          if (status == NF90_NOERR) then
             allocate(body_status(idmax))
-            call netcdf_io_check( nf90_get_var(self%id, self%status_varid, body_status, start=[1, tslot], count=[idmax,1]), "swiftest_io_netcdf_get_valid_masks nf90_getvar status_varid"  )
+            call netcdf_io_check( nf90_get_var(self%id, self%status_varid, body_status, start=[1, tslot], count=[idmax,1]), &
+                                  "swiftest_io_netcdf_get_valid_masks nf90_getvar status_varid"  )
             lvalid(:) = body_status(:) /= INACTIVE
          else
             status = nf90_inq_varid(self%id, self%rh_varname, self%rh_varid) 
             if (status == NF90_NOERR) then
                allocate(rh(NDIM,idmax))
-               call netcdf_io_check( nf90_get_var(self%id, self%rh_varid, rh, start=[1, 1, tslot], count=[NDIM,idmax,1]), "swiftest_io_netcdf_get_valid_masks nf90_getvar rh_varid"  )
+               call netcdf_io_check( nf90_get_var(self%id, self%rh_varid, rh, start=[1, 1, tslot], count=[NDIM,idmax,1]), &
+                                  "swiftest_io_netcdf_get_valid_masks nf90_getvar rh_varid"  )
                lvalid(:) = ieee_is_normal(rh(1,:)) 
             else
                status = nf90_inq_varid(self%id, self%a_varname, self%a_varid) 
                if (status == NF90_NOERR) then
                   allocate(a(idmax))
-                  call netcdf_io_check( nf90_get_var(self%id, self%a_varid, a, start=[1, tslot], count=[idmax,1]), "swiftest_io_netcdf_get_valid_masks nf90_getvar a_varid"  )
+                  call netcdf_io_check( nf90_get_var(self%id, self%a_varid, a, start=[1, tslot], count=[idmax,1]), &
+                                  "swiftest_io_netcdf_get_valid_masks nf90_getvar a_varid"  )
                   lvalid(:) = ieee_is_normal(a(:))
                else
                   lvalid(:) = .false.
@@ -1149,7 +1300,8 @@ contains
       associate(cb => self%cb, pl => self%pl, tp => self%tp, tslot => nc%tslot)
          call nc%open(param, readonly=.true.)
          call nc%find_tslot(self%t, tslot)
-         call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%time_dimid, len=nc%max_tslot), "netcdf_io_read_frame_system nf90_inquire_dimension time_dimid"  )
+         call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%time_dimid, len=nc%max_tslot), &
+                                  "netcdf_io_read_frame_system nf90_inquire_dimension time_dimid"  )
          tslot = min(tslot, nc%max_tslot)
 
          call self%read_hdr(nc, param)
@@ -1159,12 +1311,14 @@ contains
          ntp = tp%nbody
          call pl%setup(npl, param)
          call tp%setup(ntp, param)
-         call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%name_dimid, len=idmax), "netcdf_io_read_frame_system nf90_inquire_dimension name_dimid"  )
+         call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%name_dimid, len=idmax), &
+                                  "netcdf_io_read_frame_system nf90_inquire_dimension name_dimid"  )
          allocate(rtemp(idmax))
          allocate(vectemp(NDIM,idmax))
          allocate(itemp(idmax))
 
-         call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%str_dimid, len=str_max), "netcdf_io_read_frame_system nf90_inquire_dimension str_dimid"  )
+         call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%str_dimid, len=str_max), &
+                                  "netcdf_io_read_frame_system nf90_inquire_dimension str_dimid"  )
 
          call nc%get_valid_masks(plmask, tpmask)
 
@@ -1187,20 +1341,24 @@ contains
 
          ! Now read in each variable and split the outputs by body type
          if ((param%in_form == "XV") .or. (param%in_form == "XVEL")) then
-            call netcdf_io_check( nf90_get_var(nc%id, nc%rh_varid, vectemp, start=[1, 1, tslot], count=[NDIM,idmax,1]), "netcdf_io_read_frame_system nf90_getvar rh_varid"  )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%rh_varid, vectemp, start=[1, 1, tslot], count=[NDIM,idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar rh_varid"  )
             do i = 1, NDIM
                if (npl > 0) pl%rh(i,:) = pack(vectemp(i,:), plmask(:))
                if (ntp > 0) tp%rh(i,:) = pack(vectemp(i,:), tpmask(:))
             end do
 
             if (param%lgr .and. nc%lpseudo_vel_exists) then
-               call netcdf_io_check( nf90_get_var(nc%id, nc%gr_pseudo_vh_varid, vectemp, start=[1, 1, tslot], count=[NDIM,idmax,1]), "netcdf_io_read_frame_system nf90_getvar gr_pseudo_vh_varid"  )
+               call netcdf_io_check( nf90_get_var(nc%id, nc%gr_pseudo_vh_varid, vectemp, start=[1, 1, tslot], &
+                                                  count=[NDIM,idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar gr_pseudo_vh_varid"  )
                do i = 1, NDIM
                   if (npl > 0) pl%vh(i,:) = pack(vectemp(i,:), plmask(:))
                   if (ntp > 0) tp%vh(i,:) = pack(vectemp(i,:), tpmask(:))
                end do
             else
-               call netcdf_io_check( nf90_get_var(nc%id, nc%vh_varid, vectemp, start=[1, 1, tslot], count=[NDIM,idmax,1]), "netcdf_io_read_frame_system nf90_getvar vh_varid"  )
+               call netcdf_io_check( nf90_get_var(nc%id, nc%vh_varid, vectemp, start=[1, 1, tslot], count=[NDIM,idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar vh_varid"  )
                do i = 1, NDIM
                   if (npl > 0) pl%vh(i,:) = pack(vectemp(i,:), plmask(:))
                   if (ntp > 0) tp%vh(i,:) = pack(vectemp(i,:), tpmask(:))
@@ -1209,40 +1367,46 @@ contains
          end if
 
          if ((param%in_form == "EL")  .or. (param%in_form == "XVEL")) then
-            call netcdf_io_check( nf90_get_var(nc%id, nc%a_varid, rtemp, start=[1, tslot], count=[idmax,1]), "netcdf_io_read_frame_system nf90_getvar a_varid"  )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%a_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar a_varid"  )
             if (.not.allocated(pl%a)) allocate(pl%a(npl))
             if (.not.allocated(tp%a)) allocate(tp%a(ntp))
             if (npl > 0) pl%a(:) = pack(rtemp, plmask)
             if (ntp > 0) tp%a(:) = pack(rtemp, tpmask)
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%e_varid, rtemp, start=[1, tslot], count=[idmax,1]), "netcdf_io_read_frame_system nf90_getvar e_varid"  )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%e_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar e_varid"  )
             if (.not.allocated(pl%e)) allocate(pl%e(npl))
             if (.not.allocated(tp%e)) allocate(tp%e(ntp))
             if (npl > 0) pl%e(:) = pack(rtemp, plmask)
             if (ntp > 0) tp%e(:) = pack(rtemp, tpmask)
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%inc_varid, rtemp, start=[1, tslot], count=[idmax,1]), "netcdf_io_read_frame_system nf90_getvar inc_varid"  )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%inc_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar inc_varid"  )
             rtemp = rtemp * DEG2RAD
             if (.not.allocated(pl%inc)) allocate(pl%inc(npl))
             if (.not.allocated(tp%inc)) allocate(tp%inc(ntp))
             if (npl > 0) pl%inc(:) = pack(rtemp, plmask)
             if (ntp > 0) tp%inc(:) = pack(rtemp, tpmask)
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%capom_varid, rtemp, start=[1, tslot], count=[idmax,1]), "netcdf_io_read_frame_system nf90_getvar capom_varid"  )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%capom_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar capom_varid"  )
             rtemp = rtemp * DEG2RAD
             if (.not.allocated(pl%capom)) allocate(pl%capom(npl))
             if (.not.allocated(tp%capom)) allocate(tp%capom(ntp))
             if (npl > 0) pl%capom(:) = pack(rtemp, plmask)
             if (ntp > 0) tp%capom(:) = pack(rtemp, tpmask)
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%omega_varid, rtemp, start=[1, tslot], count=[idmax,1]), "netcdf_io_read_frame_system nf90_getvar omega_varid"  )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%omega_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar omega_varid"  )
             rtemp = rtemp * DEG2RAD
             if (.not.allocated(pl%omega)) allocate(pl%omega(npl))
             if (.not.allocated(tp%omega)) allocate(tp%omega(ntp))
             if (npl > 0) pl%omega(:) = pack(rtemp, plmask)
             if (ntp > 0) tp%omega(:) = pack(rtemp, tpmask)
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%capm_varid, rtemp, start=[1, tslot], count=[idmax,1]), "netcdf_io_read_frame_system nf90_getvar capm_varid"  )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%capm_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar capm_varid"  )
             rtemp = rtemp * DEG2RAD
             if (.not.allocated(pl%capm)) allocate(pl%capm(npl))
             if (.not.allocated(tp%capm)) allocate(tp%capm(ntp))
@@ -1251,7 +1415,8 @@ contains
 
          end if
       
-         call netcdf_io_check( nf90_get_var(nc%id, nc%Gmass_varid, rtemp, start=[1, tslot], count=[idmax,1]), "netcdf_io_read_frame_system nf90_getvar Gmass_varid"  )
+         call netcdf_io_check( nf90_get_var(nc%id, nc%Gmass_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar Gmass_varid"  )
          cb%Gmass = rtemp(1)
          cb%mass = cb%Gmass / param%GU
 
@@ -1270,7 +1435,8 @@ contains
          end if
 
          if (param%lclose) then
-            call netcdf_io_check( nf90_get_var(nc%id, nc%radius_varid, rtemp, start=[1, tslot], count=[idmax,1]), "netcdf_io_read_frame_system nf90_getvar radius_varid"  )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%radius_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar radius_varid"  )
             cb%radius = rtemp(1)
 
             if (npl > 0) pl%radius(:) = pack(rtemp, plmask)
@@ -1281,13 +1447,15 @@ contains
          cb%R0 = cb%radius
 
          if (param%lrotation) then
-            call netcdf_io_check( nf90_get_var(nc%id, nc%Ip_varid,  vectemp, start=[1, 1, tslot], count=[NDIM,idmax,1]), "netcdf_io_read_frame_system nf90_getvar Ip_varid"  )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%Ip_varid,  vectemp, start=[1, 1, tslot], count=[NDIM,idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar Ip_varid"  )
             cb%Ip(:) = vectemp(:,1)
             do i = 1, NDIM
                if (npl > 0) pl%Ip(i,:) = pack(vectemp(i,:), plmask(:))
             end do
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%rot_varid, vectemp, start=[1, 1, tslot], count=[NDIM,idmax,1]), "netcdf_io_read_frame_system nf90_getvar rot_varid"  )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%rot_varid, vectemp, start=[1, 1, tslot], count=[NDIM,idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar rot_varid"  )
             vectemp(:,:) = vectemp(:,:) * DEG2RAD
             cb%rot(:) = vectemp(:,1) 
             do i = 1, NDIM
@@ -1299,25 +1467,29 @@ contains
          end if
 
          ! if (param%ltides) then
-         !    call netcdf_io_check( nf90_get_var(nc%id, nc%k2_varid, rtemp, start=[1, tslot]), "netcdf_io_read_frame_system nf90_getvar k2_varid"  )
+         !    call netcdf_io_check( nf90_get_var(nc%id, nc%k2_varid, rtemp, start=[1, tslot]), &
+         !                        "netcdf_io_read_frame_system nf90_getvar k2_varid"  )
          !    cb%k2 = rtemp(1)
          !    if (npl > 0) pl%k2(:) = pack(rtemp, plmask)
 
-         !    call netcdf_io_check( nf90_get_var(nc%id, nc%Q_varid,  rtemp,  start=[1, tslot]), "netcdf_io_read_frame_system nf90_getvar Q_varid"  )
+         !    call netcdf_io_check( nf90_get_var(nc%id, nc%Q_varid,  rtemp,  start=[1, tslot]), &
+         !                        "netcdf_io_read_frame_system nf90_getvar Q_varid"  )
          !    cb%Q = rtemp(1)
          !    if (npl > 0) pl%Q(:) = pack(rtemp, plmask)
          ! end if
 
          status = nf90_inq_varid(nc%id, nc%j2rp2_varname, nc%j2rp2_varid)
          if (status == NF90_NOERR) then
-            call netcdf_io_check( nf90_get_var(nc%id, nc%j2rp2_varid, cb%j2rp2, start=[tslot]), "netcdf_io_read_frame_system nf90_getvar j2rp2_varid"  )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%j2rp2_varid, cb%j2rp2, start=[tslot]), &
+                                  "netcdf_io_read_frame_system nf90_getvar j2rp2_varid"  )
          else 
             cb%j2rp2 = 0.0_DP
          end if
 
          status = nf90_inq_varid(nc%id, nc%j4rp4_varname, nc%j4rp4_varid)   
          if (status == NF90_NOERR) then      
-            call netcdf_io_check( nf90_get_var(nc%id, nc%j4rp4_varid, cb%j4rp4, start=[tslot]), "netcdf_io_read_frame_system nf90_getvar j4rp4_varid"  )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%j4rp4_varid, cb%j4rp4, start=[tslot]), &
+                                  "netcdf_io_read_frame_system nf90_getvar j4rp4_varid"  )
          else 
             cb%j4rp4 = 0.0_DP
          end if
@@ -1349,8 +1521,8 @@ contains
       !! author: David A. Minton
       !!
       !! Reads header information (variables that change with time, but not particle id). 
-      !! This subroutine swiftest_significantly improves the output over the original binary file, allowing us to track energy, momentum, and other quantities that 
-      !! previously were handled as separate output files.
+      !! This subroutine swiftest_significantly improves the output over the original binary file, allowing us to track energy, 
+      !! momentum, and other quantities that previously were handled as separate output files.
       implicit none
       ! Arguments
       class(swiftest_nbody_system),      intent(inout) :: self  !! Swiftest nbody system object
@@ -1361,7 +1533,8 @@ contains
       logical, dimension(:), allocatable        :: plmask, tpmask, plmmask
 
       associate(tslot => nc%tslot)
-         call netcdf_io_check( nf90_get_var(nc%id, nc%time_varid, self%t, start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar time_varid"  )
+         call netcdf_io_check( nf90_get_var(nc%id, nc%time_varid, self%t, start=[tslot]), &
+                                  "netcdf_io_read_hdr_system nf90_getvar time_varid"  )
          if (param%lmtiny_pl) then
             call nc%get_valid_masks(plmask, tpmask, plmmask, param%GMTINY)
          else
@@ -1370,14 +1543,16 @@ contains
 
          status = nf90_inq_varid(nc%id, nc%npl_varname, nc%npl_varid)
          if (status == NF90_NOERR) then
-            call netcdf_io_check( nf90_get_var(nc%id, nc%npl_varid,  self%pl%nbody, start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar npl_varid"  )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%npl_varid,  self%pl%nbody, start=[tslot]), &
+                                  "netcdf_io_read_hdr_system nf90_getvar npl_varid"  )
          else
             self%pl%nbody = count(plmask(:))
          end if
 
          status = nf90_inq_varid(nc%id, nc%ntp_varname, nc%ntp_varid)
          if (status == NF90_NOERR) then
-            call netcdf_io_check( nf90_get_var(nc%id, nc%ntp_varid,  self%tp%nbody, start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar ntp_varid"  )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%ntp_varid,  self%tp%nbody, start=[tslot]), &
+                                  "netcdf_io_read_hdr_system nf90_getvar ntp_varid"  )
          else
             self%tp%nbody = count(tpmask(:))
          end if
@@ -1385,7 +1560,8 @@ contains
          if (param%lmtiny_pl) then
             status = nf90_inq_varid(nc%id, nc%nplm_varname, nc%nplm_varid)
             if (status == NF90_NOERR) then
-               call netcdf_io_check( nf90_get_var(nc%id, nc%nplm_varid,  self%pl%nplm, start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar nplm_varid"  )
+               call netcdf_io_check( nf90_get_var(nc%id, nc%nplm_varid,  self%pl%nplm, start=[tslot]), &
+                                  "netcdf_io_read_hdr_system nf90_getvar nplm_varid"  )
             else
                self%pl%nplm = count(plmmask(:))
             end if
@@ -1393,27 +1569,43 @@ contains
 
          if (param%lenergy) then
             status = nf90_inq_varid(nc%id, nc%ke_orb_varname, nc%KE_orb_varid)
-            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%KE_orb_varid,      self%ke_orbit,    start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar KE_orb_varid"  )
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%KE_orb_varid, self%ke_orbit, start=[tslot]), &
+                                  "netcdf_io_read_hdr_system nf90_getvar KE_orb_varid"  )
             status = nf90_inq_varid(nc%id, nc%ke_spin_varname, nc%KE_spin_varid)
-            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%KE_spin_varid,     self%ke_spin,     start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar KE_spin_varid"  )
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%KE_spin_varid, self%ke_spin, start=[tslot]), &
+                                  "netcdf_io_read_hdr_system nf90_getvar KE_spin_varid"  )
             status = nf90_inq_varid(nc%id, nc%pe_varname, nc%PE_varid)
-            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%PE_varid,          self%pe,          start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar PE_varid"  )
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%PE_varid, self%pe, start=[tslot]), &
+                                  "netcdf_io_read_hdr_system nf90_getvar PE_varid"  )
             status = nf90_inq_varid(nc%id, nc%be_varname, nc%BE_varid)
-            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%BE_varid,          self%be,          start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar BE_varid"  )
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%BE_varid, self%be, start=[tslot]), &
+                                  "netcdf_io_read_hdr_system nf90_getvar BE_varid"  )
             status = nf90_inq_varid(nc%id, nc%te_varname, nc%TE_varid)
-            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%TE_varid,          self%te,          start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar TE_varid"  )
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%TE_varid, self%te, start=[tslot]), &
+                                  "netcdf_io_read_hdr_system nf90_getvar TE_varid"  )
             status = nf90_inq_varid(nc%id, nc%L_orbit_varname, nc%L_orbit_varid)
-            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%L_orbit_varid,      self%L_orbit(:),   start=[1,tslot], count=[NDIM,1]), "netcdf_io_read_hdr_system nf90_getvar L_orbit_varid"  )
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%L_orbit_varid, self%L_orbit(:), & 
+                                                                         start=[1,tslot], count=[NDIM,1]), &
+                                  "netcdf_io_read_hdr_system nf90_getvar L_orbit_varid"  )
             status = nf90_inq_varid(nc%id, nc%L_spin_varname, nc%L_spin_varid)
-            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%L_spin_varid,     self%L_spin(:),    start=[1,tslot], count=[NDIM,1]), "netcdf_io_read_hdr_system nf90_getvar L_spin_varid"  )
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%L_spin_varid, self%L_spin(:), start=[1,tslot], &
+                                                            count=[NDIM,1]), &
+                                  "netcdf_io_read_hdr_system nf90_getvar L_spin_varid"  )
             status = nf90_inq_varid(nc%id, nc%L_escape_varname, nc%L_escape_varid)
-            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%L_escape_varid,   self%L_escape(:),  start=[1, tslot], count=[NDIM,1]), "netcdf_io_read_hdr_system nf90_getvar L_escape_varid"  )
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%L_escape_varid, self%L_escape(:), &
+                                                                         start=[1, tslot], count=[NDIM,1]), &
+                                  "netcdf_io_read_hdr_system nf90_getvar L_escape_varid"  )
             status = nf90_inq_varid(nc%id, nc%E_collisions_varname, nc%E_collisions_varid)
-            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%E_collisions_varid, self%E_collisions, start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar E_collisions_varid"  )
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%E_collisions_varid, self%E_collisions, &
+                                                                         start=[tslot]), &
+                                  "netcdf_io_read_hdr_system nf90_getvar E_collisions_varid"  )
             status = nf90_inq_varid(nc%id, nc%E_untracked_varname, nc%E_untracked_varid)
-            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%E_untracked_varid,  self%E_untracked,  start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar E_untracked_varid"  )
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%E_untracked_varid, self%E_untracked, &
+                                                                          start=[tslot]), &
+                                  "netcdf_io_read_hdr_system nf90_getvar E_untracked_varid"  )
             status = nf90_inq_varid(nc%id, nc%GMescape_varname, nc%GMescape_varid)
-            if (status == NF90_NOERR)  call netcdf_io_check( nf90_get_var(nc%id, nc%GMescape_varid,    self%GMescape,    start=[tslot]), "netcdf_io_read_hdr_system nf90_getvar GMescape_varid"  )
+            if (status == NF90_NOERR)  call netcdf_io_check( nf90_get_var(nc%id, nc%GMescape_varid, self%GMescape, start=[tslot]), &
+                                  "netcdf_io_read_hdr_system nf90_getvar GMescape_varid"  )
          end if
 
       end associate
@@ -1428,11 +1620,13 @@ contains
       !! Reads particle information metadata from file
       implicit none
       ! Arguments
-      class(swiftest_nbody_system),     intent(inout) :: self   !! Swiftest nbody system object
+      class(swiftest_nbody_system),      intent(inout) :: self   !! Swiftest nbody system object
       class(swiftest_netcdf_parameters), intent(inout) :: nc     !! Parameters used to identify a particular NetCDF dataset
-      class(swiftest_parameters),           intent(inout) :: param  !! Current run configuration parameters
-      logical, dimension(:),            intent(in)    :: plmask !! Logical array indicating which index values belong to massive bodies
-      logical, dimension(:),            intent(in)    :: tpmask !! Logical array indicating which index values belong to test particles
+      class(swiftest_parameters),        intent(inout) :: param  !! Current run configuration parameters
+      logical, dimension(:),             intent(in)    :: plmask !! Logical array indicating which index values belong to massive 
+                                                                 !!     bodies
+      logical, dimension(:),             intent(in)    :: tpmask !! Logical array indicating which index values belong to test 
+                                                                 !!     particles
 
       ! Internals
       integer(I4B)                                :: i, idmax, status
@@ -1470,7 +1664,7 @@ contains
             tpind(:) = pack([(i, i = 1, idmax)], tpmask(:))
          end if
 
-         call netcdf_io_check( nf90_get_var(nc%id, nc%id_varid, itemp), "netcdf_io_read_particle_info_system nf90_getvar id_varid"  )
+         call netcdf_io_check( nf90_get_var(nc%id, nc%id_varid, itemp), "netcdf_io_read_particle_info_system nf90_getvar id_varid")
          cb%id = itemp(1)
          pl%id(:) = pack(itemp, plmask)
          tp%id(:) = pack(itemp, tpmask)
@@ -1478,7 +1672,8 @@ contains
          pl%id(:) = pack([(i,i=0,idmax-1)],plmask)
          tp%id(:) = pack([(i,i=0,idmax-1)],tpmask)
 
-         call netcdf_io_check( nf90_get_var(nc%id, nc%name_varid, ctemp, count=[NAMELEN, idmax]), "netcdf_io_read_particle_info_system nf90_getvar name_varid"  )
+         call netcdf_io_check( nf90_get_var(nc%id, nc%name_varid, ctemp, count=[NAMELEN, idmax]), &
+                                  "netcdf_io_read_particle_info_system nf90_getvar name_varid"  )
          call cb%info%set_value(name=ctemp(1))
          do i = 1, npl
             call pl%info(i)%set_value(name=ctemp(plind(i)))
@@ -1517,7 +1712,8 @@ contains
          if (param%lclose) then
             status = nf90_inq_varid(nc%id, nc%origin_type_varname, nc%origin_type_varid)
             if (status == NF90_NOERR) then
-               call netcdf_io_check( nf90_get_var(nc%id, nc%origin_type_varid, ctemp, count=[NAMELEN, idmax]), "netcdf_io_read_particle_info_system nf90_getvar origin_type_varid"  )
+               call netcdf_io_check( nf90_get_var(nc%id, nc%origin_type_varid, ctemp, count=[NAMELEN, idmax]), &
+                                  "netcdf_io_read_particle_info_system nf90_getvar origin_type_varid"  )
             else
                ctemp = "Initial Conditions"
             end if
@@ -1532,7 +1728,8 @@ contains
 
             status = nf90_inq_varid(nc%id, nc%origin_time_varname, nc%origin_time_varid)
             if (status == NF90_NOERR) then
-               call netcdf_io_check( nf90_get_var(nc%id, nc%origin_time_varid, rtemp), "netcdf_io_read_particle_info_system nf90_getvar origin_time_varid"  )
+               call netcdf_io_check( nf90_get_var(nc%id, nc%origin_time_varid, rtemp), &
+                                  "netcdf_io_read_particle_info_system nf90_getvar origin_time_varid"  )
             else
                rtemp = param%t0
             end if
@@ -1547,9 +1744,11 @@ contains
 
             status = nf90_inq_varid(nc%id, nc%origin_rh_varname, nc%origin_rh_varid)
             if (status == NF90_NOERR) then
-               call netcdf_io_check( nf90_get_var(nc%id, nc%origin_rh_varid, vectemp(:,:)), "netcdf_io_read_particle_info_system nf90_getvar origin_rh_varid"  )
+               call netcdf_io_check( nf90_get_var(nc%id, nc%origin_rh_varid, vectemp(:,:)), &
+                                  "netcdf_io_read_particle_info_system nf90_getvar origin_rh_varid"  )
             else if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
-               call netcdf_io_check( nf90_get_var(nc%id, nc%rh_varid, vectemp(:,:)), "netcdf_io_read_particle_info_system nf90_getvar rh_varid"  )
+               call netcdf_io_check( nf90_get_var(nc%id, nc%rh_varid, vectemp(:,:)), &
+                                  "netcdf_io_read_particle_info_system nf90_getvar rh_varid"  )
             else 
                vectemp(:,:) = 0._DP
             end if 
@@ -1563,9 +1762,11 @@ contains
 
             status = nf90_inq_varid(nc%id, nc%origin_vh_varname, nc%origin_vh_varid)
             if (status == NF90_NOERR) then
-               call netcdf_io_check( nf90_get_var(nc%id, nc%origin_vh_varid, vectemp(:,:)), "netcdf_io_read_particle_info_system nf90_getvar origin_vh_varid"  )
+               call netcdf_io_check( nf90_get_var(nc%id, nc%origin_vh_varid, vectemp(:,:)), &
+                                  "netcdf_io_read_particle_info_system nf90_getvar origin_vh_varid"  )
             else if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
-               call netcdf_io_check( nf90_get_var(nc%id, nc%vh_varid, vectemp(:,:)), "netcdf_io_read_particle_info_system nf90_getvar vh_varid"  )
+               call netcdf_io_check( nf90_get_var(nc%id, nc%vh_varid, vectemp(:,:)), &
+                                  "netcdf_io_read_particle_info_system nf90_getvar vh_varid"  )
             else
                vectemp(:,:) = 0._DP
             end if 
@@ -1579,7 +1780,8 @@ contains
 
             status = nf90_inq_varid(nc%id, nc%collision_id_varname, nc%collision_id_varid)
             if (status == NF90_NOERR) then
-               call netcdf_io_check( nf90_get_var(nc%id, nc%collision_id_varid, itemp), "netcdf_io_read_particle_info_system nf90_getvar collision_id_varid"  )
+               call netcdf_io_check( nf90_get_var(nc%id, nc%collision_id_varid, itemp), &
+                                  "netcdf_io_read_particle_info_system nf90_getvar collision_id_varid"  )
                do i = 1, npl
                   call pl%info(i)%set_value(collision_id=itemp(plind(i)))
                end do
@@ -1590,7 +1792,8 @@ contains
 
             status = nf90_inq_varid(nc%id, nc%discard_time_varname, nc%discard_time_varid)
             if (status == NF90_NOERR) then
-               call netcdf_io_check( nf90_get_var(nc%id, nc%discard_time_varid, rtemp), "netcdf_io_read_particle_info_system nf90_getvar discard_time_varid"  )
+               call netcdf_io_check( nf90_get_var(nc%id, nc%discard_time_varid, rtemp), &
+                                  "netcdf_io_read_particle_info_system nf90_getvar discard_time_varid"  )
                call cb%info%set_value(discard_time=rtemp(1))
                do i = 1, npl
                   call pl%info(i)%set_value(discard_time=rtemp(plind(i)))
@@ -1602,7 +1805,8 @@ contains
 
             status = nf90_inq_varid(nc%id, nc%discard_rh_varname, nc%discard_rh_varid)
             if (status == NF90_NOERR) then
-               call netcdf_io_check( nf90_get_var(nc%id, nc%discard_rh_varid, vectemp(:,:)), "netcdf_io_read_particle_info_system nf90_getvar discard_rh_varid"  )
+               call netcdf_io_check( nf90_get_var(nc%id, nc%discard_rh_varid, vectemp(:,:)), &
+                                  "netcdf_io_read_particle_info_system nf90_getvar discard_rh_varid"  )
                do i = 1, npl
                   call pl%info(i)%set_value(discard_rh=vectemp(:,plind(i)))
                end do
@@ -1613,7 +1817,8 @@ contains
 
             status = nf90_inq_varid(nc%id, nc%discard_vh_varname, nc%discard_vh_varid)
             if (status == NF90_NOERR) then
-               call netcdf_io_check( nf90_get_var(nc%id, nc%discard_vh_varid, vectemp(:,:)), "netcdf_io_read_particle_info_system nf90_getvar discard_vh_varid"  )
+               call netcdf_io_check( nf90_get_var(nc%id, nc%discard_vh_varid, vectemp(:,:)), &
+                                  "netcdf_io_read_particle_info_system nf90_getvar discard_vh_varid"  )
                do i = 1, npl
                   call pl%info(i)%set_value(discard_vh=vectemp(:,plind(i)))
                end do
@@ -1642,7 +1847,8 @@ contains
       ! Internals
       integer(I4B)                              :: i, j, idslot, old_mode, tmp
       integer(I4B), dimension(:), allocatable   :: ind
-      real(DP), dimension(NDIM)                 :: vh !! Temporary variable to store heliocentric velocity values when converting from pseudovelocity in GR-enabled runs
+      real(DP), dimension(NDIM)                 :: vh !! Temporary variable to store heliocentric velocity values when converting 
+                                                      !! from pseudovelocity in GR-enabled runs
       real(DP)                                  :: a, e, inc, omega, capom, capm, varpi, lam, f, cape, capf
 #ifdef COARRAY
       integer(I4B) :: ntp
@@ -1664,22 +1870,29 @@ contains
             do i = 1, n
                j = ind(i)
                call nc%find_idslot(self%id(j), idslot) 
-               !! Convert from pseudovelocity to heliocentric without replacing the current value of pseudovelocity 
+               ! Convert from pseudovelocity to heliocentric without replacing the current value of pseudovelocity 
                if (param%lgr) call swiftest_gr_pseudovel2vel(param, self%mu(j), self%rh(:, j), self%vh(:, j), vh(:))
 
                if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%rh_varid, self%rh(:, j), start=[1,idslot, tslot], count=[NDIM,1,1]), "netcdf_io_write_frame_body nf90_put_var rh_varid"  )
-                  if (param%lgr) then !! Convert from pseudovelocity to heliocentric without replacing the current value of pseudovelocity
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%vh_varid, vh(:), start=[1,idslot, tslot], count=[NDIM,1,1]), "netcdf_io_write_frame_body nf90_put_var vh_varid"  )
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%gr_pseudo_vh_varid, self%vh(:, j), start=[1,idslot, tslot],count=[NDIM,1,1]), "netcdf_io_write_frame_body nf90_put_var gr_pseudo_vhx_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%rh_varid, self%rh(:, j), start=[1,idslot, tslot], count=[NDIM,1,1]),&
+                                  "netcdf_io_write_frame_body nf90_put_var rh_varid"  )
+                  if (param%lgr) then ! Convert from pseudovelocity to heliocentric without replacing the current value of 
+                                      !  pseudovelocity
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%vh_varid, vh(:), start=[1,idslot, tslot], count=[NDIM,1,1]), &
+                                  "netcdf_io_write_frame_body nf90_put_var vh_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%gr_pseudo_vh_varid, self%vh(:, j), start=[1,idslot, tslot], &
+                                                        count=[NDIM,1,1]), &
+                                  "netcdf_io_write_frame_body nf90_put_var gr_pseudo_vhx_varid"  )
 
                   else
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%vh_varid, self%vh(:, j), start=[1,idslot, tslot], count=[NDIM,1,1]), "netcdf_io_write_frame_body nf90_put_var vh_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%vh_varid, self%vh(:, j), start=[1,idslot, tslot], &
+                                                        count=[NDIM,1,1]), &
+                                  "netcdf_io_write_frame_body nf90_put_var vh_varid"  )
                   end if
                end if
 
                if ((param%out_form == "EL") .or. (param%out_form == "XVEL")) then
-                  if (param%lgr) then !! For GR-enabled runs, use the true value of velocity computed above
+                  if (param%lgr) then ! For GR-enabled runs, use the true value of velocity computed above
                      call swiftest_orbel_xv2el(self%mu(j), self%rh(1,j), self%rh(2,j), self%rh(3,j), &
                                        vh(1), vh(2), vh(3), &
                                        a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf)
@@ -1688,48 +1901,78 @@ contains
                                        self%vh(1,j), self%vh(2,j), self%vh(3,j), &
                                        a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf)
                   end if
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%a_varid, a, start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body a_varid"  )
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%e_varid, e, start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body e_varid"  )
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%inc_varid, inc * RAD2DEG, start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body inc_varid"  )
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%capom_varid, capom * RAD2DEG, start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body capom_varid"  )
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%omega_varid, omega * RAD2DEG, start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body omega_varid"  )
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%capm_varid, capm * RAD2DEG, start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body capm_varid"  ) 
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%varpi_varid, varpi * RAD2DEG, start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body varpi_varid"  ) 
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%lam_varid, lam * RAD2DEG, start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body lam_varid"  ) 
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%f_varid, f * RAD2DEG, start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body f_varid"  ) 
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%a_varid, a, start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body a_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%e_varid, e, start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body e_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%inc_varid, inc * RAD2DEG, start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body inc_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%capom_varid, capom * RAD2DEG, start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body capom_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%omega_varid, omega * RAD2DEG, start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body omega_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%capm_varid, capm * RAD2DEG, start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body capm_varid"  ) 
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%varpi_varid, varpi * RAD2DEG, start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body varpi_varid"  ) 
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%lam_varid, lam * RAD2DEG, start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body lam_varid"  ) 
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%f_varid, f * RAD2DEG, start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body f_varid"  ) 
                   if (e < 1.0_DP) then
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%cape_varid, cape * RAD2DEG, start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body cape_varid"  ) 
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%cape_varid, cape * RAD2DEG, start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body cape_varid"  ) 
                   else if (e > 1.0_DP) then
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%cape_varid, capf * RAD2DEG, start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body (capf) cape_varid"  ) 
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%cape_varid, capf * RAD2DEG, start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body (capf) cape_varid"  ) 
                   end if
                end if
 
                select type(self)  
                class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid, self%Gmass(j), start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body Gmass_varid"  )
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%mass_varid, self%mass(j), start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body mass_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid, self%Gmass(j), start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body Gmass_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%mass_varid, self%mass(j), start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body mass_varid"  )
                   if (param%lrhill_present) then
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%rhill_varid, self%rhill(j), start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body rhill_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%rhill_varid, self%rhill(j), start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body rhill_varid"  )
                   end if
-                  if (param%lclose) call netcdf_io_check( nf90_put_var(nc%id, nc%radius_varid, self%radius(j), start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body radius_varid"  )
+                  if (param%lclose) call netcdf_io_check( nf90_put_var(nc%id, nc%radius_varid, self%radius(j), &
+                                                                       start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body radius_varid"  )
                   if (param%lrotation) then
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid, self%Ip(:, j), start=[1,idslot, tslot], count=[NDIM,1,1]), "netcdf_io_write_frame_body nf90_put_var body Ip_varid"  )
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, self%rot(:, j) * RAD2DEG, start=[1,idslot, tslot], count=[NDIM,1,1]), "netcdf_io_write_frame_body nf90_put_var body rotx_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid, self%Ip(:, j), start=[1,idslot, tslot], &
+                                                        count=[NDIM,1,1]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body Ip_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, self%rot(:, j) * RAD2DEG, start=[1,idslot, tslot], &
+                                                        count=[NDIM,1,1]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body rotx_varid"  )
                   end if
                   ! if (param%ltides) then
-                  !    call netcdf_io_check( nf90_put_var(nc%id, nc%k2_varid, self%k2(j), start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body k2_varid"  )
-                  !    call netcdf_io_check( nf90_put_var(nc%id, nc%Q_varid, self%Q(j), start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body Q_varid"  )
+                  !    call netcdf_io_check( nf90_put_var(nc%id, nc%k2_varid, self%k2(j), start=[idslot, tslot]), &
+                  !                "netcdf_io_write_frame_body nf90_put_var body k2_varid"  )
+                  !    call netcdf_io_check( nf90_put_var(nc%id, nc%Q_varid, self%Q(j), start=[idslot, tslot]), &
+                  !                "netcdf_io_write_frame_body nf90_put_var body Q_varid"  )
                   ! end if
                class is (swiftest_tp)
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid, 0.0_DP, start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body Gmass_varid"  )
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%mass_varid, 0.0_DP, start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body mass_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid, 0.0_DP, start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body Gmass_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%mass_varid, 0.0_DP, start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body mass_varid"  )
                   if (param%lrhill_present) then
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%rhill_varid, 0.0_DP, start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body rhill_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%rhill_varid, 0.0_DP, start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body rhill_varid"  )
                   end if
-                  if (param%lclose) call netcdf_io_check( nf90_put_var(nc%id, nc%radius_varid, 0.0_DP, start=[idslot, tslot]), "netcdf_io_write_frame_body nf90_put_var body radius_varid"  )
+                  if (param%lclose) call netcdf_io_check( nf90_put_var(nc%id, nc%radius_varid, 0.0_DP, start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body radius_varid"  )
                   if (param%lrotation) then
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid, [0.0_DP,0.0_DP,0.0_DP], start=[1,idslot, tslot], count=[NDIM,1,1]), "netcdf_io_write_frame_body nf90_put_var body Ip_varid"  )
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, [0.0_DP,0.0_DP,0.0_DP], start=[1,idslot, tslot], count=[NDIM,1,1]), "netcdf_io_write_frame_body nf90_put_var body rotx_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid, [0.0_DP,0.0_DP,0.0_DP], start=[1,idslot, tslot], &
+                                                        count=[NDIM,1,1]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body Ip_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, [0.0_DP,0.0_DP,0.0_DP], start=[1,idslot, tslot], &
+                                                        count=[NDIM,1,1]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body rotx_varid"  )
                   end if
                end select
             end do
@@ -1741,11 +1984,13 @@ contains
       class is (swiftest_tp)
          call nc%get_valid_masks(plmask, tpmask)
          ntp = count(tpmask(:))  
-         call netcdf_io_check( nf90_put_var(nc%id, nc%ntp_varid, ntp, start=[nc%tslot]), "netcdf_io_write_frame_body nf90_put_var ntp_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%ntp_varid, ntp, start=[nc%tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var ntp_varid"  )
       end select
 #endif   
 
-      call netcdf_io_check( nf90_set_fill(nc%id, old_mode, tmp), "netcdf_io_write_frame_body nf90_set_fill old_mode"  )
+      call netcdf_io_check( nf90_set_fill(nc%id, old_mode, tmp), &
+                                  "netcdf_io_write_frame_body nf90_set_fill old_mode"  )
 
       return
    end subroutine swiftest_io_netcdf_write_frame_body
@@ -1766,23 +2011,35 @@ contains
       associate(tslot => nc%tslot)
          call self%write_info(nc, param)
 
-         call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "swiftest_io_netcdf_write_frame_cb nf90_set_fill"  )
+         call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), &
+                                  "swiftest_io_netcdf_write_frame_cb nf90_set_fill"  )
 
          call nc%find_idslot(self%id, idslot) 
-         call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id, start=[idslot]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb id_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%status_varid, ACTIVE, start=[idslot, tslot]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb id_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id, start=[idslot]), &
+                                  "swiftest_io_netcdf_write_frame_cb nf90_put_var cb id_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%status_varid, ACTIVE, start=[idslot, tslot]), &
+                                  "swiftest_io_netcdf_write_frame_cb nf90_put_var cb id_varid"  )
 
-         call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid, self%Gmass, start=[idslot, tslot]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb Gmass_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%mass_varid, self%mass, start=[idslot, tslot]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb mass_varid"  )
-         if (param%lclose) call netcdf_io_check( nf90_put_var(nc%id, nc%radius_varid, self%radius, start=[idslot, tslot]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb radius_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%j2rp2_varid, self%j2rp2, start=[tslot]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb j2rp2_varid" )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%j4rp4_varid, self%j4rp4, start=[tslot]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb j4rp4_varid" )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid, self%Gmass, start=[idslot, tslot]), &
+                                  "swiftest_io_netcdf_write_frame_cb nf90_put_var cb Gmass_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%mass_varid, self%mass, start=[idslot, tslot]), &
+                                  "swiftest_io_netcdf_write_frame_cb nf90_put_var cb mass_varid"  )
+         if (param%lclose) call netcdf_io_check( nf90_put_var(nc%id, nc%radius_varid, self%radius, start=[idslot, tslot]), &
+                                  "swiftest_io_netcdf_write_frame_cb nf90_put_var cb radius_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%j2rp2_varid, self%j2rp2, start=[tslot]), &
+                                  "swiftest_io_netcdf_write_frame_cb nf90_put_var cb j2rp2_varid" )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%j4rp4_varid, self%j4rp4, start=[tslot]), &
+                                  "swiftest_io_netcdf_write_frame_cb nf90_put_var cb j4rp4_varid" )
          if (param%lrotation) then
-            call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid, self%Ip(:), start=[1, idslot, tslot], count=[NDIM,1,1]), "swiftest_io_netcdf_write_frame_cb nf90_put_var cb Ip_varid"  )
-            call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, self%rot(:) * RAD2DEG, start=[1, idslot, tslot], count=[NDIM,1,1]), "swiftest_io_netcdf_write_frame_cby nf90_put_var cb rot_varid"  )
+            call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid, self%Ip(:), start=[1, idslot, tslot], count=[NDIM,1,1]), &
+                                  "swiftest_io_netcdf_write_frame_cb nf90_put_var cb Ip_varid"  )
+            call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, self%rot(:) * RAD2DEG, start=[1, idslot, tslot], &
+                                               count=[NDIM,1,1]), &
+                                  "swiftest_io_netcdf_write_frame_cby nf90_put_var cb rot_varid"  )
          end if
 
-         call netcdf_io_check( nf90_set_fill(nc%id, old_mode, tmp), "swiftest_io_netcdf_write_frame_cb nf90_set_fill old_mode"  )
+         call netcdf_io_check( nf90_set_fill(nc%id, old_mode, tmp), &
+                                  "swiftest_io_netcdf_write_frame_cb nf90_set_fill old_mode"  )
       end associate
 
       return
@@ -1818,8 +2075,8 @@ contains
       !! author: David A. Minton
       !!
       !! Writes header information (variables that change with time, but not particle id). 
-      !! This subroutine swiftest_significantly improves the output over the original binary file, allowing us to track energy, momentum, and other quantities that 
-      !! previously were handled as separate output files.
+      !! This subroutine swiftest_significantly improves the output over the original binary file, allowing us to track energy,
+      !! momentum, and other quantities that previously were handled as separate output files.
       implicit none
       ! Arguments
       class(swiftest_nbody_system),      intent(in)    :: self  !! Swiftest nbody system object
@@ -1829,25 +2086,40 @@ contains
       integer(I4B) :: tslot
 
       call nc%find_tslot(self%t, tslot)
-      call netcdf_io_check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var time_varid"  )
-      call netcdf_io_check( nf90_put_var(nc%id, nc%npl_varid, self%pl%nbody, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var npl_varid"  )
+      call netcdf_io_check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), &
+                                  "netcdf_io_write_hdr_system nf90_put_var time_varid"  )
+      call netcdf_io_check( nf90_put_var(nc%id, nc%npl_varid, self%pl%nbody, start=[tslot]), &
+                                  "netcdf_io_write_hdr_system nf90_put_var npl_varid"  )
 #ifndef COARRAY
-      call netcdf_io_check( nf90_put_var(nc%id, nc%ntp_varid, self%tp%nbody, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var ntp_varid"  )
+      call netcdf_io_check( nf90_put_var(nc%id, nc%ntp_varid, self%tp%nbody, start=[tslot]), &
+                                  "netcdf_io_write_hdr_system nf90_put_var ntp_varid"  )
 #endif
-      if (param%lmtiny_pl) call netcdf_io_check( nf90_put_var(nc%id, nc%nplm_varid, self%pl%nplm, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var nplm_varid"  )
+      if (param%lmtiny_pl) call netcdf_io_check( nf90_put_var(nc%id, nc%nplm_varid, self%pl%nplm, start=[tslot]), &
+                                  "netcdf_io_write_hdr_system nf90_put_var nplm_varid"  )
 
       if (param%lenergy) then
-         call netcdf_io_check( nf90_put_var(nc%id, nc%KE_orb_varid, self%ke_orbit, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var KE_orb_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%KE_spin_varid, self%ke_spin, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var KE_spin_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%PE_varid, self%pe, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var PE_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%BE_varid, self%be, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var BE_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%TE_varid, self%te, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var TE_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%L_orbit_varid, self%L_orbit(:), start=[1,tslot], count=[NDIM,1]), "netcdf_io_write_hdr_system nf90_put_var L_orbit_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%L_spin_varid, self%L_spin(:), start=[1,tslot], count=[NDIM,1]), "netcdf_io_write_hdr_system nf90_put_var L_spin_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%L_escape_varid, self%L_escape(:), start=[1,tslot], count=[NDIM,1]), "netcdf_io_write_hdr_system nf90_put_var L_escape_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%E_collisions_varid, self%E_collisions, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var E_collisions_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%E_untracked_varid, self%E_untracked, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var E_untracked_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%GMescape_varid, self%GMescape, start=[tslot]), "netcdf_io_write_hdr_system nf90_put_var GMescape_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%KE_orb_varid, self%ke_orbit, start=[tslot]), &
+                                  "netcdf_io_write_hdr_system nf90_put_var KE_orb_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%KE_spin_varid, self%ke_spin, start=[tslot]), &
+                                  "netcdf_io_write_hdr_system nf90_put_var KE_spin_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%PE_varid, self%pe, start=[tslot]), &
+                                  "netcdf_io_write_hdr_system nf90_put_var PE_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%BE_varid, self%be, start=[tslot]), &
+                                  "netcdf_io_write_hdr_system nf90_put_var BE_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%TE_varid, self%te, start=[tslot]), &
+                                  "netcdf_io_write_hdr_system nf90_put_var TE_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%L_orbit_varid, self%L_orbit(:), start=[1,tslot], count=[NDIM,1]), &
+                                  "netcdf_io_write_hdr_system nf90_put_var L_orbit_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%L_spin_varid, self%L_spin(:), start=[1,tslot], count=[NDIM,1]), &
+                                  "netcdf_io_write_hdr_system nf90_put_var L_spin_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%L_escape_varid, self%L_escape(:), start=[1,tslot], count=[NDIM,1]), &
+                                  "netcdf_io_write_hdr_system nf90_put_var L_escape_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%E_collisions_varid, self%E_collisions, start=[tslot]), &
+                                  "netcdf_io_write_hdr_system nf90_put_var E_collisions_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%E_untracked_varid, self%E_untracked, start=[tslot]), &
+                                  "netcdf_io_write_hdr_system nf90_put_var E_untracked_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%GMescape_varid, self%GMescape, start=[tslot]), &
+                                  "netcdf_io_write_hdr_system nf90_put_var GMescape_varid"  )
       end if
 
       return
@@ -1869,7 +2141,8 @@ contains
       character(len=NAMELEN) :: charstring
       character(len=NAMELEN), dimension(self%nbody) :: origin_type
 
-      call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "netcdf_io_write_info_body nf90_set_fill NF90_NOFILL"  )
+      call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), &
+                                  "netcdf_io_write_info_body nf90_set_fill NF90_NOFILL"  )
 
       select type(self)
          class is (swiftest_body)
@@ -1881,27 +2154,44 @@ contains
             do i = 1, n
                j = ind(i)
                call nc%find_idslot(self%id(j), idslot) 
-               call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id(j), start=[idslot]), "netcdf_io_write_info_body nf90_put_var id_varid"  )
-               call netcdf_io_check( nf90_put_var(nc%id, nc%status_varid, self%status(j), start=[idslot,tslot]), "netcdf_io_write_info_body nf90_put_var status_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id(j), start=[idslot]), &
+                                  "netcdf_io_write_info_body nf90_put_var id_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%status_varid, self%status(j), start=[idslot,tslot]), &
+                                  "netcdf_io_write_info_body nf90_put_var status_varid"  )
 
                charstring = trim(adjustl(self%info(j)%name))
-               call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_io_write_info_body nf90_put_var name_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), &
+                                  "netcdf_io_write_info_body nf90_put_var name_varid"  )
 
                charstring = trim(adjustl(self%info(j)%particle_type))
-               call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_io_write_info_body nf90_put_var particle_type_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), &
+                                  "netcdf_io_write_info_body nf90_put_var particle_type_varid"  )
 
                if (param%lclose) then
                   charstring = trim(adjustl(self%info(j)%origin_type))
                   origin_type(i) = charstring
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%origin_type_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_io_write_info_body nf90_put_var origin_type_varid"  )
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%origin_time_varid,  self%info(j)%origin_time,  start=[idslot]), "netcdf_io_write_info_body nf90_put_var origin_time_varid"  )
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%origin_rh_varid,    self%info(j)%origin_rh(:), start=[1,idslot], count=[NDIM,1]), "netcdf_io_write_info_body nf90_put_var origin_rh_varid"  )
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%origin_vh_varid,    self%info(j)%origin_vh(:), start=[1,idslot], count=[NDIM,1]), "netcdf_io_write_info_body nf90_put_var origin_vh_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%origin_type_varid, charstring, start=[1, idslot], &
+                                                     count=[NAMELEN, 1]), &
+                                  "netcdf_io_write_info_body nf90_put_var origin_type_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%origin_time_varid,  self%info(j)%origin_time,  start=[idslot]), &
+                                  "netcdf_io_write_info_body nf90_put_var origin_time_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%origin_rh_varid,    self%info(j)%origin_rh(:), start=[1,idslot], &
+                                                     count=[NDIM,1]), &
+                                  "netcdf_io_write_info_body nf90_put_var origin_rh_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%origin_vh_varid,    self%info(j)%origin_vh(:), start=[1,idslot], &
+                                                     count=[NDIM,1]), &
+                                  "netcdf_io_write_info_body nf90_put_var origin_vh_varid"  )
    
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%collision_id_varid, self%info(j)%collision_id, start=[idslot]), "netcdf_io_write_info_body nf90_put_var collision_id_varid"  )
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%discard_time_varid, self%info(j)%discard_time, start=[idslot]), "netcdf_io_write_info_body nf90_put_var discard_time_varid"  )
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%discard_rh_varid,   self%info(j)%discard_rh(:), start=[1,idslot], count=[NDIM,1]), "netcdf_io_write_info_body nf90_put_var discard_rh_varid"  )
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%discard_vh_varid,   self%info(j)%discard_vh(:), start=[1,idslot], count=[NDIM,1]), "netcdf_io_write_info_body nf90_put_var discard_vh_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%collision_id_varid, self%info(j)%collision_id, start=[idslot]), &
+                                  "netcdf_io_write_info_body nf90_put_var collision_id_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%discard_time_varid, self%info(j)%discard_time, start=[idslot]), &
+                                  "netcdf_io_write_info_body nf90_put_var discard_time_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%discard_rh_varid,   self%info(j)%discard_rh(:), start=[1,idslot], &
+                                                     count=[NDIM,1]), &
+                                  "netcdf_io_write_info_body nf90_put_var discard_rh_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%discard_vh_varid,   self%info(j)%discard_vh(:), start=[1,idslot], &
+                                                     count=[NDIM,1]), &
+                                  "netcdf_io_write_info_body nf90_put_var discard_vh_varid"  )
                end if
 
             end do
@@ -1926,30 +2216,44 @@ contains
       character(len=NAMELEN) :: charstring
 
       ! This string of spaces of length NAMELEN is used to clear out any old data left behind inside the string variables
-      call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "netcdf_io_write_info_cb nf90_set_fill NF90_NOFILL"  )
+      call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), &
+                                  "netcdf_io_write_info_cb nf90_set_fill NF90_NOFILL"  )
 
       call nc%find_idslot(self%id, idslot) 
 
-      call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id, start=[idslot]), "netcdf_io_write_info_cb nf90_put_var id_varid"  )
+      call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id, start=[idslot]), &
+                                  "netcdf_io_write_info_cb nf90_put_var id_varid"  )
 
       charstring = trim(adjustl(self%info%name))
-      call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_io_write_info_cb nf90_put_var name_varid"  )
+      call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), &
+                                  "netcdf_io_write_info_cb nf90_put_var name_varid"  )
 
       charstring = trim(adjustl(self%info%particle_type))
-      call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_io_write_info_cb nf90_put_var ptype_varid"  )
+      call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), &
+                                  "netcdf_io_write_info_cb nf90_put_var ptype_varid"  )
 
       if (param%lclose) then
          charstring = trim(adjustl(self%info%origin_type))
-         call netcdf_io_check( nf90_put_var(nc%id, nc%origin_type_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "netcdf_io_write_info_body nf90_put_var cb origin_type_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%origin_type_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), &
+                                  "netcdf_io_write_info_body nf90_put_var cb origin_type_varid"  )
 
-         call netcdf_io_check( nf90_put_var(nc%id, nc%origin_time_varid, self%info%origin_time, start=[idslot]), "netcdf_io_write_info_body nf90_put_var cb origin_time_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%origin_rh_varid, self%info%origin_rh(:), start=[1, idslot], count=[NDIM,1]), "netcdf_io_write_info_body nf90_put_var cb origin_rh_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%origin_vh_varid, self%info%origin_vh(:), start=[1, idslot], count=[NDIM,1]), "netcdf_io_write_info_body nf90_put_var cb origin_vh_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%origin_time_varid, self%info%origin_time, start=[idslot]), &
+                                  "netcdf_io_write_info_body nf90_put_var cb origin_time_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%origin_rh_varid, self%info%origin_rh(:), start=[1, idslot], count=[NDIM,1]), &
+                                  "netcdf_io_write_info_body nf90_put_var cb origin_rh_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%origin_vh_varid, self%info%origin_vh(:), start=[1, idslot], count=[NDIM,1]), &
+                                  "netcdf_io_write_info_body nf90_put_var cb origin_vh_varid"  )
 
-         call netcdf_io_check( nf90_put_var(nc%id, nc%collision_id_varid, self%info%collision_id, start=[idslot]), "netcdf_io_write_info_body nf90_put_var cb collision_id_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%discard_time_varid, self%info%discard_time, start=[idslot]), "netcdf_io_write_info_body nf90_put_var cb discard_time_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%discard_rh_varid, self%info%discard_rh(:), start=[1, idslot], count=[NDIM,1]), "netcdf_io_write_info_body nf90_put_var cb discard_rh_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%discard_vh_varid, self%info%discard_vh(:), start=[1, idslot], count=[NDIM,1]), "netcdf_io_write_info_body nf90_put_var cb discard_vh_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%collision_id_varid, self%info%collision_id, start=[idslot]), &
+                                  "netcdf_io_write_info_body nf90_put_var cb collision_id_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%discard_time_varid, self%info%discard_time, start=[idslot]), &
+                                  "netcdf_io_write_info_body nf90_put_var cb discard_time_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%discard_rh_varid, self%info%discard_rh(:), start=[1, idslot], &
+                                            count=[NDIM,1]), &
+                                  "netcdf_io_write_info_body nf90_put_var cb discard_rh_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%discard_vh_varid, self%info%discard_vh(:), start=[1, idslot], &
+                                            count=[NDIM,1]), &
+                                  "netcdf_io_write_info_body nf90_put_var cb discard_vh_varid"  )
       end if
       call netcdf_io_check( nf90_set_fill(nc%id, old_mode, tmp) )
 
@@ -1990,8 +2294,10 @@ contains
       ! Arguments
       class(swiftest_parameters), intent(inout) :: self       !! Collection of parameters
       integer(I4B),               intent(in)    :: unit       !! File unit number
-      character(len=*),           intent(in)    :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
-                                                              !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
+      character(len=*),           intent(in)    :: iotype     !! Dummy argument passed to the  input/output procedure contains the 
+                                                              !!    text from the char-literal-constant, prefixed with DT. 
+                                                              !!    If you do not include a char-literal-constant, the iotype 
+                                                              !!    argument contains only DT.
       character(len=*),           intent(in)    :: v_list(:)  !! The first element passes the integrator code to the reader
       integer(I4B),               intent(out)   :: iostat     !! IO status code
       character(len=*),           intent(inout) :: iomsg      !! Message to pass if iostat /= 0
@@ -2195,8 +2501,9 @@ contains
                   if (param_value == "YES" .or. param_value == 'T') param%lcoarray = .true. 
                case("SEED")
                   read(param_value, *) nseeds_from_file
-                  ! Because the number of seeds can vary between compilers/systems, we need to make sure we can handle cases in which the input file has a different
-                  ! number of seeds than the current nbody_system. If the number of seeds in the file is smaller than required, we will use them as a source to fill in the missing elements.
+                  ! Because the number of seeds can vary between compilers/systems, we need to make sure we can handle cases in 
+                  ! which the input file has a different number of seeds than the current nbody_system. If the number of seeds in 
+                  ! the file is smaller than required, we will use them as a source to fill in the missing elements.
                   ! If the number of seeds in the file is larger than required, we will truncate the seed array.
                   if (nseeds_from_file > nseeds) then
                      nseeds = nseeds_from_file
@@ -2447,7 +2754,8 @@ contains
             select case(param%integrator)
             case(INT_WHM, INT_RMVS, INT_HELIO)
             case default   
-               write(iomsg, *) "Coarray-based parallelization of test particles are not compatible with this integrator. This parameter will be ignored."
+               write(iomsg, *) "Coarray-based parallelization of test particles are not compatible with this integrator. " &
+                            // "This parameter will be ignored."
                param%lcoarray = .false.
             end select
 #else
@@ -2496,7 +2804,8 @@ contains
          function time_stretcher(fstep_out) result(ans)
             !! author: David A. Minton
             !!
-            !! Equation for the time stretchinf function. Solving the roots of this equation gives the time stretching factor for non-linear file output cadence.
+            !! Equation for the time stretchinf function. Solving the roots of this equation gives the time stretching factor for 
+            !! non-linear file output cadence.
             implicit none
             ! Arguments
             real(DP), intent(in) :: fstep_out
@@ -2524,10 +2833,12 @@ contains
       !! Adapted from Martin Duncan's Swift routine io_param_restart.f
       implicit none
       ! Arguments
-      class(swiftest_parameters),intent(in)     :: self         !! Collection of parameters
+      class(swiftest_parameters),intent(in)     :: self       !! Collection of parameters
       integer, intent(in)                       :: unit       !! File unit number
-      character(len=*), intent(in)              :: iotype     !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
-                                                               !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
+      character(len=*), intent(in)              :: iotype     !! Dummy argument passed to the  input/output procedure contains the 
+                                                              !! text from the char-literal-constant, prefixed with DT. 
+                                                              !!    If you do not include a char-literal-constant, the iotype 
+                                                              !!    argument contains only DT.
       integer, intent(in)                       :: v_list(:)  !! Not used in this procedure
       integer, intent(out)                      :: iostat     !! IO status code
       character(len=*), intent(inout)           :: iomsg      !! Message to pass if iostat /= 0
@@ -3207,7 +3518,7 @@ contains
                call nc%open(param)
             case('NEW')
                if (fileExists) then
-                  errmsg = trim(adjustl(param%outfile)) // " already exists! You must specify OUT_STAT = APPEND, REPLACE, or UNKNOWN"
+                  errmsg = trim(adjustl(param%outfile))// " already exists! You must specify OUT_STAT = APPEND, REPLACE, or UNKNOWN"
                   goto 667
                end if
                call nc%initialize(param)

@@ -191,7 +191,7 @@ contains
          ahj(:,:) = 0.0_DP
          !$omp parallel do default(private) schedule(static)&
          !$omp shared(npl, nplm, r, Gmass, radius) &
-         !$omp reduction(+:ahi,j)
+         !$omp reduction(+:ahi,ahj)
          do i = 1, nplm
 #ifdef DOCONLOC
             do concurrent(j = i+1:npl) shared(i,r,radius,ahi,ahj,Gmass) local(rx,ry,rz,rji2,rlim2)

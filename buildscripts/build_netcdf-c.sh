@@ -11,11 +11,19 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 SCRIPT_DIR=$(realpath $(dirname $0))
-
 set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
+. ${SCRIPT_DIR}/set_compilers.sh
 
+NPROC=$(nproc)
+
+printf "*********************************************************\n"
+printf "*          STARTING DEPENDENCY BUILD                    *\n"
+printf "*********************************************************\n"
+printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
+printf "Installing to ${PREFIX}\n"
+printf "\n"
 
 NC_VER="4.9.2"
 
@@ -43,15 +51,27 @@ printf "HDF5_ROOT: ${HDF5_ROOT}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/netcdf-c-*
-COPTS="--disable-testsets --disable-nczarr --prefix=${PREFIX}"
-printf "COPTS: ${COPTS}\n"
-./configure $COPTS
-make && make check 
+NCDIR="${PREFIX}"
+ZLIB_ROOT=${PREFIX}
+cmake -B build -S . -G Ninja  \
+    -DCMAKE_BUILD_TYPE:STRING="Release" \
+    -DHDF5_DIR:PATH=${HDF5_ROOT}/cmake \
+    -DHDF5_ROOT:PATH=${HDF5_ROOT} \
+    -DCMAKE_FIND_ROOT_PATH:PATH="${PREFIX}" \
+    -DCMAKE_INSTALL_PREFIX:STRING="${NCDIR}" \
+    -DENABLE_DAP:BOOL=OFF \
+    -DENABLE_BYTERANGE:BOOL=OFF \
+    -DENABLE_NCZARR:BOOL=OFF \
+    -DENABLE_NCZARR_FILTERS:BOOL=OFF \
+    -DENABLE_LIBXML2:BOOL=OFF \
+    -DCMAKE_INSTALL_LIBDIR="lib" \
+    -DENABLE_REMOTE_FORTRAN_BOOTSTRAP:BOOL=ON
 
+cmake --build build -j${NPROC} 
 if [ -w ${PREFIX} ]; then
-    make install
+    cmake --install build 
 else
-    sudo make install
+    sudo cmake --install build 
 fi
 
 if [ $? -ne 0 ]; then

@@ -1,6 +1,6 @@
 [project]
 name = "swiftest"
-version = "2023.9.3"
+version = "2023.10.1"
 authors=[
     {name = 'David A. Minton', email='daminton@purdue.edu'},
     {name = 'Carlisle Wishard'},
@@ -14,7 +14,7 @@ maintainers = [
 ]
 readme = "README.md"
 requires-python=">=3.8"
-license={file = "LICENSE.txt"}
+license={file = "LICENSE"}
 classifiers=[
 'Development Status :: 3 - Alpha',
 'Intended Audience :: Science/Research',
@@ -26,16 +26,17 @@ keywords=['astronomy','astrophysics', 'planetary', 'nbody integrator', 'symplect
 dependencies = [
     'numpy>=1.24.3',
     'scipy>=1.10.1',
-    'xarray>=2022.11.0',
-    'dask>=2022.1',
-    'distributed>=2022.1',
-    'bottleneck>=1.3.5',
-    'h5netcdf>=1.0.2',
-    'netcdf4>=1.6.2',
-    'matplotlib>=3.7.1',
-    'astropy>=5.1',
+    'xarray>=2023.1',
+    'dask>=2023.5',
+    'distributed>=2023.5',
+    'bottleneck>=1.3',
+    'h5netcdf>=1.1',
+    'h5py>=3.9',
+    'netcdf4>=1.6',
+    'matplotlib>=3.7',
+    'astropy>=5.2',
     'astroquery>=0.4.6',
-    'tqdm>=4.65.0',
+    'tqdm>=4.66',
     'cython>=3.0.0',
 ]
 
@@ -54,17 +55,18 @@ build-backend = "scikit_build_core.build"
 cmake.args = ["-DUSE_SIMD=OFF"]
 sdist.include = ["src/globals/globals_module.f90.in","swiftest/*.py","swiftest/*.pyx","swiftest/*.h"]
 build-dir = "build/{wheel_tag}"
+cmake.verbose = true
 
 [tool.cibuildwheel]
 test-command = "pytest {package}/tests"
 test-requires = ['pytest']
-skip = "cp312-* pp* *i686 *-manylinux_i686 *_ppc64le *_s390x *-musllinux* *-win32"
+skip = "pp* *i686 *-manylinux_i686 *_ppc64le *_s390x *-musllinux* *-win32"
 build-verbosity = 1
 
 [tool.cibuildwheel.macos.environment]
 ROOT_DIR="$(pwd)"
 MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion)"
-PREFIX="${ROOT_DIR}"
+PREFIX="/usr/local"
 HOMEBREW_PREFIX="$(brew --prefix)"
 ARCH="$(uname -m)"
 LD_LIBRARY_PATH="/usr/local/lib:${PREFIX}/lib:${HOMEBREW_PREFIX}/lib"
@@ -72,7 +74,7 @@ LDFLAGS="-Wl,-rpath,${ROOT_DIR}/lib  -Wl,-no_compact_unwind -L${PREFIX}/lib -L${
 CPATH="/usr/local/include:${PREFIX}/include:${HOMEBREW_PREFIX}/include:${ROOT_DIR}/include"
 CPPFLAGS="-isystem ${PREFIX}/include -isystem /usr/local/include"
 LIBS="-lomp"
-FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -arch ${ARCH}"
+FCFLAGS="-mmacos-version-min=${MACOSX_DEPLOYMENT_TARGET} -arch ${ARCH}"
 FFFLAGS="${FCFLAGS}"
 CFLAGS="${FCFLAGS} -Wno-deprecated-non-prototype -arch ${ARCH}"
 CXXFLAGS="${CFLAGS}"
@@ -80,10 +82,10 @@ HDF5_ROOT="${PREFIX}"
 HDF5_LIBDIR="${HDF5_ROOT}/lib"
 HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
 HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
-NETCDF_FORTRAN_HOME="${PREFIX}"
-NETCDF_INCLUDE="${PREFIX}"
 NCDIR="${PREFIX}"
 NFDIR="${PREFIX}"
+NETCDF_FORTRAN_HOME="${NFDIR}"
+NETCDF_FORTRAN_INCLUDE="${NFDIR}/include"
 FC="$(command -v gfortran-12)"
 F77="${FC}"
 CC="/usr/bin/clang"
@@ -92,23 +94,36 @@ CPP="/usr/bin/cpp"
 AR="/usr/bin/ar"
 NM="/usr/bin/nm"
 RANLIB="/usr/bin/ranlib"
+netCDF-Fortran_DIR="${PREFIX}/lib/cmake/netCDF"
 
 [tool.cibuildwheel.macos]
 before-all = [
     "brew install coreutils",
-    "LIBS=\"\" buildscripts/build_dependencies.sh -p ${PREFIX} -d ${PREFIX}/build -m ${MACOSX_DEPLOYMENT_TARGET}"
+    "LIBS=\"\" buildscripts/build_dependencies.sh -p ${PREFIX} -d ${HOME}/Downloads -m ${MACOSX_DEPLOYMENT_TARGET}"
 ]
 
 [tool.cibuildwheel.linux]
+skip = "cp312-* pp* -manylinux_i686* *-musllinux*"
 before-all = [
     "yum install doxygen libxml2-devel libcurl-devel -y",
     "buildscripts/build_dependencies.sh -p /usr/local"
 ]
 [tool.cibuildwheel.linux.environment]
-NETCDF_FORTRAN_HOME="/usr/local"
-NETCDF_INCLUDE="/usr/local/include"
-LD_LIBRARY_PATH="/usr/local/lib:/project/lib"
-CPATH="/usr/local/include:/project/include"
+PREFIX="/usr/local"
+NCDIR="${PREFIX}"
+NFDIR="${PREFIX}"
+NETCDF_FORTRAN_HOME="${NFDIR}"
+NETCDF_FORTRAN_INCLUDE="${NFDIR}/include"
+HDF5_ROOT="${PREFIX}"
+HDF5_LIBDIR="${HDF5_ROOT}/lib"
+HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
+HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
+LD_LIBRARY_PATH="${PREFIX}/lib:/project/lib:${HDF5_LIBDIR}"
+CPATH="${PREFIX}/include:/project/include:${HDF5_INCLUDE_DIR}"
+netCDF-Fortran_DIR="${PREFIX}/lib/cmake/netCDF"
+HDF5_DIR="${HDF5_ROOT}/cmake"
+PATH="${HDF5_ROOT}/bin:${PATH}"
+CMAKE_INSTALL_LIBDIR="lib"
 
 [[tool.scikit-build.generate]]
 path = "version.txt"

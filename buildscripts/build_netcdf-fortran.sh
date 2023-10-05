@@ -14,6 +14,16 @@ SCRIPT_DIR=$(realpath $(dirname $0))
 set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
+. ${SCRIPT_DIR}/set_compilers.sh
+
+NPROC=$(nproc)
+
+printf "*********************************************************\n"
+printf "*          STARTING DEPENDENCY BUILD                    *\n"
+printf "*********************************************************\n"
+printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
+printf "Installing to ${PREFIX}\n"
+printf "\n"
 
 NF_VER="4.6.1"
 printf "*********************************************************\n"
@@ -24,7 +34,8 @@ if [ ! -d ${DEPENDENCY_DIR}/netcdf-fortran-${NF_VER} ]; then
     [ -d ${DEPENDENCY_DIR}/netcdf-fortran-* ] && rm -rf ${DEPENDENCY_DIR}/netcdf-fortran-*
     curl -s -L https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v${NF_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
 fi 
-
+CFLAGS="$(nc-config --cflags) $CFLAGS"
+LIBS="$(nc-config --libs) $LIBS"
 printf "\n"
 printf "*********************************************************\n"
 printf "*          BUILDING NETCDF-FORTRAN LIBRARY              *\n"
@@ -38,12 +49,23 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/netcdf-fortran-*
-./configure --enable-large-file-tests=no --enable-static=no --enable-filter-test=no --prefix=${PREFIX}  
-make && make check i
-if [ -w ${PREFIX} ]; then
-    make install
+NFDIR="${PREFIX}"
+NCLIBDIR=$(${NCDIR}/bin/nc-config --libdir)
+if [ $OS = "MacOSX" ]; then
+    netCDF_LIBRARIES="${NCLIBDIR}/libnetcdf.dylib"
 else
-    sudo make install
+    netCDF_LIBRARIES="${NCLIBDIR}/libnetcdf.so"
+fi
+cmake -B build -S . -G Ninja \
+    -DnetCDF_INCLUDE_DIR:PATH="${NCDIR}/include" \
+    -DnetCDF_LIBRARIES:FILEPATH="${netCDF_LIBRARIES}"  \
+    -DCMAKE_INSTALL_PREFIX:PATH=${NFDIR} \
+    -DCMAKE_INSTALL_LIBDIR="lib"
+cmake --build build -j${NPROC} 
+if [ -w ${PREFIX} ]; then
+    cmake --install build 
+else
+    sudo cmake --install build 
 fi
 
 if [ $? -ne 0 ]; then

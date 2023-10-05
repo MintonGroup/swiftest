@@ -14,7 +14,16 @@ SCRIPT_DIR=$(realpath $(dirname $0))
 set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
+. ${SCRIPT_DIR}/set_compilers.sh
 
+NPROC=$(nproc)
+
+printf "*********************************************************\n"
+printf "*          STARTING DEPENDENCY BUILD                    *\n"
+printf "*********************************************************\n"
+printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
+printf "Installing to ${PREFIX}\n"
+printf "\n"
 
 ZLIB_VER="1.3"
 
@@ -40,12 +49,13 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/zlib-*
-./configure --prefix=${PREFIX}
-make 
+cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${PREFIX} 
+    
+cmake --build build -j${NPROC}
 if [ -w ${PREFIX} ]; then
-    make install
+    cmake --install build 
 else
-    sudo make install
+    sudo cmake --install build
 fi
 
 if [ $? -ne 0 ]; then
