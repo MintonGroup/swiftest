@@ -19,7 +19,7 @@ swiftest_driver.sh
 !README.swifter 
 dump*
 !**/.gitignore
-!.github/workflows/build_wheels.yml
+!.github/workflows/*.yml
 !setup.py
 !examples/**
 !swiftest/**
