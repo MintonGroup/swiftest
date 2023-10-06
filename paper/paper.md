@@ -53,10 +53,13 @@ Building off a strong legacy, including its predecessors `Swifter` [@kaufmann_sw
 
 WHM
   : Wisdom-Holman method.  `WHM` is a symplectic integrator that is best suited for cases in which the orbiting bodies do not have close encounters with each other. For details see @Wisdom:1991.
+
 RMVS
   : Regularized Mixed Variable Symplectic. `RMVS` is an extension of `WHM` that handles close approaches between test particles and massive bodies. For details, see @Levison:1994.
+
 HELIO
   : Democratic Heliocentric method.  This is a basic symplectic integrator that uses democratic heliocentric coordinates instead of the Jacobi coordinates used by `WHM`. Like `WHM` it is not suited for simulating close encoutners between orbiting bodies. For details, see @Duncan:1998. 
+
 SyMBA
   : Symplectic Massive Body Algorithm. This is an extension of `HELIO` that handles close approaches between massive bodies and any of the other objects in the simulation. It also includes semi-interacting massive bodies that can gravitationally influence fully massive bodies but not each other. This algorithm is described in the @Duncan:1998. See also @Levison:2000.
 
@@ -72,7 +75,6 @@ In addition `Swiftest` contains a number of signfigant enhancements relative to 
 - It comes with an extensive set of Python scripts to help generate simulation initial conditions and post-process simulation results.
 - It includes the `Fraggle` collisional fragmentation model that is used to generate collisional fragments on trajectories that conserve linear and angular momentum and lose the appropriate amount of collisional energy for inelastic collisions between massive bodies in `SyMBA` simulations. The collisional outcome is deterimined using standard methods based on the work of @Leinhardt:2012 and @Stewart:2012.
 
- 
 ## Performance
 
 Modeling the behavior of thousands of fully interacting bodies over long timescales is computationally expensive, with typical runs taking weeks or months to complete. The addition of collisional fragmentation can quickly generate hundreds or thousands of new bodies in a short time period, creating further computational challenges for traditional \textit{n}-body integrators. As a result, enhancing computational performance was a key aspect of the development of `Swiftest`. Here we show a comparison between the performance of `Swift`, `Swifter-OMP` (a parallel version of `Swifter`), and `Swiftest` on simulations with 1k, 2k, 8k, and 16k fully interacting bodies. The number of cores dedicated to each run is varied from 1 to 24 to test the parallel performance of each program.
