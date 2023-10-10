@@ -24,6 +24,7 @@ dump*
 !examples/**
 !swiftest/**
 !tests/**
+!.zenodo.json
 *ipynb_checkpoints
 **/.DS_Store
 !version.txt
