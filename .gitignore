@@ -19,11 +19,13 @@ swiftest_driver.sh
 !README.swifter 
 dump*
 !**/.gitignore
-!.github/workflows/build_wheels.yml
+!.github/workflows/*.yml
 !setup.py
 !examples/**
 !swiftest/**
 !tests/**
+!.zenodo.json
+!CITATION.cff
 *ipynb_checkpoints
 **/.DS_Store
 !version.txt
