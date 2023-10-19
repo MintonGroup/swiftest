@@ -1,6 +1,6 @@
 [project]
 name = "swiftest"
-version = "2023.10.2"
+version = "2023.10.3"
 authors=[
     {name = 'David A. Minton', email='daminton@purdue.edu'},
     {name = 'Carlisle Wishard'},
@@ -38,6 +38,7 @@ dependencies = [
     'astroquery>=0.4.6',
     'tqdm>=4.66',
     'cython>=3.0.0',
+    'mkdocs>=1.5.3'
 ]
 
 [project.urls]

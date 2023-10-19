@@ -40,6 +40,7 @@ _dependencies
 
 
 #Documentation
+!mkdocs.yml
 !docs/*
 !docs/*/*
 !docs/*/*/*
@@ -62,3 +63,4 @@ zlib-*
 actions-runner*
 
 env/**
+venv/**
