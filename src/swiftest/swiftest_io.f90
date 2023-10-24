@@ -1008,7 +1008,7 @@ contains
 
          ! status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
          ! if (status == NF90_NOERR) then
-         call netcdf_io_check( nf90_def_var(nc%id, nc%c_lm_varname, nc%out_type, [nc%sign_dimid, nc%l_dimid, nc%m_dimid], nc%c_lm_varid), & 
+         call netcdf_io_check( nf90_def_var(nc%id, nc%c_lm_varname, nc%out_type, [nc%m_dimid, nc%l_dimid, nc%sign_dimid], nc%c_lm_varid), & 
                                     "netcdf_io_initialize_output nf90_def_var c_lm_varid" )
          ! end if
 
@@ -2073,6 +2073,7 @@ contains
       ! Internals
       integer(I4B)                              :: idslot, old_mode, tmp
       integer(I4B)                              :: l_dim_max, m_dim_max
+      integer(I4B), dimension(:), allocatable   :: lm_coords
       integer(I4B) :: status
 
       associate(tslot => nc%tslot)
@@ -2110,11 +2111,20 @@ contains
 
          status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
          if (status == NF90_NOERR) then
-            ! call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%l_dimid, len = l_dim_max), "netcdf_io_write_frame_cb nf90_inquire_dimension l_dimid")
-            ! call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%m_dimid, len = m_dim_max), "netcdf_io_write_frame_cb nf90_inquire_dimension m_dimid")
-
             m_dim_max = size(self%c_lm, 1)
             l_dim_max = size(self%c_lm, 2)
+
+            ! Populate coordinate values for l and m and export to hdf file
+            allocate(lm_coords(l_dim_max))
+            do i = 0, l_dim_max
+               lm_coords(i + 1) = i 
+            end do
+
+            call netcdf_io_check( nf90_put_var(nc%id, nc%l_varid, lm_coords), "netcdf_io_write_frame_cb nf90_put_var l_varid")
+            call netcdf_io_check( nf90_put_var(nc%id, nc%m_varid, lm_coords), "netcdf_io_write_frame_cb nf90_put_var m_varid")
+            call netcdf_io_check( nf90_put_var(nc%id, nc%sign_varid, [1, -1]), "netcdf_io_write_frame_cb nf90_put_var sign_varid")
+
+            ! Write dimension-coordinates to file
             
             if(.not. allocated(self%c_lm)) then
                allocate(self%c_lm(m_dim_max, l_dim_max, 2))
