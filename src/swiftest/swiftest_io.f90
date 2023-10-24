@@ -2116,7 +2116,7 @@ contains
 
             ! Populate coordinate values for l and m and export to hdf file
             allocate(lm_coords(l_dim_max))
-            do i = 0, l_dim_max
+            do i = 0, l_dim_max - 1
                lm_coords(i + 1) = i 
             end do
 
