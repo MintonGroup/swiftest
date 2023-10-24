@@ -2071,7 +2071,7 @@ contains
       class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       ! Internals
-      integer(I4B)                              :: idslot, old_mode, tmp
+      integer(I4B)                              :: idslot, old_mode, tmp, i
       integer(I4B)                              :: l_dim_max, m_dim_max
       integer(I4B), dimension(:), allocatable   :: lm_coords
       integer(I4B) :: status
