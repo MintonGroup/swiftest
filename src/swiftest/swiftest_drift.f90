@@ -591,7 +591,7 @@ contains
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt     !! Stepsize
 
-      self%rotphase = MOD((.mag. self%rot(:)) * dt * param%TU2S, 2 * PI) ! radians
+      self%rotphase = MOD(self%rotphase + (.mag. self%rot(:)) * dt * param%TU2S, 2 * PI) ! radians
 
    end subroutine swiftest_drift_cb_rotphase_update
 
