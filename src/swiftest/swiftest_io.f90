@@ -2110,13 +2110,16 @@ contains
 
          status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
          if (status == NF90_NOERR) then
-            call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%l_dimid, len = l_dim_max), "netcdf_io_write_frame_cb nf90_inquire_dimension l_dimid")
-            call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%m_dimid, len = m_dim_max), "netcdf_io_write_frame_cb nf90_inquire_dimension m_dimid")
+            ! call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%l_dimid, len = l_dim_max), "netcdf_io_write_frame_cb nf90_inquire_dimension l_dimid")
+            ! call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%m_dimid, len = m_dim_max), "netcdf_io_write_frame_cb nf90_inquire_dimension m_dimid")
+
+            m_dim_max = size(self%c_lm, 1)
+            l_dim_max = size(self%c_lm, 2)
             
             if(.not. allocated(self%c_lm)) then
                allocate(self%c_lm(m_dim_max, l_dim_max, 2))
             end if
-            call netcdf_io_check( nf90_put_var(nc%id, nc%c_lm_varid, self%c_lm, count = [m_dim_max, l_dim_max, 2]), "netcdf_io_write_frame_cb nf90_getvar c_lm_varid")
+            call netcdf_io_check( nf90_put_var(nc%id, nc%c_lm_varid, self%c_lm, count = [m_dim_max, l_dim_max, 2]), "netcdf_io_write_frame_cb nf90_put_var c_lm_varid")
          end if
 
          call netcdf_io_check( nf90_set_fill(nc%id, old_mode, tmp), &
