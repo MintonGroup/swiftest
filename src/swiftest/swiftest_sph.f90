@@ -100,7 +100,7 @@ contains
         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
         ! Internals
         integer(I4B)    :: i = 1
-        real(DP)        :: r_mag, theta, phi    !! magnitude of the position vector, zenith angle, and azimuthal angle
+        real(DP)        :: theta, phi              !! zenith angle, and azimuthal angle
         real(DP), dimension(NDIM)  :: g_sph        !! Gravitational terms from Spherical Harmonics
 
         associate(pl => self, npl => self%nbody, cb => nbody_system%cb, rh => self%rh)
@@ -108,11 +108,10 @@ contains
 
             do i = 1, npl
                 if (pl%lmask(i)) then
-                    r_mag = .mag. rh(:,i)
                     theta = atan2(sqrt(rh(1,i)**2 + rh(2,i)**2), rh(3,i))
                     phi = atan2(rh(2,i), rh(1,i)) - cb%rotphase
     
-                    call swiftest_sph_g_acc_one(cb%Gmass, r_mag, phi, theta, rh(:,i), cb%c_lm, g_sph, pl%Gmass(i), cb%aobl)
+                    call swiftest_sph_g_acc_one(cb%Gmass, cb%radius, phi, theta, rh(:,i), cb%c_lm, g_sph, pl%Gmass(i), cb%aobl)
                     pl%ah(:, i) = pl%ah(:, i) + g_sph(:) - cb%aobl(:)
                     pl%aobl(:, i) = g_sph(:)
                 end if
@@ -132,7 +131,7 @@ contains
         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
         ! Internals
         integer(I4B)    :: i = 1
-        real(DP)        :: r_mag, theta, phi       !! magnitude of the position vector, zenith angle, and azimuthal angle
+        real(DP)        :: theta, phi              !! zenith angle, and azimuthal angle
         real(DP), dimension(NDIM)  :: rh           !! Position vector of the test particle
         real(DP), dimension(NDIM)  :: g_sph        !! Gravitational terms from Spherical Harmonics
         real(DP), dimension(NDIM)  :: aoblcb       !! Temporary variable for central body oblateness acceleration
@@ -147,11 +146,10 @@ contains
 
             do i = 1, ntp
                 if (tp%lmask(i)) then
-                    r_mag = .mag. rh(:,i)
                     theta = atan2(sqrt(rh(1,i)**2 + rh(2,i)**2), rh(3,i))
                     phi = atan2(rh(2,i), rh(1,i)) - cb%rotphase
 
-                    call swiftest_sph_g_acc_one(cb%Gmass, r_mag, phi, theta, rh(:,i), cb%c_lm, g_sph)
+                    call swiftest_sph_g_acc_one(cb%Gmass, cb%radius, phi, theta, rh(:,i), cb%c_lm, g_sph)
                     tp%ah(:, i) = tp%ah(:, i) + g_sph(:) - aoblcb(:)
                     tp%aobl(:, i) = g_sph(:)
                 end if
