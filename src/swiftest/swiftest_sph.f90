@@ -48,7 +48,12 @@ contains
         l_max = size(c_lm, 2) - 1
         N = (l_max + 1) * (l_max + 2) / 2
         allocate(p(N),p_deriv(N))
-        call PlmON_d1(p, p_deriv, l_max, cos(theta))      ! Orthonormalized Associated Legendre Polynomials and the 1st Derivative
+
+        if(cos(theta) > epsilon(0.0_DP)) then
+            call PlmON_d1(p, p_deriv, l_max, cos(theta))      ! Orthonormalized Associated Legendre Polynomials and the 1st Derivative
+        else
+            call PlmON_d1(p, p_deriv, l_max, 0.0_DP)
+        end if
 
         do l = 1, l_max ! skipping the l = 0 term; It is the spherical body term
             do m = 0, l

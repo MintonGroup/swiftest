@@ -221,7 +221,7 @@ contains
 
       associate(pl => self, cb => nbody_system%cb)
          npl = self%nbody
-         call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rh, pl%lmask, pl%aobl, pl%Gmass, cb%aobl)
+         call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rh, pl%lmask, pl%aobl, cb%rot, pl%Gmass, cb%aobl)
 
 #ifdef DOCONLOC
          do concurrent(i = 1:npl, pl%lmask(i)) shared(cb,pl)
