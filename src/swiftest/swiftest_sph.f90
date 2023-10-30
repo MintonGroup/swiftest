@@ -71,14 +71,14 @@ contains
                                                                 ! cssc * m = first derivative of ccss with respect to phi
 
                 ! m > 0
-                g_sph(1) = g_sph(1) - GMcb * r_0**l / r_mag**(l + 1) * (-1.0_DP * cssc * m * plm / rh(2) &
-                                                              - ccss * (dplm * sin(theta) / (rh(3) * cos(phi)) &    
-                                                                        + plm * (l + 1) * rh(1) / r_mag**2)) ! g_x
-                g_sph(2) = g_sph(2) - GMcb * r_0**l / r_mag**(l + 1) * (cssc * m * plm / rh(1) &
-                                                              - ccss * (dplm * sin(theta) / (rh(3) * sin(phi)) &
-                                                                        + plm * (l + 1) * rh(2) / r_mag**2)) ! g_y
-                g_sph(3) = g_sph(3) + GMcb * r_0**l / r_mag**(l + 1) * ccss * (dplm * sin(theta) / sqrt(r_mag**2 - rh(3)**2) &
-                                                                     + plm * (l + 1) * rh(3) / r_mag**2)     ! g_z
+                g_sph(1) = g_sph(1) + GMcb * r_0**l / r_mag**(l + 2) * (cssc * m * plm * sin(phi) / sin(theta) &
+                                                                        - ccss * sin(theta) * cos(phi) &    
+                                                                        * (dplm * cos(theta) + plm * (l + 1))) ! g_x
+                g_sph(2) = g_sph(2) - GMcb * r_0**l / r_mag**(l + 2) * (cssc * m * plm * cos(phi) / sin(theta) &
+                                                                        - ccss * sin(theta) * sin(phi) &
+                                                                        * (dplm * cos(theta) + plm * (l + 1))) ! g_y
+                g_sph(3) = g_sph(3) + GMcb * r_0**l / r_mag**(l + 2) * ccss * (-1.0_DP * dplm * sin(theta)**2  &
+                                                                        + plm * (l + 1) * cos(theta))          ! g_z
             end do
         end do
 
