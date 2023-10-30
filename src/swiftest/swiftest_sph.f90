@@ -78,7 +78,7 @@ contains
                                                               - ccss * (dplm * sin(theta) / (rh(3) * sin(phi)) &
                                                                         + plm * (l + 1) * rh(2) / r_mag**2)) ! g_y
                 g_sph(3) = g_sph(3) + GMcb * r_0**l / r_mag**(l + 1) * ccss * (dplm * sin(theta) / sqrt(r_mag**2 - rh(3)**2) &
-                                                                     + plm * (l + 1) * rh(3) / r_mag**2) ! g_z
+                                                                     + plm * (l + 1) * rh(3) / r_mag**2)     ! g_z
             end do
         end do
 

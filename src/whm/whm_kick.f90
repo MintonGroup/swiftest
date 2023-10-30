@@ -237,6 +237,7 @@ contains
       logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
       ! Internals
       integer(I4B) :: i, npl
+      real(DP) :: tmp ! to check the acceleration kick due to the CB
 
       associate(pl => self, cb => nbody_system%cb)
          npl = self%nbody
@@ -260,6 +261,7 @@ contains
          do concurrent(i = 1:npl, pl%lmask(i))
 #endif
             pl%vh(:, i) = pl%vh(:, i) + pl%ah(:, i) * dt
+            ! tmp = .mag.(pl%ah(:, i) - pl%aobl(:, i))
          end do
       end associate
 
