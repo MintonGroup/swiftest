@@ -72,10 +72,10 @@ contains
 
                 ! m > 0
                 g_sph(1) = g_sph(1) + GMcb * r_0**l / r_mag**(l + 2) * (cssc * m * plm * sin(phi) / sin(theta) &
-                                                                        - ccss * sin(theta) * cos(phi) &    
+                                                                        + ccss * sin(theta) * cos(phi) &    
                                                                         * (dplm * cos(theta) + plm * (l + 1))) ! g_x
-                g_sph(2) = g_sph(2) - GMcb * r_0**l / r_mag**(l + 2) * (cssc * m * plm * cos(phi) / sin(theta) &
-                                                                        - ccss * sin(theta) * sin(phi) &
+                g_sph(2) = g_sph(2) + GMcb * r_0**l / r_mag**(l + 2) * (-1.0_DP * cssc * m * plm * cos(phi) / sin(theta) &
+                                                                        + ccss * sin(theta) * sin(phi) &
                                                                         * (dplm * cos(theta) + plm * (l + 1))) ! g_y
                 g_sph(3) = g_sph(3) + GMcb * r_0**l / r_mag**(l + 2) * ccss * (-1.0_DP * dplm * sin(theta)**2  &
                                                                         + plm * (l + 1) * cos(theta))          ! g_z
