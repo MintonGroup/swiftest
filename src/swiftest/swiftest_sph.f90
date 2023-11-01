@@ -50,9 +50,9 @@ contains
         allocate(p(N),p_deriv(N))
 
         if(cos(theta) > epsilon(0.0_DP)) then
-            call PlmON_d1(p, p_deriv, l_max, cos(theta))      ! Orthonormalized Associated Legendre Polynomials and the 1st Derivative
+            call PLegendreA_d1(p, p_deriv, l_max, cos(theta))      ! Unnormalized Associated Legendre Polynomials and the 1st Derivative
         else
-            call PlmON_d1(p, p_deriv, l_max, 0.0_DP)
+            call PLegendreA_d1(p, p_deriv, l_max, 0.0_DP)
         end if
 
         do l = 1, l_max ! skipping the l = 0 term; It is the spherical body term
@@ -60,8 +60,8 @@ contains
 
                 ! Associated Legendre Polynomials 
                 lmindex = PlmIndex(l, m)  
-                plm = p(lmindex)              ! p_l,m
-                dplm = p_deriv(lmindex)       ! d(p_l,m)
+                plm = p(lmindex)                ! p_l,m
+                dplm = p_deriv(lmindex)         ! d(p_l,m)
 
                 ! C_lm and S_lm with Cos and Sin of m * phi
                 ccss = c_lm(m+1, l+1, 1) * cos(m * phi) & 
@@ -79,6 +79,7 @@ contains
                                                                         * (dplm * cos(theta) + plm * (l + 1))) ! g_y
                 g_sph(3) = g_sph(3) - GMcb * r_0**l / r_mag**(l + 2) * ccss * (-1.0_DP * dplm * sin(theta)**2  &
                                                                         + plm * (l + 1) * cos(theta))          ! g_z
+                                                                   
             end do
         end do
 
