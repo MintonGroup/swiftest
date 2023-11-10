@@ -72,7 +72,7 @@ class Sph_Harmonics(object):
 
         # get gravity coefficients
         clm_class = pysh.SHGravCoeffs.from_shape(shape_SH, rho = density, gm = Gmass) # 4pi normalization
-        clm = clm_class.to_array(normalization = '4pi') # export as array with 4pi normalization
+        clm = clm_class.to_array(normalization = '4pi') * 4 * np.pi # export as array with 4pi normalization and scaling by 4*pi to match normalisation
 
         # Return reference radius EQUALS the radius of the Central Body
         print(f'Ensure that the Central Body radius equals the reference radius.')

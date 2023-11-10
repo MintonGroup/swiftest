@@ -62,9 +62,11 @@ contains
         t3 = 1.875_DP * j4rp4 * rinv2
         fac1 = t0 * (t1 - t3 - (5 * t1 - (14.0_DP - 21.0_DP * t2) * t3) * t2)
         fac2 = 2 * t0 * (t1 - (2.0_DP - (14.0_DP * t2 / 3.0_DP)) * t3)
+        fac0 = 4 * PI
 
         if(cos(theta) > epsilon(0.0_DP)) then
-            call PlmBar_d1(p, p_deriv, l_max, cos(theta))      ! Unnormalized Associated Legendre Polynomials and the 1st Derivative
+            ! call PlmBar_d1(p, p_deriv, l_max, cos(theta))      ! Associated Legendre Polynomials and the 1st Derivative
+            call PlmBar(p, l_max, cos(theta))
         else
             call PlmBar_d1(p, p_deriv, l_max, 0.0_DP) 
         end if
@@ -75,7 +77,7 @@ contains
                 ! Associated Legendre Polynomials 
                 lmindex = PlmIndex(l, m)  
                 plm = p(lmindex)                ! p_l,m
-                dplm = p_deriv(lmindex)         ! d(p_l,m)
+                ! dplm = p_deriv(lmindex)         ! d(p_l,m)
 
                 ! C_lm and S_lm with Cos and Sin of m * phi
                 ccss = c_lm(m+1, l+1, 1) * cos(m * phi) & 
