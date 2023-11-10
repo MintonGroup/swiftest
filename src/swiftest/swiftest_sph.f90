@@ -64,9 +64,9 @@ contains
         fac2 = 2 * t0 * (t1 - (2.0_DP - (14.0_DP * t2 / 3.0_DP)) * t3)
 
         if(cos(theta) > epsilon(0.0_DP)) then
-            call PLegendreA_d1(p, p_deriv, l_max, cos(theta))      ! Unnormalized Associated Legendre Polynomials and the 1st Derivative
+            call PlmBar_d1(p, p_deriv, l_max, cos(theta))      ! Unnormalized Associated Legendre Polynomials and the 1st Derivative
         else
-            call PLegendreA_d1(p, p_deriv, l_max, 0.0_DP)
+            call PlmBar_d1(p, p_deriv, l_max, 0.0_DP) 
         end if
 
         do l = 1, l_max ! skipping the l = 0 term; It is the spherical body term
