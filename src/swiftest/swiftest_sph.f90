@@ -68,7 +68,7 @@ contains
             ! call PlmBar_d1(p, p_deriv, l_max, cos(theta))      ! Associated Legendre Polynomials and the 1st Derivative
             call PlmBar(p, l_max, cos(theta))
         else
-            call PlmBar_d1(p, p_deriv, l_max, 0.0_DP) 
+            call PlmBar(p, l_max, 0.0_DP) 
         end if
 
         do l = 1, l_max ! skipping the l = 0 term; It is the spherical body term
@@ -96,32 +96,38 @@ contains
                 ! g_sph(3) = g_sph(3) - GMcb * r_0**l / r_mag**(l + 2) * ccss * (-1 * dplm * sin(theta)**2  &
                 !                                                         + plm * (l + 1) * cos(theta))          ! g_z
 
-                ! cos_tmp = cos(theta)
-                ! sin_tmp = sin(theta)
-                ! sin2_tmp = sin(2 * theta)
-                ! sin_phi = sin(phi)
-                ! cos_phi = cos(phi)
+                cos_tmp = cos(theta)
+                sin_tmp = sin(theta)
+                sin2_tmp = sin(2 * theta)
+                sin_phi = sin(phi)
+                cos_phi = cos(phi)
                 ! g_sph(:) = 0.0_DP 
-                                                                      
-                ! !! Condensed form to reduce floating point error
-                ! ! fac0 = -GMcb / r_mag**2                                                        
-                ! fac1 = cssc * m * plm / sin(theta)
-                ! fac2 = ccss * sin(theta) 
-                ! fac3 = dplm * cos(theta) + plm * (l + 1)
-                ! r_fac = -GMcb * r_0**l / r_mag**(l + 2)
 
-                ! g_sph(1) = g_sph(1) + r_fac * (fac1 * sin(phi) + fac2 * fac3 * cos(phi))
-                ! g_sph(2) = g_sph(2) + r_fac * (fac1 * cos(phi) + fac2 * fac3 * sin(phi))
-                ! g_sph(3) = g_sph(3) + r_fac * ccss * (fac3 * cos(theta) - dplm)
-                                ! (-1 * dplm * sin(theta)**2  + plm * (l + 1) * cos(theta))          ! g_z
+                ! Alternative form for g_sph
 
-                ! Condensed form with alternative form for g_sph
                 if ((m+1) .le. l) then
                     lmindex = PlmIndex(l, m+1) 
-                    plm1 = p(lmindex)
+                    plm1 = p(lmindex) 
+                    if(m .eq. 0) then
+                        plm1 = plm1 * sqrt(((l + m + 1) * (l - m)) / 2.0) ! renormalize plm1 to the norm of plm
+                    else 
+                        plm1 = plm1 * sqrt((l + m + 1) * (l - m) * 1.0)       ! renormalize plm1 to the norm of plm
+                    end if
                 else
                     plm1 = 0.0_DP  
                 end if 
+                                                                      
+                ! !! Alternative form of dplm
+
+                ! g_sph(1) = g_sph(1) - GMcb * r_0**l / r_mag**(l + 2) * (cssc * m / sin(theta) * plm * sin(phi) &
+                !                                                        + ccss * cos(phi) * (plm * ((l + m + 1) * sin(theta) - m / sin(theta)) & 
+                !                                                                              + plm1 * cos(theta)))
+                ! g_sph(2) = g_sph(2) - GMcb * r_0**l / r_mag**(l + 2) * (-cssc * m / sin(theta) * plm * cos(phi) &
+                !                                                         + ccss * sin(phi) * (plm * ((l + m + 1) * sin(theta) - m / sin(theta)) & 
+                !                                                                              + plm1 * cos(theta))) 
+                ! g_sph(3) = g_sph(3) - GMcb * r_0**l / r_mag**(l + 2) * ccss * (plm * (l + m +1) * cos(theta) - plm1 * sin(theta))          
+
+                ! Condensed form
 
                 ! fac0 = -(m * cos_tmp * plm / sin_tmp - plm1) / sin_tmp ! dplm
                 fac1 = m / sin(theta) * plm
@@ -135,6 +141,9 @@ contains
                 g_sph(1) = g_sph(1) + r_fac * (cssc * fac1 * sin(phi) + ccss * (fac2 - fac1) * cos(phi))
                 g_sph(2) = g_sph(2) + r_fac * (-cssc * fac1 * cos(phi) + ccss * (fac2 - fac1) * sin(phi))
                 g_sph(3) = g_sph(3) + r_fac * ccss * (plm * (l + m + 1) * cos(theta) - plm1 * sin(theta))
+
+                fac0 = (.mag. g_sph(:))
+                ! fac3 = 3 * c_lm(m+1, l+1, 1) / 2 * r_0**2 / r_mag**4 * (3*(cos(theta))**2 - 1) * GMcb ! g_sph for J2
                             
             end do
         end do
