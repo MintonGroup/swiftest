@@ -82,7 +82,7 @@ class Sph_Harmonics(object):
         if(lref_radius == True and ref_radius is None):
             ref_radius = shape_SH.expand(normalization = '4pi').coeffs[0, 0, 0]
             return clm, ref_radius
-        else if(lref_radius == True and ref_radius is not None):
+        elif(lref_radius == True and ref_radius is not None):
             clm = clm.change_ref(r0 = ref_radius)
             return clm, ref_radius
         else:
@@ -139,7 +139,7 @@ class Sph_Harmonics(object):
         if(lref_radius == True and ref_radius is None):
             ref_radius = shape_SH.expand(normalization = '4pi').coeffs[0, 0, 0]
             return clm, ref_radius
-        else if(lref_radius == True and ref_radius is not None):
+        elif(lref_radius == True and ref_radius is not None):
             clm = clm.change_ref(r0 = ref_radius)
             return clm, ref_radius
         else:
