@@ -29,7 +29,7 @@ from typing import (
 )
 
 class Sph_Harmonics(object):
-    def clm_from_ellipsoid(mass, density, a, b = None, c = None, lmax = 6, ref_radius = False):
+    def clm_from_ellipsoid(mass, density, a, b = None, c = None, lmax = 6, lref_radius = False, ref_radius = None):
         """
         Creates and returns the gravity coefficients for an ellipsoid with principal axes a, b, c upto a certain maximum degree lmax. 
         Uses pyshtools. No units necessary for a, b, & c. However, they need to be in the same units (DU).
@@ -48,8 +48,10 @@ class Sph_Harmonics(object):
             length of the pricipal axis aligned with the z axis
         lmax : int, optional, default = 6
             The maximum spherical harmonic degree resolvable by the grid.
-        ref_radius : boolean, optional, default = False
+        lref_radius : boolean, optional, default = False
             Boolean value to return the reference radius calculated by SHTOOLS
+        ref_radius : float, optional, default = None
+            Reference radius to scale the gravitational coefficients to
 
         Returns
         -------
@@ -77,13 +79,16 @@ class Sph_Harmonics(object):
         # Return reference radius EQUALS the radius of the Central Body
         print(f'Ensure that the Central Body radius equals the reference radius.')
 
-        if(ref_radius == True):
+        if(lref_radius == True and ref_radius is None):
             ref_radius = shape_SH.expand(normalization = '4pi').coeffs[0, 0, 0]
+            return clm, ref_radius
+        else if(lref_radius == True and ref_radius is not None):
+            clm = clm.change_ref(r0 = ref_radius)
             return clm, ref_radius
         else:
             return clm
 
-    def clm_from_relief(mass, density, grid, lmax = 6, ref_radius = True):
+    def clm_from_relief(mass, density, grid, lmax = 6, lref_radius = False, ref_radius = None):
         """
         Creates and returns the gravity coefficients for a body with a given DH grid upto a certain maximum degree lmax. 
         Uses pyshtools.
@@ -98,8 +103,10 @@ class Sph_Harmonics(object):
             DH grid of the surface relief of the body
         lmax : int, optional, default = 6
             The maximum spherical harmonic degree resolvable by the grid.
-        ref_radius : boolean, optional, default = False
+        lref_radius : boolean, optional, default = False
             Boolean value to return the reference radius calculated by SHTOOLS
+        ref_radius : float, optional, default = None
+            Reference radius to scale the gravitational coefficients to
 
         Returns
         -------
@@ -129,8 +136,11 @@ class Sph_Harmonics(object):
 
         print(f'Ensure that the Central Body radius equals the reference radius.')
 
-        if(ref_radius == True):
+        if(lref_radius == True and ref_radius is None):
             ref_radius = shape_SH.expand(normalization = '4pi').coeffs[0, 0, 0]
+            return clm, ref_radius
+        else if(lref_radius == True and ref_radius is not None):
+            clm = clm.change_ref(r0 = ref_radius)
             return clm, ref_radius
         else:
             return clm
