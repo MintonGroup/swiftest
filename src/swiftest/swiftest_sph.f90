@@ -72,8 +72,10 @@ contains
 
         if(abs(cos_theta) < epsilon(0.0_DP)) then
             cos_theta = 0.0_DP
+        end if
         if(abs(sin_theta) < epsilon(0.0_DP)) then
             sin_theta = 0.0_DP
+        end if
 
         ! call PlmBar_d1(p, p_deriv, l_max, cos_theta)      ! Associated Legendre Polynomials and the 1st Derivative
         call PlmBar(p, l_max, cos_theta)
@@ -145,7 +147,7 @@ contains
                 else
                     fac1 = m * plm / sin_theta
                 end if
-                
+
                 fac2 = plm * (l + m + 1) * sin_theta + plm1 * cos_theta
                 fac3 = fac2 - fac1
                 r_fac = -GMcb * r_0**l / r_mag**(l + 2)
