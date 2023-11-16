@@ -49,7 +49,7 @@ contains
         g_sph(:) = 0.0_DP
         theta = atan2(sqrt(rh(1)**2 + rh(2)**2), rh(3))
         phi = atan2(rh(2), rh(1)) 
-        phi_bar = MOD(phi - phi_cb, 2 * PI)
+        phi_bar = MOD(phi - phi_cb, 2 * PI) ! represents the phase difference between the central body's and the particle's phase
         r_mag = sqrt(dot_product(rh(:), rh(:)))
         l_max = size(c_lm, 2) - 1
         N = (l_max + 1) * (l_max + 2) / 2
@@ -90,15 +90,15 @@ contains
 
                 ! Associated Legendre Polynomials 
                 lmindex = PlmIndex(l, m)  
-                plm = p(lmindex)                ! p_l,m
+                plm = p(lmindex)                  ! p_l,m
                 ! dplm = p_deriv(lmindex)         ! d(p_l,m)
 
                 ! C_lm and S_lm with Cos and Sin of m * phi
                 ccss = c_lm(m+1, l+1, 1) * cos(m * phi_bar) & 
-                        + c_lm(m+1, l+1, 2) * sin(m * phi_bar)      ! C_lm * cos(m * phi) + S_lm * sin(m * phi)
+                        + c_lm(m+1, l+1, 2) * sin(m * phi_bar)      ! C_lm * cos(m * phi_bar) + S_lm * sin(m * phi_bar)
                 cssc = -1 * c_lm(m+1, l+1, 1) * sin(m * phi_bar) & 
-                        + c_lm(m+1, l+1, 2) * cos(m * phi_bar)      ! - C_lm * sin(m * phi) + S_lm * cos(m * phi) 
-                                                                ! cssc * m = first derivative of ccss with respect to phi
+                        + c_lm(m+1, l+1, 2) * cos(m * phi_bar)      ! - C_lm * sin(m * phi_bar) + S_lm * cos(m * phi_bar) 
+                                                                    ! cssc * m = first derivative of ccss with respect to phi
 
                 ! m > 0
                 ! g_sph(1) = g_sph(1) - GMcb * r_0**l / r_mag**(l + 2) * (cssc * m * plm * sin(phi) / sin_theta &
