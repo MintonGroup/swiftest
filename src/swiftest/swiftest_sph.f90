@@ -138,11 +138,16 @@ contains
                 ! Condensed form
 
                 ! fac0 = -(m * cos_tmp * plm / sin_tmp - plm1) / sin_tmp ! dplm
-                fac1 = m * plm / sin_theta
-                fac2 = plm * (l + m + 1) * sin_theta + plm1 * cos_theta
-                fac3 = fac2 - fac1
                 ! fac3 = plm * (l + m + 1) * cos_theta
                 ! fac4 = plm1 * sin_theta
+                if(sin_theta .eq. 0) then
+                    fac1 = 0.0_DP
+                else
+                    fac1 = m * plm / sin_theta
+                end if
+                
+                fac2 = plm * (l + m + 1) * sin_theta + plm1 * cos_theta
+                fac3 = fac2 - fac1
                 r_fac = -GMcb * r_0**l / r_mag**(l + 2)
 
                 ! g_sph(:) = 0.0_DP
