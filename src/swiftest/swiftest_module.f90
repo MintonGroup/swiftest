@@ -1857,17 +1857,16 @@ module swiftest
 #endif
 
    interface
-      module subroutine swiftest_sph_g_acc_one(GMcb, r_0, phi, theta, rh, c_lm, g_sph, GMpl, aoblcb)
+      module subroutine swiftest_sph_g_acc_one(GMcb, r_0, phi_cb, rh, c_lm, g_sph, GMpl, aoblcb)
          implicit none
          real(DP), intent(in)        :: GMcb                        !! GMass of the central body
          real(DP), intent(in)        :: r_0                         !! radius of the central body
-         real(DP), intent(in)        :: phi                         !! Azimuthal/Phase angle (radians)
-         real(DP), intent(in)        :: theta                       !! Inclination/Zenith angle (radians)
+         real(DP), intent(in)        :: phi_cb                      !! rotation phase of the central body
          real(DP), intent(in), dimension(:)          :: rh          !! distance vector of body
          real(DP), intent(in), dimension(:, :, :)    :: c_lm        !! Spherical Harmonic coefficients
-         real(DP), intent(out), dimension(NDIM)         :: g_sph       !! acceleration vector
+         real(DP), intent(out), dimension(NDIM)         :: g_sph    !! acceleration vector
          real(DP), intent(in),  optional :: GMpl                    !! Mass of input body if it is not a test particle
-         real(DP), dimension(:),   intent(inout), optional :: aoblcb  !! Barycentric acceleration of central body (only for massive input bodies)
+         real(DP), dimension(:),   intent(inout), optional :: aoblcb!! Barycentric acceleration of central body (only for massive input bodies)
       end subroutine swiftest_sph_g_acc_one
 
       module subroutine swiftest_sph_g_acc_pl_all(self, nbody_system)

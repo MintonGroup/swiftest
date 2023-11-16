@@ -16,7 +16,7 @@ use SHTOOLS
 
 contains
 
-    module subroutine swiftest_sph_g_acc_one(GMcb, r_0, phi, theta, rh, c_lm, g_sph, GMpl, aoblcb)
+    module subroutine swiftest_sph_g_acc_one(GMcb, r_0, phi_cb, rh, c_lm, g_sph, GMpl, aoblcb)
         !! author: Kaustub P. Anand
         !!
         !! Calculate the acceleration terms for one pair of bodies given c_lm, theta, phi, r
@@ -26,19 +26,20 @@ contains
         ! Arguments
         real(DP), intent(in)        :: GMcb                        !! GMass of the central body
         real(DP), intent(in)        :: r_0                         !! radius of the central body
-        real(DP), intent(in)        :: phi                         !! Azimuthal/Phase angle (radians)
-        real(DP), intent(in)        :: theta                       !! Inclination/Zenith angle (radians)
+        real(DP), intent(in)        :: phi_cb                      !! rotation phase of the central body
         real(DP), intent(in), dimension(:)          :: rh          !! distance vector of body
         real(DP), intent(in), dimension(:, :, :)    :: c_lm        !! Spherical Harmonic coefficients
-        real(DP), intent(out), dimension(NDIM)         :: g_sph       !! acceleration vector
+        real(DP), intent(out), dimension(NDIM)         :: g_sph    !! acceleration vector
         real(DP), intent(in),  optional :: GMpl                    !! Mass of input body if it is not a test particle
-        real(DP), dimension(:),   intent(inout), optional :: aoblcb  !! Barycentric acceleration of central body (only for massive input bodies)
+        real(DP), dimension(:),   intent(inout), optional :: aoblcb!! Barycentric acceleration of central body (only for massive input bodies)
      
         ! Internals
         integer        :: l, m              !! SPH coefficients
         integer        :: l_max             !! max Spherical Harmonic l order value
         integer(I4B)   :: N, lmindex        !! Length of Legendre polynomials and index at a given l, m
         real(DP)       :: r_mag             !! magnitude of rh
+        real(DP)       :: phi, phi_bar      !! Azimuthal/Phase angle (radians) wrt coordinate axes, and central body rotation phase
+        real(DP)       :: theta             !! Inclination/Zenith angle (radians)
         real(DP)       :: plm, dplm         !! Associated Legendre polynomials at a given l, m
         real(DP)       :: ccss, cssc        !! See definition in source code
         real(DP)       :: cos_theta, sin_theta !! cos(theta) and sin(theta)
@@ -46,6 +47,9 @@ contains
         real(DP)     :: r2, irh, rinv2, t0, t1, t2, t3, fac0, fac1, fac2, fac3, fac4, j2rp2, j4rp4, r_fac, cos_tmp, sin_tmp, sin2_tmp, plm1, sin_phi, cos_phi
 
         g_sph(:) = 0.0_DP
+        theta = atan2(sqrt(rh(1)**2 + rh(2)**2), rh(3))
+        phi = atan2(rh(2), rh(1)) 
+        phi_bar = MOD(phi - phi_cb, 2 * PI)
         r_mag = sqrt(dot_product(rh(:), rh(:)))
         l_max = size(c_lm, 2) - 1
         N = (l_max + 1) * (l_max + 2) / 2
@@ -90,10 +94,10 @@ contains
                 ! dplm = p_deriv(lmindex)         ! d(p_l,m)
 
                 ! C_lm and S_lm with Cos and Sin of m * phi
-                ccss = c_lm(m+1, l+1, 1) * cos(m * phi) & 
-                        + c_lm(m+1, l+1, 2) * sin(m * phi)      ! C_lm * cos(m * phi) + S_lm * sin(m * phi)
-                cssc = -1 * c_lm(m+1, l+1, 1) * sin(m * phi) & 
-                        + c_lm(m+1, l+1, 2) * cos(m * phi)      ! - C_lm * sin(m * phi) + S_lm * cos(m * phi) 
+                ccss = c_lm(m+1, l+1, 1) * cos(m * phi_bar) & 
+                        + c_lm(m+1, l+1, 2) * sin(m * phi_bar)      ! C_lm * cos(m * phi) + S_lm * sin(m * phi)
+                cssc = -1 * c_lm(m+1, l+1, 1) * sin(m * phi_bar) & 
+                        + c_lm(m+1, l+1, 2) * cos(m * phi_bar)      ! - C_lm * sin(m * phi) + S_lm * cos(m * phi) 
                                                                 ! cssc * m = first derivative of ccss with respect to phi
 
                 ! m > 0
@@ -189,10 +193,10 @@ contains
 
             do i = 1, npl
                 if (pl%lmask(i)) then
-                    theta = atan2(sqrt(rh(1,i)**2 + rh(2,i)**2), rh(3,i))
-                    phi = atan2(rh(2,i), rh(1,i)) - cb%rotphase
+                    ! theta = atan2(sqrt(rh(1,i)**2 + rh(2,i)**2), rh(3,i))
+                    ! phi = atan2(rh(2,i), rh(1,i)) ! - cb%rotphase
     
-                    call swiftest_sph_g_acc_one(cb%Gmass, cb%radius, phi, theta, rh(:,i), cb%c_lm, g_sph, pl%Gmass(i), cb%aobl)
+                    call swiftest_sph_g_acc_one(cb%Gmass, cb%radius, cb%rotphase, rh(:,i), cb%c_lm, g_sph, pl%Gmass(i), cb%aobl)
                     pl%ah(:, i) = pl%ah(:, i) + g_sph(:) - cb%aobl(:)
                     pl%aobl(:, i) = g_sph(:)
                 end if
@@ -227,10 +231,8 @@ contains
 
             do i = 1, ntp
                 if (tp%lmask(i)) then
-                    theta = atan2(sqrt(rh(1,i)**2 + rh(2,i)**2), rh(3,i))
-                    phi = atan2(rh(2,i), rh(1,i)) - cb%rotphase
 
-                    call swiftest_sph_g_acc_one(cb%Gmass, cb%radius, phi, theta, rh(:,i), cb%c_lm, g_sph)
+                    call swiftest_sph_g_acc_one(cb%Gmass, cb%radius, cb%rotphase, rh(:,i), cb%c_lm, g_sph)
                     tp%ah(:, i) = tp%ah(:, i) + g_sph(:) - aoblcb(:)
                     tp%aobl(:, i) = g_sph(:)
                 end if
