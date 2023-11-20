@@ -185,7 +185,6 @@ contains
         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
         ! Internals
         integer(I4B)    :: i = 1
-        real(DP)        :: theta, phi              !! zenith angle, and azimuthal angle
         real(DP), dimension(NDIM)  :: g_sph        !! Gravitational terms from Spherical Harmonics
 
         associate(pl => self, npl => self%nbody, cb => nbody_system%cb, rh => self%rh)
@@ -216,8 +215,6 @@ contains
         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
         ! Internals
         integer(I4B)    :: i = 1
-        real(DP)        :: theta, phi              !! zenith angle, and azimuthal angle
-        real(DP), dimension(NDIM)  :: rh           !! Position vector of the test particle
         real(DP), dimension(NDIM)  :: g_sph        !! Gravitational terms from Spherical Harmonics
         real(DP), dimension(NDIM)  :: aoblcb       !! Temporary variable for central body oblateness acceleration
 

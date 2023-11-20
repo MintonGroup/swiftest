@@ -3353,6 +3353,13 @@ contains
 
       param%lshgrav = allocated(self%cb%c_lm) !! .and. (size(self%cb%c_lm) /= 0) 
 
+      if(param%lshgrav) then
+         ! Replace elements of c_lm smaller than epsilon with 0.0
+         WHERE (abs(self%cb%c_lm) < EPSILON(0.0_DP))
+            self%cb%c_lm = 0.0_DP
+         END WHERE
+      end if
+
       param%loblatecb = ((self%cb%j2rp2 /= 0.0_DP) .or. (self%cb%j4rp4 /= 0.0_DP)) .and. (.not. param%lshgrav)
       if (.not.param%loblatecb .and. .not.param%lshgrav) then
          if (allocated(self%pl%aobl)) deallocate(self%pl%aobl)
