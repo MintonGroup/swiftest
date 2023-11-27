@@ -460,6 +460,12 @@ contains
 
       do nc = 0, 6
          x = s*s*alpha
+
+         ! for debugging overflow error
+         if (abs(x) .ge. HUGE(0.0_DP)) then
+            write(*,*) "big x"
+         end if 
+         
          call swiftest_drift_kepu_stumpff(x, c0, c1, c2, c3)
          c1 = c1*s
          c2 = c2*s*s
@@ -552,6 +558,28 @@ contains
       ! Internals
       integer(I4B) :: i, n
       real(DP)   :: xm
+
+
+      ! for debugging Floating overflow error
+      if (abs(x) .ge. HUGE(0.0_DP)) then
+         write(*,*) "big x"
+      end if
+
+      if (abs(c0) .ge. HUGE(0.0_DP)) then
+         write(*,*) "big c0"
+      end if
+
+      if (abs(c1) .ge. HUGE(0.0_DP)) then
+         write(*,*) "big c1"
+      end if
+
+      if (abs(c2) .ge. HUGE(0.0_DP)) then
+         write(*,*) "big c2"
+      end if
+
+      if (abs(c3) .ge. HUGE(0.0_DP)) then
+         write(*,*) "big c3"
+      end if
 
       n = 0
       xm = 0.1_DP
