@@ -28,7 +28,7 @@ contains
       logical :: lencounter, lfirstpl
       real(DP), dimension(:,:), allocatable :: rbeg, rend, vbeg
 
-      if (self%tp%nbody == 0) then
+      if ((self%tp%nbody == 0) .or. (self%pl%nbody == 0)) then
          call whm_step_system(self, param, t, dt)
       else
          select type(cb => self%cb)
