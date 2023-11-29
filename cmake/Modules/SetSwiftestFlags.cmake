@@ -417,12 +417,14 @@ IF (CMAKE_BUILD_TYPE STREQUAL "DEBUG" OR CMAKE_BUILD_TYPE STREQUAL "TESTING" )
             Fortran "-fbacktrace"  # GNU (gfortran)
         )
         # Sanitize
-        SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
-            Fortran "-fsanitize=address, undefined"  # Gnu 
-        )
-        SET_COMPILE_FLAG(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}"
-            C "-fsanitize=address, undefined"  # Gnu 
-        )
+        IF (NOT APPLE)
+            SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
+                Fortran "-fsanitize=address, undefined"  # Gnu 
+            )
+            SET_COMPILE_FLAG(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}"
+                C "-fsanitize=address, undefined"  # Gnu 
+            )
+        ENDIF()
         # Check everything
         SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
             Fortran "-fcheck=all" # GNU 
