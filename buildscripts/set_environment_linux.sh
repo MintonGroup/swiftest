@@ -1,0 +1,17 @@
+#!/bin/bash
+# Sets environment flags on Linux
+set -a
+PREFIX="/usr/local"
+NCDIR="${PREFIX}"
+NFDIR="${PREFIX}"
+NETCDF_FORTRAN_HOME="${NFDIR}"
+NETCDF_FORTRAN_INCLUDE="${NFDIR}/include"
+HDF5_ROOT="${PREFIX}"
+HDF5_LIBDIR="${HDF5_ROOT}/lib"
+HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
+HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
+LD_LIBRARY_PATH="${PREFIX}/lib"
+CPATH="${PREFIX}/include:"
+HDF5_DIR="${HDF5_ROOT}/cmake"
+PATH="${HDF5_ROOT}/bin:${PATH}"
+CMAKE_INSTALL_LIBDIR="lib"

@@ -7,7 +7,8 @@
 swiftest_driver.sh
 !CMakeLists.txt
 !*.cmake
-!COPYING.txt
+!COPYING
+!LICENSE
 !CHANGELOG 
 !README.md
 !README_figs/**
@@ -18,10 +19,13 @@ swiftest_driver.sh
 !README.swifter 
 dump*
 !**/.gitignore
+!.github/workflows/*.yml
 !setup.py
 !examples/**
 !swiftest/**
 !tests/**
+!.zenodo.json
+!CITATION.cff
 *ipynb_checkpoints
 **/.DS_Store
 !version.txt
@@ -36,6 +40,7 @@ _dependencies
 
 
 #Documentation
+!mkdocs.yml
 !docs/*
 !docs/*/*
 !docs/*/*/*
@@ -55,4 +60,7 @@ netcdf-c-*
 netcdf-fortran-*
 zlib-*
 
+actions-runner*
 
+env/**
+venv/**

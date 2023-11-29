@@ -16,84 +16,45 @@ SCRIPT_DIR=$(realpath $(dirname $0))
 set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
+set -e
+cd $ROOT_DIR
 
-ZLIB_VER="1.3"
-HDF5_VER="1_14_2"
-NC_VER="4.9.2"
-NF_VER="4.6.1"
+if ! command -v ninja &> /dev/null; then
+    NINJA_VER="1.11.1"
 
-printf "*********************************************************\n"
-printf "*          FETCHING DEPENCENCY SOURCES                  *\n"
-printf "*********************************************************\n"
-printf "Copying files to ${DEPENDENCY_DIR}\n"
-mkdir -p ${DEPENDENCY_DIR}
-if [ ! -d ${DEPENDENCY_DIR}/zlib-${ZLIB_VER} ]; then
-    [ -d ${DEPENDENCY_DIR}/zlib-* ] && rm -rf ${DEPENDENCY_DIR}/zlib-*
-    curl -L https://github.com/madler/zlib/releases/download/v${ZLIB_VER}/zlib-${ZLIB_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
-fi
-
-printf "Checking if HDF5 source exists\n"
-if [[ (-d ${DEPENDENCY_DIR}/hdfsrc) && (-f ${DEPENDENCY_DIR}/hdfsrc/README.md) ]]; then
-    OLDVER=$(grep version ${DEPENDENCY_DIR}/hdfsrc/README.md | awk '{print $3}' | sed 's/\./_/g')
-    printf "Existing copy of HDF5 source detected\n"
-    printf "Existing version : ${OLDVER}\n"
-    printf "Requested version: ${HDF5_VER}\n"
-    if [ "$OLDVER" != "${HDF5_VER}" ]; then
-        printf "Existing version of HDF5 source doesn't match requested. Deleting\n"
-        rm -rf ${DEPENDENCY_DIR}/hdfsrc
+    printf "*********************************************************\n"
+    printf "*             FETCHING NINJA SOURCE                      *\n"
+    printf "*********************************************************\n"
+    printf "Copying files to ${DEPENDENCY_DIR}\n"
+    mkdir -p ${DEPENDENCY_DIR}
+    if [ ! -d ${DEPENDENCY_DIR}/ninja-${NINJA_VER} ]; then
+        [ -d ${DEPENDENCY_DIR}/zlib-* ] && rm -rf ${DEPENDENCY_DIR}/zlib-*
+        curl -L https://github.com/ninja-build/ninja/archive/refs/tags/v${NINJA_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+    fi
+    cd ${DEPENDENCY_DIR}/ninja-*
+    cmake -B build -S . -DCMAKE_INSTALL_PREFIX=${PREFIX}
+    cmake --build build 
+    if [ -w ${PREFIX} ]; then
+        cmake --install build 
+    else
+        sudo cmake --install build
     fi
 fi
 
-if [ ! -d ${DEPENDENCY_DIR}/hdfsrc ]; then
-    curl -s -L https://github.com/HDFGroup/hdf5/releases/download/hdf5-${HDF5_VER}/hdf5-${HDF5_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+# Get the OpenMP Libraries
+if [ $OS = "MacOSX" ]; then
+    ${SCRIPT_DIR}/get_lomp.sh ${ARGS}
 fi
 
-if [ ! -d ${DEPENDENCY_DIR}/netcdf-c-${NC_VER} ]; then
-    [ -d ${DEPENDENCY_DIR}/netcdf-c-* ] && rm -rf ${DEPENDENCY_DIR}/netcdf-c-*
-    curl -s -L https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NC_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
-fi
-
-if [ ! -d ${DEPENDENCY_DIR}/netcdf-fortran-${NF_VER} ]; then
-    [ -d ${DEPENDENCY_DIR}/netcdf-fortran-* ] && rm -rf ${DEPENDENCY_DIR}/netcdf-fortran-*
-    curl -s -L https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v${NF_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
-fi 
-
-cd $ROOT_DIR
-printf "*********************************************************\n"
-printf "*          STARTING DEPENDENCY BUILD                    *\n"
-printf "*********************************************************\n"
-printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
-printf "Installing to ${PREFIX}\n"
-printf "\n"
-
-set -e
-if [ ! -f ${PREFIX}/lib/libz.a ]; then
-    ${SCRIPT_DIR}/build_zlib.sh ${ARGS}
-else
-    echo "Found: ${PREFIX}/lib/libz.a"
-fi
-
-if [ ! -f ${PREFIX}/lib/libhdf5.a ]; then
-    ${SCRIPT_DIR}/build_hdf5.sh ${ARGS}
-else
-    echo "Found: ${PREFIX}/lib/libhdf5.a"
-fi
-
-
-if [ ! -f ${PREFIX}/lib/libnetcdf.a ]; then
-    ${SCRIPT_DIR}/build_netcdf-c.sh ${ARGS}
-else
-    echo "Found: ${PREFIX}/lib/libnetcdf.a" 
-fi
-
-if [ ! -f ${PREFIX}/lib/libnetcdff.a ]; then
-    ${SCRIPT_DIR}/build_netcdf-fortran.sh ${ARGS}
-else
-    echo "Found: ${PREFIX}/lib/libnetcdff.a"
-fi
+${SCRIPT_DIR}/build_zlib.sh ${ARGS}
+${SCRIPT_DIR}/build_hdf5.sh ${ARGS}
+${SCRIPT_DIR}/build_netcdf-c.sh ${ARGS}
+${SCRIPT_DIR}/build_netcdf-fortran.sh ${ARGS}
 
 printf "\n"
 printf "*********************************************************\n"
 printf "*             DEPENDENCIES ARE BUILT                    *\n"
 printf "*********************************************************\n"
 printf "Dependencys are installed to: ${PREFIX}\n\n"
+
+

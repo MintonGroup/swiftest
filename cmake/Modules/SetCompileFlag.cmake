@@ -36,6 +36,7 @@
 
 INCLUDE(${CMAKE_ROOT}/Modules/CheckCCompilerFlag.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/CheckCXXCompilerFlag.cmake)
+INCLUDE(${CMAKE_ROOT}/Modules/CheckFortranCompilerFlag.cmake)
 
 FUNCTION(SET_COMPILE_FLAG FLAGVAR FLAGVAL LANG)
 
@@ -71,7 +72,7 @@ FUNCTION(SET_COMPILE_FLAG FLAGVAR FLAGVAL LANG)
 
     # Now, loop over each flag
     FOREACH(flag ${FLAGLIST})
-
+        EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E echo_append "Checking compiler option ${flag}: ")
         UNSET(FLAG_WORKS)
         # Check the flag for the given language
         IF(LANG STREQUAL "C")
@@ -79,37 +80,21 @@ FUNCTION(SET_COMPILE_FLAG FLAGVAR FLAGVAL LANG)
         ELSEIF(LANG STREQUAL "CXX")
             CHECK_CXX_COMPILER_FLAG("${flag}" FLAG_WORKS)
         ELSEIF(LANG STREQUAL "Fortran")
-            # There is no nice function to do this for FORTRAN, so we must manually
-            # create a test program and check if it compiles with a given flag.
-            SET(TESTFILE "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}")
-            SET(TESTFILE "${TESTFILE}/CMakeTmp/testFortranFlags.f90")
-            FILE(WRITE "${TESTFILE}"
-"
-program dummyprog
-  i = 5
-end program dummyprog
-")
-            TRY_COMPILE(FLAG_WORKS ${CMAKE_BINARY_DIR} ${TESTFILE}
-                COMPILE_DEFINITIONS "${flag}" OUTPUT_VARIABLE OUTPUT)
-            
-            # Check that the output message doesn't match any errors
-            FOREACH(rx ${FAIL_REGEX})
-                IF("${OUTPUT}" MATCHES "${rx}")
-                    SET(FLAG_WORKS FALSE)
-                ENDIF("${OUTPUT}" MATCHES "${rx}")
-            ENDFOREACH(rx ${FAIL_REGEX})
-
+            CHECK_Fortran_COMPILER_FLAG("${flag}" FLAG_WORKS)
         ELSE()
             MESSAGE(FATAL_ERROR "Unknown language in SET_COMPILE_FLAGS: ${LANG}")
         ENDIF(LANG STREQUAL "C")
 
         # If this worked, use these flags, otherwise use other flags
         IF(FLAG_WORKS)
+            EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E echo "OK")
             # Append this flag to the end of the list that already exists
             SET(${FLAGVAR} "${FLAGVAL} ${flag}" CACHE STRING
                  "Set the ${FLAGVAR} flags" FORCE)
             SET(FLAG_FOUND TRUE)
             BREAK() # We found something that works, so exit
+        ELSE(FLAG_WORKS)
+            EXECUTE_PROCESS(COMMAND ${CMAKE_COMMAND} -E echo "NO")
         ENDIF(FLAG_WORKS)
 
     ENDFOREACH(flag ${FLAGLIST})

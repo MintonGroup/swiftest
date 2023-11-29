@@ -7,37 +7,35 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 
-# Use the old method to get Python packages, as that's what scikit-build uses
-CMAKE_POLICY(SET CMP0148 OLD)
-
-SET(CYTHON_FLAGS
-    "--directive binding=True,boundscheck=False,wraparound=False,embedsignature=True,always_allow_keywords=True"
-    CACHE STRING "The directives for Cython compilation.")
-FIND_PACKAGE(Cython REQUIRED)
-FIND_PACKAGE(PythonExtensions REQUIRED)
-
-# Avoid Cython/Python3.8 minor incompatibility warnings, see
-# https://github.com/cython/cython/issues/3474. Note that this option is a bit
-# expansive, but it's a temporary fix and we'll be testing on other Python
-# versions concurrently so it shouldn't hide any real issues. ).
-IF(${PYTHON_VERSION_MAJOR} EQUAL 3
-   AND ${PYTHON_VERSION_MINOR} EQUAL 8
-   AND NOT WIN32)
-      ADD_COMPILE_OPTIONS("-Wno-deprecated-declarations")
-ENDIF()
-
 SET(SWIFTEST_BINDINGS _bindings)
 
-ADD_CYTHON_TARGET(${SWIFTEST_BINDINGS})
-ADD_LIBRARY(${SWIFTEST_BINDINGS} MODULE ${SWIFTEST_BINDINGS})
+# Find the Cython executable, but don't look in the cmake root directory (due how cmake and cython are installed on the RCAC system)
+FIND_PROGRAM(CYTHON 
+            NAMES "cython" 
+            NO_CMAKE_PATH
+            NO_CMAKE_ENVIRONMENT_PATH
+            NO_CMAKE_SYSTEM_PATH
+            NO_CMAKE_FIND_ROOT_PATH
+            )
+MESSAGE(STATUS "Cython executable path: ${CYTHON}")
+SET(CYTHON_ARGS "${CMAKE_CURRENT_SOURCE_DIR}/${SWIFTEST_BINDINGS}.pyx" "--output-file" "${CMAKE_CURRENT_BINARY_DIR}/${SWIFTEST_BINDINGS}.c")
+STRING(TOUPPER "${CMAKE_BUILD_TYPE}" BT)
+IF (BT STREQUAL "DEBUG")
+    LIST(APPEND CYTHON_ARGS "--gdb")
+endif ()
+ADD_CUSTOM_COMMAND(
+  OUTPUT "${SWIFTEST_BINDINGS}.c"
+  DEPENDS "${SWIFTEST_BINDINGS}.pyx"
+  VERBATIM
+  COMMAND "${CYTHON}" ${CYTHON_ARGS} )
+
+PYTHON_ADD_LIBRARY(${SWIFTEST_BINDINGS} MODULE "${CMAKE_CURRENT_BINARY_DIR}/${SWIFTEST_BINDINGS}.c" WITH_SOABI)
+
 IF (NOT BUILD_SHARED_LIBS) 
     SET_PROPERTY(TARGET ${SWIFTEST_BINDINGS} PROPERTY POSITION_INDEPENDENT_CODE)
 ENDIF ()
-IF(USE_OPENMP OR USE_SIMD)
-    SET_PROPERTY(TARGET ${SWIFTEST_BINDINGS} APPEND_STRING PROPERTY COMPILE_FLAGS  "${OpenMP_Fortran_FLAGS} ")
-ENDIF()
+TARGET_LINK_LIBRARIES(${SWIFTEST_BINDINGS} PUBLIC ${SWIFTEST_LIBRARY} netCDF::netcdff HDF5::HDF5)
+TARGET_INCLUDE_DIRECTORIES(${SWIFTEST_BINDINGS} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-TARGET_LINK_LIBRARIES(${SWIFTEST_BINDINGS} swiftest ${NETCDF_LIBRARIES})
-PYTHON_EXTENSION_MODULE(${SWIFTEST_BINDINGS})
-TARGET_INCLUDE_DIRECTORIES(${SWIFTEST_BINDINGS} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${MOD} ${NETCDF_INCLUDE_DIR})
-INSTALL(TARGETS ${SWIFTEST_BINDINGS} LIBRARY DESTINATION swiftest)
+# Define the install locations
+INSTALL(TARGETS ${SWIFTEST_BINDINGS} LIBRARY DESTINATION ${INSTALL_LIBDIR})

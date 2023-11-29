@@ -14,9 +14,31 @@ SCRIPT_DIR=$(realpath $(dirname $0))
 set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
+. ${SCRIPT_DIR}/set_compilers.sh
+
+NPROC=$(nproc)
 
 printf "*********************************************************\n"
-printf "*            BUILDING ZLIB STATIC LIBRARY               *\n"
+printf "*          STARTING DEPENDENCY BUILD                    *\n"
+printf "*********************************************************\n"
+printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
+printf "Installing to ${PREFIX}\n"
+printf "\n"
+
+ZLIB_VER="1.3"
+
+printf "*********************************************************\n"
+printf "*             FETCHING ZLIB SOURCE                      *\n"
+printf "*********************************************************\n"
+printf "Copying files to ${DEPENDENCY_DIR}\n"
+mkdir -p ${DEPENDENCY_DIR}
+if [ ! -d ${DEPENDENCY_DIR}/zlib-${ZLIB_VER} ]; then
+    [ -d ${DEPENDENCY_DIR}/zlib-* ] && rm -rf ${DEPENDENCY_DIR}/zlib-*
+    curl -L https://github.com/madler/zlib/releases/download/v${ZLIB_VER}/zlib-${ZLIB_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+fi
+
+printf "*********************************************************\n"
+printf "*               BUILDING ZLIB LIBRARY                   *\n"
 printf "*********************************************************\n"
 printf "LIBS: ${LIBS}\n"
 printf "CFLAGS: ${CFLAGS}\n"
@@ -27,17 +49,16 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/zlib-*
-./configure --prefix=${PREFIX} --static 
-make 
+cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${PREFIX} 
+    
+cmake --build build -j${NPROC}
 if [ -w ${PREFIX} ]; then
-    make install
+    cmake --install build 
 else
-    sudo make install
+    sudo cmake --install build
 fi
 
 if [ $? -ne 0 ]; then
    printf "zlib could not be compiled.\n"
    exit 1
 fi
-
-make distclean

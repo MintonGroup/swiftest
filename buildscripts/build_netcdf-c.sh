@@ -11,14 +11,35 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 SCRIPT_DIR=$(realpath $(dirname $0))
-
 set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
+. ${SCRIPT_DIR}/set_compilers.sh
+
+NPROC=$(nproc)
+
+printf "*********************************************************\n"
+printf "*          STARTING DEPENDENCY BUILD                    *\n"
+printf "*********************************************************\n"
+printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
+printf "Installing to ${PREFIX}\n"
+printf "\n"
+
+NC_VER="4.9.2"
+
+printf "*********************************************************\n"
+printf "*            FETCHING NETCDF-C SOURCE                   *\n"
+printf "*********************************************************\n"
+printf "Copying files to ${DEPENDENCY_DIR}\n"
+
+if [ ! -d ${DEPENDENCY_DIR}/netcdf-c-${NC_VER} ]; then
+    [ -d ${DEPENDENCY_DIR}/netcdf-c-* ] && rm -rf ${DEPENDENCY_DIR}/netcdf-c-*
+    curl -s -L https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NC_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+fi
 
 printf "\n"
 printf "*********************************************************\n"
-printf "*          BUILDING NETCDF-C STATIC LIBRARY             *\n"
+printf "*              BUILDING NETCDF-C LIBRARY                *\n"
 printf "*********************************************************\n"
 printf "LIBS: ${LIBS}\n"
 printf "CFLAGS: ${CFLAGS}\n"
@@ -30,23 +51,30 @@ printf "HDF5_ROOT: ${HDF5_ROOT}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/netcdf-c-*
-COPTS="--disable-shared --disable-dap --disable-byterange --disable-testsets --prefix=${PREFIX}"
-if [ !  $OS = "MacOSX" ]; then
-    COPTS="${COPTS} --disable-libxml2"
-fi
-printf "COPTS: ${COPTS}\n"
-./configure $COPTS
-make && make check 
+NCDIR="${PREFIX}"
+ZLIB_ROOT=${PREFIX}
+cmake -B build -S . -G Ninja  \
+    -DCMAKE_BUILD_TYPE:STRING="Release" \
+    -DHDF5_DIR:PATH=${HDF5_ROOT}/cmake \
+    -DHDF5_ROOT:PATH=${HDF5_ROOT} \
+    -DCMAKE_FIND_ROOT_PATH:PATH="${PREFIX}" \
+    -DCMAKE_INSTALL_PREFIX:STRING="${NCDIR}" \
+    -DENABLE_DAP:BOOL=OFF \
+    -DENABLE_BYTERANGE:BOOL=OFF \
+    -DENABLE_NCZARR:BOOL=OFF \
+    -DENABLE_NCZARR_FILTERS:BOOL=OFF \
+    -DENABLE_LIBXML2:BOOL=OFF \
+    -DCMAKE_INSTALL_LIBDIR="lib" \
+    -DENABLE_REMOTE_FORTRAN_BOOTSTRAP:BOOL=ON
 
+cmake --build build -j${NPROC} 
 if [ -w ${PREFIX} ]; then
-    make install
+    cmake --install build 
 else
-    sudo make install
+    sudo cmake --install build 
 fi
 
 if [ $? -ne 0 ]; then
    printf "netcdf-c could not be compiled."\n
    exit 1
 fi
-
-make distclean

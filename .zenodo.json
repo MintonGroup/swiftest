@@ -1,0 +1,58 @@
+{
+    "description": "Official release for the Journal of Open Source Software.", 
+    "license" : "GPLv3+", 
+    "title": "profminton/swiftest: v2023.10.2", 
+    "version": "v2023.10.2", 
+    "upload_type": "software", 
+    "publication_date": "2023-10-07", 
+    "creators": [
+      {
+        "name": "Carlisle Wishard",
+        "affiliation": [
+            "Department of Earth, Atmospheric, and Planetary Sciences, Purdue University, USA",
+            "Evansville Museum of Arts, History & Science, USA"
+          ],
+        "orcid": "0009-0001-0733-3268"
+      },
+      {
+        "name": "Jennifer Pouplin",
+        "affiliation": [
+          "Department of Earth, Atmospheric, and Planetary Sciences, Purdue University, USA",
+          "School of Aeronautics and Astronautics, Purdue University, USA"
+        ]
+      },
+      {
+        "name": "Jacob Elliott",
+        "affiliation": "Department of Earth, Atmospheric, and Planetary Sciences, Purdue University, USA"
+      },
+      {
+        "name": "Dana Singh",
+        "affiliation": "SAIC, Princeton, NJ, USA"
+      },
+      {
+        "name": "Kaustub Anand",
+        "affiliation": [
+          "Department of Earth, Atmospheric, and Planetary Sciences, Purdue University, USA",
+          "Department of Physics and Astronomy, Purdue University, USA"
+        ]
+      },
+      {
+        "name": "David Minton",
+        "affiliation": "Department of Earth, Atmospheric, and Planetary Sciences, Purdue University, USA",
+        "orcid": "0000-0003-1656-9704"
+      }
+    ],
+    "access_right": "open",
+    "related_identifiers": [
+        {
+            "scheme": "url", 
+            "identifier": "https://github.com/profminton/swiftest/tree/v2023.10.2", 
+            "relation": "isSupplementTo"
+        }, 
+        {
+            "scheme": "doi", 
+            "identifier": "10.5281/zenodo.8417147", 
+            "relation": "isVersionOf"
+        }
+    ]
+}

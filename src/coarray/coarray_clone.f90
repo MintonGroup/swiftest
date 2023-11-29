@@ -469,6 +469,7 @@ contains
    end subroutine coarray_component_clone_lgt_arr1D
 
 
+#ifdef QUADPREC
    module subroutine coarray_component_clone_QP(var,src_img)
       !! author: David A. Minton
       !!
@@ -503,5 +504,6 @@ contains
 
       return
    end subroutine coarray_component_clone_QP 
+#endif
 
 end submodule s_coarray_clone
