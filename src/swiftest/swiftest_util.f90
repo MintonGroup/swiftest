@@ -2112,7 +2112,9 @@ contains
       ! Arguments
       class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest nobdy nbody_system object
 
-      self%Gmtot = self%cb%Gmass + sum(self%pl%Gmass(1:self%pl%nbody), self%pl%status(1:self%pl%nbody) /= INACTIVE)
+      self%Gmtot = self%cb%Gmass
+      if (self%pl%nbody > 0) self%Gmtot = self%Gmtot + sum(self%pl%Gmass(1:self%pl%nbody), &
+                                                           self%pl%status(1:self%pl%nbody) /= INACTIVE)
 
       return
    end subroutine swiftest_util_set_msys
