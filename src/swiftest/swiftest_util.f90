@@ -19,13 +19,19 @@ contains
    module subroutine swiftest_util_append_arr_info(arr, source, nold, lsource_mask)
       !! author: David A. Minton
       !!
-      !! Append a single array of particle information type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
+      !! Append a single array of particle information type onto another. If the destination array is not allocated, or is not big 
+      !! enough, this will allocate space for it.
       implicit none
       ! Arguments
       type(swiftest_particle_info), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
       type(swiftest_particle_info), dimension(:), allocatable, intent(in)           :: source       !! Array to append 
-      integer(I4B),                                            intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
-      logical,                      dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
+      integer(I4B),                                            intent(in), optional :: nold         !! Extent of original array. 
+                                                                                                    !! If passed, the source array 
+                                                                                                    !! will begin at arr(nold+1). 
+                                                                                                    !! Otherwise, the size of arr 
+                                                                                                    !! will be used.
+      logical,                      dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which
+                                                                                                    !! elements to append to
       ! Internals
       integer(I4B) :: nnew, nsrc, nend_orig, i
       integer(I4B), dimension(:), allocatable :: idx
@@ -68,13 +74,18 @@ contains
    module subroutine swiftest_util_append_arr_kin(arr, source, nold, lsource_mask)
       !! author: David A. Minton
       !!
-      !! Append a single array of kinship type onto another. If the destination array is not allocated, or is not big enough, this will allocate space for it.
+      !! Append a single array of kinship type onto another. If the destination array is not allocated, or is not big enough, this 
+      !! will allocate space for it.
       implicit none
       ! Arguments
       type(swiftest_kinship), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
       type(swiftest_kinship), dimension(:), allocatable, intent(in)           :: source       !! Array to append 
-      integer(I4B),                                      intent(in), optional :: nold         !! Extent of original array. If passed, the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
-      logical,                dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which elements to append to
+      integer(I4B),                                      intent(in), optional :: nold         !! Extent of original array. 
+                                                                                              !! If passed, the source array will 
+                                                                                              !! begin at arr(nold+1). Otherwise, 
+                                                                                              !! the size of arr will be used.
+      logical,                dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which 
+                                                                                              !! elements to append to
       ! Internals
       integer(I4B) :: nnew, nsrc, nend_orig
 
@@ -584,8 +595,10 @@ contains
       !! Copies contents from an array of one particle information objects to another.
       implicit none
       class(swiftest_particle_info), dimension(:), intent(in)             :: source !! Source object to copy into
-      class(swiftest_particle_info), dimension(:), intent(inout)          :: dest   !! Swiftest body object with particle metadata information object
-      integer(I4B),                  dimension(:), intent(in),   optional :: idx    !! Optional array of indices to draw the source object
+      class(swiftest_particle_info), dimension(:), intent(inout)          :: dest   !! Swiftest body object with particle metadata 
+                                                                                    !! information object
+      integer(I4B),                  dimension(:), intent(in),   optional :: idx    !! Optional array of indices to draw the source 
+                                                                                    !! object
       ! Internals
       integer(I4B) :: i, j, n, nsource, ndest
 
@@ -867,7 +880,8 @@ contains
       ! Arguments
       type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: keeps      !! Array of values to keep 
       type(swiftest_particle_info), dimension(:), allocatable, intent(in)    :: inserts    !! Array of values to insert into keep
-      logical,                      dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      logical,                      dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into
+                                                                                           !! the keeps
       ! Internals
       integer(I4B), dimension(:), allocatable  :: insert_idx
       integer(I4B) :: i, nkeep, ninsert
@@ -1090,7 +1104,8 @@ contains
    module subroutine swiftest_util_flatten_eucl_plpl(self, param)
       !! author: Jacob R. Elliott and David A. Minton
       !!
-      !! Turns i,j indices into k index for use in the Euclidean distance matrix for pl-pl interactions for a Swiftest massive body object
+      !! Turns i,j indices into k index for use in the Euclidean distance matrix for pl-pl interactions for a Swiftest massive body 
+      !! object
       !!
       !! Reference:
       !!
@@ -1111,7 +1126,8 @@ contains
          if (param%lflatten_interactions) then
             if (allocated(self%k_plpl)) deallocate(self%k_plpl) ! Reset the index array if it's been set previously
             allocate(self%k_plpl(2, nplpl), stat=err)
-            if (err /=0) then ! An error occurred trying to allocate this big array. This probably means it's too big to fit in memory, and so we will force the run back into triangular mode
+            if (err /=0) then ! An error occurred trying to allocate this big array. This probably means it's too big to fit in 
+                              ! memory, and so we will force the run back into triangular mode
                param%lflatten_interactions = .false.
             else
 #ifdef DOCONLOC
@@ -1258,7 +1274,8 @@ contains
          end if
   
          if (param%lflatten_interactions) then
-            call swiftest_util_get_potential_energy(npl, pl%nplpl, pl%k_plpl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, nbody_system%pe)
+            call swiftest_util_get_potential_energy(npl, pl%nplpl, pl%k_plpl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, &
+                                                    nbody_system%pe)
          else
             call swiftest_util_get_potential_energy(npl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, nbody_system%pe)
          end if
@@ -1495,10 +1512,12 @@ contains
       !! author: David A. Minton
       !!
       !! Creates or resizes an index array of size n where ind_arr = [1, 2, ... n].
-      !! This subroutine swiftest_assumes that if ind_arr is already allocated, it is a pre-existing index array of a different size.
+      !! This subroutine swiftest_assumes that if ind_arr is already allocated, it is a pre-existing index array of a different size
       implicit none
       ! Arguments
-      integer(I4B), dimension(:), allocatable, intent(inout) :: ind_arr !! Index array. Input is a pre-existing index array where n /= size(ind_arr). Output is a new index array ind_arr = [1, 2, ... n]
+      integer(I4B), dimension(:), allocatable, intent(inout) :: ind_arr !! Index array. Input is a pre-existing index array where 
+                                                                        !! n /= size(ind_arr). Output is a new index array 
+                                                                        !! ind_arr = [1, 2, ... n]
       integer(I4B),                            intent(in)    :: n       !! The new size of the index array
       ! Internals
       integer(I4B) :: nold, i
@@ -1551,7 +1570,8 @@ contains
    module subroutine swiftest_util_make_impactors_pl(self, idx)
       !! author: David A. Minton
       !!
-      !! This is a simple wrapper function that is used to make a type-bound procedure using a subroutine whose interface is in the collision module, which must be defined first
+      !! This is a simple wrapper function that is used to make a type-bound procedure using a subroutine whose interface is in the
+      !! collision module, which must be defined first
       implicit none
       class(swiftest_pl),         intent(inout) :: self  !! Massive body object
       integer(I4B), dimension(:), intent(in)    :: idx !! Array holding the indices of the two bodies involved in the collision)
@@ -1628,7 +1648,8 @@ contains
       if (param%qmin_coord == "HELIO") then
          call swiftest_util_peri(self%nbody, self%mu, self%rh, self%vh, self%atp, self%peri, self%isperi)
       else 
-         call swiftest_util_peri(self%nbody, [(nbody_system%Gmtot,i=1,self%nbody)], self%rb, self%vb, self%atp, self%peri, self%isperi)
+         call swiftest_util_peri(self%nbody, [(nbody_system%Gmtot,i=1,self%nbody)], self%rb, self%vb, self%atp, self%peri, &
+                                 self%isperi)
       end if
 
       return
@@ -1776,28 +1797,41 @@ contains
                if (allocated(lmask)) deallocate(lmask)
                allocate(lmask(nencmin))
                nenc_old = nencmin
-               if (any(nbody_system%plpl_encounter%index1(1:nencmin) == 0) .or. any(nbody_system%plpl_encounter%index2(1:nencmin) == 0)) then
-                  lmask(:) = nbody_system%plpl_encounter%index1(1:nencmin) /= 0 .and. nbody_system%plpl_encounter%index2(1:nencmin) /= 0
+               if (any(nbody_system%plpl_encounter%index1(1:nencmin) == 0) .or. &
+                  any(nbody_system%plpl_encounter%index2(1:nencmin) == 0)) then
+                  lmask(:) = nbody_system%plpl_encounter%index1(1:nencmin) /= 0 .and. &
+                             nbody_system%plpl_encounter%index2(1:nencmin) /= 0
                else
                   return
                end if
                nencmin = count(lmask(:))
                nbody_system%plpl_encounter%nenc = nencmin
                if (nencmin > 0_I8B) then
-                  nbody_system%plpl_encounter%index1(1:nencmin) = pack(nbody_system%plpl_encounter%index1(1:nenc_old), lmask(1:nenc_old))
-                  nbody_system%plpl_encounter%index2(1:nencmin) = pack(nbody_system%plpl_encounter%index2(1:nenc_old), lmask(1:nenc_old))
+                  nbody_system%plpl_encounter%index1(1:nencmin) = pack(nbody_system%plpl_encounter%index1(1:nenc_old), &
+                                                                       lmask(1:nenc_old))
+                  nbody_system%plpl_encounter%index2(1:nencmin) = pack(nbody_system%plpl_encounter%index2(1:nenc_old), &
+                                                                       lmask(1:nenc_old))
                   nbody_system%plpl_encounter%id1(1:nencmin) = pack(nbody_system%plpl_encounter%id1(1:nenc_old), lmask(1:nenc_old))
                   nbody_system%plpl_encounter%id2(1:nencmin) = pack(nbody_system%plpl_encounter%id2(1:nenc_old), lmask(1:nenc_old))
-                  nbody_system%plpl_encounter%lvdotr(1:nencmin) = pack(nbody_system%plpl_encounter%lvdotr(1:nenc_old), lmask(1:nenc_old))
-                  nbody_system%plpl_encounter%lclosest(1:nencmin) = pack(nbody_system%plpl_encounter%lclosest(1:nenc_old), lmask(1:nenc_old))
-                  nbody_system%plpl_encounter%status(1:nencmin) = pack(nbody_system%plpl_encounter%status(1:nenc_old), lmask(1:nenc_old))
-                  nbody_system%plpl_encounter%tcollision(1:nencmin) = pack(nbody_system%plpl_encounter%tcollision(1:nenc_old), lmask(1:nenc_old))
-                  nbody_system%plpl_encounter%level(1:nencmin) = pack(nbody_system%plpl_encounter%level(1:nenc_old), lmask(1:nenc_old))
+                  nbody_system%plpl_encounter%lvdotr(1:nencmin) = pack(nbody_system%plpl_encounter%lvdotr(1:nenc_old), &
+                                                                       lmask(1:nenc_old))
+                  nbody_system%plpl_encounter%lclosest(1:nencmin) = pack(nbody_system%plpl_encounter%lclosest(1:nenc_old), &
+                                                                         lmask(1:nenc_old))
+                  nbody_system%plpl_encounter%status(1:nencmin) = pack(nbody_system%plpl_encounter%status(1:nenc_old), &
+                                                                       lmask(1:nenc_old))
+                  nbody_system%plpl_encounter%tcollision(1:nencmin) = pack(nbody_system%plpl_encounter%tcollision(1:nenc_old), &
+                                                                           lmask(1:nenc_old))
+                  nbody_system%plpl_encounter%level(1:nencmin) = pack(nbody_system%plpl_encounter%level(1:nenc_old), &
+                                                                      lmask(1:nenc_old))
                   do i = 1, NDIM
-                     nbody_system%plpl_encounter%r1(i, 1:nencmin) = pack(nbody_system%plpl_encounter%r1(i, 1:nenc_old), lmask(1:nenc_old))
-                     nbody_system%plpl_encounter%r2(i, 1:nencmin) = pack(nbody_system%plpl_encounter%r2(i, 1:nenc_old), lmask(1:nenc_old))
-                     nbody_system%plpl_encounter%v1(i, 1:nencmin) = pack(nbody_system%plpl_encounter%v1(i, 1:nenc_old), lmask(1:nenc_old))
-                     nbody_system%plpl_encounter%v2(i, 1:nencmin) = pack(nbody_system%plpl_encounter%v2(i, 1:nenc_old), lmask(1:nenc_old))
+                     nbody_system%plpl_encounter%r1(i, 1:nencmin) = pack(nbody_system%plpl_encounter%r1(i, 1:nenc_old), &
+                                                                         lmask(1:nenc_old))
+                     nbody_system%plpl_encounter%r2(i, 1:nencmin) = pack(nbody_system%plpl_encounter%r2(i, 1:nenc_old), &
+                                                                         lmask(1:nenc_old))
+                     nbody_system%plpl_encounter%v1(i, 1:nencmin) = pack(nbody_system%plpl_encounter%v1(i, 1:nenc_old), &
+                                                                         lmask(1:nenc_old))
+                     nbody_system%plpl_encounter%v2(i, 1:nencmin) = pack(nbody_system%plpl_encounter%v2(i, 1:nenc_old), &
+                                                                         lmask(1:nenc_old))
                   end do
                end if
             end if
@@ -1811,12 +1845,14 @@ contains
    module subroutine swiftest_util_rescale_system(self, param, mscale, dscale, tscale)
       !! author: David A. Minton
       !!
-      !! Rescales an nbody system to a new set of units. Inputs are the multipliers on the mass (mscale), distance (dscale), and time units (tscale). 
-      !! Rescales all united quantities in the nbody_system, as well as the mass conversion factors, gravitational constant, and Einstein's constant in the parameter object.
+      !! Rescales an nbody system to a new set of units. Inputs are the multipliers on the mass (mscale), distance (dscale), and 
+      !! time units (tscale). Rescales all united quantities in the nbody_system, as well as the mass conversion factors, 
+      !! gravitational constant, and Einstein's constant in the parameter object.
       implicit none
       class(swiftest_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters. Returns with new values of the scale vactors and GU
-      real(DP),                     intent(in)    :: mscale, dscale, tscale !! Scale factors for mass, distance, and time units, respectively. 
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters. Returns with new values of the 
+                                                            !! scale vactors and GU
+      real(DP),                     intent(in)    :: mscale, dscale, tscale !! Scale factors for mass, distance, and time units 
       ! Internals
       real(DP) :: vscale
 
@@ -1884,13 +1920,15 @@ contains
    module subroutine swiftest_util_resize_arr_info(arr, nnew)
       !! author: David A. Minton
       !!
-      !! Resizes an array component of type character string. Array will only be resized if has previously been allocated. Passing nnew = 0 will deallocate.
+      !! Resizes an array component of type character string. Array will only be resized if has previously been allocated. 
+      !! Passing nnew = 0 will deallocate.
       implicit none
       ! Arguments
       type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
       integer(I4B),                                         intent(in)    :: nnew !! New size
       ! Internals
-      type(swiftest_particle_info), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
+      type(swiftest_particle_info), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already 
+                                                                     !! allocated
       integer(I4B) :: nold !! Old size
 
       if (nnew < 0) return
@@ -1924,13 +1962,15 @@ contains
    module subroutine swiftest_util_resize_arr_kin(arr, nnew)
       !! author: David A. Minton
       !!
-      !! Resizes an array component of type character string. Array will only be resized if has previously been allocated. Passing nnew = 0 will deallocate.
+      !! Resizes an array component of type character string. Array will only be resized if has previously been allocated. 
+      !! Passing nnew = 0 will deallocate.
       implicit none
       ! Arguments
       type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: arr  !! Array to resize
       integer(I4B),                                      intent(in)    :: nnew !! New size
       ! Internals
-      type(swiftest_kinship), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already allocated
+      type(swiftest_kinship), dimension(:), allocatable :: tmp !! Temporary storage array in case the input array is already 
+                                                               !! allocated
       integer(I4B) :: nold !! Old size
 
       if (nnew < 0) return
@@ -2112,7 +2152,9 @@ contains
       ! Arguments
       class(swiftest_nbody_system),  intent(inout) :: self    !! Swiftest nobdy nbody_system object
 
-      self%Gmtot = self%cb%Gmass + sum(self%pl%Gmass(1:self%pl%nbody), self%pl%status(1:self%pl%nbody) /= INACTIVE)
+      self%Gmtot = self%cb%Gmass
+      if (self%pl%nbody > 0) self%Gmtot = self%Gmtot + sum(self%pl%Gmass(1:self%pl%nbody), &
+                                                           self%pl%status(1:self%pl%nbody) /= INACTIVE)
 
       return
    end subroutine swiftest_util_set_msys
@@ -2149,8 +2191,8 @@ contains
    end subroutine swiftest_util_set_mu_tp
 
 
-   module subroutine swiftest_util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, collision_id, origin_rh,&
-                                            origin_vh, discard_time, discard_rh, discard_vh, discard_body_id)
+   module subroutine swiftest_util_set_particle_info(self, name, particle_type, status, origin_type, origin_time, collision_id, &
+                                            origin_rh, origin_vh, discard_time, discard_rh, discard_vh, discard_body_id)
       !! author: David A. Minton
       !!
       !! Sets one or more values of the particle information metadata object
@@ -2158,17 +2200,26 @@ contains
       ! Arguments
       class(swiftest_particle_info), intent(inout)           :: self
       character(len=*),              intent(in),    optional :: name            !! Non-unique name
-      character(len=*),              intent(in),    optional :: particle_type   !! String containing a description of the particle type (e.g. Central Body, Massive Body, Test Particle)
-      character(len=*),              intent(in),    optional :: status          !! Particle status description: ACTIVE, MERGED, FRAGMENTED, etc.
-      character(len=*),              intent(in),    optional :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
+      character(len=*),              intent(in),    optional :: particle_type   !! String containing a description of the particle 
+                                                                                !!  type (Central Body, Massive Body, Test Particle)
+      character(len=*),              intent(in),    optional :: status          !! Particle status description: ACTIVE, MERGED, 
+                                                                                !!  FRAGMENTED, etc.
+      character(len=*),              intent(in),    optional :: origin_type     !! String containing a description of the origin of
+                                                                                !!  the particle (e.g. Initial Conditions, 
+                                                                                !!  Supercatastrophic, Disruption, etc.)
       real(DP),                      intent(in),    optional :: origin_time     !! The time of the particle's formation
       integer(I4B),                  intent(in),    optional :: collision_id    !! The ID fo the collision that formed the particle
-      real(DP), dimension(:),        intent(in),    optional :: origin_rh       !! The heliocentric distance vector at the time of the particle's formation
-      real(DP), dimension(:),        intent(in),    optional :: origin_vh       !! The heliocentric velocity vector at the time of the particle's formation
+      real(DP), dimension(:),        intent(in),    optional :: origin_rh       !! The heliocentric distance vector at the time of 
+                                                                                !!  the particle's formation
+      real(DP), dimension(:),        intent(in),    optional :: origin_vh       !! The heliocentric velocity vector at the time of 
+                                                                                !!  the particle's formation
       real(DP),                      intent(in),    optional :: discard_time    !! The time of the particle's discard
-      real(DP), dimension(:),        intent(in),    optional :: discard_rh      !! The heliocentric distance vector at the time of the particle's discard
-      real(DP), dimension(:),        intent(in),    optional :: discard_vh      !! The heliocentric velocity vector at the time of the particle's discard
-      integer(I4B),                  intent(in),    optional :: discard_body_id !! The id of the other body involved in the discard (0 if no other body involved)
+      real(DP), dimension(:),        intent(in),    optional :: discard_rh      !! The heliocentric distance vector at the time of 
+                                                                                !!  the particle's discard
+      real(DP), dimension(:),        intent(in),    optional :: discard_vh      !! The heliocentric velocity vector at the time of 
+                                                                                !! the particle's discard
+      integer(I4B),                  intent(in),    optional :: discard_body_id !! The id of the other body involved in the discard
+                                                                                !! (0 if no other body involved)
       ! Internals
       character(len=NAMELEN) :: lenstr
       character(len=:), allocatable :: fmtlabel
@@ -2656,15 +2707,17 @@ contains
       !! Takes a snapshot of the nbody_system for later file storage
       implicit none
       ! Arguments
-      class(swiftest_storage),      intent(inout)        :: self            !! Swiftest storage object
-      class(swiftest_parameters),   intent(inout)        :: param           !! Current run configuration parameters
-      class(swiftest_nbody_system), intent(inout)        :: nbody_system    !! Swiftest nbody system object to store
-      real(DP),                     intent(in), optional :: t               !! Time of snapshot if different from nbody_system time
-      character(*),                 intent(in), optional :: arg             !! Optional argument (needed for extended storage type used in collision snapshots)
+      class(swiftest_storage),      intent(inout)        :: self         !! Swiftest storage object
+      class(swiftest_parameters),   intent(inout)        :: param        !! Current run configuration parameters
+      class(swiftest_nbody_system), intent(inout)        :: nbody_system !! Swiftest nbody system object to store
+      real(DP),                     intent(in), optional :: t            !! Time of snapshot if different from nbody_system time
+      character(*),                 intent(in), optional :: arg          !! Optional argument (needed for extended storage type used
+                                                                         !!  in collision snapshots)
       ! Internals
       class(swiftest_nbody_system), allocatable :: snapshot
 
-      ! To allow for runs to be restarted in a bit-identical way, we'll need to run the same coordinate conversion routines we would run upon restarting
+      ! To allow for runs to be restarted in a bit-identical way, we'll need to run the same coordinate conversion routines we would
+      !  run upon restarting
       select type(pl => nbody_system%pl)
       class is (whm_pl)
          call pl%h2j(nbody_system%cb)
@@ -2749,7 +2802,8 @@ contains
       ! Arguments
       class(swiftest_body), intent(inout) :: self      !! Swiftest body object
       character(*),         intent(in)    :: sortby    !! Sorting attribute
-      logical,              intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
+      logical,              intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending 
+                                                       !!  or descending order
       ! Internals
       integer(I4B), dimension(:), allocatable :: ind
       integer(I4B)                        :: direction
@@ -2784,7 +2838,7 @@ contains
             call util_sort(direction * body%peri(1:n), ind)
          case("atp")
             call util_sort(direction * body%atp(1:n), ind)
-         case("info", "lfirst", "nbody", "ldiscard", "lcollision", "lencounter", "rh", "vh", "rb", "vb", "ah", "aobl", "atide", "agr","isperi")
+         case("info","lfirst","nbody","ldiscard","lcollision","lencounter","rh","vh","rb","vb","ah","aobl","atide","agr","isperi")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
          case default
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not found!'
@@ -2808,7 +2862,8 @@ contains
       ! Arguments
       class(swiftest_pl), intent(inout) :: self      !! Swiftest massive body object
       character(*),       intent(in)    :: sortby    !! Sorting attribute
-      logical,            intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
+      logical,            intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or
+                                                     !!  descending order
       ! Internals
       integer(I4B), dimension(:), allocatable :: ind
       integer(I4B)                        :: direction
@@ -2867,7 +2922,8 @@ contains
       ! Arguments
       class(swiftest_tp), intent(inout) :: self      !! Swiftest test particle object
       character(*),       intent(in)    :: sortby    !! Sorting attribute
-      logical,            intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
+      logical,            intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or
+                                                     !!  descending order
       ! Internals
       integer(I4B), dimension(:), allocatable :: ind
       integer(I4B)                        :: direction
@@ -2905,7 +2961,8 @@ contains
       implicit none
       ! Arguments
       class(swiftest_body),               intent(inout) :: self !! Swiftest body object
-      integer(I4B),         dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
+      integer(I4B),         dimension(:), intent(in)    :: ind  !! Index array used to restructure the body 
+                                                                !!  (should contain all 1:n index values in the desired order)
 
       associate(n => self%nbody)
          call util_sort_rearrange(self%id,       ind, n)
@@ -2948,9 +3005,9 @@ contains
       ! Arguments
       type(swiftest_particle_info),  dimension(:), allocatable, intent(inout) :: arr !! Destination array 
       integer(I4B),                  dimension(:),              intent(in)    :: ind !! Index to rearrange against
-      integer(I4B),                                             intent(in)    :: n   !! Number of elements in arr and ind to rearrange
+      integer(I4B),                                             intent(in)    :: n   !! Number of elements in arr & ind to rearrange
       ! Internals
-      type(swiftest_particle_info),  dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
+      type(swiftest_particle_info),  dimension(:), allocatable :: tmp !! Temporary copy of array used during rearrange operation
 
       if (.not. allocated(arr) .or. n <= 0) return
       allocate(tmp, mold=arr)
@@ -2972,7 +3029,7 @@ contains
       integer(I4B),            dimension(:),              intent(in)    :: ind !! Index to rearrange against
       integer(I4B),                                       intent(in)    :: n   !! Number of elements in arr and ind to rearrange
       ! Internals
-      type(swiftest_kinship),  dimension(:), allocatable                :: tmp !! Temporary copy of array used during rearrange operation
+      type(swiftest_kinship),  dimension(:), allocatable :: tmp !! Temporary copy of array used during rearrange operation
       integer(I4B) :: i,j
 
       if (.not. allocated(arr) .or. n <= 0) return
@@ -2997,7 +3054,8 @@ contains
       !! This is a helper utility used to make polymorphic sorting work on Swiftest structures.
       implicit none
       class(swiftest_pl),               intent(inout) :: self !! Swiftest massive body object
-      integer(I4B),       dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
+      integer(I4B),       dimension(:), intent(in)    :: ind  !! Index array used to restructure the body 
+                                                              !!  (should contain all 1:n index values in the desired order)
 
       associate(pl => self, npl => self%nbody)
          call util_sort_rearrange(pl%mass,    ind, npl)
@@ -3035,7 +3093,8 @@ contains
       implicit none
       ! Arguments
       class(swiftest_tp),                 intent(inout) :: self !! Swiftest test particle object
-      integer(I4B),         dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
+      integer(I4B),         dimension(:), intent(in)    :: ind  !! Index array used to restructure the body 
+                                                                !!  (should contain all 1:n index values in the desired order)
 
       associate(tp => self, ntp => self%nbody)
          call util_sort_rearrange(tp%nplenc,  ind, ntp)
@@ -3058,8 +3117,11 @@ contains
       ! Arguments
       type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
       type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-      logical,                       dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
-      logical,                                                  intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      logical,                       dimension(:),              intent(in)   :: lspill_list  !! Logical array of bodies to spill 
+                                                                                             !!  into the discardss
+      logical,                                                  intent(in)   :: ldestructive !! Logical flag indicating whether or
+                                                                                             !!  not this operation should alter the
+                                                                                             !!  keeps array or not
       ! Internals
       integer(I4B) :: i, nspill, nkeep, nlist
       integer(I4B), dimension(:), allocatable :: idx
@@ -3107,8 +3169,11 @@ contains
       ! Arguments
       type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: keeps        !! Array of values to keep 
       type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: discards     !! Array of discards
-      logical,                dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardss
-      logical,                                           intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      logical,                dimension(:),              intent(in)    :: lspill_list  !! Logical array of bodies to spill into the
+                                                                                       !!  discardss
+      logical,                                           intent(in)    :: ldestructive !! Logical flag indicating whether or not
+                                                                                       !!  this operation should alter the keeps
+                                                                                       !!  array or not
       ! Internals
       integer(I4B) :: nspill, nkeep, nlist
       type(swiftest_kinship), dimension(:), allocatable :: tmp
@@ -3151,7 +3216,8 @@ contains
       class(swiftest_body),  intent(inout) :: self         !! Swiftest generic body object
       class(swiftest_body),  intent(inout) :: discards     !! Discarded object 
       logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-      logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
+      logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter
+                                                           !!  body by removing the discard list
       ! Internals
       integer(I4B) :: nbody_old
 
@@ -3208,10 +3274,11 @@ contains
       class(swiftest_pl),    intent(inout) :: self        !! Swiftest massive body object
       class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
       logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
-      logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
+      logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter
+                                                           !!  body by removing the discard list
 
       associate(keeps => self)
-         select type (discards) ! The standard requires us to select the type of both arguments in order to access all the components
+         select type (discards) !The standard requires us to select the type of both arguments in order to access all the components
          class is (swiftest_pl)
             !> Spill components specific to the massive body class
             call util_spill(keeps%mass,    discards%mass,    lspill_list, ldestructive)
@@ -3252,10 +3319,11 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
       implicit none
       ! Arguments
-      class(swiftest_tp),    intent(inout) :: self        !! Swiftest test particle object
-      class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
-      logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discardse
-      logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
+      class(swiftest_tp),    intent(inout) :: self         !! Swiftest test particle object
+      class(swiftest_body),  intent(inout) :: discards     !! Discarded object 
+      logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discardse
+      logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter
+                                                           !!  body by removing the discard list
 
       associate(keeps => self, ntp => self%nbody)
          select type(discards)
