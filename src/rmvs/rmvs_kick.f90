@@ -53,6 +53,7 @@ contains
                         ! Temporarily turn off the heliocentric-dependent acceleration terms during an inner encounter using a copy of the parameter list with all of the heliocentric-specific acceleration terms turned off
                         allocate(param_planetocen, source=param)
                         param_planetocen%loblatecb = .false.
+                        param_planetocen%lshgrav = .false.
                         param_planetocen%lextra_force = .false.
                         param_planetocen%lgr = .false.
 
