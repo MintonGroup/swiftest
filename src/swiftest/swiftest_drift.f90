@@ -207,12 +207,6 @@ contains
          end if
       end if
 
-      ! For debugging overflow error
-
-      ! if(r0 .ge. 11970204779.00) then
-      !    f = 1.0_DP
-      ! end if
-
       call swiftest_drift_kepu(dt, r0, mu, alpha, u, fp, c1, c2, c3, iflag)
       if (iflag == 0) then
          f = 1.0_DP - mu / r0 * c2
@@ -583,25 +577,6 @@ contains
             x = x * 4
          end do
       end if
-
-      ! ! for debugging Floating overflow error
-
-      ! if (abs(c0) .ge. HUGE(0.0_DP)) then
-      !    xm = 0.1_DP ! "big c0"
-      ! end if
-
-      ! if (abs(c1) .ge. HUGE(0.0_DP)) then
-      !    xm = 0.1_DP ! "big c1"
-      ! end if
-
-      ! if (abs(c2) .ge. HUGE(0.0_DP)) then
-      !    xm = 0.1_DP ! "big c2"
-      ! end if
-
-      ! if (abs(c3) .ge. HUGE(0.0_DP)) then
-      !    xm = 0.1_DP ! "big c3"
-      ! end if
-
 
       return
    end subroutine swiftest_drift_kepu_stumpff
