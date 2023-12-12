@@ -92,7 +92,7 @@ contains
       associate(tp => self, pl => nbody_system%pl, cb => nbody_system%cb)
          npl = nbody_system%pl%nbody
          ntp = self%nbody
-         if (ntp == 0 .or. npl == 0) return
+         if (ntp == 0 .and. npl == 0) return
          nbody_system%lbeg = lbeg
 
          if (lbeg) then
