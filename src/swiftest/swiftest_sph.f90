@@ -40,11 +40,11 @@ contains
         real(DP)       :: r_mag             !! magnitude of rh
         real(DP)       :: phi, phi_bar      !! Azimuthal/Phase angle (radians) wrt coordinate axes, and central body rotation phase
         real(DP)       :: theta             !! Inclination/Zenith angle (radians)
-        real(DP)       :: plm, dplm         !! Associated Legendre polynomials at a given l, m
+        real(DP)       :: plm, plm1         !! Associated Legendre polynomials at a given l, m
         real(DP)       :: ccss, cssc        !! See definition in source code
         real(DP)       :: cos_theta, sin_theta !! cos(theta) and sin(theta)
         real(DP), dimension(:), allocatable  :: p, p_deriv   !! Associated Lengendre Polynomials at a given cos(theta)
-        real(DP)     :: r2, irh, rinv2, t0, t1, t2, t3, fac0, fac1, fac2, fac3, fac4, j2rp2, j4rp4, r_fac, cos_tmp, sin_tmp, sin2_tmp, plm1, sin_phi, cos_phi
+        real(DP)     :: fac1, fac2, r_fac   !! calculation factors 
 
         g_sph(:) = 0.0_DP
         theta = atan2(sqrt(rh(1)**2 + rh(2)**2), rh(3))
@@ -55,24 +55,8 @@ contains
         N = (l_max + 1) * (l_max + 2) / 2
         allocate(p(N),p_deriv(N))
 
-        ! to compare w s_obl.f90
-        j2rp2 = -c_lm(1, 3, 1) * r_0**2
-        j4rp4 = -c_lm(1, 4, 1) * r_0**4
-        r2 = dot_product(rh(:), rh(:))
-        irh = 1.0_DP / sqrt(r2)
-        rinv2 = irh**2
-        t0 = -GMcb * rinv2 * rinv2 * irh
-        t1 = 1.5_DP * j2rp2
-        t2 = rh(3) * rh(3) * rinv2
-        t3 = 1.875_DP * j4rp4 * rinv2
-        fac1 = t0 * (t1 - t3 - (5 * t1 - (14.0_DP - 21.0_DP * t2) * t3) * t2)
-        fac2 = 2 * t0 * (t1 - (2.0_DP - (14.0_DP * t2 / 3.0_DP)) * t3)
-        fac0 = 4 * PI
-
         cos_theta = cos(theta)
         sin_theta = sin(theta)
-
-
 
         if(abs(cos_theta) < epsilon(0.0_DP)) then
             cos_theta = 0.0_DP
@@ -100,25 +84,6 @@ contains
                         + c_lm(m+1, l+1, 2) * cos(m * phi_bar)      ! - C_lm * sin(m * phi_bar) + S_lm * cos(m * phi_bar) 
                                                                     ! cssc * m = first derivative of ccss with respect to phi
 
-                ! m > 0
-                ! g_sph(1) = g_sph(1) - GMcb * r_0**l / r_mag**(l + 2) * (cssc * m * plm * sin(phi) / sin_theta &
-                !                                                         + ccss * sin_theta * cos(phi) &    
-                !                                                         * (dplm * cos_theta + plm * (l + 1))) ! g_x
-                ! g_sph(2) = g_sph(2) - GMcb * r_0**l / r_mag**(l + 2) * (-1 * cssc * m * plm * cos(phi) / sin_theta &
-                !                                                         + ccss * sin_theta * sin(phi) &
-                !                                                         * (dplm * cos_theta + plm * (l + 1))) ! g_y
-                ! g_sph(3) = g_sph(3) - GMcb * r_0**l / r_mag**(l + 2) * ccss * (-1 * dplm * sin_theta**2  &
-                !                                                         + plm * (l + 1) * cos_theta)          ! g_z
-
-                cos_tmp = cos_theta
-                sin_tmp = sin_theta
-                sin2_tmp = sin(2 * theta)
-                sin_phi = sin(phi)
-                cos_phi = cos(phi)
-                ! g_sph(:) = 0.0_DP 
-
-                ! Alternative form for g_sph
-
                 if ((m+1) .le. l) then
                     lmindex = PlmIndex(l, m+1) 
                     plm1 = p(lmindex) 
@@ -131,21 +96,6 @@ contains
                     plm1 = 0.0_DP  
                 end if 
                                                                       
-                ! !! Alternative form of dplm
-
-                ! g_sph(1) = g_sph(1) - GMcb * r_0**l / r_mag**(l + 2) * (cssc * m / sin_theta * plm * sin(phi) &
-                !                                                        + ccss * cos(phi) * (plm * ((l + m + 1) * sin_theta - m / sin_theta) & 
-                !                                                                              + plm1 * cos_theta))
-                ! g_sph(2) = g_sph(2) - GMcb * r_0**l / r_mag**(l + 2) * (-cssc * m / sin_theta * plm * cos(phi) &
-                !                                                         + ccss * sin(phi) * (plm * ((l + m + 1) * sin_theta - m / sin_theta) & 
-                !                                                                              + plm1 * cos_theta)) 
-                ! g_sph(3) = g_sph(3) - GMcb * r_0**l / r_mag**(l + 2) * ccss * (plm * (l + m +1) * cos_theta - plm1 * sin_theta)          
-
-                ! Condensed form
-
-                ! fac0 = -(m * cos_tmp * plm / sin_tmp - plm1) / sin_tmp ! dplm
-                ! fac3 = plm * (l + m + 1) * cos_theta
-                ! fac4 = plm1 * sin_theta
                 if(sin_theta .eq. 0) then
                     fac1 = 0.0_DP
                 else
@@ -153,17 +103,13 @@ contains
                 end if
 
                 fac2 = plm * (l + m + 1) * sin_theta + plm1 * cos_theta
-                fac3 = fac2 - fac1
                 r_fac = -GMcb * r_0**l / r_mag**(l + 2)
 
                 ! g_sph(:) = 0.0_DP
                 g_sph(1) = g_sph(1) + r_fac * (cssc * fac1 * sin(phi) + ccss * (fac2 - fac1) * cos(phi))
                 g_sph(2) = g_sph(2) + r_fac * (-cssc * fac1 * cos(phi) + ccss * (fac2 - fac1) * sin(phi))
                 g_sph(3) = g_sph(3) + r_fac * ccss * (plm * (l + m + 1) * cos_theta - plm1 * sin_theta)
-
-                fac0 = (.mag. g_sph(:))
-                ! fac3 = 3 * c_lm(m+1, l+1, 1) / 2 * r_0**2 / r_mag**4 * (3*(cos_theta)**2 - 1) * GMcb ! g_sph for J2
-                            
+          
             end do
         end do
 
