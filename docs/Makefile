@@ -61,13 +61,13 @@ fortran-doc:
 	cd .. && ford fortran_docs.md
 
 .PHONY: html
-html: fortran-doc
+html: 
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 
 .PHONY: rtdhtml
-rtdhtml: fortran-doc
+rtdhtml: 
 	$(SPHINXBUILD) -T -j auto -E -W --keep-going -b html -d $(BUILDDIR)/doctrees -D language=en . $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."

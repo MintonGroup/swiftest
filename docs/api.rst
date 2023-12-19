@@ -29,6 +29,65 @@ Running a Simulation
 
     Simulation.run
 
+Setting Simulation Parameters
+--------------------------------------------
+
+.. autosummary::
+    :toctree: generated/
+
+    Simulation.set_parameter
+    Simulation.set_simulation_time
+    Simulation.set_integrator
+    Simulation.set_feature
+    Simulation.set_init_cond_files
+    Simulation.set_output_files
+    Simulation.set_unit_system
+    Simulation.update_param_units
+    Simulation.set_distance_range
+    Simulation.set_ephemeris_date
+
+Retrieving Simulation Parameters
+--------------------------------------------
+
+.. autosummary::
+    :toctree: generated/
+
+    Simulation.get_parameter
+    Simulation.get_simulation_time
+    Simulation.get_integrator
+    Simulation.get_feature
+    Simulation.get_init_cond_files
+    Simulation.get_output_files
+    Simulation.get_unit_system
+    Simulation.get_distance_range
+    Simulation.get_ephemeris_date
+
+Adding Bodies to a Simulation
+-----------------------------
+
+.. autosummary::
+    :toctree: generated/
+
+    Simulation.add_body
+    Simulation.add_solar_system_body
+
+
+File Input and Output
+---------------------
+
+.. autosummary::
+    :toctree: generated/
+
+    Simulation.read_param
+    Simulation.write_param
+    Simulation.read_encounter_file
+    Simulation.read_collision_file
+    Simulation.follow
+    Simulation.save
+    Simulation.initial_conditions_from_bin
+    Simulation.convert
+    Simulation.clean
+
 Fortran API Documentation
 =========================
 

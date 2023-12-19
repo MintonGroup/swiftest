@@ -50,6 +50,7 @@ requires = [
     "cmake",
     "pyproject_metadata",
     "pytest",
+    "pathspec",
     "sphinx",
     "sphinx-autosummary-accessors",
     "sphinx-book-theme >= 0.3.0",
