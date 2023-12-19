@@ -15,8 +15,11 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.11"
-  pre_build:
-    - ford fortran_docs.md 
+  jobs:
+    pre_build:
+      - ford fortran_docs.md 
+      - CIBW_TEST_SKIP="*-linux_x86_64" cibuildwheel --only cp311-linux_x86_64
+      - pip install wheelhouse/swiftest*.whl
 python:
   install:
     - requirements: docs/requirements.txt

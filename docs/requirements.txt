@@ -9,4 +9,4 @@ sphinxext-opengraph
 nbsphinx
 ipython
 ford
-swiftest
+cibuildwheel
