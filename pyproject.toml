@@ -36,7 +36,7 @@ dependencies = [
     'matplotlib>=3.7',
     'astropy>=5.2',
     'astroquery>=0.4.6',
-    'tqdm>=4.66',
+    'tqdm>=4.64.1',
     'cython>=3.0.0'
 ]
 
@@ -58,7 +58,8 @@ requires = [
     "sphinx-inline-tabs",
     "sphinxext-rediraffe",
     "sphinxext-opengraph",
-    "nbsphinx"
+    "nbsphinx",
+    "ford"
 ]
 build-backend = "scikit_build_core.build"
 

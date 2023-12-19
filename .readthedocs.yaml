@@ -15,12 +15,8 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.11"
-
-# Optionally build your docs in additional formats such as PDF and ePub
-# formats:
-#   - pdf
-#   - epub
-
+  pre_build:
+    - ford fortran_doc.md -o ../_readthedocs/html/fortran/
 python:
   install:
     - requirements: docs/requirements.txt
