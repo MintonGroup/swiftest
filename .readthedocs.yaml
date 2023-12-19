@@ -18,7 +18,7 @@ build:
   jobs:
     pre_build:
       - ford fortran_docs.md 
-      - CIBW_TEST_SKIP="*-linux_x86_64" cibuildwheel --only cp311-linux_x86_64
+      - CIBW_TEST_SKIP="*linux*" CIBW_BUILD="cp311-*"  cibuildwheel --platform linux .
       - pip install wheelhouse/swiftest*.whl
 python:
   install:
