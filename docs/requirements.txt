@@ -9,4 +9,5 @@ sphinxext-opengraph
 sphinx-fortran
 nbsphinx
 ipython
+ford
 swiftest

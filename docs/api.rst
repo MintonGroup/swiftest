@@ -29,3 +29,8 @@ Running a Simulation
 
     Simulation.run
 
+Fortran API Documentation
+=========================
+
+For detailed documentation of the Fortran API, see the `Fortran API <fortran/index.html>`_.
+
