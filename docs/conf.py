@@ -8,7 +8,8 @@ import sphinx_autosummary_accessors
 from sphinx.application import Sphinx
 from sphinx.util import logging
 
-sys.path.insert(0, os.path.abspath('../'))
+swiftest_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'swiftest'))
+sys.path.insert(0, swiftest_path)
 
 autodoc_mock_imports = ['swiftest']
 
@@ -167,8 +168,7 @@ def linkcode_resolve(domain, info):
     else:
         linespec = ""
 
-    fn = os.path.relpath(fn, start=os.path.dirname(swiftest.__file__))
-
+    fn = os.path.relpath(fn, start=os.path.dirname(swiftest_path))
 
 
 def html_page_context(app, pagename, templatename, context, doctree):
