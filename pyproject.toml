@@ -142,3 +142,18 @@ CMAKE_INSTALL_LIBDIR="lib"
 path = "version.txt"
 location = "source"
 template = '''${version}'''
+
+[project.optional-dependencies]
+docs = [
+    "sphinx",
+    "sphinx-autosummary-accessors",
+    "sphinx-book-theme >= 0.3.0",
+    "sphinx-copybutton",
+    "sphinx-design",
+    "sphinx-inline-tabs",
+    "sphinxext-rediraffe",
+    "sphinxext-opengraph",
+    "nbsphinx",
+    "ipython",
+    "ford",
+]
