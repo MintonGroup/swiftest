@@ -1,6 +1,6 @@
 [project]
 name = "swiftest"
-version = "2023.11.0"
+version = "2023.12.0"
 authors=[
     {name = 'David A. Minton', email='daminton@purdue.edu'},
     {name = 'Carlisle Wishard'},
@@ -37,8 +37,7 @@ dependencies = [
     'astropy>=5.2',
     'astroquery>=0.4.6',
     'tqdm>=4.66',
-    'cython>=3.0.0',
-    'mkdocs>=1.5.3'
+    'cython>=3.0.0'
 ]
 
 [project.urls]
@@ -50,6 +49,15 @@ requires = [
     "cython>=3.0.0",
     "pyproject_metadata",
     "pytest",
+    "sphinx",
+    "sphinx-autosummary-accessors",
+    "sphinx-book-theme >= 0.3.0",
+    "sphinx-copybutton",
+    "sphinx-design",
+    "sphinx-inline-tabs",
+    "sphinxext-rediraffe",
+    "sphinxext-opengraph",
+    "nbsphinx"
 ]
 build-backend = "scikit_build_core.build"
 
