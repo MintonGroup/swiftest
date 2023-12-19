@@ -11,7 +11,7 @@ import os
 
 import swiftest
 
-autodoc_mock_imports = ['swiftest._bindings']
+autodoc_mock_imports = ['swiftest']
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
