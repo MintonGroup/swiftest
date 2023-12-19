@@ -40,10 +40,18 @@ _dependencies
 
 
 #Documentation
-!mkdocs.yml
-!docs/*
-!docs/*/*
-!docs/*/*/*
+!.readthedocs.yaml
+!docs/
+!docs/**/*
+docs/**/*.ai
+docs/_build/
+docs/_build/**/*
+docs/generated/
+docs/generated/**/*
+docs/**/*.DS_Store
+docs/**/*.swp
+
+
 !README_figs/*
 
 #Docker and Singularity files
