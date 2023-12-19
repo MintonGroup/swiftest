@@ -7,9 +7,8 @@ from contextlib import suppress
 import sphinx_autosummary_accessors
 from sphinx.application import Sphinx
 from sphinx.util import logging
-import os
 
-import swiftest
+sys.path.insert(0, os.path.abspath('../..'))
 
 autodoc_mock_imports = ['swiftest']
 
