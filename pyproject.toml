@@ -47,6 +47,7 @@ Repository = 'https://github.itap.purdue.edu/MintonGroup/swiftest'
 requires = [
     "scikit-build-core",
     "cython>=3.0.0",
+    "cmake",
     "pyproject_metadata",
     "pytest",
     "sphinx",
