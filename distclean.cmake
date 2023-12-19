@@ -21,6 +21,7 @@ ELSE()
 ENDIF()
 
 SET(CIBW_DIR "_skbuild" "swiftest.egg-info" "_cmake_test_compile")
+SET(DOC_DIR "docs/_build")
 
 MACRO(GET_PARENT_DIRECTORIES search_string return_list grandparents)
     FILE(GLOB_RECURSE new_list ${search_string})
@@ -66,6 +67,7 @@ SET(DEL ${TOPDIRECTORIES}
         ${CMAKETESTING}
         ${CMAKETESTFILES}
         ${CIBW_DIR}
+        ${DOC_DIR}
 )
 
 # If we are not in the build dir, delete that as well
