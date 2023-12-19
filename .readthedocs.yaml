@@ -16,7 +16,7 @@ build:
   tools:
     python: "3.11"
   pre_build:
-    - ford fortran_doc.md -o ../_readthedocs/html/fortran/
+    - ford fortran_docs.md 
 python:
   install:
     - requirements: docs/requirements.txt

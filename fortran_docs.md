@@ -2,15 +2,12 @@
 project: Swiftest
 author: David A. Minton
 summary: High performance Fortran functions used by the swiftest project via ISO_C_BINDING interfaces and Cython.
-favicon: ./docs/_static/logos/swiftest_logo.svg
 project_github: https://github.com/profminton/swiftest
 project_download: https://github.com/profminton/swiftest/releases
 project_website: https://swiftest.readthedocs.io
-author: David A. Minton
 github: https://github.com/profminton/
 src_dir: src
-output_dir: ./docs/_build/html/fortran
-media_dir: ./docs/_static
+output_dir: ./docs/_static/fortran_docs
 source: true
 graph: true
 sort: alpha

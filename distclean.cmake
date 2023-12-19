@@ -21,7 +21,7 @@ ELSE()
 ENDIF()
 
 SET(CIBW_DIR "_skbuild" "swiftest.egg-info" "_cmake_test_compile")
-SET(DOC_DIR "docs/_build")
+SET(DOC_DIR "docs/_build" "docs/_static/fortran_docs")
 
 MACRO(GET_PARENT_DIRECTORIES search_string return_list grandparents)
     FILE(GLOB_RECURSE new_list ${search_string})
