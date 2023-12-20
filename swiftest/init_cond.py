@@ -1,12 +1,12 @@
 """
- Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
- This file is part of Swiftest.
- Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
- as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
- Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
- of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- You should have received a copy of the GNU General Public License along with Swiftest. 
- If not, see: https://www.gnu.org/licenses. 
+Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+This file is part of Swiftest.
+Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+You should have received a copy of the GNU General Public License along with Swiftest. 
+If not, see: https://www.gnu.org/licenses. 
 """
 from __future__ import annotations
 
@@ -36,7 +36,6 @@ def horizons_get_physical_properties(altid,**kwargs):
         List of ids to use for Horizons query
     **kwargs: Any
             Additional keyword arguments to pass to the query method (see https://astroquery.readthedocs.io/en/latest/jplhorizons/jplhorizons.html)
-
 
     Returns
     -------
@@ -184,7 +183,6 @@ def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=
         An astroquery.jplhorizons HorizonsClass object. Or None if no match was found.
     altid: string list | None
         A list of alternate ids if more than one object matches the list
-        
     """
     
     def get_altid(errstr,exclude_spacecraft=True):
@@ -416,6 +414,7 @@ def solar_system_horizons(name: str,
 
     return id,name,a,e,inc,capom,omega,capm,rh,vh,Gmass,Rpl,rhill,Ip,rot,J2,J4
 
+
 def vec2xr(param: Dict, **kwargs: Any):
     """
     Converts and stores the variables of all bodies in an xarray dataset.
@@ -458,9 +457,11 @@ def vec2xr(param: Dict, **kwargs: Any):
         instead of passing Ip1, Ip2, and Ip3 separately
     time : array of floats
         Time at start of simulation
+        
     Returns
     -------
     ds : xarray dataset
+        Dataset containing the variables of all bodies passed in kwargs
     """
     scalar_dims = ['id']
     vector_dims = ['id','space']

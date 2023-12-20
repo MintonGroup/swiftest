@@ -1,12 +1,12 @@
 """
- Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
- This file is part of Swiftest.
- Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
- as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
- Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
- of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- You should have received a copy of the GNU General Public License along with Swiftest. 
- If not, see: https://www.gnu.org/licenses. 
+Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+This file is part of Swiftest.
+Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+You should have received a copy of the GNU General Public License along with Swiftest. 
+If not, see: https://www.gnu.org/licenses. 
 """
 
 import swiftest
@@ -72,7 +72,7 @@ string_varnames = ["name", "particle_type", "origin_type", "stage", "regime"]
 char_varnames = ["space"]
 int_varnames = ["id", "ntp", "npl", "nplm", "discard_body_id", "collision_id", "status"]
 
-def bool2yesno(boolval):
+def _bool2yesno(boolval):
     """
     Converts a boolean into a string of either "YES" or "NO".
 
@@ -83,8 +83,8 @@ def bool2yesno(boolval):
 
     Returns
     -------
-    {"YES","NO"}
-
+    str 
+        {"YES","NO"}
     """
     if boolval:
         return "YES"
@@ -92,7 +92,7 @@ def bool2yesno(boolval):
         return "NO"
  
  
-def bool2tf(boolval):
+def _bool2tf(boolval):
     """
     Converts a boolean into a string of either "T" or "F".
 
@@ -103,7 +103,8 @@ def bool2tf(boolval):
 
     Returns
     -------
-    {"T","F"}
+    str
+        {"T","F"}
 
     """
     if boolval:
@@ -112,7 +113,7 @@ def bool2tf(boolval):
         return "F"
 
 
-def str2bool(input_str):
+def _str2bool(input_str):
     """
     Converts a string into an equivalent boolean.
 
@@ -123,7 +124,7 @@ def str2bool(input_str):
 
     Returns
     -------
-    {True, False}
+    bool 
 
     """
     if type(input_str) is bool:
@@ -138,7 +139,7 @@ def str2bool(input_str):
         raise ValueError(f"{input_str} is not recognized as boolean")
 
 
-def real2float(realstr):
+def _real2float(realstr):
     """
     Converts a Fortran-generated ASCII string of a real value into a numpy float type. Handles cases where double precision
     numbers in exponential notation use 'd' or 'D' instead of 'e' or 'E'
@@ -150,7 +151,7 @@ def real2float(realstr):
 
     Returns
     -------
-     : float
+    float
         The converted floating point value of the input string
     """
     return float(realstr.replace('d', 'E').replace('D', 'E'))
@@ -184,8 +185,8 @@ def read_swiftest_param(param_file_name, param, verbose=True):
                         param[key] = fields[1]
                     # Special case of CHK_QMIN_RANGE requires a second input
                     if fields[0].upper() == 'CHK_QMIN_RANGE':
-                        alo = real2float(fields[1])
-                        ahi = real2float(fields[2])
+                        alo = _real2float(fields[1])
+                        ahi = _real2float(fields[2])
                         param['CHK_QMIN_RANGE'] = f"{alo} {ahi}"
 
         for uc in upper_str_param:
@@ -198,19 +199,28 @@ def read_swiftest_param(param_file_name, param, verbose=True):
 
         for f in float_param:
             if f in param and type(param[f]) is str:
-                param[f] = real2float(param[f])
+                param[f] = _real2float(param[f])
 
         for b in bool_param:
             if b in param:
-                param[b] = str2bool(param[b])
+                param[b] = _str2bool(param[b])
     except IOError:
         print(f"{param_file_name} not found.")
     return param
 
 
 def reorder_dims(ds):
-
-    # Re-order dimension coordinates so that they are in the same order as the Fortran side
+    """
+    Re-order dimension coordinates so that they are in the same order as the Fortran side
+    
+    Parameters
+    ----------
+    ds : xarray dataset
+    
+    Returns
+    -------
+    ds : xarray dataset with the dimensions re-ordered
+    """
     idx = ds.indexes
     if "id" in idx:
         dim_order = ["time", "id", "space"]
@@ -231,10 +241,11 @@ def read_swifter_param(param_file_name, verbose=True):
     ----------
     param_file_name : string
         File name of the input parameter file
-
+    verbose : bool, default True
+        Print out information about the file being read
     Returns
     -------
-    param
+    param : dict
         A dictionary containing the entries in the user parameter file
     """
     param = {
@@ -278,26 +289,26 @@ def read_swifter_param(param_file_name, verbose=True):
                         if (key == fields[0].upper()): param[key] = fields[1]
                     # Special case of CHK_QMIN_RANGE requires a second input
                     if fields[0].upper() == 'CHK_QMIN_RANGE':
-                        alo = real2float(fields[1])
-                        ahi = real2float(fields[2])
+                        alo = _real2float(fields[1])
+                        ahi = _real2float(fields[2])
                         param['CHK_QMIN_RANGE'] = f"{alo} {ahi}"
     
         param['ISTEP_OUT'] = int(param['ISTEP_OUT'])
         param['ISTEP_DUMP'] = int(param['ISTEP_DUMP'])
-        param['T0'] = real2float(param['T0'])
-        param['TSTOP'] = real2float(param['TSTOP'])
-        param['DT'] = real2float(param['DT'])
-        param['J2'] = real2float(param['J2'])
-        param['J4'] = real2float(param['J4'])
-        param['CHK_RMIN'] = real2float(param['CHK_RMIN'])
-        param['CHK_RMAX'] = real2float(param['CHK_RMAX'])
-        param['CHK_EJECT'] = real2float(param['CHK_EJECT'])
-        param['CHK_QMIN'] = real2float(param['CHK_QMIN'])
+        param['T0'] = _real2float(param['T0'])
+        param['TSTOP'] = _real2float(param['TSTOP'])
+        param['DT'] = _real2float(param['DT'])
+        param['J2'] = _real2float(param['J2'])
+        param['J4'] = _real2float(param['J4'])
+        param['CHK_RMIN'] = _real2float(param['CHK_RMIN'])
+        param['CHK_RMAX'] = _real2float(param['CHK_RMAX'])
+        param['CHK_EJECT'] = _real2float(param['CHK_EJECT'])
+        param['CHK_QMIN'] = _real2float(param['CHK_QMIN'])
         for b in bool_param:
             if b in param:
-                param[b] = str2bool(param[b])
+                param[b] = _str2bool(param[b])
         if param['C'] != '-1.0':
-            param['C'] = real2float(param['C'])
+            param['C'] = _real2float(param['C'])
         else:
             param.pop('C', None)
     except IOError:
@@ -314,7 +325,9 @@ def read_swift_param(param_file_name, startfile="swift.in", verbose=True):
     ----------
     param_file_name : string
         File name of the input parameter file
-
+    startfile : string, default "swift.in"
+        File name of the input start file
+        
     Returns
     -------
     param : dict
@@ -360,14 +373,14 @@ def read_swift_param(param_file_name, startfile="swift.in", verbose=True):
             line = f.readline().split()
             for i, l in enumerate(line):
                 line[i] = l
-            param['T0'] = real2float(line[0])
-            param['TSTOP'] = real2float(line[1])
-            param['DT'] = real2float(line[2])
+            param['T0'] = _real2float(line[0])
+            param['TSTOP'] = _real2float(line[1])
+            param['DT'] = _real2float(line[2])
             line = f.readline().split()
             for i, l in enumerate(line):
                 line[i] = l
-            param['DTOUT'] = real2float(line[0])
-            param['DTDUMP'] = real2float(line[1])
+            param['DTOUT'] = _real2float(line[0])
+            param['DTDUMP'] = _real2float(line[1])
             line = f.readline().split()
             param['L1'] = line[0].upper()
             param['L2'] = line[1].upper()
@@ -379,10 +392,10 @@ def read_swift_param(param_file_name, startfile="swift.in", verbose=True):
                 line = f.readline().split()
                 for i, l in enumerate(line):
                     line[i] = l
-                param['RMIN'] = real2float(line[0])
-                param['RMAX'] = real2float(line[1])
-                param['RMAXU'] = real2float(line[2])
-                param['QMIN'] = real2float(line[3])
+                param['RMIN'] = _real2float(line[0])
+                param['RMAX'] = _real2float(line[1])
+                param['RMAXU'] = _real2float(line[2])
+                param['QMIN'] = _real2float(line[3])
                 param['LCLOSE'] = line[4].upper()
             param['BINARY_OUTPUTFILE'] = f.readline().strip()
             param['STATUS_FLAG_FOR_OPEN_STATEMENTS'] = f.readline().strip().upper()
@@ -405,7 +418,7 @@ def write_swift_param(param, param_file_name):
 
     Returns
     -------
-    Prints a text file containing the parameter information.
+    None
     """
     outfile = open(param_file_name, 'w')
     print(param['T0'], param['TSTOP'], param['DT'], file=outfile)
@@ -431,7 +444,7 @@ def write_labeled_param(param, param_file_name):
 
     Returns
     -------
-    Prints a text file containing the parameter information.
+    None
     """
     outfile = open(param_file_name, 'w')
     ptmp = param.copy()
@@ -440,28 +453,30 @@ def write_labeled_param(param, param_file_name):
         val = ptmp.pop(key, None)
         if val is not None:
             if type(val) is bool:
-                print(f"{key:<32} {bool2yesno(val)}", file=outfile)
+                print(f"{key:<32} {_bool2yesno(val)}", file=outfile)
             else:
                 print(f"{key:<32} {val}", file=outfile)
     # Print the remaining key/value pairs in whatever order
     for key, val in ptmp.items():
         if val != "":
             if type(val) is bool:
-                print(f"{key:<32} {bool2yesno(val)}", file=outfile)
+                print(f"{key:<32} {_bool2yesno(val)}", file=outfile)
             else:
                 print(f"{key:<32} {val}", file=outfile)
     outfile.close()
     return
 
 
-def swifter_stream(f, param):
+def _swifter_stream(f, param):
     """
     Reads in a Swifter bin.dat file and returns a single frame of data as a datastream
 
     Parameters
     ----------
     f : file object
+        File object of the Swifter bin.dat file
     param : dict
+        Swifter parameters
 
     Yields
     -------
@@ -557,6 +572,7 @@ def swifter_stream(f, param):
             yield t, npl, [plid, elempvec, GMpl, Rpl], plab, \
                   ntp, [tpid, elemtvec], tlab
 
+
 def swifter2xr(param, verbose=True):
     """
     Converts a Swifter binary data file into an xarray DataSet.
@@ -565,7 +581,8 @@ def swifter2xr(param, verbose=True):
     ----------
     param : dict
         Swifter parameters
-
+    verbose : bool, default True
+        Print out information about the file being read
     Returns
     -------
     xarray dataset
@@ -575,7 +592,7 @@ def swifter2xr(param, verbose=True):
     tp = []
     with FortranFile(param['BIN_OUT'], 'r') as f:
         for t, npl, pvec, plab, \
-            ntp, tvec, tlab in swifter_stream(f, param):
+            ntp, tvec, tlab in _swifter_stream(f, param):
             
             sys.stdout.write('\r' + f"Reading in time {t[0]:.3e}")
             sys.stdout.flush()
@@ -628,6 +645,8 @@ def swiftest2xr(param, verbose=True, dask=False):
     ----------
     param : dict
         Swiftest parameters
+    verbose : bool, default True
+        Print out information about the file being read
     dask : bool, default False
         Use Dask to lazily load data (useful for very large datasets)
 
@@ -653,13 +672,14 @@ def swiftest2xr(param, verbose=True, dask=False):
     return ds
 
 
-def xstrip_nonstr(a):
+def _xstrip_nonstr(a):
     """
     Cleans up the string values in the DataSet to remove extra white space
 
     Parameters
     ----------
-    a    : xarray dataset
+    a  : xarray
+        Input dataset
 
     Returns
     -------
@@ -669,7 +689,7 @@ def xstrip_nonstr(a):
     return xr.apply_ufunc(func, a.str.decode(encoding='utf-8'),dask='parallelized')
 
 
-def xstrip_str(a):
+def _xstrip_str(a):
     """
     Cleans up the string values in the DataSet to remove extra white space
 
@@ -685,7 +705,7 @@ def xstrip_str(a):
     return xr.apply_ufunc(func, a,dask='parallelized')
 
 
-def string_converter(da):
+def _string_converter(da):
     """
     Converts a string to a unicode string 
 
@@ -699,12 +719,12 @@ def string_converter(da):
     """
 
     da = da.astype('<U32')
-    da = xstrip_str(da)
+    da = _xstrip_str(da)
 
     return da
 
 
-def char_converter(da):
+def _char_converter(da):
     """`
     Converts a string to a unicode string
 
@@ -719,11 +739,11 @@ def char_converter(da):
     if da.dtype == np.dtype(object):
         da = da.astype('<U1')
     elif type(da.values[0]) != np.str_:
-        da = xstrip_nonstr(da)
+        da = _xstrip_nonstr(da)
     return da
 
 
-def clean_string_values(ds):
+def _clean_string_values(ds):
     """
     Cleans up the string values in the DataSet that have artifacts as a result of coming from NetCDF Fortran
 
@@ -738,15 +758,15 @@ def clean_string_values(ds):
 
     for n in string_varnames:
         if n in ds:
-           ds[n] = string_converter(ds[n])
+           ds[n] = _string_converter(ds[n])
 
     for n in char_varnames:
         if n in ds:
-            ds[n] = char_converter(ds[n])
+            ds[n] = _char_converter(ds[n])
     return ds
 
 
-def unclean_string_values(ds):
+def _unclean_string_values(ds):
     """
     Returns strings back to a format readable to NetCDF Fortran
 
@@ -761,19 +781,34 @@ def unclean_string_values(ds):
 
     for c in string_varnames:
         if c in ds:
-            n = string_converter(ds[c])
+            n = _string_converter(ds[c])
             ds[c] = n.str.ljust(32).str.encode('utf-8')
 
     for c in char_varnames:
         if c in ds:
-            n = string_converter(ds[c])
+            n = _string_converter(ds[c])
             ds[c] = n.str.ljust(1).str.encode('utf-8')
     return ds
 
 
 def fix_types(ds,itype=np.int64,ftype=np.float64):
-
-    ds = clean_string_values(ds)
+    """
+    Converts all variables in the dataset to the specified type
+    
+    Parameters
+    ----------
+    ds    : xarray dataset
+        Input dataset to convert
+    itype : numpy type, default np.int64
+        Integer type to convert to
+    ftype : numpy type, default np.float64
+        Floating point type to convert to 
+        
+    Returns
+    -------
+    ds : xarray dataset with the types converted
+    """
+    ds = _clean_string_values(ds)
     for intvar in int_varnames:
         if intvar in ds:
             ds[intvar] = ds[intvar].astype(itype)
@@ -791,78 +826,6 @@ def fix_types(ds,itype=np.int64,ftype=np.float64):
     return ds
 
 
-def swiftest_particle_stream(f):
-   """
-   Reads in a Swiftest particle.dat file and returns a single frame of particle data as a datastream
-
-   Parameters
-   ----------
-   f : file object
-   param : dict
-
-   Yields
-   -------
-   plid : int
-      ID of massive bodie
-   origin_type : string
-      The origin type for the body (Initial conditions, disruption, supercatastrophic, hit and run, etc)
-   origin_rh : float array
-      The origin heliocentric position vector
-   origin_vh : float array
-      The origin heliocentric velocity vector
-   """
-   while True:  # Loop until you read the end of file
-      try:
-         # Read multi-line header
-         plid = f.read_ints()  # Try first part of the header
-      except:
-         break
-      origin_rec = f.read_record(np.dtype('a32'), np.dtype(('<f8', (7))))
-      origin_type = np.char.strip(str(origin_rec[0], encoding='utf-8'))
-      origin_vec = origin_rec[1]
-      yield plid, origin_type, origin_vec
-
-
-def swiftest_particle_2xr(param):
-    """
-    Reads in the Swiftest SyMBA-generated PARTICLE_OUT  and converts it to an xarray Dataset
-
-    Parameters
-    ----------
-    param : dict
-        Swiftest parameters
-
-    Returns
-    -------
-    infoxr : xarray dataset
-    """
-    veclab = ['time_origin', 'rh_origin', 'vh_origin']
-    id_list = []
-    origin_type_list = []
-    origin_vec_list = []
-
-    try:
-        with FortranFile(param['PARTICLE_OUT'], 'r') as f:
-            for id, origin_type, origin_vec in swiftest_particle_stream(f):
-                id_list.append(id)
-                origin_type_list.append(origin_type)
-                origin_vec_list.append(origin_vec)
-    except IOError:
-        print(f"Error reading in {param['PARTICLE_OUT']} ")
-
-    id_list =  np.asarray(id_list)[:,0]
-    origin_type_list = np.asarray(origin_type_list)
-    origin_vec_list = np.vstack(origin_vec_list)
-
-    typeda = xr.DataArray(origin_type_list, dims=['id'], coords={'id' : id_list})
-    vecda = xr.DataArray(origin_vec_list, dims=['id', 'vec'], coords={'id' : id_list, 'vec' : veclab})
-
-    infoxr = vecda.to_dataset(dim='vec')
-    infoxr['origin_type'] = typeda
-
-    return infoxr
-
-
 def select_active_from_frame(ds, param, framenum=-1):
     """
     Selects a particular frame from a DataSet and returns only the active particles in that frame
@@ -873,12 +836,13 @@ def select_active_from_frame(ds, param, framenum=-1):
         Dataset containing Swiftest n-body data
     param : dict
         Swiftest input parameters. This method uses the names of the cb, pl, and tp files from the input
-    framenum : int (default=-1)
+    framenum : int, default=-1
         Time frame to extract. If this argument is not passed, the default is to use the last frame in the dataset.
 
     Returns
     -------
-    Dataset containing only the active particles at frame, framenum
+    xarray dataset
+        Dataset containing only the active particles at frame, framenum
     """
 
 
@@ -921,7 +885,7 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
 
     Returns
     -------
-    A set of input files for a new Swiftest run
+    None
     """
     param_tmp = param.copy()
     param_tmp['OUT_FORM'] = param['IN_FORM']
@@ -935,7 +899,7 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
 
         if infile_name is None:
             infile_name = param['NC_IN']
-        frame = unclean_string_values(frame)
+        frame = _unclean_string_values(frame)
         if verbose:
             print(f"Writing initial conditions to file {infile_name}")
         frame = reorder_dims(frame)
@@ -1018,6 +982,7 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
         tpfile.close()
     else:
         print(f"{in_type} is an unknown file type")
+    return
 
 
 def swifter_xr2infile(ds, param, simdir=os.getcwd, framenum=-1):
@@ -1222,10 +1187,10 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
             print(npl, file=plnew)
             line = plold.readline()
             i_list = [i for i in re.split('  +|\t',line) if i.strip()]
-            GMcb = real2float(i_list[0])
+            GMcb = _real2float(i_list[0])
             if swift_param['L1'] == "T":
-                swifter_param['J2'] = real2float(i_list[1])
-                swifter_param['J4'] = real2float(i_list[2])
+                swifter_param['J2'] = _real2float(i_list[1])
+                swifter_param['J4'] = _real2float(i_list[2])
             else:
                 swifter_param['J2'] = 0.0
                 swifter_param['J4'] = 0.0
@@ -1237,14 +1202,14 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
             for n in range(1, npl):  # Loop over planets
                 line = plold.readline()
                 i_list = [i for i in re.split('  +|\t',line) if i.strip()]
-                GMpl = real2float(i_list[0])
+                GMpl = _real2float(i_list[0])
                 if isSyMBA:
-                    rhill = real2float(i_list[1])
+                    rhill = _real2float(i_list[1])
                     if swift_param['LCLOSE'] == "T":
-                        plrad = real2float(i_list[2])
+                        plrad = _real2float(i_list[2])
                 else:
                     if swift_param['LCLOSE'] == "T":
-                        plrad = real2float(i_list[1])
+                        plrad = _real2float(i_list[1])
                 if swifter_param['RHILL_PRESENT']:
                     print(n + 1, GMpl, rhill, file=plnew)
                 else:
@@ -1253,15 +1218,15 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
                     print(plrad, file=plnew)
                 line = plold.readline()
                 i_list = [i for i in re.split('  +|\t',line) if i.strip()]
-                rh = real2float(i_list[0])
-                yh = real2float(i_list[1])
-                zh = real2float(i_list[2])
+                rh = _real2float(i_list[0])
+                yh = _real2float(i_list[1])
+                zh = _real2float(i_list[2])
                 print(rh, yh, zh, file=plnew)
                 line = plold.readline()
                 i_list = [i for i in re.split('  +|\t',line) if i.strip()]
-                vhx = real2float(i_list[0])
-                vhy = real2float(i_list[1])
-                vhz = real2float(i_list[2])
+                vhx = _real2float(i_list[0])
+                vhy = _real2float(i_list[1])
+                vhz = _real2float(i_list[2])
                 print(vhx, vhy, vhz, file=plnew)
         plnew.close()
         plold.close()
@@ -1292,15 +1257,15 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
                 print(npl + n + 1, file=tpnew)
                 line = tpold.readline()
                 i_list = [i for i in re.split('  +|\t',line) if i.strip()]
-                rh = real2float(i_list[0])
-                yh = real2float(i_list[1])
-                zh = real2float(i_list[2])
+                rh = _real2float(i_list[0])
+                yh = _real2float(i_list[1])
+                zh = _real2float(i_list[2])
                 print(rh, yh, zh, file=tpnew)
                 line = tpold.readline()
                 i_list = [i for i in re.split('  +|\t',line) if i.strip()]
-                vhx = real2float(i_list[0])
-                vhy = real2float(i_list[1])
-                vhz = real2float(i_list[2])
+                vhx = _real2float(i_list[0])
+                vhy = _real2float(i_list[1])
+                vhz = _real2float(i_list[2])
                 print(vhx, vhy, vhz, file=tpnew)
                 # Ignore STAT lines
                 line = tpold.readline()
@@ -1362,35 +1327,35 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
             print(npl - 1, file=plnew)
             line = plold.readline()
             i_list = [i for i in re.split('  +|\t',line) if i.strip()]
-            GMcb = real2float(i_list[1])  # Store central body GM for later
+            GMcb = _real2float(i_list[1])  # Store central body GM for later
             line = plold.readline()  # Ignore the two zero vector lines
             line = plold.readline()
             for n in range(1, npl):  # Loop over planets
                 line = plold.readline()
                 i_list = [i for i in re.split('  +|\t',line) if i.strip()]
                 idnum = int(i_list[0])
-                GMpl = real2float(i_list[1])
+                GMpl = _real2float(i_list[1])
                 if swifter_param['RHILL_PRESENT']:
-                   rhill = real2float(i_list[2])
+                   rhill = _real2float(i_list[2])
                    print(idnum, GMpl, rhill, file=plnew)
                 else:
                    print(idnum, GMpl, file=plnew)
                 if swifter_param['CHK_CLOSE']:
                     line = plold.readline()
                     i_list = [i for i in re.split('  +|\t',line) if i.strip()]
-                    plrad = real2float(i_list[0])
+                    plrad = _real2float(i_list[0])
                     print(plrad, file=plnew)
                 line = plold.readline()
                 i_list = [i for i in re.split('  +|\t',line) if i.strip()]
-                rh = real2float(i_list[0])
-                yh = real2float(i_list[1])
-                zh = real2float(i_list[2])
+                rh = _real2float(i_list[0])
+                yh = _real2float(i_list[1])
+                zh = _real2float(i_list[2])
                 print(rh, yh, zh, file=plnew)
                 line = plold.readline()
                 i_list = [i for i in re.split('  +|\t',line) if i.strip()]
-                vhx = real2float(i_list[0])
-                vhy = real2float(i_list[1])
-                vhz = real2float(i_list[2])
+                vhx = _real2float(i_list[0])
+                vhy = _real2float(i_list[1])
+                vhz = _real2float(i_list[2])
                 print(vhx, vhy, vhz, file=plnew)
         plnew.close()
         plold.close()
@@ -1426,15 +1391,15 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
                 print(name, file=tpnew)
                 line = tpold.readline()
                 i_list = [i for i in re.split('  +|\t',line) if i.strip()]
-                rh = real2float(i_list[0])
-                yh = real2float(i_list[1])
-                zh = real2float(i_list[2])
+                rh = _real2float(i_list[0])
+                yh = _real2float(i_list[1])
+                zh = _real2float(i_list[2])
                 print(rh, yh, zh, file=tpnew)
                 line = tpold.readline()
                 i_list = [i for i in re.split('  +|\t',line) if i.strip()]
-                vhx = real2float(i_list[0])
-                vhy = real2float(i_list[1])
-                vhz = real2float(i_list[2])
+                vhx = _real2float(i_list[0])
+                vhy = _real2float(i_list[1])
+                vhz = _real2float(i_list[2])
                 print(vhx, vhy, vhz, file=tpnew)
         
         tpold.close()
@@ -1517,7 +1482,7 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
             cbrad = swifter_param['CHK_RMIN']
         elif cbrad_type == 2:
             cbrad = input("Enter radius of central body in simulation Distance Units: ")
-            cbrad = real2float(cbrad.strip())
+            cbrad = _real2float(cbrad.strip())
     cbname = conversion_questions.get('CNAME', None)
     if not cbname:
         print("Set central body name:")
@@ -1540,8 +1505,8 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
     GMTINY = conversion_questions.get('GMTINY', None)
     if not GMTINY:
         GMTINY = input(f"Value of GMTINY if this is a SyMBA simulation (enter nothing if this is not a SyMBA parameter file)> ")
-    if GMTINY != '' and real2float(GMTINY.strip()) > 0:
-        swiftest_param['GMTINY'] = real2float(GMTINY.strip())
+    if GMTINY != '' and _real2float(GMTINY.strip()) > 0:
+        swiftest_param['GMTINY'] = _real2float(GMTINY.strip())
         
     # Remove the unneeded parameters
     if 'C' in swiftest_param:
@@ -1623,6 +1588,7 @@ def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
         Central body oblateness term. Default spherical.
     J4 : float
         Central body oblateness term. Default spherical.
+        
     Returns
     -------
     swifter_param : A set of input files for a new Swifter run
@@ -1669,6 +1635,7 @@ def swifter2swift_param(swifter_param, J2=0.0, J4=0.0):
         Central body oblateness term. Default spherical.
     J4 : float
         Central body oblateness term. Default spherical.
+        
     Returns
     -------
     swift_param : A set of input files for a new Swift run
