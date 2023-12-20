@@ -37,7 +37,6 @@ def horizons_get_physical_properties(altid,**kwargs):
     **kwargs: Any
             Additional keyword arguments to pass to the query method (see https://astroquery.readthedocs.io/en/latest/jplhorizons/jplhorizons.html)
 
-
     Returns
     -------
     MSun_over_Mpl : float
@@ -184,7 +183,6 @@ def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=
         An astroquery.jplhorizons HorizonsClass object. Or None if no match was found.
     altid: string list | None
         A list of alternate ids if more than one object matches the list
-        
     """
     
     def get_altid(errstr,exclude_spacecraft=True):
@@ -416,6 +414,7 @@ def solar_system_horizons(name: str,
 
     return id,name,a,e,inc,capom,omega,capm,rh,vh,Gmass,Rpl,rhill,Ip,rot,J2,J4
 
+
 def vec2xr(param: Dict, **kwargs: Any):
     """
     Converts and stores the variables of all bodies in an xarray dataset.
@@ -458,9 +457,11 @@ def vec2xr(param: Dict, **kwargs: Any):
         instead of passing Ip1, Ip2, and Ip3 separately
     time : array of floats
         Time at start of simulation
+        
     Returns
     -------
     ds : xarray dataset
+        Dataset containing the variables of all bodies passed in kwargs
     """
     scalar_dims = ['id']
     vector_dims = ['id','space']

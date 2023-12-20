@@ -11,15 +11,23 @@ If not, see: https://www.gnu.org/licenses.
 
 import numpy as np
 import xarray as xr
-"""
-Functions that recreate the Swift/Swifter tool programs
-"""
 def magnitude(ds,x):
+    """
+    Computes the magnitude of a vector quantity from a Dataset.
+    
+    Parameters
+    ----------
+    ds : Xarray Dataset
+        Dataset containing the vector quantity
+    x : str
+        Name of the vector quantity variable in the Dataset, which must have a "space" dimension (x,y,z coordinates)
+    """
     dim = "space"
     ord = None
     return xr.apply_ufunc(
         np.linalg.norm, ds[x].where(~np.isnan(ds[x])), input_core_dims=[[dim]], kwargs={"ord": ord, "axis": -1}, dask="allowed"
     )
+    
         
 def wrap_angle(angle):
     """
@@ -40,22 +48,28 @@ def wrap_angle(angle):
         angle[angle < 0.0] += 360.0
     return angle
 
+
 def follow_swift(ds, ifol=None, nskp=None):
     """
     Emulates the Swift version of tool_follow.f
-
-
+    It will generate a file called follow.out containing 10 columns (angles are all in degrees)::
+    
+        1 2 3  4    5     6    7    8    9   10
+        t,a,e,inc,capom,omega,capm,peri,apo,obar
+        
     Parameters
     ----------
-    ds : Dataset containing orbital elements
+    ds : Xarray Dataset 
+        Dataset containing orbital elements
+    ifol : int, optional
+        Particle number to follow. The default is None, in which case the user is prompted to enter a particle number.
+    nskp : int, optional
+        Print frequency. The default is None, in which case the user is prompted to enter a print frequency. 
 
     Returns
     -------
-    fol : Dataset containing only the followed body with angles converted to degrees
-    
-    Generates a file called follow.out containing 10 columns (angles are all in degrees):
-        1 2 3  4    5     6    7    8    9   10
-        t,a,e,inc,capom,omega,capm,peri,apo,obar
+    fol : Xarray Dataset
+        Dataset containing only the followed body with angles converted to degrees
 
     """
     fol = None
@@ -105,9 +119,10 @@ def follow_swift(ds, ifol=None, nskp=None):
     
     return fol
 
+
 def danby(M, ecc, accuracy=1e-14):
     """
-    Danby's method to solve Kepler's equation.
+    Danby's method to solve Kepler's equation. See [1]_ and [2]_ for details.
 
     Parameters
     ----------
@@ -125,14 +140,25 @@ def danby(M, ecc, accuracy=1e-14):
 
     References
     __________
-    Danby, J.M.A. 1988. Fundamentals of celestial mechanics. Richmond, Va., U.S.A., Willmann-Bell, 1988. 2nd ed.
-    Murray, C.D., Dermott, S.F., 1999. Solar system dynamics, New York, New York. ed, Cambridge University Press.
+    .. [1] Danby, J.M.A. 1988. Fundamentals of celestial mechanics. Richmond, Va., U.S.A., Willmann-Bell, 1988. 2nd ed.
+    .. [2] Murray, C.D., Dermott, S.F., 1999. Solar system dynamics, New York, New York. ed, Cambridge University Press.
 
     """
 
     def kepler_root(E, ecc, M, deriv):
         """
-        The Kepler equation root function.
+        The Kepler equation root function. The returned value depends on the value of `deriv`, where::
+        
+            deriv = 0 : 
+                E - e * np.sin(E) - M
+            deriv = 1 : 
+                1 - e * np.cos(E)
+            deriv = 2 : 
+                e * np.sin(E)
+            deriv = 3 : 
+                e * np.cos(E)
+
+        The function will return 0 when E is correct for a given e and M
 
         Parameters
         ----------
@@ -147,12 +173,8 @@ def danby(M, ecc, accuracy=1e-14):
 
         Returns
         ----------
-        deriv = 0: E - e * np.sin(E) - M
-        deriv = 1: 1 - e * np.cos(E)
-        deriv = 2: e * np.sin(E)
-        deriv = 3: e * np.cos(E)
-
-        Note: The function will return 0 when E is correct for a given e and M
+        float
+            The value of the Kepler equation root function
         """
 
         if deriv == 0:
@@ -184,8 +206,8 @@ def danby(M, ecc, accuracy=1e-14):
 
         Returns
         ----------
-        delta_ij value used in Danby's iterative Kepler equation solver
-
+        float:
+            delta_ij value used in Danby's iterative Kepler equation solver
         """
         if j == 1:
             return -kepler_root(E, ecc, M, 0) / kepler_root(E, ecc, M, 1)
@@ -217,16 +239,14 @@ def danby(M, ecc, accuracy=1e-14):
     raise RuntimeError("The danby function did not converge on a solution.")
 
 
-
 def el2xv_one(mu, a, ecc, inc, Omega, omega, M):
     """
-    Compute osculating orbital elements from relative Cartesian position and velocity
+    Compute osculating orbital elements from relative Cartesian position and velocity.
     All angular measures are returned in radians
-        If inclination < TINY, longitude of the ascending node is arbitrarily set to 0
+    If inclination < TINY, longitude of the ascending node is arbitrarily set to 0
+    If eccentricity < sqrt(TINY), argument of pericenter is arbitrarily set to 0
 
-        If eccentricity < sqrt(TINY), argument of pericenter is arbitrarily set to 0
-
-          ALGORITHM:  See Fitzpatrick "Principles of Cel. Mech."
+    ALGORITHM -  See Fitzpatrick "Principles of Cel. Mech."
 
     Adapted from Martin Duncan's el2xv.f
 
@@ -249,13 +269,10 @@ def el2xv_one(mu, a, ecc, inc, Omega, omega, M):
 
     Returns
     ----------
-    rvec, vvec  : tuple of float vectors
-
     rvec : (3) float vector
         Cartesian position vector
     vvec : (3) float vector
         Cartesian velocity vector
-
     """
 
     if ecc < 0.0:
@@ -282,12 +299,15 @@ def el2xv_one(mu, a, ecc, inc, Omega, omega, M):
 
         Parameters
         ----------
-        angle : input angle
+        angle : float
+            input angle in radians
 
         Returns
         -------
-        sx : sin of angle
-        cx : cos of angle
+        sx : float
+            sin of angle
+        cx : float
+            cos of angle
 
         """
         TWOPI = 2 * np.pi
@@ -343,8 +363,8 @@ def el2xv_one(mu, a, ecc, inc, Omega, omega, M):
 
 def el2xv_vec(mu, a, ecc, inc, Omega, omega, M):
     """
-
     Vectorized call to el2xv_one
+    
     Parameters
     ----------
     mu : float
@@ -364,15 +384,14 @@ def el2xv_vec(mu, a, ecc, inc, Omega, omega, M):
 
     Returns
     ----------
-    rvec, vvec  : tuple of float vectors
-
-    rvec : (n,3) float rray
+    rvec : (n,3) float array
         Cartesian position vector
     vvec : (n,3) float array
         Cartesian velocity vector
     """
     vecfunc = np.vectorize(el2xv_one, signature='(),(),(),(),(),(),()->(3),(3)')
     return vecfunc(mu, a, ecc, inc, Omega, omega, M)
+
 
 def xv2el_one(mu,rvec,vvec):
     """
@@ -389,8 +408,6 @@ def xv2el_one(mu,rvec,vvec):
 
     Returns
     ----------
-    a, ecc, inc, Omega, omega, M, varpi, f, lam : tuple of floats
-
     a : float
         semimajor axis
     ecc : float
@@ -409,7 +426,6 @@ def xv2el_one(mu,rvec,vvec):
         true anomaly (degrees)
     lam : float
         mean longitude (degrees)
-
     """
 
     rmag = np.linalg.norm(rvec)
@@ -454,6 +470,7 @@ def xv2el_one(mu,rvec,vvec):
 
     return a, ecc, np.rad2deg(inc), np.rad2deg(Omega), np.rad2deg(omega), np.rad2deg(M), np.rad2deg(varpi), np.rad2deg(f), np.rad2deg(lam)
 
+
 def xv2el_vec(mu, rvec, vvec):
     """
     Vectorized call to xv2el_one.
@@ -469,8 +486,6 @@ def xv2el_vec(mu, rvec, vvec):
 
     Returns
     ----------
-    a, ecc, inc, Omega, omega, M, varpi, f, lam : tuple of float arrays
-
     a : (n) float array
         semimajor axis
     ecc : (n) float array
@@ -489,7 +504,6 @@ def xv2el_vec(mu, rvec, vvec):
         true anomaly (degrees)
     lam : (n) float array
         mean longitude (degrees)
-
     """
 
     vecfunc = np.vectorize(xv2el_one, signature='(),(3),(3)->(),(),(),(),(),(),(),(),()')

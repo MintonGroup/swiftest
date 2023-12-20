@@ -11,15 +11,11 @@ If not, see: https://www.gnu.org/licenses.
 
 from __future__ import annotations
 
-from swiftest import io
-from swiftest import init_cond
-from swiftest import tool
-from swiftest import constants
-from swiftest._bindings import driver
-from swiftest import __file__ as _pyfile
-import json
+from . import io
+from . import init_cond
+from . import tool
+from . import constants
 import os
-from glob import glob
 from pathlib import Path
 import datetime
 import xarray as xr
@@ -301,13 +297,13 @@ class Simulation(object):
             Turns on the computation of energy, angular momentum, and mass conservation and reports the values
             every output step of a running simulation.
             Parameter input file equivalent is `ENERGY`
-        extra_force: bool, default False
+        extra_force : bool, default False
             Turns on user-defined force function.
             Parameter input file equivalent is `EXTRA_FORCE`
-        big_discard: bool, default False
+        big_discard : bool, default False
             Includes big bodies when performing a discard (Swifter only)
             Parameter input file equivalent is `BIG_DISCARD`
-        rhill_present: bool, default False
+        rhill_present : bool, default False
             Include the Hill's radius with the input files .
             Parameter input file equivalent is `RHILL_PRESENT`
         restart : bool, default False
@@ -337,9 +333,8 @@ class Simulation(object):
             Use Dask to lazily load data (useful for very large datasets)
         coarray : bool, default False
             If true, will employ Coarrays on test particle structures to run in single program/multiple data parallel mode. 
-            In order to use this capability, Swiftest must be compiled for Coarray support. Only certain integrators
-            can use Coarrays. RMVS, WHM, Helio are all compatible, but SyMBA is not, due to the way tp-pl close encounters 
-            are handeled.
+            In order to use this capability, Swiftest must be compiled for Coarray support. Only certain integrators can use 
+            Coarrays. RMVS, WHM, Helio are all compatible, but SyMBA is not, due to the way tp-pl close encounters are handeled.
         verbose : bool, default True
             If set to True, then more information is printed by Simulation methods as they are executed. Setting to
             False suppresses most messages other than errors.
@@ -418,25 +413,31 @@ class Simulation(object):
         """
         Internal callable function that executes the swiftest_driver run
         """
+        from ._bindings import driver
 
         with _cwd(self.simdir):
             driver(self.integrator,str(self.param_file), "progress")
 
         return
 
-    def run(self,dask: bool = False, **kwargs):
+    def run(self,
+            dask: bool = False, 
+            **kwargs: Any
+            ) -> None:
         """
         Runs a Swiftest integration. Uses the parameters set by the `param` dictionary unless overridden by keyword
         arguments. Accepts any keyword arguments that can be passed to `set_parameter`.
 
         Parameters
         ----------
-        **kwargs : Any valid keyword arguments accepted by `set_parameter`
+        dask : bool, default False
+            If true, will use Dask to lazily load data (useful for very large datasets)
+        **kwargs : Any
+            Any valid keyword arguments accepted by `set_parameter`
 
         Returns
         -------
         None
-
         """
 
         if len(kwargs) > 0:
@@ -464,7 +465,10 @@ class Simulation(object):
 
         return
 
-    def _get_valid_arg_list(self, arg_list: str | List[str] | None = None, valid_var: Dict | None = None):
+    def _get_valid_arg_list(self, 
+                            arg_list: str | List[str] | None = None, 
+                            valid_var: Dict | None = None
+                            ) -> Tuple[List[str], Dict]:
         """
         Internal function for getters that extracts subset of arguments that is contained in the dictionary of valid
         argument/parameter variable pairs.
@@ -485,7 +489,6 @@ class Simulation(object):
         param : dict
             A dictionary that is the subset of the Simulation parameter dictionary corresponding to the arguments listed
             in arg_list.
-
         """
 
         if arg_list is None:
@@ -517,9 +520,11 @@ class Simulation(object):
                             dump_cadence: int | None = None,
                             verbose: bool | None = None,
                             **kwargs: Any
-                            ):
+                            ) -> Dict[str, Any]:
         """
-
+        Set the parameters that control how a simulation is run, such as start and stop time, step size, and the cadence of output
+        to both the screen and to file. Returns a dictionary of the parameters that were set.
+        
         Parameters
         ----------
         t0 : float, optional
@@ -555,7 +560,7 @@ class Simulation(object):
             The number of output steps (given by `istep_out`) between when the saved data is dumped to a file. Setting it to 0
             is equivalent to only dumping data to file at the end of the simulation. Default value is 10.
             Parameter input file equivalent is `DUMP_CADENCE`
-        verbose: bool, optional
+        verbose : bool,optional
             If passed, it will override the Simulation object's verbose flag
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
@@ -565,8 +570,8 @@ class Simulation(object):
         -------
         time_dict : dict
            A dictionary containing the requested parameters
-
         """
+        
         if t0 is None and tstart is None and tstop is None and dt is None and istep_out is None and \
                 tstep_out is None and dump_cadence is None:
             return {}
@@ -653,9 +658,12 @@ class Simulation(object):
 
         return time_dict
 
-    def get_simulation_time(self, arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs):
+    def get_simulation_time(self, 
+                            arg_list: str | List[str] | None = None, 
+                            verbose: bool | None = None, 
+                            **kwargs: Any
+                            ) -> Dict[str, Any]:
         """
-
         Returns a subset of the parameter dictionary containing the current simulation time parameters.
         If the verbose option is set in the Simulation object, then it will also print the values.
 
@@ -665,18 +673,16 @@ class Simulation(object):
             A single string or list of strings containing the names of the simulation time parameters to extract.
             Default is all of:
             ["t0", "tstart", "tstop", "dt", "istep_out", "tstep_out", "dump_cadence"]
-        verbose: bool, optional
+        verbose : bool,optional
             If passed, it will override the Simulation object's verbose flag
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
-
 
         Returns
         -------
         time_dict : dict
            A dictionary containing the requested parameters
-
         """
 
         valid_var = {"t0": "T0",
@@ -721,18 +727,26 @@ class Simulation(object):
 
         return time_dict
 
-    def set_parameter(self, verbose: bool = True, **kwargs):
+    def set_parameter(self, 
+                      verbose: bool = True, 
+                      **kwargs: Any
+                      ) -> Dict[str, Any]:
         """
         Setter for all possible parameters. This will call each of the specialized setters using keyword arguments.
         If no arguments are passed, then default values will be used.
+        
         Parameters
         ----------
-        **kwargs : Any argument listed listed in the Simulation class definition.
+        verbose : bool, default True
+            If set to True, then more information is printed by Simulation methods as they are executed. Setting to False suppresses
+            most messages other than errors.
+        **kwargs : Any
+            Any argument listed listed in the Simulation class definition.
 
         Returns
         -------
-        param : A dictionary of all Simulation parameters that changed
-
+        param : dict
+            A dictionary of all Simulation parameters that changed
         """
 
         default_arguments = {
@@ -818,17 +832,21 @@ class Simulation(object):
 
         return param_dict
 
-    def get_parameter(self, **kwargs):
+    def get_parameter(self, 
+                      **kwargs: Any
+                      ) -> Dict[str, Any]:
         """
         Setter for all possible parameters. Calls each of the specialized setters using keyword arguments
+        
         Parameters
         ----------
-        **kwargs : Any of the arguments defined in Simulation. If none provided, it returns all arguments.
+        **kwargs : Any
+            Any of the arguments defined in Simulation. If none provided, it returns all arguments.
 
         Returns
         -------
-        param : A dictionary of all Simulation parameters requested
-
+        param : dict
+            A dictionary of all Simulation parameters requested
         """
 
         # Getters returning parameter dictionary values
@@ -852,12 +870,15 @@ class Simulation(object):
                        gmtiny: float | None = None,
                        verbose: bool | None = None,
                        **kwargs: Any
-                       ):
+                       ) -> Dict[str, Any]:
         """
-
+        Sets the integrator to be used when running a simulation. Returns a dictionary of the parameters that were set.
+        
         Parameters
         ----------
         codename : {"swiftest", "swifter", "swift"}, optional
+            The name of the code to use. Case-insensitive valid options are swiftest, swifter, and swift. Currently only swiftest is
+            is supported for excuting runs with the run() method.
         integrator : {"symba","rmvs","whm","helio"}, optional
             Name of the n-body integrator that will be used when executing a run.
         mtiny : float, optional
@@ -866,9 +887,9 @@ class Simulation(object):
         gmtiny : float, optional
             The minimum G*mass of fully interacting bodies. Bodies below this mass interact with the larger bodies,
             but not each other (SyMBA only). Only mtiny or gmtiny is accepted, not both.
-        verbose: bool, optional
+        verbose : bool,optional
             If passed, it will override the Simulation object's verbose flag
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
@@ -878,7 +899,6 @@ class Simulation(object):
             A dictionary containing the subset of the parameter dictonary that was updated by this setter
 
         """
-        # TODO: Improve how it finds the executable binary
 
         update_list = []
         
@@ -929,9 +949,11 @@ class Simulation(object):
 
         return integrator_dict
 
-    def get_integrator(self,arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs: Any):
+    def get_integrator(self,
+                       arg_list: str | List[str] | None = None, 
+                       verbose: bool | None = None, 
+                       **kwargs: Any) -> Dict[str, Any]:
         """
-
         Returns a subset of the parameter dictionary containing the current values of the distance range parameters.
         If the verbose option is set in the Simulation object, then it will also print the values.
 
@@ -940,9 +962,9 @@ class Simulation(object):
         arg_list: str | List[str], optional
             A single string or list of strings containing the names of the features to extract. Default is all of:
             ["integrator"]
-        verbose: bool, optional
+        verbose : bool, optional
             If passed, it will override the Simulation object's verbose flag
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
@@ -1020,7 +1042,7 @@ class Simulation(object):
                     verbose: bool | None = None,
                     simdir: str | os.PathLike = None, 
                     **kwargs: Any
-                    ):
+                    ) -> Dict[str, Any]:
         """
         Turns on or off various features of a simulation.
 
@@ -1063,11 +1085,11 @@ class Simulation(object):
         compute_conservation_values : bool, optional
             Turns on the computation of energy, angular momentum, and mass conservation and reports the values
             every output step of a running simulation.
-        extra_force: bool, optional
+        extra_force : bool, optional
             Turns on user-defined force function.
-        big_discard: bool, optional
+        big_discard : bool, optional
             Includes big bodies when performing a discard (Swifter only)
-        rhill_present: bool, optional
+        rhill_present : bool, optional
             Include the Hill's radius with the input files.
         interaction_loops : {"TRIANGULAR","FLAT"}, default "TRIANGULAR"
             *Swiftest Experimental feature*
@@ -1090,22 +1112,22 @@ class Simulation(object):
             In order to use this capability, Swiftest must be compiled for Coarray support. Only certain integrators
             can use Coarrays: RMVS, WHM, Helio are all compatible, but SyMBA is not, due to the way tp-pl close encounters 
             are handeled.           
-        tides: bool, optional
+        tides : bool, optional
             Turns on tidal model (IN DEVELOPMENT - IGNORED)
-        Yarkovsky: bool, optional
+        Yarkovsky : bool, optional
             Turns on Yarkovsky model (IN DEVELOPMENT - IGNORED)
-        YORP: bool, optional
+        YORP : bool, optional
             Turns on YORP model (IN DEVELOPMENT - IGNORED)
         restart : bool, default False
             If true, will restart an old run. The file given by `output_file_name` must exist before the run can
             execute. If false, will start a new run. If the file given by `output_file_name` exists, it will be replaced
             when the run is executed.
-        simdir: PathLike, optional
+        simdir : PathLike, optional
             Directory where simulation data will be stored, including the parameter file, initial conditions file, output file,
             dump files, and log files. 
-        verbose: bool, optional
+        verbose : bool,optional
             If passed, it will override the Simulation object's verbose flag
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
@@ -1113,7 +1135,6 @@ class Simulation(object):
         -------
         feature_dict : dict
             A dictionary containing the requested features.
-
         """
 
         update_list = []
@@ -1248,9 +1269,11 @@ class Simulation(object):
         feature_dict = self.get_feature(update_list, verbose)
         return feature_dict
 
-    def get_feature(self, arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs: Any):
+    def get_feature(self, 
+                    arg_list: str | List[str] | None = None, 
+                    verbose: bool | None = None,
+                    **kwargs: Any) -> Dict[str, Any]:
         """
-
         Returns a subset of the parameter dictionary containing the current value of the feature boolean values.
         If the verbose option is set in the Simulation object, then it will also print the values.
 
@@ -1260,7 +1283,7 @@ class Simulation(object):
             A single string or list of strings containing the names of the features to extract. Default is all of:
             ["close_encounter_check", "general_relativity", "collision_model", "rotation", "compute_conservation_values"]
         verbose : bool, optional
-            If passed, it will override the Simulation object's verbose flag
+            If passed, it will override the Simulation object's verbose flag.
         **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
@@ -1269,7 +1292,6 @@ class Simulation(object):
         -------
         feature_dict : dict
            A dictionary containing the requested features.
-
         """
 
         valid_var = {"close_encounter_check": "CHK_CLOSE",
@@ -1316,7 +1338,7 @@ class Simulation(object):
                             init_cond_format: Literal["EL", "XV"] | None = None,
                             verbose: bool | None = None,
                             **kwargs: Any
-                            ):
+                            ) -> Dict[str, Any]:
         """
         Sets the initial condition file parameters in the parameters dictionary.
 
@@ -1359,7 +1381,6 @@ class Simulation(object):
         -------
         init_cond_file_dict : dict
            A dictionary containing the requested parameters
-
         """
 
         update_list = []
@@ -1456,9 +1477,11 @@ class Simulation(object):
 
         return init_cond_file_dict
 
-    def get_init_cond_files(self, arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs):
+    def get_init_cond_files(self, 
+                            arg_list: str | List[str] | None = None, 
+                            verbose: bool | None = None, 
+                            **kwargs: Any) -> Dict[str, Any]:
         """
-
         Returns a subset of the parameter dictionary containing the current initial condition file parameters
         If the verbose option is set in the Simulation object, then it will also print the values.
 
@@ -1474,12 +1497,10 @@ class Simulation(object):
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
-
         Returns
         -------
         init_cond_file_dict : dict
            A dictionary containing the requested parameters
-
         """
 
         valid_var = {"init_cond_file_type": "IN_TYPE",
@@ -1538,7 +1559,7 @@ class Simulation(object):
                          restart: bool | None = None,
                          verbose: bool | None = None,
                          **kwargs: Any
-                         ):
+                         ) -> Dict[str, Any]:
         """
         Sets the output file parameters in the parameter dictionary.
 
@@ -1570,7 +1591,6 @@ class Simulation(object):
         -------
         output_file_dict : dict
            A dictionary containing the requested parameters
-
         """
         update_list = []
         if output_file_type is not None:
@@ -1634,9 +1654,12 @@ class Simulation(object):
 
         return output_file_dict
 
-    def get_output_files(self, arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs):
+    def get_output_files(self, 
+                         arg_list: str | List[str] | None = None, 
+                         verbose: bool | None = None, 
+                         **kwargs: Any
+                         ) -> Dict[str, Any]:
         """
-
         Returns a subset of the parameter dictionary containing the current output file parameters
         If the verbose option is set in the Simulation object, then it will also print the values.
 
@@ -1646,12 +1669,11 @@ class Simulation(object):
             A single string or list of strings containing the names of the simulation time parameters to extract.
             Default is all of:
             ["output_file_type", "output_file_name", "output_format"]
-        verbose: bool, optional
+        verbose : bool,optional
             If passed, it will override the Simulation object's verbose flag
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
-
 
         Returns
         -------
@@ -1690,7 +1712,8 @@ class Simulation(object):
                         TU_name: str | None = None,
                         recompute_unit_values: bool = True,
                         verbose: bool | None = None,
-                        **kwargs: Any):
+                        **kwargs: Any
+                        ) -> Dict[str, Any]:
         """
         Setter for setting the unit conversion between one of the standard sets.
 
@@ -1873,15 +1896,18 @@ class Simulation(object):
                     MU2KG_old != self.param['MU2KG'] or \
                     DU2M_old != self.param['DU2M'] or \
                     TU2S_old != self.param['TU2S']:
-                self.update_param_units(MU2KG_old, DU2M_old, TU2S_old)
+                self._update_param_units(MU2KG_old, DU2M_old, TU2S_old)
 
         unit_dict = self.get_unit_system(update_list, verbose)
 
         return unit_dict
 
-    def get_unit_system(self, arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs):
+    def get_unit_system(self, 
+                        arg_list: str | List[str] | None = None, 
+                        verbose: bool | None = None, 
+                        **kwargs
+                        ) -> Dict[str, Any]:
         """
-
         Returns a subset of the parameter dictionary containing the current simulation unit system.
         If the verbose option is set in the Simulation object, then it will also print the values.
 
@@ -1890,6 +1916,8 @@ class Simulation(object):
         arg_list : str | List[str], optional
             A single string or list of strings containing the names of the simulation unit system
             Default is all of ["MU", "DU", "TU"]
+        verbose : bool, optional
+            If passed, it will override the Simulation object's verbose flag
         **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
@@ -1944,7 +1972,7 @@ class Simulation(object):
 
         return unit_dict
 
-    def update_param_units(self, MU2KG_old, DU2M_old, TU2S_old):
+    def _update_param_units(self, MU2KG_old, DU2M_old, TU2S_old):
         """
         Updates the values of parameters that have units when the units have changed.
 
@@ -1960,7 +1988,6 @@ class Simulation(object):
         Returns
         -------
         Updates the set of param dictionary values for the new unit system
-
         """
 
         mass_keys = ['GMTINY', 'MIN_GMFRAG']
@@ -1996,7 +2023,8 @@ class Simulation(object):
                            rmax: float | None = None,
                            qmin_coord: Literal["HELIO","BARY"] | None = None,
                            verbose: bool | None = None,
-                           **kwargs: Any):
+                           **kwargs: Any
+                           ) -> Dict[str, Any]:
         """
         Sets the minimum and maximum distances of the simulation.
 
@@ -2008,6 +2036,8 @@ class Simulation(object):
             Maximum distance of the simulation (CHK_RMAX, CHK_QMIN_RANGE[1])
         qmin_coord : str, {"HELIO", "BARY"}
             coordinate frame to use for CHK_QMIN
+        verbose : bool, optional
+            If passed, it will override the Simulation object's verbose flag
         **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
@@ -2016,7 +2046,6 @@ class Simulation(object):
         -------
         range_dict : dict
            A dictionary containing the requested parameters.
-
         """
         if rmax is None and rmin is None and qmin_coord is None:
             return {}
@@ -2052,17 +2081,20 @@ class Simulation(object):
 
         return range_dict
 
-    def get_distance_range(self, arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs: Any):
+    def get_distance_range(self, 
+                           arg_list: str | List[str] | None = None, 
+                           verbose: bool | None = None, 
+                           **kwargs: Any
+                           ) -> Dict[str, Any]:
         """
-
         Returns a subset of the parameter dictionary containing the current values of the distance range parameters.
         If the verbose option is set in the Simulation object, then it will also print the values.
 
         Parameters
         ----------
-        arg_list: str | List[str], optional
+        arg_list : str | List[str], optional
             A single string or list of strings containing the names of the features to extract. Default is all of ["rmin", "rmax"]
-        verbose: bool, optional
+        verbose : bool,optional
             If passed, it will override the Simulation object's verbose flag
         **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
@@ -2072,7 +2104,6 @@ class Simulation(object):
         -------
         range_dict : dict
            A dictionary containing the requested parameters.
-
         """
 
         valid_var = {"rmin": "CHK_RMIN",
@@ -2119,7 +2150,8 @@ class Simulation(object):
                               ephemeris_id: int | List[int] | None = None,
                               date: str | None = None,
                               source: str = "HORIZONS", 
-                              **kwargs: Any):
+                              **kwargs: Any
+                              ) -> None:
         """
         Adds a solar system body to an existing simulation Dataset from the JPL Horizons ephemeris service. The JPL Horizons service
         will be searched for a body matching the string passed by `name`, or alternatively `ephemeris_id` if passed. Bodies will be
@@ -2244,9 +2276,11 @@ class Simulation(object):
     def set_ephemeris_date(self,
                           ephemeris_date: str | None = None,
                           verbose: bool | None = None,
-                          **kwargs: Any):
+                          **kwargs: Any
+                          ) -> str:
         """
-
+        Sets the date to use when obtaining the ephemerides.
+        
         Parameters
         ----------
         ephemeris_date : str, optional
@@ -2260,8 +2294,9 @@ class Simulation(object):
 
         Returns
         -------
-        Sets the `ephemeris_date` instance variable.
-
+        ephemeris_date : str
+            The ISO-formatted date string for the ephemeris computation.
+            Also Sets the `ephemeris_date` instance variable.
         """
 
         if ephemeris_date is None:
@@ -2292,27 +2327,29 @@ class Simulation(object):
 
         return ephemeris_date
 
-    def get_ephemeris_date(self, arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs: Any):
+    def get_ephemeris_date(self, 
+                           arg_list: str | List[str] | None = None, 
+                           verbose: bool | None = None, 
+                           **kwargs: Any
+                           ) -> str:
         """
-
-        Prints the current value of the ephemeris date
+        Prints the current value of the ephemeris date.
 
         Parameters
         ----------
-        arg_list: str | List[str], optional
+        arg_list : str | List[str], optional
             A single string or list of strings containing the names of the features to extract. Default is all of:
             ["integrator"]
-        verbose: bool, optional
+        verbose : bool, optional
             If passed, it will override the Simulation object's verbose flag
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
-        ephemeris_date: str
+        ephemeris_date : str
             The ISO-formatted date string for the ephemeris computation
-
         """
 
         try:
@@ -2327,27 +2364,30 @@ class Simulation(object):
 
         return ephemeris_date
 
-    def _get_instance_var(self, arg_list: str | List[str], valid_arg: Dict, verbose: bool | None = None, **kwargs: Any):
+    def _get_instance_var(self, 
+                          arg_list: str | List[str], valid_arg: Dict, 
+                          verbose: bool | None = None, 
+                          **kwargs: Any
+                          ) -> Tuple[Any, ...]:
         """
-
         Prints the current value of an instance variable.
 
         Parameters
         ----------
-        arg_list: str | List[str]
+        arg_list : str | List[str]
             A single string or list of strings containing the names of the the instance variable to get.
-        valid_arg: dict
+        valid_arg : dict
             A dictionary where the key is the parameter argument and the value is the equivalent instance variable value.
-        verbose: bool, optional
+        verbose : bool,optional
             If passed, it will override the Simulation object's verbose flag
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
-        Tuple of instance variable values given by the arg_list
-
+        Tuple[Any, ...]
+            Instance variable values given by the arg_list
         """
 
         arg_vals = []
@@ -2381,7 +2421,8 @@ class Simulation(object):
                  rot: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None=None,
                  Ip: List[float] | npt.NDArray[np.float_] | None=None,
                  J2: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 J4: float | List[float] | npt.NDArray[np.float_] | None=None):
+                 J4: float | List[float] | npt.NDArray[np.float_] | None=None
+                 ) -> None:
         """
         Adds a body (test particle or massive body) to the internal DataSet given a set up 6 vectors (orbital elements
         or cartesian state vectors, depending on the value of self.param). Input all angles in degress.
@@ -2419,16 +2460,15 @@ class Simulation(object):
             Radius values if these are massive bodies
         rhill : float or array-like of float, optional
             Hill's radius values if these are massive bodies
-        rot: (3) or (n,3) array-like of float, optional
+        rot : (3) or (n,3) array-like of float, optional
             Rotation rate vectors if these are massive bodies with rotation enabled.
-        Ip: (3) or (n,3) array-like of float, optional
+        Ip : (3) or (n,3) array-like of float, optional
             Principal axes moments of inertia vectors if these are massive bodies with rotation enabled.
 
         Returns
         -------
-        data : Xarray Dataset
-            Dasaset containing the body or bodies that were added
-
+        None
+            Sets the data and init_cond instance variables each with an Xarray Dataset containing the body or bodies that were added
         """
 
         #convert all inputs to numpy arrays
@@ -2546,9 +2586,12 @@ class Simulation(object):
 
         return
 
-    def _combine_and_fix_dsnew(self,dsnew):
+    def _combine_and_fix_dsnew(self,
+                               dsnew: xr.Dataset
+                               ) -> xr.Dataset:
         """
         Combines the new Dataset with the old one. Also computes the values of ntp and npl and sets the proper types.
+        
         Parameters
         ----------
         dsnew : xarray Dataset
@@ -2558,8 +2601,8 @@ class Simulation(object):
         -------
         dsnew : xarray Dataset
             Updated Dataset with ntp, npl values and types fixed.
-
         """
+        
         if "id" not in self.data.dims:
             if len(np.unique(dsnew['name'])) == len(dsnew['name']):
                dsnew = dsnew.swap_dims({"id" : "name"})
@@ -2610,7 +2653,8 @@ class Simulation(object):
                    read_init_cond : bool | None = None,
                    verbose: bool | None = None,
                    dask: bool = False, 
-                   **kwargs : Any):
+                   **kwargs : Any
+                   ) -> bool:
         """
         Reads in an input parameter file and stores the values in the param dictionary.
         
@@ -2630,7 +2674,8 @@ class Simulation(object):
             
         Returns
         -------
-        True if the parameter file exists and is read correctly. False otherwise.
+        bool
+            True if the parameter file exists and is read correctly. False otherwise.
         """
         if param_file is None:
             param_file = self.simdir / self.param_file
@@ -2673,7 +2718,8 @@ class Simulation(object):
                     codename: Literal["Swiftest", "Swifter", "Swift"]  | None = None,
                     param_file: str | os.PathLike | None = None,
                     param: Dict | None = None,
-                    **kwargs: Any):
+                    **kwargs: Any
+                    ) -> None:
         """
         Writes to a param.in file and determines whether the output format needs to be converted between Swift/Swifter/Swiftest.
         
@@ -2684,9 +2730,9 @@ class Simulation(object):
             variable codename
         param_file : str or path-like, optional
             Alternative file name of the input parameter file. Defaults to current instance variable self.param_file
-        param: Dict, optional
+        param : Dict, optional
             An alternative parameter dictionary to write out. Defaults to the current instance variable self.param
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. These are ignored.
 
         Returns
@@ -2727,8 +2773,15 @@ class Simulation(object):
             
         return
 
-    def convert(self, param_file, newcodename="Swiftest", plname="pl.swiftest.in", tpname="tp.swiftest.in",
-                cbname="cb.swiftest.in", conversion_questions={}, dask = False):
+    def convert(self, 
+                param_file: str, 
+                newcodename: str="Swiftest", 
+                plname: str="pl.swiftest.in",
+                tpname: str="tp.swiftest.in",
+                cbname: str="cb.swiftest.in", 
+                conversion_questions: Dict={}, 
+                dask: bool=False
+                ) -> xr.Dataset:
         """
         Converts simulation input files from one format to another (Swift, Swifter, or Swiftest). 
 
@@ -2752,7 +2805,7 @@ class Simulation(object):
         Returns
         -------
         oldparam : xarray dataset
-        The old parameter configuration.
+            The old parameter configuration.
         """
         oldparam = self.param
         if self.codename == newcodename:
@@ -2783,7 +2836,10 @@ class Simulation(object):
             warnings.warn(f"Conversion from {self.codename} to {newcodename} is not supported.",stacklevel=2)
         return oldparam
 
-    def read_output_file(self,read_init_cond : bool = True, dask : bool = False):
+    def read_output_file(self,
+                         read_init_cond : bool = True, 
+                         dask : bool = False
+                         ) -> None:
         """
         Reads in simulation data from an output file and stores it as an Xarray Dataset in the `data` instance variable.
 
@@ -2793,9 +2849,11 @@ class Simulation(object):
             Read in an initial conditions file along with the output file. Default is True
         dask : bool, default False
             Use Dask to lazily load data (useful for very large datasets)
+            
         Returns
         -------
-        self.data : xarray dataset
+        None
+            Sets the data instance variable xarray dataset
         """
 
         # Make a temporary copy of the parameter dictionary so we can supply the absolute path of the binary file
@@ -2833,7 +2891,22 @@ class Simulation(object):
             warnings.warn('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".',stacklevel=2)
         return
 
-    def read_encounter_file(self, dask=False):
+    def read_encounter_file(self, 
+                            dask: bool=False
+                            ) -> None:
+        """
+        Reads in an encounter history file and stores it as an Xarray Dataset in the `encounters` instance variable.
+        
+        Parameters
+        ----------
+        dask : bool, default False
+            Use Dask to lazily load data (useful for very large datasets)
+            
+        Returns
+        -------
+        None
+            Sets the encounters instance variable xarray dataset 
+        """
         enc_file = self.simdir / "encounters.nc"
         if not os.path.exists(enc_file):
            return
@@ -2853,7 +2926,22 @@ class Simulation(object):
 
         return
 
-    def read_collision_file(self, dask=False):
+    def read_collision_file(self, 
+                            dask: bool=False
+                            ) -> None:
+        """
+        Reads in a collision history file and stores it as an Xarray Dataset in the `collisions` instance variable.
+        
+        Parameters
+        ----------
+        dask : bool, default False
+            Use Dask to lazily load data (useful for very large datasets)
+        
+        Returns
+        -------
+        None
+            Sets the collisions instance variable xarray dataset 
+        """
        
         col_file = self.simdir / "collisions.nc"
         if not os.path.exists(col_file):
@@ -2871,18 +2959,22 @@ class Simulation(object):
 
         return
 
-    def follow(self, codestyle="Swifter", dask=False):
+    def follow(self, 
+               codestyle: str="Swifter", 
+               dask: bool=False
+               ) -> xr.Dataset:
         """
         An implementation of the Swift tool_follow algorithm. Under development. Currently only for Swift simulations. 
 
         Parameters
         ----------
-            codestyle : string
-                Name of the desired format (Swift/Swifter/Swiftest)
+        codestyle : str, default "Swifter"
+            Name of the desired format (Swift/Swifter/Swiftest)
 
         Returns
         -------
-            fol : xarray dataset
+        xarray dataset
+            Dataset containing the variables retrieved from the follow algorithm
         """
         if self.data is None:
             self.read_output_file(dask=dask)
@@ -2914,7 +3006,8 @@ class Simulation(object):
              param_file: str | os.PathLike | None = None,
              param: Dict | None = None,
              framenum: int = -1,
-             **kwargs: Any):
+             **kwargs: Any
+             ) -> None:
         """
         Saves an xarray dataset to a set of input files.
 
@@ -2925,11 +3018,11 @@ class Simulation(object):
             variable self.codename
         param_file : str or path-like, optional
             Alternative file name of the input parameter file. Defaults to current instance variable self.param_file
-        param: Dict, optional
+        param : Dict, optional
             An alternative parameter dictionary to write out. Defaults to the current instance variable self.param
         framenum : int Default=-1
             Time frame to use to generate the initial conditions. If this argument is not passed, the default is to use the last frame in the dataset.
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. These are ignored.
 
         Returns
@@ -2967,29 +3060,35 @@ class Simulation(object):
 
         return
 
-    def initial_conditions_from_bin(self, framenum=-1, new_param=None, new_param_file="param.new.in",
-                                    new_initial_conditions_file="bin_in.nc", restart=False, codename="Swiftest"):
+    def initial_conditions_from_bin(self, 
+                                    framenum: int=-1, 
+                                    new_param: os.PathLike=None, 
+                                    new_param_file: os.PathLike="param.new.in",
+                                    new_initial_conditions_file: os.PathLike="bin_in.nc", 
+                                    restart: bool=False, 
+                                    codename: str="Swiftest"
+                                    ) -> xr.Dataset:
         """
         Generates a set of input files from a old output file.
 
         Parameters
         ----------
-            framenum : integer (default=-1)
-                Time frame to use to generate the initial conditions. If this argument is not passed, the default is to use the last frame in the dataset.
-            new_param : string
-                File to copy parameters from. Default is the old parameter file.
-            new_param_file : string
-                Name of the new parameter file.
-            new_initial_conditions_file : string
-                Name of the new NetCDF file containing the new initial conditions.
-            restart : True or False
-                If True, overwrite the old output file. If False, generate a new output file.
-            codename : string
-                Name of the desired format (Swift/Swifter/Swiftest)
+        framenum : int (default=-1)
+            Time frame to use to generate the initial conditions. If this argument is not passed, the default is to use the last frame in the dataset.
+        new_param : PathLike, optional
+            File to copy parameters from. Default is the old parameter file.
+        new_param_file : PathLike, default "param.new.in"
+            Name of the new parameter file.
+        new_initial_conditions_file : PathLike, default "bin_in.nc"
+            Name of the new NetCDF file containing the new initial conditions.
+        restart : bool, default False
+            If True, overwrite the old output file. If False, generate a new output file.
+        codename : str, default "Swiftest"
+            Name of the desired format (Swift/Swifter/Swiftest)
 
         Returns
         -------
-        frame : NetCDF dataset
+        xarray dataset
             A dataset containing the extracted initial condition data.
         """
 
@@ -3035,6 +3134,14 @@ class Simulation(object):
     def clean(self):
         """
         Cleans up simulation directory by deleting old files (dump, logs, and output files).
+        
+        Parameters
+        ----------
+        None
+        
+        Returns
+        -------
+        None
         """
         old_files = [self.simdir / self.param['BIN_OUT'],
                      self.simdir / "fraggle.log",

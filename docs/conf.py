@@ -9,9 +9,8 @@ from sphinx.application import Sphinx
 from sphinx.util import logging
 
 # Disable import of swiftest._bindings so that we don't have to build the Fortran code when building the docs
-import swiftest
 autodoc_mock_imports = ['swiftest._bindings']
-
+import swiftest
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 project = 'Swiftest'

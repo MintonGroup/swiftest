@@ -1,6 +1,6 @@
 [project]
 name = "swiftest"
-version = "2023.12.0"
+version = "2023.12.1"
 authors=[
     {name = 'David A. Minton', email='daminton@purdue.edu'},
     {name = 'Carlisle Wishard'},
@@ -115,12 +115,7 @@ before-all = [
     "LIBS=\"\" buildscripts/build_dependencies.sh -p ${PREFIX} -d ${HOME}/Downloads -m ${MACOSX_DEPLOYMENT_TARGET}"
 ]
 
-[tool.cibuildwheel.linux]
-skip = "cp312-* pp* -manylinux_i686* *-musllinux*"
-before-all = [
-    "yum install doxygen libxml2-devel libcurl-devel -y",
-    "buildscripts/build_dependencies.sh -p /usr/local"
-]
+
 [tool.cibuildwheel.linux.environment]
 PREFIX="/usr/local"
 NCDIR="${PREFIX}"
@@ -138,22 +133,14 @@ HDF5_DIR="${HDF5_ROOT}/cmake"
 PATH="${HDF5_ROOT}/bin:${PATH}"
 CMAKE_INSTALL_LIBDIR="lib"
 
+[tool.cibuildwheel.linux]
+skip = "cp312-* pp* -manylinux_i686* *-musllinux*"
+before-all = [
+    "yum install doxygen libxml2-devel libcurl-devel -y",
+    "buildscripts/build_dependencies.sh -p /usr/local"
+]
+
 [[tool.scikit-build.generate]]
 path = "version.txt"
 location = "source"
 template = '''${version}'''
-
-[project.optional-dependencies]
-docs = [
-    "sphinx",
-    "sphinx-autosummary-accessors",
-    "sphinx-book-theme >= 0.3.0",
-    "sphinx-copybutton",
-    "sphinx-design",
-    "sphinx-inline-tabs",
-    "sphinxext-rediraffe",
-    "sphinxext-opengraph",
-    "nbsphinx",
-    "ipython",
-    "ford"
-]
