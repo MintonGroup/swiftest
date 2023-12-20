@@ -15,6 +15,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.6.0...3.27.1)
 SET(SKBUILD_PROJECT_NAME "swiftest" CACHE STRING "Name of project set by scikit-build")
 SET(SKBUILD_SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/bin" CACHE STRING "Install location of binary executable")
 
+
 # Get version stored in text file
 FILE(READ "version.txt" VERSION)
 PROJECT(${SKBUILD_PROJECT_NAME} LANGUAGES C Fortran VERSION ${VERSION})
@@ -114,10 +115,16 @@ IF (COMPILER_OPTIONS STREQUAL "Intel" AND NOT CMAKE_SYSTEM_NAME STREQUAL "Window
 ENDIF ()
 INCLUDE(SetSwiftestFlags) 
 
-# The source for the SWIFTEST binary and have it placed in the bin folder
-ADD_SUBDIRECTORY(${SRC} ${CMAKE_INSTALL_BINDIR})
-ADD_SUBDIRECTORY(${PY})
+# Check if DOC_BUILD environment variable is set and skip build if it is
+IF (DEFINED ENV{DOC_BUILD})
+    MESSAGE(STATUS "DOC_BUILD is set. Skipping build process.")
+ELSE()
 
+    # The source for the SWIFTEST binary and have it placed in the bin folder
+    ADD_SUBDIRECTORY(${SRC} ${CMAKE_INSTALL_BINDIR})
+    ADD_SUBDIRECTORY(${PY})
+
+ENDIF()
 # Add a distclean target to the Makefile
 ADD_CUSTOM_TARGET(distclean 
     COMMAND ${CMAKE_COMMAND} -P "${CMAKE_SOURCE_DIR}/distclean.cmake"

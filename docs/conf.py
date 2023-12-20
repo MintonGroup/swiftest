@@ -8,10 +8,11 @@ import sphinx_autosummary_accessors
 from sphinx.application import Sphinx
 from sphinx.util import logging
 
-swiftest_path = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'swiftest'))
-sys.path.insert(0, swiftest_path)
+# Disable import of swiftest._bindings so that we don't have to build the Fortran code when building the docs
+autodoc_mock_imports = ['swiftest._bindings']
 
-autodoc_mock_imports = ['swiftest']
+import swiftest
+
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -168,7 +169,8 @@ def linkcode_resolve(domain, info):
     else:
         linespec = ""
 
-    fn = os.path.relpath(fn, start=os.path.dirname(swiftest_path))
+    fn = os.path.relpath(fn, start=os.path.dirname())
+
 
 
 def html_page_context(app, pagename, templatename, context, doctree):
