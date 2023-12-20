@@ -1,24 +1,21 @@
 """
- Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
- This file is part of Swiftest.
- Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
- as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
- Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
- of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
- You should have received a copy of the GNU General Public License along with Swiftest. 
- If not, see: https://www.gnu.org/licenses. 
+Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+This file is part of Swiftest.
+Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+You should have received a copy of the GNU General Public License along with Swiftest. 
+If not, see: https://www.gnu.org/licenses. 
 """
+
 from __future__ import annotations
 
-from swiftest import io
-from swiftest import init_cond
-from swiftest import tool
-from swiftest import constants
-# from swiftest._bindings import driver
-from swiftest import __file__ as _pyfile
-import json
+from . import io
+from . import init_cond
+from . import tool
+from . import constants
 import os
-from glob import glob
 from pathlib import Path
 import datetime
 import xarray as xr
@@ -58,29 +55,32 @@ class Simulation(object):
                  dask: bool = False,
                  **kwargs: Any):
         """
-
+        Set up a new simulation object with the given parameters.
+        Parameters for a given Simulation object can be set a number of different ways, including via a parameter input
+        file, arguments to Simulation, the general `set_parameter` method, or the specific setters for groups of
+        similar parameters (e.g. set_init_cond_files, set_simulation_time, etc.). Each parameter has a default value
+        that can be overridden by an argument to Simulation(). Some argument parameters have equivalent values that
+        are passed to the Swiftest driver Fortran function via a parameter input file. When declaring a new
+        Simulation object, parameters are chosen in the following way, from highest to lowest priority
+        
+        #. Arguments to Simulation()
+        #. The parameter input file given by `param_file` under the following conditions
+        
+            - `read_param` is set to True (default behavior).
+            - The file given by `param_file` exists. The default file is `param.in` located in the `simdata` directory
+              inside the current working directory, which can be changed by passing `param_file` as an argument.
+            - The argument has an equivalent parameter or set of parameters in the parameter input file.
+            
+        #. Default values (see below)
+        
         Parameters
         ----------
         read_param : bool, default True
             If true, read in a pre-existing parameter input file given by the argument `param_file` if it exists.
             Otherwise, create a new parameter file using the arguments passed to Simulation or defaults
-
-            Parameters for a given Simulation object can be set a number of different ways, including via a parameter input
-            file, arguments to Simulation, the general `set_parameter` method, or the specific setters for groups of
-            similar parameters (e.g. set_init_cond_files, set_simulation_time, etc.). Each parameter has a default value
-            that can be overridden by an argument to Simulation(). Some argument parameters have equivalent values that
-            are passed to the Swiftest driver Fortran function via a parameter input file. When declaring a new
-            Simulation object, parameters are chosen in the following way, from highest to lowest priority"
-            1. Arguments to Simulation()
-            2. The parameter input file given by `param_file` under the following conditions:
-                - `read_param` is set to True (default behavior).
-                - The file given by `param_file` exists. The default file is `param.in` located in the `simdata` directory
-                  inside the current working directory, which can be changed by passing `param_file` as an argument.
-                - The argument has an equivalent parameter or set of parameters in the parameter input file.
-            3. Default values (see below)
         read_data : bool, default False
             If True, read in a pre-existing binary input file given by the argument `output_file_name` if it exists.
-            Parameter input file equivalent: None
+            Parameter input file equivalent is None
         read_collisions : bool, default None
             If True, read in a pre-existing collision file `collisions.nc`. If None, then it will take the value of `read_data`. 
         read_encounters : bool, default None
@@ -88,232 +88,257 @@ class Simulation(object):
         simdir : PathLike, default `"simdir"`
             Directory where simulation data will be stored, including the parameter file, initial conditions file, output file,
             dump files, and log files.
-
-        **kwargs : See list of valid parameters and their defaults below
-
+        **kwargs : dict
+            See list of valid parameters and their defaults below
         codename : {"Swiftest", "Swifter", "Swift"}, default "Swiftest"
             Name of the n-body code that will be used.
-            Parameter input file equivalent: None
+            Parameter input file equivalent is None
         integrator : {"symba","rmvs","whm","helio"}, default "symba"
             Name of the n-body integrator that will be used when executing a run.
-            Parameter input file equivalent: None
+            Parameter input file equivalent is None
         read_param : bool, default False
             Read the parameter file given by `param_file`.
         param_file : str, path-like, or file-lke, default "param.in"
             Name of the parameter input file that will be passed to the integrator.
-            Parameter input file equivalent: None
+            Parameter input file equivalent is None
         t0 : float, default 0.0
             The reference time for the start of the simulation. Defaults is 0.0.
-            Parameter input file equivalent: `T0`
+            Parameter input file equivalent is `T0`
         tstart : float, default 0.0
             The start time for a restarted simulation. For a new simulation, tstart will be set to t0 automatically.
-            Parameter input file equivalent: `TSTART`
+            Parameter input file equivalent is `TSTART`
         tstop : float, optional
             The stopping time for a simulation. `tstop` must be greater than `tstart`.
-            Parameter input file equivalent: `TSTOP`
+            Parameter input file equivalent is `TSTOP`
         dt : float, optional
             The step size of the simulation. `dt` must be less than or equal to `tstop-tstart`.
-            Parameter input file equivalent: `DT`
+            Parameter input file equivalent is `DT`
         istep_out : int, optional
-            The number of time steps between output saves to file. *Note*: only `istep_out` or `tstep_out` can be set.
-            Parameter input file equivalent: `ISTEP_OUT`
+            The number of time steps between output saves to file. Only `istep_out` or `tstep_out` can be set.
+            Parameter input file equivalent is `ISTEP_OUT`
         tstep_out : float, optional
-            The approximate time between when outputs are written to file. Passing this computes
-            `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `tstep_out` can be set. `tstep_out` must be less than `tstop`
-            Parameter input file equivalent: None 
+            The approximate time between when outputs are written to file. 
+            Passing this computes::
+            
+                istep_out = floor(tstep_out/dt)
+                
+            Only `istep_out` or `tstep_out` can be set. `tstep_out` must be less than `tstop`.
+            Parameter input file equivalent is None 
         nstep_out : int, optional
-            The total number of times that outputs are written to file. Passing this allows for a geometric progression of output steps:
-            `TSTART, f**0 * TSTEP_OUT, f**1 * TSTEP_OUT, f**2 * TSTEP_OUT, ..., f**(nstep_out-1) * TSTEP_OUT`, 
-            where `f` is a factor that can stretch (or shrink) the time between outputs. Setting `nstep_out = int((tstart - tstop) / (tstep_out))` is
-            equivalent to the standard linear output (i.e. `f==1`) and is the same as not passing anything for this argument. 
-            *Note*: Passing `nstep_out` requires passing either `istep_out` or `tstep_out` as well.     
+            The total number of times that outputs are written to file. Passing this allows for a geometric progression of output 
+            steps::
+            
+                TSTART, f**0 * TSTEP_OUT, f**1 * TSTEP_OUT, f**2 * TSTEP_OUT, ..., f**(nstep_out-1) * TSTEP_OUT
+                
+            where `f` is a factor that can stretch (or shrink) the time between outputs.  Setting::
+            
+                nstep_out = int((tstart - tstop) / (tstep_out))
+                
+            is equivalent to the standard linear output (i.e. `f==1`) and is the same as not passing anything for this argument. 
+            Passing `nstep_out` requires passing either `istep_out` or `tstep_out` as well.     
         dump_cadence : int, optional
             The number of output steps (given by `istep_out`) between when the saved data is dumped to a file. Setting it to 0
             is equivalent to only dumping data to file at the end of the simulation. Default value is 10.
-            Parameter input file equivalent: `DUMP_CADENCE`
+            Parameter input file equivalent is `DUMP_CADENCE`
         init_cond_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"}, default "NETCDF_DOUBLE"
-            The file type containing initial conditions for the simulation:
-            * NETCDF_DOUBLE: A single initial conditions input file in NetCDF file format of type NETCDF_DOUBLE.
-            * NETCDF_FLOAT: A single initial conditions input file in NetCDF file format of type NETCDF_FLOAT.
-            * ASCII : Three initial conditions files in ASCII format. The individual files define the central body,
+            The file type containing initial conditions for the simulation.
+            
+            * "NETCDF_DOUBLE" A single initial conditions input file in NetCDF file format of type NETCDF_DOUBLE.
+            * "NETCDF_FLOAT" A single initial conditions input file in NetCDF file format of type NETCDF_FLOAT.
+            * "ASCII"  Three initial conditions files in ASCII format. The individual files define the central body,
+            
             massive body, and test particle initial conditions.
-            Parameter input file equivalent: `IN_TYPE`
+            Parameter input file equivalent is `IN_TYPE`
         init_cond_file_name : str, path-like, or dict, optional
             Name of the input initial condition file or files. Whether to pass a single file name or a dictionary
-            depends on the argument passed to `init_cond_file_type`: If `init_cond_file_type={"NETCDF_DOUBLE","NETCDF_FLOAT"}`,
-            then this will be a single file name. If `init_cond_file_type="ASCII"` then this must be a dictionary where:
-            ```init_cond_file_name = {
-                                      "CB" : *path to central body initial conditions file* (Swiftest only),
-                                      "PL" : *path to massive body initial conditions file*,
-                                      "TP" : *path to test particle initial conditions file*
-                                      }```
+            depends on the argument passed to `init_cond_file_type`. If `init_cond_file_type={"NETCDF_DOUBLE","NETCDF_FLOAT"}`,
+            then this will be a single file name. If `init_cond_file_type="ASCII"` then this must be a dictionary where::
+            
+                init_cond_file_name = {
+                    "CB" - [path to central body initial conditions file] (Swiftest only),
+                    "PL" - [path to massive body initial conditions file], 
+                    "TP" - [path to test particle initial conditions file] }
+                                      
             If no file name is provided then the following default file names will be used.
-            * NETCDF_DOUBLE, NETCDF_FLOAT: `init_cond_file_name = "init_cond.nc"`
-            * ASCII: `init_cond_file_name = {"CB" : "cb.in", "PL" : "pl.in", "TP" : "tp.in"}`
-            Parameter input file equivalent: `NC_IN`, `CB_IN`, `PL_IN`, `TP_IN`
+            
+            * "NETCDF_DOUBLE", "NETCDF_FLOAT" `init_cond_file_name = "init_cond.nc"`
+            * "ASCII" `init_cond_file_name = {"CB" : "cb.in", "PL" : "pl.in", "TP" : "tp.in"}`
+            
+            Parameter input file equivalent is `NC_IN`, `CB_IN`, `PL_IN`, `TP_IN`
         init_cond_format : {"EL", "XV"}, default "EL"
             Indicates whether the input initial conditions are given as orbital elements or cartesian position and
             velocity vectors.
-            > *Note:* If `codename` is "Swift" or "Swifter", EL initial conditions are converted to XV.
-            Parameter input file equivalent: `IN_FORM`
+            If `codename` is "Swift" or "Swifter", EL initial conditions are converted to XV.
+            Parameter input file equivalent is `IN_FORM`
         output_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT","REAL4","REAL8","XDR4","XDR8"}, default "NETCDF_DOUBLE"
             The file type for the outputs of the simulation. Compatible file types depend on the `codename` argument.
-            * Swiftest: Only "NETCDF_DOUBLE" or "NETCDF_FLOAT" supported.
-            * Swifter: Only "REAL4","REAL8","XDR4" or "XDR8"  supported.
-            * Swift: Only "REAL4" supported.
-            Parameter input file equivalent: `OUT_TYPE`
+            
+            * Swiftest - Only "NETCDF_DOUBLE" or "NETCDF_FLOAT" supported.
+            * Swifter - Only "REAL4","REAL8","XDR4" or "XDR8"  supported.
+            * Swift - Only "REAL4" supported.
+            
+            Parameter input file equivalent is `OUT_TYPE`
         output_file_name : str or path-like, optional
             Name of output file to generate. If not supplied, then one of the default file names are used, depending on
             the value passed to `output_file_type`. The default is "data.nc".
-            Parameter input file equivalent: `BIN_OUT`
+            Parameter input file equivalent is `BIN_OUT`
         output_format : {"XV","XVEL"}, default "XVEL"
             Specifies the format for the data saved to the output file. If "XV" then cartesian position and velocity
             vectors for all bodies are stored. If "XVEL" then the orbital elements are also stored.
-            Parameter input file equivalent: `OUT_FORM`
+            Parameter input file equivalent is `OUT_FORM`
         MU : str, default "MSUN"
-            The mass unit system to use. Case-insensitive valid options are:
-            * "Msun"   : Solar mass
-            * "Mearth" : Earth mass
-            * "kg"     : kilograms
-            * "g"      : grams
-            Parameter input file equivalent: None
+            The mass unit system to use. Case-insensitive valid options are 
+            
+            * "Msun"   - Solar mass
+            * "Mearth" - Earth mass
+            * "kg"     - kilograms
+            * "g"      - grams
+            
+            Parameter input file equivalent is None
         DU : str, optional
-            The distance unit system to use. Case-insensitive valid options are:
-            * "AU"     : Astronomical Unit
-            * "Rearth" : Earth radius
-            * "m"      : meter
-            * "cm"     : centimeter
-            Parameter input file equivalent: None
+            The distance unit system to use. Case-insensitive valid options are
+            
+            * "AU"     - Astronomical Unit
+            * "Rearth" - Earth radius
+            * "m"      - meter
+            * "cm"     - centimeter
+            
+            Parameter input file equivalent is None
         TU : str, optional
-            The time unit system to use. Case-insensitive valid options are:
-            * "YR"     : Year
-            * "DAY"    : Julian day
-            * "d"      : Julian day
-            * "JD"     : Julian day
-            * "s"      : second
-            Parameter input file equivalent: None
-        MU2KG: float, optional
+            The time unit system to use. Case-insensitive valid options are
+            
+            * "YR"     - Year
+            * "DAY"    - Julian day
+            * "d"      - Julian day
+            * "JD"     - Julian day
+            * "s"      - second
+            
+            Parameter input file equivalent is None
+        MU2KG : float, optional
             The conversion factor to multiply by the mass unit that would convert it to kilogram.
             Setting this overrides MU
-            Parameter input file equivalent: `MU2KG`
+            Parameter input file equivalent is `MU2KG`
         DU2M : float, optional
             The conversion factor to multiply by the distance unit that would convert it to meter.
             Setting this overrides DU
-            Parameter input file equivalent: `DU2M`
+            Parameter input file equivalent is `DU2M`
         TU2S : float, optional
             The conversion factor to multiply by the time unit that would convert it to seconds.
             Setting this overrides TU
-            Parameter input file equivalent: `TU2S`
+            Parameter input file equivalent is `TU2S`
         MU_name : str, optional
             The name of the mass unit. When setting one of the standard units via `MU` a name will be
             automatically set for the unit, so this argument will override the automatic name.
-            Parameter input file equivalent: None
+            Parameter input file equivalent is None
         DU_name : str, optional
             The name of the distance unit. When setting one of the standard units via `DU` a name will be
             automatically set for the unit, so this argument will override the automatic name.
-            Parameter input file equivalent: None
+            Parameter input file equivalent is None
         TU_name : str, optional
             The name of the time unit. When setting one of the standard units via `TU` a name will be
             automatically set for the unit, so this argument will override the automatic name.
-            Parameter input file equivalent: None
+            Parameter input file equivalent is None
         rmin : float, default value is the radius of the Sun in the unit system defined by the unit input arguments.
             Minimum distance of the simulation
-            Parameter input file equivalent: `CHK_QMIN`, `CHK_RMIN`, `CHK_QMIN_RANGE[0]`
+            Parameter input file equivalent are `CHK_QMIN`, `CHK_RMIN`, `CHK_QMIN_RANGE[0]`
         rmax : float, default value is 10000 AU in the unit system defined by the unit input arguments.
             Maximum distance of the simulation (CHK_RMAX, CHK_QMIN_RANGE[1])
-            Parameter input file equivalent: `CHK_RMAX`, `CHK_QMIN_RANGE[1]`
+            Parameter input file equivalent are `CHK_RMAX`, `CHK_QMIN_RANGE[1]`
         qmin_coord : str, {"HELIO", "BARY"}, default "HELIO"
             coordinate frame to use for checking the minimum periapsis distance
-            Parameter input file equivalent: `QMIN_COORD`
+            Parameter input file equivalent is `QMIN_COORD`
         mtiny : float, optional
             The minimum mass of fully interacting bodies. Bodies below this mass interact with the larger bodies,
-            but not each other (SyMBA only). *Note.* Only mtiny or gmtiny is accepted, not both.
-            Parameter input file equivalent: None
+            but not each other (SyMBA only). Only mtiny or gmtiny is accepted, not both.
+            Parameter input file equivalent is None
         gmtiny : float, optional
             The minimum G*mass of fully interacting bodies. Bodies below this mass interact with the larger bodies,
-            but not each other (SyMBA only). *Note.* Only mtiny or gmtiny is accepted, not both.
-            Parameter input file equivalent: `GMTINY`
+            but not each other (SyMBA only). Only mtiny or gmtiny is accepted, not both.
+            Parameter input file equivalent is `GMTINY`
         close_encounter_check : bool, default True
             Check for close encounters between bodies. If set to True, then the radii of massive bodies must be included
             in initial conditions.
-            Parameter input file equivalent: `CHK_CLOSE`
+            Parameter input file equivalent is `CHK_CLOSE`
         encounter_save : {"NONE","TRAJECTORY","CLOSEST", "BOTH"}, default "NONE"
             Indicate if and how encounter data should be saved. If set to "TRAJECTORY", the position and velocity vectors
             of all bodies undergoing close encounters are saved at each intermediate step to the encounter files.
             If set to "CLOSEST", the position  and velocities at the point of closest approach between pairs of bodies are 
             computed and stored to the encounter files. If set to "BOTH", then this stores the values that would be computed
             in "TRAJECTORY" and "CLOSEST". If set to "NONE" no trajectory information is saved.
-            *WARNING*: Enabling this feature could lead to very large files.
+            WARNING - Enabling this feature could lead to very large files.
         general_relativity : bool, default True
-            Include the post-Newtonian correction in acceleration calculations.
-            Parameter input file equivalent: `GR`
-        collision_model: {"MERGE","BOUNCE","FRAGGLE"}, default "MERGE"
-            This is used to set the collision/fragmentation model. [TODO: DESCRIBE THESE] 
-            This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
-            Parameter input file equivalent: `COLLISION_MODEL`
+            Include the post-Newtonian correction in acceleration calculations. 
+            Parameter input file equivalent is "GR"
+        collision_model : {"MERGE","BOUNCE","FRAGGLE"}, default "MERGE"
+            This is used to set the collision/fragmentation model. 
+            This argument only applies to Swiftest-SyMBA simulations and will be ignored otherwise. 
+            Parameter input file equivalent is "COLLISION_MODEL"
         minimum_fragment_gmass : float, optional
             If fragmentation is turned on, this sets the mimimum G*mass of a collisional fragment that can be generated if a 
             fragmentation model is enabled. Ignored otherwise.
-            *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
-            Parameter input file equivalent: None
+            Only set one of minimum_fragment_gmass or minimum_fragment_mass
+            Parameter input file equivalent is None
         minimum_fragment_mass : float, optional
             If fragmentation is turned on, this sets the mimimum mass of a collisional fragment that can be generated. if a 
             fragmentation model is enabled. Ignored otherwise
-            *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
-            Parameter input file equivalent: `MIN_GMFRAG`
+            Only set one of minimum_fragment_gmass or minimum_fragment_mass
+            Parameter input file equivalent is `MIN_GMFRAG`
         nfrag_reduction : float, optional
             If fragmentation is turne don, this is a reduction factor used to limit the number of fragments generated in a collision.
             For instance, if the SFD of the collision would generated 300 fragments above the `minimum_fragment_mass`, then a value
             of `nfrag_reduction = 30.0` would reduce it to 10.  
-            *Note.* Currently only used by the Fraggle collision model.
+            Currently only used by the Fraggle collision model.
         rotation : bool, default False
             If set to True, this turns on rotation tracking and radius, rotation vector, and moments of inertia values
             must be included in the initial conditions.
             This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
-            Parameter input file equivalent: `ROTATION`
+            Parameter input file equivalent is `ROTATION`
         compute_conservation_values : bool, default False
             Turns on the computation of energy, angular momentum, and mass conservation and reports the values
             every output step of a running simulation.
-            Parameter input file equivalent: `ENERGY`
-        extra_force: bool, default False
+            Parameter input file equivalent is `ENERGY`
+        extra_force : bool, default False
             Turns on user-defined force function.
-            Parameter input file equivalent: `EXTRA_FORCE`
-        big_discard: bool, default False
+            Parameter input file equivalent is `EXTRA_FORCE`
+        big_discard : bool, default False
             Includes big bodies when performing a discard (Swifter only)
-            Parameter input file equivalent: `BIG_DISCARD`
-        rhill_present: bool, default False
+            Parameter input file equivalent is `BIG_DISCARD`
+        rhill_present : bool, default False
             Include the Hill's radius with the input files .
-            Parameter input file equivalent: `RHILL_PRESENT`
+            Parameter input file equivalent is `RHILL_PRESENT`
         restart : bool, default False
             If true, will restart an old run. The file given by `output_file_name` must exist before the run can
             execute. If false, will start a new run. If the file given by `output_file_name` exists, it will be replaced
             when the run is executed.
-            Parameter input file equivalent: `OUT_STAT`
+            Parameter input file equivalent is `OUT_STAT`
         interaction_loops : {"TRIANGULAR","FLAT"}, default "TRIANGULAR"
-            > *Swiftest Experimental feature*
+            *Swiftest Experimental feature*
             Specifies which algorithm to use for the computation of body-body gravitational forces.
-            * "TRIANGULAR" : Upper-triangular double-loops .
-            * "FLAT" : Body-body interation pairs are flattened into a 1-D array.
-            Parameter input file equivalent: `INTERACTION_LOOPS`
+            
+            * "TRIANGULAR" - Upper-triangular double-loops.
+            * "FLAT" - Body-body interation pairs are flattened into a 1-D array.
+            
+            Parameter input file equivalent is `INTERACTION_LOOPS`
         encounter_check_loops : {"TRIANGULAR","SORTSWEEP"}, default "TRIANGULAR"
-            > *Swiftest Experimental feature*
+            *Swiftest Experimental feature*
             Specifies which algorithm to use for checking whether bodies are in a close encounter state or not.
-            * "TRIANGULAR" : Upper-triangular double-loops.
-            * "SORTSWEEP" : A Sort-Sweep algorithm is used to reduce the population of potential close encounter bodies.
+            
+            * "TRIANGULAR" - Upper-triangular double-loops.
+            * "SORTSWEEP" - A Sort-Sweep algorithm is used to reduce the population of potential close encounter bodies.
               This algorithm is still in development, and does not necessarily speed up the encounter checking.
               Use with caution.
-            Parameter input file equivalent: `ENCOUNTER_CHECK`
+              
+            Parameter input file equivalent is `ENCOUNTER_CHECK`
         dask : bool, default False
             Use Dask to lazily load data (useful for very large datasets)
         coarray : bool, default False
             If true, will employ Coarrays on test particle structures to run in single program/multiple data parallel mode. 
-            *Note" In order to use this capability, Swiftest must be compiled for Coarray support. Only certain integrators
-            can use Coarrays: RMVS, WHM, Helio are all compatible, but SyMBA is not, due to the way tp-pl close encounters 
-            are handeled.
+            In order to use this capability, Swiftest must be compiled for Coarray support. Only certain integrators can use 
+            Coarrays. RMVS, WHM, Helio are all compatible, but SyMBA is not, due to the way tp-pl close encounters are handeled.
         verbose : bool, default True
             If set to True, then more information is printed by Simulation methods as they are executed. Setting to
             False suppresses most messages other than errors.
-            Parameter input file equivalent: None
+            Parameter input file equivalent is None
         """
 
         self._getter_column_width = 32
@@ -388,25 +413,31 @@ class Simulation(object):
         """
         Internal callable function that executes the swiftest_driver run
         """
+        from ._bindings import driver
 
         with _cwd(self.simdir):
             driver(self.integrator,str(self.param_file), "progress")
 
         return
 
-    def run(self,dask: bool = False, **kwargs):
+    def run(self,
+            dask: bool = False, 
+            **kwargs: Any
+            ) -> None:
         """
         Runs a Swiftest integration. Uses the parameters set by the `param` dictionary unless overridden by keyword
         arguments. Accepts any keyword arguments that can be passed to `set_parameter`.
 
         Parameters
         ----------
-        **kwargs : Any valid keyword arguments accepted by `set_parameter`
+        dask : bool, default False
+            If true, will use Dask to lazily load data (useful for very large datasets)
+        **kwargs : Any
+            Any valid keyword arguments accepted by `set_parameter`
 
         Returns
         -------
         None
-
         """
 
         if len(kwargs) > 0:
@@ -434,7 +465,10 @@ class Simulation(object):
 
         return
 
-    def _get_valid_arg_list(self, arg_list: str | List[str] | None = None, valid_var: Dict | None = None):
+    def _get_valid_arg_list(self, 
+                            arg_list: str | List[str] | None = None, 
+                            valid_var: Dict | None = None
+                            ) -> Tuple[List[str], Dict]:
         """
         Internal function for getters that extracts subset of arguments that is contained in the dictionary of valid
         argument/parameter variable pairs.
@@ -455,7 +489,6 @@ class Simulation(object):
         param : dict
             A dictionary that is the subset of the Simulation parameter dictionary corresponding to the arguments listed
             in arg_list.
-
         """
 
         if arg_list is None:
@@ -487,9 +520,11 @@ class Simulation(object):
                             dump_cadence: int | None = None,
                             verbose: bool | None = None,
                             **kwargs: Any
-                            ):
+                            ) -> Dict[str, Any]:
         """
-
+        Set the parameters that control how a simulation is run, such as start and stop time, step size, and the cadence of output
+        to both the screen and to file. Returns a dictionary of the parameters that were set.
+        
         Parameters
         ----------
         t0 : float, optional
@@ -501,23 +536,31 @@ class Simulation(object):
         dt : float, optional
             The step size of the simulation. `dt` must be less than or equal to `tstop-dstart`.
         istep_out : int, optional
-            The number of time steps between output saves to file. *Note*: only `istep_out` or `tstep_out` can be set.
-            Parameter input file equivalent: `ISTEP_OUT`
+            The number of time steps between output saves to file. Only `istep_out` or `tstep_out` can be set.
+            Parameter input file equivalent is `ISTEP_OUT`
         tstep_out : float, optional
-            The approximate time between when outputs are written to file. Passing this computes
-            `istep_out = floor(tstep_out/dt)`. *Note*: only `istep_out` or `tstep_out` can be set.
-            Parameter input file equivalent: None 
+            The approximate time between when outputs are written to file. Passing this computes::
+            
+                `istep_out = floor(tstep_out/dt)`. 
+            
+            Only `istep_out` or `tstep_out` can be set.
+            Parameter input file equivalent is None 
         nstep_out : int, optional
             The total number of times that outputs are written to file. Passing this allows for a geometric progression of output steps:
-            `TSTART, f**0 * TSTEP_OUT, f**1 * TSTEP_OUT, f**2 * TSTEP_OUT, ..., f**(nstep_out-1) * TSTEP_OUT`, 
-            where `f` is a factor that can stretch (or shrink) the time between outputs. Setting `nstep_out = int((tstart - tstop) / (tstep_out))` is
-            equivalent to the standard linear output (i.e. `f==1`) and is the same as not passing anything for this argument. 
-            *Note*: Passing `nstep_out` requires passing either `istep_out` or `tstep_out` as well.     
+            
+                TSTART, f**0 * TSTEP_OUT, f**1 * TSTEP_OUT, f**2 * TSTEP_OUT, ..., f**(nstep_out-1) * TSTEP_OUT
+                
+            where `f` is a factor that can stretch (or shrink) the time between outputs. Setting::
+            
+                nstep_out = int((tstart - tstop) / (tstep_out))
+                
+            is equivalent to the standard linear output (i.e. `f==1`) and is the same as not passing anything for this argument. 
+            Passing `nstep_out` requires passing either `istep_out` or `tstep_out` as well.     
         dump_cadence : int, optional
             The number of output steps (given by `istep_out`) between when the saved data is dumped to a file. Setting it to 0
             is equivalent to only dumping data to file at the end of the simulation. Default value is 10.
-            Parameter input file equivalent: `DUMP_CADENCE`
-        verbose: bool, optional
+            Parameter input file equivalent is `DUMP_CADENCE`
+        verbose : bool,optional
             If passed, it will override the Simulation object's verbose flag
         **kwargs
             A dictionary of additional keyword argument. This allows this method to be called by the more general
@@ -527,8 +570,8 @@ class Simulation(object):
         -------
         time_dict : dict
            A dictionary containing the requested parameters
-
         """
+        
         if t0 is None and tstart is None and tstop is None and dt is None and istep_out is None and \
                 tstep_out is None and dump_cadence is None:
             return {}
@@ -615,9 +658,12 @@ class Simulation(object):
 
         return time_dict
 
-    def get_simulation_time(self, arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs):
+    def get_simulation_time(self, 
+                            arg_list: str | List[str] | None = None, 
+                            verbose: bool | None = None, 
+                            **kwargs: Any
+                            ) -> Dict[str, Any]:
         """
-
         Returns a subset of the parameter dictionary containing the current simulation time parameters.
         If the verbose option is set in the Simulation object, then it will also print the values.
 
@@ -627,18 +673,16 @@ class Simulation(object):
             A single string or list of strings containing the names of the simulation time parameters to extract.
             Default is all of:
             ["t0", "tstart", "tstop", "dt", "istep_out", "tstep_out", "dump_cadence"]
-        verbose: bool, optional
+        verbose : bool,optional
             If passed, it will override the Simulation object's verbose flag
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
-
 
         Returns
         -------
         time_dict : dict
            A dictionary containing the requested parameters
-
         """
 
         valid_var = {"t0": "T0",
@@ -683,18 +727,26 @@ class Simulation(object):
 
         return time_dict
 
-    def set_parameter(self, verbose: bool = True, **kwargs):
+    def set_parameter(self, 
+                      verbose: bool = True, 
+                      **kwargs: Any
+                      ) -> Dict[str, Any]:
         """
         Setter for all possible parameters. This will call each of the specialized setters using keyword arguments.
         If no arguments are passed, then default values will be used.
+        
         Parameters
         ----------
-        **kwargs : Any argument listed listed in the Simulation class definition.
+        verbose : bool, default True
+            If set to True, then more information is printed by Simulation methods as they are executed. Setting to False suppresses
+            most messages other than errors.
+        **kwargs : Any
+            Any argument listed listed in the Simulation class definition.
 
         Returns
         -------
-        param : A dictionary of all Simulation parameters that changed
-
+        param : dict
+            A dictionary of all Simulation parameters that changed
         """
 
         default_arguments = {
@@ -780,17 +832,21 @@ class Simulation(object):
 
         return param_dict
 
-    def get_parameter(self, **kwargs):
+    def get_parameter(self, 
+                      **kwargs: Any
+                      ) -> Dict[str, Any]:
         """
         Setter for all possible parameters. Calls each of the specialized setters using keyword arguments
+        
         Parameters
         ----------
-        **kwargs : Any of the arguments defined in Simulation. If none provided, it returns all arguments.
+        **kwargs : Any
+            Any of the arguments defined in Simulation. If none provided, it returns all arguments.
 
         Returns
         -------
-        param : A dictionary of all Simulation parameters requested
-
+        param : dict
+            A dictionary of all Simulation parameters requested
         """
 
         # Getters returning parameter dictionary values
@@ -814,23 +870,26 @@ class Simulation(object):
                        gmtiny: float | None = None,
                        verbose: bool | None = None,
                        **kwargs: Any
-                       ):
+                       ) -> Dict[str, Any]:
         """
-
+        Sets the integrator to be used when running a simulation. Returns a dictionary of the parameters that were set.
+        
         Parameters
         ----------
         codename : {"swiftest", "swifter", "swift"}, optional
+            The name of the code to use. Case-insensitive valid options are swiftest, swifter, and swift. Currently only swiftest is
+            is supported for excuting runs with the run() method.
         integrator : {"symba","rmvs","whm","helio"}, optional
             Name of the n-body integrator that will be used when executing a run.
         mtiny : float, optional
             The minimum mass of fully interacting bodies. Bodies below this mass interact with the larger bodies,
-            but not each other (SyMBA only). *Note.* Only mtiny or gmtiny is accepted, not both.
+            but not each other (SyMBA only). Only mtiny or gmtiny is accepted, not both.
         gmtiny : float, optional
             The minimum G*mass of fully interacting bodies. Bodies below this mass interact with the larger bodies,
-            but not each other (SyMBA only). *Note.* Only mtiny or gmtiny is accepted, not both.
-        verbose: bool, optional
+            but not each other (SyMBA only). Only mtiny or gmtiny is accepted, not both.
+        verbose : bool,optional
             If passed, it will override the Simulation object's verbose flag
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
@@ -840,7 +899,6 @@ class Simulation(object):
             A dictionary containing the subset of the parameter dictonary that was updated by this setter
 
         """
-        # TODO: Improve how it finds the executable binary
 
         update_list = []
         
@@ -891,9 +949,11 @@ class Simulation(object):
 
         return integrator_dict
 
-    def get_integrator(self,arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs: Any):
+    def get_integrator(self,
+                       arg_list: str | List[str] | None = None, 
+                       verbose: bool | None = None, 
+                       **kwargs: Any) -> Dict[str, Any]:
         """
-
         Returns a subset of the parameter dictionary containing the current values of the distance range parameters.
         If the verbose option is set in the Simulation object, then it will also print the values.
 
@@ -902,9 +962,9 @@ class Simulation(object):
         arg_list: str | List[str], optional
             A single string or list of strings containing the names of the features to extract. Default is all of:
             ["integrator"]
-        verbose: bool, optional
+        verbose : bool, optional
             If passed, it will override the Simulation object's verbose flag
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
@@ -982,7 +1042,7 @@ class Simulation(object):
                     verbose: bool | None = None,
                     simdir: str | os.PathLike = None, 
                     **kwargs: Any
-                    ):
+                    ) -> Dict[str, Any]:
         """
         Turns on or off various features of a simulation.
 
@@ -997,28 +1057,27 @@ class Simulation(object):
             If set to "CLOSEST", the position  and velocities at the point of closest approach between pairs of bodies are 
             computed and stored to the encounter files. If set to "BOTH", then this stores the values that would be computed
             in "TRAJECTORY" and "CLOSEST". If set to "NONE" no trajectory information is saved.
-            *WARNING*: Enabling this feature could lead to very large files.
+            WARNING - Enabling this feature could lead to very large files.
         general_relativity : bool, optional
             Include the post-Newtonian correction in acceleration calculations.
-        collision_model: {"MERGE","BOUNCE","FRAGGLE"}, default "MERGE"
-            This is used to set the collision/fragmentation model. [TODO: DESCRIBE THESE] 
-            This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
-            Parameter input file equivalent: `COLLISION_MODEL`
+        collision_model : {"MERGE","BOUNCE","FRAGGLE"}, default "MERGE"
+            This is used to set the collision/fragmentation model.  This argument only applies to Swiftest-SyMBA simulations. It 
+            will be ignored otherwise. Parameter input file equivalent is `COLLISION_MODEL`
         minimum_fragment_gmass : float, optional
             If fragmentation is turned on, this sets the mimimum G*mass of a collisional fragment that can be generated if a 
             fragmentation model is enabled. Ignored otherwise.
-            *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
-            Parameter input file equivalent: None
+            Only set one of minimum_fragment_gmass or minimum_fragment_mass
+            Parameter input file equivalent is None
         minimum_fragment_mass : float, optional
             If fragmentation is turned on, this sets the mimimum mass of a collisional fragment that can be generated. if a 
             fragmentation model is enabled. Ignored otherwise
-            *Note.* Only set one of minimum_fragment_gmass or minimum_fragment_mass
-            Parameter input file equivalent: `MIN_GMFRAG`
+            Only set one of minimum_fragment_gmass or minimum_fragment_mass
+            Parameter input file equivalent is `MIN_GMFRAG`
         nfrag_reduction : float, optional
             If fragmentation is turne don, this is a reduction factor used to limit the number of fragments generated in a collision.
             For instance, if the SFD of the collision would generated 300 fragments above the `minimum_fragment_mass`, then a value
             of `nfrag_reduction = 30.0` would reduce it to 10.  
-            *Note.* Currently only used by the Fraggle collision model. 
+            Currently only used by the Fraggle collision model. 
         rotation : bool, optional
             If set to True, this turns on rotation tracking and radius, rotation vector, and moments of inertia values
             must be included in the initial conditions.
@@ -1026,45 +1085,49 @@ class Simulation(object):
         compute_conservation_values : bool, optional
             Turns on the computation of energy, angular momentum, and mass conservation and reports the values
             every output step of a running simulation.
-        extra_force: bool, optional
+        extra_force : bool, optional
             Turns on user-defined force function.
-        big_discard: bool, optional
+        big_discard : bool, optional
             Includes big bodies when performing a discard (Swifter only)
-        rhill_present: bool, optional
+        rhill_present : bool, optional
             Include the Hill's radius with the input files.
         interaction_loops : {"TRIANGULAR","FLAT"}, default "TRIANGULAR"
             *Swiftest Experimental feature*
             Specifies which algorithm to use for the computation of body-body gravitational forces.
+            
             * "TRIANGULAR" : Upper-triangular double-loops .
             * "FLAT" : Body-body interation pairs are flattened into a 1-D array.
+            
         encounter_check_loops : {"TRIANGULAR","SORTSWEEP"}, default "TRIANGULAR"
             *Swiftest Experimental feature*
             Specifies which algorithm to use for checking whether bodies are in a close encounter state or not.
+            
             * "TRIANGULAR" : Upper-triangular double-loops.
             * "SORTSWEEP" : A Sort-Sweep algorithm is used to reduce the population of potential close encounter bodies.
               This algorithm is still in development, and does not necessarily speed up the encounter checking.
               Use with caution.
+              
         coarray : bool, default False
             If true, will employ Coarrays on test particle structures to run in single program/multiple data parallel mode. 
-            *Note" In order to use this capability, Swiftest must be compiled for Coarray support. Only certain integrators
+            In order to use this capability, Swiftest must be compiled for Coarray support. Only certain integrators
             can use Coarrays: RMVS, WHM, Helio are all compatible, but SyMBA is not, due to the way tp-pl close encounters 
             are handeled.           
-        tides: bool, optional
+        tides : bool, optional
             Turns on tidal model (IN DEVELOPMENT - IGNORED)
-        Yarkovsky: bool, optional
+        Yarkovsky : bool, optional
             Turns on Yarkovsky model (IN DEVELOPMENT - IGNORED)
-        YORP: bool, optional
+        YORP : bool, optional
             Turns on YORP model (IN DEVELOPMENT - IGNORED)
         restart : bool, default False
             If true, will restart an old run. The file given by `output_file_name` must exist before the run can
             execute. If false, will start a new run. If the file given by `output_file_name` exists, it will be replaced
             when the run is executed.
-        simdir: PathLike, optional
+        simdir : PathLike, optional
             Directory where simulation data will be stored, including the parameter file, initial conditions file, output file,
             dump files, and log files. 
-        verbose: bool, optional
+        verbose : bool,optional
             If passed, it will override the Simulation object's verbose flag
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
@@ -1072,7 +1135,6 @@ class Simulation(object):
         -------
         feature_dict : dict
             A dictionary containing the requested features.
-
         """
 
         update_list = []
@@ -1207,20 +1269,22 @@ class Simulation(object):
         feature_dict = self.get_feature(update_list, verbose)
         return feature_dict
 
-    def get_feature(self, arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs: Any):
+    def get_feature(self, 
+                    arg_list: str | List[str] | None = None, 
+                    verbose: bool | None = None,
+                    **kwargs: Any) -> Dict[str, Any]:
         """
-
         Returns a subset of the parameter dictionary containing the current value of the feature boolean values.
         If the verbose option is set in the Simulation object, then it will also print the values.
 
         Parameters
         ----------
-        arg_list: str | List[str], optional
+        arg_list : str | List[str], optional
             A single string or list of strings containing the names of the features to extract. Default is all of:
             ["close_encounter_check", "general_relativity", "collision_model", "rotation", "compute_conservation_values"]
-        verbose: bool, optional
-            If passed, it will override the Simulation object's verbose flag
-        **kwargs
+        verbose : bool, optional
+            If passed, it will override the Simulation object's verbose flag.
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
@@ -1228,7 +1292,6 @@ class Simulation(object):
         -------
         feature_dict : dict
            A dictionary containing the requested features.
-
         """
 
         valid_var = {"close_encounter_check": "CHK_CLOSE",
@@ -1275,37 +1338,42 @@ class Simulation(object):
                             init_cond_format: Literal["EL", "XV"] | None = None,
                             verbose: bool | None = None,
                             **kwargs: Any
-                            ):
+                            ) -> Dict[str, Any]:
         """
         Sets the initial condition file parameters in the parameters dictionary.
 
         Parameters
         ----------
         init_cond_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"}, optional
-            The file type containing initial conditions for the simulation:
+            The file type containing initial conditions for the simulation
+            
             * NETCDF_DOUBLE: A single initial conditions input file in NetCDF file format of type NETCDF_DOUBLE
             * NETCDF_FLOAT: A single initial conditions input file in NetCDF file format of type NETCDF_FLOAT
-            * ASCII : Three initial conditions files in ASCII format. The individual files define the central body,
-            massive body, and test particle initial conditions.
+            * ASCII : Three initial conditions files in ASCII format. The individual files define the central body, massive body, and test particle initial conditions.
+            
         init_cond_file_name : str, path-like, or dict, optional
             Name of the input initial condition file or files. Whether to pass a single file name or a dictionary
             depends on the argument passed to `init_cond_file_type`: If `init_cond_file_type={"NETCDF_DOUBLE","NETCDF_FLOAT"}`,
-            then this will be a single file name. If `init_cond_file_type="ASCII"` then this must be a dictionary where:
-            ```init_cond_file_name = {
-                                      "CB" : *path to central body initial conditions file* (Swiftest only),
-                                      "PL" : *path to massive body initial conditions file*,
-                                      "TP" : *path to test particle initial conditions file*
-                                      }```
+            then this will be a single file name. If `init_cond_file_type="ASCII"` then this must be a dictionary where::
+            
+                init_cond_file_name = {
+                    "CB" : *path to central body initial conditions file* (Swiftest only),
+                    "PL" : *path to massive body initial conditions file*,
+                    "TP" : *path to test particle initial conditions file*
+                    }
+                    
             If no file name is provided then the following default file names will be used.
+            
             * NETCDF_DOUBLE, NETCDF_FLOAT: `init_cond_file_name = "init_cond.nc"`
             * ASCII: `init_cond_file_name = {"CB" : "cb.in", "PL" : "pl.in", "TP" : "tp.in"}`
+            
         init_cond_format : {"EL", "XV"}
             Indicates whether the input initial conditions are given as orbital elements or cartesian position and
             velocity vectors.
-            > *Note:* If `codename` is "Swift" or "Swifter", EL initial conditions are converted to XV.
-        verbose: bool, optional
+            If `codename` is "Swift" or "Swifter", EL initial conditions are converted to XV.
+        verbose : bool, optional
             If passed, it will override the Simulation object's verbose flag
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
@@ -1313,7 +1381,6 @@ class Simulation(object):
         -------
         init_cond_file_dict : dict
            A dictionary containing the requested parameters
-
         """
 
         update_list = []
@@ -1410,9 +1477,11 @@ class Simulation(object):
 
         return init_cond_file_dict
 
-    def get_init_cond_files(self, arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs):
+    def get_init_cond_files(self, 
+                            arg_list: str | List[str] | None = None, 
+                            verbose: bool | None = None, 
+                            **kwargs: Any) -> Dict[str, Any]:
         """
-
         Returns a subset of the parameter dictionary containing the current initial condition file parameters
         If the verbose option is set in the Simulation object, then it will also print the values.
 
@@ -1422,18 +1491,16 @@ class Simulation(object):
             A single string or list of strings containing the names of the simulation time parameters to extract.
             Default is all of:
             ["init_cond_file_type", "init_cond_file_name", "init_cond_format"]
-        verbose: bool, optional
+        verbose : bool, optional
             If passed, it will override the Simulation object's verbose flag
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
-
 
         Returns
         -------
         init_cond_file_dict : dict
            A dictionary containing the requested parameters
-
         """
 
         valid_var = {"init_cond_file_type": "IN_TYPE",
@@ -1492,7 +1559,7 @@ class Simulation(object):
                          restart: bool | None = None,
                          verbose: bool | None = None,
                          **kwargs: Any
-                         ):
+                         ) -> Dict[str, Any]:
         """
         Sets the output file parameters in the parameter dictionary.
 
@@ -1500,9 +1567,11 @@ class Simulation(object):
         ----------
         output_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT","REAL4","REAL8","XDR4","XDR8"}, optional
             The file type for the outputs of the simulation. Compatible file types depend on the `codename` argument.
+            
             * Swiftest: Only "NETCDF_DOUBLE" or "NETCDF_FLOAT" supported.
             * Swifter: Only "REAL4","REAL8","XDR4" or "XDR8"  supported.
             * Swift: Only "REAL4" supported.
+            
         output_file_name : str or path-like, optional
             Name of output file to generate. If not supplied, then one of the default file names are used, depending on
             the value passed to `output_file_type`. If one of the NetCDF types are used, the default is "data.nc".
@@ -1510,11 +1579,11 @@ class Simulation(object):
         output_format : {"XV","XVEL"}, optional
             Specifies the format for the data saved to the output file. If "XV" then cartesian position and velocity
             vectors for all bodies are stored. If "XVEL" then the orbital elements are also stored.
-        restart: bool, optional
+        restart : bool, optional
             Indicates whether this is a restart of an old run or a new run.
-        verbose: bool, optional
+        verbose : bool, optional
             If passed, it will override the Simulation object's verbose flag
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
@@ -1522,7 +1591,6 @@ class Simulation(object):
         -------
         output_file_dict : dict
            A dictionary containing the requested parameters
-
         """
         update_list = []
         if output_file_type is not None:
@@ -1586,9 +1654,12 @@ class Simulation(object):
 
         return output_file_dict
 
-    def get_output_files(self, arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs):
+    def get_output_files(self, 
+                         arg_list: str | List[str] | None = None, 
+                         verbose: bool | None = None, 
+                         **kwargs: Any
+                         ) -> Dict[str, Any]:
         """
-
         Returns a subset of the parameter dictionary containing the current output file parameters
         If the verbose option is set in the Simulation object, then it will also print the values.
 
@@ -1598,12 +1669,11 @@ class Simulation(object):
             A single string or list of strings containing the names of the simulation time parameters to extract.
             Default is all of:
             ["output_file_type", "output_file_name", "output_format"]
-        verbose: bool, optional
+        verbose : bool,optional
             If passed, it will override the Simulation object's verbose flag
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
-
 
         Returns
         -------
@@ -1642,13 +1712,15 @@ class Simulation(object):
                         TU_name: str | None = None,
                         recompute_unit_values: bool = True,
                         verbose: bool | None = None,
-                        **kwargs: Any):
+                        **kwargs: Any
+                        ) -> Dict[str, Any]:
         """
         Setter for setting the unit conversion between one of the standard sets.
 
-        The units can be set one of two ways:
-        1) The user can supply string values to the arguments MU, DU, and TU to select between common systems
-        2) The user can supply float values to the arguments MU2KG, DU2M, and TU2S to manually set the conversion
+        The units can be set one of two ways
+        
+        #. The user can supply string values to the arguments MU, DU, and TU to select between common systems
+        #. The user can supply float values to the arguments MU2KG, DU2M, and TU2S to manually set the conversion
            factor between the desired unit and the SI unit (kg-m-s).
 
         The two sets of arguments are mutually exclusive. Any values passed to MU2KG, DU2M, or TU2S will override any
@@ -1657,24 +1729,30 @@ class Simulation(object):
         Parameters
         ----------
         MU : str, optional
-           The mass unit system to use. Case-insensitive valid options are:
-           "Msun"   : Solar mass
-           "Mearth" : Earth mass
-           "kg"     : kilograms
-           "g"      : grams
+           The mass unit system to use. Case-insensitive valid options are
+           
+           * "Msun"   - Solar mass
+           * "Mearth" - Earth mass
+           * "kg"     - kilograms
+           * "g"      - grams
+           
         DU : str, optional
-            The distance unit system to use. Case-insensitive valid options are:
-            "AU"     : Astronomical Unit
-            "Rearth" : Earth radius
-            "m"      : meter
-            "cm"     : centimeter
+            The distance unit system to use. Case-insensitive valid options are
+            
+            * "AU"     - Astronomical Unit
+            * "Rearth" - Earth radius
+            * "m"      - meter
+            * "cm"     - centimeter
+            
         TU : str, optional
-            The time unit system to use. Case-insensitive valid options are:
-            "YR"     : Year
-            "DAY"    : Julian day
-            "d"      : Julian day
-            "JD"     : Julian day
-            "s"      : second
+            The time unit system to use. Case-insensitive valid options are
+            
+            * "YR"     - Year
+            * "DAY"    - Julian day
+            * "d"      - Julian day
+            * "JD"     - Julian day
+            * "s"      - second
+            
         MU2KG : float, optional
             The conversion factor to multiply by the mass unit that would convert it to kilogram.
             Setting this overrides MU
@@ -1695,12 +1773,12 @@ class Simulation(object):
             automatically set for the unit, so this argument will override the automatic name.
         recompute_unit_values : bool, default True
             Recompute all values into the new unit system.
-            >*Note:* This is a destructive operation, however if not executed then the values contained in the parameter
-            > file and input/output data files computed previously may not be consistent with the new unit conversion
-            > factors.
-        verbose: bool, optional
+            This is a destructive operation, however if not executed then the values contained in the parameter
+            file and input/output data files computed previously may not be consistent with the new unit conversion
+            factors.
+        verbose : bool, optional
             If passed, it will override the Simulation object's verbose flag
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
@@ -1818,15 +1896,18 @@ class Simulation(object):
                     MU2KG_old != self.param['MU2KG'] or \
                     DU2M_old != self.param['DU2M'] or \
                     TU2S_old != self.param['TU2S']:
-                self.update_param_units(MU2KG_old, DU2M_old, TU2S_old)
+                self._update_param_units(MU2KG_old, DU2M_old, TU2S_old)
 
         unit_dict = self.get_unit_system(update_list, verbose)
 
         return unit_dict
 
-    def get_unit_system(self, arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs):
+    def get_unit_system(self, 
+                        arg_list: str | List[str] | None = None, 
+                        verbose: bool | None = None, 
+                        **kwargs
+                        ) -> Dict[str, Any]:
         """
-
         Returns a subset of the parameter dictionary containing the current simulation unit system.
         If the verbose option is set in the Simulation object, then it will also print the values.
 
@@ -1834,9 +1915,10 @@ class Simulation(object):
         ----------
         arg_list : str | List[str], optional
             A single string or list of strings containing the names of the simulation unit system
-            Default is all of:
-            ["MU", "DU", "TU"]
-        **kwargs
+            Default is all of ["MU", "DU", "TU"]
+        verbose : bool, optional
+            If passed, it will override the Simulation object's verbose flag
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
@@ -1890,20 +1972,22 @@ class Simulation(object):
 
         return unit_dict
 
-    def update_param_units(self, MU2KG_old, DU2M_old, TU2S_old):
+    def _update_param_units(self, MU2KG_old, DU2M_old, TU2S_old):
         """
         Updates the values of parameters that have units when the units have changed.
 
         Parameters
         ----------
-        MU2KG_old : Old value of the mass unit conversion factor
-        DU2M_old :  Old value of the distance unit conversion factor
-        TU2S_old :  Old value of the time unit conversion factor
+        MU2KG_old : float
+            Old value of the mass unit conversion factor
+        DU2M_old : float
+            Old value of the distance unit conversion factor
+        TU2S_old : float
+            Old value of the time unit conversion factor
 
         Returns
         -------
         Updates the set of param dictionary values for the new unit system
-
         """
 
         mass_keys = ['GMTINY', 'MIN_GMFRAG']
@@ -1939,7 +2023,8 @@ class Simulation(object):
                            rmax: float | None = None,
                            qmin_coord: Literal["HELIO","BARY"] | None = None,
                            verbose: bool | None = None,
-                           **kwargs: Any):
+                           **kwargs: Any
+                           ) -> Dict[str, Any]:
         """
         Sets the minimum and maximum distances of the simulation.
 
@@ -1951,7 +2036,9 @@ class Simulation(object):
             Maximum distance of the simulation (CHK_RMAX, CHK_QMIN_RANGE[1])
         qmin_coord : str, {"HELIO", "BARY"}
             coordinate frame to use for CHK_QMIN
-        **kwargs
+        verbose : bool, optional
+            If passed, it will override the Simulation object's verbose flag
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
@@ -1959,7 +2046,6 @@ class Simulation(object):
         -------
         range_dict : dict
            A dictionary containing the requested parameters.
-
         """
         if rmax is None and rmin is None and qmin_coord is None:
             return {}
@@ -1995,20 +2081,22 @@ class Simulation(object):
 
         return range_dict
 
-    def get_distance_range(self, arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs: Any):
+    def get_distance_range(self, 
+                           arg_list: str | List[str] | None = None, 
+                           verbose: bool | None = None, 
+                           **kwargs: Any
+                           ) -> Dict[str, Any]:
         """
-
         Returns a subset of the parameter dictionary containing the current values of the distance range parameters.
         If the verbose option is set in the Simulation object, then it will also print the values.
 
         Parameters
         ----------
-        arg_list: str | List[str], optional
-            A single string or list of strings containing the names of the features to extract. Default is all of:
-            ["rmin", "rmax"]
-        verbose: bool, optional
+        arg_list : str | List[str], optional
+            A single string or list of strings containing the names of the features to extract. Default is all of ["rmin", "rmax"]
+        verbose : bool,optional
             If passed, it will override the Simulation object's verbose flag
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
@@ -2016,7 +2104,6 @@ class Simulation(object):
         -------
         range_dict : dict
            A dictionary containing the requested parameters.
-
         """
 
         valid_var = {"rmin": "CHK_RMIN",
@@ -2063,7 +2150,8 @@ class Simulation(object):
                               ephemeris_id: int | List[int] | None = None,
                               date: str | None = None,
                               source: str = "HORIZONS", 
-                              **kwargs: Any):
+                              **kwargs: Any
+                              ) -> None:
         """
         Adds a solar system body to an existing simulation Dataset from the JPL Horizons ephemeris service. The JPL Horizons service
         will be searched for a body matching the string passed by `name`, or alternatively `ephemeris_id` if passed. Bodies will be
@@ -2090,9 +2178,10 @@ class Simulation(object):
             set by `set_ephemeris_date`.
         source : str, default "Horizons"
             The source of the ephemerides.
-            >*Note.* Currently only the JPL Horizons ephemeris is implemented, so this is ignored.
-        **kwargs: Any
+             Currently only the JPL Horizons ephemeris is implemented, so this is ignored.
+        **kwargs : Any
             Additional keyword arguments to pass to the query method (i.e. astroquery.Horizons)
+            
         Returns
         -------
         None
@@ -2187,24 +2276,27 @@ class Simulation(object):
     def set_ephemeris_date(self,
                           ephemeris_date: str | None = None,
                           verbose: bool | None = None,
-                          **kwargs: Any):
+                          **kwargs: Any
+                          ) -> str:
         """
-
+        Sets the date to use when obtaining the ephemerides.
+        
         Parameters
         ----------
         ephemeris_date : str, optional
             Date to use when obtaining the ephemerides.
             Valid options are "today", "MBCL", or date in the format YYYY-MM-DD.
-        verbose: bool, optional
+        verbose : bool, optional
             If passed, it will override the Simulation object's verbose flag
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
-        Sets the `ephemeris_date` instance variable.
-
+        ephemeris_date : str
+            The ISO-formatted date string for the ephemeris computation.
+            Also Sets the `ephemeris_date` instance variable.
         """
 
         if ephemeris_date is None:
@@ -2235,27 +2327,29 @@ class Simulation(object):
 
         return ephemeris_date
 
-    def get_ephemeris_date(self, arg_list: str | List[str] | None = None, verbose: bool | None = None, **kwargs: Any):
+    def get_ephemeris_date(self, 
+                           arg_list: str | List[str] | None = None, 
+                           verbose: bool | None = None, 
+                           **kwargs: Any
+                           ) -> str:
         """
-
-        Prints the current value of the ephemeris date
+        Prints the current value of the ephemeris date.
 
         Parameters
         ----------
-        arg_list: str | List[str], optional
+        arg_list : str | List[str], optional
             A single string or list of strings containing the names of the features to extract. Default is all of:
             ["integrator"]
-        verbose: bool, optional
+        verbose : bool, optional
             If passed, it will override the Simulation object's verbose flag
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
-        ephemeris_date: str
+        ephemeris_date : str
             The ISO-formatted date string for the ephemeris computation
-
         """
 
         try:
@@ -2270,27 +2364,30 @@ class Simulation(object):
 
         return ephemeris_date
 
-    def _get_instance_var(self, arg_list: str | List[str], valid_arg: Dict, verbose: bool | None = None, **kwargs: Any):
+    def _get_instance_var(self, 
+                          arg_list: str | List[str], valid_arg: Dict, 
+                          verbose: bool | None = None, 
+                          **kwargs: Any
+                          ) -> Tuple[Any, ...]:
         """
-
         Prints the current value of an instance variable.
 
         Parameters
         ----------
-        arg_list: str | List[str]
+        arg_list : str | List[str]
             A single string or list of strings containing the names of the the instance variable to get.
-        valid_arg: dict
+        valid_arg : dict
             A dictionary where the key is the parameter argument and the value is the equivalent instance variable value.
-        verbose: bool, optional
+        verbose : bool,optional
             If passed, it will override the Simulation object's verbose flag
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             get_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
         -------
-        Tuple of instance variable values given by the arg_list
-
+        Tuple[Any, ...]
+            Instance variable values given by the arg_list
         """
 
         arg_vals = []
@@ -2324,8 +2421,8 @@ class Simulation(object):
                  rot: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None=None,
                  Ip: List[float] | npt.NDArray[np.float_] | None=None,
                  J2: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 J4: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 c_lm: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None):
+                 J4: float | List[float] | npt.NDArray[np.float_] | None=None
+                 ) -> None:
         """
         Adds a body (test particle or massive body) to the internal DataSet given a set up 6 vectors (orbital elements
         or cartesian state vectors, depending on the value of self.param). Input all angles in degress.
@@ -2335,50 +2432,43 @@ class Simulation(object):
         Parameters
         ----------
         name : str or array-like of str, optional
-        Name or names of Bodies. If none passed, name will be "Body<idval>"
+            Name or names of Bodies. If none passed, name will be "Body<idval>"
         id : int or array-like of int, optional
-        Unique id values. If not passed, an id will be assigned in ascending order starting from the pre-existing
-        Dataset ids.
+            Unique id values. If not passed, an id will be assigned in ascending order starting from the pre-existing
+            Dataset ids.
         a : float or array-like of float, optional
-        semimajor axis for param['IN_FORM'] == "EL"
+            semimajor axis for param['IN_FORM'] == "EL"
         e : float or array-like of float, optional
-        eccentricity  for param['IN_FORM'] == "EL"
+            eccentricity  for param['IN_FORM'] == "EL"
         inc : float or array-like of float, optional
-        inclination for param['IN_FORM'] == "EL"
+            inclination for param['IN_FORM'] == "EL"
         capom : float or array-like of float, optional
-        longitude of ascending node for param['IN_FORM'] == "EL"
+            longitude of ascending node for param['IN_FORM'] == "EL"
         omega : float or array-like of float, optional
-        argument of periapsis for param['IN_FORM'] == "EL"
+            argument of periapsis for param['IN_FORM'] == "EL"
         capm : float or array-like of float, optional
-        mean anomaly for param['IN_FORM'] == "EL"
+            mean anomaly for param['IN_FORM'] == "EL"
         rh : (n,3) array-like of float, optional
-        Position vector array.
+            Position vector array.
         vh : (n,3) array-like of float, optional
-        Velocity vector array.
+            Velocity vector array.
         mass : float or array-like of float, optional
-        mass values if these are massive bodies (only one of mass or Gmass can be passed)
+            mass values if these are massive bodies (only one of mass or Gmass can be passed)
         Gmass : float or array-like of float, optional
-        G*mass values if these are massive bodies (only one of mass or Gmass can be passed)
+            G*mass values if these are massive bodies (only one of mass or Gmass can be passed)
         radius : float or array-like of float, optional
-        Radius values if these are massive bodies
+            Radius values if these are massive bodies
         rhill : float or array-like of float, optional
-        Hill's radius values if these are massive bodies
-        rot: (3) or (n,3) array-like of float, optional
-        Rotation rate vectors if these are massive bodies with rotation enabled.
-        Ip: (3) or (n,3) array-like of float, optional
-        Principal axes moments of inertia vectors if these are massive bodies with rotation enabled.
-        J2: float, optional
-        J2 term of (central) body oblateness multiplied by radius^2.
-        J4: float, optional
-        J4 term of (central) body oblateness multiplied by radius^4.
-        c_lm: (2, l + 1, l + 1) array-like of float, optional
-        Gravitational spherical harmonics coefficients (ortho-normalization)
+            Hill's radius values if these are massive bodies
+        rot : (3) or (n,3) array-like of float, optional
+            Rotation rate vectors if these are massive bodies with rotation enabled.
+        Ip : (3) or (n,3) array-like of float, optional
+            Principal axes moments of inertia vectors if these are massive bodies with rotation enabled.
 
         Returns
         -------
-        data : Xarray Dataset
-        Dasaset containing the body or bodies that were added
-
+        None
+            Sets the data and init_cond instance variables each with an Xarray Dataset containing the body or bodies that were added
         """
 
         #convert all inputs to numpy arrays
@@ -2514,9 +2604,12 @@ class Simulation(object):
 
         return
 
-    def _combine_and_fix_dsnew(self,dsnew):
+    def _combine_and_fix_dsnew(self,
+                               dsnew: xr.Dataset
+                               ) -> xr.Dataset:
         """
         Combines the new Dataset with the old one. Also computes the values of ntp and npl and sets the proper types.
+        
         Parameters
         ----------
         dsnew : xarray Dataset
@@ -2526,8 +2619,8 @@ class Simulation(object):
         -------
         dsnew : xarray Dataset
             Updated Dataset with ntp, npl values and types fixed.
-
         """
+        
         if "id" not in self.data.dims:
             if len(np.unique(dsnew['name'])) == len(dsnew['name']):
                dsnew = dsnew.swap_dims({"id" : "name"})
@@ -2578,7 +2671,8 @@ class Simulation(object):
                    read_init_cond : bool | None = None,
                    verbose: bool | None = None,
                    dask: bool = False, 
-                   **kwargs : Any):
+                   **kwargs : Any
+                   ) -> bool:
         """
         Reads in an input parameter file and stores the values in the param dictionary.
         
@@ -2598,7 +2692,8 @@ class Simulation(object):
             
         Returns
         -------
-        True if the parameter file exists and is read correctly. False otherwise.
+        bool
+            True if the parameter file exists and is read correctly. False otherwise.
         """
         if param_file is None:
             param_file = self.simdir / self.param_file
@@ -2641,7 +2736,8 @@ class Simulation(object):
                     codename: Literal["Swiftest", "Swifter", "Swift"]  | None = None,
                     param_file: str | os.PathLike | None = None,
                     param: Dict | None = None,
-                    **kwargs: Any):
+                    **kwargs: Any
+                    ) -> None:
         """
         Writes to a param.in file and determines whether the output format needs to be converted between Swift/Swifter/Swiftest.
         
@@ -2652,9 +2748,9 @@ class Simulation(object):
             variable codename
         param_file : str or path-like, optional
             Alternative file name of the input parameter file. Defaults to current instance variable self.param_file
-        param: Dict, optional
+        param : Dict, optional
             An alternative parameter dictionary to write out. Defaults to the current instance variable self.param
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. These are ignored.
 
         Returns
@@ -2695,8 +2791,15 @@ class Simulation(object):
             
         return
 
-    def convert(self, param_file, newcodename="Swiftest", plname="pl.swiftest.in", tpname="tp.swiftest.in",
-                cbname="cb.swiftest.in", conversion_questions={}, dask = False):
+    def convert(self, 
+                param_file: str, 
+                newcodename: str="Swiftest", 
+                plname: str="pl.swiftest.in",
+                tpname: str="tp.swiftest.in",
+                cbname: str="cb.swiftest.in", 
+                conversion_questions: Dict={}, 
+                dask: bool=False
+                ) -> xr.Dataset:
         """
         Converts simulation input files from one format to another (Swift, Swifter, or Swiftest). 
 
@@ -2720,7 +2823,7 @@ class Simulation(object):
         Returns
         -------
         oldparam : xarray dataset
-        The old parameter configuration.
+            The old parameter configuration.
         """
         oldparam = self.param
         if self.codename == newcodename:
@@ -2751,7 +2854,10 @@ class Simulation(object):
             warnings.warn(f"Conversion from {self.codename} to {newcodename} is not supported.",stacklevel=2)
         return oldparam
 
-    def read_output_file(self,read_init_cond : bool = True, dask : bool = False):
+    def read_output_file(self,
+                         read_init_cond : bool = True, 
+                         dask : bool = False
+                         ) -> None:
         """
         Reads in simulation data from an output file and stores it as an Xarray Dataset in the `data` instance variable.
 
@@ -2761,9 +2867,11 @@ class Simulation(object):
             Read in an initial conditions file along with the output file. Default is True
         dask : bool, default False
             Use Dask to lazily load data (useful for very large datasets)
+            
         Returns
         -------
-        self.data : xarray dataset
+        None
+            Sets the data instance variable xarray dataset
         """
 
         # Make a temporary copy of the parameter dictionary so we can supply the absolute path of the binary file
@@ -2801,7 +2909,22 @@ class Simulation(object):
             warnings.warn('Cannot process unknown code type. Call the read_param method with a valid code name. Valid options are "Swiftest", "Swifter", or "Swift".',stacklevel=2)
         return
 
-    def read_encounter_file(self, dask=False):
+    def read_encounter_file(self, 
+                            dask: bool=False
+                            ) -> None:
+        """
+        Reads in an encounter history file and stores it as an Xarray Dataset in the `encounters` instance variable.
+        
+        Parameters
+        ----------
+        dask : bool, default False
+            Use Dask to lazily load data (useful for very large datasets)
+            
+        Returns
+        -------
+        None
+            Sets the encounters instance variable xarray dataset 
+        """
         enc_file = self.simdir / "encounters.nc"
         if not os.path.exists(enc_file):
            return
@@ -2821,7 +2944,22 @@ class Simulation(object):
 
         return
 
-    def read_collision_file(self, dask=False):
+    def read_collision_file(self, 
+                            dask: bool=False
+                            ) -> None:
+        """
+        Reads in a collision history file and stores it as an Xarray Dataset in the `collisions` instance variable.
+        
+        Parameters
+        ----------
+        dask : bool, default False
+            Use Dask to lazily load data (useful for very large datasets)
+        
+        Returns
+        -------
+        None
+            Sets the collisions instance variable xarray dataset 
+        """
        
         col_file = self.simdir / "collisions.nc"
         if not os.path.exists(col_file):
@@ -2839,18 +2977,22 @@ class Simulation(object):
 
         return
 
-    def follow(self, codestyle="Swifter", dask=False):
+    def follow(self, 
+               codestyle: str="Swifter", 
+               dask: bool=False
+               ) -> xr.Dataset:
         """
         An implementation of the Swift tool_follow algorithm. Under development. Currently only for Swift simulations. 
 
         Parameters
         ----------
-            codestyle : string
-                Name of the desired format (Swift/Swifter/Swiftest)
+        codestyle : str, default "Swifter"
+            Name of the desired format (Swift/Swifter/Swiftest)
 
         Returns
         -------
-            fol : xarray dataset
+        xarray dataset
+            Dataset containing the variables retrieved from the follow algorithm
         """
         if self.data is None:
             self.read_output_file(dask=dask)
@@ -2882,7 +3024,8 @@ class Simulation(object):
              param_file: str | os.PathLike | None = None,
              param: Dict | None = None,
              framenum: int = -1,
-             **kwargs: Any):
+             **kwargs: Any
+             ) -> None:
         """
         Saves an xarray dataset to a set of input files.
 
@@ -2893,11 +3036,11 @@ class Simulation(object):
             variable self.codename
         param_file : str or path-like, optional
             Alternative file name of the input parameter file. Defaults to current instance variable self.param_file
-        param: Dict, optional
+        param : Dict, optional
             An alternative parameter dictionary to write out. Defaults to the current instance variable self.param
         framenum : int Default=-1
             Time frame to use to generate the initial conditions. If this argument is not passed, the default is to use the last frame in the dataset.
-        **kwargs
+        **kwargs : Any
             A dictionary of additional keyword argument. These are ignored.
 
         Returns
@@ -2935,29 +3078,35 @@ class Simulation(object):
 
         return
 
-    def initial_conditions_from_bin(self, framenum=-1, new_param=None, new_param_file="param.new.in",
-                                    new_initial_conditions_file="bin_in.nc", restart=False, codename="Swiftest"):
+    def initial_conditions_from_bin(self, 
+                                    framenum: int=-1, 
+                                    new_param: os.PathLike=None, 
+                                    new_param_file: os.PathLike="param.new.in",
+                                    new_initial_conditions_file: os.PathLike="bin_in.nc", 
+                                    restart: bool=False, 
+                                    codename: str="Swiftest"
+                                    ) -> xr.Dataset:
         """
         Generates a set of input files from a old output file.
 
         Parameters
         ----------
-            framenum : integer (default=-1)
-                Time frame to use to generate the initial conditions. If this argument is not passed, the default is to use the last frame in the dataset.
-            new_param : string
-                File to copy parameters from. Default is the old parameter file.
-            new_param_file : string
-                Name of the new parameter file.
-            new_initial_conditions_file : string
-                Name of the new NetCDF file containing the new initial conditions.
-            restart : True or False
-                If True, overwrite the old output file. If False, generate a new output file.
-            codename : string
-                Name of the desired format (Swift/Swifter/Swiftest)
+        framenum : int (default=-1)
+            Time frame to use to generate the initial conditions. If this argument is not passed, the default is to use the last frame in the dataset.
+        new_param : PathLike, optional
+            File to copy parameters from. Default is the old parameter file.
+        new_param_file : PathLike, default "param.new.in"
+            Name of the new parameter file.
+        new_initial_conditions_file : PathLike, default "bin_in.nc"
+            Name of the new NetCDF file containing the new initial conditions.
+        restart : bool, default False
+            If True, overwrite the old output file. If False, generate a new output file.
+        codename : str, default "Swiftest"
+            Name of the desired format (Swift/Swifter/Swiftest)
 
         Returns
         -------
-        frame : NetCDF dataset
+        xarray dataset
             A dataset containing the extracted initial condition data.
         """
 
@@ -3003,6 +3152,14 @@ class Simulation(object):
     def clean(self):
         """
         Cleans up simulation directory by deleting old files (dump, logs, and output files).
+        
+        Parameters
+        ----------
+        None
+        
+        Returns
+        -------
+        None
         """
         old_files = [self.simdir / self.param['BIN_OUT'],
                      self.simdir / "fraggle.log",

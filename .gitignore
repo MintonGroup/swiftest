@@ -43,15 +43,19 @@ _dependencies
 !.readthedocs.yaml
 !docs/
 !docs/**/*
-docs/**/*.ai
 docs/_build/
 docs/_build/**/*
 docs/generated/
 docs/generated/**/*
 docs/**/*.DS_Store
 docs/**/*.swp
-
-
+docs/
+!docs/_static/**/*.png
+!docs/_static/**/*.svg
+**/*.ai
+docs/_static/fortran_docs/
+docs/_static/fortran_docs/*/**
+!fortran_docs.md
 !README_figs/*
 
 #Docker and Singularity files

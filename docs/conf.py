@@ -7,10 +7,10 @@ from contextlib import suppress
 import sphinx_autosummary_accessors
 from sphinx.application import Sphinx
 from sphinx.util import logging
-import os
 
+# Disable import of swiftest._bindings so that we don't have to build the Fortran code when building the docs
+autodoc_mock_imports = ['swiftest._bindings']
 import swiftest
-
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 project = 'Swiftest'
@@ -39,8 +39,6 @@ extensions = [
     "sphinx_copybutton",
     "sphinx_design",
     "sphinx_inline_tabs",
-    "sphinxfortran.fortran_domain",
-    "sphinxfortran.fortran_autodoc"
 ]
 
 
@@ -176,7 +174,3 @@ def html_page_context(app, pagename, templatename, context, doctree):
     # Disable edit button for docstring generated pages
     if "generated" in pagename:
         context["theme_use_edit_page_button"] = False
-
-fortran_src = [os.path.join(os.pardir, "fortran","*/*.f90")]
-fortran_ext = ["f90"]
-fortran_encoding = "utf-8"

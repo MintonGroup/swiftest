@@ -1,6 +1,6 @@
 [project]
 name = "swiftest"
-version = "2023.12.0"
+version = "2023.12.1"
 authors=[
     {name = 'David A. Minton', email='daminton@purdue.edu'},
     {name = 'Carlisle Wishard'},
@@ -36,7 +36,7 @@ dependencies = [
     'matplotlib>=3.7',
     'astropy>=5.2',
     'astroquery>=0.4.6',
-    'tqdm>=4.66',
+    'tqdm>=4.64.1',
     'cython>=3.0.0'
 ]
 
@@ -50,6 +50,7 @@ requires = [
     "cmake",
     "pyproject_metadata",
     "pytest",
+    "pathspec",
     "sphinx",
     "sphinx-autosummary-accessors",
     "sphinx-book-theme >= 0.3.0",
@@ -58,7 +59,8 @@ requires = [
     "sphinx-inline-tabs",
     "sphinxext-rediraffe",
     "sphinxext-opengraph",
-    "nbsphinx"
+    "nbsphinx",
+    "ford"
 ]
 build-backend = "scikit_build_core.build"
 
@@ -113,12 +115,7 @@ before-all = [
     "LIBS=\"\" buildscripts/build_dependencies.sh -p ${PREFIX} -d ${HOME}/Downloads -m ${MACOSX_DEPLOYMENT_TARGET}"
 ]
 
-[tool.cibuildwheel.linux]
-skip = "cp312-* pp* -manylinux_i686* *-musllinux*"
-before-all = [
-    "yum install doxygen libxml2-devel libcurl-devel -y",
-    "buildscripts/build_dependencies.sh -p /usr/local"
-]
+
 [tool.cibuildwheel.linux.environment]
 PREFIX="/usr/local"
 NCDIR="${PREFIX}"
@@ -135,6 +132,13 @@ netCDF-Fortran_DIR="${PREFIX}/lib/cmake/netCDF"
 HDF5_DIR="${HDF5_ROOT}/cmake"
 PATH="${HDF5_ROOT}/bin:${PATH}"
 CMAKE_INSTALL_LIBDIR="lib"
+
+[tool.cibuildwheel.linux]
+skip = "cp312-* pp* -manylinux_i686* *-musllinux*"
+before-all = [
+    "yum install doxygen libxml2-devel libcurl-devel -y",
+    "buildscripts/build_dependencies.sh -p /usr/local"
+]
 
 [[tool.scikit-build.generate]]
 path = "version.txt"

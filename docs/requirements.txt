@@ -6,7 +6,6 @@ sphinx-design
 sphinx-inline-tabs
 sphinxext-rediraffe
 sphinxext-opengraph
-sphinx-fortran
 nbsphinx
 ipython
-swiftest
+ford
