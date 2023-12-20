@@ -16,7 +16,7 @@ build:
   tools:
     python: "3.11"
   apt_packages:
-    - graphviz   
+    - graphviz
   jobs:
     pre_build:
       - ford fortran_docs.md 
