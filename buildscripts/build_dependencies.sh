@@ -28,7 +28,7 @@ if ! command -v ninja &> /dev/null; then
     printf "Copying files to ${DEPENDENCY_DIR}\n"
     mkdir -p ${DEPENDENCY_DIR}
     if [ ! -d ${DEPENDENCY_DIR}/ninja-${NINJA_VER} ]; then
-        [ -d ${DEPENDENCY_DIR}/zlib-* ] && rm -rf ${DEPENDENCY_DIR}/zlib-*
+        [ -d ${DEPENDENCY_DIR}/ninja-* ] && rm -rf ${DEPENDENCY_DIR}/ninja-*
         curl -L https://github.com/ninja-build/ninja/archive/refs/tags/v${NINJA_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
     fi
     cd ${DEPENDENCY_DIR}/ninja-*
