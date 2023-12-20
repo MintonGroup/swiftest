@@ -10,9 +10,11 @@ from sphinx.util import logging
 
 # Disable import of swiftest._bindings so that we don't have to build the Fortran code when building the docs
 autodoc_mock_imports = ['swiftest._bindings']
+# Check if we are building on Read the Docs
+on_rtd = os.environ.get('READTHEDOCS') == 'True'
 
-import swiftest
-
+if not on_rtd:
+    import swiftest
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
