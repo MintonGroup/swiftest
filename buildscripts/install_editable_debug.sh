@@ -3,7 +3,7 @@
 set -a
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
-VENV_DIR=${ROOT_DIR}/env
+VENV_DIR=${ROOT_DIR}/venv
 cd ${ROOT_DIR}
 python3 -m venv ${VENV_DIR}
 . ${VENV_DIR}/bin/activate
