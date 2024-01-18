@@ -66,7 +66,6 @@ ELSE()
         MESSAGE(FATAL_ERROR "Compiler ${CMAKE_Fortran_COMPILER_ID} not recognized!") 
     ENDIF ()
     FIND_PACKAGE(SHTOOLS REQUIRED)
-    FIND_PACKAGE(FFTW3 REQUIRED)
 
     # The following section is modified from Numpy f2py documentation
     IF(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
