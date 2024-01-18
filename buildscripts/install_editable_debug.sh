@@ -18,4 +18,4 @@ pip install --config-settings=editable.rebuild=true \
             -ve . 
 mkdir -p $HOME/.local/lib
 LIBFILE=$(realpath ${ROOT_DIR}/build/*/bin/*swiftest.*)
-ln -s $LIBFILE $HOME/.local/lib
+ln -fs $LIBFILE $HOME/.local/lib
