@@ -69,8 +69,8 @@ contains
 
       if (rot(1) == 0 .and. rot(2) == 0) then
          do i = 1, NDIM
-               rot_matrix(i, i) = 1.0
                rot_matrix_inv(i, i) = 1.0
+               rot_matrix(i, i) = 1.0
          end do
 
          return ! rotation axis is about the z-axis, no need to change
@@ -90,16 +90,16 @@ contains
       do i = 1, NDIM
          do j = 1, NDIM
             if (i == j) then
-               rot_matrix(i, j) = rot_matrix(i, j) + cos(theta) ! identity matrix
+               rot_matrix_inv(i, j) = rot_matrix_inv(i, j) + cos(theta) ! identity matrix
                continue
             end if
 
-            rot_matrix(i, j) = rot_matrix(i, j) + u(i) * u(j) * (1 - cos(theta)) + S_matrix(i, j) * sin(theta) ! Skew-symmetric matrix + Tensor product matrix
+            rot_matrix_inv(i, j) = rot_matrix_inv(i, j) + u(i) * u(j) * (1 - cos(theta)) + S_matrix(i, j) * sin(theta) ! Skew-symmetric matrix + Tensor product matrix
 
          end do
       end do
 
-      rot_matrix_inv = matinv3(rot_matrix)
+      rot_matrix = matinv3(rot_matrix_inv)
 
       return
       end subroutine swiftest_obl_rot_matrix
