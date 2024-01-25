@@ -72,6 +72,11 @@ contains
         do l = 1, l_max ! skipping the l = 0 term; It is the spherical body term
             do m = 0, l
 
+                ! If c_lm is too small, skip the iteration to improve performance
+                if (abs(c_lm(m+1, l+1, 1)) < epsilon(0.0_DP) .and. abs(c_lm(m+1, l+1, 2)) < epsilon(0.0_DP)) then
+                    cycle  
+                endif
+
                 ! Associated Legendre Polynomials 
                 lmindex = PlmIndex(l, m)  
                 plm = p(lmindex)                  ! p_l,m
