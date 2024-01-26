@@ -55,8 +55,8 @@ contains
 
       ! Internals
       real(DP)     :: theta !! angle to rotate it through
-      real(DP), dimension(3) :: u, z_hat !! unit vector about which we rotate and z_hat
-      real(DP), dimension(3, 3) :: S_matrix !! rotation matrices
+      real(DP), dimension(3) :: u, z_hat, check !! unit vector about which we rotate, z_hat, and a check variable
+      real(DP), dimension(3, 3) :: S_matrix, temp !! rotation matrices, and a temporary variable
       integer        :: i, j !! dummy variable
 
       ! Assumed that NDIM = 3
@@ -100,7 +100,18 @@ contains
       end do
 
       rot_matrix = matinv3(rot_matrix_inv)
-
+      
+      ! Check that the correct rotation matrix is used
+      ! rot_matrix * rot should be in the z_hat direction
+      check = MATMUL(rot, rot_matrix) ! 1x3 matrix x 3x3 matrix
+      check = .unit. check(:)
+      
+      if(abs(check(1)) .gt. EPSILON(0.0_DP) .or. abs(check(2)) .gt. EPSILON(0.0_DP)) then
+        temp = rot_matrix
+        rot_matrix = rot_matrix_inv
+        rot_matrix_inv = temp
+      end if
+      
       return
       end subroutine swiftest_obl_rot_matrix
    
