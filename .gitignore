@@ -37,6 +37,8 @@ swiftest-*
 __pycache__*
 _cmake*
 _dependencies
+!SHTOOLS
+!SHTOOLS/**
 
 
 #Documentation
@@ -76,3 +78,5 @@ actions-runner*
 
 env/**
 venv/**
+
+sandbox/**

@@ -1,0 +1,3 @@
+[submodule "SHTOOLS"]
+	path = SHTOOLS
+	url = https://github.com/SHTOOLS/SHTOOLS
