@@ -15,18 +15,6 @@ ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 . ${SCRIPT_DIR}/set_compilers.sh
 
-SHTOOLS_VER="4.10.4"
-
-printf "*********************************************************\n"
-printf "*             FETCHING SHTOOLS SOURCE                      *\n"
-printf "*********************************************************\n"
-printf "Copying files to ${DEPENDENCY_DIR}\n"
-mkdir -p ${DEPENDENCY_DIR}
-if [ ! -d ${DEPENDENCY_DIR}/SHTOOLS-${SHTOOLS_VER} ]; then
-    [ -d ${DEPENDENCY_DIR}/SHTOOLS-* ] && rm -rf ${DEPENDENCY_DIR}/SHTOOLS-*
-    curl -L https://github.com/SHTOOLS/SHTOOLS/releases/download/v${SHTOOLS_VER}/SHTOOLS-${SHTOOLS_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
-fi
-
 printf "*********************************************************\n"
 printf "*               BUILDING SHTOOLS LIBRARY                   *\n"
 printf "*********************************************************\n"
@@ -38,13 +26,15 @@ printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
 printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
-cd ${DEPENDENCY_DIR}/SHTOOLS-*
+cd SHTOOLS
+make F95="${FC}" CXX="${CXX}" fortran
 make F95="${FC}" CXX="${CXX}" fortran-mp
 if [ -w ${PREFIX} ]; then
     make PREFIX="${PREFIX}" install
 else
     sudo make PREFIX="${PREFIX}" install
 fi
+cd ..
 
 if [ $? -ne 0 ]; then
    printf "SHTOOLS could not be compiled.\n"

@@ -5,8 +5,17 @@ SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 VENV_DIR=${ROOT_DIR}/venv
 cd ${ROOT_DIR}
-python3 -m venv ${VENV_DIR}
-. ${VENV_DIR}/bin/activate
+
+# Create the virtual environment if it doesn't exist
+if [ ! -d "${VENV_DIR}" ]; then
+    python3 -m venv ${VENV_DIR}
+fi
+
+# Activate the virtual environment only if it's not already active
+if [ -z "${VIRTUAL_ENV}" ]; then
+    . ${VENV_DIR}/bin/activate
+fi
+
 python3 -m pip install --upgrade pip 
 pip install scikit-build-core pyproject-metadata pathspec ninja cython cmake ffmpeg-python 
 pip install --config-settings=editable.rebuild=true \

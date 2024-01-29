@@ -24,7 +24,7 @@ classifiers=[
 ]
 keywords=['astronomy','astrophysics', 'planetary', 'n-body',  'integrator', 'symplectic', 'wisdom-holman', 'symba']
 dependencies = [
-    'numpy>=1.24.3',
+    'numpy>=1.26.3',
     'scipy>=1.10.1',
     'xarray>=2023.1',
     'dask>=2023.5',
@@ -36,9 +36,11 @@ dependencies = [
     'matplotlib>=3.7',
     'astropy>=5.2',
     'astroquery>=0.4.6',
-    'tqdm>=4.64.1',
-    'cython>=3.0.0',
-    'pyshtools==4.10.4'
+    'tqdm>=4.64',
+    'cython>=3.0',
+    'meson>=1.3',
+    'meson-python>=0.15',
+    'pyshtools==4.11.10'
 ]
 
 [project.urls]
@@ -61,6 +63,7 @@ requires = [
     "sphinxext-rediraffe",
     "sphinxext-opengraph",
     "nbsphinx",
+    'meson-python>=0.15',
     "ford"
 ]
 build-backend = "scikit_build_core.build"
@@ -112,7 +115,7 @@ netCDF-Fortran_DIR="${PREFIX}/lib/cmake/netCDF"
 
 [tool.cibuildwheel.macos]
 before-all = [
-    "brew install coreutils",
+    "brew install coreutils pkg-config fftw vecLibFort",
     "LIBS=\"\" buildscripts/build_dependencies.sh -p ${PREFIX} -d ${HOME}/Downloads -m ${MACOSX_DEPLOYMENT_TARGET}"
 ]
 
