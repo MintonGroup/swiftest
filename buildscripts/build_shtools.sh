@@ -15,6 +15,20 @@ ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 . ${SCRIPT_DIR}/set_compilers.sh
 
+
+SHTOOLS_VER="4.11.10"
+
+
+printf "*********************************************************\n"
+printf "*             FETCHING SHTOOLS SOURCE                      *\n"
+printf "*********************************************************\n"
+printf "Copying files to ${DEPENDENCY_DIR}\n"
+mkdir -p ${DEPENDENCY_DIR}
+if [ ! -d ${DEPENDENCY_DIR}/SHTOOLS-${SHTOOLS_VER} ]; then
+    [ -d ${DEPENDENCY_DIR}/SHTOOLS-* ] && rm -rf ${DEPENDENCY_DIR}/SHTOOLS-*
+    curl -L https://github.com/SHTOOLS/SHTOOLS/archive/refs/tags/v${SHTOOLS_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+fi
+
 printf "*********************************************************\n"
 printf "*               BUILDING SHTOOLS LIBRARY                   *\n"
 printf "*********************************************************\n"
@@ -27,9 +41,10 @@ printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
 printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
-cd SHTOOLS
-make F95="${FC}" CXX="${CXX}" F95FLAGS="-m64 -fPIC -O3 -std=gnu -ffast-math ${FFLAGS}" fortran
-make F95="${FC}" CXX="${CXX}" F95FLAGS="-m64 -fPIC -O3 -std=gnu -ffast-math ${FFLAGS}" fortran-mp
+cd ${DEPENDENCY_DIR}/SHTOOLS*
+
+make F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -O3 -std=gnu -ffast-math ${FFLAGS}" fortran
+make F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -O3 -std=gnu -ffast-math ${FFLAGS}" fortran-mp
 if [ -w ${PREFIX} ]; then
     make PREFIX="${PREFIX}" install
 else
