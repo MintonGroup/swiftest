@@ -58,13 +58,6 @@ contains
         cos_theta = cos(theta)
         sin_theta = sin(theta)
 
-        if(abs(cos_theta) < epsilon(0.0_DP)) then
-            cos_theta = 0.0_DP
-        end if
-        if(abs(sin_theta) < epsilon(0.0_DP)) then
-            sin_theta = 0.0_DP
-        end if
-
         ! call PlmBar_d1(p, p_deriv, l_max, cos_theta)      ! Associated Legendre Polynomials and the 1st Derivative
         call PlmBar(p, l_max, cos_theta)
 
@@ -89,10 +82,10 @@ contains
                         + c_lm(m+1, l+1, 2) * cos(m * phi_bar)      ! - C_lm * sin(m * phi_bar) + S_lm * cos(m * phi_bar) 
                                                                     ! cssc * m = first derivative of ccss with respect to phi
 
-                if ((m+1) .le. l) then
+                if ((m+1) <= l) then
                     lmindex = PlmIndex(l, m+1) 
                     plm1 = p(lmindex) 
-                    if(m .eq. 0) then
+                    if(m ==. 0) then
                         plm1 = plm1 * sqrt(((l + m + 1) * (l - m)) / 2.0) ! renormalize plm1 to the norm of plm
                     else 
                         plm1 = plm1 * sqrt((l + m + 1) * (l - m) * 1.0)       ! renormalize plm1 to the norm of plm
@@ -101,7 +94,7 @@ contains
                     plm1 = 0.0_DP  
                 end if 
                                                                       
-                if(sin_theta .eq. 0) then
+                if(abs(sin_theta) < epsilon(1.0_DP)) then
                     fac1 = 0.0_DP
                 else
                     fac1 = m * plm / sin_theta
@@ -110,7 +103,6 @@ contains
                 fac2 = plm * (l + m + 1) * sin_theta + plm1 * cos_theta
                 r_fac = -GMcb * r_0**l / r_mag**(l + 2)
 
-                ! g_sph(:) = 0.0_DP
                 g_sph(1) = g_sph(1) + r_fac * (cssc * fac1 * sin(phi) + ccss * (fac2 - fac1) * cos(phi))
                 g_sph(2) = g_sph(2) + r_fac * (-cssc * fac1 * cos(phi) + ccss * (fac2 - fac1) * sin(phi))
                 g_sph(3) = g_sph(3) + r_fac * ccss * (plm * (l + m + 1) * cos_theta - plm1 * sin_theta)
