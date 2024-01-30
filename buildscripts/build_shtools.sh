@@ -19,6 +19,7 @@ printf "*********************************************************\n"
 printf "*               BUILDING SHTOOLS LIBRARY                   *\n"
 printf "*********************************************************\n"
 printf "LIBS: ${LIBS}\n"
+printf "FFLAGS: ${FFLAGS}\n"
 printf "CFLAGS: ${CFLAGS}\n"
 printf "CPPFLAGS: ${CPPFLAGS}\n"
 printf "CPATH: ${CPATH}\n"
@@ -27,8 +28,8 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
 cd SHTOOLS
-make F95="${FC}" CXX="${CXX}" fortran
-make F95="${FC}" CXX="${CXX}" fortran-mp
+make F95="${FC}" CXX="${CXX}" F95FLAGS="-m64 -fPIC -O3 -std=gnu -ffast-math ${FFLAGS}" fortran
+make F95="${FC}" CXX="${CXX}" F95FLAGS="-m64 -fPIC -O3 -std=gnu -ffast-math ${FFLAGS}" fortran-mp
 if [ -w ${PREFIX} ]; then
     make PREFIX="${PREFIX}" install
 else

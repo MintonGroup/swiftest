@@ -13,7 +13,7 @@ CPPFLAGS="-isystem ${PREFIX}/include -isystem /usr/local/include -Xclang -fopenm
 LIBS="-lomp"
 CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype -arch ${ARCH}"
 FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -fno-underscoring"
-FFFLAGS="${FCFLAGS}"
+FFLAGS="${FCFLAGS}"
 CFLAGS="${FCFLAGS} -Wno-deprecated-non-prototype"
 CXXFLAGS="${CFLAGS}"
 HDF5_ROOT="${PREFIX}"
