@@ -91,7 +91,7 @@ LDFLAGS="-Wl,-rpath,${ROOT_DIR}/lib  -Wl,-no_compact_unwind -L${PREFIX}/lib -L${
 CPATH="/usr/local/include:${PREFIX}/include:${HOMEBREW_PREFIX}/include:${ROOT_DIR}/include"
 CPPFLAGS="-isystem ${PREFIX}/include -isystem /usr/local/include"
 LIBS="-lomp"
-FCFLAGS="-mmacos-version-min=${MACOSX_DEPLOYMENT_TARGET} -arch ${ARCH} -fno-underscoring"
+FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -arch ${ARCH} -fno-underscoring"
 FFLAGS="${FCFLAGS}"
 CFLAGS="${FCFLAGS} -Wno-deprecated-non-prototype -arch ${ARCH}"
 CXXFLAGS="${CFLAGS}"
