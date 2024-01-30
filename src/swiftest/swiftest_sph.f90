@@ -85,7 +85,7 @@ contains
                 if ((m+1) <= l) then
                     lmindex = PlmIndex(l, m+1) 
                     plm1 = p(lmindex) 
-                    if(m ==. 0) then
+                    if(m == 0) then
                         plm1 = plm1 * sqrt(((l + m + 1) * (l - m)) / 2.0) ! renormalize plm1 to the norm of plm
                     else 
                         plm1 = plm1 * sqrt((l + m + 1) * (l - m) * 1.0)       ! renormalize plm1 to the norm of plm
