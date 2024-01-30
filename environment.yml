@@ -21,4 +21,3 @@ dependencies:
   - x264>=1!157.20191217
   - ffmpeg>=4.3.2
   - cython>=3.0.0
-  - pyshtools

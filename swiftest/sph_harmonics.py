@@ -20,7 +20,6 @@ import astropy.units as u
 from astropy.coordinates import SkyCoord
 import datetime
 import xarray as xr
-import pyshtools as pysh
 from typing import (
     Literal,
     Dict,
@@ -28,121 +27,136 @@ from typing import (
     Any
 )
 
-class Sph_Harmonics(object):
-    def clm_from_ellipsoid(mass, density, a, b = None, c = None, lmax = 6, lref_radius = False, ref_radius = None):
-        """
-        Creates and returns the gravity coefficients for an ellipsoid with principal axes a, b, c upto a certain maximum degree lmax. 
-        Uses pyshtools. No units necessary for a, b, & c. However, they need to be in the same units (DU).
+try:
+    import pyshtools as pysh
+    PYSHTOOLS_AVAILABLE = True
+except ModuleNotFoundError:
+    PYSHTOOLS_AVAILABLE = False
+    print("pyshtools is not installed. Some features will be unavailable.")
 
-        Parameters
-        ----------
-        mass : float
-            mass of the central body
-        density : float
-            density of the central body
-        a : float 
-            length of the pricipal axis aligned with the x axis
-        b : float, optional, default = a
-            length of the pricipal axis aligned with the y axis
-        c : float, optional, default = b
-            length of the pricipal axis aligned with the z axis
-        lmax : int, optional, default = 6
-            The maximum spherical harmonic degree resolvable by the grid.
-        lref_radius : boolean, optional, default = False
-            Boolean value to return the reference radius calculated by SHTOOLS
-        ref_radius : float, optional, default = None
-            Reference radius to scale the gravitational coefficients to
+if PYSHTOOLS_AVAILABLE:
 
-        Returns
-        -------
-        clm : ndarry, shape (2, lmax+1, lmax+1)
-            numpy ndarray of the gravitational potential spherical harmonic coefficients. 
-            This is a three-dimensional array formatted as coeffs[i, degree, order], 
-            where i=0 corresponds to positive orders and i=1 to negative orders.
+    class Sph_Harmonics(object):
+        def clm_from_ellipsoid(mass, density, a, b = None, c = None, lmax = 6, lref_radius = False, ref_radius = None):
+            """
+            Creates and returns the gravity coefficients for an ellipsoid with principal axes a, b, c upto a certain maximum degree lmax. 
+            Uses pyshtools. No units necessary for a, b, & c. However, they need to be in the same units (DU).
 
-        """
-        Gmass = swiftest.constants.GC * mass # SHTOOLS uses an SI G value, and divides it before using the mass; NO NEED TO CHANGE UNITS
+            Parameters
+            ----------
+            mass : float
+                mass of the central body
+            density : float
+                density of the central body
+            a : float 
+                length of the pricipal axis aligned with the x axis
+            b : float, optional, default = a
+                length of the pricipal axis aligned with the y axis
+            c : float, optional, default = b
+                length of the pricipal axis aligned with the z axis
+            lmax : int, optional, default = 6
+                The maximum spherical harmonic degree resolvable by the grid.
+            lref_radius : boolean, optional, default = False
+                Boolean value to return the reference radius calculated by SHTOOLS
+            ref_radius : float, optional, default = None
+                Reference radius to scale the gravitational coefficients to
 
-        # cap lmax to ensure fast performance without giving up accuracy
-        lmax_limit = 6              # lmax_limit = 6 derived from Jean's Law; characteristic wavelength = the radius of the CB
-        if(lmax > lmax_limit):                           
-            lmax = lmax_limit
-            print(f'Setting maximum spherical harmonic degree to {lmax_limit}')
+            Returns
+            -------
+            clm : ndarry, shape (2, lmax+1, lmax+1)
+                numpy ndarray of the gravitational potential spherical harmonic coefficients. 
+                This is a three-dimensional array formatted as coeffs[i, degree, order], 
+                where i=0 corresponds to positive orders and i=1 to negative orders.
 
-        # create shape grid 
-        shape_SH = pysh.SHGrid.from_ellipsoid(lmax = lmax, a = a, b = b, c = c)
+            """
+            Gmass = swiftest.constants.GC * mass # SHTOOLS uses an SI G value, and divides it before using the mass; NO NEED TO CHANGE UNITS
 
-        # get gravity coefficients
-        clm_class = pysh.SHGravCoeffs.from_shape(shape_SH, rho = density, gm = Gmass) # 4pi normalization
-        clm = clm_class.to_array(normalization = '4pi') # export as array with 4pi normalization and not scaling by 4*pi to match normalisation
+            # cap lmax to ensure fast performance without giving up accuracy
+            lmax_limit = 6              # lmax_limit = 6 derived from Jean's Law; characteristic wavelength = the radius of the CB
+            if(lmax > lmax_limit):                           
+                lmax = lmax_limit
+                print(f'Setting maximum spherical harmonic degree to {lmax_limit}')
 
-        # Return reference radius EQUALS the radius of the Central Body
-        print(f'Ensure that the Central Body radius equals the reference radius.')
+            # create shape grid 
+            shape_SH = pysh.SHGrid.from_ellipsoid(lmax = lmax, a = a, b = b, c = c)
 
-        if(lref_radius == True and ref_radius is None):
-            ref_radius = shape_SH.expand(normalization = '4pi').coeffs[0, 0, 0]
-            return clm, ref_radius
-        elif(lref_radius == True and ref_radius is not None):
-            clm_class = clm_class.change_ref(r0 = ref_radius)
-            clm = clm_class.to_array(normalization = '4pi')
-            return clm, ref_radius
-        else:
-            return clm
+            # get gravity coefficients
+            clm_class = pysh.SHGravCoeffs.from_shape(shape_SH, rho = density, gm = Gmass) # 4pi normalization
+            clm = clm_class.to_array(normalization = '4pi') # export as array with 4pi normalization and not scaling by 4*pi to match normalisation
 
-    def clm_from_relief(mass, density, grid, lmax = 6, lref_radius = False, ref_radius = None):
-        """
-        Creates and returns the gravity coefficients for a body with a given DH grid upto a certain maximum degree lmax. 
-        Uses pyshtools.
+            # Return reference radius EQUALS the radius of the Central Body
+            print(f'Ensure that the Central Body radius equals the reference radius.')
 
-        Parameters
-        ----------
-        mass : float
-            mass of the central body
-        density : float
-            density of the central body
-        grid : array, shape []
-            DH grid of the surface relief of the body
-        lmax : int, optional, default = 6
-            The maximum spherical harmonic degree resolvable by the grid.
-        lref_radius : boolean, optional, default = False
-            Boolean value to return the reference radius calculated by SHTOOLS
-        ref_radius : float, optional, default = None
-            Reference radius to scale the gravitational coefficients to
+            if(lref_radius == True and ref_radius is None):
+                ref_radius = shape_SH.expand(normalization = '4pi').coeffs[0, 0, 0]
+                return clm, ref_radius
+            elif(lref_radius == True and ref_radius is not None):
+                clm_class = clm_class.change_ref(r0 = ref_radius)
+                clm = clm_class.to_array(normalization = '4pi')
+                return clm, ref_radius
+            else:
+                return clm
 
-        Returns
-        -------
-        clm : ndarry, shape (2, lmax+1, lmax+1)
-            numpy ndarray of the gravitational potential spherical harmonic coefficients. 
-            This is a three-dimensional array formatted as coeffs[i, degree, order], 
-            where i=0 corresponds to positive orders and i=1 to negative orders.
+        def clm_from_relief(mass, density, grid, lmax = 6, lref_radius = False, ref_radius = None):
+            """
+            Creates and returns the gravity coefficients for a body with a given DH grid upto a certain maximum degree lmax. 
+            Uses pyshtools.
 
-        """
+            Parameters
+            ----------
+            mass : float
+                mass of the central body
+            density : float
+                density of the central body
+            grid : array, shape []
+                DH grid of the surface relief of the body
+            lmax : int, optional, default = 6
+                The maximum spherical harmonic degree resolvable by the grid.
+            lref_radius : boolean, optional, default = False
+                Boolean value to return the reference radius calculated by SHTOOLS
+            ref_radius : float, optional, default = None
+                Reference radius to scale the gravitational coefficients to
 
-        Gmass = swiftest.constants.GC * mass # SHTOOLS uses an SI G value, and divides it before using the mass; NO NEED TO CHANGE UNITS
+            Returns
+            -------
+            clm : ndarry, shape (2, lmax+1, lmax+1)
+                numpy ndarray of the gravitational potential spherical harmonic coefficients. 
+                This is a three-dimensional array formatted as coeffs[i, degree, order], 
+                where i=0 corresponds to positive orders and i=1 to negative orders.
 
-        # cap lmax to 20 to ensure fast performance
-        lmax_limit = 6
-        if(lmax > lmax_limit): # FIND A BETTER WAY to judge this cut off point, i.e., relative change between coefficients
-            lmax = lmax_limit
-            print(f'Setting maximum spherical harmonic degree to {lmax_limit}')
+            """
 
-        # convert to spherical harmonics
-        shape_SH = pysh.SHGrid.from_array(grid)
+            Gmass = swiftest.constants.GC * mass # SHTOOLS uses an SI G value, and divides it before using the mass; NO NEED TO CHANGE UNITS
 
-        # get coefficients
-        clm_class = pysh.SHGravcoeffs.from_shape(shape_SH, rho = density, gm = Gmass) # 4pi normalization
-        clm = clm_class.to_array(normalization = '4pi') # export as array with 4pi normalization
+            # cap lmax to 20 to ensure fast performance
+            lmax_limit = 6
+            if(lmax > lmax_limit): # FIND A BETTER WAY to judge this cut off point, i.e., relative change between coefficients
+                lmax = lmax_limit
+                print(f'Setting maximum spherical harmonic degree to {lmax_limit}')
 
-        # Return reference radius EQUALS the radius of the Central Body
+            # convert to spherical harmonics
+            shape_SH = pysh.SHGrid.from_array(grid)
 
-        print(f'Ensure that the Central Body radius equals the reference radius.')
+            # get coefficients
+            clm_class = pysh.SHGravcoeffs.from_shape(shape_SH, rho = density, gm = Gmass) # 4pi normalization
+            clm = clm_class.to_array(normalization = '4pi') # export as array with 4pi normalization
 
-        if(lref_radius == True and ref_radius is None):
-            ref_radius = shape_SH.expand(normalization = '4pi').coeffs[0, 0, 0]
-            return clm, ref_radius
-        elif(lref_radius == True and ref_radius is not None):
-            clm_class = clm_class.change_ref(r0 = ref_radius)
-            clm = clm_class.to_array(normalization = '4pi')
-            return clm, ref_radius
-        else:
-            return clm
+            # Return reference radius EQUALS the radius of the Central Body
+
+            print(f'Ensure that the Central Body radius equals the reference radius.')
+
+            if(lref_radius == True and ref_radius is None):
+                ref_radius = shape_SH.expand(normalization = '4pi').coeffs[0, 0, 0]
+                return clm, ref_radius
+            elif(lref_radius == True and ref_radius is not None):
+                clm_class = clm_class.change_ref(r0 = ref_radius)
+                clm = clm_class.to_array(normalization = '4pi')
+                return clm, ref_radius
+            else:
+                return clm
+
+else:
+    class Sph_Harmonics(object):
+        def clm_from_ellipsoid(*args, **kwargs):
+            raise NotImplementedError("Sph_Harmonics is not available because pyshtools is not installed.")
+    

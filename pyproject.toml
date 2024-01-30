@@ -24,8 +24,8 @@ classifiers=[
 ]
 keywords=['astronomy','astrophysics', 'planetary', 'n-body',  'integrator', 'symplectic', 'wisdom-holman', 'symba']
 dependencies = [
-    'numpy>=1.26.3',
-    'scipy>=1.10.1',
+    'numpy>=1.26',
+    'scipy>=1.10',
     'xarray>=2023.1',
     'dask>=2023.5',
     'distributed>=2023.5',
@@ -38,11 +38,10 @@ dependencies = [
     'astroquery>=0.4.6',
     'tqdm>=4.64',
     'cython>=3.0',
-    'meson>=1.3',
-    'meson-python>=0.15',
-    'setuptools_scm',
-    'pyshtools>=4.11.10'
 ]
+
+[project.optional-dependencies]
+pyshtools = ["pyshtools"] 
 
 [project.urls]
 Repository = 'https://github.itap.purdue.edu/MintonGroup/swiftest'
@@ -50,21 +49,21 @@ Repository = 'https://github.itap.purdue.edu/MintonGroup/swiftest'
 [build-system]
 requires = [
     "scikit-build-core",
-    "cython>=3.0.0",
+    "cython>=3.0",
     "cmake",
     "pyproject_metadata",
     "pytest",
     "pathspec",
     "sphinx",
     "sphinx-autosummary-accessors",
-    "sphinx-book-theme >= 0.3.0",
+    "sphinx-book-theme >= 0.3",
     "sphinx-copybutton",
     "sphinx-design",
     "sphinx-inline-tabs",
     "sphinxext-rediraffe",
     "sphinxext-opengraph",
     "nbsphinx",
-    "ford"
+    "ford",
 ]
 build-backend = "scikit_build_core.build"
 

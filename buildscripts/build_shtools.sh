@@ -15,9 +15,7 @@ ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 . ${SCRIPT_DIR}/set_compilers.sh
 
-
-SHTOOLS_VER="4.11.10"
-
+SHTOOLS_VER="4.9.1"
 
 printf "*********************************************************\n"
 printf "*             FETCHING SHTOOLS SOURCE                      *\n"
