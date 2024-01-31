@@ -786,7 +786,7 @@ class Simulation(object):
             "general_relativity": True,
             "collision_model": "FRAGGLE",
             "minimum_fragment_mass": None,
-            "minimum_fragment_gmass": 0.0,
+            "minimum_fragment_gmass": None,
             "rotation": True,
             "compute_conservation_values": False,
             "extra_force": False,
@@ -819,8 +819,8 @@ class Simulation(object):
 
         # Setters returning parameter dictionary values
         param_dict = {}
-        param_dict.update(self.set_integrator(**kwargs))
         param_dict.update(self.set_unit_system(**kwargs))
+        param_dict.update(self.set_integrator(**kwargs))
         param_dict.update(self.set_simulation_time(**kwargs))
         param_dict.update(self.set_init_cond_files(**kwargs))
         param_dict.update(self.set_output_files(**kwargs))
@@ -851,12 +851,12 @@ class Simulation(object):
 
         # Getters returning parameter dictionary values
         param_dict = {}
+        param_dict.update(self.get_unit_system(**kwargs))
         param_dict.update(self.get_integrator(**kwargs))
         param_dict.update(self.get_simulation_time(**kwargs))
         param_dict.update(self.get_init_cond_files(**kwargs))
         param_dict.update(self.get_output_files(**kwargs))
         param_dict.update(self.get_distance_range(**kwargs))
-        param_dict.update(self.get_unit_system(**kwargs))
         param_dict.update(self.get_feature(**kwargs))
 
         self.get_ephemeris_date(**kwargs)
