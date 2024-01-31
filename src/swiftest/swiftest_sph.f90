@@ -43,7 +43,7 @@ contains
         real(DP)       :: plm, plm1         !! Associated Legendre polynomials at a given l, m
         real(DP)       :: ccss, cssc        !! See definition in source code
         real(DP)       :: cos_theta, sin_theta !! cos(theta) and sin(theta)
-        real(DP), dimension(:), allocatable  :: p, p_deriv   !! Associated Lengendre Polynomials at a given cos(theta)
+        real(DP), dimension(:), allocatable  :: p   !! Associated Lengendre Polynomials at a given cos(theta)
         real(DP)     :: fac1, fac2, r_fac   !! calculation factors 
 
         g_sph(:) = 0.0_DP
@@ -53,14 +53,17 @@ contains
         r_mag = sqrt(dot_product(rh(:), rh(:)))
         l_max = size(c_lm, 2) - 1
         N = (l_max + 1) * (l_max + 2) / 2
-        allocate(p(N),p_deriv(N))
+        allocate(p(N))
 
         cos_theta = cos(theta)
         sin_theta = sin(theta)
 
-        ! call PlmBar_d1(p, p_deriv, l_max, cos_theta)      ! Associated Legendre Polynomials and the 1st Derivative
-        call PlmBar(p, l_max, cos_theta)
-
+        ! check if cos_theta is too small to avoid floating underflow error
+        if (abs(cos_theta) < EPSILON(0.0_DP)) then
+            call PlmBar(p, l_max, 0.0_DP)
+        else
+            call PlmBar(p, l_max, cos_theta)
+        end if
 
         do l = 1, l_max ! skipping the l = 0 term; It is the spherical body term
             do m = 0, l
@@ -73,7 +76,6 @@ contains
                 ! Associated Legendre Polynomials 
                 lmindex = PlmIndex(l, m)  
                 plm = p(lmindex)                  ! p_l,m
-                ! dplm = p_deriv(lmindex)         ! d(p_l,m)
 
                 ! C_lm and S_lm with Cos and Sin of m * phi
                 ccss = c_lm(m+1, l+1, 1) * cos(m * phi_bar) & 
