@@ -212,7 +212,7 @@ module swiftest
       real(DP), dimension(NDIM)                   :: agr      = 0.0_DP !! Acceleration due to post-Newtonian correction
       real(DP), dimension(NDIM)                   :: Ip       = 0.0_DP !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
       real(DP), dimension(NDIM)                   :: rot      = 0.0_DP !! Body rotation vector in inertial coordinate frame (units rad / TU)
-      real(DP)                                    :: rotphase = 0.0_DP !! Body rotation phase about the rotation pole (0 to 2*pi)
+      real(DP)                                    :: rotphase = 0.0_DP !! Body rotation phase about the rotation pole (0 to 1)
       real(DP)                                    :: k2       = 0.0_DP !! Tidal Love number
       real(DP)                                    :: Q        = 0.0_DP !! Tidal quality factor
       real(DP)                                    :: tlag     = 0.0_DP !! Tidal phase lag angle
@@ -547,7 +547,7 @@ module swiftest
       module subroutine swiftest_drift_cb_rotphase_update(self, param, dt)
          !! Author : Kaustub Anand
          !! subroutine to update the rotation phase of the central body
-         !! Units: Radians
+         !! Units: None
          !! initial 0 is set at the x-axis 
    
          ! Arguments
@@ -1857,11 +1857,11 @@ module swiftest
 #endif
 
    interface
-      module subroutine swiftest_sph_g_acc_one(GMcb, r_0, phi_cb, rh, c_lm, g_sph, GMpl, aoblcb)
+      module subroutine swiftest_sph_g_acc_one(GMcb, r_0, rotphase, rh, c_lm, g_sph, GMpl, aoblcb)
          implicit none
          real(DP), intent(in)        :: GMcb                        !! GMass of the central body
          real(DP), intent(in)        :: r_0                         !! radius of the central body
-         real(DP), intent(in)        :: phi_cb                      !! rotation phase of the central body
+         real(DP), intent(in)        :: rotphase                    !! rotation phase of the central body
          real(DP), intent(in), dimension(:)          :: rh          !! distance vector of body
          real(DP), intent(in), dimension(:, :, :)    :: c_lm        !! Spherical Harmonic coefficients
          real(DP), intent(out), dimension(NDIM)         :: g_sph    !! acceleration vector
