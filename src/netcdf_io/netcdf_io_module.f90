@@ -105,6 +105,8 @@ module netcdf_io
       integer(I4B)       :: Ip_varid                                    !! ID for the axis principal moment of inertia variable
       character(NAMELEN) :: rot_varname             = "rot"             !! name of the rotation vector variable
       integer(I4B)       :: rot_varid                                   !! ID for the rotation vector variable
+      character(NAMELEN) :: rotphase_varname        = "rotphase"        !! name of the rotation phase variable
+      integer(I4B)       :: rotphase_varid                              !! ID for the rotation phase variable
       character(NAMELEN) :: j2rp2_varname           = "j2rp2"           !! name of the j2rp2 variable
       integer(I4B)       :: j2rp2_varid                                 !! ID for the j2 variable
       character(NAMELEN) :: j4rp4_varname           = "j4rp4"           !! name of the j4pr4 variable
