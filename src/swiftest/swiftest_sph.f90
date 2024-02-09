@@ -26,7 +26,7 @@ contains
         ! Arguments
         real(DP), intent(in)        :: GMcb                        !! GMass of the central body
         real(DP), intent(in)        :: r_0                         !! radius of the central body
-        real(DP), intent(in)        :: phi_cb                      !! rotation phase of the central body
+        real(DP), intent(in)        :: phi_cb                      !! rotation phase of the central body (from 0 to 1)
         real(DP), intent(in), dimension(:)          :: rh          !! distance vector of body
         real(DP), intent(in), dimension(:, :, :)    :: c_lm        !! Spherical Harmonic coefficients
         real(DP), intent(out), dimension(NDIM)         :: g_sph    !! acceleration vector
@@ -47,6 +47,7 @@ contains
         real(DP)     :: fac1, fac2, r_fac   !! calculation factors 
 
         g_sph(:) = 0.0_DP
+        phi_cb = phi_cb * 2 * PI ! scale the phase by 2pi radians
         theta = atan2(sqrt(rh(1)**2 + rh(2)**2), rh(3))
         phi = atan2(rh(2), rh(1)) 
         phi_bar = MOD(phi - phi_cb, 2 * PI) ! represents the phase difference between the central body's and the particle's phase

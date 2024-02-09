@@ -583,15 +583,17 @@ contains
    module subroutine swiftest_drift_cb_rotphase_update(self, param, dt)
       !! Author : Kaustub Anand
       !! subroutine to update the rotation phase of the central body
-      !! Units: Radians
+      !! Units: None
+      !!
       !! initial 0 is set at the x-axis 
+      !! phase is stored and calculated in a unitless manner, i.e., a phase of 0, 0.5, 1 = 0, pi, 2pi radians = 0, 180, 360 degrees
 
       ! Arguments
       class(swiftest_cb),           intent(inout) :: self   !! Swiftest central body data structure
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt     !! Stepsize
 
-      self%rotphase = MOD(self%rotphase + (.mag. self%rot(:)) * dt * param%TU2S, 2 * PI) ! radians
+      self%rotphase = MOD(self%rotphase + (.mag. self%rot(:)) * dt * param%TU2S, 2 * PI) / (2 * PI) ! phase angle calculated in radians and then scaled by 2pi to be unitless
 
    end subroutine swiftest_drift_cb_rotphase_update
 
