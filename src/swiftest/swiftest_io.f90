@@ -964,6 +964,8 @@ contains
             call netcdf_io_check( nf90_def_var(nc%id, nc%rot_varname, nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], &
                                                nc%rot_varid), &
                                   "netcdf_io_initialize_output nf90_def_var rot_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%rotphase_varname, nc%out_type, nc%time_dimid, nc%rotphase_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var rotphase_varid"  )
          end if
 
          ! if (param%ltides) then
@@ -1179,6 +1181,14 @@ contains
                                   "swiftest_io_netcdf_open nf90_inq_varid Ip_varid" )
             call netcdf_io_check( nf90_inq_varid(nc%id, nc%rot_varname, nc%rot_varid), &
                                   "swiftest_io_netcdf_open nf90_inq_varid rot_varid" )
+
+
+            ! rotphase may not be input by the user                      
+            status = nf90_inq_varid(nc%id, nc%rotphase_varname, nc%rotphase_varid)
+
+            ! call netcdf_io_check( nf90_inq_varid(nc%id, nc%rotphase_varname, nc%rotphase_varid), &
+            !                       "swiftest_io_netcdf_open nf90_inq_varid rotphase_varid")
+                                   
          end if
 
          ! if (param%ltides) then
@@ -1515,7 +1525,16 @@ contains
             end do
 
             ! Set initial central body angular momentum for bookkeeping
-            cb%L0(:) = cb%Ip(3) * cb%mass * cb%R0**2 * cb%rot(:)         
+            cb%L0(:) = cb%Ip(3) * cb%mass * cb%R0**2 * cb%rot(:) 
+            
+            ! rotphase may not be input by the user
+            status = nf90_inq_varid(nc%id, nc%rotphase_varname, nc%rotphase_varid)
+            if (status == NF90_NOERR) then
+               call netcdf_io_check( nf90_get_var(nc%id, nc%rotphase_varid, cb%rotphase, start=[tslot]), &
+                                  "netcdf_io_read_frame_system nf90_getvar rotphase_varid"  )
+            else
+               cb%rotphase = 0.0_DP
+            end if
          end if
 
          ! if (param%ltides) then
@@ -2104,9 +2123,10 @@ contains
             call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, self%rot(:) * RAD2DEG, start=[1, idslot, tslot], &
                                                count=[NDIM,1,1]), &
                                   "swiftest_io_netcdf_write_frame_cb nf90_put_var cb rot_varid"  )
-            ! ADD
-            ! call netcdf_io_check( nf90_put_var(nc%id, nc%rotphase_varid, self%rotphase(:), start = [1, idslot, tslot]), &
-                                 !  "swiftest_io_netcdf_write_frame_cb nf90_put_var cb rotphase")
+            
+            ! Following the template of j2rp2
+            call netcdf_io_check( nf90_put_var(nc%id, nc%rotphase_varid, self%rotphase, start = [tslot]), & ! start = [1, idslot, tslot]), &
+                                  "swiftest_io_netcdf_write_frame_cb nf90_put_var cb rotphase")
          end if
 
          status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
