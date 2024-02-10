@@ -485,8 +485,6 @@ def vec2xr(param: Dict, **kwargs: Any):
             kwargs['rot'] = np.zeros((len(kwargs['Gmass']),3))
         if "Ip" not in kwargs and "Gmass" in kwargs:
             kwargs['Ip'] = np.full((len(kwargs['Gmass']),3), 0.4)
-        if "rotphase" not in kwargs:
-            kwargs['rotphase'] = 0.0
 
     if "time" not in kwargs:
         kwargs["time"] = np.array([0.0])
