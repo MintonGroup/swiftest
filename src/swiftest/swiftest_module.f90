@@ -547,7 +547,7 @@ module swiftest
       module subroutine swiftest_drift_cb_rotphase_update(self, param, dt)
          !! Author : Kaustub Anand
          !! subroutine to update the rotation phase of the central body
-         !! Units: None
+         !! Units: radians
          !! initial 0 is set at the x-axis 
    
          ! Arguments
@@ -1857,11 +1857,11 @@ module swiftest
 #endif
 
    interface
-      module subroutine swiftest_sph_g_acc_one(GMcb, r_0, rotphase, rh, c_lm, g_sph, GMpl, aoblcb)
+      module subroutine swiftest_sph_g_acc_one(GMcb, r_0, phi_cb, rh, c_lm, g_sph, GMpl, aoblcb)
          implicit none
          real(DP), intent(in)        :: GMcb                        !! GMass of the central body
          real(DP), intent(in)        :: r_0                         !! radius of the central body
-         real(DP), intent(in)        :: rotphase                    !! rotation phase of the central body
+         real(DP), intent(in)        :: phi_cb                      !! rotation phase angle of the central body
          real(DP), intent(in), dimension(:)          :: rh          !! distance vector of body
          real(DP), intent(in), dimension(:, :, :)    :: c_lm        !! Spherical Harmonic coefficients
          real(DP), intent(out), dimension(NDIM)         :: g_sph    !! acceleration vector

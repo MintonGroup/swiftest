@@ -16,7 +16,7 @@ use SHTOOLS
 
 contains
 
-    module subroutine swiftest_sph_g_acc_one(GMcb, r_0, rotphase, rh, c_lm, g_sph, GMpl, aoblcb)
+    module subroutine swiftest_sph_g_acc_one(GMcb, r_0, phi_cb, rh, c_lm, g_sph, GMpl, aoblcb)
         !! author: Kaustub P. Anand
         !!
         !! Calculate the acceleration terms for one pair of bodies given c_lm, theta, phi, r
@@ -26,7 +26,7 @@ contains
         ! Arguments
         real(DP), intent(in)        :: GMcb                        !! GMass of the central body
         real(DP), intent(in)        :: r_0                         !! radius of the central body
-        real(DP), intent(in)        :: rotphase                    !! rotation phase of the central body
+        real(DP), intent(in)        :: phi_cb                      !! rotation phase angle of the central body
         real(DP), intent(in), dimension(:)          :: rh          !! distance vector of body
         real(DP), intent(in), dimension(:, :, :)    :: c_lm        !! Spherical Harmonic coefficients
         real(DP), intent(out), dimension(NDIM)         :: g_sph    !! acceleration vector
@@ -38,7 +38,7 @@ contains
         integer        :: l_max             !! max Spherical Harmonic l order value
         integer(I4B)   :: N, lmindex        !! Length of Legendre polynomials and index at a given l, m
         real(DP)       :: r_mag             !! magnitude of rh
-        real(DP)       :: phi, phi_cb, phi_bar  !! Azimuthal/Phase angle (radians) wrt coordinate axes, and central body rotation phase
+        real(DP)       :: phi, phi_bar      !! Azimuthal/Phase angle (radians) wrt coordinate axes, and central body rotation phase
         real(DP)       :: theta             !! Inclination/Zenith angle (radians)
         real(DP)       :: plm, plm1         !! Associated Legendre polynomials at a given l, m
         real(DP)       :: ccss, cssc        !! See definition in source code
@@ -47,7 +47,6 @@ contains
         real(DP)     :: fac1, fac2, r_fac   !! calculation factors 
 
         g_sph(:) = 0.0_DP
-        phi_cb = rotphase * 2 * PI ! scale the phase to a phase angle by 2pi radians
         theta = atan2(sqrt(rh(1)**2 + rh(2)**2), rh(3))
         phi = atan2(rh(2), rh(1)) 
         phi_bar = MOD(phi - phi_cb, 2 * PI) ! represents the phase difference between the central body's and the particle's phase

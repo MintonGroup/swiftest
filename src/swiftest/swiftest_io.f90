@@ -1182,7 +1182,6 @@ contains
             call netcdf_io_check( nf90_inq_varid(nc%id, nc%rot_varname, nc%rot_varid), &
                                   "swiftest_io_netcdf_open nf90_inq_varid rot_varid" )
 
-
             ! rotphase may not be input by the user                      
             status = nf90_inq_varid(nc%id, nc%rotphase_varname, nc%rotphase_varid)
 
@@ -1530,8 +1529,9 @@ contains
             ! rotphase may not be input by the user
             status = nf90_inq_varid(nc%id, nc%rotphase_varname, nc%rotphase_varid)
             if (status == NF90_NOERR) then
-               call netcdf_io_check( nf90_get_var(nc%id, nc%rotphase_varid, cb%rotphase, start=[tslot]), &
+               call netcdf_io_check( nf90_get_var(nc%id, nc%rotphase_varid, rtemp, start=[tslot]), &
                                   "netcdf_io_read_frame_system nf90_getvar rotphase_varid"  )
+               cb%rotphase = rtemp * DEG2RAD
             else
                cb%rotphase = 0.0_DP
             end if
@@ -2125,7 +2125,7 @@ contains
                                   "swiftest_io_netcdf_write_frame_cb nf90_put_var cb rot_varid"  )
             
             ! Following the template of j2rp2
-            call netcdf_io_check( nf90_put_var(nc%id, nc%rotphase_varid, self%rotphase, start = [tslot]), & ! start = [1, idslot, tslot]), &
+            call netcdf_io_check( nf90_put_var(nc%id, nc%rotphase_varid, self%rotphase * RAD2DEG, start = [tslot]), & ! start = [1, idslot, tslot]), &
                                   "swiftest_io_netcdf_write_frame_cb nf90_put_var cb rotphase")
          end if
 
