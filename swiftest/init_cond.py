@@ -459,6 +459,9 @@ def vec2xr(param: Dict, **kwargs: Any):
         Time at start of simulation
     c_lm : (2, lmax + 1, lmax + 1) array of floats, optional
         Spherical Harmonics coefficients; lmax = max spherical harmonics order
+    rotphase : float
+        rotational phase angle of the central body in degrees
+
     Returns
     -------
     ds : xarray dataset
@@ -470,9 +473,9 @@ def vec2xr(param: Dict, **kwargs: Any):
     sph_dims = ['sign', 'l', 'm'] # Spherical Harmonics dimensions
 
     vector_vars = ["rh","vh","Ip","rot"]
-    scalar_vars = ["name","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4"]
+    scalar_vars = ["name","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4", "rotphase"]
     sph_vars = ["c_lm"]
-    time_vars =  ["rh","vh","Ip","rot","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4"]
+    time_vars =  ["rh","vh","Ip","rot","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4", "rotphase"]
 
     # Check for valid keyword arguments
     kwargs = {k:kwargs[k] for k,v in kwargs.items() if v is not None}
@@ -482,6 +485,8 @@ def vec2xr(param: Dict, **kwargs: Any):
             kwargs['rot'] = np.zeros((len(kwargs['Gmass']),3))
         if "Ip" not in kwargs and "Gmass" in kwargs:
             kwargs['Ip'] = np.full((len(kwargs['Gmass']),3), 0.4)
+        if "rotphase" not in kwargs:
+            kwargs['rotphase'] = 0.0
 
     if "time" not in kwargs:
         kwargs["time"] = np.array([0.0])

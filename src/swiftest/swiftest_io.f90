@@ -1529,9 +1529,9 @@ contains
             ! rotphase may not be input by the user
             status = nf90_inq_varid(nc%id, nc%rotphase_varname, nc%rotphase_varid)
             if (status == NF90_NOERR) then
-               call netcdf_io_check( nf90_get_var(nc%id, nc%rotphase_varid, rtemp, start=[tslot]), &
+               call netcdf_io_check( nf90_get_var(nc%id, nc%rotphase_varid, cb%rotphase, start=[tslot]), &
                                   "netcdf_io_read_frame_system nf90_getvar rotphase_varid"  )
-               cb%rotphase = rtemp(1) * DEG2RAD
+               cb%rotphase = cb%rotphase * DEG2RAD
             else
                cb%rotphase = 0.0_DP
             end if
