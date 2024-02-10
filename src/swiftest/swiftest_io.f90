@@ -1531,7 +1531,7 @@ contains
             if (status == NF90_NOERR) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%rotphase_varid, rtemp, start=[tslot]), &
                                   "netcdf_io_read_frame_system nf90_getvar rotphase_varid"  )
-               cb%rotphase = rtemp * DEG2RAD
+               cb%rotphase = rtemp(1) * DEG2RAD
             else
                cb%rotphase = 0.0_DP
             end if

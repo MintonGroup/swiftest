@@ -2422,7 +2422,8 @@ class Simulation(object):
                  Ip: List[float] | npt.NDArray[np.float_] | None=None,
                  J2: float | List[float] | npt.NDArray[np.float_] | None=None,
                  J4: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 c_lm: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None
+                 c_lm: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+                 rotphase: float | List[float] | npt.NDArray[np.float_] | None=None
                  ) -> None:
         """
         Adds a body (test particle or massive body) to the internal DataSet given a set up 6 vectors (orbital elements
@@ -2465,6 +2466,8 @@ class Simulation(object):
             Rotation rate vectors if these are massive bodies with rotation enabled.
         Ip : (3) or (n,3) array-like of float, optional
             Principal axes moments of inertia vectors if these are massive bodies with rotation enabled.
+        rotphase : float, optional
+            rotation phase angle of the central body in degrees
 
         Returns
         -------
@@ -2569,6 +2572,7 @@ class Simulation(object):
         vh,nbodies = input_to_array_3d(vh,nbodies)
         rot,nbodies = input_to_array_3d(rot,nbodies)
         Ip,nbodies = input_to_array_3d(Ip,nbodies)
+        rotphase, nbodies = input_to_array(rotphase, "f", nbodies)
 
         c_lm, nbodies = input_to_clm_array(c_lm, nbodies)
 
