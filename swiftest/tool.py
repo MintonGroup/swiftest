@@ -420,7 +420,7 @@ def xv2el_one(mu,rvec,vvec):
         argument of periapsis (degrees)
     M : float
         mean anomaly (degrees)
-    varpi : flaot
+    varpi : float
         longitude of periapsis (degrees)
     f : float
         true anomaly (degrees)
