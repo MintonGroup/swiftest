@@ -27,6 +27,7 @@ pip install --config-settings=editable.rebuild=true \
             --config-settings=cmake.args="-DCMAKE_Fortran_COMPILER=mpiifort" \
             --config-settings=cmake.args="-DCMAKE_Fortran_FLAGS=\"-f90=ifort\"" \
             --config-settings=cmake.args="-DMACHINE_CODE_VALUE=\"CORE-AVX-I\" " \
+            --config-settings=install.strip=false \
             --no-build-isolation \
             -ve . 
 
