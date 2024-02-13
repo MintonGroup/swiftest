@@ -15,7 +15,7 @@ ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 . ${SCRIPT_DIR}/set_compilers.sh
 
-SHTOOLS_VER="4.9.1"
+SHTOOLS_VER="4.11.10"
 
 printf "*********************************************************\n"
 printf "*             FETCHING SHTOOLS SOURCE                      *\n"
@@ -41,12 +41,23 @@ printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/SHTOOLS*
 
-make F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -O3 -std=gnu -ffast-math ${FFLAGS}" fortran
-make F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -O3 -std=gnu -ffast-math ${FFLAGS}" fortran-mp
+case $FC in
+    *"ifort"*|*"ifx"*)
+        echo "Using Intel Fortran compiler"
+        make F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -m64 -fpp -free -O3 -Tf" fortran
+        make F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -m64 -fpp -free -O3 -Tf" fortran-mp
+        ;;
+    *)
+        echo "Everything else"
+        make F95="${FC}" CXX="${CXX}" fortran
+        make F95="${FC}" CXX="${CXX}" fortran-mp
+        ;;
+esac
+
 if [ -w ${PREFIX} ]; then
-    make PREFIX="${PREFIX}" install
+    make F95="${FC}" PREFIX="${PREFIX}" install
 else
-    sudo make PREFIX="${PREFIX}" install
+    sudo make F95="${FC}" PREFIX="${PREFIX}" install
 fi
 cd ..
 

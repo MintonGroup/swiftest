@@ -11,8 +11,8 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 
-HDF5_VER="1_14_2"
-ZLIB_VER="1.3"
+HDF5_VER="1_14_3"
+ZLIB_VER="1.3.1"
 
 SCRIPT_DIR=$(realpath $(dirname $0))
 set -a
@@ -27,7 +27,7 @@ printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
 printf "*********************************************************\n"
 printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
-printf "Installing to ${PREFIX}\n"
+printf "Installing to ${HDF5_ROOT}\n"
 printf "\n"
 
 printf "*********************************************************\n"
@@ -60,13 +60,11 @@ printf "CPPFLAGS: ${CPPFLAGS}\n"
 printf "CPATH: ${CPATH}\n"
 printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
 printf "LDFLAGS: ${LDFLAGS}\n"
+printf "INSTALL_PREFIX: ${HDF5_ROOT}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/hdfsrc
 
-HDF5_ROOT=${PREFIX}
-ZLIB_ROOT=${PREFIX}
-SZIP_ROOT=${PREFIX}
 if [ $OS = "MacOSX" ]; then
     ZLIB_LIBRARY="${ZLIB_ROOT}/lib/libz.dylib"
 else
@@ -85,6 +83,7 @@ ARGLIST="-DCMAKE_INSTALL_PREFIX:PATH=${HDF5_ROOT} \
     -DHDF5_BUILD_FORTRAN:BOOL=OFF \
     -DHDF5_BUILD_EXAMPLES:BOOL=ON \
     -DBUILD_TESTING:BOOL=ON \
+    -DBUILD_STATIC_LIBS:BOOL=OFF \
     -DHDF5_BUILD_JAVA:BOOL=OFF"
 
 if [ $OS = "MacOSX" ]; then
@@ -94,7 +93,7 @@ fi
 cmake -B build -C ./config/cmake/cacheinit.cmake -G Ninja ${ARGLIST} .
 
 cmake --build build -j${NPROC} --config Release
-if [ -w ${PREFIX} ]; then
+if [ -w ${HDF5_ROOT} ]; then
     cmake --install build 
 else
     sudo cmake --install build 

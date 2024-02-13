@@ -16,11 +16,11 @@
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 case "$OS" in
-    Linux|MacOSX|Intel)
+    Linux-gnu|Linux-ifx|Linux-ifort|MacOSX)
         ;;
     *)
         echo "Unknown compiler type: $OS"
-        echo "Valid options are Intel, Linux, or MacOSX"
+        echo "Valid options are Linux-gnu, Linux-ifort, Linux-ifx, or MacOSX"
         echo $USTMT
         exit 1
         ;;
@@ -28,15 +28,25 @@ esac
 
 set -a
 case $OS in
-    Linux)
-        . ${SCRIPT_DIR}/set_environment_linux.sh
+    Linux-gnu)
         FC=$(command -v gfortran)
         CC=$(command -v gcc)
         CXX=$(command -v g++)
         CPP=$(command -v cpp)
         ;;
+    Linux-ifx)
+        FC=$(command -v ifx)
+        CC=$(command -v icx)
+        CXX=$(command -v icpx)
+        CPP=$(command -v cpp)
+        ;;
+    Linux-ifort)
+        FC=$(command -v ifort)
+        CC=$(command -v icx)
+        CXX=$(command -v icpx)
+        CPP=$(command -v cpp)
+        ;;
     MacOSX)
-        . ${SCRIPT_DIR}/set_environment_macos.sh
         FC=${HOMEBREW_PREFIX}/bin/gfortran-12
         CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype -arch ${ARCH}"
         FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -arch ${ARCH} -fno-underscoring"
@@ -52,15 +62,10 @@ case $OS in
         RANLIB=${COMPILER_PREFIX}/bin/ranlib
         LDFLAGS="-Wl,-no_compact_unwind"
         ;;
-    Intel)
-        FC=$(command -v ifx)
-        CC=$(command -v icx)
-        CXX=$(command -v icpx)
-        CPP=$(command -v cpp)
-        ;;
+
     *)
         printf "Unknown compiler type: ${OS}\n"
-        echo "Valid options are Intel, Linux, or MacOSX"
+        echo "Valid options are Linux-gnu, Linux-ifort, Linux-ifx, or MacOSX"
         printf $USTMT
         exit 1
         ;;

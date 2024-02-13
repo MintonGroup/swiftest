@@ -40,23 +40,6 @@ INCLUDE(${CMAKE_ROOT}/Modules/CheckFortranCompilerFlag.cmake)
 
 FUNCTION(SET_COMPILE_FLAG FLAGVAR FLAGVAL LANG)
 
-    # Do some up front setup if Fortran
-    IF(LANG STREQUAL "Fortran")
-        # Create a list of error messages from compilers
-        SET(FAIL_REGEX
-            "ignoring unknown option"             # Intel
-            "invalid argument"                    # Intel
-            "not supported"                       # Intel ifx
-            "unrecognized .*option"               # GNU
-            "[Uu]nknown switch"                   # Portland Group
-            "ignoring unknown option"             # MSVC
-            "warning D9002"                       # MSVC, any lang
-            "[Uu]nknown option"                   # HP
-            "[Ww]arning: [Oo]ption"               # SunPro
-            "command option .* is not recognized" # XL
-           )
-    ENDIF(LANG STREQUAL "Fortran")
-
     # Make a variable holding the flags.  Filter out REQUIRED if it is there
     SET(FLAG_REQUIRED FALSE)
     SET(FLAG_FOUND FALSE)

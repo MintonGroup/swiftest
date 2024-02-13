@@ -1,6 +1,6 @@
 [project]
 name = "swiftest"
-version = "2024.1.0"
+version = "2024.2.0"
 authors=[
     {name = 'David A. Minton', email='daminton@purdue.edu'},
     {name = 'Carlisle Wishard'},
@@ -112,7 +112,7 @@ CPP="/usr/bin/cpp"
 AR="/usr/bin/ar"
 NM="/usr/bin/nm"
 RANLIB="/usr/bin/ranlib"
-netCDF-Fortran_DIR="${PREFIX}/lib/cmake/netCDF"
+NETCDF_FORTRAN_DIR="${PREFIX}/lib/cmake/netCDF"
 
 [tool.cibuildwheel.macos]
 before-all = [
@@ -133,7 +133,7 @@ HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
 HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
 LD_LIBRARY_PATH="${PREFIX}/lib:/project/lib:${HDF5_LIBDIR}"
 CPATH="${PREFIX}/include:/project/include:${HDF5_INCLUDE_DIR}"
-netCDF-Fortran_DIR="${PREFIX}/lib/cmake/netCDF"
+NETCDF_FORTRAN_DIR="${PREFIX}/lib/cmake/netCDF"
 HDF5_DIR="${HDF5_ROOT}/cmake"
 SHTOOLS_HOME="${PREFIX}"
 PATH="${HDF5_ROOT}/bin:${PATH}"

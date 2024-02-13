@@ -53,8 +53,22 @@ BUILD_DIR=${BUILD_DIR:-"${HOME}/Downloads"}
 PREFIX=${PREFIX:-"/usr/local"}
 DEPENDENCY_DIR=${DEPENDENCY_DIR:-${BUILD_DIR}}
 
+
+case $OS in
+    Linux-gnu|Linux-ifx|Linux-ifort)
+        . ${SCRIPT_DIR}/set_environment_linux.sh
+        ;;
+    MacOSX)
+        . ${SCRIPT_DIR}/set_environment_macos.sh
+        ;;
+
+    *)
+        printf "Unknown compiler type: ${OS}\n"
+        echo "Valid options are Linux-gnu, Linux-ifort, Linux-ifx, or MacOSX"
+        printf $USTMT
+        exit 1
+        ;;
+esac
+
+
 mkdir -p ${DEPENDENCY_DIR}
-mkdir -p ${PREFIX}/lib
-mkdir -p ${PREFIX}/include
-mkdir -p ${PREFIX}/share
-mkdir -p ${PREFIX}/bin

@@ -22,10 +22,10 @@ printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
 printf "*********************************************************\n"
 printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
-printf "Installing to ${PREFIX}\n"
+printf "Installing to ${ZLIB_ROOT}\n"
 printf "\n"
 
-ZLIB_VER="1.3"
+ZLIB_VER="1.3.1"
 
 printf "*********************************************************\n"
 printf "*             FETCHING ZLIB SOURCE                      *\n"
@@ -46,13 +46,14 @@ printf "CPPFLAGS: ${CPPFLAGS}\n"
 printf "CPATH: ${CPATH}\n"
 printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
 printf "LDFLAGS: ${LDFLAGS}\n"
+printf "INSTALL_PREFIX: ${ZLIB_ROOT}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/zlib-*
-cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${PREFIX} 
+cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${ZLIB_ROOT} 
     
 cmake --build build -j${NPROC}
-if [ -w ${PREFIX} ]; then
+if [ -w ${ZLIB_ROOT} ]; then
     cmake --install build 
 else
     sudo cmake --install build

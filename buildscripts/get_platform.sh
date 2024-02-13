@@ -45,6 +45,18 @@ esac
 
 case $OS in
     Linux)
+        # Currently ifx support is not great
+        # if command -v ifx >/dev/null 2>&1; then 
+        #     OS="Linux-ifx" 
+
+        if command -v ifort >/dev/null 2>&1; then
+            OS="Linux-ifort"
+        elif command -v gfortran >/dev/null 2>&1; then
+            OS="Linux-gnu"
+        else
+            echo "No Fortran compiler found on Linux"
+            exit 1
+        fi
         ;; 
     Darwin)
         OS="MacOSX" 

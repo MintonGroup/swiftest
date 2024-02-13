@@ -22,7 +22,7 @@ printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
 printf "*********************************************************\n"
 printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
-printf "Installing to ${PREFIX}\n"
+printf "Installing to ${NFDIR}\n"
 printf "\n"
 
 NF_VER="4.6.1"
@@ -49,7 +49,6 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/netcdf-fortran-*
-NFDIR="${PREFIX}"
 NCLIBDIR=$(${NCDIR}/bin/nc-config --libdir)
 if [ $OS = "MacOSX" ]; then
     netCDF_LIBRARIES="${NCLIBDIR}/libnetcdf.dylib"
@@ -62,7 +61,7 @@ cmake -B build -S . -G Ninja \
     -DCMAKE_INSTALL_PREFIX:PATH=${NFDIR} \
     -DCMAKE_INSTALL_LIBDIR="lib"
 cmake --build build -j${NPROC} 
-if [ -w ${PREFIX} ]; then
+if [ -w ${NFDIR} ]; then
     cmake --install build 
 else
     sudo cmake --install build 

@@ -338,7 +338,7 @@ IF (CMAKE_BUILD_TYPE STREQUAL "DEBUG" OR CMAKE_BUILD_TYPE STREQUAL "TESTING" )
                 Fortran "-check all"       # Intel
             )
             SET_COMPILE_FLAG(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}"
-                C "-check=conversions,stack,uninit"       # Intel
+                C "-fcheck=conversions,stack,uninit"       # Intel
             )
             # Initializes matrices/arrays with NaN values
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
@@ -565,9 +565,7 @@ IF (CMAKE_BUILD_TYPE STREQUAL "RELEASE" OR CMAKE_BUILD_TYPE STREQUAL "PROFILE")
             )
             # Tells the compiler to link to certain libraries in the Intel oneAPI Math Kernel Library (oneMKL). 
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                Fortran "-mkl=cluster" 
-                        "-mkl"
-                        "-qmkl=cluster"
+                Fortran "-qmkl=cluster"
                         "-qmkl"     
             ) 
             # Enables additional interprocedural optimizations for a single file compilation
