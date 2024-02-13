@@ -26,7 +26,7 @@ if [[ BUILD_TYPE == "Release" ]]; then
             --config-settings=cmake.args="-DUSE_OPENMP=ON" \
             --config-settings=cmake.args="-DCMAKE_Fortran_COMPILER=mpiifort" \
             --config-settings=cmake.args="-DCMAKE_Fortran_FLAGS=\"-f90=ifort\"" \
-            --config-settings=cmake.args="-DMACHINE_CODE_VALUE=\"CORE-AVX-I\" " \
+            --config-settings=cmake.args="-DMACHINE_CODE_VALUE=\"Host\" " \
             --config-settings=install.strip=false \
             --no-build-isolation \
             -ve . 
@@ -34,7 +34,7 @@ else
     pip uninstall swiftest -y
     cmake -P distclean.cmake
     cmake -B ${ROOT_DIR}/build -S . -G Ninja \
-    -DMACHINE_CODE_VALUE="CORE-AVX-I" \
+    -DMACHINE_CODE_VALUE="SSE2" \
     -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
     -DCMAKE_Fortran_COMPILER=mpiifort \
     -DCMAKE_Fortran_FLAGS="-f90=ifort" 
