@@ -19,8 +19,7 @@ module load conda-env/mintongroup-py3.9.13
 module load netcdf-fortran/intel-oneapi/4.6.1
 module load shtools/intel-oneapi/4.11.10
 cmake -P distclean.cmake
-pip install --config-settings=editable.rebuild=true \
-            --config-settings=build-dir="build" \
+pip install --config-settings=build-dir="build" \
             --config-settings=cmake.build-type="${BUILD_TYPE}" \
             --config-settings=cmake.args="-DUSE_SIMD=ON" \
             --config-settings=cmake.args="-DUSE_OPENMP=ON" \
