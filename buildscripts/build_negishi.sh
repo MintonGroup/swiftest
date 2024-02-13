@@ -20,7 +20,7 @@ module load netcdf-fortran/intel-oneapi/4.6.1
 module load shtools/intel-oneapi/4.11.10
 cmake -P distclean.cmake
 pip install --config-settings=editable.rebuild=true \
-            --config-settings=build-dir="build/{wheel_tag}" \
+            --config-settings=build-dir="build" \
             --config-settings=cmake.build-type="${BUILD_TYPE}" \
             --config-settings=cmake.args="-DUSE_SIMD=ON" \
             --config-settings=cmake.args="-DUSE_OPENMP=ON" \
@@ -31,4 +31,4 @@ pip install --config-settings=editable.rebuild=true \
             -ve . 
 
 
-LD_LIBRARY_PATH=$(realpath ${ROOT_DIR}/build/*/bin):$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=$(realpath ${ROOT_DIR}/build/bin):$LD_LIBRARY_PATH

@@ -310,6 +310,12 @@ IF (CMAKE_BUILD_TYPE STREQUAL "DEBUG" OR CMAKE_BUILD_TYPE STREQUAL "TESTING" )
             )
         ELSE ()
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
+                Fortran REQUIRED "-pg -g3" 
+            )
+            SET_COMPILE_FLAG(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}"
+                C REQUIRED "-g3" 
+            )
+            SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                 Fortran REQUIRED "-O0" # All compilers not on Windows
             )
             SET_COMPILE_FLAG(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}"
