@@ -37,7 +37,7 @@ ELSE()
     # Define the paths to the source code and python files
     SET(SRC "${CMAKE_SOURCE_DIR}/src")
     SET(PY "${CMAKE_SOURCE_DIR}/swiftest")
-
+    MESSAGE(STATUS "CMAKE_Fortran_PREPROCESS_SOURCE: ${CMAKE_Fortran_PREPROCESS_SOURCE}")
     # Make sure paths are correct for Unix or Windows style
     FILE(TO_CMAKE_PATH ${SRC} SRC)
     FILE(TO_CMAKE_PATH ${PY} PY)
@@ -59,8 +59,6 @@ ELSE()
         SET(INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR})
         SET(INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR})
     ENDIF ()
-    SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
-    SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
     # Have the .mod files placed in the include folder
     SET(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mod)

@@ -67,12 +67,10 @@ docs/_static/fortran_docs/*/**
 !environment.yml
 !.dockerignore
 
+swiftest/_bindings.cpython*
 bin/
 build/*
-hdf5-*
-netcdf-c-*
-netcdf-fortran-*
-zlib-*
+lib*
 
 actions-runner*
 

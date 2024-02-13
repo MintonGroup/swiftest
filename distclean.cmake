@@ -47,6 +47,7 @@ FILE(GLOB_RECURSE CMAKEINSTALL "${TOPDIR}/*cmake_install.cmake"
                                "${TOPDIR}/*install_manifest.txt")
 FILE(GLOB_RECURSE CMAKETESTFILES "${TOPDIR}/*CTestTestfile.cmake")
 SET(TOPDIRECTORIES "${TOPDIR}/lib" 
+                   "${TOPDIR}/lib64" 
                    "${TOPDIR}/libexec"
                    "${TOPDIR}/bin"
                    "${TOPDIR}/include"
