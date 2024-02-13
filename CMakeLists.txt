@@ -34,17 +34,27 @@ ELSE()
     OPTION(USE_SIMD "Use SIMD vectorization" ON)
     OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
+    # Define the paths to the source code and python files
+    SET(SRC "${CMAKE_SOURCE_DIR}/src")
+    SET(PY "${CMAKE_SOURCE_DIR}/swiftest")
+
+    # Make sure paths are correct for Unix or Windows style
+    FILE(TO_CMAKE_PATH ${SRC} SRC)
+    FILE(TO_CMAKE_PATH ${PY} PY)
+
     INCLUDE(GNUInstallDirs)
     IF (SKBUILD)
-        SET(INSTALL_BINDIR ${SKBUILD_SCRIPTS_DIR}) 
+        SET(INSTALL_BINDIR ${SKBUILD_SCRIPTS_DIR})
         SET(INSTALL_LIBDIR ${SKBUILD_DATA_DIR}/lib) 
         SET(INSTALL_INCLUDEDIR ${SKBUILD_HEADERS_DIR}) 
+        SET(INSTALL_PYPROJ ${SKBUILD_PLATLIB_DIR}/${SKBUILD_PROJECT_NAME}) 
         IF (APPLE)
             SET(CMAKE_INSTALL_RPATH "@loader_path")
         ELSEIF (LINUX)
             SET(CMAKE_INSTALL_RPATH $ORIGIN)
         ENDIF ()
     ELSE ()
+        SET(INSTALL_PYPROJ ${PY})
         SET(INSTALL_BINDIR ${CMAKE_INSTALL_BINDIR})
         SET(INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR})
         SET(INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR})
@@ -89,9 +99,6 @@ ELSE()
     FIND_PACKAGE(Python COMPONENTS Interpreter Development.Module REQUIRED)
 
 
-    SET(SRC "${CMAKE_SOURCE_DIR}/src")
-    SET(PY "${CMAKE_SOURCE_DIR}/swiftest")
-
     #####################################
     # Tell how to install this executable
     #####################################
@@ -102,11 +109,6 @@ ELSE()
     ELSE()
         SET(CMAKE_INSTALL_PREFIX /usr/local CACHE PATH "Path for install")
     ENDIF()
-
-
-    # Make sure paths are correct for Unix or Windows style
-    FILE(TO_CMAKE_PATH ${SRC} SRC)
-    FILE(TO_CMAKE_PATH ${PY} PY)
 
     # Set the name of the swiftest library
     SET(SWIFTEST_LIBRARY ${SKBUILD_PROJECT_NAME})
