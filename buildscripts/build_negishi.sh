@@ -29,6 +29,3 @@ pip install --config-settings=build-dir="build" \
             --config-settings=install.strip=false \
             --no-build-isolation \
             -ve . 
-
-
-LD_LIBRARY_PATH=$(realpath ${ROOT_DIR}/build/bin):$LD_LIBRARY_PATH
