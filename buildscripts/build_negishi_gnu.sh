@@ -16,7 +16,7 @@ module load gcc/12.2.0
 module load hdf5/1.13.2
 module load netcdf-c/4.9.0
 module load netcdf-fortran/4.6.0
-module load shtools/gcc/4.11.10
+module load shtools/gcc12.2.0/4.11.10
 cmake -P distclean.cmake
 if [[ BUILD_TYPE == "Release" ]]; then
     pip install --config-settings=build-dir="build" \
