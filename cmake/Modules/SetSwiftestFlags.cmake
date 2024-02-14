@@ -159,6 +159,9 @@ IF (NOT BUILD_SHARED_LIBS AND NOT WINOPT)
                 Fortran  "-static-libquadmath" 
             )
         ENDIF ()
+        SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
+            Fortran  "-Wl,--verbose"
+        )
         IF (USE_OPENMP)
             SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
                 Fortran "-lomp"  
@@ -419,16 +422,7 @@ IF (CMAKE_BUILD_TYPE STREQUAL "DEBUG" OR CMAKE_BUILD_TYPE STREQUAL "TESTING" )
         SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
             Fortran "-fbacktrace"  # GNU (gfortran)
         )
-        # Sanitize
-        IF (NOT APPLE)
-            SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
-                Fortran "-fsanitize=address, undefined"  # Gnu 
-            )
-            SET_COMPILE_FLAG(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}"
-                C "-fsanitize=address, undefined"  # Gnu 
-            )
-        ENDIF()
-        # Check everything
+        # # Check everything
         SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
             Fortran "-fcheck=all" # GNU 
         )
