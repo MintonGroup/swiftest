@@ -587,13 +587,18 @@ contains
       !!
       !! initial 0 is set at the x-axis 
       !! phase is stored and calculated in radians. Converted to degrees for output
-
+      implicit none
       ! Arguments
       class(swiftest_cb),           intent(inout) :: self   !! Swiftest central body data structure
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt     !! Stepsize
 
-      self%rotphase = MOD(self%rotphase + (.mag. self%rot(:)) * dt * param%TU2S, 2 * PI) ! phase angle calculated in radians and then scaled by 2pi to be unitless
+      ! Internals
+      real(DP) :: rotmag
+
+      rotmag = (.mag. self%rot(:)) * dt * param%TU2S
+
+      self%rotphase = MOD(self%rotphase + rotmag, 2 * PI) ! phase angle calculated in radians and then scaled by 2pi to be unitless
 
    end subroutine swiftest_drift_cb_rotphase_update
 
