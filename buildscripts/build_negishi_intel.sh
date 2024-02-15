@@ -15,7 +15,12 @@ module load intel-oneapi-mpi/2021.8.0
 source ${INTEL_ONEAPI_COMPILERS_HOME}/setvars.sh > /dev/null 2>&1
 module use /depot/daminton/etc/modules
 module load use.own
-module load conda-env/mintongroup-py3.9.13
+if [[ BUILD_TYPE == "Release" ]]; then
+    module load conda-env/mintongroup-py3.9.13
+else
+    module load cmake/3.24.3 
+    module load ninja/1.11.1-negishi
+fi
 module load netcdf-fortran/intel-oneapi/4.6.1
 module load shtools/intel-oneapi/4.11.10
 cmake -P distclean.cmake
@@ -31,7 +36,6 @@ if [[ BUILD_TYPE == "Release" ]]; then
             --no-build-isolation \
             -ve . 
 else
-    pip uninstall swiftest -y
     cmake -P distclean.cmake
     cmake -B ${ROOT_DIR}/build -S . -G Ninja \
     -DMACHINE_CODE_VALUE="SSE2" \
