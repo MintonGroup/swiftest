@@ -30,9 +30,9 @@ MACHINE_NAME=$(uname -n | awk -F. '{
 }')
 
 if { conda env list | grep 'mintongroup'; } >/dev/null 2>&1; then
-    print -n "The mintongroup conda environment was detected"
+    echo "The mintongroup conda environment was detected"
 else
-    print -n "The mintongroup conda environment was not detected. Creating it now..."
+    echo "The mintongroup conda environment was not detected. Creating it now..."
     /depot/daminton/apps/build_mintongroup_conda.sh
 fi
 
