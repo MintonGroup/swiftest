@@ -38,3 +38,5 @@ dependencies:
   - pip
   - flake8
   - pyshtools
+  - scikit-build-core
+  - ipykernel

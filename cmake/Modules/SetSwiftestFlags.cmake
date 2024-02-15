@@ -162,7 +162,10 @@ IF (NOT BUILD_SHARED_LIBS AND NOT WINOPT)
         IF (USE_OPENMP)
             SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
                 Fortran "-lomp"  
-                        "-lgomp"  
+                        
+            )
+            SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
+                Fortran "-lgomp"  
             )
         ENDIF (USE_OPENMP)
     ENDIF ()
@@ -520,8 +523,7 @@ IF (CMAKE_BUILD_TYPE STREQUAL "RELEASE" OR CMAKE_BUILD_TYPE STREQUAL "PROFILE")
             )
             # Tells the compiler to link to certain libraries in the Intel oneAPI Math Kernel Library (oneMKL). 
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                Fortran "/Qmkl:cluster" # Intel Windows
-                        "/Qmkl"     # Intel Windows
+                Fortran "/Qmkl"     # Intel Windows
             ) 
             # Enables additional interprocedural optimizations for a single file compilation
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
@@ -556,8 +558,10 @@ IF (CMAKE_BUILD_TYPE STREQUAL "RELEASE" OR CMAKE_BUILD_TYPE STREQUAL "PROFILE")
             )
             # Tells the compiler to link to certain libraries in the Intel oneAPI Math Kernel Library (oneMKL). 
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
-                Fortran "-qmkl=cluster"
-                        "-qmkl"     
+                Fortran "-mkl"     
+            ) 
+            SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
+                Fortran "-qmkl"     
             ) 
             # Enables additional interprocedural optimizations for a single file compilation
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
