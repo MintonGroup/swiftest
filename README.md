@@ -281,7 +281,7 @@ The **<span>cb.in</span>** includes all central body initial conditions. The str
 0.0               ! J2 term, optional, set to 0.0 for a spherical body
 0.0               ! J4 term, optional, set to 0.0 for a spherical body
 0.4 0.4 0.4       ! Principal moments of inertia, optional, leave off if not using, SyMBA only
-0.0 0.0 0.0       ! Rotational vectors in radians per second, optional, leave off if not using, SyMBA only
+0.0 0.0 0.0       ! Rotational vectors in degrees per time unit, optional, leave off if not using, SyMBA only
 ```
 
 The **<span>pl.in</span>** includes all massive body initial conditions. The structure of the  **<span>pl.in</span>** is as follows:
@@ -293,7 +293,7 @@ The **<span>pl.in</span>** includes all massive body initial conditions. The str
 1.0 1.0 1.0       ! If IN_FORM is set to XV then this is the heliocentric position vector, if it is set to EL then this is the semi-major axis, the eccentricity, and the inclination
 1.0 1.0 1.0       ! If IN_FORM is set to XV then this is the heliocentric velocity vector, if it is set to EL then this is the longitude of the ascending node, the argument of pericenter, and the mean anomaly
 0.4 0.4 0.4       ! Principal moments of inertia, optional, leave off if not using, SyMBA only
-1.0 1.0 1.0       ! Rotational vectors in radians per second, optional, leave off if not using, SyMBA only
+1.0 1.0 1.0       ! Rotational vectors in degrees per time unit, optional, leave off if not using, SyMBA only
 2, 0.0, 0.0       
 0.0               
 1.0 1.0 1.0       
