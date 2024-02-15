@@ -1225,7 +1225,7 @@ contains
          Lcborbit(:) = cb%mass * (cb%rb(:) .cross. cb%vb(:))
 
 #ifdef DOCONLOC
-         do concurrent (i = 1:npl, pl%lmask(i)) shared(pl,Lplorbit,kepl) local(h) 
+         do concurrent (i = 1:npl, pl%lmask(i)) shared(pl,Lplorbit,kepl,npl) local(h) 
 #else
          do concurrent (i = 1:npl, pl%lmask(i))
 #endif

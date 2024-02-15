@@ -43,14 +43,15 @@ if [[ $MACHINE_NAME == "bell" ]]; then
 elif [[ $MACHINE_NAME == "negishi" ]]; then
     module purge
     module use /depot/daminton/etc/modules/negishi
-    module load intel-oneapi-compilers/2023.0.0
-    module load intel-oneapi-mkl/2023.0.0
-    module load intel-oneapi-mpi/2021.8.0
-    source ${INTEL_ONEAPI_COMPILERS_HOME}/setvars.sh > /dev/null 2>&1
-    module load netcdf-fortran/intel-oneapi/4.6.1
-    module load shtools/intel-oneapi/4.11.10
+    module load intel/19.1.3.304
+    module load intel-mkl/2019.9.304
+    module load impi/2019.9.304
+    module load shtools/intel19/4.11.10
     module load cmake/3.24.3 
     module load ninja/1.11.1
+    module load hdf5/1.13.2
+    module load netcdf-c/4.9.0
+    module load netcdf-fortran/4.6.0
     module load use.own
     module load conda-env/swiftest-env-py3.9.13
     MACHINE_CODE_VALUE="SSE2"
@@ -63,18 +64,16 @@ if [[ $BUILD_TYPE == "Release" ]]; then
             --config-settings=cmake.build-type="${BUILD_TYPE}" \
             --config-settings=cmake.args="-DUSE_SIMD=ON" \
             --config-settings=cmake.args="-DUSE_OPENMP=ON" \
-            --config-settings=cmake.args="-DCMAKE_Fortran_COMPILER=mpiifort" \
-            --config-settings=cmake.args="-DCMAKE_Fortran_FLAGS=\"-f90=ifort\"" \
+            --config-settings=cmake.args="-DCMAKE_Fortran_COMPILER=${FC}" \
             --config-settings=cmake.args="-DMACHINE_CODE_VALUE=$MACHINE_CODE_VALUE" \
             --config-settings=install.strip=false \
             --no-build-isolation \
             -ve . 
 else
     cmake -B ${ROOT_DIR}/build -S . -G Ninja \
-    -DMACHINE_CODE_VALUE=$MACHINE_CODE_VALUE \
+    -DMACHINE_CODE_VALUE=${MACHINE_CODE_VALUE} \
     -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-    -DCMAKE_Fortran_COMPILER=mpiifort \
-    -DCMAKE_Fortran_FLAGS="-f90=ifort" 
+    -DCMAKE_Fortran_COMPILER=${FC} \
 
     cmake --build ${ROOT_DIR}/build -j${OMP_NUM_THREADS} -v
 fi

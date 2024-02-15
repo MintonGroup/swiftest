@@ -16,7 +16,7 @@
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 case "$OS" in
-    Linux-gnu|Linux-ifx|Linux-ifort|MacOSX)
+    Linux-gnu|Linux-ifx|Linux-ifort|Linux-mpiifort|MacOSX)
         ;;
     *)
         echo "Unknown compiler type: $OS"
@@ -42,8 +42,14 @@ case $OS in
         ;;
     Linux-ifort)
         FC=$(command -v ifort)
-        CC=$(command -v icx)
-        CXX=$(command -v icpx)
+        CC=$(command -v icc)
+        CXX=$(command -v icpc)
+        CPP=$(command -v cpp)
+        ;;
+    Linux-mpiifort)
+        FC=$(command -v mpiifort)
+        CC=$(command -v mpiicc)
+        CXX=$(command -v mpiicpc)
         CPP=$(command -v cpp)
         ;;
     MacOSX)

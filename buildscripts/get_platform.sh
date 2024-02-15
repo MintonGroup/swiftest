@@ -50,6 +50,9 @@ case $OS in
         *ifx) 
             OS="Linux-ifx" 
             ;;
+        *mpiifort)
+            OS="Linux-mpiifort"
+            ;;
         *ifort)
             OS="Linux-ifort"
             ;;
