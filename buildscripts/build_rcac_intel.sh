@@ -37,10 +37,9 @@ if [[ $MACHINE_NAME == "bell" ]]; then
     module load hdf5/1.10.6
     module load netcdf/4.7.4
     module load netcdf-fortran/4.5.3
-    if [[ $BUILD_TYPE == "Release" ]]; then
-        module load use.own
-        module load conda-env/swiftest-env-py3.8.5
-    fi
+    module load use.own
+    module load conda-env/swiftest-env-py3.8.5
+    MACHINE_CODE_VALUE="Host"
 elif [[ $MACHINE_NAME == "negishi" ]]; then
     module purge
     module use /depot/daminton/etc/modules/negishi
@@ -52,10 +51,9 @@ elif [[ $MACHINE_NAME == "negishi" ]]; then
     module load shtools/intel-oneapi/4.11.10
     module load cmake/3.24.3 
     module load ninja/1.11.1
-    if [[ $BUILD_TYPE == "Release" ]]; then
-        module load use.own
-        module load conda-env/mintongroup-py3.9.13
-    fi
+    module load use.own
+    module load conda-env/swiftest-env-py3.9.13
+    MACHINE_CODE_VALUE="SSE2"
 fi
 
 
@@ -67,13 +65,13 @@ if [[ $BUILD_TYPE == "Release" ]]; then
             --config-settings=cmake.args="-DUSE_OPENMP=ON" \
             --config-settings=cmake.args="-DCMAKE_Fortran_COMPILER=mpiifort" \
             --config-settings=cmake.args="-DCMAKE_Fortran_FLAGS=\"-f90=ifort\"" \
-            --config-settings=cmake.args="-DMACHINE_CODE_VALUE=\"Host\" " \
+            --config-settings=cmake.args="-DMACHINE_CODE_VALUE=$MACHINE_CODE_VALUE" \
             --config-settings=install.strip=false \
             --no-build-isolation \
             -ve . 
 else
     cmake -B ${ROOT_DIR}/build -S . -G Ninja \
-    -DMACHINE_CODE_VALUE="SSE2" \
+    -DMACHINE_CODE_VALUE=$MACHINE_CODE_VALUE \
     -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
     -DCMAKE_Fortran_COMPILER=mpiifort \
     -DCMAKE_Fortran_FLAGS="-f90=ifort" 
