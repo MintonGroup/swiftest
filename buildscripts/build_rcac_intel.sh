@@ -1,16 +1,22 @@
 #!/bin/zsh -l
 # installs an editable (local) package on Bell
 # This is a convenience script for Kaustub
-# To use in Release mode, be sure to create the swiftest-env module first. Using the RCAC tools it's the following commands:
+# To use in Release mode, be sure to create the mintongroup module first. Using the RCAC tools it's the following commands:
 #   $ conda env create -f environment.yml
-#   $ conda-env-mod module -n swiftest-env --jupyter
-
+#   $ conda-env-mod module -n mintongroup --jupyter
 
 set -a
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 cd ${ROOT_DIR}
 BUILD_TYPE=${1:-"Release"}
+
+# Set the OMP_NUM_THREADS variable to be the number of CPUS if this is a compute node, or 1 if this is a frontend or login node
+if { hostname | grep -E 'fe|login'; } >/dev/null 2>&1; then
+    OMP_NUM_THREADS=1
+else
+    OMP_NUM_THREADS=$(squeue -u $(whoami) | grep $SLURM_JOB_ID | awk -F' ' '{print $6}')
+fi
 
 MACHINE_NAME=$(uname -n | awk -F. '{ 
     if ($2 == "negishi" || $2 == "bell") 
@@ -23,6 +29,13 @@ MACHINE_NAME=$(uname -n | awk -F. '{
             print "Unknown"; 
     }
 }')
+
+if { conda env list | grep 'mintongroup'; } >/dev/null 2>&1; then
+    print -n "The mintongroup conda environment was detected"
+else
+    print -n "The mintongroup conda environment was not detected. Creating it now..."
+    /depot/daminton/apps/build_mintongroup_conda.sh
+fi
 
 
 if [[ $MACHINE_NAME == "bell" ]]; then
@@ -38,7 +51,7 @@ if [[ $MACHINE_NAME == "bell" ]]; then
     module load netcdf/4.7.4
     module load netcdf-fortran/4.5.3
     module load use.own
-    module load conda-env/swiftest-env-py3.8.5
+    module load conda-env/mintongroup-py3.8.5
     MACHINE_CODE_VALUE="Host"
 elif [[ $MACHINE_NAME == "negishi" ]]; then
     module purge
@@ -53,7 +66,7 @@ elif [[ $MACHINE_NAME == "negishi" ]]; then
     module load netcdf-c/4.9.0
     module load netcdf-fortran/4.6.0
     module load use.own
-    module load conda-env/swiftest-env-py3.9.13
+    module load conda-env/mintongroup-py3.9.13
     MACHINE_CODE_VALUE="SSE2"
 fi
 

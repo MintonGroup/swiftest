@@ -1,14 +1,21 @@
 #!/bin/zsh -l
-# installs an editable (local) package in release mode on Negishi
+# Builds Swiftest on the Purdue RCAC cluster system using the GNU compiler
 # This is a convenience script for Kaustub
-
-
+# The default build type is Release, in which case the Python package is installed in editable mode. Otherwise, only the Fortran 
+# library and executables are built, but not installed, so that the user can run them from the build directory.
 
 set -a
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 cd ${ROOT_DIR}
 BUILD_TYPE=${1:-"Release"}
+
+# Set the OMP_NUM_THREADS variable to be the number of CPUS if this is a compute node, or 1 if this is a frontend or login node
+if { hostname | grep -E 'fe|login'; } >/dev/null 2>&1; then
+    OMP_NUM_THREADS=1
+else
+    OMP_NUM_THREADS=$(squeue -u $(whoami) | grep $SLURM_JOB_ID | awk -F' ' '{print $6}')
+fi
 
 MACHINE_NAME=$(uname -n | awk -F. '{ 
     if ($2 == "negishi" || $2 == "bell") 
@@ -22,6 +29,15 @@ MACHINE_NAME=$(uname -n | awk -F. '{
     }
 }')
 
+if { conda env list | grep 'mintongroup'; } >/dev/null 2>&1; then
+    print -n "The mintongroup conda environment was detected"
+else
+    print -n "The mintongroup conda environment was not detected. Creating it now..."
+    /depot/daminton/apps/build_mintongroup_conda.sh
+fi
+
+
+
 if [[ $MACHINE_NAME == "bell" ]]; then
     module purge
     module use /depot/daminton/etc/modules/bell
@@ -34,7 +50,7 @@ if [[ $MACHINE_NAME == "bell" ]]; then
     module load ninja/1.11.1
     if [[ $BUILD_TYPE == "Release" ]]; then
         module load use.own
-        module load conda-env/swiftest-env-py3.8.5
+        module load conda-env/mintongroup-py3.8.5
     fi    
 elif [[ $MACHINE_NAME == "negishi" ]]; then
     module purge
@@ -48,7 +64,7 @@ elif [[ $MACHINE_NAME == "negishi" ]]; then
     module load ninja/1.11.1
     if [[ $BUILD_TYPE == "Release" ]]; then
         module load use.own
-        module load conda-env/swiftest-env-py3.9.13
+        module load conda-env/mintongroup-py3.9.13
     fi
 fi
 
