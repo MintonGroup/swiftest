@@ -51,6 +51,7 @@ if [[ $MACHINE_NAME == "bell" ]]; then
     module load netcdf/4.7.4
     module load netcdf-fortran/4.5.3
     module load use.own
+    # module load fftw/3.3.8.lua 
     module load conda-env/mintongroup-py3.8.5
     MACHINE_CODE_VALUE="Host"
 elif [[ $MACHINE_NAME == "negishi" ]]; then
