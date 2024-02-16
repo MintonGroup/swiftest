@@ -49,10 +49,6 @@ case $OS in
     *MSYS*)
         OS="Windows"
         ;;
-    *)
-        echo "Swiftest is currently not configured to build for platform ${OS}-${ARCH}"
-        exit 1
-        ;;
 esac
 
 if [[ $OS == "Linux" ]]; then
