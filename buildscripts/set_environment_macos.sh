@@ -12,7 +12,7 @@ CPATH="/usr/local/include:${PREFIX}/include:${HOMEBREW_PREFIX}/include:${ROOT_DI
 CPPFLAGS="-isystem ${PREFIX}/include -isystem /usr/local/include -Xclang -fopenmp"
 LIBS="-lomp"
 CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype -arch ${ARCH}"
-FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -fno-underscoring"
+FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET}"
 FFLAGS="${FCFLAGS}"
 CFLAGS="${FCFLAGS} -Wno-deprecated-non-prototype"
 CXXFLAGS="${CFLAGS}"

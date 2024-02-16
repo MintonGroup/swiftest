@@ -49,8 +49,8 @@ case $FC in
         ;;
     *)
         echo "Everything else"
-        make F95="${FC}" CXX="${CXX}" fortran
-        make F95="${FC}" CXX="${CXX}" fortran-mp
+        make F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -m64 -O3 -std=gnu -ffast-math" fortran
+        make F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -m64 -O3 -std=gnu -ffast-math" fortran-mp
         ;;
 esac
 

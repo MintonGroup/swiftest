@@ -55,7 +55,7 @@ case $OS in
     MacOSX)
         FC=${HOMEBREW_PREFIX}/bin/gfortran-12
         CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype -arch ${ARCH}"
-        FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -arch ${ARCH} -fno-underscoring"
+        FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -arch ${ARCH}"
         FFLAGS=$FCFLAGS
         LD_LIBRARY_PATH=""
         CPATH=""

@@ -76,10 +76,6 @@ IF (COMPILER_OPTIONS STREQUAL "GNU")
     SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
         Fortran "-ffree-form" # GNU
         ) 
-    # Don't add underscores in symbols for C-compatability
-    SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
-        Fortran "-fno-underscoring" # GNU
-        ) 
     # Compile code assuming that IEEE signaling NaNs may generate user-visible traps during floating-point operations. 
     # Setting this option disables optimizations that may change the number of exceptions visible with signaling NaNs. 
     SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
@@ -93,6 +89,10 @@ IF (COMPILER_OPTIONS STREQUAL "GNU")
     SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
         Fortran "-std=f2018" 
         )
+    SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
+        Fortran "-fPIC"
+        )
+    
 ELSEIF (COMPILER_OPTIONS STREQUAL "Intel")
     # Disables right margin wrapping in list-directed output
     IF (WINOPT)
@@ -557,6 +557,9 @@ IF (CMAKE_BUILD_TYPE STREQUAL "RELEASE" OR CMAKE_BUILD_TYPE STREQUAL "PROFILE")
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
                 Fortran "-mkl"     
             ) 
+            SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
+                Fortran "-qmkl"     
+            ) 
             # Enables additional interprocedural optimizations for a single file compilation
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
                 Fortran "-ip"  # Intel
@@ -572,6 +575,9 @@ IF (CMAKE_BUILD_TYPE STREQUAL "RELEASE" OR CMAKE_BUILD_TYPE STREQUAL "PROFILE")
         SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
             Fortran "-finline-functions" # GNU
         )
+        SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_FLAGS_RELEASE}"
+            Fortran "-llapack"     
+        ) 
     ENDIF ()
 ENDIF ()
  

@@ -37,7 +37,7 @@ ELSE()
     # Define the paths to the source code and python files
     SET(SRC "${CMAKE_SOURCE_DIR}/src")
     SET(PY "${CMAKE_SOURCE_DIR}/swiftest")
-    MESSAGE(STATUS "CMAKE_Fortran_PREPROCESS_SOURCE: ${CMAKE_Fortran_PREPROCESS_SOURCE}")
+
     # Make sure paths are correct for Unix or Windows style
     FILE(TO_CMAKE_PATH ${SRC} SRC)
     FILE(TO_CMAKE_PATH ${PY} PY)
@@ -49,9 +49,9 @@ ELSE()
         SET(INSTALL_INCLUDEDIR ${SKBUILD_HEADERS_DIR}) 
         SET(INSTALL_PYPROJ ${SKBUILD_PLATLIB_DIR}/${SKBUILD_PROJECT_NAME}) 
         IF (APPLE)
-            SET(CMAKE_INSTALL_RPATH "@loader_path")
+            SET(CMAKE_INSTALL_RPATH "@loader_path/../lib")
         ELSEIF (LINUX)
-            SET(CMAKE_INSTALL_RPATH $ORIGIN)
+            SET(CMAKE_INSTALL_RPATH $ORIGIN/../lib)
         ENDIF ()
     ELSE ()
         SET(INSTALL_PYPROJ ${PY})
@@ -79,7 +79,7 @@ ELSE()
 
     # The following section is modified from Numpy f2py documentation
     IF(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
-    MESSAGE(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.\n")
+        MESSAGE(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.\n")
     ENDIF()
 
     FIND_PACKAGE(NETCDF_Fortran REQUIRED)
@@ -119,6 +119,9 @@ ELSE()
 
     INCLUDE(SetSwiftestFlags) 
 
+    IF (NOT BUILD_SHARED_LIBS)
+        SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
+    ENDIF()
     # The source for the SWIFTEST binary and have it placed in the bin folder
     ADD_SUBDIRECTORY(${SRC} ${CMAKE_INSTALL_BINDIR})
     ADD_SUBDIRECTORY(${PY})
