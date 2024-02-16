@@ -13,10 +13,9 @@ set -a
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 
-echo "Getting the OS and ARCH values"
 # Get platform and architecture
-read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
-echo "Gotem! OS: $OS, ARCH: $ARCH"
+OS=$(uname -s)
+ARCH=$(uname -m)
 
 # Parse arguments
 USTMT="Usage: ${0} [-d /path/to/dependency/source] [-p /prefix/path] [-m MACOSX_DEPLOYMENT_TARGET]"
@@ -57,16 +56,16 @@ DEPENDENCY_DIR=${DEPENDENCY_DIR:-${BUILD_DIR}}
 
 
 case $OS in
-    Linux-gnu|Linux-ifx|Linux-ifort|Linux-mpiifort|MacOSX)
+    Linux*)
         . ${SCRIPT_DIR}/set_environment_linux.sh
         ;;
-    MacOSX)
+    MacOSX|Darwin)
         . ${SCRIPT_DIR}/set_environment_macos.sh
         ;;
 
     *)
         printf "Unknown compiler type: ${OS}\n"
-        echo "Valid options are Linux-gnu, Linux-ifort, Linux-ifx, or MacOSX"
+        echo "Valid options are Linux, MacOSX, or Darwin"
         printf $USTMT
         exit 1
         ;;

@@ -15,17 +15,67 @@
 # If not, see: https://www.gnu.org/licenses. 
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
-case "$OS" in
-    Linux-gnu|Linux-ifx|Linux-ifort|Linux-mpiifort|MacOSX)
+
+# Get platform and architecture
+OS=$(uname -s)
+ARCH=$(uname -m)
+
+case $ARCH in
+    x86_64)
+        ;;
+    amd64)
+        ARCH="x86_64"
+        ;;
+    arm64)
+        if [ "$OS" = "Linux" ]; then
+            ARCH="aarch64"
+        fi
+        ;;
+    aarch64)
+        if [ "$OS" = "Darwin" ]; then
+            ARCH="arm64"
+        fi
         ;;
     *)
-        echo "Unknown compiler type: $OS"
-        echo "Valid options are Linux-gnu, Linux-ifort, Linux-ifx, or MacOSX"
-        echo $USTMT
+        echo "Swiftest is currently not configured to build for platform ${OS}-${ARCH}"
         exit 1
         ;;
 esac
 
+case $OS in
+    Darwin)
+        OS="MacOSX" 
+        ;;
+    *MSYS*)
+        OS="Windows"
+        ;;
+    *)
+        echo "Swiftest is currently not configured to build for platform ${OS}-${ARCH}"
+        exit 1
+        ;;
+esac
+
+if [[ $OS == "Linux" ]]; then
+    # Check if FC is set yet, and if so, use it instead of the default
+    # Currently ifx support is not great
+    case $FC in
+    *ifx) 
+        OS="Linux-ifx" 
+        ;;
+    *mpiifort)
+        OS="Linux-mpiifort"
+        ;;
+    *ifort)
+        OS="Linux-ifort"
+        ;;
+    *gfortran)
+        OS="Linux-gnu"
+        ;;
+    *)
+        OS="Linux-gnu"
+        ;;
+    esac
+fi 
 set -a
 case $OS in
     Linux-gnu)
