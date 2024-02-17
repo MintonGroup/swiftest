@@ -80,7 +80,6 @@ if [[ BUILD_TYPE == "Release" ]]; then
             --no-build-isolation \
             -ve . 
 else
-    pip uninstall swiftest -y
     cmake -P distclean.cmake
     cmake -B ${ROOT_DIR}/build -S . -G Ninja \
     -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
