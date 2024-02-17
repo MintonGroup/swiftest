@@ -2129,27 +2129,25 @@ contains
                                   "swiftest_io_netcdf_write_frame_cb nf90_put_var cb rotphase")
          end if
 
-         status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
-         if (status == NF90_NOERR) then
-            m_dim_max = size(self%c_lm, 1)
-            l_dim_max = size(self%c_lm, 2)
+         if (allocated(self%c_lm)) then
+            status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
+            if (status == NF90_NOERR) then
+               m_dim_max = size(self%c_lm, 1)
+               l_dim_max = size(self%c_lm, 2)
 
             ! Populate coordinate values for l and m and export to hdf file
-            allocate(lm_coords(l_dim_max))
-            do i = 0, l_dim_max - 1
-               lm_coords(i + 1) = i 
-            end do
+               allocate(lm_coords(l_dim_max))
+               do i = 0, l_dim_max - 1
+                  lm_coords(i + 1) = i 
+               end do
 
-            call netcdf_io_check( nf90_put_var(nc%id, nc%l_varid, lm_coords), "netcdf_io_write_frame_cb nf90_put_var l_varid")
-            call netcdf_io_check( nf90_put_var(nc%id, nc%m_varid, lm_coords), "netcdf_io_write_frame_cb nf90_put_var m_varid")
-            call netcdf_io_check( nf90_put_var(nc%id, nc%sign_varid, [1, -1]), "netcdf_io_write_frame_cb nf90_put_var sign_varid")
+               call netcdf_io_check( nf90_put_var(nc%id, nc%l_varid, lm_coords), "netcdf_io_write_frame_cb nf90_put_var l_varid")
+               call netcdf_io_check( nf90_put_var(nc%id, nc%m_varid, lm_coords), "netcdf_io_write_frame_cb nf90_put_var m_varid")
+               call netcdf_io_check( nf90_put_var(nc%id, nc%sign_varid, [1, -1]), "netcdf_io_write_frame_cb nf90_put_var sign_varid")
 
-            ! Write dimension-coordinates to file
-            
-            if(.not. allocated(self%c_lm)) then
-               allocate(self%c_lm(m_dim_max, l_dim_max, 2))
+               ! Write dimension-coordinates to file
+               call netcdf_io_check( nf90_put_var(nc%id, nc%c_lm_varid, self%c_lm, count = [m_dim_max, l_dim_max, 2]), "netcdf_io_write_frame_cb nf90_put_var c_lm_varid")
             end if
-            call netcdf_io_check( nf90_put_var(nc%id, nc%c_lm_varid, self%c_lm, count = [m_dim_max, l_dim_max, 2]), "netcdf_io_write_frame_cb nf90_put_var c_lm_varid")
          end if
 
          call netcdf_io_check( nf90_set_fill(nc%id, old_mode, tmp), &
