@@ -28,6 +28,11 @@ ELSE()
         CMAKE_POLICY(SET CMP0148 OLD)
     ENDIF ()
 
+    # The following section is modified from Numpy f2py documentation
+    IF(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
+        MESSAGE(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.\n")
+    ENDIF()
+
     # Set some options the user may choose
     OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
     OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
@@ -49,9 +54,9 @@ ELSE()
         SET(INSTALL_INCLUDEDIR ${SKBUILD_HEADERS_DIR}) 
         SET(INSTALL_PYPROJ ${SKBUILD_PLATLIB_DIR}/${SKBUILD_PROJECT_NAME}) 
         IF (APPLE)
-            SET(CMAKE_INSTALL_RPATH "@loader_path/../lib")
+            SET(CMAKE_INSTALL_RPATH "@loader_path;${CMAKE_BINARY_DIR}/bin")
         ELSEIF (LINUX)
-            SET(CMAKE_INSTALL_RPATH $ORIGIN/../lib)
+            SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib;@ORIGIN")
         ENDIF ()
     ELSE ()
         SET(INSTALL_PYPROJ ${PY})
@@ -59,6 +64,8 @@ ELSE()
         SET(INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR})
         SET(INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR})
     ENDIF ()
+    
+    SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
     # Have the .mod files placed in the include folder
     SET(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mod)
@@ -67,20 +74,32 @@ ELSE()
     FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" LOCAL_MODULE_PATH)
     LIST(APPEND CMAKE_MODULE_PATH ${LOCAL_MODULE_PATH})
 
+    # Add in the external dependency libraries 
     IF (CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
         SET(COMPILER_OPTIONS "Intel" CACHE STRING "Compiler identified as Intel")
-        FIND_PACKAGE(MKL)
+        FIND_PACKAGE(MKL) # Possibly not needed any more due to BLAS and LAPACK being found
     ELSEIF (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
         SET(COMPILER_OPTIONS "GNU" CACHE STRING "Compiler identified as gfortran")
     ELSE ()
         MESSAGE(FATAL_ERROR "Compiler ${CMAKE_Fortran_COMPILER_ID} not recognized!") 
     ENDIF ()
+
+    IF (COMPILER_OPTIONS STREQUAL "GNU")
+        IF (APPLE)
+            SET(BLA_VENDOR "Apple" CACHE STRING "BLAS vendor")
+        ELSE ()
+            SET(BLA_VENDOR "OpenBLAS" CACHE STRING "BLAS vendor")
+        ENDIF ()
+    ELSEIF (COMPILER_OPTIONS STREQUAL "INTEL")
+        SET(BLA_VENDOR "Intel10_64lp" CACHE STRING "BLAS vendor")
+    ENDIF()
+    SET(BLA_STATIC ON)
+    FIND_PACKAGE(BLAS REQUIRED)
+    FIND_PACKAGE(LAPACK REQUIRED)
+    FIND_PACKAGE(FFTW3 REQUIRED)
     FIND_PACKAGE(SHTOOLS REQUIRED)
 
-    # The following section is modified from Numpy f2py documentation
-    IF(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
-        MESSAGE(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.\n")
-    ENDIF()
+
 
     FIND_PACKAGE(NETCDF_Fortran REQUIRED)
     IF (MSVC)
