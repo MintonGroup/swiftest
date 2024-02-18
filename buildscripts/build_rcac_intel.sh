@@ -80,7 +80,7 @@ fi
 
 
 cmake -P distclean.cmake
-pip uninstall swiftest
+pip uninstall swiftest -y
 pip install --config-settings=build-dir="build" \
         --config-settings=cmake.build-type="${BUILD_TYPE}" \
         --config-settings=cmake.args="-DUSE_SIMD=ON" \
