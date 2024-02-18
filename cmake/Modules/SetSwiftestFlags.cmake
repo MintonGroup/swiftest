@@ -101,7 +101,7 @@ ELSEIF (COMPILER_OPTIONS STREQUAL "Intel")
         )
         # Aligns a variable to a specified boundary and offset
         SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
-            Fortran "/align:all /align:array64byte" # Intel
+            Fortran "/align:all /align:array64byte" # Intel Windows
         )
         # Enables changing the variable and array memory layout
         SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
@@ -117,7 +117,10 @@ ELSEIF (COMPILER_OPTIONS STREQUAL "Intel")
         )
         # Enables changing the variable and array memory layout
         SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
-            Fortran "-pad" # Intel Windows
+            Fortran "-pad" # Intel 
+        )
+        SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
+            Fortran "-mkl" # Intel 
         )
     ENDIF ()
 ENDIF ()

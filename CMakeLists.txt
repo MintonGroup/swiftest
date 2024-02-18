@@ -77,7 +77,6 @@ ELSE()
     # Add in the external dependency libraries 
     IF (CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
         SET(COMPILER_OPTIONS "Intel" CACHE STRING "Compiler identified as Intel")
-        FIND_PACKAGE(MKL) # Possibly not needed any more due to BLAS and LAPACK being found
     ELSEIF (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
         SET(COMPILER_OPTIONS "GNU" CACHE STRING "Compiler identified as gfortran")
     ELSE ()
