@@ -29,6 +29,11 @@ MACHINE_NAME=$(uname -n | awk -F. '{
             print "Unknown"; 
     }
 }')
+if [[ $MACHINE_NAME == "bell" ]]; then
+    module load anaconda/2020.11-py38
+elif [[ $MACHINE_NAME == "negishi" ]]; then
+    module load anaconda/2022.10-py39
+fi
 
 if { conda env list | grep 'mintongroup'; } >/dev/null 2>&1; then
     print -n "The mintongroup conda environment was detected"
