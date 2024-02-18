@@ -1,8 +1,10 @@
 #!/bin/zsh -l
 # Builds Swiftest on the Purdue RCAC cluster system using the GNU compiler
 # This is a convenience script for Kaustub
-# The default build type is Release, in which case the Python package is installed in editable mode. Otherwise, only the Fortran 
-# library and executables are built, but not installed, so that the user can run them from the build directory.
+# The default build type is Release. Pass other build types as a string argument.
+# 
+# Example:
+# $ buildscripts/build_rcac_gnu.sh "Debug"
 
 set -a
 SCRIPT_DIR=$(realpath $(dirname $0))
@@ -69,21 +71,13 @@ elif [[ $MACHINE_NAME == "negishi" ]]; then
 fi
 
 cmake -P distclean.cmake
-if [[ BUILD_TYPE == "Release" ]]; then
-    pip install --config-settings=build-dir="build" \
-            --config-settings=cmake.build-type="${BUILD_TYPE}" \
-            --config-settings=cmake.args="-DUSE_SIMD=ON" \
-            --config-settings=cmake.args="-DUSE_OPENMP=ON" \
-            --config-settings=cmake.args="-DCMAKE_Fortran_COMPILER=gfortran" \
-            --config-settings=cmake.args="-DMACHINE_CODE_VALUE=\"Host\" " \
-            --config-settings=install.strip=false \
-            --no-build-isolation \
-            -ve . 
-else
-    cmake -P distclean.cmake
-    cmake -B ${ROOT_DIR}/build -S . -G Ninja \
-    -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-    -DCMAKE_Fortran_COMPILER=gfortran
-
-    cmake --build ${ROOT_DIR}/build -j${OMP_NUM_THREADS} -v
-fi
+pip uninstall swiftest
+pip install --config-settings=build-dir="build" \
+        --config-settings=cmake.build-type="${BUILD_TYPE}" \
+        --config-settings=cmake.args="-DUSE_SIMD=ON" \
+        --config-settings=cmake.args="-DUSE_OPENMP=ON" \
+        --config-settings=cmake.args="-DCMAKE_Fortran_COMPILER=gfortran" \
+        --config-settings=cmake.args="-DMACHINE_CODE_VALUE=\"Host\" " \
+        --config-settings=install.strip=false \
+        --no-build-isolation \
+        -ve . 

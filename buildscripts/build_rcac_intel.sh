@@ -1,9 +1,12 @@
 #!/bin/zsh -l
 # installs an editable (local) package on Bell
 # This is a convenience script for Kaustub
-# To use in Release mode, be sure to create the mintongroup module first. Using the RCAC tools it's the following commands:
-#   $ conda env create -f environment.yml
-#   $ conda-env-mod module -n mintongroup --jupyter
+# To use in Release mode
+# The default build type is Release. Pass other build types as a string argument.
+# 
+# Example:
+# $ buildscripts/build_rcac_intel.sh "Debug"
+
 
 set -a
 SCRIPT_DIR=$(realpath $(dirname $0))
@@ -77,21 +80,13 @@ fi
 
 
 cmake -P distclean.cmake
-if [[ $BUILD_TYPE == "Release" ]]; then
-    pip install --config-settings=build-dir="build" \
-            --config-settings=cmake.build-type="${BUILD_TYPE}" \
-            --config-settings=cmake.args="-DUSE_SIMD=ON" \
-            --config-settings=cmake.args="-DUSE_OPENMP=ON" \
-            --config-settings=cmake.args="-DCMAKE_Fortran_COMPILER=${FC}" \
-            --config-settings=cmake.args="-DMACHINE_CODE_VALUE=$MACHINE_CODE_VALUE" \
-            --config-settings=install.strip=false \
-            --no-build-isolation \
-            -ve . 
-else
-    cmake -B ${ROOT_DIR}/build -S . -G Ninja \
-    -DMACHINE_CODE_VALUE=${MACHINE_CODE_VALUE} \
-    -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-    -DCMAKE_Fortran_COMPILER=${FC} \
-
-    cmake --build ${ROOT_DIR}/build -j${OMP_NUM_THREADS} -v
-fi
+pip uninstall swiftest
+pip install --config-settings=build-dir="build" \
+        --config-settings=cmake.build-type="${BUILD_TYPE}" \
+        --config-settings=cmake.args="-DUSE_SIMD=ON" \
+        --config-settings=cmake.args="-DUSE_OPENMP=ON" \
+        --config-settings=cmake.args="-DCMAKE_Fortran_COMPILER=${FC}" \
+        --config-settings=cmake.args="-DMACHINE_CODE_VALUE=$MACHINE_CODE_VALUE" \
+        --config-settings=install.strip=false \
+        --no-build-isolation \
+        -ve . 
