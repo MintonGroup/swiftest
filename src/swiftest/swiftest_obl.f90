@@ -24,7 +24,7 @@ contains
       real(DP)             :: detinv
 
       ! Calculate the inverse determinant of the matrix
-      detinv = 1/(A(1,1)*A(2,2)*A(3,3) - A(1,1)*A(2,3)*A(3,2)&
+      detinv = 1.0_DP/(A(1,1)*A(2,2)*A(3,3) - A(1,1)*A(2,3)*A(3,2)&
                - A(1,2)*A(2,1)*A(3,3) + A(1,2)*A(2,3)*A(3,1)&
                + A(1,3)*A(2,1)*A(3,2) - A(1,3)*A(2,2)*A(3,1))
 
@@ -39,6 +39,7 @@ contains
       B(2,3) = -detinv * (A(1,1)*A(2,3) - A(1,3)*A(2,1))
       B(3,3) = +detinv * (A(1,1)*A(2,2) - A(1,2)*A(2,1))
    end function
+
 
    module subroutine swiftest_obl_rot_matrix(n, rot, rot_matrix, rot_matrix_inv)
       !! author: Kaustub P. Anand
@@ -63,14 +64,14 @@ contains
       
       rot_matrix(:, :) = 0.0_DP
       rot_matrix_inv(:, :) = 0.0_DP
-      z_hat(:) = [0, 0, 1]
+      z_hat(:) = [0.0_DP, 0.0_DP, 1.0_DP]
 
       if (n == 0) return
 
-      if (rot(1) == 0 .and. rot(2) == 0) then
+      if ((abs(rot(1)) < 10*tiny(1.0_DP)) .and. (abs(rot(2)) < 10*tiny(1.0_DP))) then
          do i = 1, NDIM
-               rot_matrix_inv(i, i) = 1.0
-               rot_matrix(i, i) = 1.0
+            rot_matrix_inv(i, i) = 1.0_DP
+            rot_matrix(i, i) = 1.0_DP
          end do
 
          return ! rotation axis is about the z-axis, no need to change
@@ -87,8 +88,8 @@ contains
       ! assuming NDIM = 3
       ! CHECK for a general formula for the skew-symmetric matrix
 
-      do i = 1, NDIM
-         do j = 1, NDIM
+      do j = 1, NDIM
+         do i = 1, NDIM
             if (i == j) then
                rot_matrix_inv(i, j) = rot_matrix_inv(i, j) + cos(theta) ! identity matrix
                continue
@@ -103,17 +104,18 @@ contains
       
       ! Check that the correct rotation matrix is used
       ! rot_matrix * rot should be in the z_hat direction
-      check = MATMUL(rot, rot_matrix) ! 1x3 matrix x 3x3 matrix
+      check = matmul(rot, rot_matrix) ! 1x3 matrix x 3x3 matrix
       check = .unit. check(:)
       
-      if(abs(check(1)) .gt. EPSILON(0.0_DP) .or. abs(check(2)) .gt. EPSILON(0.0_DP)) then
-        temp = rot_matrix
-        rot_matrix = rot_matrix_inv
-        rot_matrix_inv = temp
+      if((abs(check(1)) > epsilon(0.0_DP)) .or. (abs(check(2)) > epsilon(0.0_DP))) then
+         temp = rot_matrix
+         rot_matrix = rot_matrix_inv
+         rot_matrix_inv = temp
       end if
       
       return
-      end subroutine swiftest_obl_rot_matrix
+   end subroutine swiftest_obl_rot_matrix
+
    
    module subroutine swiftest_obl_acc(n, GMcb, j2rp2, j4rp4, rh, lmask, aobl, rot, GMpl, aoblcb)
       !! author: David A. Minton, Kaustub Anand (2023)
@@ -145,27 +147,15 @@ contains
       if (n == 0) return
 
       aobl(:,:) = 0.0_DP
-#ifdef DOCONLOC
-      do concurrent(i = 1:n, lmask(i)) shared(lmask,rh,aobl) local(r2,irh,rinv2,t0,t1,t2,t3,fac1,fac2)
-#else
-      do concurrent(i = 1:n, lmask(i))
-#endif
-         r2 = dot_product(rh(:, i), rh(:, i))
-         irh = 1.0_DP / sqrt(r2)
-         rinv2 = irh**2
-         t0 = -GMcb * rinv2 * rinv2 * irh
-         t1 = 1.5_DP * j2rp2
-         t2 = rh(3, i) * rh(3, i) * rinv2
-         t3 = 1.875_DP * j4rp4 * rinv2
-         fac1 = t0 * (t1 - t3 - (5 * t1 - (14.0_DP - 21.0_DP * t2) * t3) * t2)
-         fac2 = 2 * t0 * (t1 - (2.0_DP - (14.0_DP * t2 / 3.0_DP)) * t3)
-         aobl(:, i) = fac1 * rh(:, i)
-         aobl(3, i) = fac2 * rh(3, i) + aobl(3, i)
-      end do
 
       ! If the rotation axis is along the z-axis, skip calculating the rotation matrix
-      if (rot(1) == 0 .and. rot(2) == 0) then
+      if ((abs(rot(1)) < 10*tiny(1.0_DP)) .and. (abs(rot(2)) < 10*tiny(1.0_DP))) then
+#ifdef DOCONLOC
+         do concurrent(i = 1:n, lmask(i)) shared(lmask,rh,aobl,j2rp2,j4rp4) &
+                                          local(r2,irh,rinv2,t0,t1,t2,t3,fac1,fac2)
+#else
          do concurrent(i = 1:n, lmask(i))
+#endif
             r2 = dot_product(rh(:, i), rh(:, i))
             irh = 1.0_DP / sqrt(r2)
             rinv2 = irh**2
@@ -182,9 +172,14 @@ contains
          ! generate the rotation matrix
          call swiftest_obl_rot_matrix(n, rot, rot_matrix, rot_matrix_inv)
 
+#ifdef DOCONLOC
+         do concurrent(i = 1:n, lmask(i)) shared(lmask,rh,aobl,rot_matrix,rot_matrix_inv,j2rp2,j4rp4) &
+                                          local(r2,irh,rinv2,t0,t1,t2,t3,fac1,fac2,rh_transformed)
+#else
          do concurrent(i = 1:n, lmask(i))
+#endif
             ! rotate the position vectors
-            rh_transformed = MATMUL(rh(:, i), rot_matrix) ! 1x3 vector * 3x3 matrix
+            rh_transformed = matmul(rh(:, i), rot_matrix) ! 1x3 vector * 3x3 matrix
             r2 = dot_product(rh_transformed, rh_transformed)
             irh = 1.0_DP / sqrt(r2)
             rinv2 = irh**2
@@ -198,7 +193,7 @@ contains
             aobl(3, i) = fac2 * rh_transformed(3) + aobl(3, i)
 
             ! rotate the acceleration and position vectors back to the original coordinate frame
-            aobl(:, i) = MATMUL(aobl(:, i), rot_matrix_inv)
+            aobl(:, i) = matmul(aobl(:, i), rot_matrix_inv)
          end do
       end if
 
