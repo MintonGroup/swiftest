@@ -46,32 +46,32 @@ fi
 if [[ $MACHINE_NAME == "bell" ]]; then
     module purge
     module use /depot/daminton/etc/modules/bell
+    module load use.own
     module load intel/19.0.5.281
     module load intel-mkl/2019.5.281
     module load impi/2019.5.281
+    module load conda-env/mintongroup-py3.8.5
     module load shtools/intel19/4.11.10
     module load cmake/3.20.6 
     module load ninja/1.11.1
     module load hdf5/1.10.6
     module load netcdf/4.7.4
     module load netcdf-fortran/4.5.3
-    module load use.own
-    module load conda-env/mintongroup-py3.8.5
     MACHINE_CODE_VALUE="Host"
 elif [[ $MACHINE_NAME == "negishi" ]]; then
     module purge
     module use /depot/daminton/etc/modules/negishi
+    module load use.own
     module load intel/19.1.3.304
     module load intel-mkl/2019.9.304
     module load impi/2019.9.304
+    module load conda-env/mintongroup-py3.9.13
     module load shtools/intel19/4.11.10
     module load cmake/3.24.3 
     module load ninja/1.11.1
     module load hdf5/1.13.2
     module load netcdf-c/4.9.0
     module load netcdf-fortran/4.6.0
-    module load use.own
-    module load conda-env/mintongroup-py3.9.13
     MACHINE_CODE_VALUE="SSE2"
 fi
 

@@ -45,31 +45,27 @@ fi
 if [[ $MACHINE_NAME == "bell" ]]; then
     module purge
     module use /depot/daminton/etc/modules/bell
+    module load use.own
     module load gcc/10.2.0
+    module load conda-env/mintongroup-py3.8.5
     module load hdf5/1.10.6
     module load netcdf/4.7.4
     module load netcdf-fortran/4.5.3
     module load shtools/gcc10/4.11.10
     module load cmake/3.20.6 
     module load ninja/1.11.1
-    if [[ $BUILD_TYPE == "Release" ]]; then
-        module load use.own
-        module load conda-env/mintongroup-py3.8.5
-    fi    
 elif [[ $MACHINE_NAME == "negishi" ]]; then
     module purge
     module use /depot/daminton/etc/modules/negishi
+    module load use.own
     module load gcc/12.2.0
+    module load conda-env/mintongroup-py3.9.13
     module load hdf5/1.13.2
     module load netcdf-c/4.9.0
     module load netcdf-fortran/4.6.0
     module load shtools/gcc12/4.11.10    
     module load cmake/3.24.3 
     module load ninja/1.11.1
-    if [[ $BUILD_TYPE == "Release" ]]; then
-        module load use.own
-        module load conda-env/mintongroup-py3.9.13
-    fi
 fi
 
 cmake -P distclean.cmake
