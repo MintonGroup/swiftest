@@ -306,6 +306,9 @@ IF (CMAKE_BUILD_TYPE STREQUAL "DEBUG" OR CMAKE_BUILD_TYPE STREQUAL "TESTING" )
             SET_COMPILE_FLAG(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}"
                 C "/debug:all" # Intel Windows
             )
+            SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
+                Fortran "/debug-parameters:all"  # Intel Windows
+            )
             # Disables additional interprocedural optimizations for a single file compilation
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                 Fortran "/Qip-"  # Intel Windows
@@ -379,6 +382,9 @@ IF (CMAKE_BUILD_TYPE STREQUAL "DEBUG" OR CMAKE_BUILD_TYPE STREQUAL "TESTING" )
             )
             SET_COMPILE_FLAG(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}"
                 C "-debug all" # Intel
+            )
+            SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
+                Fortran "-debug-parameters all"  # Intel
             )
             # Disables additional interprocedural optimizations for a single file compilation
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
