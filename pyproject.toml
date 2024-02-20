@@ -48,9 +48,8 @@ Repository = 'https://github.itap.purdue.edu/MintonGroup/swiftest'
 
 [build-system]
 requires = [
-    "scikit-build-core",
+    "scikit-build-core>=0.8",
     "cython>=3.0",
-    "cmake",
     "pyproject_metadata",
     "pytest",
     "pathspec",
@@ -68,6 +67,8 @@ requires = [
 build-backend = "scikit_build_core.build"
 
 [tool.scikit-build]
+cmake.version = ">=3.24.3"
+ninja.version = ">=1.11.1"
 cmake.args = ["-DUSE_SIMD=OFF"]
 sdist.include = ["src/globals/globals_module.f90.in","swiftest/*.py","swiftest/*.pyx","swiftest/*.h"]
 build-dir = "build/{wheel_tag}"
