@@ -1,5 +1,6 @@
 *
 !.gitignore
-!init_cond.py
+!initial_conditions.py
 !scattermovie.py
+!run_simulation.py
 !README.txt

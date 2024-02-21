@@ -1,11 +1,11 @@
-!! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
-!! This file is part of Swiftest.
-!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
-!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
-!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-!! You should have received a copy of the GNU General Public License along with Swiftest. 
-!! If not, see: https://www.gnu.org/licenses. 
+! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! This file is part of Swiftest.
+! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+! You should have received a copy of the GNU General Public License along with Swiftest. 
+! If not, see: https://www.gnu.org/licenses. 
 
 submodule(helio) s_helio_gr
    use swiftest
@@ -71,13 +71,18 @@ contains
       class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt     !! Step size
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, npl
 
       if (self%nbody == 0) return
 
-      associate(pl => self, npl => self%nbody)
-         do concurrent(i = 1:npl, pl%lmask(i))
-            call swiftest_gr_p4_pos_kick(param, pl%rh(:, i), pl%vb(:, i), dt)
+      associate(lmask => self%lmask, rh => self%rh, vb => self%vb, inv_c2 => param%inv_c2)
+         npl = self%nbody
+#ifdef DOCONLOC
+         do concurrent(i = 1:npl, lmask(i)) shared(inv_c2, lmask, rh, vb, dt)
+#else
+         do concurrent(i = 1:npl, lmask(i))
+#endif
+            call swiftest_gr_p4_pos_kick(inv_c2, rh(1,i), rh(2,i), rh(3,i), vb(1,i), vb(2,i), vb(3,i), dt)
          end do
       end associate
  
@@ -99,13 +104,18 @@ contains
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
       real(DP),                     intent(in)    :: dt     !! Step size
       ! Internals
-      integer(I4B) :: i
+      integer(I4B) :: i, ntp
 
       if (self%nbody == 0) return
 
-      associate(tp => self, ntp => self%nbody)
-         do concurrent(i = 1:ntp, tp%lmask(i))
-            call swiftest_gr_p4_pos_kick(param, tp%rh(:, i), tp%vb(:, i), dt)
+      associate(rh => self%rh, vb => self%vb, lmask => self%lmask, inv_c2 => param%inv_c2)
+         ntp = self%nbody
+#ifdef DOCONLOC
+         do concurrent(i = 1:ntp, lmask(i)) shared(inv_c2, lmask, rh, vb, dt)
+#else
+         do concurrent(i = 1:ntp, lmask(i))
+#endif
+            call swiftest_gr_p4_pos_kick(inv_c2, rh(1,i), rh(2,i), rh(3,i), vb(1,i), vb(2,i), vb(3,i), dt)
          end do
       end associate
  

@@ -1,11 +1,11 @@
-!! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
-!! This file is part of Swiftest.
-!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
-!! as published by the Free Software Foundation, either version NDIM of the License, or (at your option) any later version.
-!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
-!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-!! You should have received a copy of the GNU General Public License along with Swiftest. 
-!! If not, see: https://www.gnu.org/licenses. 
+! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! This file is part of Swiftest.
+! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+! You should have received a copy of the GNU General Public License along with Swiftest. 
+! If not, see: https://www.gnu.org/licenses. 
 
 submodule(operators) s_operator_unit
    use, intrinsic :: ieee_exceptions
@@ -56,7 +56,7 @@ contains
       return
    end function operator_unit_dp
 
-
+#ifdef QUADPREC
    pure module function operator_unit_qp(A) result(B)
       implicit none
       ! Arguments
@@ -75,7 +75,7 @@ contains
 
       return
    end function operator_unit_qp
-
+#endif
 
    pure module function operator_unit_el_sp(A) result(B)
       implicit none
@@ -89,7 +89,7 @@ contains
       if (allocated(B)) deallocate(B)
       allocate(B(NDIM,n))
 
-      do concurrent (i=1:n)
+      do i=1,n
          B(:,i) = operator_unit_sp(A(:,i))
       end do
 
@@ -109,13 +109,14 @@ contains
       if (allocated(B)) deallocate(B)
       allocate(B(NDIM,n))
 
-      do concurrent (i=1:n)
+      do i=1,n
          B(:,i) = operator_unit_dp(A(:,i))
       end do
 
       return
    end function operator_unit_el_dp
 
+#ifdef QUADPREC
    pure module function operator_unit_el_qp(A) result(B)
       implicit none
       ! Arguments
@@ -128,12 +129,13 @@ contains
       if (allocated(B)) deallocate(B)
       allocate(B(NDIM,n))
 
-      do concurrent (i=1:n)
+      do i=1,n
          B(:,i) = operator_unit_qp(A(:,i))
       end do
 
       return 
    end function operator_unit_el_qp
+#endif
 
 end submodule s_operator_unit
 

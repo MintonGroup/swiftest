@@ -82,7 +82,7 @@ contains
       if (associated(self%lambdaptr_tides_deriv)) then
          y = self%lambdaptr_tides_deriv(x, t, self%dt, self%rbeg, self%rend)
       else
-         error stop "Lambda function was not initialized"
+         stop "Lambda function was not initialized"
       end if
 
       return

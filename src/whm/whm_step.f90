@@ -1,11 +1,11 @@
-!! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
-!! This file is part of Swiftest.
-!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
-!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
-!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-!! You should have received a copy of the GNU General Public License along with Swiftest. 
-!! If not, see: https://www.gnu.org/licenses. 
+! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! This file is part of Swiftest.
+! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+! You should have received a copy of the GNU General Public License along with Swiftest. 
+! If not, see: https://www.gnu.org/licenses. 
 
 submodule(whm) s_whm_step
    use swiftest
@@ -29,7 +29,9 @@ contains
          tp%lfirst = pl%lfirst
          call pl%step(nbody_system, param, t, dt)
          call tp%step(nbody_system, param, t, dt)
+         call cb%rotphase_update(param, dt)
          ! if (param%ltides) call nbody_system%step_spin(param, t, dt)
+
       end associate
       return
    end subroutine whm_step_system 
@@ -42,7 +44,6 @@ contains
       !! 
       !! Adapted from Hal Levison's Swift routine step_kdk_pl.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_step_pl.f90
-      !logical, save :: lfirst = .true.
       implicit none
       ! Arguments
       class(whm_pl),                intent(inout) :: self   !! WHM massive body particle data structure

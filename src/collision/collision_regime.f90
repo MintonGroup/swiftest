@@ -1,11 +1,11 @@
-!! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
-!! This file is part of Swiftest.
-!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
-!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
-!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-!! You should have received a copy of the GNU General Public License along with Swiftest. 
-!! If not, see: https://www.gnu.org/licenses. 
+! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! This file is part of Swiftest.
+! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+! You should have received a copy of the GNU General Public License along with Swiftest. 
+! If not, see: https://www.gnu.org/licenses. 
 
 submodule(collision) s_collision_regime
    use swiftest
@@ -111,7 +111,11 @@ contains
          if (impactors%regime == COLLRESOLVE_REGIME_MERGE) then
             volume = 4._DP / 3._DP * PI * sum(impactors%radius(:)**3)
             radius = (3._DP * volume / (4._DP * PI))**(THIRD)
+#ifdef DOCONLOC
+            do concurrent(i = 1:NDIM) shared(impactors,Ip,L_spin)
+#else
             do concurrent(i = 1:NDIM)
+#endif
                Ip(i) = sum(impactors%mass(:) * impactors%Ip(i,:)) 
                L_spin(i) = sum(impactors%L_orbit(i,:) + impactors%L_spin(i,:))
             end do

@@ -1,12 +1,12 @@
 
-!! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
-!! This file is part of Swiftest.
-!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
-!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
-!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-!! You should have received a copy of the GNU General Public License along with Swiftest. 
-!! If not, see: https://www.gnu.org/licenses. 
+! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! This file is part of Swiftest.
+! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+! You should have received a copy of the GNU General Public License along with Swiftest. 
+! If not, see: https://www.gnu.org/licenses. 
 
 submodule (collision) s_collision_check
    use swiftest
@@ -77,7 +77,8 @@ contains
       ! Internals
       logical, dimension(:), allocatable        :: lcollision, lmask
       real(DP), dimension(NDIM)                 :: xr, vr
-      integer(I4B)                              :: i, j, k, nenc
+      integer(I4B)                              :: i, j
+      integer(I8B)                              :: k, nenc
       real(DP)                                  :: rlim, Gmtot
       logical                                   :: lany_closest
 
@@ -101,7 +102,11 @@ contains
             lcollision(:) = .false.
             self%lclosest(:) = .false.
 
-            do concurrent(k = 1:nenc, lmask(k))
+#ifdef DOCONLOC
+            do concurrent(k = 1_I8B:nenc, lmask(k)) shared(self,pl,lmask, dt, lcollision) local(i,j,xr,vr,rlim,Gmtot)
+#else
+            do concurrent(k = 1_I8B:nenc, lmask(k))
+#endif
                i = self%index1(k)
                j = self%index2(k)
                xr(:) = pl%rh(:, i) - pl%rh(:, j) 
@@ -116,7 +121,7 @@ contains
 
             if (lany_collision .or. lany_closest) then
                call pl%rh2rb(nbody_system%cb) ! Update the central body barycenteric position vector to get us out of DH and into bary
-               do k = 1, nenc
+               do k = 1_I8B, nenc
                   if (.not.lcollision(k) .and. .not. self%lclosest(k)) cycle
                   i = self%index1(k)
                   j = self%index2(k)
@@ -174,7 +179,8 @@ contains
       ! Internals
       logical, dimension(:), allocatable        :: lcollision, lmask
       real(DP), dimension(NDIM)                 :: xr, vr
-      integer(I4B)                              :: i, j, k, nenc
+      integer(I4B)                              :: i, j
+      integer(I8B)                              :: k, nenc
       logical                                   :: lany_closest
       character(len=STRMAX)                     :: timestr, idstri, idstrj, message
       class(collision_list_pltp), allocatable       :: tmp       
@@ -190,13 +196,13 @@ contains
 
             nenc = self%nenc
             allocate(lmask(nenc))
-             lmask(:) = (self%status(1:nenc) == ACTIVE) 
+            lmask(:) = (self%status(1:nenc) == ACTIVE) 
             select type(pl)
             class is (symba_pl)
-            select type(tp)
-            class is (symba_tp)
-               lmask(:) = lmask(:) .and. (tp%levelg(self%index2(1:nenc)) >= irec)
-            end select
+               select type(tp)
+               class is (symba_tp)
+                  lmask(:) = lmask(:) .and. (tp%levelg(self%index2(1:nenc)) >= irec)
+               end select
             end select
             if (.not.any(lmask(:))) return
 
@@ -204,8 +210,11 @@ contains
             lcollision(:) = .false.
             self%lclosest(:) = .false.
 
-
-            do concurrent(k = 1:nenc, lmask(k))
+#ifdef DOCONLOC
+            do concurrent(k = 1_I8B:nenc, lmask(k)) shared(self,pl,tp,lmask, dt, lcollision) local(i,j,xr,vr)
+#else
+            do concurrent(k = 1_I8B:nenc, lmask(k))
+#endif
                i = self%index1(k)
                j = self%index2(k)
                xr(:) = pl%rh(:, i) - tp%rh(:, j) 

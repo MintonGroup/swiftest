@@ -1,11 +1,11 @@
-!! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
-!! This file is part of Swiftest.
-!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
-!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
-!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-!! You should have received a copy of the GNU General Public License along with Swiftest. 
-!! If not, see: https://www.gnu.org/licenses. 
+! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! This file is part of Swiftest.
+! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+! You should have received a copy of the GNU General Public License along with Swiftest. 
+! If not, see: https://www.gnu.org/licenses. 
 
 submodule(rmvs) s_rmvs_step
    use swiftest
@@ -28,7 +28,7 @@ contains
       logical :: lencounter, lfirstpl
       real(DP), dimension(:,:), allocatable :: rbeg, rend, vbeg
 
-      if (self%tp%nbody == 0) then
+      if ((self%tp%nbody == 0) .or. (self%pl%nbody == 0)) then
          call whm_step_system(self, param, t, dt)
       else
          select type(cb => self%cb)
@@ -203,8 +203,8 @@ contains
                tp%lfirst = lfirsttp
             else
                if (param%loblatecb) then
-                  call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rbeg, pl%lmask, pl%outer(outer_index-1)%aobl, pl%Gmass, cb%aoblbeg)
-                  call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rend, pl%lmask, pl%outer(outer_index)%aobl, pl%Gmass, cb%aoblend)
+                  call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rbeg, pl%lmask, pl%outer(outer_index-1)%aobl, cb%rot, pl%Gmass, cb%aoblbeg)
+                  call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rend, pl%lmask, pl%outer(outer_index)%aobl, cb%rot, pl%Gmass, cb%aoblend)
                end if
                call tp%step(nbody_system, param, outer_time, dto)
             end if
@@ -293,7 +293,7 @@ contains
                                        vtmp(:,i), new_line('a'), &
                                        " STOPPING "
                      call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
-                     call base_util_exit(failure)
+                     call base_util_exit(FAILURE,param%display_unit)
                   end if
                end do
             end if
@@ -317,7 +317,7 @@ contains
                      write(*, *) xtmp(:,i)
                      write(*, *) vtmp(:,i)
                      write(*, *) " STOPPING "
-                     call base_util_exit(failure)
+                     call base_util_exit(FAILURE,param%display_unit)
                   end if
                end do
             end if
@@ -541,9 +541,8 @@ contains
       integer(I4B),               intent(in)    :: ipleP     !!  index of RMVS planet being closely encountered
       class(swiftest_parameters), intent(in)    :: param    !! Current run configuration parameters
       ! Internals
-      integer(I4B)              :: i, id1, id2
-      real(DP)                  :: r2, mu, rhill2, vdotr, a, peri, capm, tperi, rpl
-      real(DP), dimension(NDIM) :: rh1, rh2, vh1, vh2
+      integer(I4B)              :: i
+      real(DP)                  :: r2, mu, rhill2, vdotr, a, peri, capm, tperi
 
       rhill2 = pl%rhill(ipleP)**2
       mu = pl%Gmass(ipleP)

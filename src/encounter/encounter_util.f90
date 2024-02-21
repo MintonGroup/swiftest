@@ -1,11 +1,11 @@
-!! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
-!! This file is part of Swiftest.
-!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
-!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
-!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-!! You should have received a copy of the GNU General Public License along with Swiftest. 
-!! If not, see: https://www.gnu.org/licenses. 
+! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! This file is part of Swiftest.
+! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+! You should have received a copy of the GNU General Public License along with Swiftest. 
+! If not, see: https://www.gnu.org/licenses. 
 
 submodule (encounter) s_encounter_util
    use swiftest
@@ -22,7 +22,7 @@ contains
       class(encounter_list), intent(in)           :: source       !! Source object to append
       logical, dimension(:), intent(in)           :: lsource_mask !! Logical mask indicating which elements to append to
       ! Internals
-      integer(I4B) :: nold, nsrc
+      integer(I4B) :: nold
 
       nold = int(self%nenc, kind=I4B)
       call util_append(self%tcollision, source%tcollision,   nold, lsource_mask)
@@ -100,8 +100,6 @@ contains
       implicit none
       ! Arguments
       class(encounter_bounding_box), intent(inout) :: self !! Bounding box structure
-      ! Internals
-      integer(I4B) :: i
 
       call self%aabb%dealloc()
 
@@ -341,7 +339,7 @@ contains
       integer(I4B),                  intent(in)    :: n      !! Number of objects with bounding box extents
       integer(I4B),                  intent(in)    :: n_last !! Number of objects with bounding box extents the previous time this was called
       ! Internals
-      integer(I4B) :: next, next_last, k, dim
+      integer(I4B) :: next, next_last, k
       integer(I4B), dimension(:), allocatable :: itmp
 
       next = 2 * n

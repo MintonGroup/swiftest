@@ -1,12 +1,10 @@
 *
 !.gitignore
 !Basic_Simulation
+!Chambers2013
 !Fragmentation
 !Multibody_Fragmentation
-!helio_gr_test
-!whm_gr_test
-!Chambers2013
-!solar_impact
 !Swifter_Swiftest
-!swiftest_performance
-!rmvs_swifter_comparison
+!helio_gr_test
+!solar_impact
+!whm_gr_test

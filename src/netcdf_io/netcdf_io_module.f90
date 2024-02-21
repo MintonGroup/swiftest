@@ -1,11 +1,11 @@
-!! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
-!! This file is part of Swiftest.
-!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
-!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
-!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-!! You should have received a copy of the GNU General Public License along with Swiftest. 
-!! If not, see: https://www.gnu.org/licenses. 
+! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! This file is part of Swiftest.
+! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+! You should have received a copy of the GNU General Public License along with Swiftest. 
+! If not, see: https://www.gnu.org/licenses. 
 
 module netcdf_io
    !! author: The Purdue Swiftest Team -  David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
@@ -43,6 +43,16 @@ module netcdf_io
       integer(I4B)       :: space_dimid                                 !! ID for the space dimension
       integer(I4B)       :: space_varid                                 !! ID for the space variable
       character(len=1), dimension(3) :: space_coords = ["x","y","z"]    !! The space dimension coordinate labels
+      character(NAMELEN) :: sign_dimname            = "sign"            !! name of the sign dimension for c_lm
+      integer(I4B)       :: sign_dimid                                  !! ID for sign dimension
+      integer(I4B)       :: sign_varid                                  !! ID for sign variable
+      character(NAMELEN) :: l_dimname               = "l"               !! name of l dimension for c_lm
+      integer(I4B)       :: l_dimid                                     !! ID for the l dimension for c_lm
+      integer(I4B)       :: l_varid                                     !! ID for the l variable
+      character(NAMELEN) :: m_dimname               = "m"               !! name of m dimension for c_lm
+      integer(I4B)       :: m_dimid                                     !! ID for the m dimension for c_lm
+      integer(I4B)       :: m_varid                                     !! ID for the m variable
+
 
       ! Non-dimension ids and variable names
       character(NAMELEN) :: id_varname              = "id"              !! name of the particle id variable
@@ -95,10 +105,14 @@ module netcdf_io
       integer(I4B)       :: Ip_varid                                    !! ID for the axis principal moment of inertia variable
       character(NAMELEN) :: rot_varname             = "rot"             !! name of the rotation vector variable
       integer(I4B)       :: rot_varid                                   !! ID for the rotation vector variable
+      character(NAMELEN) :: rotphase_varname        = "rotphase"        !! name of the rotation phase variable
+      integer(I4B)       :: rotphase_varid                              !! ID for the rotation phase variable
       character(NAMELEN) :: j2rp2_varname           = "j2rp2"           !! name of the j2rp2 variable
       integer(I4B)       :: j2rp2_varid                                 !! ID for the j2 variable
       character(NAMELEN) :: j4rp4_varname           = "j4rp4"           !! name of the j4pr4 variable
       integer(I4B)       :: j4rp4_varid                                 !! ID for the j4 variable
+      character(NAMELEN) :: c_lm_varname            = "c_lm"            !! name for the c_lm array
+      integer(I4B)       :: c_lm_varid                                  !! ID for the c_lm aqrray
       character(NAMELEN) :: k2_varname              = "k2"              !! name of the Love number variable
       integer(I4B)       :: k2_varid                                    !! ID for the Love number variable
       character(NAMELEN) :: q_varname               = "Q"               !! name of the energy dissipation variable

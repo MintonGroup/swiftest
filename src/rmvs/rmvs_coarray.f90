@@ -1,11 +1,11 @@
-!! Copyright 2023 - David Minton
-!! This file is part of Swiftest.
-!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
-!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
-!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-!! You should have received a copy of the GNU General Public License along with Swiftest. 
-!! If not, see: https://www.gnu.org/licenses. 
+! Copyight 2023 - David Minton
+! This file is part of Swiftest.
+! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+! You should have received a copy of the GNU General Public License along with Swiftest. 
+! If not, see: https://www.gnu.org/licenses. 
 
 submodule (rmvs) s_rmvs_coarray
 use coarray
@@ -66,7 +66,6 @@ contains
 
         return
     end subroutine rmvs_coarray_coclone_pl
-
 
 
     module subroutine rmvs_coarray_coclone_system(self)
@@ -141,14 +140,7 @@ contains
         do i = 1, n[si]
             call tmp(i)%coclone()
         end do
-        if (this_image() == si) then
-            do img = 1, num_images()
-                tmp(:)[img] = var(:)
-            end do
-
-            sync images(*)
-        else
-            sync images(si)
+        if (this_image() /= si) then
             if (allocated(var)) deallocate(var)
             allocate(var, source=tmp)
         end if

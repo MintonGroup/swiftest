@@ -1,11 +1,11 @@
-!! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
-!! This file is part of Swiftest.
-!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
-!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
-!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-!! You should have received a copy of the GNU General Public License along with Swiftest. 
-!! If not, see: https://www.gnu.org/licenses. 
+! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! This file is part of Swiftest.
+! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+! You should have received a copy of the GNU General Public License along with Swiftest. 
+! If not, see: https://www.gnu.org/licenses. 
 
 module solver
    !! author: David A. Minton
@@ -16,11 +16,13 @@ module solver
    use lambda_function
    use, intrinsic :: ieee_exceptions
    private
-   public :: solve_linear_system, solve_rkf45, solve_roots
+   public :: solve_linear_system, solve_roots !, solve_rkf45 
 
    interface solve_linear_system
       module procedure solve_linear_system_dp
+#ifdef QUADPREC
       module procedure solve_linear_system_qp
+#endif
    end interface
 
    interface solve_roots
@@ -81,7 +83,7 @@ module solver
          return
       end function solve_linear_system_dp
 
-
+#ifdef QUADPREC
       function solve_linear_system_qp(A,b,n,lerr) result(x)
          !! Author: David A. Minton
          !!
@@ -115,7 +117,7 @@ module solver
 
          return
       end function solve_linear_system_qp
-
+#endif
 
       function solve_wbs(u) result(x) ! solve with backward substitution
          !! Based on code available on Rosetta Code: https://rosettacode.org/wiki/Gaussian_elimination#Fortran
@@ -424,22 +426,25 @@ module solver
             ! returns the minimum of two real numbers
             real(DP) Function Minimum(x1,x2) 
                real(DP) x1,x2,resultat
+
                if (x1 < x2) then
-               resultat = x1
+                  resultat = x1
                else 
-               resultat = x2
+                  resultat = x2
                endif
+
                Minimum = resultat
             end function Minimum
             
             ! TRUE if x1*x2 negative
-            integer Function RootBracketed(x1,x2)
+            logical Function RootBracketed(x1,x2)
                real(DP) x1,x2 
-               integer resultat
+               logical resultat
+
                if ((x1 > 0.and.x2 > 0).or.(x1 < 0.and.x2 < 0)) then 
-               resultat = 0
+                  resultat = .false.
                else
-               resultat = 1
+                  resultat = .true.
                endif
                RootBracketed = resultat
             end function RootBracketed

@@ -24,7 +24,11 @@ module globals
 
    integer, parameter :: SP = real32  !! Symbolic name for kind types of single-precision reals
    integer, parameter :: DP = real64  !! Symbolic name for kind types of double-precision reals
-   integer, parameter :: QP = real128 !! Symbolic name for kind types of quad-precision reals
+#ifdef QUADPREC
+   integer, parameter :: QP = selected_Real_kind(30) !! Symbolic name for kind types of quad-precision reals
+#else
+   integer, parameter :: QP = real64 !! Stick to DP
+#endif
 
    real(DP), parameter :: PIBY2  = 1.570796326794896619231321691639751442099_DP !! Definition of /(\pi / 2\)
    real(DP), parameter :: PI     = 3.141592653589793238462643383279502884197_DP !! Definition of /(\pi\)
@@ -37,11 +41,14 @@ module globals
    real(DP), parameter :: GC        = 6.6743E-11_DP   !! Universal gravitational constant in SI units
    real(DP), parameter :: einsteinC = 299792458.0_DP  !! Speed of light in SI units
 
-   integer(I4B), parameter :: LOWERCASE_BEGIN  = iachar('a') !! ASCII character set parameter for lower to upper conversion - start of lowercase
-   integer(I4B), parameter :: LOWERCASE_END    = iachar('z') !! ASCII character set parameter for lower to upper conversion - end of lowercase
-   integer(I4B), parameter :: UPPERCASE_OFFSET = iachar('A') - iachar('a') !! ASCII character set parameter for lower to upper conversion - offset between upper and lower
+   integer(I4B), parameter :: LOWERCASE_BEGIN  = iachar('a') !! ASCII character set parameter for lower to upper conversion - start 
+                                                             !! of lowercase
+   integer(I4B), parameter :: LOWERCASE_END    = iachar('z') !! ASCII character set parameter for lower to upper conversion - end of 
+                                                             !! lowercase
+   integer(I4B), parameter :: UPPERCASE_OFFSET = iachar('A') - iachar('a') !! ASCII character set parameter for lower to upper 
+                                                                           !! conversion - offset between upper and lower
 
-   real(SP), parameter :: VERSION_NUMBER = 1.0_SP !! Swiftest version
+   character(*), parameter :: VERSION = "2024.2.0" !! Swiftest version
 
    !> Symbolic name for integrator types
    character(*), parameter :: UNKNOWN_INTEGRATOR = "UKNOWN INTEGRATOR"
@@ -103,9 +110,11 @@ module globals
    integer(I4B), parameter :: NDUMPFILES = 2
    character(*), parameter :: PARAM_RESTART_FILE = "param.restart.in"
 #ifdef COARRAY
-   character(STRMAX)       :: SWIFTEST_LOG_FILE                  !! Name of file to use to log output when using "COMPACT" or "PROGRESS" display style (each co-image gets its own log file)
+   character(STRMAX)       :: SWIFTEST_LOG_FILE                  !! Name of file to use to log output when using "COMPACT" or 
+                                                                 !! "PROGRESS" display style (each co-image gets its own log file)
 #else
-   character(*), parameter :: SWIFTEST_LOG_FILE = "swiftest.log" !! Name of file to use to log output when using "COMPACT" or "PROGRESS" display style
+   character(*), parameter :: SWIFTEST_LOG_FILE = "swiftest.log" !! Name of file to use to log output when using "COMPACT" or 
+                                                                 !! "PROGRESS" display style
 #endif
    integer(I4B), parameter :: SWIFTEST_LOG_OUT = 33 !! File unit for log file when using "COMPACT" display style 
 
@@ -117,7 +126,8 @@ module globals
    character(*), parameter :: BIN_OUTFILE      = 'data.nc'
    integer(I4B), parameter :: BINUNIT          = 20 !! File unit number for the binary output file
    integer(I4B), parameter :: PARTICLEUNIT     = 44 !! File unit number for the binary particle info output file
-   integer(I4B), parameter :: LUN              = 42 !! File unit number for files that are opened and closed within a single subroutine call, and therefore should not collide
+   integer(I4B), parameter :: LUN              = 42 !! File unit number for files that are opened and closed within a single 
+                                                    !! subroutine call, and therefore should not collide
 
    !> Miscellaneous constants:
    integer(I4B), parameter :: NDIM   = 3                  !! Number of dimensions in our reality

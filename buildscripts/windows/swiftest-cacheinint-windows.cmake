@@ -1,0 +1,7 @@
+SET(CMAKE_BUILD_TYPE "Release" CACHE STRING "Build type" FORCE)
+SET(USE_OPENMP ON CACHE BOOL "Use OpenMP" FORCE)
+SET(USE_SIMD OFF CACHE BOOL "Use SIMD instructions" FORCE)
+SET(netCDF-Fortran_DIR "C:/Program Files/NC4F/lib/cmake/netCDF" CACHE PATH "Location of NetCDF-Fortran cmake config files" FORCE)
+SET(HDF5_DIR "C:/Program Files/HDF5_Group/HDF5/1.14.2/cmake" CACHE PATH "Location of HDF5 cmake config files" FORCE)
+SET(HDF5_ROOT "C:/Program Files/HDF5_Group/HDF5/1.14.2" CACHE PATH "Location of HDF5" FORCE)
+SET(HDF5_USE_STATIC_LIBRARIES ON CACHE BOOL "Use static HDF5 libraries" FORCE)

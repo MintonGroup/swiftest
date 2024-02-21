@@ -12,12 +12,16 @@
 
 # We want to start from the top of the source dir, so if we are in build
 # we want to start one directory up
+CMAKE_POLICY(SET CMP0009 NEW)
 GET_FILENAME_COMPONENT(BASEDIR ${CMAKE_SOURCE_DIR} NAME)
 IF(${BASEDIR} STREQUAL "build")
     SET(TOPDIR "${CMAKE_SOURCE_DIR}/..")
 ELSE()
     SET(TOPDIR "${CMAKE_SOURCE_DIR}")
 ENDIF()
+
+SET(CIBW_DIR "_skbuild" "swiftest.egg-info" "_cmake_test_compile")
+SET(DOC_DIR "docs/_build" "docs/_static/fortran_docs")
 
 MACRO(GET_PARENT_DIRECTORIES search_string return_list grandparents)
     FILE(GLOB_RECURSE new_list ${search_string})
@@ -41,11 +45,13 @@ ENDMACRO()
 FILE(GLOB_RECURSE CMAKECACHE "${TOPDIR}/*CMakeCache.txt")
 FILE(GLOB_RECURSE CMAKEINSTALL "${TOPDIR}/*cmake_install.cmake"
                                "${TOPDIR}/*install_manifest.txt")
-FILE(GLOB_RECURSE MAKEFILE "${TOPDIR}/*Makefile")
 FILE(GLOB_RECURSE CMAKETESTFILES "${TOPDIR}/*CTestTestfile.cmake")
 SET(TOPDIRECTORIES "${TOPDIR}/lib" 
-                   "${TOPDIR}/test"
+                   "${TOPDIR}/lib64" 
+                   "${TOPDIR}/libexec"
                    "${TOPDIR}/bin"
+                   "${TOPDIR}/include"
+                   "${TOPDIR}/share"
 )
 
 # CMake has trouble finding directories recursively, so locate these
@@ -61,6 +67,8 @@ SET(DEL ${TOPDIRECTORIES}
         ${CMAKEFILES}
         ${CMAKETESTING}
         ${CMAKETESTFILES}
+        ${CIBW_DIR}
+        ${DOC_DIR}
 )
 
 # If we are not in the build dir, delete that as well

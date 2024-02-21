@@ -1,11 +1,11 @@
-!! Copyright 2023 - David Minton
-!! This file is part of Swiftest.
-!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
-!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
-!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-!! You should have received a copy of the GNU General Public License along with Swiftest. 
-!! If not, see: https://www.gnu.org/licenses. 
+! Copyight 2023 - David Minton
+! This file is part of Swiftest.
+! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+! You should have received a copy of the GNU General Public License along with Swiftest. 
+! If not, see: https://www.gnu.org/licenses. 
 
 submodule (coarray) s_coarray_clone
    use swiftest
@@ -71,7 +71,7 @@ contains
       sync all
       if (this_image() == si) then
          do img = 1, num_images()
-         tmp[img] = var 
+            tmp[img] = var 
          end do
          sync images(*)
       else
@@ -117,7 +117,7 @@ contains
       allocate(tmp(n[si])[*])
       if (this_image() == si) then
          do img = 1, num_images()
-         tmp(:)[img] = var 
+            tmp(:)[img] = var 
          end do
          sync images(*)
       else
@@ -167,7 +167,7 @@ contains
       allocate(tmp(n1[si],n2[si])[*])
       if (this_image() == si) then
          do img = 1, num_images()
-         tmp(:,:)[img] = var(:,:)
+            tmp(:,:)[img] = var(:,:)
          end do
          sync images(*)
       else
@@ -252,7 +252,7 @@ contains
       allocate(tmp(NDIM,n[si])[*])
       if (this_image() == si) then
          do img = 1, num_images()
-         tmp(:,:)[img] = var(:,:)
+            tmp(:,:)[img] = var(:,:)
          end do
          sync images(*)
       else
@@ -469,6 +469,7 @@ contains
    end subroutine coarray_component_clone_lgt_arr1D
 
 
+#ifdef QUADPREC
    module subroutine coarray_component_clone_QP(var,src_img)
       !! author: David A. Minton
       !!
@@ -503,5 +504,6 @@ contains
 
       return
    end subroutine coarray_component_clone_QP 
+#endif
 
 end submodule s_coarray_clone

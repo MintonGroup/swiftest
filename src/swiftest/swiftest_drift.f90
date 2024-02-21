@@ -1,12 +1,11 @@
-!! Coryright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
-!! This file is part of Swiftest.
-!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
-!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
-!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-!! You should have received a cory of the GNU General Public License along with Swiftest. 
-!! If not, see: https://www.gnu.org/licenses. 
-
+! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! This file is part of Swiftest.
+! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+! You should have received a copy of the GNU General Public License along with Swiftest. 
+! If not, see: https://www.gnu.org/licenses. 
 submodule (swiftest) s_swiftest_drift
    !> Integration control parameters:
    real(DP), parameter :: E2MAX    = 0.36_DP      
@@ -49,6 +48,7 @@ contains
                end if
             end do
          end if
+
       end associate
 
       deallocate(iflag)
@@ -82,7 +82,11 @@ contains
 
       allocate(dtp(n))
       if (param%lgr) then
+#ifdef DOCONLOC
+         do concurrent(i = 1:n, lmask(i)) shared(param,lmask,x,v,mu,dtp,dt) local(rmag,vmag2,energy)
+#else
          do concurrent(i = 1:n, lmask(i))
+#endif
             rmag = norm2(x(:, i))
             vmag2 = dot_product(v(:, i), v(:, i))
             energy = 0.5_DP * vmag2 - mu(i) / rmag
@@ -455,6 +459,7 @@ contains
 
       do nc = 0, 6
          x = s*s*alpha
+
          call swiftest_drift_kepu_stumpff(x, c0, c1, c2, c3)
          c1 = c1*s
          c2 = c2*s*s
@@ -547,7 +552,7 @@ contains
       ! Internals
       integer(I4B) :: i, n
       real(DP)   :: xm
-
+      
       n = 0
       xm = 0.1_DP
       do while (abs(x) >= xm)
@@ -574,6 +579,23 @@ contains
 
       return
    end subroutine swiftest_drift_kepu_stumpff
+
+   module subroutine swiftest_drift_cb_rotphase_update(self, param, dt)
+      !! Author : Kaustub Anand
+      !! subroutine to update the rotation phase of the central body
+      !! Units: radians
+      !!
+      !! initial 0 is set at the x-axis 
+      !! phase is stored and calculated in radians. Converted to degrees for output
+      implicit none
+      ! Arguments
+      class(swiftest_cb),           intent(inout) :: self   !! Swiftest central body data structure
+      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: dt     !! Stepsize
+
+      self%rotphase = MOD(self%rotphase + (.mag. self%rot(:)) * dt , 2 * PI) ! phase angle calculated in radians and then scaled by 2pi to be unitless
+
+   end subroutine swiftest_drift_cb_rotphase_update
 
 
 end submodule s_swiftest_drift

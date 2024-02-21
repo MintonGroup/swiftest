@@ -15,6 +15,15 @@
 Creates a movie from a set of Swiftest output files. All simulation 
 outputs are stored in the /simdata subdirectory.
 
+**NOTE: You must have ffmpeg installed on your system before running this script. For instance, on MacOS:
+
+```brew install ffmpeg```
+
+on Ubuntu:
+
+```sudo apt-get install ffmpeg```
+
+
 Input
 ------
 param.in    : ASCII Swiftest parameter input file.
@@ -33,6 +42,8 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 import matplotlib.colors as mcolors
 from collections import namedtuple
+
+
 plt.switch_backend('agg')
 
 titletext = "Chambers (2013)"
@@ -108,8 +119,8 @@ class AnimatedScatter(object):
         self.ax.set_ylabel(ylabel[plot_style], fontsize='16', labelpad=1) 
         
         leg = plt.legend(loc="upper left", scatterpoints=1, fontsize=10)
-        for i,l in enumerate(leg.legendHandles):
-            leg.legendHandles[i]._sizes = [20]
+        for i,l in enumerate(leg.legend_handles):
+            leg.legend_handles[i]._sizes = [20]
         
         if plot_style == "arotscatter":
             self.ax.set_yscale('log')

@@ -1,11 +1,11 @@
-!! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
-!! This file is part of Swiftest.
-!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
-!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
-!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-!! You should have received a copy of the GNU General Public License along with Swiftest. 
-!! If not, see: https://www.gnu.org/licenses. 
+! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! This file is part of Swiftest.
+! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+! You should have received a copy of the GNU General Public License along with Swiftest. 
+! If not, see: https://www.gnu.org/licenses. 
 
 submodule(operators) s_operator_cross
    use, intrinsic :: ieee_exceptions
@@ -42,6 +42,7 @@ contains
       return
    end function operator_cross_dp
 
+#ifdef QUADPREC
    pure module function operator_cross_qp(A, B) result(C)
       implicit none
       real(QP), dimension(:), intent(in) :: A, B
@@ -53,6 +54,7 @@ contains
       C(3) = A(1) * B(2) - A(2) * B(1)
       return
    end function operator_cross_qp
+#endif
 
    pure module function operator_cross_i1b(A, B) result(C)
       implicit none
@@ -104,7 +106,7 @@ contains
       n = size(A, 2)
       if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
-      do concurrent (i = 1:n) 
+      do i = 1,n 
          C(:,i) = operator_cross_sp(A(:,i), B(:,i))
       end do
       return
@@ -118,12 +120,13 @@ contains
       n = size(A, 2)
       if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
-      do concurrent (i = 1:n) 
+      do i = 1,n 
          C(:,i) = operator_cross_dp(A(:,i), B(:,i))
       end do
       return
    end function operator_cross_el_dp
 
+#ifdef QUADPREC
    pure module function operator_cross_el_qp(A, B) result(C)
       implicit none
       real(QP), dimension(:,:), intent(in)  :: A, B
@@ -132,11 +135,12 @@ contains
       n = size(A, 2)
       if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
-      do concurrent (i = 1:n) 
+      do i = 1,n 
          C(:,i) = operator_cross_qp(A(:,i), B(:,i))
       end do
       return
    end function operator_cross_el_qp
+#endif 
 
    pure module function operator_cross_el_i1b(A, B) result(C)
       implicit none
@@ -146,7 +150,7 @@ contains
       n = size(A, 2)
       if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
-      do concurrent (i = 1:n) 
+      do i = 1,n 
          C(:,i) = operator_cross_i1b(A(:,i), B(:,i))
       end do
       return
@@ -160,7 +164,7 @@ contains
       n = size(A, 2)
       if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
-      do concurrent (i = 1:n) 
+      do i = 1,n 
          C(:,i) = operator_cross_i2b(A(:,i), B(:,i))
       end do
       return
@@ -174,7 +178,7 @@ contains
       n = size(A, 2)
       if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
-      do concurrent (i = 1:n) 
+      do i = 1,n 
          C(:,i) = operator_cross_i4b(A(:,i), B(:,i))
       end do
       return
@@ -188,7 +192,7 @@ contains
       n = size(A, 2)
       if (allocated(C)) deallocate(C)
       allocate(C, mold = A)
-      do concurrent (i = 1:n) 
+      do i = 1,n 
          C(:,i) = operator_cross_i8b(A(:,i), B(:,i))
       end do
       return

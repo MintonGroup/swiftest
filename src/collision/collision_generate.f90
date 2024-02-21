@@ -1,12 +1,12 @@
 
-!! Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
-!! This file is part of Swiftest.
-!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
-!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
-!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-!! You should have received a copy of the GNU General Public License along with Swiftest. 
-!! If not, see: https://www.gnu.org/licenses. 
+! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! This file is part of Swiftest.
+! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+! You should have received a copy of the GNU General Public License along with Swiftest. 
+! If not, see: https://www.gnu.org/licenses. 
 
 submodule(collision) s_collision_generate
    use swiftest
@@ -46,7 +46,6 @@ contains
       real(DP),                 intent(in)    :: t            !! The time of the collision
       ! Internals
       integer(I4B) :: i,j,nimp
-      real(DP), dimension(NDIM) :: rcom, vcom, rnorm
       logical, dimension(:), allocatable :: lmask
 
       select type(nbody_system)
@@ -89,7 +88,7 @@ contains
                call self%merge(nbody_system, param, t) ! Use the default collision model, which is merge
             case default 
                call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Error in swiftest_collision, unrecognized collision regime")
-               call base_util_exit(FAILURE)
+               call base_util_exit(FAILURE,unit=param%display_unit)
             end select
             end associate
       end select
@@ -171,7 +170,8 @@ contains
       class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       real(DP),                 intent(in)    :: t            !! The time of the collision
       ! Internals
-      integer(I4B)                              :: i, j, k, ibiggest
+      integer(I4B)                              :: i, j, ibiggest
+      integer(I8B)                              :: k
       real(DP), dimension(NDIM)                 :: L_spin_new, L_residual
       real(DP)                                  :: volume
       character(len=STRMAX) :: message
@@ -209,7 +209,11 @@ contains
                   fragments%density(1) = fragments%mass(1) / volume
                   fragments%radius(1) = (3._DP * volume / (4._DP * PI))**(THIRD)
                   if (param%lrotation) then
+#ifdef DOCONLOC
+                     do concurrent(i = 1:NDIM) shared(impactors, fragments, L_spin_new)
+#else
                      do concurrent(i = 1:NDIM)
+#endif
                         fragments%Ip(i,1) = sum(impactors%mass(:) * impactors%Ip(i,:)) 
                         L_spin_new(i) = sum(impactors%L_orbit(i,:) + impactors%L_spin(i,:))
                      end do
@@ -232,7 +236,7 @@ contains
                   call collision_util_velocity_torque(-L_residual(:), fragments%mass(1), fragments%rb(:,1), fragments%vb(:,1))
 
                   ! Update any encounter lists that have the removed bodies in them so that they instead point to the new body
-                  do k = 1, nbody_system%plpl_encounter%nenc
+                  do k = 1_I8B, nbody_system%plpl_encounter%nenc
                      do j = 1, impactors%ncoll
                         i = impactors%id(j)
                         if (i == ibiggest) cycle
