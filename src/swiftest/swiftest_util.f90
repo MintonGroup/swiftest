@@ -1704,10 +1704,13 @@ contains
 
          if (npl == 0) then
             if (param%lmtiny_pl) pl%nplm = 0
+            ! There are no more massive bodies. Reset the encounter lists and move on
+            if (allocated(nbody_system%plpl_encounter)) call nbody_system%plpl_encounter%setup(0_I8B)
+            if (allocated(nbody_system%pltp_encounter)) call nbody_system%pltp_encounter%setup(0_I8B)
             return
          end if
 
-         ! Reset all of the status flags for this body
+         ! Reset all of the status flags for the remaining bodies
          pl%status(1:npl) = ACTIVE
          do i = 1, npl
             call pl%info(i)%set_value(status="ACTIVE")
@@ -1840,6 +1843,82 @@ contains
 
       return
    end subroutine swiftest_util_rearray_pl
+
+
+
+   module subroutine swiftest_util_rearray_tp(self, nbody_system, param)
+      !! Author: David A. Minton
+      !!
+      !! Clean up the test particle structures to remove discarded bodies
+      use symba
+      implicit none
+      ! Arguments
+      class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
+      ! Internals
+      class(swiftest_tp), allocatable :: tmp !! The discarded body list.
+      integer(I4B) :: i, ntp
+      integer(I8B) :: k, nenc_old, nencmin
+      logical, dimension(:), allocatable :: lmask
+      class(encounter_list), allocatable :: pltpenc_old
+      logical :: lencounter
+
+      associate(pl => self, tp => nbody_system%tp, cb => nbody_system%cb, pl_adds => nbody_system%pl_adds)
+
+         ntp = tp%nbody
+         if (ntp == 0) return
+
+         ! Remove the discards and destroy the list, as the nbody_system already tracks tp_discards elsewhere
+         allocate(lmask(ntp))
+         lmask(1:ntp) = tp%ldiscard(1:ntp)
+         if (count(lmask(:)) > 0) then
+            allocate(tmp, mold=self)
+            call tp%spill(tmp, lspill_list=lmask, ldestructive=.true.)
+            ntp = tp%nbody
+            call tmp%setup(0,param)
+            deallocate(tmp)
+            deallocate(lmask)
+         end if
+         ntp = tp%nbody
+         if (ntp == 0) then
+            ! There are no more test particles. Reset the encounter list and move on
+            if (allocated(nbody_system%pltp_encounter)) call nbody_system%pltp_encounter%setup(0_I8B)
+            return
+         end if
+
+         ! Reset all of thes tatus flags for the remaining bodies
+         tp%status(1:ntp) = ACTIVE
+         do i = 1, ntp
+            call tp%info(i)%set_value(status="ACTIVE")
+         end do
+         tp%ldiscard(1:ntp) = .false.
+         tp%lcollision(1:ntp) = .false.
+         tp%lmask(1:ntp) = .true.
+
+         if (allocated(nbody_system%pltp_encounter)) then
+            ! Store the original pltpenc list so we don't remove any of the original encounters
+            nenc_old = nbody_system%pltp_encounter%nenc
+            if (nenc_old > 0_I8B) then 
+               allocate(pltpenc_old, source=nbody_system%pltp_encounter)
+               call pltpenc_old%copy(nbody_system%pltp_encounter)
+            end if
+
+            ! Re-build the encounter list
+            ! Be sure to get the level info if this is a SyMBA nbody_system
+            select type(nbody_system)
+            class is (symba_nbody_system)
+            select type(tp)
+            class is (symba_tp)
+               lencounter = tp%encounter_check(param, nbody_system, param%dt, nbody_system%irec)
+            end select
+            end select
+         end if
+
+      end associate
+
+      return
+   end subroutine swiftest_util_rearray_tp
 
 
    module subroutine swiftest_util_rescale_system(self, param, mscale, dscale, tscale)

@@ -321,6 +321,7 @@ module swiftest
       procedure :: rh2rb     => swiftest_util_coord_rh2rb_tp    !! Convert test particles from heliocentric to barycentric coordinates (position only)
       procedure :: dealloc   => swiftest_util_dealloc_tp        !! Deallocates all allocatable arrays
       procedure :: fill      => swiftest_util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
+      procedure :: rearray   => swiftest_util_rearray_tp        !! Clean up the test particle structures to remove discarded bodies 
       procedure :: resize    => swiftest_util_resize_tp         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: set_mu    => swiftest_util_set_mu_tp         !! Method used to construct the vectorized form of the central body mass
       procedure :: sort      => swiftest_util_sort_tp           !! Sorts body arrays by a sortable component
@@ -1485,10 +1486,17 @@ module swiftest
 
       module subroutine swiftest_util_rearray_pl(self, nbody_system, param)
          implicit none
-         class(swiftest_pl),           intent(inout) :: self   !! SyMBA massive body object
-         class(swiftest_nbody_system), intent(inout) :: nbody_system !! SyMBA nbody system object
-         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+         class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       end subroutine swiftest_util_rearray_pl
+
+      module subroutine swiftest_util_rearray_tp(self, nbody_system, param)
+         implicit none
+         class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
+      end subroutine swiftest_util_rearray_tp
 
       module subroutine swiftest_util_rescale_system(self, param, mscale, dscale, tscale)
          implicit none

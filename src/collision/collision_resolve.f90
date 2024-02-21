@@ -220,7 +220,7 @@ contains
             unique_parent_idx = pack(collision_idx(:), lplpl_unique_parent(:))
 
             ! Scrub all pl-pl collisions involving unique pairs of parents, which will remove all duplicates and leave behind
-            ! all pairs that have themselves as parents but are not part of the unique parent list. This can hapepn in rare cases
+            ! all pairs that have themselves as parents but are not part of the unique parent list. This can happen in rare cases
             ! due to restructuring of parent/child relationships when there are large numbers of multi-body collisions in a single
             ! step
             lplpl_unique_parent(:) = .true.
@@ -713,13 +713,19 @@ contains
       class is (swiftest_nbody_system)
       select type(param)
       class is (swiftest_parameters)
-         call nbody_system%pl%vb2vh(nbody_system%cb)
-         call nbody_system%tp%vb2vh(nbody_system%cb%vb)
-         call nbody_system%pl%b2h(nbody_system%cb)
-         call nbody_system%tp%b2h(nbody_system%cb)
+         associate(pltp_collision => nbody_system%pltp_collision, &
+            collision_history => nbody_system%collision_history, pl => nbody_system%pl, cb => nbody_system%cb, &
+            tp => nbody_system%tp, collider => nbody_system%collider, impactors => nbody_system%collider%impactors)
+            call pl%vb2vh(nbody_system%cb)
+            call tp%vb2vh(nbody_system%cb%vb)
+            call pl%b2h(nbody_system%cb)
+            call tp%b2h(nbody_system%cb)
 
-         ! Discard the collider
-         call nbody_system%tp%discard(nbody_system, param)
+            call tp%rearray(nbody_system, param)
+
+            ! Discard the collider
+            !call nbody_system%tp%discard(nbody_system, param)
+         end associate
       end select
       end select
 
