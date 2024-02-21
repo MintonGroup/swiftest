@@ -255,6 +255,38 @@ contains
       class(collision_list_pltp), intent(inout) :: self   !! pl-tp encounter list
       class(base_nbody_system),   intent(inout) :: nbody_system !! Swiftest nbody system object
       class(base_parameters),     intent(in)    :: param  !! Current run configuration parameters
+      ! Internals
+      logical,      dimension(:), allocatable :: lpltp_collision
+      integer(I8B)                            :: ncollisions, index_coll, k, npltpenc
+      integer(I8B), dimension(:), allocatable :: collision_idx
+
+      select type(nbody_system)
+      class is (swiftest_nbody_system)
+      select type (pl => nbody_system%pl)
+      class is (swiftest_pl)
+      select type (tp => nbody_system%tp)
+      class is (swiftest_tp)
+         associate(idx1 => self%index1, idx2 => self%index2)
+            npltpenc = self%nenc
+            allocate(lpltp_collision(npltpenc))
+            lpltp_collision(:) = self%status(1_I8B:npltpenc) == COLLIDED
+            if (.not.any(lpltp_collision)) return 
+            ! Collisions have been detected in this step. So we need to determine which of them are between unique bodies.
+
+            ! Get the subset of pl-tp encounters that lead to a collision
+            ncollisions = count(lpltp_collision(:))
+            allocate(collision_idx(ncollisions))
+            collision_idx = pack([(k, k=1_I8B, npltpenc)], lpltp_collision)
+
+            ! Create a mask that contains only the pl-tp encounters that did not result in a collision, and then discard them
+            lpltp_collision(:) = .false.
+            lpltp_collision(collision_idx(:)) = .true.
+            call self%spill(nbody_system%pltp_collision, lpltp_collision, ldestructive=.true.) ! Extract any encounters that are not collisions from the list.
+         end associate
+      end select
+      end select
+      end select
+
 
       return
    end subroutine collision_resolve_extract_pltp

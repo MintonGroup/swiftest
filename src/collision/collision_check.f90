@@ -187,11 +187,9 @@ contains
 
       lany_collision = .false.
       if (self%nenc == 0) return
+
       select type(nbody_system)
       class is (swiftest_nbody_system)
-      select type(param)
-      class is (swiftest_parameters)
-
          associate(pl => nbody_system%pl, tp => nbody_system%tp)
 
             nenc = self%nenc
@@ -256,14 +254,12 @@ contains
                end do
 
                ! Extract the pl-tp encounter list and return the pl-tp collision_list
-               allocate(tmp, mold=self)
-               call self%spill(tmp, lcollision, ldestructive=.true.) ! Remove this encounter pair from the encounter list
+               call self%extract_collisions(nbody_system, param)
             end if
 
             ! Take snapshots of pairs of bodies at close approach (but not collision) if requested
             if (lany_closest) call nbody_system%encounter_history%take_snapshot(param, nbody_system, t, "closest") 
          end associate
-      end select
       end select
 
       return 

@@ -2412,6 +2412,7 @@ contains
             allocate(symba_list_pltp     :: nbody_system%pltp_encounter)
             allocate(symba_list_plpl     :: nbody_system%plpl_encounter)
             allocate(collision_list_plpl :: nbody_system%plpl_collision)
+            allocate(collision_list_pltp :: nbody_system%pltp_collision)
          end select
       case (INT_RINGMOONS)
          write(*,*) 'RINGMOONS-SyMBA integrator not yet enabled'

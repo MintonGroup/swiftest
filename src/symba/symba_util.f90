@@ -157,7 +157,6 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (symba_tp)
-            call util_fill(keeps%nplenc, inserts%nplenc, lfill_list)
             call util_fill(keeps%levelg, inserts%levelg, lfill_list)
             call util_fill(keeps%levelm, inserts%levelm, lfill_list)
             
@@ -290,6 +289,7 @@ contains
          call nbody_system%pltp_encounter%setup(0_I8B)
          call nbody_system%plpl_encounter%setup(0_I8B)
          call nbody_system%plpl_collision%setup(0_I8B)
+         call nbody_system%pltp_collision%setup(0_I8B)
 
          if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
             allocate(encounter_netcdf_parameters :: encounter_history%nc)
@@ -563,7 +563,6 @@ contains
       associate(keeps => self)
          select type(discards)
          class is (symba_tp)
-            call util_spill(keeps%nplenc, discards%nplenc, lspill_list, ldestructive)
             call util_spill(keeps%levelg, discards%levelg, lspill_list, ldestructive)
             call util_spill(keeps%levelm, discards%levelm, lspill_list, ldestructive)
 
