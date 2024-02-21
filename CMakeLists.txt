@@ -11,7 +11,7 @@
 ##################################################
 # Define the project and the depencies that it has
 ##################################################
-CMAKE_MINIMUM_REQUIRED(VERSION 3.6.0...3.27.1)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.23.1...3.28.3)
 SET(SKBUILD_PROJECT_NAME "swiftest" CACHE STRING "Name of project set by scikit-build")
 
 # Get version stored in text file
