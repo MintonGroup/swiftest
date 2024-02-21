@@ -1845,7 +1845,6 @@ contains
    end subroutine swiftest_util_rearray_pl
 
 
-
    module subroutine swiftest_util_rearray_tp(self, nbody_system, param)
       !! Author: David A. Minton
       !!
@@ -1858,16 +1857,16 @@ contains
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       ! Internals
       class(swiftest_tp), allocatable :: tmp !! The discarded body list.
-      integer(I4B) :: i, ntp
-      integer(I8B) :: k, nenc_old, nencmin
+      integer(I4B) :: i, ntp, npl
+      integer(I8B) :: k, nenc
       logical, dimension(:), allocatable :: lmask
-      class(encounter_list), allocatable :: pltpenc_old
       logical :: lencounter
 
-      associate(pl => self, tp => nbody_system%tp, cb => nbody_system%cb, pl_adds => nbody_system%pl_adds)
+      associate(tp => self, pl => nbody_system%pl, cb => nbody_system%cb, pl_adds => nbody_system%pl_adds)
 
          ntp = tp%nbody
          if (ntp == 0) return
+         npl = pl%nbody
 
          ! Remove the discards and destroy the list, as the nbody_system already tracks tp_discards elsewhere
          allocate(lmask(ntp))
@@ -1897,22 +1896,13 @@ contains
          tp%lmask(1:ntp) = .true.
 
          if (allocated(nbody_system%pltp_encounter)) then
-            ! Store the original pltpenc list so we don't remove any of the original encounters
-            nenc_old = nbody_system%pltp_encounter%nenc
-            if (nenc_old > 0_I8B) then 
-               allocate(pltpenc_old, source=nbody_system%pltp_encounter)
-               call pltpenc_old%copy(nbody_system%pltp_encounter)
-            end if
+            ! Index values may have changed, so re-index the encounter list
+            nenc = nbody_system%pltp_encounter%nenc
+            do k = 1_I8B, nenc
+               nbody_system%pltp_encounter%index1(k) = findloc(pl%id(1:npl), nbody_system%pltp_encounter%id1(k), dim=1)
+               nbody_system%pltp_encounter%index2(k) = findloc(tp%id(1:ntp), nbody_system%pltp_encounter%id2(k), dim=1)
+            end do
 
-            ! Re-build the encounter list
-            ! Be sure to get the level info if this is a SyMBA nbody_system
-            select type(nbody_system)
-            class is (symba_nbody_system)
-            select type(tp)
-            class is (symba_tp)
-               lencounter = tp%encounter_check(param, nbody_system, param%dt, nbody_system%irec)
-            end select
-            end select
          end if
 
       end associate

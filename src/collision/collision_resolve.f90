@@ -721,10 +721,11 @@ contains
             call pl%b2h(nbody_system%cb)
             call tp%b2h(nbody_system%cb)
 
+            ! Restructure the massive bodies based on the outcome of the collision
             call tp%rearray(nbody_system, param)
 
             ! Discard the collider
-            !call nbody_system%tp%discard(nbody_system, param)
+            call nbody_system%tp%discard(nbody_system, param)
          end associate
       end select
       end select
