@@ -420,7 +420,7 @@ contains
                      end if
                   end do
 
-                  ntp = pl%nbody
+                  ntp = tp%nbody
                   do i = 1, ntp
                      call nc%find_idslot(tp%id(i), idslot)
                      call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid,     tp%id(i),     start=[   idslot              ]), "collision_io_netcdf_write_frame_snapshot nf90_put_var id_varid"  )
