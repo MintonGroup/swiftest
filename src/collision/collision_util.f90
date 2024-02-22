@@ -285,6 +285,7 @@ contains
       return
    end subroutine collision_util_dealloc_snapshot
 
+
    module subroutine collision_util_dealloc_impactors(self)
       !! author: David A. Minton
       !!
@@ -419,7 +420,8 @@ contains
    module subroutine collision_util_reset_fragments(self)
       !! author: David A. Minton
       !!
-      !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, radius, or other values that get set prior to the call to fraggle_generate)
+      !! Resets all position and velocity-dependent fragment quantities in order to do a fresh calculation (does not reset mass, 
+      !! radius, or other values that get set prior to the call to fraggle_generate)
       implicit none
       ! Arguments
       class(collision_fragments), intent(inout) :: self

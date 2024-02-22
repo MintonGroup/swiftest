@@ -25,7 +25,7 @@ contains
       lpl_check = allocated(self%pl_discards)
       ltp_check = allocated(self%tp_discards)
 
-      associate(nbody_system => self, tp => self%tp, pl => self%pl, tp_discards => self%tp_discards, pl_discards => self%pl_discards)
+      associate(nbody_system => self,tp => self%tp,pl => self%pl,tp_discards => self%tp_discards,pl_discards => self%pl_discards)
          lpl_discards = .false.
          ltp_discards = .false.
          if (lpl_check .and. pl%nbody > 0) then
@@ -59,8 +59,8 @@ contains
    module subroutine swiftest_discard_pl(self, nbody_system, param)
       !! author: David A. Minton
       !!
-      !!  Placeholder method for discarding massive bodies. This method does nothing except to ensure that the discard flag is set to false. 
-      !!  This method is intended to be overridden by more advanced integrators.
+      !! Placeholder method for discarding massive bodies. This method does nothing except to ensure that the discard flag is set 
+      !! to false. This method is intended to be overridden by more advanced integrators.
       implicit none
       ! Arguments
       class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
@@ -87,14 +87,14 @@ contains
       class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameter
       ! Internals
-      logical, dimension(:), allocatable :: ldiscard
-      integer(I4B) :: npl, ntp
+      logical, dimension(self%nbody) :: ldiscard
+      integer(I4B) :: i, nstart, nend, nsub
+      class(swiftest_tp), allocatable :: tpsub
 
       if (self%nbody == 0) return
 
-      associate(tp => self, cb => nbody_system%cb, pl => nbody_system%pl)
-         ntp = tp%nbody
-         npl = pl%nbody
+      associate(tp => self, ntp => self%nbody, cb => nbody_system%cb, pl => nbody_system%pl, npl => nbody_system%pl%nbody, &
+                tp_discards => nbody_system%tp_discards)
 
          if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or. &
              (param%rmaxu >= 0.0_DP) .or. ((param%qmin >= 0.0_DP) .and. (param%qmin_coord == "BARY"))) then
@@ -102,12 +102,25 @@ contains
             call tp%h2b(cb) 
          end if
 
-         if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or.  (param%rmaxu >= 0.0_DP)) call swiftest_discard_cb_tp(tp, nbody_system, param)
-         if (param%qmin >= 0.0_DP) call swiftest_discard_peri_tp(tp, nbody_system, param)
-         if (param%lclose) call swiftest_discard_pl_tp(tp, nbody_system, param)
+         if ((param%rmin >= 0.0_DP) .or. &
+             (param%rmax >= 0.0_DP) .or. & 
+             (param%rmaxu >= 0.0_DP)) then
+               call swiftest_discard_cb_tp(tp, nbody_system, param)
+         end if
+         if (param%qmin >= 0.0_DP) then
+            call swiftest_discard_peri_tp(tp, nbody_system, param)
+         end if
+         if (param%lclose) then
+            call swiftest_discard_pl_tp(tp, nbody_system, param)
+         end if
          if (any(tp%ldiscard(1:ntp))) then
-            allocate(ldiscard, source=tp%ldiscard)
-            call tp%spill(nbody_system%tp_discards, ldiscard(1:ntp), ldestructive=.true.)
+            ldiscard(1:ntp) = tp%ldiscard(1:ntp)
+            allocate(tpsub, mold=tp)
+            call tp%spill(tpsub, ldiscard, ldestructive=.false.)
+            nsub = tpsub%nbody
+            nstart = tp_discards%nbody + 1
+            nend = tp_discards%nbody + nsub
+            call tp_discards%append(tpsub, lsource_mask=[(.true., i = 1, nsub)])
          end if
       end associate
 
@@ -275,8 +288,9 @@ contains
                      write(idstrj, *) pl%id(j)
                      write(timestr, *) nbody_system%t
                      write(message, *) "Particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstri)) // ")" &
-                                                  // "  too close to massive body " // trim(adjustl(pl%info(j)%name)) // " ("  // trim(adjustl(idstrj)) // ")" &
-                                                  // " at t = " // trim(adjustl(timestr))
+                                                   // "  too close to massive body " // trim(adjustl(pl%info(j)%name)) // " (" &
+                                                   // trim(adjustl(idstrj)) // ")" &
+                                                   // " at t = " // trim(adjustl(timestr))
                      call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
                      tp%ldiscard(i) = .true.
                      call tp%info(i)%set_value(status="DISCARDED_PLR", discard_time=nbody_system%t, discard_rh=tp%rh(:,i), &
