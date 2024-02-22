@@ -277,12 +277,7 @@ contains
       class(symba_nbody_system),               intent(inout) :: self           !! SyMBA nbody_system object
       class(swiftest_storage),    allocatable, intent(inout) :: system_history !! Stores the system history between output dumps
       class(swiftest_parameters),              intent(inout) :: param          !! Current run configuration parameters 
-      ! Internals
-      type(encounter_storage)  :: encounter_history
-      type(collision_storage)  :: collision_history
 
-      call encounter_history%setup(4096)
-      call collision_history%setup(4096)
       ! Call parent method
       associate(nbody_system => self)
          call helio_util_setup_initialize_system(nbody_system, system_history, param)
@@ -291,32 +286,7 @@ contains
          call nbody_system%plpl_collision%setup(0_I8B)
          call nbody_system%pltp_collision%setup(0_I8B)
 
-         if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
-            allocate(encounter_netcdf_parameters :: encounter_history%nc)
-            select type(nc => encounter_history%nc)
-            class is (encounter_netcdf_parameters)
-               nc%file_name = ENCOUNTER_OUTFILE
-               if (.not.param%lrestart) then
-                  call nc%initialize(param)
-                  call nc%close()
-               end if
-            end select
-            allocate(nbody_system%encounter_history, source=encounter_history)
-         end if
-        
-         allocate(collision_netcdf_parameters :: collision_history%nc)
-         select type(nc => collision_history%nc)
-         class is (collision_netcdf_parameters)
-            nc%file_name = COLLISION_OUTFILE
-            if (param%lrestart) then
-               call nc%open(param) ! This will find the nc%max_idslot variable
-            else
-               call nc%initialize(param)
-            end if
-            call nc%close()
-         end select
-         allocate(nbody_system%collision_history, source=collision_history)
-
+         if (allocated(nbody_system%collider)) deallocate(nbody_system%collider)
          select case(param%collision_model)
          case("MERGE")
             allocate(collision_basic :: nbody_system%collider)
@@ -326,12 +296,6 @@ contains
             allocate(collision_fraggle :: nbody_system%collider)
          end select
          call nbody_system%collider%setup(nbody_system)
-
-         nbody_system%collider%max_rot = MAX_ROT_SI * param%TU2S
-         select type(nc => collision_history%nc)
-         class is (collision_netcdf_parameters)
-            nbody_system%collider%maxid_collision = nc%max_idslot
-         end select
 
       end associate
 

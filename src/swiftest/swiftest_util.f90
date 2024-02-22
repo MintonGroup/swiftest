@@ -1730,7 +1730,12 @@ contains
          end if
 
          ! Reindex the new list of bodies 
-         call pl%sort("mass", ascending=.false.)
+         select type(pl)
+         class is (helio_pl)
+            call pl%sort("mass", ascending=.false.)
+         class is (whm_pl) 
+            call pl%sort("ir3h", ascending=.false.)
+         end select
          call pl%flatten(param)
 
          call pl%set_rhill(cb)
@@ -1886,7 +1891,7 @@ contains
             return
          end if
 
-         ! Reset all of thes tatus flags for the remaining bodies
+         ! Reset all of the status flags for the remaining bodies
          tp%status(1:ntp) = ACTIVE
          do i = 1, ntp
             call tp%info(i)%set_value(status="ACTIVE")
@@ -2439,6 +2444,7 @@ contains
             allocate(helio_cb :: nbody_system%cb)
             allocate(helio_pl :: nbody_system%pl)
             allocate(helio_tp :: nbody_system%tp)
+            allocate(helio_pl :: nbody_system%pl_discards)
             allocate(helio_tp :: nbody_system%tp_discards)
          end select
          param%collision_model = "MERGE"
@@ -2453,6 +2459,7 @@ contains
             allocate(whm_cb :: nbody_system%cb)
             allocate(whm_pl :: nbody_system%pl)
             allocate(whm_tp :: nbody_system%tp)
+            allocate(whm_pl :: nbody_system%pl_discards)
             allocate(whm_tp :: nbody_system%tp_discards)
          end select
          param%collision_model = "MERGE"
@@ -2463,6 +2470,7 @@ contains
             allocate(rmvs_cb :: nbody_system%cb)
             allocate(rmvs_pl :: nbody_system%pl)
             allocate(rmvs_tp :: nbody_system%tp)
+            allocate(rmvs_pl :: nbody_system%pl_discards)
             allocate(rmvs_tp :: nbody_system%tp_discards)
          end select
          param%collision_model = "MERGE"
@@ -2543,8 +2551,13 @@ contains
       class(swiftest_nbody_system),              intent(inout) :: self           !! Swiftest nbody_system object
       class(swiftest_storage),      allocatable, intent(inout) :: system_history !! Stores the system history between output dumps
       class(swiftest_parameters),                intent(inout) :: param          !! Current run configuration parameters
-
       ! Internals
+      type(encounter_storage)  :: encounter_history
+      type(collision_storage)  :: collision_history
+
+      call encounter_history%setup(4096)
+      call collision_history%setup(4096)
+
       if (allocated(system_history)) then
          call system_history%dealloc()
          deallocate(system_history)
@@ -2576,6 +2589,39 @@ contains
          nc%file_name = param%outfile
          call nbody_system%initialize_output_file(nc, param) 
          call nc%close()
+
+         allocate(collision_basic :: nbody_system%collider)
+         call nbody_system%collider%setup(nbody_system)
+
+         if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
+            allocate(encounter_netcdf_parameters :: encounter_history%nc)
+            select type(nc => encounter_history%nc)
+            class is (encounter_netcdf_parameters)
+               nc%file_name = ENCOUNTER_OUTFILE
+               if (.not.param%lrestart) then
+                  call nc%initialize(param)
+                  call nc%close()
+               end if
+            end select
+            allocate(nbody_system%encounter_history, source=encounter_history)
+         end if
+        
+         allocate(collision_netcdf_parameters :: collision_history%nc)
+         select type(nc => collision_history%nc)
+         class is (collision_netcdf_parameters)
+            nc%file_name = COLLISION_OUTFILE
+            if (param%lrestart) then
+               call nc%open(param) ! This will find the nc%max_idslot variable
+            else
+               call nc%initialize(param)
+            end if
+            call nc%close()
+            nbody_system%collider%maxid_collision = nc%max_idslot
+         end select
+
+         allocate(nbody_system%collision_history, source=collision_history)        
+         
+         nbody_system%collider%max_rot = MAX_ROT_SI * param%TU2S 
 
       end associate
 

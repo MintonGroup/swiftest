@@ -467,62 +467,69 @@ contains
                   if (allocated(tp)) deallocate(tp)
                   select case(stage)
                   case(1)
-                     if (.not. allocated(before%pl)) cycle
-                     allocate(pl, source=before%pl)
+                     if (allocated(before%pl)) allocate(pl, source=before%pl)
                      if (allocated(before%tp)) allocate(tp, source=before%tp)
                   case(2)
-                     if (.not. allocated(after%pl)) cycle
-                     allocate(pl, source=after%pl)
+                     if (allocated(after%pl)) allocate(pl, source=after%pl)
                      if (allocated(after%tp)) allocate(tp, source=after%tp)
                   end select
-                  npl = pl%nbody
 
-                  ! This ensures that there first idslot will have the first body in it, not id 0 which is the default for a new 
-                  ! idvals array
-                  if (.not.allocated(nc%idvals)) allocate(nc%idvals, source=pl%id)
-                  do i = 1, npl
-                     call nc%find_idslot(pl%id(i), idslot) 
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid,     pl%id(i),     start=[   idslot              ]), &
-                        "collision_io_netcdf_write_frame_snapshot nf90_put_var id_varid: pl")
-                     charstring = trim(adjustl(pl%info(i)%name))
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid,   charstring,   start=[1, idslot              ], &
-                        count=[NAMELEN, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var name_varid: pl")
-                     charstring = trim(adjustl(pl%info(i)%particle_type))
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid,  charstring,   start=[1, idslot, stage, eslot], &
-                        count=[NAMELEN, 1, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var particle_type_varid: pl")
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%rh_varid,     pl%rh(:,i),   start=[1, idslot, stage, eslot], &
-                        count=[NDIM,1,1,1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var rh_varid: pl")
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%vh_varid,     pl%vh(:,i),   start=[1, idslot, stage, eslot], &
-                        count=[NDIM,1,1,1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var vh_varid: pl")
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid,  pl%Gmass(i),  start=[   idslot, stage, eslot]), &
-                        "collision_io_netcdf_write_frame_snapshot nf90_put_var Gmass_varid: pl")
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%radius_varid, pl%radius(i), start=[   idslot, stage, eslot]), &
-                        "collision_io_netcdf_write_frame_snapshot nf90_put_var radius_varid: pl")
-                     if (param%lrotation) then
-                        call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid,     pl%Ip(:,i),   start=[1, idslot, stage, eslot], &
-                           count=[NDIM,1,1,1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var Ip_varid: pl")
-                        call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid,    pl%rot(:,i)*RAD2DEG,  &
-                           start=[1, idslot, stage, eslot], count=[NDIM,1,1,1]), &
-                           "collision_io_netcdf_write_frame_snapshot nf90_put_var rotx_varid: pl")
-                     end if
-                  end do
+                  if (.not. (allocated(pl) .or. allocated(tp))) cycle
 
-                  ntp = tp%nbody
-                  do i = 1, ntp
-                     call nc%find_idslot(tp%id(i), idslot)
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid,     tp%id(i),     start=[   idslot              ]), &
-                        "collision_io_netcdf_write_frame_snapshot nf90_put_var id_varid: tp"  )
-                     charstring = trim(adjustl(tp%info(i)%name))
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid,   charstring,   start=[1, idslot              ], &
-                        count=[NAMELEN, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var name_varid: tp"  )
-                     charstring = trim(adjustl(tp%info(i)%particle_type))
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid,  charstring,   start=[1, idslot, stage, eslot], &
-                        count=[NAMELEN, 1, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var particle_type_varid: tp"  )
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%rh_varid,     tp%rh(:,i),   start=[1, idslot, stage, eslot], &
-                        count=[NDIM,1,1,1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var rh_varid: tp"  )
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%vh_varid,     tp%vh(:,i),   start=[1, idslot, stage, eslot], &
-                        count=[NDIM,1,1,1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var vh_varid: tp"  )
-                  end do
+                  if (allocated(pl)) then
+                     npl = pl%nbody
+                     ! This ensures that there first idslot will have the first body in it, not id 0 which is the default for a new 
+                     ! idvals array
+                     if (.not.allocated(nc%idvals)) allocate(nc%idvals, source=pl%id)
+                     do i = 1, npl
+                        call nc%find_idslot(pl%id(i), idslot) 
+                        call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid,     pl%id(i),     start=[   idslot              ]), &
+                           "collision_io_netcdf_write_frame_snapshot nf90_put_var id_varid: pl")
+                        charstring = trim(adjustl(pl%info(i)%name))
+                        call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid,   charstring,   start=[1, idslot              ], &
+                           count=[NAMELEN, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var name_varid: pl")
+                        charstring = trim(adjustl(pl%info(i)%particle_type))
+                        call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid,  charstring,   start=[1, idslot, stage, eslot], &
+                           count=[NAMELEN, 1, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var particle_type_varid: pl")
+                        call netcdf_io_check( nf90_put_var(nc%id, nc%rh_varid,     pl%rh(:,i),   start=[1, idslot, stage, eslot], &
+                           count=[NDIM,1,1,1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var rh_varid: pl")
+                        call netcdf_io_check( nf90_put_var(nc%id, nc%vh_varid,     pl%vh(:,i),   start=[1, idslot, stage, eslot], &
+                           count=[NDIM,1,1,1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var vh_varid: pl")
+                        call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid,  pl%Gmass(i),  start=[   idslot, stage, eslot]), &
+                           "collision_io_netcdf_write_frame_snapshot nf90_put_var Gmass_varid: pl")
+                        call netcdf_io_check( nf90_put_var(nc%id, nc%radius_varid, pl%radius(i), start=[   idslot, stage, eslot]), &
+                           "collision_io_netcdf_write_frame_snapshot nf90_put_var radius_varid: pl")
+                        if (param%lrotation) then
+                           call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid,     pl%Ip(:,i),   start=[1, idslot, stage, eslot], &
+                              count=[NDIM,1,1,1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var Ip_varid: pl")
+                           call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid,    pl%rot(:,i)*RAD2DEG,  &
+                              start=[1, idslot, stage, eslot], count=[NDIM,1,1,1]), &
+                              "collision_io_netcdf_write_frame_snapshot nf90_put_var rotx_varid: pl")
+                        end if
+                     end do
+                  end if
+
+                  if (allocated(tp)) then
+                     ntp = tp%nbody
+                     ! This ensures that there first idslot will have the first body in it, not id 0 which is the default for a new 
+                     ! idvals array
+                     if (.not.allocated(nc%idvals)) allocate(nc%idvals, source=tp%id)
+                     do i = 1, ntp
+                        call nc%find_idslot(tp%id(i), idslot)
+                        call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid,     tp%id(i),     start=[   idslot              ]), &
+                           "collision_io_netcdf_write_frame_snapshot nf90_put_var id_varid: tp"  )
+                        charstring = trim(adjustl(tp%info(i)%name))
+                        call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid,   charstring,   start=[1, idslot              ], &
+                           count=[NAMELEN, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var name_varid: tp"  )
+                        charstring = trim(adjustl(tp%info(i)%particle_type))
+                        call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid,  charstring,   start=[1, idslot, stage, eslot], &
+                           count=[NAMELEN, 1, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var particle_type_varid: tp"  )
+                        call netcdf_io_check( nf90_put_var(nc%id, nc%rh_varid,     tp%rh(:,i),   start=[1, idslot, stage, eslot], &
+                           count=[NDIM,1,1,1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var rh_varid: tp"  )
+                        call netcdf_io_check( nf90_put_var(nc%id, nc%vh_varid,     tp%vh(:,i),   start=[1, idslot, stage, eslot], &
+                           count=[NDIM,1,1,1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var vh_varid: tp"  )
+                     end do
+                  end if
                end do
             end select
             end select

@@ -532,7 +532,7 @@ contains
             allocate(plsub, mold=pl)
             call pl%spill(plsub, lmask, ldestructive=.false.)
 
-            call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nimpactors)])
+            ! call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nimpactors)])
 
             ! Save the before/after snapshots
             select type(before => collider%before)
@@ -644,7 +644,7 @@ contains
                   ! Destroy the collision list now that the collisions are resolved
                   call plpl_collision%setup(0_I8B)
 
-                  if ((nbody_system%pl_adds%nbody == 0) .and. (nbody_system%pl_discards%nbody == 0)) exit
+                  if ((nbody_system%pl_adds%nbody == 0) .and. (.not.any(pl%ldiscard(:)))) exit
                   if (allocated(idnew)) deallocate(idnew)
                   nnew = nbody_system%pl_adds%nbody
                   allocate(idnew, source=nbody_system%pl_adds%id)
@@ -743,7 +743,7 @@ contains
             ! Restructure the massive bodies based on the outcome of the collision
             call tp%rearray(nbody_system, param)
 
-            ! Discard the collider
+            ! Check for discards
             call nbody_system%tp%discard(nbody_system, param)
 
             associate(idx1 => pltp_collision%index1, idx2 => pltp_collision%index2)

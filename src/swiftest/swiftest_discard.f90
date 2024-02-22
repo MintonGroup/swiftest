@@ -21,33 +21,80 @@ contains
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
       ! Internals
       logical :: lpl_discards, ltp_discards, lpl_check, ltp_check
+      logical, dimension(:), allocatable :: ldiscard
+      integer(I4B) :: i, nstart, nend, nsub
+      character(len=STRMAX) :: idstr
+      class(swiftest_pl), allocatable :: plsub
+      class(swiftest_tp), allocatable :: tpsub
 
       lpl_check = allocated(self%pl_discards)
       ltp_check = allocated(self%tp_discards)
 
-      associate(nbody_system => self,tp => self%tp,pl => self%pl,tp_discards => self%tp_discards,pl_discards => self%pl_discards)
+      associate(nbody_system => self,tp => self%tp,pl => self%pl,tp_discards => self%tp_discards,pl_discards => self%pl_discards, &
+               npl => self%pl%nbody, ntp => self%tp%nbody, t => self%t, collision_history => self%collision_history, &
+               collider => self%collider)
          lpl_discards = .false.
          ltp_discards = .false.
          if (lpl_check .and. pl%nbody > 0) then
             pl%ldiscard = pl%status(:) /= ACTIVE
             call pl%discard(nbody_system, param)
-            lpl_discards = (pl_discards%nbody > 0)
+            lpl_discards = any(pl%ldiscard(1:npl))
          end if
             
          if (ltp_check .and. tp%nbody > 0) then
             tp%ldiscard = tp%status(:) /= ACTIVE
             call tp%discard(nbody_system, param)
-            ltp_discards = (tp_discards%nbody > 0)
+            ltp_discards = any(tp%ldiscard(1:ntp))
+            lpl_discards = any(pl%ldiscard(1:npl))
          end if
 
          if (ltp_discards.or.lpl_discards) then
-            if (lpl_discards) then
-               if (param%lenergy) call self%conservation_report(param, lterminal=.false.)
-               call pl_discards%setup(0,param) 
-            end if
             if (ltp_discards) then
+               allocate(ldiscard, source=tp%ldiscard(:))
+               allocate(tpsub, mold=tp)
+               call tp%spill(tpsub, ldiscard, ldestructive=.true.)
+               nsub = tpsub%nbody
+               nstart = tp_discards%nbody + 1
+               nend = tp_discards%nbody + nsub
+               call tp_discards%append(tpsub, lsource_mask=[(.true., i = 1, nsub)])
+               deallocate(ldiscard)
+               select type(before => collider%before)
+               class is (swiftest_nbody_system)
+                  if (allocated(before%tp)) deallocate(before%tp)
+                  allocate(before%tp, source=tp_discards)
+               end select
                call tp_discards%setup(0,param) 
             end if
+
+            if (lpl_discards) then ! In the base integrators, massive bodies are not true discards. The discard is 
+                                              ! simply used to trigger a snapshot.
+               if (param%lenergy) call self%conservation_report(param, lterminal=.false.)
+               allocate(ldiscard, source=pl%ldiscard(:))
+               allocate(plsub, mold=pl)
+               call pl%spill(plsub, ldiscard, ldestructive=.false.)
+               nsub = plsub%nbody
+               nstart = pl_discards%nbody + 1
+               nend = pl_discards%nbody + nsub
+               call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nsub)])
+               deallocate(ldiscard)
+               pl%ldiscard(1:npl) = .false.
+               ! Save the before snapshots
+               select type(before => collider%before)
+               class is (swiftest_nbody_system)
+                  if (allocated(before%pl)) deallocate(before%pl)
+                  allocate(before%pl, source=pl_discards)
+               end select
+               call pl_discards%setup(0,param) 
+            end if
+            ! Advance the collision id number and save it
+            collider%maxid_collision = max(collider%maxid_collision, maxval(nbody_system%pl%info(:)%collision_id))
+            collider%maxid_collision = collider%maxid_collision + 1
+            collider%collision_id = collider%maxid_collision
+            collider%impactors%regime = COLLRESOLVE_REGIME_MERGE
+            write(idstr,*) collider%collision_id
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "collision_id " // trim(adjustl(idstr)))
+
+            call collision_history%take_snapshot(param,nbody_system, t, "particle") 
          end if
          
       end associate
@@ -86,15 +133,11 @@ contains
       class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
       class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameter
-      ! Internals
-      logical, dimension(self%nbody) :: ldiscard
-      integer(I4B) :: i, nstart, nend, nsub
-      class(swiftest_tp), allocatable :: tpsub
 
       if (self%nbody == 0) return
 
       associate(tp => self, ntp => self%nbody, cb => nbody_system%cb, pl => nbody_system%pl, npl => nbody_system%pl%nbody, &
-                tp_discards => nbody_system%tp_discards)
+                tp_discards => nbody_system%tp_discards, pl_discards => nbody_system%pl_discards)
 
          if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or. &
              (param%rmaxu >= 0.0_DP) .or. ((param%qmin >= 0.0_DP) .and. (param%qmin_coord == "BARY"))) then
@@ -112,15 +155,6 @@ contains
          end if
          if (param%lclose) then
             call swiftest_discard_pl_tp(tp, nbody_system, param)
-         end if
-         if (any(tp%ldiscard(1:ntp))) then
-            ldiscard(1:ntp) = tp%ldiscard(1:ntp)
-            allocate(tpsub, mold=tp)
-            call tp%spill(tpsub, ldiscard, ldestructive=.false.)
-            nsub = tpsub%nbody
-            nstart = tp_discards%nbody + 1
-            nend = tp_discards%nbody + nsub
-            call tp_discards%append(tpsub, lsource_mask=[(.true., i = 1, nsub)])
          end if
       end associate
 
@@ -242,7 +276,7 @@ contains
                         call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
                         tp%ldiscard(i) = .true.
                         call tp%info(i)%set_value(status="DISCARDED_PERI", discard_time=nbody_system%t, discard_rh=tp%rh(:,i), &
-                                                  discard_vh=tp%vh(:,i), discard_body_id=pl%id(j))
+                                                  discard_vh=tp%vh(:,i), discard_body_id=cb%id)
                      end if
                   end if
                end if
