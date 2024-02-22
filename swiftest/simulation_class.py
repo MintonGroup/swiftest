@@ -784,7 +784,7 @@ class Simulation(object):
             "nfrag_reduction": 30.0,
             "close_encounter_check": True,
             "general_relativity": True,
-            "collision_model": "FRAGGLE",
+            "collision_model": "MERGE",
             "minimum_fragment_mass": None,
             "minimum_fragment_gmass": None,
             "rotation": True,
