@@ -389,8 +389,10 @@ contains
                   if (allocated(pl)) deallocate(pl)
                   select case(stage)
                   case(1)
+                     if (.not. allocated(before%pl)) cycle
                      allocate(pl, source=before%pl)
                   case(2)
+                     if (.not. allocated(after%pl)) cycle
                      allocate(pl, source=after%pl)
                   end select
                   npl = pl%nbody

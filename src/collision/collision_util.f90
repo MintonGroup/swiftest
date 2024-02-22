@@ -756,8 +756,8 @@ contains
    module subroutine collision_util_snapshot(self, param, nbody_system, t, arg)
       !! author: David A. Minton
       !!
-      !! Takes a minimal snapshot of the state of the nbody_system during an encounter so that the trajectories
-      !! can be played back through the encounter
+      !! Takes a minimal snapshot of the state of the nbody_system during a collision to record the before and after states of the
+      !! system through the collision.
       implicit none
       ! Internals
       class(collision_storage), intent(inout)          :: self   !! Swiftest storage object
@@ -791,63 +791,70 @@ contains
             snapshot%t = t
          case ("after")
             phase_val = 2
+         case ("particle")
+            phase_val = -1
+            allocate(collision_snapshot :: snapshot)
+            allocate(snapshot%collider, source=nbody_system%collider) 
          case default
-            write(*,*) "collision_util_snapshot requies either 'before' or 'after' passed to 'arg'"
+            write(*,*) "collision_util_snapshot requies either 'before', 'after', or 'particle' passed to 'arg'"
             return
          end select
 
-         ! Get and record the energy of the system before the collision
-         call nbody_system%get_energy_and_momentum(param)
-         snapshot%collider%L_orbit(:,phase_val) = nbody_system%L_orbit(:)
-         snapshot%collider%L_spin(:,phase_val) = nbody_system%L_spin(:)
-         snapshot%collider%L_total(:,phase_val) = nbody_system%L_total(:)
-         snapshot%collider%ke_orbit(phase_val) = nbody_system%ke_orbit
-         snapshot%collider%ke_spin(phase_val) = nbody_system%ke_spin
-         snapshot%collider%pe(phase_val) = nbody_system%pe
-         snapshot%collider%be(phase_val) = nbody_system%be
-         snapshot%collider%te(phase_val) = nbody_system%te
+         if (stage /= "particle" ) then
+            ! Get and record the energy of the system before the collision
+            call nbody_system%get_energy_and_momentum(param)
+            snapshot%collider%L_orbit(:,phase_val) = nbody_system%L_orbit(:)
+            snapshot%collider%L_spin(:,phase_val) = nbody_system%L_spin(:)
+            snapshot%collider%L_total(:,phase_val) = nbody_system%L_total(:)
+            snapshot%collider%ke_orbit(phase_val) = nbody_system%ke_orbit
+            snapshot%collider%ke_spin(phase_val) = nbody_system%ke_spin
+            snapshot%collider%pe(phase_val) = nbody_system%pe
+            snapshot%collider%be(phase_val) = nbody_system%be
+            snapshot%collider%te(phase_val) = nbody_system%te
 
-         if (stage == "after") then
-            select type(before_snap => snapshot%collider%before )
-            class is (swiftest_nbody_system)
-            select type(before_orig => nbody_system%collider%before)
+            if (stage == "after") then
+               select type(before_snap => snapshot%collider%before )
                class is (swiftest_nbody_system)
-               select type(plsub => before_orig%pl)
-               class is (swiftest_pl)
-                  ! Log the properties of the old and new bodies
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Removing bodies:")
-                  do i = 1, plsub%nbody
-                     write(message,*) trim(adjustl(plsub%info(i)%name)), " (", trim(adjustl(plsub%info(i)%particle_type)),")"
-                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
-                  end do
+               select type(before_orig => nbody_system%collider%before)
+                  class is (swiftest_nbody_system)
+                  select type(plsub => before_orig%pl)
+                  class is (swiftest_pl)
+                     ! Log the properties of the old and new bodies
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Removing bodies:")
+                     do i = 1, plsub%nbody
+                        write(message,*) trim(adjustl(plsub%info(i)%name)), " (", trim(adjustl(plsub%info(i)%particle_type)),")"
+                        call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
+                     end do
 
-                  allocate(before_snap%pl, source=plsub)
+                     allocate(before_snap%pl, source=plsub)
+                  end select
+                  deallocate(before_orig%pl)
                end select
-               deallocate(before_orig%pl)
-            end select
-            end select
-
-
-            select type(after_snap => snapshot%collider%after )
-            class is (swiftest_nbody_system)
-            select type(after_orig => nbody_system%collider%after)
-            class is (swiftest_nbody_system)
-               select type(plnew => after_orig%pl)
-               class is (swiftest_pl)
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Adding bodies:")
-                  do i = 1, plnew%nbody
-                     write(message,*) trim(adjustl(plnew%info(i)%name)), " (", trim(adjustl(plnew%info(i)%particle_type)),")"
-                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
-                  end do
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, & 
-                     "***********************************************************" // &
-                     "***********************************************************")
-                  allocate(after_snap%pl, source=plnew)
                end select
-               deallocate(after_orig%pl)
-            end select
-            end select
 
+               select type(after_snap => snapshot%collider%after )
+               class is (swiftest_nbody_system)
+               select type(after_orig => nbody_system%collider%after)
+               class is (swiftest_nbody_system)
+                  select type(plnew => after_orig%pl)
+                  class is (swiftest_pl)
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Adding bodies:")
+                     do i = 1, plnew%nbody
+                        write(message,*) trim(adjustl(plnew%info(i)%name)), " (", trim(adjustl(plnew%info(i)%particle_type)),")"
+                        call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
+                     end do
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, & 
+                        "***********************************************************" // &
+                        "***********************************************************")
+                     allocate(after_snap%pl, source=plnew)
+                  end select
+                  deallocate(after_orig%pl)
+               end select
+               end select
+            end if
+         end if
+
+         if ((stage == "after") .or. (stage == "particle")) then
             ! Save the snapshot for posterity
             call self%save(snapshot)
             deallocate(snapshot)

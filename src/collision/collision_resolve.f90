@@ -707,6 +707,14 @@ contains
       real(DP),                   intent(in)    :: t      !! Current simulation tim
       real(DP),                   intent(in)    :: dt     !! Current simulation step size
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
+      ! Internals
+      class(swiftest_pl), allocatable :: plsub
+      logical :: lpltp_collision
+      character(len=STRMAX) :: timestr, idstr
+      integer(I4B) :: i, j, nnew, loop
+      integer(I8B) :: k, ncollisions
+      integer(I4B), dimension(:), allocatable :: idnew      
+      logical, dimension(:), allocatable :: lmask
      
       ! Make sure coordinate systems are all synced up due to being inside the recursion at this point
       select type(nbody_system)
@@ -726,6 +734,49 @@ contains
 
             ! Discard the collider
             call nbody_system%tp%discard(nbody_system, param)
+
+            associate(idx1 => pltp_collision%index1, idx2 => pltp_collision%index2)
+               ncollisions = pltp_collision%nenc
+               write(timestr,*) t
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "")
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "***********************************************************" // &
+                                                         "***********************************************************")
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Collision between test particle and massive body detected at time t = " // &
+                                                         trim(adjustl(timestr)))
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "***********************************************************" // &
+                                                         "***********************************************************")
+
+               do k = 1_I8B, ncollisions
+                  ! Advance the collision id number and save it
+                  collider%maxid_collision = max(collider%maxid_collision, maxval(nbody_system%pl%info(:)%collision_id))
+                  collider%maxid_collision = collider%maxid_collision + 1
+                  collider%collision_id = collider%maxid_collision
+                  write(idstr,*) collider%collision_id
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "collision_id " // trim(adjustl(idstr)))
+                  collider%impactors%regime = COLLRESOLVE_REGIME_MERGE
+                  allocate(lmask, mold=pl%lmask)
+                  lmask(:) = .false.
+                  lmask(idx1(k)) = .true.
+                  
+                  allocate(plsub, mold=pl)
+                  call pl%spill(plsub, lmask, ldestructive=.false.)
+      
+                  ! Save the before snapshots
+                  select type(before => collider%before)
+                  class is (swiftest_nbody_system)
+                     call move_alloc(plsub, before%pl)
+                  end select
+
+                  call collision_history%take_snapshot(param,nbody_system, t, "particle") 
+
+                  call impactors%dealloc()
+               end do
+
+               ! Destroy the collision list now that the collisions are resolved
+               call pltp_collision%setup(0_I8B)
+
+            end associate
+
          end associate
       end select
       end select

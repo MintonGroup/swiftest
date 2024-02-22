@@ -274,7 +274,7 @@ contains
                      write(idstri, *) tp%id(i)
                      write(idstrj, *) pl%id(j)
                      write(timestr, *) nbody_system%t
-                     write(message, *) "Test particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstri)) // ")" &
+                     write(message, *) "Particle " // trim(adjustl(tp%info(i)%name)) // " ("  // trim(adjustl(idstri)) // ")" &
                                                   // "  too close to massive body " // trim(adjustl(pl%info(j)%name)) // " ("  // trim(adjustl(idstrj)) // ")" &
                                                   // " at t = " // trim(adjustl(timestr))
                      call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
