@@ -233,17 +233,16 @@ contains
             call symba_discard_cb_pl(pl, nbody_system, param)
          end if
          if (param%qmin >= 0.0_DP) call symba_discard_peri_pl(pl, nbody_system, param)
-         if (any(pl%ldiscard(1:npl))) then
-            ldiscard(1:npl) = pl%ldiscard(1:npl)
+         ! if (any(pl%ldiscard(1:npl))) then
+         !    ldiscard(1:npl) = pl%ldiscard(1:npl)
                
-            allocate(plsub, mold=pl)
-            call pl%spill(plsub, ldiscard, ldestructive=.false.)
-            nsub = plsub%nbody
-            nstart = pl_discards%nbody + 1
-            nend = pl_discards%nbody + nsub
-            call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nsub)])
-
-         end if
+         !    allocate(plsub, mold=pl)
+         !    call pl%spill(plsub, ldiscard, ldestructive=.false.)
+         !    nsub = plsub%nbody
+         !    nstart = pl_discards%nbody + 1
+         !    nend = pl_discards%nbody + nsub
+         !    call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nsub)])
+         ! end if
       end associate
 
       return

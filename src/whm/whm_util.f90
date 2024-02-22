@@ -216,6 +216,7 @@ contains
       call self%pl%flatten(param)
 
       ! Make sure that the discard list gets allocated initially
+      call self%pl_discards%setup(0, param)
       call self%tp_discards%setup(0, param)
       call self%pl%set_mu(self%cb)
       call self%tp%set_mu(self%cb)
