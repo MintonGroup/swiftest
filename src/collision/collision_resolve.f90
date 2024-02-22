@@ -709,6 +709,7 @@ contains
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
       ! Internals
       class(swiftest_pl), allocatable :: plsub
+      class(swiftest_tp), allocatable :: tpsub
       logical :: lpltp_collision
       character(len=STRMAX) :: timestr, idstr
       integer(I4B) :: i, j, nnew, loop
@@ -765,6 +766,20 @@ contains
                   select type(before => collider%before)
                   class is (swiftest_nbody_system)
                      call move_alloc(plsub, before%pl)
+                  end select
+
+                  deallocate(lmask)
+                  allocate(lmask, mold=tp%lmask)
+                  lmask(:) = .false.
+                  lmask(idx2(k)) = .true.
+                  
+                  allocate(tpsub, mold=tp)
+                  call tp%spill(tpsub, lmask, ldestructive=.false.)
+      
+                  ! Save the before snapshots
+                  select type(before => collider%before)
+                  class is (swiftest_nbody_system)
+                     call move_alloc(tpsub, before%tp)
                   end select
 
                   call collision_history%take_snapshot(param,nbody_system, t, "particle") 
