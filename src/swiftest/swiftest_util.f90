@@ -1704,10 +1704,13 @@ contains
 
          if (npl == 0) then
             if (param%lmtiny_pl) pl%nplm = 0
+            ! There are no more massive bodies. Reset the encounter lists and move on
+            if (allocated(nbody_system%plpl_encounter)) call nbody_system%plpl_encounter%setup(0_I8B)
+            if (allocated(nbody_system%pltp_encounter)) call nbody_system%pltp_encounter%setup(0_I8B)
             return
          end if
 
-         ! Reset all of the status flags for this body
+         ! Reset all of the status flags for the remaining bodies
          pl%status(1:npl) = ACTIVE
          do i = 1, npl
             call pl%info(i)%set_value(status="ACTIVE")
@@ -1727,7 +1730,12 @@ contains
          end if
 
          ! Reindex the new list of bodies 
-         call pl%sort("mass", ascending=.false.)
+         select type(pl)
+         class is (helio_pl)
+            call pl%sort("mass", ascending=.false.)
+         class is (whm_pl) 
+            call pl%sort("ir3h", ascending=.false.)
+         end select
          call pl%flatten(param)
 
          call pl%set_rhill(cb)
@@ -1840,6 +1848,72 @@ contains
 
       return
    end subroutine swiftest_util_rearray_pl
+
+
+   module subroutine swiftest_util_rearray_tp(self, nbody_system, param)
+      !! Author: David A. Minton
+      !!
+      !! Clean up the test particle structures to remove discarded bodies
+      use symba
+      implicit none
+      ! Arguments
+      class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
+      ! Internals
+      class(swiftest_tp), allocatable :: tmp !! The discarded body list.
+      integer(I4B) :: i, ntp, npl
+      integer(I8B) :: k, nenc
+      logical, dimension(:), allocatable :: lmask
+      logical :: lencounter
+
+      associate(tp => self, pl => nbody_system%pl, cb => nbody_system%cb, pl_adds => nbody_system%pl_adds)
+
+         ntp = tp%nbody
+         if (ntp == 0) return
+         npl = pl%nbody
+
+         ! Remove the discards and destroy the list, as the nbody_system already tracks tp_discards elsewhere
+         allocate(lmask(ntp))
+         lmask(1:ntp) = tp%ldiscard(1:ntp)
+         if (count(lmask(:)) > 0) then
+            allocate(tmp, mold=self)
+            call tp%spill(tmp, lspill_list=lmask, ldestructive=.true.)
+            ntp = tp%nbody
+            call tmp%setup(0,param)
+            deallocate(tmp)
+            deallocate(lmask)
+         end if
+         ntp = tp%nbody
+         if (ntp == 0) then
+            ! There are no more test particles. Reset the encounter list and move on
+            if (allocated(nbody_system%pltp_encounter)) call nbody_system%pltp_encounter%setup(0_I8B)
+            return
+         end if
+
+         ! Reset all of the status flags for the remaining bodies
+         tp%status(1:ntp) = ACTIVE
+         do i = 1, ntp
+            call tp%info(i)%set_value(status="ACTIVE")
+         end do
+         tp%ldiscard(1:ntp) = .false.
+         tp%lcollision(1:ntp) = .false.
+         tp%lmask(1:ntp) = .true.
+
+         if (allocated(nbody_system%pltp_encounter)) then
+            ! Index values may have changed, so re-index the encounter list
+            nenc = nbody_system%pltp_encounter%nenc
+            do k = 1_I8B, nenc
+               nbody_system%pltp_encounter%index1(k) = findloc(pl%id(1:npl), nbody_system%pltp_encounter%id1(k), dim=1)
+               nbody_system%pltp_encounter%index2(k) = findloc(tp%id(1:ntp), nbody_system%pltp_encounter%id2(k), dim=1)
+            end do
+
+         end if
+
+      end associate
+
+      return
+   end subroutine swiftest_util_rearray_tp
 
 
    module subroutine swiftest_util_rescale_system(self, param, mscale, dscale, tscale)
@@ -2370,6 +2444,7 @@ contains
             allocate(helio_cb :: nbody_system%cb)
             allocate(helio_pl :: nbody_system%pl)
             allocate(helio_tp :: nbody_system%tp)
+            allocate(helio_pl :: nbody_system%pl_discards)
             allocate(helio_tp :: nbody_system%tp_discards)
          end select
          param%collision_model = "MERGE"
@@ -2384,6 +2459,7 @@ contains
             allocate(whm_cb :: nbody_system%cb)
             allocate(whm_pl :: nbody_system%pl)
             allocate(whm_tp :: nbody_system%tp)
+            allocate(whm_pl :: nbody_system%pl_discards)
             allocate(whm_tp :: nbody_system%tp_discards)
          end select
          param%collision_model = "MERGE"
@@ -2394,6 +2470,7 @@ contains
             allocate(rmvs_cb :: nbody_system%cb)
             allocate(rmvs_pl :: nbody_system%pl)
             allocate(rmvs_tp :: nbody_system%tp)
+            allocate(rmvs_pl :: nbody_system%pl_discards)
             allocate(rmvs_tp :: nbody_system%tp_discards)
          end select
          param%collision_model = "MERGE"
@@ -2412,6 +2489,7 @@ contains
             allocate(symba_list_pltp     :: nbody_system%pltp_encounter)
             allocate(symba_list_plpl     :: nbody_system%plpl_encounter)
             allocate(collision_list_plpl :: nbody_system%plpl_collision)
+            allocate(collision_list_pltp :: nbody_system%pltp_collision)
          end select
       case (INT_RINGMOONS)
          write(*,*) 'RINGMOONS-SyMBA integrator not yet enabled'
@@ -2473,8 +2551,13 @@ contains
       class(swiftest_nbody_system),              intent(inout) :: self           !! Swiftest nbody_system object
       class(swiftest_storage),      allocatable, intent(inout) :: system_history !! Stores the system history between output dumps
       class(swiftest_parameters),                intent(inout) :: param          !! Current run configuration parameters
-
       ! Internals
+      type(encounter_storage)  :: encounter_history
+      type(collision_storage)  :: collision_history
+
+      call encounter_history%setup(4096)
+      call collision_history%setup(4096)
+
       if (allocated(system_history)) then
          call system_history%dealloc()
          deallocate(system_history)
@@ -2506,6 +2589,39 @@ contains
          nc%file_name = param%outfile
          call nbody_system%initialize_output_file(nc, param) 
          call nc%close()
+
+         allocate(collision_basic :: nbody_system%collider)
+         call nbody_system%collider%setup(nbody_system)
+
+         if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
+            allocate(encounter_netcdf_parameters :: encounter_history%nc)
+            select type(nc => encounter_history%nc)
+            class is (encounter_netcdf_parameters)
+               nc%file_name = ENCOUNTER_OUTFILE
+               if (.not.param%lrestart) then
+                  call nc%initialize(param)
+                  call nc%close()
+               end if
+            end select
+            allocate(nbody_system%encounter_history, source=encounter_history)
+         end if
+        
+         allocate(collision_netcdf_parameters :: collision_history%nc)
+         select type(nc => collision_history%nc)
+         class is (collision_netcdf_parameters)
+            nc%file_name = COLLISION_OUTFILE
+            if (param%lrestart) then
+               call nc%open(param) ! This will find the nc%max_idslot variable
+            else
+               call nc%initialize(param)
+            end if
+            call nc%close()
+            nbody_system%collider%maxid_collision = nc%max_idslot
+         end select
+
+         allocate(nbody_system%collision_history, source=collision_history)        
+         
+         nbody_system%collider%max_rot = MAX_ROT_SI * param%TU2S 
 
       end associate
 

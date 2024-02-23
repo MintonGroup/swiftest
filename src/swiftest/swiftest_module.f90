@@ -10,27 +10,31 @@
 module swiftest
    !! author: David A. Minton
    !!
-   !! This module serves to combine all of the Swiftest project modules under a single umbrella so that they can be accessed from individual submodule implementations 
-   !! with a simple "use swiftest" line.
+   !! This module serves to combine all of the Swiftest project modules under a single umbrella so that they can be accessed from 
+   !! individual submodule implementations with a simple "use swiftest" line.
    !! 
-   !! The project structure is divided into a heirarchy of modules. The lowest level of the heirarchy are the modules called in the "use" statements below. Next the 
-   !! "swiftest" !! modules (this one), and finally each individual integrator (and potential future integrators) sit at the top. This structure is a consequence of two 
-   !! competing constraints:
-   !! 1) The desire that much of the basic functionality of the code is modular, such that new functionality can be easily added without altering too much of the basic code.
+   !! The project structure is divided into a heirarchy of modules. The lowest level of the heirarchy are the modules called in the
+   !! "use" statements below. Next the "swiftest" modules (this one), and finally each individual integrator (and potential future 
+   !! integrators) sit at the top. This structure is a consequence of two competing constraints:
+   !! 1) The desire that much of the basic functionality of the code is modular, such that new functionality can be easily added 
+   !!    without altering too much of the basic code.
    !! 2) Adhering to Modern Fortran's typing rules.
    !!  
-   !! A set of "base" types is defined in the base module. These define classes of objects, (i.e. central body, massive body, and test particles) and other major types
-   !! used throughout the project. However, none of the derived data types are defined with concrete type-bound procedures attached (only abstract procedures). 
-   !! However, the *interfaces* of type-bound procedures are defined using the base types as arguments. Because of the typing rules of Modern Fortran's type-bound procedure overrides, any non-pass arguments
-   !! (i.e. arguments not named self) must be identical in all extended types. Because some of the basic functionality in the project is split across multiple modules,
-   !!  we cannot define type-bound procedures in base class objects until the all interfaces are defined. In order to avoid these dependency issues and not end up with a
-   !! massive base class with every possibly type-bound procedure interface in the project (thus reducing the modularity of the project), the type-bound procedures are added
-   !! to the base types here. 
+   !! A set of "base" types is defined in the base module. These define classes of objects, (i.e. central body, massive body, and 
+   !! test particles) and other major types used throughout the project. However, none of the derived data types are defined with 
+   !! concrete type-bound procedures attached (only abstract procedures). However, the *interfaces* of type-bound procedures are 
+   !! defined using the base types as arguments. Because of the typing rules of Modern Fortran's type-bound procedure overrides, any
+   !! non-pass arguments(i.e. arguments not named self) must be identical in all extended types. Because some of the basic 
+   !! functionality in the project is split across multiple modules, we cannot define type-bound procedures in base class objects 
+   !! until the all interfaces are defined. In order to avoid these dependency issues and not end up with a massive base class with
+   !! every possibly type-bound procedure interface in the project (thus reducing the modularity of the project), the type-bound 
+   !! procedures are added to the base types here. 
    !!
-   !! Structuring this code this way adds somewhat to the verbosity of the code. The main thing that has to happen is that for any procedures where one wishes to make use of an
-   !! type-bound procedures defined for arguments at the swiftest-type level or higher, but that are passsed to base-level procedures, must have their arguments wrapped in
-   !! a select type(...); class is(...) construct in order to "reveal" the procedures. This is done throughout the project at the beginning of many procedures (along with
-   !! copious amounts of associate(...) statements, in order to help with code readibility)
+   !! Structuring this code this way adds somewhat to the verbosity of the code. The main thing that has to happen is that for any 
+   !! procedures where one wishes to make use of an type-bound procedures defined for arguments at the swiftest-type level or 
+   !! higher, but that are passsed to base-level procedures, must have their arguments wrapped in a select type(...); class is(...) 
+   !! construct in order to "reveal" the procedures. This is done throughout the project at the beginning of many procedures (along 
+   !! with copious amounts of associate(...) statements, in order to help with code readibility)
    !!
    !!  Adapted from David E. Kaufmann's Swifter routine: module_swifter.f90
    use globals
@@ -54,10 +58,13 @@ module swiftest
 
    type, extends(netcdf_parameters) :: swiftest_netcdf_parameters
    contains
-      procedure :: initialize      => swiftest_io_netcdf_initialize_output !! Initialize a set of parameters used to identify a NetCDF output object
-      procedure :: get_valid_masks => swiftest_io_netcdf_get_valid_masks   !! Gets logical masks indicating which bodies are valid pl and tp type at the current time
-      procedure :: open            => swiftest_io_netcdf_open              !! Opens a NetCDF file and does the variable inquiries to activate variable ids
-      procedure :: flush           => swiftest_io_netcdf_flush             !! Flushes a NetCDF file by closing it then opening it again
+      procedure :: initialize      => swiftest_io_netcdf_initialize_output !! Initialize a set of parameters used to identify a 
+                                                                           !! NetCDF output object
+      procedure :: get_valid_masks => swiftest_io_netcdf_get_valid_masks   !! Gets logical masks indicating which bodies are valid 
+                                                                           !!    pl and tp type at the current time
+      procedure :: open            => swiftest_io_netcdf_open              !! Opens a NetCDF file and does the variable inquiries to
+                                                                           !!    activate variable ids
+      procedure :: flush           => swiftest_io_netcdf_flush !! Flushes a NetCDF file by closing it then opening it again
 #ifdef COARRAY
       procedure :: coclone   => swiftest_coarray_coclone_nc
 #endif
@@ -68,15 +75,19 @@ module swiftest
       class(swiftest_netcdf_parameters), allocatable :: nc             !! NetCDF object attached to this storage object
    contains
       procedure :: dump             => swiftest_io_dump_storage        !! Dumps storage object contents to file
-      procedure :: dealloc          => swiftest_util_dealloc_storage   !! Resets a storage object by deallocating all items and resetting the frame counter to 0
-      procedure :: get_index_values => swiftest_util_get_vals_storage  !! Gets the unique values of the indices of a storage object (i.e. body id or time value)
-      procedure :: make_index_map   => swiftest_util_index_map_storage !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
-      procedure :: take_snapshot    => swiftest_util_snapshot_system   !! Takes a snapshot of the nbody_system for later file storage
+      procedure :: dealloc          => swiftest_util_dealloc_storage   !! Resets a storage object by deallocating all items and 
+                                                                       !!   resetting the frame counter to 0
+      procedure :: get_index_values => swiftest_util_get_vals_storage  !! Gets the unique values of the indices of a storage object
+                                                                       !!   (i.e. body id or time value)
+      procedure :: make_index_map   => swiftest_util_index_map_storage !! Maps body id values to storage index values so we don't 
+                                                                       !!    have to use unlimited dimensions for id
+      procedure :: take_snapshot    => swiftest_util_snapshot_system  !! Takes a snapshot of the nbody_system for later file storage
       final     ::                     swiftest_final_storage
    end type swiftest_storage
 
 
-   ! The following extended types or their children should be used, where possible, as the base of any types defined in additional modules, such as new integrators. 
+   ! The following extended types or their children should be used, where possible, as the base of any types defined in additional 
+   ! modules, such as new integrators. 
    type, extends(base_parameters) :: swiftest_parameters
    contains
       procedure :: dump        => swiftest_io_dump_param
@@ -95,7 +106,8 @@ module swiftest
    contains
       procedure :: dealloc  => swiftest_util_dealloc_kin !! Deallocates all allocatable arrays
 #ifdef COARRAY
-      procedure :: coclone => swiftest_coarray_coclone_kin !! Clones the image 1 body object to all other images in the coarray structure.
+      procedure :: coclone => swiftest_coarray_coclone_kin !! Clones the image 1 body object to all other images in the coarray 
+                                                           !!   structure.
 #endif
       final     ::             swiftest_final_kin        !! Finalizes the Swiftest kinship object - deallocates all allocatables
    end type swiftest_kinship
@@ -103,8 +115,10 @@ module swiftest
 
    type, extends(base_particle_info) :: swiftest_particle_info
       character(len=NAMELEN)    :: name            !! Non-unique name
-      character(len=NAMELEN)    :: particle_type   !! String containing a description of the particle type (e.g. Central Body, Massive Body, Test Particle)
-      character(len=NAMELEN)    :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial Conditions, Supercatastrophic, Disruption, etc.)
+      character(len=NAMELEN)    :: particle_type   !! String containing a description of the particle type (e.g. Central Body, 
+                                                   !!    Massive Body, Test Particle)
+      character(len=NAMELEN)    :: origin_type     !! String containing a description of the origin of the particle (e.g. Initial 
+                                                   !!    Conditions, Supercatastrophic, Disruption, etc.)
       real(DP)                  :: origin_time     !! The time of the particle's formation
       integer(I4B)              :: collision_id    !! The ID of the collision that formed the particle
       real(DP), dimension(NDIM) :: origin_rh       !! The heliocentric distance vector at the time of the particle's formation
@@ -115,8 +129,10 @@ module swiftest
       real(DP), dimension(NDIM) :: discard_vh      !! The heliocentric velocity vector at the time of the particle's discard
       integer(I4B)              :: discard_body_id !! The id of the other body involved in the discard (0 if no other body involved)
    contains
-      procedure :: copy      => swiftest_util_copy_particle_info  !! Copies one set of information object components into another, component-by-component
-      procedure :: set_value => swiftest_util_set_particle_info   !! Sets one or more values of the particle information metadata object
+      procedure :: copy      => swiftest_util_copy_particle_info  !! Copies one set of information object components into another, 
+                                                                  !!    component-by-component
+      procedure :: set_value => swiftest_util_set_particle_info   !! Sets one or more values of the particle information metadata 
+                                                                  !!    object
    end type swiftest_particle_info
 
 
@@ -321,6 +337,7 @@ module swiftest
       procedure :: rh2rb     => swiftest_util_coord_rh2rb_tp    !! Convert test particles from heliocentric to barycentric coordinates (position only)
       procedure :: dealloc   => swiftest_util_dealloc_tp        !! Deallocates all allocatable arrays
       procedure :: fill      => swiftest_util_fill_tp           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
+      procedure :: rearray   => swiftest_util_rearray_tp        !! Clean up the test particle structures to remove discarded bodies 
       procedure :: resize    => swiftest_util_resize_tp         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
       procedure :: set_mu    => swiftest_util_set_mu_tp         !! Method used to construct the vectorized form of the central body mass
       procedure :: sort      => swiftest_util_sort_tp           !! Sorts body arrays by a sortable component
@@ -346,10 +363,10 @@ module swiftest
       class(swiftest_pl),         allocatable :: pl_discards       !! Discarded massive body particle data structure
       class(swiftest_pl),         allocatable :: pl_adds           !! List of added bodies in mergers or collisions
       class(swiftest_tp),         allocatable :: tp_adds           !! List of added bodies in mergers or collisions
-      class(encounter_list),      allocatable :: pltp_encounter    !! List of massive body-test particle encounters in a single step 
+      class(encounter_list),      allocatable :: pltp_encounter    !! List of massive body-test particle encounters in a single step
       class(encounter_list),      allocatable :: plpl_encounter    !! List of massive body-massive body encounters in a single step
       class(collision_list_plpl), allocatable :: plpl_collision    !! List of massive body-massive body collisions in a single step
-      class(collision_list_plpl), allocatable :: pltp_collision    !! List of massive body-massive body collisions in a single step
+      class(collision_list_pltp), allocatable :: pltp_collision    !! List of massive body-test particle collisions in a single step
       class(collision_basic),     allocatable :: collider          !! Collision system object
       class(encounter_storage),   allocatable :: encounter_history !! Stores encounter history for later retrieval and saving to file
       class(collision_storage),   allocatable :: collision_history !! Stores encounter history for later retrieval and saving to file
@@ -1485,10 +1502,17 @@ module swiftest
 
       module subroutine swiftest_util_rearray_pl(self, nbody_system, param)
          implicit none
-         class(swiftest_pl),           intent(inout) :: self   !! SyMBA massive body object
-         class(swiftest_nbody_system), intent(inout) :: nbody_system !! SyMBA nbody system object
-         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters with SyMBA additions
+         class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       end subroutine swiftest_util_rearray_pl
+
+      module subroutine swiftest_util_rearray_tp(self, nbody_system, param)
+         implicit none
+         class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
+      end subroutine swiftest_util_rearray_tp
 
       module subroutine swiftest_util_rescale_system(self, param, mscale, dscale, tscale)
          implicit none
