@@ -2269,8 +2269,6 @@ class Simulation(object):
         if dsnew['id'].max(dim='name') > 0 and dsnew['name'].size > 0:
            self.save(verbose=False)
 
-        self.init_cond = self.data.copy(deep=True)
-
         return
 
     def set_ephemeris_date(self,
@@ -2605,7 +2603,6 @@ class Simulation(object):
 
         dsnew = self._combine_and_fix_dsnew(dsnew)
         self.save(verbose=False)
-        self.init_cond = self.data.copy(deep=True)
 
         return
 
@@ -3067,6 +3064,7 @@ class Simulation(object):
 
         if not self.simdir.exists():
             self.simdir.mkdir(parents=True, exist_ok=True)
+        self.init_cond = self.data.copy(deep=True)
         
         if codename == "Swiftest":
             infile_name = Path(self.simdir) / param['NC_IN']
@@ -3083,7 +3081,7 @@ class Simulation(object):
 
         return
 
-    def initial_conditions_from_bin(self, 
+    def initial_conditions_from_data(self, 
                                     framenum: int=-1, 
                                     new_param: os.PathLike=None, 
                                     new_param_file: os.PathLike="param.new.in",
