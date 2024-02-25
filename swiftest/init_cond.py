@@ -39,8 +39,8 @@ def horizons_get_physical_properties(altid,**kwargs):
 
     Returns
     -------
-    MSun_over_Mpl : float
-        The ratio of MSun/M of the body
+    GMass : float
+        G*Mass of the body
     radius : float
         The radius of the body in m
     rot: (3) float vector
@@ -198,7 +198,11 @@ def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=
 
         Returns
         -------
-        MSun_over_Mpl : float
+        altid: string list | None
+            A list of alternate ids if more than one object matches the list
+        altname: string list | None
+            A list of alternate names if more than one object matches the list
+            
         """    
         if "ID" in errstr:
             altid = errstr.split('ID')[1]
