@@ -53,6 +53,22 @@ def horizons_get_physical_properties(altid,**kwargs):
             and 'GMT' not in s
             and 'ANGMOM' not in s]
         if len(GM) == 0:
+            # Try an alternative name for the Mass found in some satellite queries
+            M = [s for s in raw_response.split('\n') if 'Mass' in s]
+            if len(M) > 0:
+                M = M[0].split('Mass')[-1].strip()
+                if 'kg' in M:
+                    unit_conv_str = M.split('kg')[0].strip()
+                    unit_conv_str = unit_conv_str.split('^')[1].strip()
+                    unit_conv = 10**int(unit_conv_str)
+                    mult = M.split('=')[1].strip().split(' ')[1].strip('()')
+                    mult = 10**int(mult.split('^')[1].strip())
+                    M = M.split('=')[1].strip().split(' ')[0].strip()
+                    M = float(M)  * mult * unit_conv
+                    try:
+                        return M * swiftest.GC
+                    except:
+                        return None
             return None
         GM = GM[0]
         if len(GM) > 1:
