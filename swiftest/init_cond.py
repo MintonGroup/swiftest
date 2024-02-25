@@ -66,7 +66,7 @@ def horizons_get_physical_properties(altid,**kwargs):
                     M = M.split('=')[1].strip().split(' ')[0].strip()
                     M = float(M)  * mult * unit_conv
                     try:
-                        return M * swiftest.GC
+                        return M * swiftest.GC * 1e-9 # Return units of km**3 / s**2 for consistency
                     except:
                         return None
             return None
