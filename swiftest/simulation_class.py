@@ -2265,7 +2265,7 @@ class Simulation(object):
         
         dsnew = init_cond.vec2xr(self.param,**kwargs)
 
-        dsnew = self._combine_and_fix_dsnew(dsnew)
+        dsnew = self._combine_and_fix_dsnew(dsnew,**kwargs)
         if dsnew['id'].max(dim='name') > 0 and dsnew['name'].size > 0:
            self.save(verbose=False)
 
@@ -2421,7 +2421,8 @@ class Simulation(object):
                  J2: float | List[float] | npt.NDArray[np.float_] | None=None,
                  J4: float | List[float] | npt.NDArray[np.float_] | None=None,
                  c_lm: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
-                 rotphase: float | List[float] | npt.NDArray[np.float_] | None=None
+                 rotphase: float | List[float] | npt.NDArray[np.float_] | None=None,
+                 **kwargs: Any
                  ) -> None:
         """
         Adds a body (test particle or massive body) to the internal DataSet given a set up 6 vectors (orbital elements
@@ -2601,13 +2602,14 @@ class Simulation(object):
         dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
                                  Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, c_lm=c_lm, rotphase=rotphase, time=time)
 
-        dsnew = self._combine_and_fix_dsnew(dsnew)
+        dsnew = self._combine_and_fix_dsnew(dsnew,**kwargs)
         self.save(verbose=False)
 
         return
 
     def _combine_and_fix_dsnew(self,
-                               dsnew: xr.Dataset
+                               dsnew: xr.Dataset,
+                               **kwargs: Any
                                ) -> xr.Dataset:
         """
         Combines the new Dataset with the old one. Also computes the values of ntp and npl and sets the proper types.
@@ -2642,6 +2644,7 @@ class Simulation(object):
             dsnew = io.fix_types(dsnew, ftype=np.float32)
             self.data = io.fix_types(self.data, ftype=np.float32)
 
+        self.set_central_body(**kwargs)
         def get_nvals(ds):
             if "name" in ds.dims:
                 count_dim = "name"
@@ -2661,6 +2664,7 @@ class Simulation(object):
 
         dsnew = get_nvals(dsnew)
         self.data = get_nvals(self.data)
+        
 
         self.data = self.data.sortby("id")
         self.data = io.reorder_dims(self.data)
@@ -3064,6 +3068,7 @@ class Simulation(object):
 
         if not self.simdir.exists():
             self.simdir.mkdir(parents=True, exist_ok=True)
+            
         self.init_cond = self.data.copy(deep=True)
         
         if codename == "Swiftest":
@@ -3184,3 +3189,62 @@ class Simulation(object):
                   os.remove(f)        
         return
 
+    def set_central_body(self, 
+                         align_to_rotation_pole: bool = False,
+                         **kwargs: Any):
+        """
+        Sets the central body to be the most massive body in the dataset. Cartesian position and velocity Cartesian coordinates are rotated  If align_to_rotation_pole is True, the rotation pole is set to the z-axis.
+        
+        Parameters
+        ----------
+        align_to_rotation_pole : bool, default False
+            If True, the rotation pole is set to the z-axis.
+        
+        Returns
+        -------
+        None
+        
+        """
+        
+        
+        if "Gmass" not in self.data:
+            warnings.warn("No bodies with Gmass values found in dataset. Cannot set central body.",stacklevel=2)
+            return
+       
+        cbid = self.data.Gmass.argmax().values[()] 
+        if 'name' in self.data.dims:
+            cbidx = self.data.id.isel(name=cbid).values[()]
+            cbname = self.data.name.isel(name=cbid).values[()]
+        elif 'id' in self.data.dims:
+            cbidx = self.data.id.isel(id=cbid).values[()]
+            cbname = self.data.name.isel(id=cbid).values[()]
+        else:
+            raise ValueError("No 'name' or 'id' dimensions found in dataset.")
+       
+        if cbidx != 0:
+            if 'name' in self.data.dims:
+                if 0 in self.data.id.values:
+                    name_0 = self.data.name.where(self.data.id == 0, drop=True).values[()]
+                    self.data['id'].loc[dict(name=name_0)] = cbidx
+                self.data['id'].loc[dict(name=cbname)] = 0
+            else:
+                if 0 in self.data.id.values:
+                    self.data['id'].loc[dict(id=0)] = cbidx
+                self.data['id'].loc[dict(id=cbidx)] = 0
+            
+        # Ensure that the central body is at the origin
+        if 'name' in self.data.dims: 
+            cbda =  self.data.sel(name=cbname)
+        else:
+            cbda = self.data.sel(id=cbidx)
+        
+        pos_skip = ['space','Ip','rot']
+        for var in self.data.variables:
+            if var not in pos_skip:
+                self.data[var] -= cbda[var]
+                
+        if align_to_rotation_pole and 'rot' in cbda:
+            self.data = tool.rotate_to_vector(self.data,cbda.rot)
+            
+
+        return 
