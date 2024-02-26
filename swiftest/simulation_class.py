@@ -238,7 +238,7 @@ class Simulation(object):
             The name of the time unit. When setting one of the standard units via `TU` a name will be
             automatically set for the unit, so this argument will override the automatic name.
             Parameter input file equivalent is None
-        rmin : float, default value is the radius of the Sun in the unit system defined by the unit input arguments.
+        rmin : float, default value is the radius of the central body in the unit system defined by the unit input arguments.
             Minimum distance of the simulation
             Parameter input file equivalent are `CHK_QMIN`, `CHK_RMIN`, `CHK_QMIN_RANGE[0]`
         rmax : float, default value is 10000 AU in the unit system defined by the unit input arguments.
@@ -776,7 +776,7 @@ class Simulation(object):
             "MU_name": None,
             "DU_name": None,
             "TU_name": None,
-            "rmin": constants.RSun / constants.AU2M,
+            "rmin": None,
             "rmax": 10000.0,
             "qmin_coord": "HELIO",
             "gmtiny": 0.0,
@@ -2008,7 +2008,8 @@ class Simulation(object):
             if CHK_QMIN_RANGE is not None:
                 CHK_QMIN_RANGE = CHK_QMIN_RANGE.split(" ")
                 for i, v in enumerate(CHK_QMIN_RANGE):
-                    CHK_QMIN_RANGE[i] = float(CHK_QMIN_RANGE[i]) * self.param['DU2M'] / DU2M_old
+                    if float(v) > 0.0:
+                        CHK_QMIN_RANGE[i] = float(v) * DU2M_old / self.param['DU2M'] 
                 self.param['CHK_QMIN_RANGE'] = f"{CHK_QMIN_RANGE[0]} {CHK_QMIN_RANGE[1]}"
 
         if TU2S_old is not None:
@@ -3255,5 +3256,8 @@ class Simulation(object):
                 
         if align_to_central_body_rotation and 'rot' in cbda:
             self.data = tool.rotate_to_vector(self.data,cbda.rot.isel(time=0).values[()])
-            
+        
+        if self.param['CHK_CLOSE']:
+           if 'CHK_RMIN' not in self.param:
+               self.param['CHK_RMIN'] = cbda.radius.values.item()
         return 
