@@ -2150,6 +2150,7 @@ class Simulation(object):
                               ephemeris_id: int | List[int] | None = None,
                               date: str | None = None,
                               source: str = "HORIZONS", 
+                              align_to_central_body_rotation: bool = False,
                               **kwargs: Any
                               ) -> None:
         """
@@ -2178,7 +2179,10 @@ class Simulation(object):
             set by `set_ephemeris_date`.
         source : str, default "Horizons"
             The source of the ephemerides.
-             Currently only the JPL Horizons ephemeris is implemented, so this is ignored.
+            Currently only the JPL Horizons ephemeris is implemented, so this is ignored.
+        align_to_central_body_rotation : bool, default False
+            If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
+            rotation is enabled.
         **kwargs : Any
             Additional keyword arguments to pass to the query method (i.e. astroquery.Horizons)
             
@@ -2265,7 +2269,7 @@ class Simulation(object):
         
         dsnew = init_cond.vec2xr(self.param,**kwargs)
 
-        dsnew = self._combine_and_fix_dsnew(dsnew,**kwargs)
+        dsnew = self._combine_and_fix_dsnew(dsnew,align_to_central_body_rotation, **kwargs)
         if dsnew['id'].max(dim='name') > 0 and dsnew['name'].size > 0:
            self.save(verbose=False)
 
@@ -2422,6 +2426,7 @@ class Simulation(object):
                  J4: float | List[float] | npt.NDArray[np.float_] | None=None,
                  c_lm: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
                  rotphase: float | List[float] | npt.NDArray[np.float_] | None=None,
+                 align_to_central_body_rotation: bool = False,
                  **kwargs: Any
                  ) -> None:
         """
@@ -2467,7 +2472,9 @@ class Simulation(object):
             Principal axes moments of inertia vectors if these are massive bodies with rotation enabled.
         rotphase : float, optional
             rotation phase angle of the central body in degrees
-
+        align_to_central_body_rotation : bool, default False
+            If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
+            rotation is enabled.
         Returns
         -------
         None
@@ -2602,13 +2609,14 @@ class Simulation(object):
         dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
                                  Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, c_lm=c_lm, rotphase=rotphase, time=time)
 
-        dsnew = self._combine_and_fix_dsnew(dsnew,**kwargs)
+        dsnew = self._combine_and_fix_dsnew(dsnew,align_to_central_body_rotation,**kwargs)
         self.save(verbose=False)
 
         return
 
     def _combine_and_fix_dsnew(self,
                                dsnew: xr.Dataset,
+                               align_to_central_body_rotation: bool = False,
                                **kwargs: Any
                                ) -> xr.Dataset:
         """
@@ -2618,6 +2626,9 @@ class Simulation(object):
         ----------
         dsnew : xarray Dataset
             Dataset with new bodies
+        align_to_central_body_rotation : bool, default False
+            If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
+            rotation is enabled.
 
         Returns
         -------
@@ -2644,7 +2655,7 @@ class Simulation(object):
             dsnew = io.fix_types(dsnew, ftype=np.float32)
             self.data = io.fix_types(self.data, ftype=np.float32)
 
-        self.set_central_body(**kwargs)
+        self.set_central_body(align_to_central_body_rotation)
         def get_nvals(ds):
             if "name" in ds.dims:
                 count_dim = "name"
@@ -3190,14 +3201,14 @@ class Simulation(object):
         return
 
     def set_central_body(self, 
-                         align_to_rotation_pole: bool = False,
+                         align_to_central_body_rotation: bool = False,
                          **kwargs: Any):
         """
-        Sets the central body to be the most massive body in the dataset. Cartesian position and velocity Cartesian coordinates are rotated  If align_to_rotation_pole is True, the rotation pole is set to the z-axis.
+        Sets the central body to be the most massive body in the dataset. Cartesian position and velocity Cartesian coordinates are rotated  If align_to_central_body_rotation is True, the rotation pole is set to the z-axis.
         
         Parameters
         ----------
-        align_to_rotation_pole : bool, default False
+        align_to_central_body_rotation : bool, default False
             If True, the rotation pole is set to the z-axis.
         
         Returns
@@ -3205,7 +3216,6 @@ class Simulation(object):
         None
         
         """
-        
         
         if "Gmass" not in self.data:
             warnings.warn("No bodies with Gmass values found in dataset. Cannot set central body.",stacklevel=2)
@@ -3240,11 +3250,10 @@ class Simulation(object):
         
         pos_skip = ['space','Ip','rot']
         for var in self.data.variables:
-            if var not in pos_skip:
+            if 'space' in self.data[var].dims and var not in pos_skip:
                 self.data[var] -= cbda[var]
                 
-        if align_to_rotation_pole and 'rot' in cbda:
-            self.data = tool.rotate_to_vector(self.data,cbda.rot)
+        if align_to_central_body_rotation and 'rot' in cbda:
+            self.data = tool.rotate_to_vector(self.data,cbda.rot.isel(time=0).values[()])
             
-
         return 
