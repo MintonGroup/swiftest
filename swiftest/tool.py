@@ -550,7 +550,7 @@ def rotate_to_vector(ds, new_pole, skip_vars=['space','Ip']):
     original_vector = unit_pole.reshape(1, 3)  
     
     # Use align_vectors to get the rotation that aligns the z-axis with Mars_rot
-    rotation, _ = R.align_vectors(target_vector, original_vector.reshape(1, 3))
+    rotation, _ = R.align_vectors(target_vector, original_vector)
 
     # Define a function to apply the rotation, which will be used with apply_ufunc
     def apply_rotation(vector, rotation):

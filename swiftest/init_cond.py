@@ -140,11 +140,13 @@ def horizons_get_physical_properties(altid,**kwargs):
     def get_rotpole(jpl):
         RA = jpl.ephemerides()['NPole_RA'][0]
         DEC = jpl.ephemerides()['NPole_DEC'][0]
+        
 
         if np.ma.is_masked(RA) or np.ma.is_masked(DEC):
             return np.array([0.0,0.0,1.0])
 
-        rotpole = SkyCoord(ra=RA * u.degree, dec=DEC * u.degree).cartesian
+        rotpole = SkyCoord(ra=RA * u.degree, dec=DEC * u.degree,frame='icrs').transform_to('barycentricmeanecliptic').cartesian
+         
         return np.array([rotpole.x.value, rotpole.y.value, rotpole.z.value])
     
     if type(altid) != list:
