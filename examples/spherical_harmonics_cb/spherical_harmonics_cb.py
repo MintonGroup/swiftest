@@ -43,7 +43,7 @@ cb_rot = [[0, 0, 360.0 / cb_T_rotation]] # degrees/d
 #
 # The user can pass an optional reference radius at which the coefficients are calculated. If not provided, SHTOOLS 
 # calculates the reference radius. If lref_radius = True, the function returns the reference radius used. 
-# We recommend setting passing and setting a reference radius.
+# We recommend setting passing and setting a reference radius. Coefficients are geodesy (4-pi) normalised.
 
 c_lm, cb_radius = swiftest.clm_from_ellipsoid(mass = cb_mass, density = cb_density, a = cb_a, b = cb_b, c = cb_c, lmax = 6, lref_radius = True, ref_radius = cb_radius)
 
