@@ -24,9 +24,9 @@ import numpy as np
 seed = 123
 rng = np.random.default_rng(seed=seed)
 
-# set up swiftest simulation with relevant units (here they are km, days, and kg)
-sim = swiftest.Simulation(DU2M = 1e3, TU = 'd', MU = 'kg')
-sim.clean()
+
+
+
 
 # Central Body Parameters (Chariklo parameters from Leiva, et al (2017) (Jacobi Ellipsoid model))
 cb_mass = 6.1e18 # kg
@@ -38,6 +38,17 @@ cb_volume = 4.0 / 3 * np.pi * cb_radius**3 # km^3
 cb_density = cb_mass / cb_volume 
 cb_T_rotation = 7.004 / 24.0 # converting from hours to julian days (TU)
 cb_rot = [[0, 0, 360.0 / cb_T_rotation]] # degrees/d
+
+# Add 1 user-defined test particle.
+ntp = 1
+
+name_tp     = ["TestParticle_01"]
+a_tp        = 300
+e_tp        = 0.05
+inc_tp      = 10
+capom_tp    = 0.0
+omega_tp    = 0.0
+capm_tp     = 0.0
 
 # Extract the spherical harmonics coefficients (c_lm) from axes measurements
 #
@@ -55,26 +66,21 @@ c_lm[0, 2, 0] = tmp20
 J2 = -tmp20 * np.sqrt(5) # unnormalised J2 term
 j2rp2 = J2 * cb_radius**2
 
-# Add the central body
-# The user can pass the c_lm coefficients directly to the add_body method if they do not wish to use the clm_from_ellipsoid method.
-sim.add_body(name = 'Chariklo', mass = cb_mass, rot = cb_rot, radius = cb_radius, c_lm = c_lm)
+# set up swiftest simulation with relevant units (here they are km, days, and kg)
+sim_shgrav = swiftest.Simulation(simdir="shgrav",DU2M = 1e3, TU = 'd', MU = 'kg')
 
-# Add 1 user-defined test particle.
-ntp = 1
+sim_shgrav.clean()
+# Use the shgrav version where you input a set of spherical harmonics coefficients
+sim_shgrav.add_body(name = 'Chariklo', mass = cb_mass, rot = cb_rot, radius = cb_radius, c_lm = c_lm)
+sim_shgrav.add_body(name=name_tp, a=a_tp, e=e_tp, inc=inc_tp, capom=capom_tp, omega=omega_tp, capm=capm_tp)
+sim_shgrav.run(tstart=0.0, tstop=10.0, dt=0.01, istep_out=10, dump_cadence=0, compute_conservation_values=True)
 
-name_tp     = ["TestParticle_01"]
-a_tp        = 300
-e_tp        = 0.05
-inc_tp      = 10
-capom_tp    = 0.0
-omega_tp    = 0.0
-capm_tp     = 0.0
+# Use the original "oblate" version where you pass J2 (and/or J4)
+sim_obl = swiftest.Simulation(simdir="obl", DU2M = 1e3, TU='d', MU='kg')
+sim_obl.clean()
+sim_obl.add_body(name = 'Chariklo', mass = cb_mass, rot = cb_rot, radius = cb_radius, J2 = j2rp2)
+sim_obl.add_body(name=name_tp, a=a_tp, e=e_tp, inc=inc_tp, capom=capom_tp, omega=omega_tp, capm=capm_tp)
+sim_obl.run(tstart=0.0, tstop=10.0, dt=0.01, istep_out=10, dump_cadence=0, compute_conservation_values=True)
 
-sim.add_body(name=name_tp, a=a_tp, e=e_tp, inc=inc_tp, capom=capom_tp, omega=omega_tp, capm=capm_tp)
-sim.set_parameter(tstart=0.0, tstop=10.0, dt=0.01, istep_out=10, dump_cadence=0, compute_conservation_values=True)
+ds_diff = sim_shgrav.data - sim_obl.data
 
-# Display the run configuration parameters.
-sim.get_parameter()
-
-# Run the simulation. Arguments may be defined here or thorugh the swiftest.Simulation() method.
-sim.run()
