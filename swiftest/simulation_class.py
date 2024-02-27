@@ -450,6 +450,7 @@ class Simulation(object):
         # Save initial conditions
         if not self.restart:
             self.clean()
+            self.save()
             
         # Write out the current parameter set before executing run
         self.write_param(verbose=False,**kwargs)
