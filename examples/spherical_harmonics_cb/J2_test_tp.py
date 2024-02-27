@@ -73,17 +73,18 @@ sim_shgrav.clean()
 # Use the shgrav version where you input a set of spherical harmonics coefficients
 sim_shgrav.add_body(name = 'Chariklo', mass = cb_mass, rot = cb_rot, radius = cb_radius, c_lm = c_lm)
 sim_shgrav.add_body(name=name_tp, a=a_tp, e=e_tp, inc=inc_tp, capom=capom_tp, omega=omega_tp, capm=capm_tp)
-sim_shgrav.run(tstart=0.0, tstop=10.0, dt=0.01, istep_out=10, dump_cadence=0, compute_conservation_values=True)
+sim_shgrav.run(tstart=0.0, tstop=10.0, dt=0.01, istep_out=10, dump_cadence=0, integrator='whm')
 
 # Use the original "oblate" version where you pass J2 (and/or J4)
 sim_obl = swiftest.Simulation(simdir="obl", DU2M = 1e3, TU='d', MU='kg')
 sim_obl.clean()
 sim_obl.add_body(name = 'Chariklo', mass = cb_mass, rot = cb_rot, radius = cb_radius, J2 = j2rp2)
 sim_obl.add_body(name=name_tp, a=a_tp, e=e_tp, inc=inc_tp, capom=capom_tp, omega=omega_tp, capm=capm_tp)
-sim_obl.run(tstart=0.0, tstop=10.0, dt=0.01, istep_out=10, dump_cadence=0, compute_conservation_values=True)
+sim_obl.run(tstart=0.0, tstop=10.0, dt=0.01, istep_out=10, dump_cadence=0, integrator='whm')
 
 diff_vars = ['a','e','inc','capom','omega','capm','rh','vh']
 ds_diff = sim_shgrav.data[diff_vars] - sim_obl.data[diff_vars]
+ds_diff /= sim_obl.data[diff_vars]
 
 print(ds_diff.isel(time=-1,name=-1))
 
