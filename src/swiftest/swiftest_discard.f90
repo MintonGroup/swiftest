@@ -27,8 +27,8 @@ contains
       class(swiftest_pl), allocatable :: plsub
       class(swiftest_tp), allocatable :: tpsub
 
-      lpl_check = allocated(self%pl_discards)
-      ltp_check = allocated(self%tp_discards)
+      lpl_check = allocated(self%pl_discards) .and. self%pl%nbody > 0
+      ltp_check = allocated(self%tp_discards) .and. self%tp%nbody > 0
 
       associate(nbody_system => self,tp => self%tp,pl => self%pl,tp_discards => self%tp_discards,pl_discards => self%pl_discards, &
                npl => self%pl%nbody, ntp => self%tp%nbody, t => self%t, collision_history => self%collision_history, &
@@ -38,14 +38,14 @@ contains
          if (lpl_check .and. pl%nbody > 0) then
             pl%ldiscard = pl%status(:) /= ACTIVE
             call pl%discard(nbody_system, param)
-            lpl_discards = any(pl%ldiscard(1:npl))
+            if (npl > 0) lpl_discards = any(pl%ldiscard(1:npl))
          end if
             
          if (ltp_check .and. tp%nbody > 0) then
             tp%ldiscard = tp%status(:) /= ACTIVE
             call tp%discard(nbody_system, param)
-            ltp_discards = any(tp%ldiscard(1:ntp))
-            lpl_discards = any(pl%ldiscard(1:npl))
+            if (ntp > 0) ltp_discards = any(tp%ldiscard(1:ntp))
+            if (npl > 0) lpl_discards = any(pl%ldiscard(1:npl))
          end if
 
          if (ltp_discards.or.lpl_discards) then

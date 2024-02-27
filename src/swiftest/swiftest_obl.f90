@@ -313,6 +313,7 @@ contains
 
       associate(nbody_system => self, pl => self%pl, cb => self%cb)
          npl = self%pl%nbody
+         if (npl == 0) return
          if (.not. any(pl%lmask(1:npl))) return
 #ifdef DOCONLOC
          do concurrent (i = 1:npl, pl%lmask(i)) shared(cb,pl,oblpot_arr)

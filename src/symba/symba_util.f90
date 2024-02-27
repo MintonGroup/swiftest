@@ -254,6 +254,7 @@ contains
       integer(I4B) :: i
       real(DP)     :: rshell_irec
 
+      if (self%nbody == 0) return
       associate(pl => self, npl => self%nbody)
          rshell_irec = 1._DP
          do i = 1, scale

@@ -74,10 +74,12 @@ contains
 
       associate(tp => self, cb => nbody_system%cb, pl => nbody_system%pl, npl => nbody_system%pl%nbody)
          nbody_system%lbeg = lbeg
-         if (nbody_system%lbeg) then
-            call tp%accel_int(param, pl%Gmass(1:npl), pl%rbeg(:,1:npl), npl)
-         else
-            call tp%accel_int(param, pl%Gmass(1:npl), pl%rend(:,1:npl), npl)
+         if (npl > 0) then
+            if (nbody_system%lbeg) then
+               call tp%accel_int(param, pl%Gmass(1:npl), pl%rbeg(:,1:npl), npl)
+            else
+               call tp%accel_int(param, pl%Gmass(1:npl), pl%rend(:,1:npl), npl)
+            end if
          end if
          if (param%lnon_spherical_cb) call tp%accel_non_spherical_cb(nbody_system)
          if (param%lextra_force) call tp%accel_user(nbody_system, param, t, lbeg)
