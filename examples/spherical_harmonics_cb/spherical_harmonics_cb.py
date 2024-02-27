@@ -56,8 +56,8 @@ npl         = 5
 density_pl  = cb_density
 
 name_pl     = ["SemiBody_01", "SemiBody_02", "SemiBody_03", "SemiBody_04", "SemiBody_05"]
-a_pl        = rng.uniform(150, 300, npl)
-e_pl        = rng.uniform(0.0, 0.2, npl)
+a_pl        = rng.uniform(250, 400, npl)
+e_pl        = rng.uniform(0.0, 0.05, npl)
 inc_pl      = rng.uniform(0.0, 10, npl)
 capom_pl    = rng.uniform(0.0, 360.0, npl)
 omega_pl    = rng.uniform(0.0, 360.0, npl)
@@ -74,8 +74,8 @@ sim.add_body(name=name_pl, a=a_pl, e=e_pl, inc=inc_pl, capom=capom_pl, omega=ome
 ntp = 10
 
 name_tp     = ["TestParticle_01", "TestParticle_02", "TestParticle_03", "TestParticle_04", "TestParticle_05", "TestParticle_06", "TestParticle_07", "TestParticle_08", "TestParticle_09", "TestParticle_10"]
-a_tp        = rng.uniform(150, 300, ntp)
-e_tp        = rng.uniform(0.0, 0.2, ntp)
+a_tp        = rng.uniform(250, 400, ntp)
+e_tp        = rng.uniform(0.0, 0.05, ntp)
 inc_tp      = rng.uniform(0.0, 10, ntp)
 capom_tp    = rng.uniform(0.0, 360.0, ntp)
 omega_tp    = rng.uniform(0.0, 360.0, ntp)
