@@ -409,23 +409,23 @@ module swiftest
       ! These are concrete because they are the same implemenation for all integrators
       procedure :: make_impactors => swiftest_util_make_impactors_pl 
          !! Make impactors out of the current kinship relationships
-      procedure :: discard        => swiftest_discard_pl             
+      procedure :: discard => swiftest_discard_pl             
          !! Placeholder method for discarding massive bodies 
-      procedure :: accel_int      => swiftest_kick_getacch_int_pl    
+      procedure :: accel_int => swiftest_kick_getacch_int_pl    
          !! Compute direct cross (third) term heliocentric accelerations of massive bodies
-      procedure :: accel_non_spherical_cb      => swiftest_obl_acc_pl             
+      procedure :: accel_non_spherical_cb => swiftest_non_spherical_cb_acc_pl             
          !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
-      procedure :: setup          => swiftest_util_setup_pl          
+      procedure :: setup => swiftest_util_setup_pl          
          !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
       ! procedure :: accel_tides    => tides_kick_getacch_pl           
          !! Compute the accelerations of bodies due to tidal interactions with the central body
-      procedure :: append         => swiftest_util_append_pl         
+      procedure :: append => swiftest_util_append_pl         
          !! Appends elements from one structure to another
-      procedure :: h2b            => swiftest_util_coord_h2b_pl      
+      procedure :: h2b  => swiftest_util_coord_h2b_pl      
          !! Convert massive bodies from heliocentric to barycentric coordinates (position and velocity)
-      procedure :: b2h            => swiftest_util_coord_b2h_pl      
+      procedure :: b2h => swiftest_util_coord_b2h_pl      
          !! Convert massive bodies from barycentric to heliocentric coordinates (position and velocity)
-      procedure :: vh2vb          => swiftest_util_coord_vh2vb_pl    
+      procedure :: vh2vb  => swiftest_util_coord_vh2vb_pl    
          !! Convert massive bodies from heliocentric to barycentric coordinates (velocity only)
       procedure :: vb2vh          => swiftest_util_coord_vb2vh_pl    
          !! Convert massive bodies from barycentric to heliocentric coordinates (velocity only)
@@ -486,7 +486,7 @@ module swiftest
          !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
       procedure :: accel_int => swiftest_kick_getacch_int_tp    
          !! Compute direct cross (third) term heliocentric accelerations of test particles by massive bodies
-      procedure :: accel_non_spherical_cb => swiftest_obl_acc_tp             
+      procedure :: accel_non_spherical_cb => swiftest_non_spherical_cb_acc_tp             
          !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure :: setup     => swiftest_util_setup_tp          
          !! A base constructor that sets the number of bodies and 
@@ -1593,21 +1593,21 @@ module swiftest
             !! Barycentric acceleration of central body (only needed if input bodies are massive)
       end subroutine swiftest_obl_acc
 
-      module subroutine swiftest_obl_acc_pl(self, nbody_system)
+      module subroutine swiftest_non_spherical_cb_acc_pl(self, nbody_system)
          implicit none
          class(swiftest_pl), intent(inout) :: self 
             !! Swiftest massive body object
          class(swiftest_nbody_system), intent(inout) :: nbody_system 
             !! Swiftest nbody system object
-      end subroutine swiftest_obl_acc_pl
+      end subroutine swiftest_non_spherical_cb_acc_pl
 
-      module subroutine swiftest_obl_acc_tp(self, nbody_system)
+      module subroutine swiftest_non_spherical_cb_acc_tp(self, nbody_system)
          implicit none
          class(swiftest_tp), intent(inout) :: self  
             !! Swiftest test particle object
          class(swiftest_nbody_system), intent(inout) :: nbody_system 
             !! Swiftest nbody system object
-      end subroutine swiftest_obl_acc_tp
+      end subroutine swiftest_non_spherical_cb_acc_tp
 
       module subroutine swiftest_obl_pot_system(self)
          implicit none
