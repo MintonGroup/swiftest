@@ -2475,9 +2475,9 @@ class Simulation(object):
         rotphase : float, optional
             rotation phase angle in degreesif these are massive bodies with rotation enabled
         J2 : float, optional
-            Normalized J2 values (e.g. J**2 / R**2) if this is a central body (only one of J2 or c_lm can be passed)
+            Normalized J2 values (e.g. J2*R**2, where R is the central body radius) if this is a central body (only one of J2 or c_lm can be passed)
         J4 : float, optional
-            Normalized J4 values (e.g. J**4 / R**4) if this is a central body (only one of J4 or c_lm can be passed)
+            Normalized J4 values (e.g. J4*R**4, where R is the central body radius) if this is a central body (only one of J4 or c_lm can be passed)
         c_lm : (2,l_max+1,l_max+1) array-like of float, optional
             Spherical harmonics coefficients if this is a central body (only one of J2/J4 or c_lm can be passed)
         align_to_central_body_rotation : bool, default False
