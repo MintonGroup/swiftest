@@ -363,6 +363,16 @@ def solar_system_horizons(name: str,
         if param['ROTATION']:
             Ip = Ipsun
             rot = rotcb
+        if param['IN_FORM'] == 'XV':
+            rh = np.array([0.0, 0.0, 0.0])
+            vh = np.array([0.0, 0.0, 0.0])
+        elif param['IN_FORM'] == 'EL':
+            a = np.nan
+            e = np.nan
+            inc = np.nan
+            capom = np.nan
+            omega = np.nan
+            capm = np.nan
     else: # Fetch solar system ephemerides from Horizons
         if ephemeris_id is None:
             ephemeris_id = name

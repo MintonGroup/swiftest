@@ -2635,6 +2635,19 @@ class Simulation(object):
         if is_central_body:
             if a is not None or e is not None or inc is not None or capom is not None or omega is not None or capm is not None:
                 raise ValueError("Orbital elements cannot be passed for a central body.")
+            if nbodies > 1:
+                raise ValueError("Only one central body may be passed.")
+            if rh is None:
+                rh = np.zeros((1,3))
+            if vh is None:
+                vh = np.zeros((1,3))
+            a = np.nan
+            e = np.nan
+            inc = np.nan
+            capom = np.nan
+            omega = np.nan
+            capm = np.nan
+            
                 
         dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
                                  Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, c_lm=c_lm, rotphase=rotphase, time=time)
