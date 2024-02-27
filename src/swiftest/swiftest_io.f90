@@ -168,16 +168,19 @@ contains
          end if
 
          if (.not.param%lfirstenergy) then 
-
-            nbody_system%ke_orbit_error = (ke_orbit_now - nbody_system%ke_orbit_orig) / abs(nbody_system%E_orbit_orig)
-            nbody_system%ke_spin_error = (ke_spin_now - nbody_system%ke_spin_orig) / abs(nbody_system%E_orbit_orig)
-            nbody_system%pe_error = (pe_now - nbody_system%pe_orig) / abs(nbody_system%E_orbit_orig)
+            nbody_system%ke_orbit_error = (ke_orbit_now - nbody_system%ke_orbit_orig) / abs(nbody_system%te_orig)
+            nbody_system%ke_spin_error = (ke_spin_now - nbody_system%ke_spin_orig) / abs(nbody_system%te_orig)
+            nbody_system%pe_error = (pe_now - nbody_system%pe_orig) / abs(nbody_system%te_orig)
 
             be_cb_orig = -(3 * cb%GM0**2 / param%GU) / (5 * cb%R0)
             nbody_system%be_error = (be_now - nbody_system%be_orig) / abs(nbody_system%te_orig) + (be_cb_now - be_cb_orig) & 
                                     / abs(nbody_system%te_orig)
 
-            nbody_system%E_orbit_error = (E_orbit_now - nbody_system%E_orbit_orig) / abs(nbody_system%E_orbit_orig)
+            if (abs(nbody_system%E_orbit_orig) < 10*tiny(1.0_DP)) then
+               nbody_system%E_orbit_error = 0.0_DP
+            else
+               nbody_system%E_orbit_error = (E_orbit_now - nbody_system%E_orbit_orig) / abs(nbody_system%E_orbit_orig)
+            end if
             nbody_system%Ecoll_error = nbody_system%E_collisions / abs(nbody_system%te_orig)
             nbody_system%E_untracked_error = nbody_system%E_untracked / abs(nbody_system%te_orig)
             nbody_system%te_error = (nbody_system%te - nbody_system%te_orig - nbody_system%E_collisions - nbody_system%E_untracked)&
