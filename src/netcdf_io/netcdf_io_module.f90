@@ -291,6 +291,8 @@ module netcdf_io
          !! ID for the id of the other body involved in the discard
       logical :: lpseudo_vel_exists = .false. 
          !! Logical flag to indicate whether or not the pseudovelocity vectors were present in an old file.
+      logical :: lc_lm_exists = .false.
+         !! Logical flag to indicate whether or not the c_lm array was present in an old file.
    contains
       procedure :: close       => netcdf_io_close      
          !! Closes an open NetCDF file

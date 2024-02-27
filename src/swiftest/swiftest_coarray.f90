@@ -239,6 +239,7 @@ contains
         call coclone(self%discard_vh_varid)
         call coclone(self%discard_body_id_varname)
         call coclone(self%lpseudo_vel_exists)
+        call coclone(self%lc_lm_exists)
         return
     end subroutine swiftest_coarray_coclone_nc
 

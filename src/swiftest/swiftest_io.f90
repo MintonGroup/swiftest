@@ -880,7 +880,7 @@ contains
                                  nc%vh_varid), "netcdf_io_initialize_output nf90_def_var vh_varid"  )
 
             !! When GR is enabled, we need to save the pseudovelocity vectors in addition to the true heliocentric velocity vectors,
-            !! otherwise !! we cannnot expect bit-identical runs from restarted runs with GR enabled due to floating point errors 
+            !! otherwise we cannnot expect bit-identical runs from restarted runs with GR enabled due to floating point errors 
             !! during the conversion.
             if (param%lgr) then
                call netcdf_io_check( nf90_def_var(nc%id, nc%gr_pseudo_vh_varname, nc%out_type, &
@@ -1008,11 +1008,10 @@ contains
          call netcdf_io_check( nf90_def_var(nc%id, nc%j4rp4_varname, nc%out_type, nc%time_dimid, nc%j4rp4_varid), &
                                   "netcdf_io_initialize_output nf90_def_var j4rp4_varid"  )
 
-         ! status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
-         ! if (status == NF90_NOERR) then
-         call netcdf_io_check( nf90_def_var(nc%id, nc%c_lm_varname, nc%out_type, [nc%m_dimid, nc%l_dimid, nc%sign_dimid], &
+         if (nc%lc_lm_exists) then
+            call netcdf_io_check( nf90_def_var(nc%id, nc%c_lm_varname, nc%out_type, [nc%m_dimid, nc%l_dimid, nc%sign_dimid], &
                               nc%c_lm_varid), "netcdf_io_initialize_output nf90_def_var c_lm_varid" )
-         ! end if
+         end if
 
          ! Set fill mode to NaN for all variables
          call netcdf_io_check( nf90_inquire(nc%id, nVariables=nvar), "netcdf_io_initialize_output nf90_inquire nVariables" )
@@ -1576,6 +1575,10 @@ contains
             call netcdf_io_check( nf90_get_var(nc%id, nc%c_lm_varid, cb%c_lm, count = [m_dim_max, l_dim_max, 2]), "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
             
             ! ordering of dimensions above seen to stackoverflow to prevent error 'NetCDF: Start + count exceeds dimension bound'
+            nc%lc_lm_exists = .true.
+         else
+            if (allocated(cb%c_lm)) deallocate(cb%c_lm)
+            nc%lc_lm_exists = .false.
          end if
 
          call self%read_particle_info(nc, param, plmask, tpmask) 
