@@ -49,7 +49,7 @@ c_lm, cb_radius = swiftest.clm_from_ellipsoid(mass = cb_mass, density = cb_densi
 
 # Add the central body
 # The user can pass the c_lm coefficients directly to the add_body method if they do not wish to use the clm_from_ellipsoid method.
-sim.add_body(name = 'Chariklo', id = 0, mass = cb_mass, rot = cb_rot, radius = cb_radius, a = 0.0, e = 0.0, inc = 0.0, capom = 0.0, omega = 0.0, capm = 0.0, c_lm = c_lm)
+sim.add_body(name = 'Chariklo', mass = cb_mass, rot = cb_rot, radius = cb_radius, c_lm = c_lm)
 
 # Add user-defined massive bodies
 npl         = 5
