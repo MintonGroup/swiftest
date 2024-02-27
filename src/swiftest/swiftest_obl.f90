@@ -9,15 +9,15 @@
 
 submodule (swiftest) s_swiftest_obl
    use swiftest
-   use operators
+   use shgrav
 
 contains
 
    pure function matinv3(A) result(B)
-   !! Performs a direct calculation of the inverse of a 3×3 matrix.
-   !!
-   !! from https://fortranwiki.org/fortran/show/Matrix+inversion
-   !!
+      !! Performs a direct calculation of the inverse of a 3×3 matrix.
+      !!
+      !! from https://fortranwiki.org/fortran/show/Matrix+inversion
+      !!
 
       real(DP), intent(in) :: A(3,3)   !! Matrix
       real(DP)             :: B(3,3)   !! Inverse matrix
@@ -227,7 +227,11 @@ contains
 
       associate(pl => self, cb => nbody_system%cb)
          npl = self%nbody
-         call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rh, pl%lmask, pl%aobl, cb%rot, pl%Gmass, cb%aobl)
+         if (allocated(cb%c_lm)) then
+            call shgrav_acc(self, nbody_system)
+         else
+            call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rh, pl%lmask, pl%aobl, cb%rot, pl%Gmass, cb%aobl)
+         end if
 
 #ifdef DOCONLOC
          do concurrent(i = 1:npl, pl%lmask(i)) shared(cb,pl)
@@ -262,7 +266,11 @@ contains
 
       associate(tp => self, cb => nbody_system%cb)
          ntp = self%nbody
-         call swiftest_obl_acc(ntp, cb%Gmass, cb%j2rp2, cb%j4rp4, tp%rh, tp%lmask, tp%aobl, cb%rot)
+         if (allocated(cb%c_lm)) then
+            call shgrav_acc(self, nbody_system)
+         else
+            call swiftest_obl_acc(ntp, cb%Gmass, cb%j2rp2, cb%j4rp4, tp%rh, tp%lmask, tp%aobl, cb%rot)
+         end if
          if (nbody_system%lbeg) then
             aoblcb = cb%aoblbeg
          else

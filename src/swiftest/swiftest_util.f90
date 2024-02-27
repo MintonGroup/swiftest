@@ -1281,7 +1281,7 @@ contains
          end if
 
          ! Potential energy from the oblateness term
-         if (param%loblatecb) then
+         if (param%lnon_spherical_cb) then
             call nbody_system%obl_pot()
             nbody_system%pe = nbody_system%pe + nbody_system%oblpot
          end if
@@ -2706,7 +2706,7 @@ contains
       self%peri(:)   = 0.0_DP
       self%atp(:)    = 0.0_DP
 
-      if (param%loblatecb .or. param%lshgrav) then
+      if (param%lnon_spherical_cb) then
          allocate(self%aobl(NDIM, n))
          self%aobl(:,:) = 0.0_DP
       end if

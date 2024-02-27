@@ -36,7 +36,7 @@ module swiftest
    !! construct in order to "reveal" the procedures. This is done throughout the project at the beginning of many procedures (along 
    !! with copious amounts of associate(...) statements, in order to help with code readibility)
    !!
-   !!  Adapted from David E. Kaufmann's Swifter routine: module_swifter.f90
+   !! Adapted from David E. Kaufmann's Swifter routine: module_swifter.f90
    use globals
    use operators
    use lambda_function
@@ -413,12 +413,10 @@ module swiftest
          !! Placeholder method for discarding massive bodies 
       procedure :: accel_int      => swiftest_kick_getacch_int_pl    
          !! Compute direct cross (third) term heliocentric accelerations of massive bodies
-      procedure :: accel_obl      => swiftest_obl_acc_pl             
+      procedure :: accel_non_spherical_cb      => swiftest_obl_acc_pl             
          !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure :: setup          => swiftest_util_setup_pl          
          !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
-      !procedure :: accel_sph      => shgrav_g_acc_pl_all       
-         !! Acceleration due ot spherical harmonics terms
       ! procedure :: accel_tides    => tides_kick_getacch_pl           
          !! Compute the accelerations of bodies due to tidal interactions with the central body
       procedure :: append         => swiftest_util_append_pl         
@@ -488,10 +486,8 @@ module swiftest
          !! Check to see if test particles should be discarded based on their positions relative to the massive bodies
       procedure :: accel_int => swiftest_kick_getacch_int_tp    
          !! Compute direct cross (third) term heliocentric accelerations of test particles by massive bodies
-      procedure :: accel_obl => swiftest_obl_acc_tp             
+      procedure :: accel_non_spherical_cb => swiftest_obl_acc_tp             
          !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
-      !procedure :: accel_sph => shgrav_g_acc_tp_all       
-         !! acceleration due to spherical harmonics
       procedure :: setup     => swiftest_util_setup_tp          
          !! A base constructor that sets the number of bodies and 
       procedure :: append    => swiftest_util_append_tp         

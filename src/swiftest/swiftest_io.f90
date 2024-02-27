@@ -3370,10 +3370,8 @@ contains
          if (ierr /=0) call base_util_exit(FAILURE,param%display_unit)
       end if
 
-      param%lshgrav = allocated(self%cb%c_lm)
-
-      param%loblatecb = ((self%cb%j2rp2 /= 0.0_DP) .or. (self%cb%j4rp4 /= 0.0_DP)) .and. (.not. param%lshgrav)
-      if (.not.param%loblatecb .and. .not.param%lshgrav) then
+      param%lnon_spherical_cb = (self%cb%j2rp2 /= 0.0_DP) .or. (self%cb%j4rp4 /= 0.0_DP) .or. allocated(self%cb%c_lm)
+      if (.not.param%lnon_spherical_cb) then
          if (allocated(self%pl%aobl)) deallocate(self%pl%aobl)
          if (allocated(self%tp%aobl)) deallocate(self%tp%aobl)
       else

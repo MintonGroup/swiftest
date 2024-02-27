@@ -202,7 +202,7 @@ contains
                call tp%step(nbody_system, param, outer_time, dto)
                tp%lfirst = lfirsttp
             else
-               if (param%loblatecb) then
+               if (param%lnon_spherical_cb) then
                   call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rbeg, pl%lmask, pl%outer(outer_index-1)%aobl, cb%rot,&
                                         pl%Gmass, cb%aoblbeg)
                   call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rend, pl%lmask, pl%outer(outer_index)%aobl, cb%rot, &
@@ -267,14 +267,14 @@ contains
          xtmp(:, 1:npl) = pl%inner(0)%x(:, 1:npl)
          vtmp(:, 1:npl) = pl%inner(0)%v(:, 1:npl)
 
-         if ((param%loblatecb) .or. (param%ltides)) then
+         if ((param%lnon_spherical_cb) .or. (param%ltides)) then
             allocate(rh_original, source=pl%rh)
             allocate(ah_original, source=pl%ah)
             pl%rh(:, 1:npl) = xtmp(:, 1:npl) ! Temporarily replace heliocentric position with inner substep values to calculate the 
                                              ! oblateness terms
          end if
-         if (param%loblatecb) then
-            call pl%accel_obl(nbody_system)
+         if (param%lnon_spherical_cb) then
+            call pl%accel_non_spherical_cb(nbody_system)
             pl%inner(0)%aobl(:, 1:npl) = pl%aobl(:, 1:npl) ! Save the oblateness acceleration on the planet for this substep
          end if
          ! TODO: Implement tides
@@ -328,9 +328,9 @@ contains
             pl%inner(inner_index)%x(:, 1:npl) = pl%inner(inner_index)%x(:, 1:npl) + frac * xtmp(:, 1:npl)
             pl%inner(inner_index)%v(:, 1:npl) = pl%inner(inner_index)%v(:, 1:npl) + frac * vtmp(:, 1:npl)
 
-            if (param%loblatecb) then
+            if (param%lnon_spherical_cb) then
                pl%rh(:,1:npl) = pl%inner(inner_index)%x(:, 1:npl)
-               call pl%accel_obl(nbody_system)
+               call pl%accel_non_spherical_cb(nbody_system)
                pl%inner(inner_index)%aobl(:, 1:npl) = pl%aobl(:, 1:npl) 
             end if
             ! TODO: Implement tides
@@ -339,10 +339,10 @@ contains
             !    pl%inner(inner_index)%atide(:, 1:npl) = pl%atide(:, 1:npl)  
             ! end if
          end do
-         if (param%loblatecb) then
+         if (param%lnon_spherical_cb) then
             ! Calculate the final value of oblateness accelerations at the final inner substep
             pl%rh(:, 1:npl) = pl%inner(NTPHENC)%x(:, 1:npl)
-            call pl%accel_obl(nbody_system)
+            call pl%accel_non_spherical_cb(nbody_system)
             pl%inner(NTPHENC)%aobl(:, 1:npl) = pl%aobl(:, 1:npl) 
          end if
          ! TODO: Implement tides
@@ -405,7 +405,7 @@ contains
                               call plenci%set_beg_end(rbeg = plenci%inner(inner_index - 1)%x, &
                                                       rend = plenci%inner(inner_index)%x)
 
-                              if (param%loblatecb) then
+                              if (param%lnon_spherical_cb) then
                                  cbenci%aoblbeg = cbenci%inner(inner_index - 1)%aobl(:, 1)
                                  cbenci%aoblend = cbenci%inner(inner_index    )%aobl(:, 1)
                               end if
@@ -495,7 +495,7 @@ contains
                            plenci%inner(inner_index)%x(:,1)    = -cbenci%inner(inner_index)%x(:,1)
                            plenci%inner(inner_index)%v(:,1)    = -cbenci%inner(inner_index)%v(:,1)
    
-                           if (param%loblatecb) then
+                           if (param%lnon_spherical_cb) then
                               allocate(plenci%inner(inner_index)%aobl, mold=pl%inner(inner_index)%aobl)
                               allocate(cbenci%inner(inner_index)%aobl(NDIM,1))
                               cbenci%inner(inner_index)%aobl(:,1) =  pl%inner(inner_index)%aobl(:, i) 

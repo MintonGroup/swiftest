@@ -30,8 +30,8 @@ contains
 
       associate(cb => nbody_system%cb, pl => self, npl => self%nbody)
          call pl%accel_int(param)
-         if (param%loblatecb) then 
-            call pl%accel_obl(nbody_system)
+         if (param%lnon_spherical_cb) then 
+            call pl%accel_non_spherical_cb(nbody_system)
             if (lbeg) then
                cb%aoblbeg = cb%aobl
             else
@@ -79,7 +79,7 @@ contains
          else
             call tp%accel_int(param, pl%Gmass(1:npl), pl%rend(:,1:npl), npl)
          end if
-         if (param%loblatecb) call tp%accel_obl(nbody_system)
+         if (param%lnon_spherical_cb) call tp%accel_non_spherical_cb(nbody_system)
          if (param%lextra_force) call tp%accel_user(nbody_system, param, t, lbeg)
          if (param%lgr) call tp%accel_gr(param)
       end associate

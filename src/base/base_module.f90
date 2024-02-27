@@ -152,7 +152,7 @@ module base
          !! Turn on close encounters 
       logical :: lenergy        = .false. 
          !! Track the total energy of the system 
-      logical :: loblatecb      = .false. 
+      logical :: lnon_spherical_cb = .false. 
          !! Calculate acceleration from oblate central body (automatically turns true if nonzero J2, J4, or c_lm is input) 
       logical :: lrotation      = .false. 
          !! Include rotation states of big bodies 
@@ -2489,7 +2489,7 @@ module base
          call coclone(self%lbig_discard)
          call coclone(self%lclose)
          call coclone(self%lenergy)
-         call coclone(self%loblatecb)
+         call coclone(self%lnon_spherical_cb)
          call coclone(self%lrotation)
          call coclone(self%ltides)
          call coclone(self%E_orbit_orig)
