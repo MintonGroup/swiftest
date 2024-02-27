@@ -83,9 +83,9 @@ module base
 
       ! The following are not set by the user, but instead are determined by the input value of INTERACTION_LOOPS
       logical :: lflatten_interactions     = .false. !! Use the flattened upper triangular matrix for pl-pl interaction loops
-      logical :: lencounter_sas_plpl       = .false. !! Use the Sort and Sweep algorithm to prune the encounter list before checking 
+      logical :: lencounter_sas_plpl       = .false. !! Use the Sort and Sweep algorithm to prune the encounter list before checking
                                                      !!     for close encounters
-      logical :: lencounter_sas_pltp       = .false. !! Use the Sort and Sweep algorithm to prune the encounter list before checking 
+      logical :: lencounter_sas_pltp       = .false. !! Use the Sort and Sweep algorithm to prune the encounter list before checking
                                                      !!  for close encounters
 
       ! Logical flags to turn on or off various features of the code
@@ -95,7 +95,7 @@ module base
       logical :: lbig_discard   = .false. !! Save big bodies on every discard
       logical :: lclose         = .false. !! Turn on close encounters
       logical :: lenergy        = .false. !! Track the total energy of the system
-      logical :: loblatecb      = .false. !! Calculate acceleration from oblate central body (automatically turns true if nonzero J2 
+      logical :: loblatecb      = .false. !! Calculate acceleration from oblate central body (automatically turns true if nonzero J2
                                           !!    is input)
       logical :: lrotation      = .false. !! Include rotation states of big bodies
       logical :: ltides         = .false. !! Include tidal dissipation 
@@ -118,7 +118,7 @@ module base
       logical                   :: lrestart     = .false. !! Indicates whether or not this is a restarted run
 
       character(NAMELEN)       :: display_style        !! Style of the output display {["STANDARD"], "COMPACT"}). 
-      integer(I4B)             :: display_unit = OUTPUT_UNIT         !! File unit number for display (either to stdout or to a log file)
+      integer(I4B)             :: display_unit = OUTPUT_UNIT  !! File unit number for display (either to stdout or to a log file)
       logical                  :: log_output  = .false. !! Logs the output to file instead of displaying it on the terminal
 
       ! Future features not implemented or in development
@@ -2113,7 +2113,7 @@ module base
          real(DP),     dimension(:), allocatable, intent(out) :: output_array !! Sorted array of unique values 
          integer(I4B), dimension(:), allocatable, intent(out) :: index_map    !! An array of the same size as input_array that such 
                                                                               !!    that any for any index i, 
-                                                                              !!    output_array(index_map(i)) = input_array(i)       
+                                                                              !!    output_array(index_map(i)) = input_array(i)
          ! Internals
          real(DP), dimension(:), allocatable :: unique_array
          integer(I4B) :: n

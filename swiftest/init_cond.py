@@ -141,7 +141,6 @@ def horizons_get_physical_properties(altid,**kwargs):
         RA = jpl.ephemerides()['NPole_RA'][0]
         DEC = jpl.ephemerides()['NPole_DEC'][0]
         
-
         if np.ma.is_masked(RA) or np.ma.is_masked(DEC):
             return np.array([0.0,0.0,1.0])
 

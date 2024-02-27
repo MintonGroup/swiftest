@@ -203,8 +203,10 @@ contains
                tp%lfirst = lfirsttp
             else
                if (param%loblatecb) then
-                  call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rbeg, pl%lmask, pl%outer(outer_index-1)%aobl, cb%rot, pl%Gmass, cb%aoblbeg)
-                  call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rend, pl%lmask, pl%outer(outer_index)%aobl, cb%rot, pl%Gmass, cb%aoblend)
+                  call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rbeg, pl%lmask, pl%outer(outer_index-1)%aobl, cb%rot,&
+                                        pl%Gmass, cb%aoblbeg)
+                  call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rend, pl%lmask, pl%outer(outer_index)%aobl, cb%rot, &
+                                        pl%Gmass, cb%aoblend)
                end if
                call tp%step(nbody_system, param, outer_time, dto)
             end if
@@ -268,7 +270,8 @@ contains
          if ((param%loblatecb) .or. (param%ltides)) then
             allocate(rh_original, source=pl%rh)
             allocate(ah_original, source=pl%ah)
-            pl%rh(:, 1:npl) = xtmp(:, 1:npl) ! Temporarily replace heliocentric position with inner substep values to calculate the oblateness terms
+            pl%rh(:, 1:npl) = xtmp(:, 1:npl) ! Temporarily replace heliocentric position with inner substep values to calculate the 
+                                             ! oblateness terms
          end if
          if (param%loblatecb) then
             call pl%accel_obl(nbody_system)
@@ -396,7 +399,8 @@ contains
                            call rmvs_peri_tp(tpenci, pl, inner_time, dti, .true., 0, i, param) 
                            ! now step the encountering test particles fully through the inner encounter
                            lfirsttp = .true.
-                           do inner_index = 1, NTPHENC ! Integrate over the encounter region, using the "substitute" planetocentric systems at each level
+                           do inner_index = 1, NTPHENC ! Integrate over the encounter region, using the "substitute" planetocentric 
+                                                       ! systems at each level
                               plenci%rh(:, 1:npl) = plenci%inner(inner_index - 1)%x(:, 1:npl)
                               call plenci%set_beg_end(rbeg = plenci%inner(inner_index - 1)%x, &
                                                       rend = plenci%inner(inner_index)%x)
