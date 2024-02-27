@@ -130,17 +130,20 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(symba_pl),       intent(inout) :: self       !! SyMBA masive body object
-      class(swiftest_body),  intent(in)    :: inserts    !! Inserted object 
-      logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      class(symba_pl), intent(inout) :: self
+         !! SyMBA masive body object
+      class(swiftest_body), intent(in) :: inserts
+         !! Inserted object 
+      logical, dimension(:), intent(in) :: lfill_list
+         !! Logical array of bodies to merge into the keeps
 
       associate(keeps => self)
          select type(inserts)
          class is (symba_pl)
             call util_fill(keeps%levelg, inserts%levelg, lfill_list)
             call util_fill(keeps%levelm, inserts%levelm, lfill_list)
-
-            call swiftest_util_fill_pl(keeps, inserts, lfill_list)  ! Note: helio_pl does not have its own fill method, so we skip back to the base class
+            ! Note: helio_pl does not have its own fill method, so we skip back to the base class
+            call swiftest_util_fill_pl(keeps, inserts, lfill_list)  
          class default
             write(*,*) "Invalid object passed to the fill method. Source must be of class symba_pl or its descendents!"
             call base_util_exit(FAILURE)
