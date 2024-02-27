@@ -12,10 +12,7 @@
 """
 
 """
-Generates and runs a set of Swiftest input files from initial conditions for the Spherical Harmonics features with the 
-SyMBA integrator. Using Chariklo as the example body with axes measurements taken from Leiva, et al (2017) (Jacobi 
-Ellipsoid model). All simulation outputs are stored in the /simdata subdirectory.
-
+Generates and runs a set of Swiftest input files from initial conditions for the Spherical Harmonics features with the WHM integrator. 
 """
 
 import swiftest
@@ -25,10 +22,7 @@ seed = 123
 rng = np.random.default_rng(seed=seed)
 
 
-
-
-
-# Central Body Parameters (Chariklo parameters from Leiva, et al (2017) (Jacobi Ellipsoid model))
+# Central Body Parameters (just an oblate sphere to test) 
 cb_mass = 6.1e18 # kg
 cb_a = 160 # km
 cb_b = 160 # km
