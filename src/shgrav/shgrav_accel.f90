@@ -158,14 +158,14 @@ contains
             class is (swiftest_pl)
                 do i = 1, body%nbody
                     if (body%lmask(i)) then
-                        call shgrav_g_acc_one(cb%Gmass, cb%radius, cb%rotphase, body%rh(:,i), cb%c_lm, body%aobl, &
+                        call shgrav_g_acc_one(cb%Gmass, cb%radius, cb%rotphase, body%rh(:,i), cb%c_lm, body%aobl(:,i), &
                             GMpl=body%Gmass(i), aoblcb=cb%aobl)
                     end if
                 end do
             class is (swiftest_tp)
                 do i = 1, body%nbody
                     if (body%lmask(i)) then
-                        call shgrav_g_acc_one(cb%Gmass, cb%radius, cb%rotphase, body%rh(:,i), cb%c_lm, body%aobl)
+                        call shgrav_g_acc_one(cb%Gmass, cb%radius, cb%rotphase, body%rh(:,i), cb%c_lm, body%aobl(:,i))
                     end if
                 end do
             end select

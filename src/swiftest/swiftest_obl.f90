@@ -246,7 +246,6 @@ contains
       end associate
 
       return
-
    end subroutine swiftest_non_spherical_cb_acc_pl
 
 
@@ -289,8 +288,8 @@ contains
          end do
 
       end associate
-      return
 
+      return
    end subroutine swiftest_non_spherical_cb_acc_tp
 
 
