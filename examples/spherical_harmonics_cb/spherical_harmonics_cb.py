@@ -82,7 +82,7 @@ omega_tp    = rng.uniform(0.0, 360.0, ntp)
 capm_tp     = rng.uniform(0.0, 360.0, ntp)
 
 sim.add_body(name=name_tp, a=a_tp, e=e_tp, inc=inc_tp, capom=capom_tp, omega=omega_tp, capm=capm_tp)
-sim.set_parameter(tstart=0.0, tstop=1.0, dt=0.01, istep_out=1, dump_cadence=0, compute_conservation_values=True, mtiny=mtiny)
+sim.set_parameter(tstart=0.0, tstop=10.0, dt=0.01, istep_out=10, dump_cadence=0, compute_conservation_values=True, mtiny=mtiny)
 
 # Display the run configuration parameters.
 sim.get_parameter()
