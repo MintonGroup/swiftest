@@ -450,6 +450,7 @@ class Simulation(object):
         # Save initial conditions
         if not self.restart:
             self.clean()
+            self.save()
             
         # Write out the current parameter set before executing run
         self.write_param(verbose=False,**kwargs)
@@ -2423,10 +2424,10 @@ class Simulation(object):
                  rhill: float | List[float] | npt.NDArray[np.float_] | None=None,
                  rot: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None=None,
                  Ip: List[float] | npt.NDArray[np.float_] | None=None,
+                 rotphase: float | List[float] | npt.NDArray[np.float_] | None=None,
                  J2: float | List[float] | npt.NDArray[np.float_] | None=None,
                  J4: float | List[float] | npt.NDArray[np.float_] | None=None,
                  c_lm: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
-                 rotphase: float | List[float] | npt.NDArray[np.float_] | None=None,
                  align_to_central_body_rotation: bool = False,
                  **kwargs: Any
                  ) -> None:
@@ -2472,7 +2473,13 @@ class Simulation(object):
         Ip : (3) or (n,3) array-like of float, optional
             Principal axes moments of inertia vectors if these are massive bodies with rotation enabled.
         rotphase : float, optional
-            rotation phase angle of the central body in degrees
+            rotation phase angle in degreesif these are massive bodies with rotation enabled
+        J2 : float, optional
+            Normalized J2 values (e.g. J2*R**2, where R is the central body radius) if this is a central body (only one of J2 or c_lm can be passed)
+        J4 : float, optional
+            Normalized J4 values (e.g. J4*R**4, where R is the central body radius) if this is a central body (only one of J4 or c_lm can be passed)
+        c_lm : (2,l_max+1,l_max+1) array-like of float, optional
+            Spherical harmonics coefficients if this is a central body (only one of J2/J4 or c_lm can be passed)
         align_to_central_body_rotation : bool, default False
             If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
             rotation is enabled.
@@ -2606,7 +2613,43 @@ class Simulation(object):
                 raise ValueError("Cannot use mass and Gmass inputs simultaneously!")
             else: 
                 Gmass = self.GU * mass
-
+      
+        is_central_body = False 
+        if J2 is not None or J4 is not None:
+            is_central_body = True
+            if c_lm is not None:
+                raise ValueError("Cannot use J2/J4 and c_lm inputs simultaneously!")
+        if c_lm is not None:
+            is_central_body = True
+            if J2 is not None or J4 is not None:
+                raise ValueError("Cannot use J2/J4 and c_lm inputs simultaneously!")
+           
+        if rh is not None and vh is None:
+            raise ValueError("If rh is passed, vh must also be passed")
+        if vh is not None and rh is None:
+            raise ValueError("If vh is passed, rh must also be passed")
+        
+        if rh is not None:
+            if a is not None or e is not None or inc is not None or capom is not None or omega is not None or capm is not None:
+                raise ValueError("Only cartesian values or orbital elements may be passed, but not both.")
+        if is_central_body:
+            if a is not None or e is not None or inc is not None or capom is not None or omega is not None or capm is not None:
+                raise ValueError("Orbital elements cannot be passed for a central body.")
+            if nbodies > 1:
+                raise ValueError("Only one central body may be passed.")
+            if self.param['IN_FORM'] == "XV":
+                if rh is None:
+                    rh = np.zeros((1,3))
+                if vh is None:
+                    vh = np.zeros((1,3))
+            elif self.param['IN_FORM'] == "EL":
+                a = np.array([np.nan])
+                e = np.array([np.nan])
+                inc = np.array([np.nan])
+                capom = np.array([np.nan])
+                omega = np.array([np.nan])
+                capm = np.array([np.nan])
+                
         dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
                                  Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, c_lm=c_lm, rotphase=rotphase, time=time)
 

@@ -11,4 +11,4 @@ If not, see: https://www.gnu.org/licenses.
 
 from .constants import *
 from .simulation_class import Simulation
-from .sph_harmonics import Sph_Harmonics
+from .shgrav import clm_from_ellipsoid, clm_from_relief

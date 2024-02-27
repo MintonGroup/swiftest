@@ -33,6 +33,7 @@ SET(STRICT_MATH_FILES
             ${SRC}/operator/operator_unit.f90
             ${SRC}/rmvs/rmvs_kick.f90
             ${SRC}/rmvs/rmvs_step.f90
+            ${SRC}/shgrav/shgrav_accel.f90
             ${SRC}/swiftest/swiftest_drift.f90    
             ${SRC}/swiftest/swiftest_gr.f90       
             ${SRC}/swiftest/swiftest_io.f90         
@@ -40,7 +41,6 @@ SET(STRICT_MATH_FILES
             ${SRC}/swiftest/swiftest_user.f90
             ${SRC}/swiftest/swiftest_obl.f90    
             ${SRC}/swiftest/swiftest_orbel.f90
-            ${SRC}/swiftest/swiftest_sph.f90
             ${SRC}/symba/symba_drift.f90
             ${SRC}/symba/symba_gr.f90
             ${SRC}/symba/symba_kick.f90

@@ -43,8 +43,8 @@ contains
          call whm_kick_getacch_ah2(cb, pl) 
          call pl%accel_int(param) 
 
-         if (param%loblatecb) then
-            call pl%accel_obl(nbody_system)
+         if (param%lnon_spherical_cb) then
+            call pl%accel_non_spherical_cb(nbody_system)
             if (lbeg) then
                cb%aoblbeg = cb%aobl
             else
@@ -58,12 +58,7 @@ contains
             ! end if
          end if
 
-         if(param%lshgrav) then
-            call pl%accel_sph(nbody_system)
-         end if
-
          if (param%lgr) call pl%accel_gr(param) 
-
          if (param%lextra_force) call pl%accel_user(nbody_system, param, t, lbeg)
       end associate
 
@@ -119,8 +114,7 @@ contains
             end if
          end if
 
-         if (param%loblatecb) call tp%accel_obl(nbody_system)
-         if (param%lshgrav) call tp%accel_sph(nbody_system)
+         if (param%lnon_spherical_cb) call tp%accel_non_spherical_cb(nbody_system)
          if (param%lextra_force) call tp%accel_user(nbody_system, param, t, lbeg)
          if (param%lgr) call tp%accel_gr(param) 
       end associate

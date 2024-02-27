@@ -16,5 +16,16 @@ module shgrav
     implicit none
     public
 
+    interface
+        module subroutine shgrav_acc(body, nbody_system)
+            implicit none
+            class(swiftest_body), intent(inout) :: body
+                !! Swiftest body object
+            class(swiftest_nbody_system), intent(inout) :: nbody_system 
+                !! Swiftest nbody system object
+        end subroutine shgrav_acc
+        
+    end interface
+
 end module shgrav
  

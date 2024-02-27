@@ -1213,32 +1213,36 @@ contains
          nbody_system%ke_orbit = 0.0_DP
          nbody_system%ke_spin = 0.0_DP
 
-         kepl(:) = 0.0_DP
-         Lplorbit(:,:) = 0.0_DP
-         Lplspin(:,:) = 0.0_DP
-
-         pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE
-
-         nbody_system%GMtot = cb%Gmass + sum(pl%Gmass(1:npl), pl%lmask(1:npl)) 
+         nbody_system%GMtot = cb%Gmass
+         if (npl > 0) then
+            kepl(:) = 0.0_DP
+            Lplorbit(:,:) = 0.0_DP
+            Lplspin(:,:) = 0.0_DP
+            pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE
+            nbody_system%GMtot = nbody_system%GMtot + sum(pl%Gmass(1:npl), pl%lmask(1:npl)) 
+         end if
+            
          kecb = cb%mass * dot_product(cb%vb(:), cb%vb(:))
          nbody_system%be_cb = -3*cb%Gmass * cb%mass / (5 * cb%radius) 
          Lcborbit(:) = cb%mass * (cb%rb(:) .cross. cb%vb(:))
+         if (npl > 0) then
 
 #ifdef DOCONLOC
-         do concurrent (i = 1:npl, pl%lmask(i)) shared(pl,Lplorbit,kepl,npl) local(h) 
+            do concurrent (i = 1:npl, pl%lmask(i)) shared(pl,Lplorbit,kepl,npl) local(h) 
 #else
-         do concurrent (i = 1:npl, pl%lmask(i))
+            do concurrent (i = 1:npl, pl%lmask(i))
 #endif
-            h(1) = pl%rb(2,i) * pl%vb(3,i) - pl%rb(3,i) * pl%vb(2,i)
-            h(2) = pl%rb(3,i) * pl%vb(1,i) - pl%rb(1,i) * pl%vb(3,i)
-            h(3) = pl%rb(1,i) * pl%vb(2,i) - pl%rb(2,i) * pl%vb(1,i)
-
+               h(1) = pl%rb(2,i) * pl%vb(3,i) - pl%rb(3,i) * pl%vb(2,i)
+               h(2) = pl%rb(3,i) * pl%vb(1,i) - pl%rb(1,i) * pl%vb(3,i)
+               h(3) = pl%rb(1,i) * pl%vb(2,i) - pl%rb(2,i) * pl%vb(1,i)
+   
             ! Angular momentum from orbit 
-            Lplorbit(:,i) = pl%mass(i) * h(:)
+               Lplorbit(:,i) = pl%mass(i) * h(:)
 
-            ! Kinetic energy from orbit
-            kepl(i) = pl%mass(i) * dot_product(pl%vb(:,i), pl%vb(:,i)) 
-         end do
+               ! Kinetic energy from orbit
+               kepl(i) = pl%mass(i) * dot_product(pl%vb(:,i), pl%vb(:,i)) 
+            end do
+         end if
 
          if (param%lrotation) then
             kespincb = cb%mass * cb%Ip(3) * cb%radius**2 * dot_product(cb%rot(:), cb%rot(:))
@@ -1246,56 +1250,71 @@ contains
             ! For simplicity, we always assume that the rotation pole is the 3rd principal axis
             Lcbspin(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
 
+            if (npl > 0) then
 #ifdef DOCONLOC
-            do concurrent (i = 1:npl, pl%lmask(i)) shared(pl,Lplspin,kespinpl)
+               do concurrent (i = 1:npl, pl%lmask(i)) shared(pl,Lplspin,kespinpl)
 #else
-            do concurrent (i = 1:npl, pl%lmask(i))
+               do concurrent (i = 1:npl, pl%lmask(i))
 #endif
-               ! Currently we assume that the rotation pole is the 3rd principal axis
-               ! Angular momentum from spin
-               Lplspin(:,i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(:,i)
+                  ! Currently we assume that the rotation pole is the 3rd principal axis
+                  ! Angular momentum from spin
+                  Lplspin(:,i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(:,i)
 
-               ! Kinetic energy from spin
-               kespinpl(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * dot_product(pl%rot(:,i), pl%rot(:,i))
-            end do
+                  ! Kinetic energy from spin
+                  kespinpl(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * dot_product(pl%rot(:,i), pl%rot(:,i))
+               end do
 
-            nbody_system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), pl%lmask(1:npl)))
+               nbody_system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), pl%lmask(1:npl)))
+            else
+               nbody_system%ke_spin = 0.5_DP * kespincb
+            end if
 
+            if (npl > 0) then
 #ifdef DOCONLOC
-            do concurrent (j = 1:NDIM) shared(nbody_system,pl,Lplspin,Lcbspin)
+               do concurrent (j = 1:NDIM) shared(nbody_system,pl,Lplspin,Lcbspin)
 #else
-            do concurrent (j = 1:NDIM)
+               do concurrent (j = 1:NDIM)
 #endif
-               nbody_system%L_spin(j) = Lcbspin(j) + sum(Lplspin(j,1:npl), pl%lmask(1:npl))
-            end do
+                  nbody_system%L_spin(j) = Lcbspin(j) + sum(Lplspin(j,1:npl), pl%lmask(1:npl))
+               end do
+            else
+               nbody_system%L_spin(:) = Lcbspin(:)
+            end if
          else
             nbody_system%ke_spin = 0.0_DP
             nbody_system%L_spin(:) = 0.0_DP
          end if
-  
-         if (param%lflatten_interactions) then
-            call swiftest_util_get_potential_energy(npl, pl%nplpl, pl%k_plpl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, &
-                                                    nbody_system%pe)
-         else
-            call swiftest_util_get_potential_energy(npl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, nbody_system%pe)
+ 
+         if (npl > 0) then
+            if (param%lflatten_interactions) then
+               call swiftest_util_get_potential_energy(npl, pl%nplpl, pl%k_plpl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, &
+                                                      nbody_system%pe)
+            else
+               call swiftest_util_get_potential_energy(npl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, nbody_system%pe)
+            end if
          end if
 
          ! Potential energy from the oblateness term
-         if (param%loblatecb) then
+         if (param%lnon_spherical_cb) then
             call nbody_system%obl_pot()
             nbody_system%pe = nbody_system%pe + nbody_system%oblpot
          end if
 
-         nbody_system%ke_orbit = 0.5_DP * (kecb + sum(kepl(1:npl), pl%lmask(1:npl)))
+         if (npl > 0) then
+            nbody_system%ke_orbit = 0.5_DP * (kecb + sum(kepl(1:npl), pl%lmask(1:npl)))
 #ifdef DOCONLOC
-         do concurrent (j = 1:NDIM) shared(nbody_system,pl,Lcborbit,Lplorbit,npl)
+            do concurrent (j = 1:NDIM) shared(nbody_system,pl,Lcborbit,Lplorbit,npl)
 #else  
-         do concurrent (j = 1:NDIM)
+            do concurrent (j = 1:NDIM)
 #endif
-            nbody_system%L_orbit(j) = Lcborbit(j) + sum(Lplorbit(j,1:npl), pl%lmask(1:npl)) 
-         end do
+               nbody_system%L_orbit(j) = Lcborbit(j) + sum(Lplorbit(j,1:npl), pl%lmask(1:npl)) 
+            end do
+         else
+            nbody_system%ke_orbit = 0.5_DP * kecb
+            nbody_system%L_orbit(:) = Lcborbit(:)
+         end if
 
-         if ((param%lclose)) then
+         if ((param%lclose .and. (npl > 0))) then
             nbody_system%be = sum(-3*pl%Gmass(1:npl)*pl%mass(1:npl)/(5*pl%radius(1:npl)), pl%lmask(1:npl)) 
          else
             nbody_system%be = 0.0_DP
@@ -2706,7 +2725,7 @@ contains
       self%peri(:)   = 0.0_DP
       self%atp(:)    = 0.0_DP
 
-      if (param%loblatecb .or. param%lshgrav) then
+      if (param%lnon_spherical_cb) then
          allocate(self%aobl(NDIM, n))
          self%aobl(:,:) = 0.0_DP
       end if

@@ -858,9 +858,15 @@ def select_active_from_frame(ds, param, framenum=-1):
     # Select only the active particles at this time step
     # Remove the inactive particles
     if param['OUT_FORM'] == 'XV' or param['OUT_FORM'] == 'XVEL':
-        iactive = iframe[count_dim].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['rh'].isel(space=0))), drop=True)[count_dim]
+        if 'rh' in iframe:
+            iactive = iframe[count_dim].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['rh'].isel(space=0))), drop=True)[count_dim]
+        else:
+            iactive = iframe[count_dim].where(~np.isnan(iframe['Gmass']))
     else:
-        iactive = iframe[count_dim].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['a'])), drop = True)[count_dim]
+        if 'a' in iframe:    
+            iactive = iframe[count_dim].where((~np.isnan(iframe['Gmass'])) | (~np.isnan(iframe['a'])), drop = True)[count_dim]
+        else:
+            iactive = iframe[count_dim].where(~np.isnan(iframe['Gmass']))
     if count_dim == "id":
         frame = frame.sel(id=iactive.values)
     elif count_dim == "name":

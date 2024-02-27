@@ -168,16 +168,19 @@ contains
          end if
 
          if (.not.param%lfirstenergy) then 
-
-            nbody_system%ke_orbit_error = (ke_orbit_now - nbody_system%ke_orbit_orig) / abs(nbody_system%E_orbit_orig)
-            nbody_system%ke_spin_error = (ke_spin_now - nbody_system%ke_spin_orig) / abs(nbody_system%E_orbit_orig)
-            nbody_system%pe_error = (pe_now - nbody_system%pe_orig) / abs(nbody_system%E_orbit_orig)
+            nbody_system%ke_orbit_error = (ke_orbit_now - nbody_system%ke_orbit_orig) / abs(nbody_system%te_orig)
+            nbody_system%ke_spin_error = (ke_spin_now - nbody_system%ke_spin_orig) / abs(nbody_system%te_orig)
+            nbody_system%pe_error = (pe_now - nbody_system%pe_orig) / abs(nbody_system%te_orig)
 
             be_cb_orig = -(3 * cb%GM0**2 / param%GU) / (5 * cb%R0)
             nbody_system%be_error = (be_now - nbody_system%be_orig) / abs(nbody_system%te_orig) + (be_cb_now - be_cb_orig) & 
                                     / abs(nbody_system%te_orig)
 
-            nbody_system%E_orbit_error = (E_orbit_now - nbody_system%E_orbit_orig) / abs(nbody_system%E_orbit_orig)
+            if (abs(nbody_system%E_orbit_orig) < 10*tiny(1.0_DP)) then
+               nbody_system%E_orbit_error = 0.0_DP
+            else
+               nbody_system%E_orbit_error = (E_orbit_now - nbody_system%E_orbit_orig) / abs(nbody_system%E_orbit_orig)
+            end if
             nbody_system%Ecoll_error = nbody_system%E_collisions / abs(nbody_system%te_orig)
             nbody_system%E_untracked_error = nbody_system%E_untracked / abs(nbody_system%te_orig)
             nbody_system%te_error = (nbody_system%te - nbody_system%te_orig - nbody_system%E_collisions - nbody_system%E_untracked)&
@@ -880,7 +883,7 @@ contains
                                  nc%vh_varid), "netcdf_io_initialize_output nf90_def_var vh_varid"  )
 
             !! When GR is enabled, we need to save the pseudovelocity vectors in addition to the true heliocentric velocity vectors,
-            !! otherwise !! we cannnot expect bit-identical runs from restarted runs with GR enabled due to floating point errors 
+            !! otherwise we cannnot expect bit-identical runs from restarted runs with GR enabled due to floating point errors 
             !! during the conversion.
             if (param%lgr) then
                call netcdf_io_check( nf90_def_var(nc%id, nc%gr_pseudo_vh_varname, nc%out_type, &
@@ -1008,11 +1011,10 @@ contains
          call netcdf_io_check( nf90_def_var(nc%id, nc%j4rp4_varname, nc%out_type, nc%time_dimid, nc%j4rp4_varid), &
                                   "netcdf_io_initialize_output nf90_def_var j4rp4_varid"  )
 
-         ! status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
-         ! if (status == NF90_NOERR) then
-         call netcdf_io_check( nf90_def_var(nc%id, nc%c_lm_varname, nc%out_type, [nc%m_dimid, nc%l_dimid, nc%sign_dimid], &
+         if (nc%lc_lm_exists) then
+            call netcdf_io_check( nf90_def_var(nc%id, nc%c_lm_varname, nc%out_type, [nc%m_dimid, nc%l_dimid, nc%sign_dimid], &
                               nc%c_lm_varid), "netcdf_io_initialize_output nf90_def_var c_lm_varid" )
-         ! end if
+         end if
 
          ! Set fill mode to NaN for all variables
          call netcdf_io_check( nf90_inquire(nc%id, nVariables=nvar), "netcdf_io_initialize_output nf90_inquire nVariables" )
@@ -1576,6 +1578,10 @@ contains
             call netcdf_io_check( nf90_get_var(nc%id, nc%c_lm_varid, cb%c_lm, count = [m_dim_max, l_dim_max, 2]), "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
             
             ! ordering of dimensions above seen to stackoverflow to prevent error 'NetCDF: Start + count exceeds dimension bound'
+            nc%lc_lm_exists = .true.
+         else
+            if (allocated(cb%c_lm)) deallocate(cb%c_lm)
+            nc%lc_lm_exists = .false.
          end if
 
          call self%read_particle_info(nc, param, plmask, tpmask) 
@@ -3370,10 +3376,8 @@ contains
          if (ierr /=0) call base_util_exit(FAILURE,param%display_unit)
       end if
 
-      param%lshgrav = allocated(self%cb%c_lm)
-
-      param%loblatecb = ((self%cb%j2rp2 /= 0.0_DP) .or. (self%cb%j4rp4 /= 0.0_DP)) .and. (.not. param%lshgrav)
-      if (.not.param%loblatecb .and. .not.param%lshgrav) then
+      param%lnon_spherical_cb = (self%cb%j2rp2 /= 0.0_DP) .or. (self%cb%j4rp4 /= 0.0_DP) .or. allocated(self%cb%c_lm)
+      if (.not.param%lnon_spherical_cb) then
          if (allocated(self%pl%aobl)) deallocate(self%pl%aobl)
          if (allocated(self%tp%aobl)) deallocate(self%tp%aobl)
       else
