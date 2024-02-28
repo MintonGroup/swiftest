@@ -448,9 +448,11 @@ class Simulation(object):
             return
 
         # Save initial conditions
-        if not self.restart:
+        if self.restart:
+            self.save(framenum=-1)
+        else:
             self.clean()
-            self.save()
+            self.save(framenum=0)
             
         # Write out the current parameter set before executing run
         self.write_param(verbose=False,**kwargs)
@@ -2952,7 +2954,7 @@ class Simulation(object):
                     param_tmp['BIN_OUT'] = self.simdir / self.param['NC_IN']
                     self.init_cond = io.swiftest2xr(param_tmp, verbose=False, dask=dask)
                 else:
-                    self.init_cond = self.data.isel(time=0)
+                    self.init_cond = self.data.isel(time=[0]).copy(deep=True)
 
             if self.read_encounters:
                 self.read_encounter_file(dask=dask)
@@ -3124,7 +3126,7 @@ class Simulation(object):
         if not self.simdir.exists():
             self.simdir.mkdir(parents=True, exist_ok=True)
             
-        self.init_cond = self.data.copy(deep=True)
+        self.init_cond = self.data.isel(time=[framenum]).copy(deep=True)
         
         if codename == "Swiftest":
             infile_name = Path(self.simdir) / param['NC_IN']
