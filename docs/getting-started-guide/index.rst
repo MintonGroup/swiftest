@@ -1,53 +1,8 @@
+.. currentmodule:: swiftest
+
 ################
 Getting Started
 ################
-Swiftest User Manual
-====================
-
-The Purdue University Swiftest Team
------------------------------------
-
-Carlisle Wishard, David Minton, Jennifer Pouplin, Jake Elliott, & Dana Singh
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
---------------
-
-
-Swiftest is a software packaged designed to model the dynamical
-evolution of gravitational systems. Swiftest is an extension of the
-`Swifter <https://www.boulder.swri.edu/swifter/>`__ software package,
-detailed in Duncan, Levison, and Lee (1998), that incorporates modern
-programming techniques and performance improvements. Swiftest contains
-the following numerical integrators:
-
--  **Wisdom-Holman Mapping (WHM)** - A symplectic n-body mapping method.
-   See `Wisdom & Holman
-   (1991) <https://ui.adsabs.harvard.edu/abs/1991AJ....102.1528W/abstract>`__.
--  **Regularized Mixed Variable Symplectic (RMVS)** - An extension of
-   WHM that is capable of handling close encounters between test
-   particles and massive bodies. See `Levison & Duncan
-   (1994) <https://www.sciencedirect.com/science/article/pii/S0019103584710396?via%3Dihub>`__.
--  **Democratic Heliocentric (HELIO)** - A symplectic integrator that
-   uses the democratic heliocentric coordinate frame. See `Duncan,
-   Levison, & Lee
-   (1998) <https://iopscience.iop.org/article/10.1086/300541>`__.
--  **Symplectic Massive Body Algorithm (SyMBA)** - An extension of HELIO
-   that is capable of handling close encounters between massive bodies.
-   See `Duncan, Levison, & Lee
-   (1998) <https://iopscience.iop.org/article/10.1086/300541>`__.
-
-Swiftest also includes the collisional fragmentation algorithm
-**Fraggle**, an addition to the SyMBA integrator. Fraggle is designed to
-resolve collisions between massive bodies by determining the collisional
-regime, derived from the work of `Leinhardt & Stewart
-(2012) <https://iopscience.iop.org/article/10.1088/0004-637X/745/1/79>`__,
-and generating the appropriate mass distribution of fragments. Swiftest
-fully incorporates collisional fragments into the gravitational system,
-evolving these new bodies along with pre-existing bodies, including
-their growth and any future fragmentation events in which they are
-involved.
-
---------------
 
 Installation
 ~~~~~~~~~~~~
@@ -251,36 +206,28 @@ and start from scratch:
 The Swiftest CMake configuration comes with several customization
 options:
 
-+------------------------+---------------------------------------------+
-| Option                 | CMake command                               |
-+========================+=============================================+
-| Build type             | -DCMAKE_BUILD_                              |
-|                        | TYPE=[**RELEASE**\ \|DEBUG|TESTING|PROFILE] |
-+------------------------+---------------------------------------------+
-| Enable/Disable OpenMP  | -DUSE_OPENMP=[**ON**\ \|OFF]                |
-| support                |                                             |
-+------------------------+---------------------------------------------+
-| Enable/Disable SIMD    | -DUSE_SIMD=[**ON**\ \|OFF]                  |
-| directives             |                                             |
-+------------------------+---------------------------------------------+
-| Enable/Disable Coarray | -DUSE_COARRAY=[ON\|\ **OFF**]               |
-| support (experimental) |                                             |
-+------------------------+---------------------------------------------+
-| Set Fortran compiler   | -DCMAKE                                     |
-| path                   | _Fortran_COMPILER=/path/to/fortran/compiler |
-+------------------------+---------------------------------------------+
-| Set path to make       | -DCMAKE_MAKE_PROGRAM=/path/to/make          |
-| program                |                                             |
-+------------------------+---------------------------------------------+
-| Enable/Disable shared  | -DBUILD_SHARED_LIBS=[\**ON|OFF]             |
-| libraries (Intel only) |                                             |
-+------------------------+---------------------------------------------+
-| Add additional include | -DCMAKE_Fortran_FLAGS=“-I/path/to/libraries |
-| path                   |                                             |
-+------------------------+---------------------------------------------+
-| Install prefix         | -DCMAKE_INSTALL_PREF                        |
-|                        | IX=[“/path/to/install”\|\ **“/usr/local”**] |
-+------------------------+---------------------------------------------+
++----------------------------------------------+-------------------------------------------------------------------+
+| Option                                       | CMake command                                                     |
++==============================================+===================================================================+
+| Build type                                   | ``-DCMAKE_BUILD_TYPE=[**RELEASE**\|DEBUG\|TESTING\|PROFILE]``     |
++----------------------------------------------+-------------------------------------------------------------------+
+| Enable/Disable OpenMP support                | ``-DUSE_OPENMP=[**ON**\|OFF]``                                    |
++----------------------------------------------+-------------------------------------------------------------------+
+| Enable/Disable SIMD directives               | ``-DUSE_SIMD=[**ON**\|OFF]``                                      |
++----------------------------------------------+-------------------------------------------------------------------+
+| Enable/Disable Coarray support (experimental)| ``-DUSE_COARRAY=[ON\|**OFF**]``                                   | 
++----------------------------------------------+-------------------------------------------------------------------+
+| Set Fortran compiler path                    | ``-DCMAKE_Fortran_COMPILER=/path/to/fortran/compiler``            |
++----------------------------------------------+-------------------------------------------------------------------+
+| Set path to make program                     | ``-DCMAKE_MAKE_PROGRAM=/path/to/make``                            |
++----------------------------------------------+-------------------------------------------------------------------+
+| Enable/Disable shared libraries (Intel only) | ``-DBUILD_SHARED_LIBS=[**ON**\|OFF]``                             |
++----------------------------------------------+-------------------------------------------------------------------+
+| Add additional include path                  | ``-DCMAKE_Fortran_FLAGS="-I/path/to/libraries"``                  |
++----------------------------------------------+-------------------------------------------------------------------+
+| Install prefix                               | ``-DCMAKE_INSTALL_PREFIX=["/path/to/install"\|**"/usr/local"**]`` |
++----------------------------------------------+-------------------------------------------------------------------+
+
 
 To see a list of all possible options available to CMake:
 
@@ -1223,7 +1170,7 @@ more details.
 You should have received a copy of the GNU General Public License along
 with Swiftest. If not, see https://www.gnu.org/licenses/.
 
-.. |SyMBA General Relativity| image:: README_figs/symba_gr.png
+.. |SyMBA General Relativity| image:: ../_static/symba_gr.png
 
 
 .. toctree::

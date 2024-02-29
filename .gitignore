@@ -49,7 +49,6 @@ docs/generated/
 docs/generated/**/*
 docs/**/*.DS_Store
 docs/**/*.swp
-docs/
 !docs/_static/**/*.png
 !docs/_static/**/*.svg
 **/*.ai
