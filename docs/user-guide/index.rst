@@ -6,6 +6,8 @@ In this user guide, you will find detailed descriptions and examples that descri
 
 Basic Simulation
 
+Detailed Simulation Setup
+
 Spherical Harmonics
 
 .. toctree::
@@ -13,4 +15,5 @@ Spherical Harmonics
    :hidden:
 
    Basic Simulation <basic-simulation/index>
+   Detailed Simulation Setup <detailed-simulation-setup/index>
    Spherical Harmonics <spherical-harmonics/index>
