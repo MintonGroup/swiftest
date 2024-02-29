@@ -13,9 +13,8 @@
 # dynamically. 
 
 # This build target compiles all dependencies and the swiftest driver itself
-FROM continuumio/miniconda3:23.5.2-0 as build-deps
+FROM ubuntu:focal-20240123 as build-deps
 SHELL ["/bin/bash", "--login", "-c"]
-ENV PATH="/opt/conda/bin:${PATH}"
 WORKDIR /swiftest
 
 ENV INSTALL_DIR=/usr/local
@@ -29,50 +28,14 @@ ENV LD_LIBRARY_PATH="${INSTALL_DIR}/lib"
 ENV LDFLAGS="-L${INSTALL_DIR}/lib"
 ENV CPPFLAGS="-I${INSTALL_DIR}/include"
 
-COPY ./buildscripts/swiftest-build-env.yml ./
-COPY ./buildscripts/fetch_dependencies.sh ./
-RUN ./fetch_dependencies.sh -d ./
+COPY ./buildscripts/ ./buildscripts/
+RUN apt-get update && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+  m4 && \
+  rm -rf /var/lib/apt/lists/*  && \
+  buildscripts/build_dependencies.sh -p ${INSTALL_DIR} 
 
-# Get the HDF5, NetCDF-C, and NetCDF-Fortran libraries
-RUN conda update --all -y && \
-    conda install conda-libmamba-solver -y && \
-    conda config --set solver libmamba && \
-    conda env create --file swiftest-build-env.yml --name swiftest-build-env && \
-    conda init bash && \
-    echo "conda activate swiftest-build-env" >> ~/.bashrc 
-
-RUN cd zlib-* && \
-    ./configure \
-        --prefix=${INSTALL_DIR} \
-        --static && \
-    make && make install && \
-    cd ../hdf5-* && \
-    ./configure \
-        --prefix=${INSTALL_DIR} \
-        --disable-shared \
-        --enable-build-mode=production \
-        --disable-fortran \
-        --disable-java \
-        --disable-cxx \
-        --with-zlib=${INSTALL_DIR} && \
-    make && make install && \
-    cd ../netcdf-c-* && \
-    ./configure \
-        --prefix=${INSTALL_DIR} \
-        --disable-shared \
-        --disable-dap \
-        --disable-libxml2 \
-        --disable-byterange && \
-    make && make install && \
-    cd ../netcdf-fortran-* && \
-    export CFLAGS="-fPIC" && \
-    export FCFLAGS="${CFLAGS}" && \
-    export FFLAGS=${CFLAGS} && \
-    export LIBS=$(${INSTALL_DIR}/bin/nc-config --libs --static) && \
-    ./configure --disable-shared --prefix=${NFDIR} && \
-    make && make install
-
-FROM continuumio/miniconda3:23.5.2-0 as build-swiftest
+FROM ubuntu:focal-20240123 as build-swiftest
 SHELL ["/bin/bash", "--login", "-c"]
 ENV SHELL="/bin/bash"
 WORKDIR /swiftest
@@ -80,18 +43,14 @@ WORKDIR /swiftest
 # Copy build artifacts over to the swiftest package builder stage
 ENV INSTALL_DIR=/usr/local
 COPY --from=build-deps ${INSTALL_DIR}/ ${INSTALL_DIR}/
-COPY --from=build-deps /opt/conda/envs/ /opt/conda/envs/
-COPY --from=build-deps /root/.bashrc /root/
 
 # Compile the Swiftest project
 COPY ./cmake/ ./cmake/
+COPY ./pyproject.toml ./
 COPY ./src/ ./src/
 COPY ./swiftest/ ./swiftest/
+COPY ./tests/  ./tests/
 COPY ./CMakeLists.txt ./
-COPY ./setup.py ./
-COPY ./environment.yml ./
-COPY ./pyproject.toml ./
-COPY ./requirements.txt ./
 COPY ./version.txt ./
 
 # Generate the build environment in conda
@@ -108,3 +67,7 @@ RUN export NFCFG="${INSTALL_DIR}/bin/nf-config" && \
 #Export the generated wheel file to the host machine
 FROM scratch as export-wheel
 COPY --from=build-swiftest /swiftest/dist/ ./
+
+FROM scratch as export-driver
+COPY --from=build-swiftest /swiftest/build/bin/swiftest_driver ./
+COPY --from=build-swiftest /swiftest/build/bin/libswiftest.so ./

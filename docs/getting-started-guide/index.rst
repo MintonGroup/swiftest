@@ -1,16 +1,14 @@
 .. currentmodule:: swiftest
 
-################
+===============
 Getting Started
-################
+===============
 
 Installation
-~~~~~~~~~~~~
+------------
 
 For most users, installing swiftest can be done via pip using the
-command:
-
-::
+command::
 
    pip install swiftest
 
@@ -20,28 +18,20 @@ will install a standalone executable called ``swiftest_driver``, which
 can execute simulations from the command line, provided that initial
 conditions and configuration files are available in the path.
 
-**Building the** ``swiftest`` **Python package and standalone**
-``swiftest_driver`` **executable**
 
-Swiftest is designed to be downloaded, compiled, and run on a Linux or
-MacOS based system. Windows support is currently being developed.
+Building Swiftest from source
+-----------------------------
 
-It is possible to download, compile, and run Swiftest on a machine with
-at least 400 MB of free disk space and 8 GB of RAM. To take full
-advantage of the parallelization and performance updates included in
-Swiftest, it is highly recommended that Swiftest be installed on a
-high-performance computing cluster. For reference, Swiftest is
-maintained on the Purdue University `Bell Community
-Cluster <https://www.rcac.purdue.edu/compute/bell>`__.
+If you wish to build Swiftest from source, which in some cases can lead to some performance improvements over the pre-built wheels, 
+you can do so by following the instructions below. This will require a Fortran compiler, CMake, and the NetCDF and HDF5 libraries to
+be installed on your system. The instructions below are for building Swiftest on a Linux or MacOS system. Windows support is 
+currently being explored. 
 
-Swiftest is written in Modern Fortran and must be compiled using an
-appropriate compiler. We recommend the Intel Fortran Compiler Classic
-(ifort) version 19.0 or higher. For details on installing ifort, see the
-`Intel installation
-documentation <https://www.intel.com/content/www/us/en/developer/tools/oneapi/fortran-compiler.html#gs.6xhjgy>`__.
-The GCC/GNU Fortran Compiler (gfortran) version 9 or higher is also
-compatible. For details on installing gfortran, see the `GNU Fortran
-documentation <https://gcc.gnu.org/wiki/GFortran>`__.
+You can obtain the latest version of Swiftest from the GitHub `repository <https://github.com/profminton/cratermaker>`__ , or from
+from a `releases <https://github.com/profminton/cratermaker/releases>`__ as a tarball.
+
+Required Dependencies
+---------------------
 
 Swiftest output files are stored in the NetCDF file format. This takes
 the place of the flat binary output file included in Swifter (and its
@@ -61,96 +51,64 @@ only to be run in serial, this package is not necessary. See the `OpenMP
 website <https://www.openmp.org/resources/openmp-compilers-tools/>`__
 for more details and installation instructions.
 
-*Example of a module configuration that is necessary for compiling and
-running Swiftest:*
+Central body gravity is modeled using the `SHTOOLS library <https://shtools.github.io/SHTOOLS/>`. 
+It is necessary to build and install SHTOOLS before building Swiftest. Optionally the ``pySHTOOLS`` package may also be installed
+in order to use the tools to compute spherical harmonics cofficients for the central body when generating initial conditions, but is not required.
 
-::
+Swiftest is written in Modern Fortran and must be compiled using an
+appropriate compiler. We recommend the Intel Fortran Compiler Classic
+(ifort) version 19.0 or higher. For details on installing ifort, see the
+`Intel installation
+documentation <https://www.intel.com/content/www/us/en/developer/tools/oneapi/fortran-compiler.html#gs.6xhjgy>`__.
+The GCC/GNU Fortran Compiler (gfortran) version 9 or higher is also
+compatible. For details on installing gfortran, see the `GNU Fortran
+documentation <https://gcc.gnu.org/wiki/GFortran>`__.
+As of the time of writing, the ifx compiler is not supported.
 
-   1. intel/19.0.5.281
-   2. openmpi/3.1.4
-   3. netcdf/4.7.4
-   4. netcdf-fortran/4.5.3
-   5. hdf/4.2.15
-   6. hdf5/1.10.6
 
-**Downloading Swiftest**
+Installing Dependencies using the Buildscripts
+----------------------------------------------
 
-The easiest way to get Swiftest on your machine is to clone the GitHub
-repository. To do so, open a terminal window and type the following:
+The Swiftest project contains a set of build scripts that can be used to help build the dependencies required to build Swiftest.
+These scripts are used to build the official Swiftest Python wheels using cibuildwheel. In addition, we have also included a pair of
+scripts that will set environment variables for Linux or MacOS.
 
-::
+For Linux, ensure that at least ``libxml2-devel`` and ``libcurl-devel`` are installed. 
+Building the dependencies can be done by running the following command from the command line::
 
-   $ git clone https://github.com/carlislewishard/swiftest.git
+   $ . buildscripts/set_environment_linux.sh
+   $ buildscripts/build_dependencies.sh
 
-If your cloned version is not already set to the master branch:
+For Mac Builds, the dependencies are built in a similar way. Ensure that the Xcode command line tools are installed as well as the Homebrew package manager.
+Building the dependencies can be done by running the following command from the command line:: 
 
-::
+   $ brew install coreutils
+   $ . buildscripts/set_environment_mac.sh
+   $ buildscripts/build_dependencies.sh -m ${MACOSX_DEPLOYMENT_TARGET}
 
-   $ git checkout master
 
-To pull down any updates to Swiftest:
+Note that the above scripts will use gfortran to build the dependencies. If you wish to use the Intel Fortran Compiler, you will need to modify the build scripts to use the Intel Fortran Compiler.
 
-::
 
-   $ git pull
+Building the Swiftest Python Package and Executable
+---------------------------------------------------
 
-You now have a Swiftest repository on your personal machine that you may
-compile, edit, and run as you see fit.
+Once dependencies are installed, you can install the Swiftest Python package and the Swiftest executable by running the following command from the command line::
 
-**Compiling the Swiftest driver program**
+   $ pip install .
 
-**Compiling** ``swiftest_driver`` **using Docker**
+Or, alternatively, if you wish to install an editable version::
 
-By far the simplest, most reliable way of compiling the driver program
-is via a Docker container. The Swiftest project contains a Dockerfile
-that may be used to generate an executable without needing to provide
-any external dependencies, other than the Docker engine itself (see
-`here <https://docs.docker.com/get-docker/>`__ for instructions on
-obtaining Docker). Once Docker is installed and the Docker engine is
-running, execute:
+   $ pip install --no-build-isolation -ve .
 
-::
 
-   $ docker build --target=export_driver \
-                  --output=bin \
-                  --build-arg MACHINE_CODE_VALUE="Host"  \
-                [ --build-arg BUILD_TYPE="*RELEASE*|DEBUG|TESTING|PROFILE" ] \
-                [ --build-arg EXTRA_CMAKE_OPTIONS="-D<Additional option you want to pass to CMake>" ]
+Building the exectuable using CMake
+-----------------------------------
 
-The Docker build will download and compile all of the library
-dependencies (HDF5, NetCDF-C, and NetCDF-Fortran) as static libraries
-and the Swiftest driver using Intel compilers. Once completed, the
-Swiftest executable, called ``swiftest_driver``, should now be created
-in the ``bin/`` directory.
+Although Swiftest is designed to be run from Python, it is also possible to run Swiftest simulations from the command line using the ``swiftest_driver`` executable, provided it has 
+an initial conditions file and a configuration parameter file, which are typically generated using the Python package. 
 
-   Note: The Dockerfile is designed to build an executable that is
-   compatible with a broad range of CPU architectures by specifying the
-   SSE2 instruction as a target for SIMD instructions using the ``-x``
-   compiler option. When compiling on the same CPU archictecture you
-   plan to execute the driver program, for the highest possible SIMD
-   performance, use
-   ``--build-arg MACHINE_CODE_VALUE="Host" to override the default``\ MACHINE_CODE_VALUE=“SSE2”\`.
-   For additional options see
-   `here <https://www.intel.com/content/www/us/en/docs/fortran-compiler/developer-guide-reference/2023-1/x-qx.html>`__.
-
-The optional Docker argument ``EXTRA_CMAKE_OPTIONS`` is provided to pass
-any additional CMake arguments (see below).
-
-**Compiling** ``swiftest_driver`` **using CMake** Several build scripts are
-available in the ``buildscripts`` folder for building Swiftest and its
-dependencies on a Linux or Mac system. These are used when generating
-the official Swiftest Python wheels using cibuildwheel. To build the
-complete project, run ``buildscripts\build_all.sh`` from the command
-line.
-
-**Compiling** ``swiftest_driver`` **using CMake**
-
-The Swiftest driver program is written in modern Fortran and must be
-compiled before it can be run. After compilation, an executable, called
-the ``swiftest_driver``, will have been created in the ``bin/``
-directory.
-
-Swiftest is compiled through `CMake <https://cmake.org/>`__. Compiling
+The ``swiftest_driver`` is compiled through `CMake <https://cmake.org/>`__. Compiling
 with CMake has a number of benefits that provide a streamlined
 experience for the Swiftest user and developer. At compilation, CMake
 will automatically select the set of flags that are compatible with the
@@ -191,55 +149,95 @@ are:
 
 ::
 
-   $ cmake -B build -S .
-   $ cmake --build build
+   $ cmake -B build -S . -G Ninja
+   $ cmake --build build -j8
 
-The `CMake Fortran
-template <https://github.com/SethMMorton/cmake_fortran_template>`__
-comes with a script that can be used to clean out any build artifacts
-and start from scratch:
+You may omit the ``-G Ninja`` flag if you do not have the Ninja build system installed. The ``-j8`` flag is used to specify the number of threads to use during compilation.
+
+The `CMake Fortran template <https://github.com/SethMMorton/cmake_fortran_template>`__
+comes with a script that can be used to clean out any build artifacts and start from scratch:
 
 ::
 
    $ cmake -P distclean.cmake
 
-The Swiftest CMake configuration comes with several customization
-options:
+The Swiftest CMake configuration comes with several customization options:
 
-+----------------------------------------------+-------------------------------------------------------------------+
-| Option                                       | CMake command                                                     |
-+==============================================+===================================================================+
-| Build type                                   | ``-DCMAKE_BUILD_TYPE=[**RELEASE**\|DEBUG\|TESTING\|PROFILE]``     |
-+----------------------------------------------+-------------------------------------------------------------------+
-| Enable/Disable OpenMP support                | ``-DUSE_OPENMP=[**ON**\|OFF]``                                    |
-+----------------------------------------------+-------------------------------------------------------------------+
-| Enable/Disable SIMD directives               | ``-DUSE_SIMD=[**ON**\|OFF]``                                      |
-+----------------------------------------------+-------------------------------------------------------------------+
-| Enable/Disable Coarray support (experimental)| ``-DUSE_COARRAY=[ON\|**OFF**]``                                   | 
-+----------------------------------------------+-------------------------------------------------------------------+
-| Set Fortran compiler path                    | ``-DCMAKE_Fortran_COMPILER=/path/to/fortran/compiler``            |
-+----------------------------------------------+-------------------------------------------------------------------+
-| Set path to make program                     | ``-DCMAKE_MAKE_PROGRAM=/path/to/make``                            |
-+----------------------------------------------+-------------------------------------------------------------------+
-| Enable/Disable shared libraries (Intel only) | ``-DBUILD_SHARED_LIBS=[**ON**\|OFF]``                             |
-+----------------------------------------------+-------------------------------------------------------------------+
-| Add additional include path                  | ``-DCMAKE_Fortran_FLAGS="-I/path/to/libraries"``                  |
-+----------------------------------------------+-------------------------------------------------------------------+
-| Install prefix                               | ``-DCMAKE_INSTALL_PREFIX=["/path/to/install"\|**"/usr/local"**]`` |
-+----------------------------------------------+-------------------------------------------------------------------+
+.. _gs-cmake-options-table:
+
++----------------------------------------------+-------------------------------------------------------+---------------+
+| Option                                       | CMake command                                         | Default value |
++==============================================+=======================================================+===============+
+| Build type                                   | -DCMAKE_BUILD_TYPE=[RELEASE\|DEBUG\|TESTING\|PROFILE] | RELEASE       |
++----------------------------------------------+-------------------------------------------------------+---------------+
+| Enable/Disable OpenMP support                | -DUSE_OPENMP=[ON\|OFF]                                | ON            |
++----------------------------------------------+-------------------------------------------------------+---------------+
+| Enable/Disable SIMD directives               | -DUSE_SIMD=[ON\|OFF]                                  | ON            |
++----------------------------------------------+-------------------------------------------------------+---------------+
+| Enable/Disable Coarray support (experimental)| -DUSE_COARRAY=[ON\|OFF]                               | OFF           |
++----------------------------------------------+-------------------------------------------------------+---------------+
+| Set Fortran compiler path                    | -DCMAKE_Fortran_COMPILER=/path/to/fortran/compiler    | ${FC}         |
++----------------------------------------------+-------------------------------------------------------+---------------+
+| Set path to make program                     | -DCMAKE_MAKE_PROGRAM=/path/to/make                    | ${PATH}       |
++----------------------------------------------+-------------------------------------------------------+---------------+
+| Enable/Disable shared libraries (Intel only) | -DBUILD_SHARED_LIBS=[ON\|OFF]                         | ON            |
++----------------------------------------------+-------------------------------------------------------+---------------+
+| Add additional include path                  | -DCMAKE_Fortran_FLAGS="-I/path/to/libraries"          | None          |
++----------------------------------------------+-------------------------------------------------------+---------------+
+| Install prefix                               | -DCMAKE_INSTALL_PREFIX=["/path/to/install"\|]         | /usr/local    |
++----------------------------------------------+-------------------------------------------------------+---------------+
 
 
-To see a list of all possible options available to CMake:
-
-::
+To see a list of all possible options available to CMake::
 
    $ cmake -B build -S . -LA
 
-The Swiftest executable, called ``swiftest_driver``, should now be
-created in the ``bin/`` directory.
+The Swiftest executable, called ``swiftest_driver`` as well as the shared library, either ``libswiftest.so`` or ``libswiftest.dylib``, 
+depending on your platform, should now be created in the ``build/bin/`` directory. You can also install the it into your system by running::
 
-**Download the** ``swiftest_driver`` **as a Docker or Singularity
-container.**
+   $ cmake --install build
+
+You may need to run the above command as root or with sudo if you are installing into a system directory.
+
+
+Building the exectuable using Docker
+------------------------------------
+
+The Swiftest project contains a Dockerfile
+that may be used to generate an executable without needing to provide
+any external dependencies, other than the Docker engine itself (see
+`here <https://docs.docker.com/get-docker/>`__ for instructions on
+obtaining Docker). Once Docker is installed and the Docker engine is
+running, execute::
+
+   $ docker build --target=export-driver \
+                  --output=./bin \
+                  --build-arg MACHINE_CODE_VALUE="Host"  \
+                [ -f Dockerfile.GNU-Linux | -f Dockerfile.Intel ] \  
+                [ --build-arg BUILD_TYPE="*RELEASE*|DEBUG|TESTING|PROFILE" ] \
+                [ --build-arg EXTRA_CMAKE_OPTIONS="-D<Additional option you want to pass to CMake>" ] .
+
+The Docker build will download and compile all of the library
+dependencies (HDF5, NetCDF-C, and NetCDF-Fortran) as static libraries
+and the Swiftest driver using Intel compilers. Once completed, the
+Swiftest executable, called ``swiftest_driver``, should now be created
+in the ``bin/`` directory.
+
+   Note: The Dockerfile is designed to build an executable that is
+   compatible with a broad range of CPU architectures by specifying the
+   SSE2 instruction as a target for SIMD instructions using the ``-x``
+   compiler option. When compiling on the same CPU archictecture you
+   plan to execute the driver program, for the highest possible SIMD
+   performance, use
+   ``--build-arg MACHINE_CODE_VALUE="Host"`` to override the default ``MACHINE_CODE_VALUE=“SSE2”``.
+   For additional options see
+   `here <https://www.intel.com/content/www/us/en/docs/fortran-compiler/developer-guide-reference/2023-1/x-qx.html>`__.
+
+The optional Docker argument ``EXTRA_CMAKE_OPTIONS`` is provided to pass any additional CMake arguments (see `supported CMake options <gs-cmake-options-table_>`_)
+
+
+Download the executable as a Docker or Singularity container.
+-------------------------------------------------------------
 
 The Swiftest driver is available as a Docker container on DockerHub in
 two versions: Intel and GNU. The Intel version was compiled for the
@@ -254,16 +252,12 @@ container pulls from the same DockerHub container.
 To facilitate installation of the container, we provide a set of shell
 scripts to help automate the process of installing container versions of
 the executable. To install the default Intel version of the docker
-container from within the ``swiftest\`` project directory
-
-::
+container from within the ``swiftest\`` project directory::
 
    $ cd docker
    $ . ./install.sh
 
-To install the GNU version:
-
-::
+To install the GNU version::
 
    $ cd docker
    $ . ./install.sh gnu
@@ -283,894 +277,6 @@ adding the environment variable definition to your shell startup script
 ``export SWIFTEST_SIF="/path/to/swiftest/singularity/swiftest.sif"`` to
 your ``.zshrc``)
 
-**Swiftest Python Package**
-
-Included with Swiftest, in the ``/swiftest/python/swiftest/`` directory,
-is a Python package designed to facilitate seamless data processing and
-analysis. The Python package, also called Swiftest, can be used to
-generate input files, run Swiftest simulations, and process output files
-in the NetCDF file format.
-
-To begin, Swiftest can be added to an existing conda environment, or a
-new conda environment may be created, so long as the required packages
-are installed. To create and activate a new conda environment with the
-prerequisite packages, open a terminal and navigate to the
-``/swiftest/python/swiftest/`` directory. Type the following:
-
-::
-
-   $ conda create --name EnvName pip scipy numpy matplotlib pandas xarray jupyter astropy -y
-   $ conda activate EnvName
-
-Next, we will install further required packages. Using the ``-e`` flag
-imports all packages in ``/swiftest/python/swiftest/requirements.txt``,
-including Swiftest. If the Swiftest Python package is updated in the
-future, using the ``-e`` flag should ensure that the user does not have
-to reinstall the package to use the updated version.
-
-::
-
-   $ pip install --user -e . 
-
-The Swiftest Python package should now be installed in the conda
-environment and is ready to use. If you would like to take the further
-step to add Swiftest to a Jupyter Notebook kernel, type the following:
-
-::
-
-   $ ipython kernel install --user --name EnvName --display-name "Swiftest Kernel" 
-
---------------
-
-Usage
-~~~~~
-
-Swiftest is built to make running a Swiftest simulation a streamlined
-and user-friendly experience, even for a new user. As a result, Swiftest
-is highly flexible and a simulation can be created, run, and processed
-in a number of different ways. The first choice the user must make is if
-they would prefer ASCII input files or NetCDF input files. We recommend
-NetCDF input files, however we include documentation for ASCII input
-files for completeness.
-
-**Brief Outline**
-
-To create and run a Swiftest simulation using the Swiftest Python
-package, follow the general script below. For more details on the input
-files and user options, continue reading this section.
-
-::
-
-   import swiftest                                                  # Import the Swiftest Python package
-   sim = swiftest.Simulation(simdir = "directory_name", **kwargs)   # Initialize a Swiftest simulation and define a directory/path in which to store simulation data
-   sim.add_solar_system_body(**kwargs)                              # Add any desired named Solar System bodies, including the Sun
-   sim.add_body(**kwargs)                                           # Add any desired user defined bodies
-   sim.get_parameter(**kwargs)                                      # View the default simulation parameters
-   sim.set_parameter(**kwargs)                                      # Set any desired simulation parameters
-   sim.write_param(**kwargs)                                        # Write simulation parameters to the param.in
-   sim.save(**kwargs)                                               # Save the simulation initial conditions to init_cond.nc
-   sim.run(**kwargs)                                                # Run the simulation (leave off if running from the executable)
-
-To read in a set of Swiftest output files using the Swiftest Python
-package, follow the general script below. For more details on the output
-files and user options, continue reading this section.
-
-::
-
-   import swiftest                                                              # Import the Swiftest Python package
-   sim = swiftest.Simulation(simdir = "directory_name", read_data=True)         # Initialize a Swiftest simulation
-   sim.data                                                                     # Body data over time
-   sim.init_cond                                                                # The initial conditions for the simulation
-   sim.encounters                                                               # Encounter data for all close encountering pairs
-   sim.collisions                                                               # Collision data for all colliders and collisional fragments
-
-**NetCDF Input Files (Recommended)**
-
-Swiftest accepts a single NetCDF input file. This file can be created
-using the Swiftest Python Package through a few simple steps.
-
-To begin, simply create a new Python script in the directory you would
-like to store your simulation. Open the new script and import the
-Swiftest Python package.
-
-::
-
-   import swiftest          
-
-Next, we initialize the Swiftest simulation object. Various parameters
-can be provided to the simulation via key word arguments at this stage.
-
-::
-
-   sim = swiftest.Simulation(simdir = "directory_name", **kwargs)   
-
-The argument ``simdir`` is the name of the subdirectory in which to
-store all simulation data. This does not have to exist at the time the
-simulation object is initialized.
-
-The key word arguments available to the user, along with the default
-values for these arguments, are described in
-`simulation_kwargs <README_tables/simulation_kwargs.md>`__.
-
-After creating the simulation and defining all desired parameters as
-keyword arguments, it is time to add bodies to the simulation. The
-Swiftest Python package interfaces with the `NASA JPL Horizons
-database <https://ssd.jpl.nasa.gov/horizons/>`__, allowing a user to
-easily import the initial conditions of known solar system bodies using
-the ``add_solar_system_body`` method.
-
-::
-
-   sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"])     
-
-User defined bodies can also be added to a Swiftest simulation through
-the Python package. Massive bodies and test particles can both be added
-using the ``add_body`` method.
-
-::
-
-   sim.add_body(**kwargs)
-
-The key word arguments available to the user for the ``add_body`` method
-are described in `add_body_kwargs <README_tables/add_body_kwargs.md>`__.
-
-Once all desired bodies have been added to the Swiftest simulation, the
-simulation parameters can be accessed and changed using the
-``get_parameter`` and ``set_parameter`` methods. The key word arguments
-available to the user for the ``get_parameter`` and ``set_parameter``
-are the same as those described in
-`simulation_kwargs <README_tables/simulation_kwargs.md>`__.
-
-After all desired parameters have been set, the parameters can be saved
-to the **param.in** using the ``write_param`` method. The key word
-arguments available to the user for the ``write_param`` method are
-described in
-`write_param_kwargs <README_tables/write_param_kwargs.md>`__.
-
-The state of the system can be saved to the initial conditions NetCDF
-file, **init_cond.nc**, using the ``save`` method. The key word
-arguments available to the user for the ``save`` method are described in
-`save_kwargs <README_tables/save_kwargs.md>`__.
-
-Finally, a simulation can be run from the same script in which it is
-created (or a separate Python script) using the ``run`` method. This is
-optional as the simulation can also be run from an executable. More
-details on running a Swiftest simulation can be found in the section
-**Running a Swiftest Simulation**. The key word arguments available to
-the user for the ``run`` method are the same as those described in
-`simulation_kwargs <README_tables/simulation_kwargs.md>`__.
-
-**ASCII Input Files** Swiftest accepts 4 ASCII input files. All four
-ASCII input files are necessary if using the ASCII input format, however
-the structure of each input file varies slightly depending on the
-features and capabilities of the integrator selected. The four ASCII
-input files are not necessary if using NetCDF input files. The four
-input files are as follows:
-
--  **param.in** - The parameter input file.
--  **cb.in** - The central body input file.
--  **pl.in** - The massive body input file.
--  **tp.in** - The test particle input file.
-
-The parameter options used in the parameter input file are as described
-in `simulation_kwargs <README_tables/simulation_kwargs.md>`__.
-
-The **cb.in** includes all central body initial conditions. The
-structure of the **cb.in** is as follows:
-
-::
-
-   0                 ! ID number
-   1.0               ! Gravitational mass (G*mass) in mass units (ex. 39.47841760435743 for Sun in M_sun/AU/year)
-   1.0               ! Central body radius is distance units (ex. 0.004650467260962157 for Sun in AU)
-   0.0               ! J2 term, optional, set to 0.0 for a spherical body
-   0.0               ! J4 term, optional, set to 0.0 for a spherical body
-   0.4 0.4 0.4       ! Principal moments of inertia, optional, leave off if not using, SyMBA only
-   0.0 0.0 0.0       ! Rotational vectors in radians per second, optional, leave off if not using, SyMBA only
-
-The **pl.in** includes all massive body initial conditions. The
-structure of the **pl.in** is as follows:
-
-::
-
-   2                 ! Total number of massive bodies
-   1, 0.0, 0.0       ! ID number, Gravitational mass (G*mass) in mass units, Hill Radius in distance units if RHILL_PRESENT is set to YES, leave off if not using
-   0.0               ! Radius is distance units if CHK_CLOSE is set to YES, leave off if not using
-   1.0 1.0 1.0       ! If IN_FORM is set to XV then this is the heliocentric position vector, if it is set to EL then this is the semi-major axis, the eccentricity, and the inclination
-   1.0 1.0 1.0       ! If IN_FORM is set to XV then this is the heliocentric velocity vector, if it is set to EL then this is the longitude of the ascending node, the argument of pericenter, and the mean anomaly
-   0.4 0.4 0.4       ! Principal moments of inertia, optional, leave off if not using, SyMBA only
-   1.0 1.0 1.0       ! Rotational vectors in radians per second, optional, leave off if not using, SyMBA only
-   2, 0.0, 0.0       
-   0.0               
-   1.0 1.0 1.0       
-   1.0 1.0 1.0       
-   0.4 0.4 0.4       
-   1.0 1.0 1.0        
-
-The **tp.in** includes all test particle initial conditions. In the
-event that no test particles are desired, the **tp.in** must still be
-included, however it can simply contain a single ``0``. The structure of
-the **tp.in** is as follows:
-
-::
-
-   2                 ! Total number of test particles 
-   3                 ! ID number
-   1.0 1.0 1.0       ! If IN_FORM is set to XV then this is the heliocentric position vector, if it is set to EL then this is the semi-major axis, the eccentricity, and the inclination
-   1.0 1.0 1.0       ! If IN_FORM is set to XV then this is the heliocentric velocity vector, if it is set to EL then this is the longitude of the ascending node, the argument of pericenter, and the mean anomaly
-   4                 
-   1.0 1.0 1.0       
-   1.0 1.0 1.0       
-
-Note that the ID numbers of the test particles are a continuation of the
-ID numbers of the massive bodies. No two bodies in the system can have
-the same ID number.
-
-**Running a Swiftest Simulation**
-
-The input files necessary to successfully run Swiftest should now be
-generated in the simulation directory. The user is now faced with a
-second choice: to run a Swiftest simulation from a Python environment or
-to run it directly from an executable. Either option is possible with
-NetCDF format input files, however ASCII input files must be run
-directly from an executable.
-
-**Running via Python**
-
-To run a Swiftest simulation from the same script in which the initial
-conditions are created, simply add the following line after you have
-finished defining parameters and adding bodies to the simulation:
-
-::
-
-   sim.run()
-
-To run a previously created set of initial conditions, first read the
-old parameter file into Python, and then run it. Note that Swiftest will
-look in the ``/simdata`` subdirectory for the initial conditions by
-default. You may set a new path to the initial conditions using the
-``param_file`` keyword argument. See the documentation detailing the key
-word arguments available to the user in
-`simulation_kwargs <README_tables/simulation_kwargs.md>`__.
-
-::
-
-   sim = swiftest.Simulation(simdir = "directory_name", read_param=True)
-   sim.run()
-
-**Running via an Executable**
-
-To run a Swiftest simulation through an executable, create a symbolic
-link to the Swiftest driver from your current directory.
-
-::
-
-   $ ln -s ~/PATH/TO/swiftest/bin/swiftest_driver .
-
-To run Swiftest, simply type the following command into the terminal:
-
-::
-
-   $ ./swiftest_driver INTEGRATOR param.in
-
-Where ``INTEGRATOR`` is your integrator of choice, either ``whm``,
-``rmvs``, ``helio``, or ``symba``.
-
-**Outputs**
-
-The number and type of output files generated by Swiftest depends on the
-input parameters selected and the method through which Swiftest was run.
-The standard output files are as follows: 
-
-- **data.nc** - Always generated, the output file containing the information for every body in the system, recorded every ``ISTEP_OUT`` timesteps and written every ``DUMP_CADENCE``. This file can be analyzed using the Swiftest Python package (``sim.data``). 
-- **collisions.log** - The log containing the record of each fragmentation event, including the collisional regime, and the number of the fragments created, only if ``FRAGMENTATION`` is ``YES``, Swiftest SyMBA only. 
-- **swiftest.log** - A log containing a brief update on the status of the run. Only generated if Swiftest is run through the Python package or through a shell script. If Swiftest is run through an executable, these updates are output directly to the terminal. 
-- **collisions.nc** - The details of each collision that occurs in a simulation are recorded in a NetCDF file. Only if ``CHK_CLOSE``/``close_encounter_check`` is ``YES``/``True``. This file can be analyzed using the Swiftest Python package (``sim.collisions``).
-- **encounters.nc** - The details of each close encounter that occurs in a simulation are recorded in a NetCDF file. Only if ``CHK_CLOSE``/``close_encounter_check`` is ``YES``/``True``. This file can be analyzed using the Swiftest Python package (``sim.encounters``).
-- **init_cond.nc** - The initial conditions used to run the simulation. This file can be analyzed using the Swiftest Python package (``sim.init_cond``). 
-- **encounter_check_plpl_timer.log** - The log containing the encounter check timer for each massive body/massive body encounter, only if ``CHK_CLOSE``/``close_encounter_check`` is ``YES``/``True`` and ``ENCOUNTER_CHECK``/``encounter_check_loops`` is ``ADAPTIVE``. 
-- **encounter_check_pltp_time.log** - The log containing the encounter check timer for each massive body/test particle encounter, only if ``CHK_CLOSE``/``close_encounter_check`` is ``YES``/``True`` and ``ENCOUNTER_CHECK``/``encounter_check_loops`` is ``ADAPTIVE``. 
-- **interaction_timer.log** - The log containing the interaction loop timer for each interacting pair of bodies, only if ``INTERACTION_LOOPS`` is ``ADAPTIVE``.
-
-To read in a Swiftest output file, simply create a new Python script in
-the simulation directory.
-
-::
-
-   import swiftest                                            
-   sim = swiftest.Simulation(simdir = "directory_name", read_data=True) 
-
-All Swiftest data is now stored in the Xarray datasets ``sim.data``,
-``sim.collisions``, and ``sim.encounters`` and is easily processed,
-manipulated, and analyzed.
-
-Regardless of whether the status outputs are recorded in the
-**swiftest.log** or in the terminal, the output format is the same.
-Below is an example of a single status output:
-
-::
-
-   Time =  1.00000E+03; fraction done =  0.001; Number of active plm, pl, tp =    57,   108,    50
-     DL/L0 =  6.83763E-12; DEcollisions/|E0| =  0.00000E+00; D(Eorbit+Ecollisions)/|E0| =  2.65579E-03; DM/M0 =  0.00000E+00
-   Integration steps: Total wall time:  2.99848E+02; Interval wall time:  9.36192E+01;Interval wall time/step:   4.68956E-04
-
-The first line includes the simulation time, the fraction of the
-simulation that is complete relative to ``tstop``, the number of
-fully-interactive massive bodies (``plm``) (SyMBA only), the total
-number of massive bodies (``pl``) including fully-interactive and
-semi-interactive bodies, and the number of test particles (``tp``)
-remaining in the system at that time. The second line includes the
-angular momentum error, the change in energy as a result of collisions
-only, the total change in energy, and the change in mass up to this
-point in the simulation (error analysis included only if
-``ENERGY``/``compute_conservation_values`` is set to ``YES``/``True``).
-The third line contains the total wall time elapsed since the start of
-the simulation, the wall time elapsed since the start of the last step,
-and the average wall time per step since the start of the simulation.
-
-**Restarting a Simulation From t** :math:`\neq` **0**
-
-Just like Swiftest allows the user to run a simulation through an
-executable or through Python, Swiftest also allows the user to restart a
-simulation from t :math:`\neq` 0 in the same two manners. This can be
-useful in the case of an accidental termination of a simulation, such as
-through a power outage or computer failure. In many cases, it is also
-necessary to run a simulation to a new end point, past the original
-``TSTOP``.
-
-**Restarting via Python**
-
-To restart a Swiftest simulation via the Swiftest Python package, follow
-the outline below:
-
-::
-
-   import swiftest
-   sim = swiftest.Simulation(simdir = "directory_name", read_data=True)
-   sim.set_parameter(tstop=VAL)  # Set a new stop time if desired
-   sim.write_param()             # Write simulation parameters to the param.in
-   sim.run()
-
-Note that Swiftest will look in the ``/simdata`` subdirectory for the
-initial conditions by default. You may set a new path to the initial
-conditions using the ``param_file`` keyword argument.
-
-**Restarting via an Executable**
-
-Every ``DUMP_CADENCE`` X ``ISTEP_OUT`` timesteps, Swiftest writes all
-simulation information from memory to the output files. At the same
-time, Swiftest also writes all simulation information to a new parameter
-file, titled **param.XXXXXXXXXXXXXXXXXX.in**. To restart a run from a
-previous parameter file, simply follow the instructions detailed in the
-**Running via an Executable** section, replacing ``param.in`` with the
-name of the parameter file from which you wish to restart.
-
---------------
-
-Updates to Swifter Included in Swiftest
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**Collisional Fragmentation via Fraggle**
-
-To activate the Fraggle algorithm, set
-``FRAGMENTATION``/``fragmentation`` to ``YES``/``True``, depending on
-the mode in which Swiftest is being run. When resolving a close
-encounter that results in a collision, Fraggle determines the regime of
-the collision as well as the mass, number, position, velocity, and
-rotation of all resulting bodies. This is distinct from Swiftest SyMBA’s
-predecessor, Swifter SyMBA, which assumes that all collisions result in
-perfect mergers.
-
-Fraggle distinguishes the following collisional regimes: (1) perfect
-merging, which includes the cratering, partial accretion, and
-graze-and-merge regimes of Leinhardt & Stewart 2012, (2) disruption,
-which includes the partial erosion regime of Leinhardt & Stewart 2012,
-(3) super-catastrophic disruption, and (4) hit-and-run events which can
-be either ‘pure’ or ‘disruptive’.
-
-For every collision throughout the course of a simulation, Fraggle
-writes a brief description of the collision to the **fraggle.log**
-output file. An example of a collision, stored in the **fraggle.log**
-output file, is as follows:
-
-::
-
-   Fraggle logfile
-
-    ***********************************************************************************************************************
-    Collision between massive bodies detected at time t = 2.063709800335315E-006
-    **********************************************************************************************************************
-
-    --------------------------------------------------------------------
-               Fraggle collisional regime determination results
-    --------------------------------------------------------------------
-    True number of colliders :            2
-    Index list of true colliders  :            1           2
-    Regime: Disruption
-    Energy loss                  :   2.298848838233116E-022
-    --------------------------------------------------------------------
-    Disruption between Target (1) and Projectile (2)
-    Fraggle generating 28 fragments.
-    Fraggle try 1
-    Fraggle fragment generation succeeded after 1 tries
-    Generating 28 fragments
-
-The details of the collision are stored in the simulation object
-(``sim.collisions``) which can be accessed using the Swiftest Python
-package.
-
-**General Relativity**
-
-From its observation in the mid-1800s to the development of the theory
-of general relativity by Albert Einstein in 1915, the precession of
-Mercury’s perihelion puzzled scientists and observers. Mercury’s orbit
-precesses by approximately :math:`42.980 \pm 0.001` arcseconds / century
-more than is expected from Newtonian mechanics. This deviation can be
-explained by the curvature of spacetime due to the mass of the Sun.
-Mercury’s close proximity to the Sun enhances the effects of general
-relativity, providing a good test case to highlight the functionality of
-general relativity in Swiftest.
-
-In this test case, we track the orbit of Mercury for 1000 years as it
-orbits around the Sun in the presence of the seven other massive
-planets. The precession rate of the longitude of periapsis of Mercury,
-as calculated by Swiftest SyMBA, differs by only :math:`\sim 0.0286 \%`
-from the precession rate calculated from the NASA JPL Horizons database.
-
-+-----------------------------------------------------------------------+
-| |SyMBA General Relativity|                                            |
-+=======================================================================+
-| **Figure 1** - The longitude of periapsis of Mercury over 1000 years, |
-| as calculated by Swifter SyMBA (dotted green), Swiftest SyMBA with    |
-| general relativity turned off (long dashed yellow), and Swiftest      |
-| SyMBA with general relativity turned on (short dashed blue). These    |
-| results are compared to the periapsis of Mercury as calculated from   |
-| the NASA JPL Horizons database (solid red). Swiftest SyMBA with       |
-| general relativity turned off is in good agreement with Swifter SyMBA |
-| (:math:`\sim 0.00053 \%` difference), while Swiftest SyMBA with       |
-| general relativity turned on is in good agreement with the NASA JPL   |
-| Horizons database (:math:`\sim 0.0286 \%` difference).                |
-+-----------------------------------------------------------------------+
-
-**Adaptive Interaction Calculations and Encounter Checking**
-
-In Swifter SyMBA, gravitational interactions between bodies are
-calculated on a pair-by-pair basis by solving an upper triangular
-matrix. In practice, this is done through a double loop. While
-effective, solving a triangular matrix is computationally costly and it
-is considered best practice to avoid nested loops wherever possible.
-Swiftest SyMBA offers an alternative to this method, allowing the user
-to choose between calculating the gravitational interactions between
-bodies through a traditional triangular matrix or through a flattened
-Euclidean distance matrix.
-
-A Euclidean distance matrix is a two-dimensional array that stores the
-distance between each pairing of points in a set of elements. For more
-details on the algorithm implemented in Swiftest to flatten the
-Euclidean distance matrix, please see `Angeletti, Bonny, & Koko
-2019 <https://hal.archives-ouvertes.fr/hal-02047514>`__.
-
-Along with allowing the user to choose whether the gravitational
-interactions are calculated through an upper triangular matrix or a
-flattened Euclidean distance matrix, Swiftest SyMBA allows the user to
-let the program determine the speedier solution. Through adaptive
-interaction calculations, Swiftest SyMBA periodically tracks the time it
-takes to complete an interaction calculation using both the triangular
-and flat methods. Whichever method proves to be quicker is implemented
-until the next time both methods are tested. Swiftest SyMBA periodically
-checks the performance of each method, possibly switching between the
-two methods multiple times over the course of a simulation. By selecting
-adaptive interaction calculations, the user allows Swiftest SyMBA to
-optimize its own performance and adapt to changes in the number of
-particle pairings as the simulation progresses.
-
-An example of the adaptive interaction calculations, stored in the
-**interaction_timer.log** output file, is as follows:
-
-::
-
-   Interaction loop timer logfile                                                ! The file header
-   Diagnostic values: loop style, time count, nplpl, metric                      ! The diagnostic values used to determine which calculation method is fastest
-   symba_kick_getacch_int_pl: loop timer turned on at t = 0.000000000000000E+000 ! The subroutine in which the timing is being conducted and the time (in simulation time) at which the timer is begun
-   symba_kick_getacch_int_pl: stage 1                                            ! Begins timing the first method
-   FLAT        95 7353 1.291989664082687E-002                                    ! The calculation method type, the time (in seconds) to calculate all interactions, the number of massive body / massive body interactions, and the time per interaction (time / number of interactions)
-   symba_kick_getacch_int_pl: stage 2                                            ! Begins timing the second method
-   TRIANGULAR  100 7353 1.359989120087039E-002                                   ! The calculation method type, the time (in seconds) to calculate all interactions, the number of massive body / massive body interactions, and the time per interaction (time / number of interactions)
-   symba_kick_getacch_int_pl: the fastest loop method tested is FLAT             ! The subroutine in which the timing is being conducted and which interaction calculation method is determined to be fastest
-
-In addition to calculating the gravitational interactions between
-pairings of bodies, Swifter SyMBA also uses an upper triangular matrix
-to check if pairings of bodies are in a close encounter state. While
-similar to interaction calculations, encounter checking can be further
-simplified to exclude pairs of bodies which, based on their physical
-distance, are unlikely to be in an encounter state. To address this,
-Swiftest SyMBA offers an alternative to solving an upper triangular
-matrix through the sort and sweep method.
-
-The sort and sweep method of collision detection (see `Ericson
-2005 <https://www.sciencedirect.com/book/9781558607323/real-time-collision-detection>`__
-for more details), also known as the sweep and prune method, is a way of
-limiting the number of pairs of bodies that need to be checked for a
-collision in each time step. At the start of a new time step, the
-position of each body is calculated and the critical radius of each body
-is determined. The critical radius is based on the radius of a body’s
-Hill sphere. The distance from a body’s center to the extent of its
-critical radius defines the encounter sphere of the body. The position
-of the center of mass of the body and the extent of its encounter sphere
-are used to define the bounding box used in the sort and sweep
-algorithm. Based on the defined bounding box, the positions of the lower
-and upper bounds of all of the bodies in the simulation are compiled
-into sorted lists. Because each body is unlikely to move significantly
-between time steps, updating these sorted lists each time step is
-relatively straightforward. Only when the bounding boxes of two bodies
-overlap in all axes are the bodies flagged as an encountering pair.
-
-| The sort and sweep algorithm is computationally efficient because it
-  limits the number of potential encountering pairs that must be checked
-  for encounters. For example, by calculating the bounding boxes of two
-  bodies on opposite sides of the solar system, the algorithm then sorts
-  the upper and lower bounds of these two bounding boxes into opposite
-  ends of a sorted list. Through this sorting, the algorithm recognizes
-  that these two bodies are unlikely to encounter one another in the
-  following time step and is able to quickly exclude them from more
-  extensive encounter checking, saving time and computational resources.
-| In the same way that the user can allow Swiftest SyMBA to adapt when
-  calculating the gravitational interactions between bodies, the user
-  can also allow Swiftest SyMBA to determine the faster method of
-  encounter checking. Just as Swiftest SyMBA periodically tests the
-  interaction calculation methods, it also periodically tests the
-  encounter checking methods. The quicker of the two methods is selected
-  and implemented, allowing Swiftest SyMBA to adapt to changes in the
-  distribution of bodies in the system as the simulation progresses.
-
-An example of the adaptive encounter checking, stored in the
-**encounter_check_plpl_timer.log** output file, is as follows:
-
-::
-
-   Encounter check loop timer logfile                                           ! The file header
-   Diagnostic values: loop style, time count, nplpl, metric                     ! The diagnostic values used to determine which checking method is fastest
-   encounter_check_all_plpl: loop timer turned on at t = 5.000000000000000E-003 ! The subroutine in which the timing is being conducted and the time (in simulation time) at which the timer is begun
-   encounter_check_all_plpl: stage 1                                            ! Begins timing the first method
-   SORTSWEEP   196 7353 2.665578675370597E-002                                  ! The checking method type, the time (in seconds) to check all possible encounters, the number of possible massive body / massive body encounters, and the time per encounter (time / number of possible encounters)
-   encounter_check_all_plpl: stage 2                                            ! Begins timing the second method
-   TRIANGULAR  164 7353 2.230382156942744E-002                                  ! The checking method type, the time (in seconds) to check all possible encounters, the number of possible massive body / massive body encounters, and the time per encounter (time / number of possible encounters)
-   encounter_check_all_plpl: the fastest loop method tested is TRIANGULAR       ! The subroutine in which the timing is being conducted and which encounter checking method is determined to be fastest
-
-Together, adaptive interaction calculations and encounter checking are
-idea for lengthy simulations with a large number of particles. The
-flexibility of Swiftest SyMBA ensures that the parameters of the
-integration are optimized for each individual simulation, even as the
-simulation evolves.
-
-**NetCDF Compatibility**
-
-The NetCDF (Network Common Data Form) file format is a cross-platform
-method of creating, accessing, and sharing data. Due to its
-self-describing nature, NetCDF is ideal for archiving multidimensional
-scientific data. NetCDF files are also appendable, allowing for data to
-be added to a file after creation, making the NetCDF file format well
-suited for handling simulation output. NetCDF is maintained by the
-University Corporation for Atmospheric Research (UCAR) and is a standard
-file format across much of the atmospheric modeling community.
-
-In Swifter SyMBA, simulation outputs were stored in a flat binary file.
-These binary files could only be easily accessed through
-`SwiftVis <https://cs.trinity.edu/~mlewis/SwiftVis/>`__, a data analysis
-and visualization software package designed to process Swifter data. In
-accordance with modern data management practices and industry standards,
-Swiftest incorporates a NetCDF output file format for all simulation
-types. NetCDF is compatible with many of today’s most widely-used
-programming languages including Fortran, Python, Java, C++, and more. By
-writing simulation data to a NetCDF output file, Swiftest provides the
-user with the flexibility to analyze and visualize data in any language
-they choose. The NetCDF file format is also adaptable such that any
-future additions to Swiftest can be seamlessly incorporated into the
-output file.
-
-**Object-Oriented Programming**
-
-The 2003 version of Fortran introduced object-oriented programming, with
-Fortran 2008 providing further updates. Swiftest is written in modern
-Fortran and takes advantage of many of the object-oriented programming
-features included in Fortran 2003. In doing so, Swiftest is a complete
-restructure of its predecessor, Swifter. The reusability and
-simplification of code in Swiftest through object-oriented programming
-is a modern and flexible approach that allows for future enhancements
-and additions to the Swiftest package.
-
-**Parallelization**
-
-Parallelization using OpenMP is still under development in Swiftest. For
-preliminary results, see **Figure 2**.
-
---------------
-
-Examples
-~~~~~~~~
-
-All examples are included in the ``/swiftest/examples/`` directory.
-Simply run the script(s) included in the directory as you would normally
-run a Python script. See the **README.txt** included in each example
-directory for more details.
-
-**Basic_Simulation**
-
-This example walks through how to set up a standard solar system
-simulation. It can be found in the
-``/swiftest/examples/Basic_Simulation`` directory. It is intended to be
-run using the SyMBA integrator. It contains three classes of bodies: -
-Fully-Interacting Massive Bodies - Gravitationally affect and are
-affected by other massive bodies. - Semi-Interacting Massive Bodies -
-Gravitationally affect and are affected by fully-interacting massive
-bodies, do not gravitationally affect and are not affected by other
-semi-interacting massive bodies. - Test Particles - Gravitationally
-affected by fully-interacting massive bodies only.
-
-To generate the initial conditions, run the Python script titled
-**basic_simulation.py**. This script also runs Swiftest SyMBA,
-generating output. To process the output file, run the script titled
-**output_reader.py**.
-
-**Chambers2013**
-
-This example acts as a comparison to the work of `Chambers
-2013 <https://www.sciencedirect.com/science/article/pii/S0019103513000754?via%3Dihub>`__.
-It can be found in the ``/swiftest/examples/Chambers2013`` directory. It
-is intended to be run using the SyMBA integrator and highlights how to
-run Swiftest using and executable, as opposed to through a Python
-script. To generate the initial conditions, run **init_cond.py**. To run
-Swiftest with these intial conditions, type:
-
-::
-
-   ./swiftest_driver symba param.in
-
-To process the output file, run the script titled **scattermovie.py**.
-
-**Fragmentation**
-
-This example highlights the functionality of the Fraggle algorithm. It
-can be found in the ``/swiftest/examples/Fragmentation`` directory. It
-is intended to be run using the SyMBA integrator. It contains 9
-pre-built collisional test cases:
-
--  A Head-On Disruptive Collision
--  An Off-Axis Disruptive Collision
--  A Head-On Super-Catastrophic Disruptive Collision
--  An Off-Axis Super-Catastrophic Disruptive Collision
--  A Disruptive Hit and Run Collision
--  A Pure Hit and Run Collision
--  A Merger
--  A Merger Crossing the Spin Barrier
--  All of the Above
-
-To generate, run, and create a movie depicting the collision, run the
-Python script titled **Fragmentation_Movie.py**. Please note that this
-example requires a large amount of memory. For reference, this example
-was created and run using 4 nodes, each with 256 GB of memory. This
-amount of computational memory is necessary to generate a smooth movie.
-In this example, the trajectories of all bodies involved in the
-collision are saved at every point in the simulation. This is extremely
-expensive and should only be used to study a particular collisional
-event in detail.
-
-**helio_gr_test**
-
-This example demonstrates the functionality of general relativity in
-Swiftest HELIO. It can be found in the
-``/swiftest/examples/helio_gr_test`` directory. It is intended to be run
-using the HELIO integrator. Because the SyMBA integrator is built upon
-the HELIO integrator, GR is also available in SyMBA.
-
-**Multibody_Fragmentation**
-
-This example highlights the functionality of the Fraggle algorithm. It
-can be found in the ``/swiftest/examples/Mulitbody_Fragmentation``
-directory. It is intended to be run using the SyMBA integrator. To
-generate a set of initial conditions, run the initial conditions using
-Swiftest, and generate a movie depicting the collisional result, run the
-Python script titled **Multibody_Movie.py**.
-
-**solar_impact**
-
-This example demonstrates the conservation of angular momentum, energy,
-and mass during a collision between a massive body and the Sun, or
-central body. It can be found in the ``/swiftest/examples/solar_impact``
-directory. It is intended to be run using the SyMBA integrator.
-
-**Swifter_Swiftest**
-
-This set of examples acts as a comparison between Swiftest and its
-predecessor, Swifter. Two unique simulations are included in this
-example, one with 8 massive bodies and 0 test particles, and one with
-108 massive bodies and 50 test particles. These simulations can be found
-in the ``/swiftest/examples/Swifter_Swiftest/8pl_0tp`` and the
-``/swiftest/examples/Swifter_Swiftest/108pl_50tp`` directories,
-respectively. They are intended to be run using the SyMBA integrator.
-For details on how to run a simulation using Swifter, please see the
-`Swifter website <https://www.boulder.swri.edu/swifter/>`__.
-
-**whm_gr_test**
-
-This example demonstrates the functionality of general relativity in
-Swiftest WHM. It can be found in the ``/swiftest/examples/whm_gr_test``
-directory. It is intended to be run using the WHM integrator. Because
-the SyMBA integrator is built upon the HELIO integrator, which is in
-turn built upon the WHM integrator, GR is also available in SyMBA.
-
---------------
-
-Simulation Parameter FAQs and Recommendations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**How do I know what timestep to use for my simulation
-(**\ ``dt``\ **)?**
-
-A good rule is to set ``dt`` equal to one tenth the orbit of the
-inner-most body in your simulation. For example, if Mercury is your
-inner-most body, ``dt`` should be set to one tenth Mercury’s orbit.
-Mercury’s orbit is ~0.24 years (~88 days) so a timestep of 0.024 years
-should be sufficiently small to accurately model the orbit of Mercury.
-You can always go smaller to increase resolution.
-
-**How often should I output (**\ ``ISTEP_OUT`` or ``TSTEP_OUT``, **and**
-``DUMP_CADENCE``\ **)?**
-
-Depending on your simulation, you may want to write to the output file
-more or less frequently. Writing takes a considerable amount of
-computational time, so it is important to set a output cadence that is
-manageable. Conversely, storing data in memory may not be reasonable for
-all simulation configurations or hardware, so writing more frequently
-may be necessary. There is no hard and fast rule for how often you
-should output, however it is dependent on your total simulation length
-(``tmax``) and your timestep (``dt``). Think of ``ISTEP_OUT`` as the
-number of timesteps between writing to memory (or, alternatively with
-``TSTEP_OUT``, the length of time between writing to memory), and
-``DUMP_CADENCE`` as the number of write to memory operations between
-writing to file.
-
-For example, an appropriate output cadence for a run with a timestep of
-0.005 years and a total simulation length of 100 My might be
-``ISTEP_OUT = 2e5`` (``TSTEP_OUT = 1e3``) and ``DUMP_CADENCE = 10``.
-This means that data will be stores to memory every 2e5 timesteps and
-written to file every 2e6 timesteps. Based on our value of ``dt``, this
-is every 1,000 years and every 10,000 years, respectively. Our total
-simulation length tells us that we will write to file 10,000 times over
-the course of the simulation. For longer simulations, the output cadence
-may be less frequent to save computational space. For shorter
-simulations, the output cadence may be more frequent to increase
-resolution.
-
-**What mass threshold should I set to differentiate fully-interactive
-and semi-interactive bodies (**\ ``GMTINY`` **or** ``MTINY``\ **)?**
-
-Semi-interacting bodies are useful because the integrator is not
-required to calculate gravitational interactions between pairs of
-semi-interacting particles. This can result in significant performance
-improvements, especially for systems that require hundreds or thousands
-of massive bodies. If your system only has a few tens of massive bodies,
-semi-interacting bodies may not be necessary. If you would like to
-differentiate between these two classes of bodies, simply set the mass
-threshold to be some value between the mass of the smallest
-fully-interacting body and the mass of the largest semi-interacting body
-that you choose. Semi-interacting bodies can collide with each other and
-grow to become fully interacting bodies once they pass the mass
-threshold.
-
-**What should minimum fragment mass should I use (**\ ``MIN_GMFRAG``
-**or** ``MIN_MFRAG``\ **)?**
-
-This mass threshold is necessary to ensure that Swiftest SyMBA does not
-generate huge amounts of very small fragments, grinding the model to a
-halt. While this value is largely empirical and dependent on each
-specific set of initial conditions, a good place to start is to set the
-minimum fragment mass threshold to be one tenth the size of the smallest
-body in your simulation. You can also adjust ``FRAG_REDUCTION`` to keep
-the number of fragments within a reasonable range.
-
-**What are the limits of Swiftest SyMBA?**
-
-While Swiftest SyMBA is a powerful tool for modeling gravitational
-interactions between massive bodies, it does have its limits. Swiftest
-SyMBA is best used for systems containing tens to hundreds of
-fully-interacting massive bodies. It is also best used for timescales on
-the order of a few hundred million years or less. While it is possible
-to model systems on a billion year timescale, the computational power
-required may be beyond what is available to the average user. In these
-cases, it is recommended that the user consider modeling with test
-particles instead of massive bodies. For systems that contain mainly
-test particles, with few to no close encounters between massive bodies,
-Swiftest RMVS is likely a more appropriate tool.
-
-To get a sense of the scope of your desired simulation, it is
-recommended that you run your initial conditions and parameters for a
-just few steps. Make sure that you set ``ISTEP_OUT`` and
-``DUMP_CADENCE`` to output only once the simulation is complete, not
-between steps. Because writing to the output files and memory takes a
-significant amount of computational time compared to integrating the
-step, we want to avoid counting writing time in our diagnostic
-information. The terminal output contains information about the total
-wall time and the wall time per integration step. To get a sense of how
-long your run will take to complete your desired ``tmax``, simply scale
-up the wall time per integration step to the number of steps necessary
-for ``tmax`` to be reached. Remember that writing to the output files
-will take a considerable amount of time. Adjust your initial conditions
-and parameters accordingly.
-
---------------
-
-References
-~~~~~~~~~~
-
--  Angeletti, M., Bonny, J. -M., and Koko, J. (2019). Parallel Euclidean
-   distance matrix computation on big datasets. **HAL**. `HAL Id:
-   hal-02047514 <https://hal.archives-ouvertes.fr/hal-02047514>`__
--  Duncan, M. J., Levison, H. F., and Lee, M. H. (1998). A Multiple Time
-   Step Symplectic Algorithm for Integrating Close Encounters. **The
-   Astronomical Journal**, 116, 2067. `doi:
-   10.1086/300541 <https://iopscience.iop.org/article/10.1086/300541>`__
--  Chambers, J. E. (2013). Late-Stage Planetary Accretion Including
-   Hit-and-Run Collisions and Fragmentation. **Icarus**, 224. `doi:
-   10.1016/j.icarus.2013.02.015 <https://www.sciencedirect.com/science/article/pii/S0019103513000754?via%3Dihub>`__
--  Ericson, C. (2005) Real-Time Collision Detection. **Elsevier Inc.**
-   `ISBN:
-   978-1-55860-732-3 <https://www.sciencedirect.com/book/9781558607323/real-time-collision-detection>`__
--  Leinhardt, Z. M. and Stewart, S. T. (2012). Collisions between
-   Gravity-dominated Bodies. I. Outcome Regimes and Scaling Laws. **The
-   Astrophysical Journal**, 745, 79.
-   `doi:10.1088/0004-637X/745/1/79 <https://iopscience.iop.org/article/10.1088/0004-637X/745/1/79>`__
--  Levison, H. F. and Duncan, M. J. (1994). The Long-Term Behavior of
-   Short-Period Comets. **Icarus**, 108, 18. `doi:
-   10.1006/icar.1994.1039 <https://www.sciencedirect.com/science/article/pii/S0019103584710396?via%3Dihub>`__
--  Wisdom, J. and Holman, M. (1991). Symplectic maps for the N-body
-   problem. **The Astronomical Journal**, 102. `doi:
-   0.1086/115978 <https://ui.adsabs.harvard.edu/abs/1991AJ....102.1528W/abstract>`__
--  Wishard et al. (2023) - Swiftest: An *N*-body Integrator for 
-   Gravitational Systems. **Journal of Open Source Software**, 8(90), 5409, 
-   `https://doi.org/10.21105/joss.05409 <https://doi.org/10.21105/joss.05409>`__
-
---------------
-
-Community Guidelines
-~~~~~~~~~~~~~~~~~~~~
-
-**Contributing to Swiftest** Swiftest is open source and can be freely
-accessed through our `GitHub
-page <https://github.itap.purdue.edu/MintonGroup/swiftest>`__. If you
-wish to make a change and have that change incorporated into the
-published version of Swiftest, please issue a pull request. If you wish
-to edit Swiftest for your own personal use, no pull request is
-necessary.
-
-**Reporting an Issue** If you stumble upon a bug or issue with the
-functionality of Swiftest, we want to hear about it! If you have a fix
-for this bug, please issue a pull request. If you do not have a fix for
-the bug and would like to report it, please contact the Purdue Swiftest
-Team via email (cwishard@purdue.edu).
-
-**User Support** For help using Swiftest, please contact the Purdue
-Swiftest Team via email (cwishard@purdue.edu).
-
---------------
-
-Licensing Agreement
-~~~~~~~~~~~~~~~~~~~
-
-Swiftest is free software: you can redistribute it and/or modify it
-under the terms of the GNU General Public License as published by the
-Free Software Foundation, either version 3 of the License, or (at your
-option) any later version.
-
-Swiftest is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
-more details.
-
-You should have received a copy of the GNU General Public License along
-with Swiftest. If not, see https://www.gnu.org/licenses/.
-
-.. |SyMBA General Relativity| image:: ../_static/symba_gr.png
 
 
 .. toctree::
