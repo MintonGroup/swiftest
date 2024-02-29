@@ -146,8 +146,8 @@ This can be done in multiple ways:
     sim.set_parameter(tstart=0.0, tstop=1.0e6, dt=0.01, istep_out=100, dump_cadence=0, compute_conservation_values=True, mtiny=mtiny)
     sim.set_parameter(rmin = 0.05)
 
-We now set up the simulation parameters. Here we have a simulation starting from :math: `0.0 y` and running for :math: `1 My = 1e6 years` 
-with time steps of :math: `0.01 years`. The timestep should be less than or equal to :math: `\frac{1}{10}` of the orbital period of the innermost body. 
+We now set up the simulation parameters. Here we have a simulation starting from `0.0 y` and running for `1 My = 1e6 years` 
+with time steps of `0.01 years`. The timestep should be less than or equal to 1/10 of the orbital period of the innermost body. 
 
 The user can then write the parameters to the `param.in` file by using ``sim.write_param()``.
 To see the parameters of the simulation, use ``sim.get_parameter()``.

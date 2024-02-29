@@ -5,7 +5,7 @@ Basic Simulation
 Here, we will walk you through the basic features of Swiftest and using them in Python. 
 This is based on ``/Basic_Simulation`` in ``swiftest/examples``.
 
-Start with importing Swiftest and other packages we will use in this tutorial. ::
+Start with importing Swiftest. ::
     
     import swiftest
 
@@ -40,8 +40,8 @@ Add other small bodies too: ::
 Running the Simulation
 ========================
 
-We now set up the simulation parameters. Here we have a simulation starting from :math: `0.0 y` and running for :math: `1 My = 1e6 years` 
-with time steps of :math: `0.01 years`. ::
+We now set up the simulation parameters. Here we have a simulation starting from `0.0 y` and running for `1 My = 1e6 years` 
+with time steps of `0.01 years`. ::
 
     sim.set_parameter(tstart=0.0, tstop=1.0e6, dt=0.01)
 
