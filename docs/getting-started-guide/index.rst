@@ -661,7 +661,7 @@ The third line contains the total wall time elapsed since the start of
 the simulation, the wall time elapsed since the start of the last step,
 and the average wall time per step since the start of the simulation.
 
-**Restarting a Simulation From t :math:`\neq` 0**
+**Restarting a Simulation From t** :math:`\neq` **0**
 
 Just like Swiftest allows the user to run a simulation through an
 executable or through Python, Swiftest also allows the user to restart a
