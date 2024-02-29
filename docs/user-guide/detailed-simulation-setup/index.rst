@@ -1,5 +1,5 @@
 #################
-Basic Simulation
+Detailed Simulation
 #################
 
 Here, we will walk you through the basic features of Swiftest and using them in Python. 
