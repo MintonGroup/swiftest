@@ -884,6 +884,7 @@ contains
             L_mag_factor = .mag.(collider%L_total(:,1) + collider%L_total(:,2))
             L_residual(:) = (collider%L_total(:,2) / L_mag_factor - collider%L_total(:,1)) / L_mag_factor
             call collision_util_velocity_torque(-L_residual(:) * L_mag_factor, collider%fragments%mtot, impactors%rbcom, impactors%vbcom)
+            nfrag = collider%fragments%nbody
 
 #ifdef DOCONLOC
             do concurrent(i = 1:nfrag) shared(collider, impactors)

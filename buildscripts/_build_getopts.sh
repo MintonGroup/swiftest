@@ -14,7 +14,8 @@ SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 
 # Get platform and architecture
-read -r OS ARCH < <($SCRIPT_DIR/get_platform.sh)
+OS=$(uname -s)
+ARCH=$(uname -m)
 
 # Parse arguments
 USTMT="Usage: ${0} [-d /path/to/dependency/source] [-p /prefix/path] [-m MACOSX_DEPLOYMENT_TARGET]"
@@ -53,8 +54,22 @@ BUILD_DIR=${BUILD_DIR:-"${HOME}/Downloads"}
 PREFIX=${PREFIX:-"/usr/local"}
 DEPENDENCY_DIR=${DEPENDENCY_DIR:-${BUILD_DIR}}
 
+
+case $OS in
+    Linux*)
+        . ${SCRIPT_DIR}/set_environment_linux.sh
+        ;;
+    MacOSX|Darwin)
+        . ${SCRIPT_DIR}/set_environment_macos.sh
+        ;;
+
+    *)
+        printf "Unknown compiler type: ${OS}\n"
+        echo "Valid options are Linux, MacOSX, or Darwin"
+        printf $USTMT
+        exit 1
+        ;;
+esac
+
+
 mkdir -p ${DEPENDENCY_DIR}
-mkdir -p ${PREFIX}/lib
-mkdir -p ${PREFIX}/include
-mkdir -p ${PREFIX}/share
-mkdir -p ${PREFIX}/bin

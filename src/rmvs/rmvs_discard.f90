@@ -44,6 +44,7 @@ contains
                      call swiftest_io_log_one_message(COLLISION_LOG_OUT,message)
                      tp%ldiscard(i) = .true.
                      tp%lmask(i) = .false.
+                     pl%ldiscard(iplperP) = .true.
                      call tp%info(i)%set_value(status="DISCARDED_PLQ", discard_time=t, discard_rh=tp%rh(:,i), &
                                                discard_vh=tp%vh(:,i), discard_body_id=pl%id(iplperP))
                   end if

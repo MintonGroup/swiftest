@@ -8,9 +8,119 @@
 ! If not, see: https://www.gnu.org/licenses. 
 
 submodule (swiftest) s_swiftest_obl
+   use swiftest
+   use shgrav
+
 contains
-   module subroutine swiftest_obl_acc(n, GMcb, j2rp2, j4rp4, rh, lmask, aobl, GMpl, aoblcb)
-      !! author: David A. Minton
+
+   pure function matinv3(A) result(B)
+      !! Performs a direct calculation of the inverse of a 3×3 matrix.
+      !!
+      !! from https://fortranwiki.org/fortran/show/Matrix+inversion
+      !!
+
+      real(DP), intent(in) :: A(3,3)   !! Matrix
+      real(DP)             :: B(3,3)   !! Inverse matrix
+      real(DP)             :: detinv
+
+      ! Calculate the inverse determinant of the matrix
+      detinv = 1.0_DP/(A(1,1)*A(2,2)*A(3,3) - A(1,1)*A(2,3)*A(3,2)&
+               - A(1,2)*A(2,1)*A(3,3) + A(1,2)*A(2,3)*A(3,1)&
+               + A(1,3)*A(2,1)*A(3,2) - A(1,3)*A(2,2)*A(3,1))
+
+      ! Calculate the inverse of the matrix
+      B(1,1) = +detinv * (A(2,2)*A(3,3) - A(2,3)*A(3,2))
+      B(2,1) = -detinv * (A(2,1)*A(3,3) - A(2,3)*A(3,1))
+      B(3,1) = +detinv * (A(2,1)*A(3,2) - A(2,2)*A(3,1))
+      B(1,2) = -detinv * (A(1,2)*A(3,3) - A(1,3)*A(3,2))
+      B(2,2) = +detinv * (A(1,1)*A(3,3) - A(1,3)*A(3,1))
+      B(3,2) = -detinv * (A(1,1)*A(3,2) - A(1,2)*A(3,1))
+      B(1,3) = +detinv * (A(1,2)*A(2,3) - A(1,3)*A(2,2))
+      B(2,3) = -detinv * (A(1,1)*A(2,3) - A(1,3)*A(2,1))
+      B(3,3) = +detinv * (A(1,1)*A(2,2) - A(1,2)*A(2,1))
+   end function
+
+
+   module subroutine swiftest_obl_rot_matrix(n, rot, rot_matrix, rot_matrix_inv)
+      !! author: Kaustub P. Anand
+      !! 
+      !! Generate a rotation matrix and its inverse to rotate the coordinate frame to align the rotation axis along the z axis for 
+      !! correct spin calculation
+      !! 
+
+      implicit none
+      ! Arguments
+      integer(I4B),             intent(in)           :: n               !! Number of bodies
+      real(DP), dimension(NDIM), intent(in)          :: rot             !! Central body rotation vector
+      real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix      !! rotation matrix
+      real(DP), dimension(NDIM, NDIM), intent(inout) :: rot_matrix_inv  !! inverse of the rotation matrix
+
+      ! Internals
+      real(DP)     :: theta !! angle to rotate it through
+      real(DP), dimension(3) :: u, z_hat, check !! unit vector about which we rotate, z_hat, and a check variable
+      real(DP), dimension(3, 3) :: S_matrix, temp !! rotation matrices, and a temporary variable
+      integer        :: i, j !! dummy variable
+
+      ! Assumed that NDIM = 3
+      
+      rot_matrix(:, :) = 0.0_DP
+      rot_matrix_inv(:, :) = 0.0_DP
+      z_hat(:) = [0.0_DP, 0.0_DP, 1.0_DP]
+
+      if (n == 0) return
+
+      if ((abs(rot(1)) < 10*tiny(1.0_DP)) .and. (abs(rot(2)) < 10*tiny(1.0_DP))) then
+         do i = 1, NDIM
+            rot_matrix_inv(i, i) = 1.0_DP
+            rot_matrix(i, i) = 1.0_DP
+         end do
+
+         return ! rotation axis is about the z-axis, no need to change
+      end if
+      
+      u(:) = rot(:) .cross. z_hat(:)
+      u(:) = .unit. u(:)
+      theta = acos(dot_product((.unit. rot(:)), z_hat(:)))
+      
+      ! S_matrix(:, :) = [[0.0_DP, -u(3), u(2)], [u(3), 0.0_DP, -u(1)], [-u(2), u(1), 0.0_DP]] ! skew-symmetric matrix
+      S_matrix(1, :) = [0.0_DP, -u(3), u(2)]
+      S_matrix(2, :) = [u(3), 0.0_DP, -u(1)]
+      S_matrix(3, :) = [-u(2), u(1), 0.0_DP]
+      ! assuming NDIM = 3
+      ! CHECK for a general formula for the skew-symmetric matrix
+
+      do j = 1, NDIM
+         do i = 1, NDIM
+            if (i == j) then
+               rot_matrix_inv(i, j) = rot_matrix_inv(i, j) + cos(theta) ! identity matrix
+               continue
+            end if
+
+            ! Skew-symmetric matrix + Tensor product matrix
+            rot_matrix_inv(i, j) = rot_matrix_inv(i, j) + u(i) * u(j) * (1 - cos(theta)) + S_matrix(i, j) * sin(theta) 
+
+         end do
+      end do
+
+      rot_matrix = matinv3(rot_matrix_inv)
+      
+      ! Check that the correct rotation matrix is used
+      ! rot_matrix * rot should be in the z_hat direction
+      check = matmul(rot, rot_matrix) ! 1x3 matrix x 3x3 matrix
+      check = .unit. check(:)
+      
+      if((abs(check(1)) > epsilon(0.0_DP)) .or. (abs(check(2)) > epsilon(0.0_DP))) then
+         temp = rot_matrix
+         rot_matrix = rot_matrix_inv
+         rot_matrix_inv = temp
+      end if
+      
+      return
+   end subroutine swiftest_obl_rot_matrix
+
+   
+   module subroutine swiftest_obl_acc(n, GMcb, j2rp2, j4rp4, rh, lmask, aobl, rot, GMpl, aoblcb)
+      !! author: David A. Minton, Kaustub Anand (2023)
       !!
       !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       !!      Returned values do not include monopole term or terms higher than J4
@@ -26,32 +136,69 @@ contains
       real(DP), dimension(:,:), intent(in)            :: rh     !! Heliocentric positions of bodies
       logical,  dimension(:),   intent(in)            :: lmask  !! Logical mask of bodies to compute aobl
       real(DP), dimension(:,:), intent(out)           :: aobl   !! Barycentric acceleration of bodies due to central body oblateness
+      real(DP), dimension(NDIM), intent(in)           :: rot    !! Central body rotation matrix
       real(DP), dimension(:),   intent(in),  optional :: GMpl   !! Masses of input bodies if they are not test particles
-      real(DP), dimension(:),   intent(out), optional :: aoblcb !! Barycentric acceleration of central body (only needed if input bodies are massive)
+      real(DP), dimension(:),   intent(out), optional :: aoblcb 
+         !! Barycentric acceleration of central body (only needed if input bodies are massive)
+   
       ! Internals
       integer(I4B) :: i
       real(DP)     :: r2, irh, rinv2, t0, t1, t2, t3, fac1, fac2
+      real(DP), dimension(NDIM)       :: rh_transformed ! rotated position vector
+      real(DP), dimension(NDIM, NDIM) :: rot_matrix, rot_matrix_inv ! rotation matrix and its inverse
 
       if (n == 0) return
 
       aobl(:,:) = 0.0_DP
+
+      ! If the rotation axis is along the z-axis, skip calculating the rotation matrix
+      if ((abs(rot(1)) < 10*tiny(1.0_DP)) .and. (abs(rot(2)) < 10*tiny(1.0_DP))) then
 #ifdef DOCONLOC
-      do concurrent(i = 1:n, lmask(i)) shared(lmask,rh,aobl) local(r2,irh,rinv2,t0,t1,t2,t3,fac1,fac2)
+         do concurrent(i = 1:n, lmask(i)) shared(lmask,rh,aobl,j2rp2,j4rp4) &
+                                          local(r2,irh,rinv2,t0,t1,t2,t3,fac1,fac2)
 #else
-      do concurrent(i = 1:n, lmask(i))
+         do concurrent(i = 1:n, lmask(i))
 #endif
-         r2 = dot_product(rh(:, i), rh(:, i))
-         irh = 1.0_DP / sqrt(r2)
-         rinv2 = irh**2
-         t0 = -GMcb * rinv2 * rinv2 * irh
-         t1 = 1.5_DP * j2rp2
-         t2 = rh(3, i) * rh(3, i) * rinv2
-         t3 = 1.875_DP * j4rp4 * rinv2
-         fac1 = t0 * (t1 - t3 - (5 * t1 - (14.0_DP - 21.0_DP * t2) * t3) * t2)
-         fac2 = 2 * t0 * (t1 - (2.0_DP - (14.0_DP * t2 / 3.0_DP)) * t3)
-         aobl(:, i) = fac1 * rh(:, i)
-         aobl(3, i) = fac2 * rh(3, i) + aobl(3, i)
-      end do
+            r2 = dot_product(rh(:, i), rh(:, i))
+            irh = 1.0_DP / sqrt(r2)
+            rinv2 = irh**2
+            t0 = -GMcb * rinv2 * rinv2 * irh
+            t1 = 1.5_DP * j2rp2
+            t2 = rh(3, i) * rh(3, i) * rinv2
+            t3 = 1.875_DP * j4rp4 * rinv2
+            fac1 = t0 * (t1 - t3 - (5 * t1 - (14.0_DP - 21.0_DP * t2) * t3) * t2)
+            fac2 = 2 * t0 * (t1 - (2.0_DP - (14.0_DP * t2 / 3.0_DP)) * t3)
+            aobl(:, i) = fac1 * rh(:, i)
+            aobl(3, i) = fac2 * rh(3, i) + aobl(3, i)
+         end do
+      else 
+         ! generate the rotation matrix
+         call swiftest_obl_rot_matrix(n, rot, rot_matrix, rot_matrix_inv)
+
+#ifdef DOCONLOC
+         do concurrent(i = 1:n, lmask(i)) shared(lmask,rh,aobl,rot_matrix,rot_matrix_inv,j2rp2,j4rp4) &
+                                          local(r2,irh,rinv2,t0,t1,t2,t3,fac1,fac2,rh_transformed)
+#else
+         do concurrent(i = 1:n, lmask(i))
+#endif
+            ! rotate the position vectors
+            rh_transformed = matmul(rh(:, i), rot_matrix) ! 1x3 vector * 3x3 matrix
+            r2 = dot_product(rh_transformed, rh_transformed)
+            irh = 1.0_DP / sqrt(r2)
+            rinv2 = irh**2
+            t0 = -GMcb * rinv2 * rinv2 * irh
+            t1 = 1.5_DP * j2rp2
+            t2 = rh_transformed(3) * rh_transformed(3) * rinv2
+            t3 = 1.875_DP * j4rp4 * rinv2
+            fac1 = t0 * (t1 - t3 - (5 * t1 - (14.0_DP - 21.0_DP * t2) * t3) * t2)
+            fac2 = 2 * t0 * (t1 - (2.0_DP - (14.0_DP * t2 / 3.0_DP)) * t3)
+            aobl(:, i) = fac1 * rh_transformed(:)
+            aobl(3, i) = fac2 * rh_transformed(3) + aobl(3, i)
+
+            ! rotate the acceleration and position vectors back to the original coordinate frame
+            aobl(:, i) = matmul(aobl(:, i), rot_matrix_inv)
+         end do
+      end if
 
       if (present(GMpl) .and. present(aoblcb)) then
          aoblcb(:) = 0.0_DP
@@ -65,7 +212,7 @@ contains
    end subroutine swiftest_obl_acc
 
 
-   module subroutine swiftest_obl_acc_pl(self, nbody_system)
+   module subroutine swiftest_non_spherical_cb_acc_pl(self, nbody_system)
       !! author: David A. Minton
       !!
       !! Compute the barycentric accelerations of massive bodies due to the oblateness of the central body
@@ -83,7 +230,11 @@ contains
 
       associate(pl => self, cb => nbody_system%cb)
          npl = self%nbody
-         call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rh, pl%lmask, pl%aobl, pl%Gmass, cb%aobl)
+         if (allocated(cb%c_lm)) then
+            call shgrav_acc(self, nbody_system)
+         else
+            call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rh, pl%lmask, pl%aobl, cb%rot, pl%Gmass, cb%aobl)
+         end if
 
 #ifdef DOCONLOC
          do concurrent(i = 1:npl, pl%lmask(i)) shared(cb,pl)
@@ -95,11 +246,10 @@ contains
       end associate
 
       return
+   end subroutine swiftest_non_spherical_cb_acc_pl
 
-   end subroutine swiftest_obl_acc_pl
 
-
-   module subroutine swiftest_obl_acc_tp(self, nbody_system)
+   module subroutine swiftest_non_spherical_cb_acc_tp(self, nbody_system)
       !! author: David A. Minton
       !!
       !! Compute the barycentric accelerations of massive bodies due to the oblateness of the central body
@@ -118,7 +268,11 @@ contains
 
       associate(tp => self, cb => nbody_system%cb)
          ntp = self%nbody
-         call swiftest_obl_acc(ntp, cb%Gmass, cb%j2rp2, cb%j4rp4, tp%rh, tp%lmask, tp%aobl)
+         if (allocated(cb%c_lm)) then
+            call shgrav_acc(self, nbody_system)
+         else
+            call swiftest_obl_acc(ntp, cb%Gmass, cb%j2rp2, cb%j4rp4, tp%rh, tp%lmask, tp%aobl, cb%rot)
+         end if
          if (nbody_system%lbeg) then
             aoblcb = cb%aoblbeg
          else
@@ -134,9 +288,9 @@ contains
          end do
 
       end associate
-      return
 
-   end subroutine swiftest_obl_acc_tp
+      return
+   end subroutine swiftest_non_spherical_cb_acc_tp
 
 
    module subroutine swiftest_obl_pot_system(self) 
@@ -158,6 +312,7 @@ contains
 
       associate(nbody_system => self, pl => self%pl, cb => self%cb)
          npl = self%pl%nbody
+         if (npl == 0) return
          if (.not. any(pl%lmask(1:npl))) return
 #ifdef DOCONLOC
          do concurrent (i = 1:npl, pl%lmask(i)) shared(cb,pl,oblpot_arr)
@@ -176,7 +331,8 @@ contains
    elemental function swiftest_obl_pot_one(GMcb, GMpl, j2rp2, j4rp4, zh, irh) result(oblpot)
       !! author: David A. Minton
       !!
-      !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body from a single massive body
+      !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body from a 
+      !! single massive body
       !!    Returned value does not include monopole term or terms higher than J4
       !!
       !!    Reference: MacMillan, W. D. 1958. The Theory of the Potential, (Dover Publications), 363.

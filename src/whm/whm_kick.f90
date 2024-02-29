@@ -43,8 +43,8 @@ contains
          call whm_kick_getacch_ah2(cb, pl) 
          call pl%accel_int(param) 
 
-         if (param%loblatecb) then
-            call pl%accel_obl(nbody_system)
+         if (param%lnon_spherical_cb) then
+            call pl%accel_non_spherical_cb(nbody_system)
             if (lbeg) then
                cb%aoblbeg = cb%aobl
             else
@@ -59,7 +59,6 @@ contains
          end if
 
          if (param%lgr) call pl%accel_gr(param) 
-
          if (param%lextra_force) call pl%accel_user(nbody_system, param, t, lbeg)
       end associate
 
@@ -88,32 +87,34 @@ contains
       associate(tp => self, pl => nbody_system%pl, cb => nbody_system%cb)
          npl = nbody_system%pl%nbody
          ntp = self%nbody
-         if (ntp == 0 .or. npl == 0) return
+         if (ntp == 0) return
          nbody_system%lbeg = lbeg
 
-         if (lbeg) then
-            ah0(:) = whm_kick_getacch_ah0(pl%Gmass(1:npl), pl%rbeg(:, 1:npl), npl)
+         if(npl > 0) then
+            if (lbeg) then
+               ah0(:) = whm_kick_getacch_ah0(pl%Gmass(1:npl), pl%rbeg(:, 1:npl), npl)
 #ifdef DOCONLOC
-            do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp,ah0)
+               do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp,ah0)
 #else
-            do concurrent(i = 1:ntp, tp%lmask(i))
+               do concurrent(i = 1:ntp, tp%lmask(i))
 #endif
-               tp%ah(:, i) = tp%ah(:, i) + ah0(:)
-            end do
-            call tp%accel_int(param, pl%Gmass(1:npl), pl%rbeg(:, 1:npl), npl)
-         else
-            ah0(:) = whm_kick_getacch_ah0(pl%Gmass(1:npl), pl%rend(:, 1:npl), npl)
+                  tp%ah(:, i) = tp%ah(:, i) + ah0(:)
+               end do
+               call tp%accel_int(param, pl%Gmass(1:npl), pl%rbeg(:, 1:npl), npl)
+            else
+               ah0(:) = whm_kick_getacch_ah0(pl%Gmass(1:npl), pl%rend(:, 1:npl), npl)
 #ifdef DOCONLOC
-            do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp,ah0)
+               do concurrent(i = 1:ntp, tp%lmask(i)) shared(tp,ah0)
 #else
-            do concurrent(i = 1:ntp, tp%lmask(i))
+               do concurrent(i = 1:ntp, tp%lmask(i))
 #endif
-               tp%ah(:, i) = tp%ah(:, i) + ah0(:)
-            end do
-            call tp%accel_int(param, pl%Gmass(1:npl), pl%rend(:, 1:npl), npl)
+                  tp%ah(:, i) = tp%ah(:, i) + ah0(:)
+               end do
+               call tp%accel_int(param, pl%Gmass(1:npl), pl%rend(:, 1:npl), npl)
+            end if
          end if
 
-         if (param%loblatecb) call tp%accel_obl(nbody_system)
+         if (param%lnon_spherical_cb) call tp%accel_non_spherical_cb(nbody_system)
          if (param%lextra_force) call tp%accel_user(nbody_system, param, t, lbeg)
          if (param%lgr) call tp%accel_gr(param) 
       end associate

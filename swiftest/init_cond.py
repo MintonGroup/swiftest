@@ -39,8 +39,8 @@ def horizons_get_physical_properties(altid,**kwargs):
 
     Returns
     -------
-    MSun_over_Mpl : float
-        The ratio of MSun/M of the body
+    GMass : float
+        G*Mass of the body
     radius : float
         The radius of the body in m
     rot: (3) float vector
@@ -53,6 +53,22 @@ def horizons_get_physical_properties(altid,**kwargs):
             and 'GMT' not in s
             and 'ANGMOM' not in s]
         if len(GM) == 0:
+            # Try an alternative name for the Mass found in some satellite queries
+            M = [s for s in raw_response.split('\n') if 'Mass' in s]
+            if len(M) > 0:
+                M = M[0].split('Mass')[-1].strip()
+                if 'kg' in M:
+                    unit_conv_str = M.split('kg')[0].strip()
+                    unit_conv_str = unit_conv_str.split('^')[1].strip()
+                    unit_conv = 10**int(unit_conv_str)
+                    mult = M.split('=')[1].strip().split(' ')[1].strip('()')
+                    mult = 10**int(mult.split('^')[1].strip())
+                    M = M.split('=')[1].strip().split(' ')[0].strip()
+                    M = float(M)  * mult * unit_conv
+                    try:
+                        return M * swiftest.GC * 1e-9 # Return units of km**3 / s**2 for consistency
+                    except:
+                        return None
             return None
         GM = GM[0]
         if len(GM) > 1:
@@ -124,11 +140,12 @@ def horizons_get_physical_properties(altid,**kwargs):
     def get_rotpole(jpl):
         RA = jpl.ephemerides()['NPole_RA'][0]
         DEC = jpl.ephemerides()['NPole_DEC'][0]
-
+        
         if np.ma.is_masked(RA) or np.ma.is_masked(DEC):
             return np.array([0.0,0.0,1.0])
 
-        rotpole = SkyCoord(ra=RA * u.degree, dec=DEC * u.degree).cartesian
+        rotpole = SkyCoord(ra=RA * u.degree, dec=DEC * u.degree,frame='icrs').transform_to('barycentricmeanecliptic').cartesian
+         
         return np.array([rotpole.x.value, rotpole.y.value, rotpole.z.value])
     
     if type(altid) != list:
@@ -198,7 +215,11 @@ def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=
 
         Returns
         -------
-        MSun_over_Mpl : float
+        altid: string list | None
+            A list of alternate ids if more than one object matches the list
+        altname: string list | None
+            A list of alternate names if more than one object matches the list
+            
         """    
         if "ID" in errstr:
             altid = errstr.split('ID')[1]
@@ -342,6 +363,16 @@ def solar_system_horizons(name: str,
         if param['ROTATION']:
             Ip = Ipsun
             rot = rotcb
+        if param['IN_FORM'] == 'XV':
+            rh = np.array([0.0, 0.0, 0.0])
+            vh = np.array([0.0, 0.0, 0.0])
+        elif param['IN_FORM'] == 'EL':
+            a = np.nan
+            e = np.nan
+            inc = np.nan
+            capom = np.nan
+            omega = np.nan
+            capm = np.nan
     else: # Fetch solar system ephemerides from Horizons
         if ephemeris_id is None:
             ephemeris_id = name
@@ -457,7 +488,11 @@ def vec2xr(param: Dict, **kwargs: Any):
         instead of passing Ip1, Ip2, and Ip3 separately
     time : array of floats
         Time at start of simulation
-        
+    c_lm : (2, lmax + 1, lmax + 1) array of floats, optional
+        Spherical Harmonics coefficients; lmax = max spherical harmonics order
+    rotphase : float
+        rotational phase angle of the central body in degrees
+
     Returns
     -------
     ds : xarray dataset
@@ -466,10 +501,12 @@ def vec2xr(param: Dict, **kwargs: Any):
     scalar_dims = ['id']
     vector_dims = ['id','space']
     space_coords = np.array(["x","y","z"])
+    sph_dims = ['sign', 'l', 'm'] # Spherical Harmonics dimensions
 
     vector_vars = ["rh","vh","Ip","rot"]
-    scalar_vars = ["name","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4"]
-    time_vars =  ["rh","vh","Ip","rot","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4"]
+    scalar_vars = ["name","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4", "rotphase"]
+    sph_vars = ["c_lm"]
+    time_vars =  ["rh","vh","Ip","rot","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4", "rotphase"]
 
     # Check for valid keyword arguments
     kwargs = {k:kwargs[k] for k,v in kwargs.items() if v is not None}
@@ -483,7 +520,7 @@ def vec2xr(param: Dict, **kwargs: Any):
     if "time" not in kwargs:
         kwargs["time"] = np.array([0.0])
 
-    valid_arguments = vector_vars + scalar_vars + ['time','id']
+    valid_arguments = vector_vars + scalar_vars + sph_vars + ['time','id']
 
     kwargs = {k:v for k,v in kwargs.items() if k in valid_arguments}
 
@@ -498,5 +535,17 @@ def vec2xr(param: Dict, **kwargs: Any):
     time_vars = [v for v in time_vars if v in ds]
     for v in time_vars:
         ds[v] = ds[v].expand_dims({"time":1}).assign_coords({"time": kwargs['time']})
+
+    # create a C_lm Dataset and combine
+
+    if "c_lm" in kwargs:
+        clm_xr = xr.Dataset(data_vars = {k:(sph_dims, v) for k,v in kwargs.items() if k in sph_vars}, 
+                            coords = {
+                                    'sign':(['sign'], [1, -1]),
+                                    'l': (['l'], range(0, kwargs['c_lm'].shape[1])),
+                                    'm':(['m'], range(0, kwargs['c_lm'].shape[2]))
+                            }
+                            )
+        ds = xr.combine_by_coords([ds, clm_xr])
 
     return ds
