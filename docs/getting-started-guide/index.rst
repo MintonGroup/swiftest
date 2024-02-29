@@ -192,7 +192,7 @@ line.
 
 The Swiftest driver program is written in modern Fortran and must be
 compiled before it can be run. After compilation, an executable, called
-the \`swiftest_driver`\`, will have been created in the ``bin/``
+the ``swiftest_driver``, will have been created in the ``bin/``
 directory.
 
 Swiftest is compiled through `CMake <https://cmake.org/>`__. Compiling
@@ -291,7 +291,7 @@ To see a list of all possible options available to CMake:
 The Swiftest executable, called ``swiftest_driver``, should now be
 created in the ``bin/`` directory.
 
-**Download the ``swiftest_driver`` as a Docker or Singularity
+**Download the** ``swiftest_driver`` **as a Docker or Singularity
 container.**
 
 The Swiftest driver is available as a Docker container on DockerHub in
