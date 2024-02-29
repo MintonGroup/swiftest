@@ -45,13 +45,13 @@ _dependencies
 !.readthedocs.yaml
 !docs/
 !docs/**/*
-docs/_build/
+!docs/_build/
 docs/_build/**/*
 docs/generated/
 docs/generated/**/*
 docs/**/*.DS_Store
 docs/**/*.swp
-docs/
+!docs/
 !docs/_static/**/*.png
 !docs/_static/**/*.svg
 **/*.ai

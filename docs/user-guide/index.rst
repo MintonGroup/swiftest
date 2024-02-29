@@ -2,9 +2,11 @@
 User Guide
 ###########
 
-TBD
-
+In this user guide, you will find detailed descriptions and examples that describe the many capabilities of Swiftest and how to use them.
 
 .. toctree::
    :maxdepth: 2
    :hidden:
+
+   Basic Simulation <basic-simulation/index>
+   Spherical Harmonics <spherical-harmonics/index>
