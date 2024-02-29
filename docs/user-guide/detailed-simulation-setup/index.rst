@@ -1,6 +1,6 @@
-#################
+#####################
 Detailed Simulation
-#################
+#####################
 
 Here, we will walk you through the basic features of Swiftest and using them in Python. 
 This is based on ``/Basic_Simulation`` in ``swiftest/examples``.
