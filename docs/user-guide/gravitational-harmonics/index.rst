@@ -71,7 +71,7 @@ Add the central body to the simulation along with the coefficients. ::
 
     sim.add_body(name = 'Chariklo', mass = cb_mass, rot = cb_rot, radius = cb_radius, c_lm = c_lm)
 
-If the :math:`J2` and :math:`J4` terms are passed as well, Swiftest ignores them and uses the :math:`C_{lm}` terms instead.
+If the :math:`J_{2}` and :math:`J_{4}` terms are passed as well, Swiftest ignores them and uses the :math:`C_{lm}` terms instead.
 Now the user can set up the rest of the simulation as usual. ::
 
     # add other bodies and set simulation parameters
