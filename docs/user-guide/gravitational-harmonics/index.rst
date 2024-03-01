@@ -59,13 +59,13 @@ manner. Here we use Chariklo as an example body and refer to Jacobi Ellipsoid mo
     cb_T_rotation/= 24.0 # converting to julian days (TU)
     cb_rot = [[0, 0, 360.0 / cb_T_rotation]] # degrees/TU
 
-Once the central body parameters are defined, we can compute the gravitational harmonics coefficients (:math:`C_{lm}`). Here we set the 
-reference radius flag to `True` and ask the function to return the reference radius. More in the additional capabilities section below.
+Once the central body parameters are defined, we can compute the gravitational harmonics coefficients (:math:`C_{lm}`).
 The output coefficients are already correctly normalized. ::
 
     c_lm, cb_radius = swiftest.clm_from_ellipsoid(mass = cb_mass, density = cb_density, a = cb_a, b = cb_b, c = cb_c, lref_radius = True)
 
-*Note: The maximum degree is set to 6 by default to ensure computational efficiency.*
+*Note: Here we set the reference radius flag to `True` and ask the function to return the reference radius. More in the 
+additional capabilities section below. The maximum degree is set to 6 by default to ensure computational efficiency.*
 
 Add the central body to the simulation along with the coefficients. ::
 
