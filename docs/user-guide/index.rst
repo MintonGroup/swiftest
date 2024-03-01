@@ -8,7 +8,7 @@ In this user guide, you will find detailed descriptions and examples that descri
 
 - A more in-depth :doc:`Detailed Simulation Setup <detailed-simulation-setup/index>`
 
-- Understanding the :doc:`Spherical Harmonics capabilities <spherical-harmonics/index>`
+- Understanding the :doc:`Gravitational Harmonics capabilities <gravitational-harmonics/index>`
 
 .. toctree::
    :maxdepth: 2
@@ -16,4 +16,4 @@ In this user guide, you will find detailed descriptions and examples that descri
 
    Basic Simulation <basic-simulation/index>
    Detailed Simulation Setup <detailed-simulation-setup/index>
-   Spherical Harmonics <spherical-harmonics/index>
+   Gravitational Harmonics <gravitational-harmonics/index>
