@@ -82,6 +82,14 @@ Now the user can set up the rest of the simulation as usual. ::
     # run the simulation
     sim.run()
 
+Manually Adding the Coefficients
+================================
+
+If the user already has the coefficients, they can be added to the central body directly. Ensure that they are correctly normalized. ::
+
+    c_lm = ..... # defined by the user
+    sim.add_body(name = 'Body', mass = cb_mass, rot = cb_rot, radius = cb_radius, c_lm = c_lm)
+
 Additional Capabilities of Swiftest's Coefficient Generator Functions
 ===========================================================================================
 
