@@ -288,7 +288,7 @@ class Simulation(object):
             For instance, if the SFD of the collision would generated 300 fragments above the `minimum_fragment_mass`, then a value
             of `nfrag_reduction = 30.0` would reduce it to 10.  
             Currently only used by the Fraggle collision model.
-        rotation : bool, default False
+        rotation : bool, default True
             If set to True, this turns on rotation tracking and radius, rotation vector, and moments of inertia values
             must be included in the initial conditions.
             This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
