@@ -31,7 +31,7 @@ The biggest body in the simulation is taken as the central body.
 Solar System Bodies
 =========================
 
-We can add solar system bodies to the simulation using the ``add_solar_system_body`` method. 
+We can add solar system bodies to the simulation using the :func:`add_solar_system_body <swiftest.Simulation.add_solar_system_body>` method. 
 This method uses JPL Horizons to extract the parameters. ::
    
    # Add the modern planets and the Sun using the JPL Horizons Database.
@@ -51,8 +51,8 @@ We can add other small bodies too. ::
 User Defined Bodies
 =========================
 
-For completeness, let's also add some bodies with user defined parameters using ``sim.add_body()``.
-We will randomize the initial conditions and therefore import the ``numpy.random`` module.::
+For completeness, let's also add some bodies with user defined parameters using :func:`sim.add_body <swiftest.Simulation.add_body>`.
+We will randomize the initial conditions and therefore import the `numpy.random <https://numpy.org/doc/stable/reference/random/index.html#module-numpy.random>`__ module.::
 
    from numpy.random import default_rng
    rng = default_rng(seed=123)
@@ -141,7 +141,7 @@ This can be done in multiple ways:
     sim = swiftest.Simulation(simdir = simdir, integrator = 'symba', init_cond_format = 'EL', tstart=0.0, tstop=1.0e6, dt=0.01, 
                                 istep_out=100, dump_cadence=0, compute_conservation_values=True, mtiny=mtiny)
     
-- ``sim.set_parameter()``: Set individual parameters in the simulation. The user can set one or multiple at a time. ::
+- :func:`sim.set_parameter <swiftest.Simulation.set_parameter>`: Set individual parameters in the simulation. The user can set one or multiple at a time. ::
 
     sim.set_parameter(tstart=0.0, tstop=1.0e6, dt=0.01, istep_out=100, dump_cadence=0, compute_conservation_values=True, mtiny=mtiny)
     sim.set_parameter(rmin = 0.05)
@@ -149,8 +149,8 @@ This can be done in multiple ways:
 We now set up the simulation parameters. Here we have a simulation starting from `0.0 y` and running for `1 My = 1e6 years` 
 with time steps of `0.01 years`. The timestep should be less than or equal to 1/10 of the orbital period of the innermost body. 
 
-The user can then write the parameters to the `param.in` file by using ``sim.write_param()``.
-To see the parameters of the simulation, use ``sim.get_parameter()``.
+The user can then write the parameters to the `param.in` file by using :func:`write_param <swiftest.Simulation.write_param>`.
+To see the parameters of the simulation, use :func:`sim.get_parameter <swiftest.Simulation.get_parameter>`.
 
 Running the Simulation
 ========================
