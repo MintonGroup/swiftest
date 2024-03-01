@@ -15,28 +15,90 @@
 # If not, see: https://www.gnu.org/licenses. 
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
-case "$OS" in
-    Linux|MacOSX|Intel)
+
+# Get platform and architecture
+OS=$(uname -s)
+ARCH=$(uname -m)
+
+case $ARCH in
+    x86_64)
+        ;;
+    amd64)
+        ARCH="x86_64"
+        ;;
+    arm64)
+        if [ "$OS" = "Linux" ]; then
+            ARCH="aarch64"
+        fi
+        ;;
+    aarch64)
+        if [ "$OS" = "Darwin" ]; then
+            ARCH="arm64"
+        fi
         ;;
     *)
-        echo "Unknown compiler type: $OS"
-        echo "Valid options are Intel, Linux, or MacOSX"
-        echo $USTMT
+        echo "Swiftest is currently not configured to build for platform ${OS}-${ARCH}"
         exit 1
         ;;
 esac
 
+case $OS in
+    Darwin)
+        OS="MacOSX" 
+        ;;
+    *MSYS*)
+        OS="Windows"
+        ;;
+esac
+
+if [[ $OS == "Linux" ]]; then
+    # Check if FC is set yet, and if so, use it instead of the default
+    # Currently ifx support is not great
+    case $FC in
+    *ifx) 
+        OS="Linux-ifx" 
+        ;;
+    *mpiifort)
+        OS="Linux-mpiifort"
+        ;;
+    *ifort)
+        OS="Linux-ifort"
+        ;;
+    *gfortran)
+        OS="Linux-gnu"
+        ;;
+    *)
+        OS="Linux-gnu"
+        ;;
+    esac
+fi 
 set -a
 case $OS in
-    Linux)
-        . ${SCRIPT_DIR}/set_environment_linux.sh
+    Linux-gnu)
         FC=$(command -v gfortran)
         CC=$(command -v gcc)
         CXX=$(command -v g++)
         CPP=$(command -v cpp)
         ;;
+    Linux-ifx)
+        FC=$(command -v ifx)
+        CC=$(command -v icx)
+        CXX=$(command -v icpx)
+        CPP=$(command -v cpp)
+        ;;
+    Linux-ifort)
+        FC=$(command -v ifort)
+        CC=$(command -v icc)
+        CXX=$(command -v icpc)
+        CPP=$(command -v cpp)
+        ;;
+    Linux-mpiifort)
+        FC=$(command -v mpiifort)
+        CC=$(command -v mpiicc)
+        CXX=$(command -v mpiicpc)
+        CPP=$(command -v cpp)
+        ;;
     MacOSX)
-        . ${SCRIPT_DIR}/set_environment_macos.sh
         FC=${HOMEBREW_PREFIX}/bin/gfortran-12
         CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype -arch ${ARCH}"
         FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -arch ${ARCH}"
@@ -52,15 +114,10 @@ case $OS in
         RANLIB=${COMPILER_PREFIX}/bin/ranlib
         LDFLAGS="-Wl,-no_compact_unwind"
         ;;
-    Intel)
-        FC=$(command -v ifx)
-        CC=$(command -v icx)
-        CXX=$(command -v icpx)
-        CPP=$(command -v cpp)
-        ;;
+
     *)
         printf "Unknown compiler type: ${OS}\n"
-        echo "Valid options are Intel, Linux, or MacOSX"
+        echo "Valid options are Linux-gnu, Linux-ifort, Linux-ifx, or MacOSX"
         printf $USTMT
         exit 1
         ;;

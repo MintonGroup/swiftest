@@ -209,7 +209,11 @@ contains
                   fragments%density(1) = fragments%mass(1) / volume
                   fragments%radius(1) = (3._DP * volume / (4._DP * PI))**(THIRD)
                   if (param%lrotation) then
+#ifdef DOCONLOC
+                     do concurrent(i = 1:NDIM) shared(impactors, fragments, L_spin_new)
+#else
                      do concurrent(i = 1:NDIM)
+#endif
                         fragments%Ip(i,1) = sum(impactors%mass(:) * impactors%Ip(i,:)) 
                         L_spin_new(i) = sum(impactors%L_orbit(i,:) + impactors%L_spin(i,:))
                      end do

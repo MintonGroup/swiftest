@@ -25,7 +25,6 @@ output.eps : Encapsulated PostScript file depicting the eccentricity vs. semi-ma
 """
 
 import swiftest
-import xarray as xr
 import matplotlib.pyplot as plt
 
 # Read in the simulation output and store it as an Xarray dataset.

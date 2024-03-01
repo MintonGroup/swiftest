@@ -37,19 +37,20 @@ swiftest-*
 __pycache__*
 _cmake*
 _dependencies
+!SHTOOLS
+!SHTOOLS/**
 
 
 #Documentation
 !.readthedocs.yaml
 !docs/
 !docs/**/*
-docs/_build/
+!docs/_build/
 docs/_build/**/*
 docs/generated/
 docs/generated/**/*
 docs/**/*.DS_Store
 docs/**/*.swp
-docs/
 !docs/_static/**/*.png
 !docs/_static/**/*.svg
 **/*.ai
@@ -65,14 +66,14 @@ docs/_static/fortran_docs/*/**
 !environment.yml
 !.dockerignore
 
+swiftest/_bindings.cpython*
 bin/
 build/*
-hdf5-*
-netcdf-c-*
-netcdf-fortran-*
-zlib-*
+lib*
 
 actions-runner*
 
 env/**
 venv/**
+
+sandbox/**

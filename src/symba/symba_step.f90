@@ -305,7 +305,9 @@ contains
       
             nenc_old = nbody_system%pltp_encounter%nenc
             call nbody_system%pltp_encounter%setup(0_I8B)
+            call nbody_system%pltp_collision%setup(0_I8B)
             if (ntp > 0) then
+               tp%lcollision(1:ntp) = .false.
                tp%nplenc(1:ntp) = 0 
                tp%levelg(1:ntp) = -1
                tp%levelm(1:ntp) = -1

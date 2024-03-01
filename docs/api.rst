@@ -69,6 +69,7 @@ Adding Bodies to a Simulation
 
     Simulation.add_body
     Simulation.add_solar_system_body
+    Simulation.set_central_body
 
 
 File Input and Output
@@ -82,8 +83,8 @@ File Input and Output
     Simulation.read_encounter_file
     Simulation.read_collision_file
     Simulation.follow
+    Simulation.initial_conditions_from_data
     Simulation.save
-    Simulation.initial_conditions_from_bin
     Simulation.convert
     Simulation.clean
 
@@ -98,6 +99,15 @@ Initial Conditions Generation Functions
     swiftest.init_cond.horizons_query
     swiftest.init_cond.horizons_get_physical_properties
     swiftest.init_cond.vec2xr
+
+Gravitional Harmonics Functions
+===============================
+
+.. autosummary::
+    :toctree: generated/
+
+    swiftest.shgrav.clm_from_ellipsoid
+    swiftest.shgrav.clm_from_relief
 
 
 Input/Output Processing Functions

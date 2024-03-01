@@ -238,7 +238,7 @@ class Simulation(object):
             The name of the time unit. When setting one of the standard units via `TU` a name will be
             automatically set for the unit, so this argument will override the automatic name.
             Parameter input file equivalent is None
-        rmin : float, default value is the radius of the Sun in the unit system defined by the unit input arguments.
+        rmin : float, default value is the radius of the central body in the unit system defined by the unit input arguments.
             Minimum distance of the simulation
             Parameter input file equivalent are `CHK_QMIN`, `CHK_RMIN`, `CHK_QMIN_RANGE[0]`
         rmax : float, default value is 10000 AU in the unit system defined by the unit input arguments.
@@ -288,7 +288,7 @@ class Simulation(object):
             For instance, if the SFD of the collision would generated 300 fragments above the `minimum_fragment_mass`, then a value
             of `nfrag_reduction = 30.0` would reduce it to 10.  
             Currently only used by the Fraggle collision model.
-        rotation : bool, default False
+        rotation : bool, default True
             If set to True, this turns on rotation tracking and radius, rotation vector, and moments of inertia values
             must be included in the initial conditions.
             This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
@@ -448,8 +448,11 @@ class Simulation(object):
             return
 
         # Save initial conditions
-        if not self.restart:
+        if self.restart:
+            self.save(framenum=-1)
+        else:
             self.clean()
+            self.save(framenum=0)
             
         # Write out the current parameter set before executing run
         self.write_param(verbose=False,**kwargs)
@@ -776,7 +779,7 @@ class Simulation(object):
             "MU_name": None,
             "DU_name": None,
             "TU_name": None,
-            "rmin": constants.RSun / constants.AU2M,
+            "rmin": None,
             "rmax": 10000.0,
             "qmin_coord": "HELIO",
             "gmtiny": 0.0,
@@ -784,9 +787,9 @@ class Simulation(object):
             "nfrag_reduction": 30.0,
             "close_encounter_check": True,
             "general_relativity": True,
-            "collision_model": "FRAGGLE",
+            "collision_model": "MERGE",
             "minimum_fragment_mass": None,
-            "minimum_fragment_gmass": 0.0,
+            "minimum_fragment_gmass": None,
             "rotation": True,
             "compute_conservation_values": False,
             "extra_force": False,
@@ -819,8 +822,8 @@ class Simulation(object):
 
         # Setters returning parameter dictionary values
         param_dict = {}
-        param_dict.update(self.set_integrator(**kwargs))
         param_dict.update(self.set_unit_system(**kwargs))
+        param_dict.update(self.set_integrator(**kwargs))
         param_dict.update(self.set_simulation_time(**kwargs))
         param_dict.update(self.set_init_cond_files(**kwargs))
         param_dict.update(self.set_output_files(**kwargs))
@@ -851,12 +854,12 @@ class Simulation(object):
 
         # Getters returning parameter dictionary values
         param_dict = {}
+        param_dict.update(self.get_unit_system(**kwargs))
         param_dict.update(self.get_integrator(**kwargs))
         param_dict.update(self.get_simulation_time(**kwargs))
         param_dict.update(self.get_init_cond_files(**kwargs))
         param_dict.update(self.get_output_files(**kwargs))
         param_dict.update(self.get_distance_range(**kwargs))
-        param_dict.update(self.get_unit_system(**kwargs))
         param_dict.update(self.get_feature(**kwargs))
 
         self.get_ephemeris_date(**kwargs)
@@ -2008,7 +2011,8 @@ class Simulation(object):
             if CHK_QMIN_RANGE is not None:
                 CHK_QMIN_RANGE = CHK_QMIN_RANGE.split(" ")
                 for i, v in enumerate(CHK_QMIN_RANGE):
-                    CHK_QMIN_RANGE[i] = float(CHK_QMIN_RANGE[i]) * self.param['DU2M'] / DU2M_old
+                    if float(v) > 0.0:
+                        CHK_QMIN_RANGE[i] = float(v) * DU2M_old / self.param['DU2M'] 
                 self.param['CHK_QMIN_RANGE'] = f"{CHK_QMIN_RANGE[0]} {CHK_QMIN_RANGE[1]}"
 
         if TU2S_old is not None:
@@ -2150,6 +2154,7 @@ class Simulation(object):
                               ephemeris_id: int | List[int] | None = None,
                               date: str | None = None,
                               source: str = "HORIZONS", 
+                              align_to_central_body_rotation: bool = False,
                               **kwargs: Any
                               ) -> None:
         """
@@ -2178,7 +2183,10 @@ class Simulation(object):
             set by `set_ephemeris_date`.
         source : str, default "Horizons"
             The source of the ephemerides.
-             Currently only the JPL Horizons ephemeris is implemented, so this is ignored.
+            Currently only the JPL Horizons ephemeris is implemented, so this is ignored.
+        align_to_central_body_rotation : bool, default False
+            If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
+            rotation is enabled.
         **kwargs : Any
             Additional keyword arguments to pass to the query method (i.e. astroquery.Horizons)
             
@@ -2265,11 +2273,9 @@ class Simulation(object):
         
         dsnew = init_cond.vec2xr(self.param,**kwargs)
 
-        dsnew = self._combine_and_fix_dsnew(dsnew)
+        dsnew = self._combine_and_fix_dsnew(dsnew,align_to_central_body_rotation, **kwargs)
         if dsnew['id'].max(dim='name') > 0 and dsnew['name'].size > 0:
            self.save(verbose=False)
-
-        self.init_cond = self.data.copy(deep=True)
 
         return
 
@@ -2420,8 +2426,12 @@ class Simulation(object):
                  rhill: float | List[float] | npt.NDArray[np.float_] | None=None,
                  rot: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None=None,
                  Ip: List[float] | npt.NDArray[np.float_] | None=None,
+                 rotphase: float | List[float] | npt.NDArray[np.float_] | None=None,
                  J2: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 J4: float | List[float] | npt.NDArray[np.float_] | None=None
+                 J4: float | List[float] | npt.NDArray[np.float_] | None=None,
+                 c_lm: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+                 align_to_central_body_rotation: bool = False,
+                 **kwargs: Any
                  ) -> None:
         """
         Adds a body (test particle or massive body) to the internal DataSet given a set up 6 vectors (orbital elements
@@ -2464,7 +2474,17 @@ class Simulation(object):
             Rotation rate vectors if these are massive bodies with rotation enabled.
         Ip : (3) or (n,3) array-like of float, optional
             Principal axes moments of inertia vectors if these are massive bodies with rotation enabled.
-
+        rotphase : float, optional
+            rotation phase angle in degreesif these are massive bodies with rotation enabled
+        J2 : float, optional
+            Normalized J2 values (e.g. J2*R**2, where R is the central body radius) if this is a central body (only one of J2 or c_lm can be passed)
+        J4 : float, optional
+            Normalized J4 values (e.g. J4*R**4, where R is the central body radius) if this is a central body (only one of J4 or c_lm can be passed)
+        c_lm : (2,l_max+1,l_max+1) array-like of float, optional
+            Spherical harmonics coefficients if this is a central body (only one of J2/J4 or c_lm can be passed)
+        align_to_central_body_rotation : bool, default False
+            If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
+            rotation is enabled.
         Returns
         -------
         None
@@ -2531,6 +2551,22 @@ class Simulation(object):
                     val = val.T
 
             return val, n
+        
+        def input_to_clm_array(val, n):
+            # Create function to convert c_lm array to numpy array
+            if val is None:
+                return None, n
+            elif isinstance(val, np.ndarray):
+                pass
+            else:
+                try:
+                    val = np.array(val,dtype=np.float64)
+                except:
+                    raise ValueError(f"{val} cannot be converted to a numpy array")
+                ndims = len(val.shape)
+                if ndims != 3 or val.shape[0] != 2 or val.shape[1] != val.shape[2]:
+                    raise ValueError(f'C_lm is an incorrect shape. Expected (2, l_max + 1, l_max + 1). got {val.shape} instead.')
+            return val, n
 
         nbodies = None
         name,nbodies = input_to_array(name,"s",nbodies)
@@ -2552,6 +2588,9 @@ class Simulation(object):
         vh,nbodies = input_to_array_3d(vh,nbodies)
         rot,nbodies = input_to_array_3d(rot,nbodies)
         Ip,nbodies = input_to_array_3d(Ip,nbodies)
+        rotphase, nbodies = input_to_array(rotphase, "f", nbodies)
+
+        c_lm, nbodies = input_to_clm_array(c_lm, nbodies)
 
         if len(self.data) == 0:
             maxid = -1
@@ -2576,18 +2615,55 @@ class Simulation(object):
                 raise ValueError("Cannot use mass and Gmass inputs simultaneously!")
             else: 
                 Gmass = self.GU * mass
-
+      
+        is_central_body = False 
+        if J2 is not None or J4 is not None:
+            is_central_body = True
+            if c_lm is not None:
+                raise ValueError("Cannot use J2/J4 and c_lm inputs simultaneously!")
+        if c_lm is not None:
+            is_central_body = True
+            if J2 is not None or J4 is not None:
+                raise ValueError("Cannot use J2/J4 and c_lm inputs simultaneously!")
+           
+        if rh is not None and vh is None:
+            raise ValueError("If rh is passed, vh must also be passed")
+        if vh is not None and rh is None:
+            raise ValueError("If vh is passed, rh must also be passed")
+        
+        if rh is not None:
+            if a is not None or e is not None or inc is not None or capom is not None or omega is not None or capm is not None:
+                raise ValueError("Only cartesian values or orbital elements may be passed, but not both.")
+        if is_central_body:
+            if a is not None or e is not None or inc is not None or capom is not None or omega is not None or capm is not None:
+                raise ValueError("Orbital elements cannot be passed for a central body.")
+            if nbodies > 1:
+                raise ValueError("Only one central body may be passed.")
+            if self.param['IN_FORM'] == "XV":
+                if rh is None:
+                    rh = np.zeros((1,3))
+                if vh is None:
+                    vh = np.zeros((1,3))
+            elif self.param['IN_FORM'] == "EL":
+                a = np.array([np.nan])
+                e = np.array([np.nan])
+                inc = np.array([np.nan])
+                capom = np.array([np.nan])
+                omega = np.array([np.nan])
+                capm = np.array([np.nan])
+                
         dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
-                                 Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, time=time)
+                                 Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, c_lm=c_lm, rotphase=rotphase, time=time)
 
-        dsnew = self._combine_and_fix_dsnew(dsnew)
+        dsnew = self._combine_and_fix_dsnew(dsnew,align_to_central_body_rotation,**kwargs)
         self.save(verbose=False)
-        self.init_cond = self.data.copy(deep=True)
 
         return
 
     def _combine_and_fix_dsnew(self,
-                               dsnew: xr.Dataset
+                               dsnew: xr.Dataset,
+                               align_to_central_body_rotation: bool = False,
+                               **kwargs: Any
                                ) -> xr.Dataset:
         """
         Combines the new Dataset with the old one. Also computes the values of ntp and npl and sets the proper types.
@@ -2596,6 +2672,9 @@ class Simulation(object):
         ----------
         dsnew : xarray Dataset
             Dataset with new bodies
+        align_to_central_body_rotation : bool, default False
+            If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
+            rotation is enabled.
 
         Returns
         -------
@@ -2622,6 +2701,7 @@ class Simulation(object):
             dsnew = io.fix_types(dsnew, ftype=np.float32)
             self.data = io.fix_types(self.data, ftype=np.float32)
 
+        self.set_central_body(align_to_central_body_rotation)
         def get_nvals(ds):
             if "name" in ds.dims:
                 count_dim = "name"
@@ -2641,6 +2721,7 @@ class Simulation(object):
 
         dsnew = get_nvals(dsnew)
         self.data = get_nvals(self.data)
+        
 
         self.data = self.data.sortby("id")
         self.data = io.reorder_dims(self.data)
@@ -2873,7 +2954,7 @@ class Simulation(object):
                     param_tmp['BIN_OUT'] = self.simdir / self.param['NC_IN']
                     self.init_cond = io.swiftest2xr(param_tmp, verbose=False, dask=dask)
                 else:
-                    self.init_cond = self.data.isel(time=0)
+                    self.init_cond = self.data.isel(time=[0]).copy(deep=True)
 
             if self.read_encounters:
                 self.read_encounter_file(dask=dask)
@@ -3044,6 +3125,8 @@ class Simulation(object):
 
         if not self.simdir.exists():
             self.simdir.mkdir(parents=True, exist_ok=True)
+            
+        self.init_cond = self.data.isel(time=[framenum]).copy(deep=True)
         
         if codename == "Swiftest":
             infile_name = Path(self.simdir) / param['NC_IN']
@@ -3060,7 +3143,7 @@ class Simulation(object):
 
         return
 
-    def initial_conditions_from_bin(self, 
+    def initial_conditions_from_data(self, 
                                     framenum: int=-1, 
                                     new_param: os.PathLike=None, 
                                     new_param_file: os.PathLike="param.new.in",
@@ -3163,3 +3246,63 @@ class Simulation(object):
                   os.remove(f)        
         return
 
+    def set_central_body(self, 
+                         align_to_central_body_rotation: bool = False,
+                         **kwargs: Any):
+        """
+        Sets the central body to be the most massive body in the dataset. Cartesian position and velocity Cartesian coordinates are rotated  If align_to_central_body_rotation is True, the rotation pole is set to the z-axis.
+        
+        Parameters
+        ----------
+        align_to_central_body_rotation : bool, default False
+            If True, the rotation pole is set to the z-axis.
+        
+        Returns
+        -------
+        None
+        
+        """
+        
+        if "Gmass" not in self.data:
+            warnings.warn("No bodies with Gmass values found in dataset. Cannot set central body.",stacklevel=2)
+            return
+       
+        cbid = self.data.Gmass.argmax().values[()] 
+        if 'name' in self.data.dims:
+            cbidx = self.data.id.isel(name=cbid).values[()]
+            cbname = self.data.name.isel(name=cbid).values[()]
+        elif 'id' in self.data.dims:
+            cbidx = self.data.id.isel(id=cbid).values[()]
+            cbname = self.data.name.isel(id=cbid).values[()]
+        else:
+            raise ValueError("No 'name' or 'id' dimensions found in dataset.")
+       
+        if cbidx != 0:
+            if 'name' in self.data.dims:
+                if 0 in self.data.id.values:
+                    name_0 = self.data.name.where(self.data.id == 0, drop=True).values[()]
+                    self.data['id'].loc[dict(name=name_0)] = cbidx
+                self.data['id'].loc[dict(name=cbname)] = 0
+            else:
+                if 0 in self.data.id.values:
+                    self.data['id'].loc[dict(id=0)] = cbidx
+                self.data['id'].loc[dict(id=cbidx)] = 0
+            
+        # Ensure that the central body is at the origin
+        if 'name' in self.data.dims: 
+            cbda =  self.data.sel(name=cbname)
+        else:
+            cbda = self.data.sel(id=cbidx)
+        
+        pos_skip = ['space','Ip','rot']
+        for var in self.data.variables:
+            if 'space' in self.data[var].dims and var not in pos_skip:
+                self.data[var] -= cbda[var]
+                
+        if align_to_central_body_rotation and 'rot' in cbda:
+            self.data = tool.rotate_to_vector(self.data,cbda.rot.isel(time=0).values[()])
+        
+        if self.param['CHK_CLOSE']:
+           if 'CHK_RMIN' not in self.param:
+               self.param['CHK_RMIN'] = cbda.radius.values.item()
+        return 
