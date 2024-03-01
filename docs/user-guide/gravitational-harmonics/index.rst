@@ -144,6 +144,7 @@ The user can set the maximum degree :math:`l` for the coefficients. ::
 
 ``lmax`` is by currently capped to 6 to ensure computational efficiency. This is derived from Jean's law by setting the 
 characteristic wavelength (:math:`\lambda`) of a harmonic degree (:math:`l`) to the radius (:math:`R`) of the body.
+
 .. math:: 
 
     R = \lambda = \frac{2\pi R}{\sqrt{l(l+1)}}
