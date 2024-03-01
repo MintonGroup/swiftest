@@ -4,6 +4,29 @@
 Getting Started
 ===============
 
+Swiftest is a re-write of the `Swifter <https://www.boulder.swri.edu/swifter/>`__ software package that incorporates modern programming techniques and performance
+improvements.  Swiftest contains the following numerical integrators:
+
+-  **Wisdom-Holman Mapping (WHM)** - A symplectic n-body mapping method.
+   See `Wisdom & Holman (1991) <https://ui.adsabs.harvard.edu/abs/1991AJ....102.1528W/abstract>`__.
+-  **Regularized Mixed Variable Symplectic (RMVS)** - An extension of WHM that is capable of handling close encounters between test
+   particles and massive bodies. See `Levison & Duncan (1994) <https://www.sciencedirect.com/science/article/pii/S0019103584710396?via%3Dihub>`__.
+-  **Democratic Heliocentric (HELIO)** - A symplectic integrator that uses the democratic heliocentric coordinate frame. See 
+-  `Duncan, Levison, & Lee (1998) <https://iopscience.iop.org/article/10.1086/300541>`__.
+-  **Symplectic Massive Body Algorithm (SyMBA)** - An extension of HELIO that is capable of handling close encounters between massive bodies.
+   See `Duncan, Levison, & Lee (1998) <https://iopscience.iop.org/article/10.1086/300541>`__.
+
+Swiftest also includes the collisional fragmentation algorithm *Fraggle*, which can be used to model collisional fragmentation when using the SyMBA integrator. 
+Fraggle is designed to resolve collisions between massive bodies by determining the collisional regime, derived from the work of `Leinhardt & Stewart
+(2012) <https://iopscience.iop.org/article/10.1088/0004-637X/745/1/79>`__, and generating the appropriate mass distribution of fragments. Swiftest
+fully incorporates collisional fragments into the gravitational system, evolving these new bodies along with pre-existing bodies, including
+their growth and any future fragmentation events in which they are involved.
+
+Swiftest is written in Modern Fortran and is designed to be run from Python. The Python package provides a set of tools for generating 
+initial conditions, running simulations, and processing output data. Swiftest can also be run from the command line using the ``swiftest_driver`` executable,
+provided that initial conditions and configuration files are available in the path. 
+
+
 Installation
 ------------
 
