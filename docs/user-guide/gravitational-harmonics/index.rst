@@ -11,10 +11,9 @@ kick is based on the gravitaional potential described `here <https://sseh.uchica
 
     U(r) = \frac{GM}{r} \sum_{l=0}^{\infty} \sum_{m=-l}^{l} \left( \frac{R_0}{r} \right)^l C_{lm} Y_{lm} (\theta, \phi) \label{grav_pot}
 
-Gravitational potential :math:`U` at a point :math:`\Vec{r}`; :math:`\theta` is the polar angle; :math:`\phi` is the azimuthal angle; 
+Gravitational potential :math:`U` at a point :math:`\vec{r}`; :math:`\theta` is the polar angle; :math:`\phi` is the azimuthal angle; 
 :math:`R_0` is the central body radius; :math:`G` is the gravitational constant; :math:`Y_{lm}` is the spherical harmonic function at degree :math:`l` and order :math:`m`; :math:`C_{lm}` is the corresponding coefficient.
-
-
+ 
 Gravitational Harmonics coefficients
 =====================================
 
@@ -24,8 +23,7 @@ The coefficients can be computed in a number of ways:
 - Using the axes measurements of the body ( :func:`clm_from_ellipsoid <swiftest.shgrav.clm_from_ellipsoid>`)
   
 - Using a surface relief grid ( :func:`clm_from_relief <swiftest.shgrav.clm_from_relief>`). 
-  
-   - This function is still in development and may not work as expected.
+   - Note: This function is still in development and may not work as expected.
   
 - Manually entering the coefficients when adding the central body ( :func:`add_body <swiftest.Simulation.add_body>`)
 
