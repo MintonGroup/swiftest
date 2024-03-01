@@ -139,8 +139,8 @@ default name of ``data.nc``, which is a netCDF file. It is read in and stored as
 
 Here is an example of what the dataset looks like after the above simulation has been run::
 
-  In [8]: sim.data
-  Out[8]: 
+  In [5]: sim.data
+  Out[5]: 
   <xarray.Dataset> Size: 229kB
 
     Dimensions:          (time: 101, space: 3, name: 9)
@@ -188,7 +188,18 @@ Here is an example of what the dataset looks like after the above simulation has
         j4rp4            (time) float64 808B -2.247e-18 -2.247e-18 ... -2.247e-18
 
 
+As you can see, even in this very simple example, the dataset contains a large amount of information about the simulated system. 
+For details about the definitions of *variables*, *dimensions*, and *coordinates*, see the 
+`Terminology <https://docs.xarray.dev/en/stable/user-guide/terminology.html>`__. section of the Xarray documentation. Xarray 
+Datasets are very powerful and flexible, and can be used to analyze and visualize the simulation data in a variety of ways. 
+Here is an example where we can generate a simple plot of the semimajor axis vs. time history of all the planets in the system::
 
-.. toctree::
+  sim.data['a'].where(sim.data.particle_type != 'Central Body', drop=True).plot(x='time',hue='name')
+
+.. image:: ../../_static/basic_simulation_a_vs_t_plot.png
+
+This is just a simple example of what you can do with the simulation data. Xarray has a large number of built-in plotting and 
+data processing functions. For more information, see the `Xarray documentation <https://docs.xarray.dev/en/stable/>`__.
+
 ..    :maxdepth: 2
 ..    :hidden:
