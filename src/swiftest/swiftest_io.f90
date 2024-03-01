@@ -1072,14 +1072,13 @@ contains
                                   "netcdf_io_initialize_output nf90_put_var space"  )
 
          if (param%lrotation .and. nc%lc_lm_exists) then
-
-            ! Populate coordinate values for l and m and export to hdf file
-            call netcdf_io_check( nf90_put_var(nc%id, nc%l_varid, [(i, i=0, nc%l_dim_max-1)]), &
-                                 "netcdf_io_write_frame_cb nf90_put_var l_varid")
-            call netcdf_io_check( nf90_put_var(nc%id, nc%m_varid, [(i, i=0, nc%m_dim_max-1)]), &
-                                 "netcdf_io_write_frame_cb nf90_put_var m_varid")
-            call netcdf_io_check( nf90_put_var(nc%id, nc%sign_varid, [1,-1]), &
-                                  "netcdf_io_write_frame_cb nf90_put_var sign_varid")
+            ! Populate coordinate values for l, m, and sign
+            call netcdf_io_check( nf90_put_var(nc%id, nc%l_varid, [(i, i=0, nc%l_dim_max-1)], start=[1], count=[nc%l_dim_max]), &
+                                 "netcdf_io_netcdf_initialize_output nf90_put_var l_varid")
+            call netcdf_io_check( nf90_put_var(nc%id, nc%m_varid, [(i, i=0, nc%m_dim_max-1)], start=[1], count=[nc%m_dim_max]), &
+                                 "netcdf_io_netcdf_initialize_output nf90_put_var m_varid")
+            call netcdf_io_check( nf90_put_var(nc%id, nc%sign_varid, nc%sign_coords, start=[1], count=[2] ), &
+                                  "netcdf_io_netcdf_initialize_output nf90_put_var sign_varid")
          end if
 
       end associate
@@ -1616,10 +1615,6 @@ contains
          !    cb%Q = rtemp(1)
          !    if (npl > 0) pl%Q(:) = pack(rtemp, plmask)
          ! end if
-
-
-
-
 
          call self%read_particle_info(nc, param, plmask, tpmask) 
 
