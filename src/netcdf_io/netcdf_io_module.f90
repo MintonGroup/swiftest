@@ -64,25 +64,6 @@ module netcdf_io
          !! ID for the space variable
       character(len=1), dimension(3) :: space_coords = ["x","y","z"]
          !! The space dimension coordinate labels
-      character(NAMELEN) :: sign_dimname = "sign"
-         !! name of the sign dimension for c_lm
-      integer(I4B) :: sign_dimid
-         !! ID for sign dimension
-      integer(I4B) :: sign_varid
-         !! ID for sign variable
-      character(NAMELEN) :: l_dimname = "l"
-         !! name of l dimension for c_lm
-      integer(I4B) :: l_dimid
-         !! ID for the l dimension for c_lm
-      integer(I4B) :: l_varid
-         !! ID for the l variable
-      character(NAMELEN) :: m_dimname = "m"
-         !! name of m dimension for c_lm
-      integer(I4B) :: m_dimid
-         !! ID for the m dimension for c_lm
-      integer(I4B) :: m_varid
-         !! ID for the m variable
-
 
       ! Non-dimension ids and variable names
       character(NAMELEN) :: id_varname = "id"
@@ -291,8 +272,35 @@ module netcdf_io
          !! ID for the id of the other body involved in the discard
       logical :: lpseudo_vel_exists = .false. 
          !! Logical flag to indicate whether or not the pseudovelocity vectors were present in an old file.
+
+      ! Gravitational harmonics ids and variable names
       logical :: lc_lm_exists = .false.
          !! Logical flag to indicate whether or not the c_lm array was present in an old file.
+      character(NAMELEN) :: sign_dimname = "sign"
+         !! name of the sign dimension for c_lm
+      integer(I4B) :: sign_dimid
+         !! ID for sign dimension
+      integer(I4B) :: sign_varid
+         !! ID for sign variable
+      integer(I4B), dimension(2) :: sign_coords = [-1,1]
+         !! The sign dimension coordinate labels
+      character(NAMELEN) :: l_dimname = "l"
+         !! name of l dimension for c_lm
+      integer(I4B) :: l_dimid
+         !! ID for the l dimension for c_lm
+      integer(I4B) :: l_varid
+         !! ID for the l variable
+      character(NAMELEN) :: m_dimname = "m"
+         !! name of m dimension for c_lm
+      integer(I4B) :: m_dimid
+         !! ID for the m dimension for c_lm
+      integer(I4B) :: m_varid
+         !! ID for the m variable
+      integer(I4B) :: m_dim_max
+         !! Maximum value of the m dimension
+      integer(I4B) :: l_dim_max
+         !! Maximum value of the l dimension
+
    contains
       procedure :: close       => netcdf_io_close      
          !! Closes an open NetCDF file
