@@ -67,6 +67,7 @@ like the solar system.
    :caption: For developers/contributors
 
    Contributing Guide <contributing>
+   What’s New <whats-new>
    GitHub repository <https://github.com/profminton/swiftest>
 
 .. toctree::
