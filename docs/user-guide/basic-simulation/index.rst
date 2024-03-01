@@ -132,6 +132,6 @@ default name of ``data.nc``, which is a netCDF file. It is read in and stored as
 `Xarray Dataset <https://docs.xarray.dev/en/stable/>`__ object in the ``sim.data`` attribute.
 
 
-.. .. toctree::
+.. toctree::
 ..    :maxdepth: 2
 ..    :hidden:
