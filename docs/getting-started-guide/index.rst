@@ -4,6 +4,29 @@
 Getting Started
 ===============
 
+Swiftest is a re-write of the `Swifter <https://www.boulder.swri.edu/swifter/>`__ software package that incorporates modern programming techniques and performance
+improvements.  Swiftest contains the following numerical integrators:
+
+-  **Wisdom-Holman Mapping (WHM)** - A symplectic n-body mapping method.
+   See `Wisdom & Holman (1991) <https://ui.adsabs.harvard.edu/abs/1991AJ....102.1528W/abstract>`__.
+-  **Regularized Mixed Variable Symplectic (RMVS)** - An extension of WHM that is capable of handling close encounters between test
+   particles and massive bodies. See `Levison & Duncan (1994) <https://www.sciencedirect.com/science/article/pii/S0019103584710396?via%3Dihub>`__.
+-  **Democratic Heliocentric (HELIO)** - A symplectic integrator that uses the democratic heliocentric coordinate frame. See 
+-  `Duncan, Levison, & Lee (1998) <https://iopscience.iop.org/article/10.1086/300541>`__.
+-  **Symplectic Massive Body Algorithm (SyMBA)** - An extension of HELIO that is capable of handling close encounters between massive bodies.
+   See `Duncan, Levison, & Lee (1998) <https://iopscience.iop.org/article/10.1086/300541>`__.
+
+Swiftest also includes the collisional fragmentation algorithm *Fraggle*, which can be used to model collisional fragmentation when using the SyMBA integrator. 
+Fraggle is designed to resolve collisions between massive bodies by determining the collisional regime, derived from the work of `Leinhardt & Stewart
+(2012) <https://iopscience.iop.org/article/10.1088/0004-637X/745/1/79>`__, and generating the appropriate mass distribution of fragments. Swiftest
+fully incorporates collisional fragments into the gravitational system, evolving these new bodies along with pre-existing bodies, including
+their growth and any future fragmentation events in which they are involved.
+
+Swiftest is written in Modern Fortran and is designed to be run from Python. The Python package provides a set of tools for generating 
+initial conditions, running simulations, and processing output data. Swiftest can also be run from the command line using the ``swiftest_driver`` executable,
+provided that initial conditions and configuration files are available in the path. 
+
+
 Installation
 ------------
 
@@ -203,79 +226,7 @@ You may need to run the above command as root or with sudo if you are installing
 Building the exectuable using Docker
 ------------------------------------
 
-The Swiftest project contains a Dockerfile
-that may be used to generate an executable without needing to provide
-any external dependencies, other than the Docker engine itself (see
-`here <https://docs.docker.com/get-docker/>`__ for instructions on
-obtaining Docker). Once Docker is installed and the Docker engine is
-running, execute::
-
-   $ docker build --target=export-driver \
-                  --output=./bin \
-                  --build-arg MACHINE_CODE_VALUE="Host"  \
-                [ -f Dockerfile.GNU-Linux | -f Dockerfile.Intel ] \  
-                [ --build-arg BUILD_TYPE="*RELEASE*|DEBUG|TESTING|PROFILE" ] \
-                [ --build-arg EXTRA_CMAKE_OPTIONS="-D<Additional option you want to pass to CMake>" ] .
-
-The Docker build will download and compile all of the library
-dependencies (HDF5, NetCDF-C, and NetCDF-Fortran) as static libraries
-and the Swiftest driver using Intel compilers. Once completed, the
-Swiftest executable, called ``swiftest_driver``, should now be created
-in the ``bin/`` directory.
-
-   Note: The Dockerfile is designed to build an executable that is
-   compatible with a broad range of CPU architectures by specifying the
-   SSE2 instruction as a target for SIMD instructions using the ``-x``
-   compiler option. When compiling on the same CPU archictecture you
-   plan to execute the driver program, for the highest possible SIMD
-   performance, use
-   ``--build-arg MACHINE_CODE_VALUE="Host"`` to override the default ``MACHINE_CODE_VALUE=“SSE2”``.
-   For additional options see
-   `here <https://www.intel.com/content/www/us/en/docs/fortran-compiler/developer-guide-reference/2023-1/x-qx.html>`__.
-
-The optional Docker argument ``EXTRA_CMAKE_OPTIONS`` is provided to pass any additional CMake arguments (see `supported CMake options <gs-cmake-options-table_>`_)
-
-
-Download the executable as a Docker or Singularity container.
--------------------------------------------------------------
-
-The Swiftest driver is available as a Docker container on DockerHub in
-two versions: Intel and GNU. The Intel version was compiled for the
-x86_64 CPU using the Intel classic Fortran compiler. The GNU version was
-compliled for the x86_64 CPU using gfortran. The Intel version is faster
-than the GNU version (though not as fast as a native compile to the
-target CPU that you wish to run it on due to vectorization optimizations
-that Swiftest takes advantage of), however it is much larger: The Intel
-version is ~2.7GB while the GNU version is ~300MB. The Singularity
-container pulls from the same DockerHub container.
-
-To facilitate installation of the container, we provide a set of shell
-scripts to help automate the process of installing container versions of
-the executable. To install the default Intel version of the docker
-container from within the ``swiftest\`` project directory::
-
-   $ cd docker
-   $ . ./install.sh
-
-To install the GNU version::
-
-   $ cd docker
-   $ . ./install.sh gnu
-
-The Singularity versions are installed the same way, just replace
-``cd docker`` with ``cd singularity`` above.
-
-Whether installing either the Docker or Singularity containers, the
-install script will copy an executable shell script ``swiftest_driver``
-into ``swiftest/bin/``. Not that when installing the Singularity
-container, the install script will set an environment variable called
-``SWIFTEST_SIF`` that must point to the aboslute path of the container
-file called ``swiftest_driver.sif``. To use the driver script in a
-future shell, rather than running the install script again, we suggest
-adding the environment variable definition to your shell startup script
-(e.g. add
-``export SWIFTEST_SIF="/path/to/swiftest/singularity/swiftest.sif"`` to
-your ``.zshrc``)
+TBD
 
 
 
