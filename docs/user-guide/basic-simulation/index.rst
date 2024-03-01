@@ -13,7 +13,7 @@ Initial Simulation Setup
 ===========================
 
 Create a Swiftest Simulation object.
-Outputs are stored in the ``/simdata`` directory by default. ::
+Outputs are stored in the ``./simdata`` directory by default. ::
 
    sim = swiftest.Simulation()
 
@@ -23,7 +23,7 @@ The biggest body in the simulation is taken as the central body.
 Solar System Bodies
 =========================
 
-We can add solar system bodies to the simulation using the ``add_solar_system_body`` method. 
+We can add solar system bodies to the simulation using the :func:`add_solar_system_body <swiftest.Simulation.add_solar_system_body>` method. 
 This method uses JPL Horizons to extract the parameters. ::
    
    # Add the modern planets and the Sun using the JPL Horizons Database.
