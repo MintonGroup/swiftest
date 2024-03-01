@@ -87,6 +87,7 @@ Manually Adding the Coefficients
 
 If the user already has the coefficients, they can be added to the central body directly. Ensure that they are correctly normalized and 
 the right shape. The dimensions of `c_lm` is `[sign, l, m]` where: 
+
 - `sign` indicates coefficients of positive (`[0]`) and negative (`[1]`) `m` and is of length 2. 
 - The dimension `l` corresponds to the degree of the Spherical Harmonic and is of length :math:`l_{max} + 1`.
 - The dimension `m` corresponds to the order of the Spherical Harmonic and is of length :math:`l_{max} + 1`.
