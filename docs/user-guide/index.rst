@@ -16,4 +16,4 @@ In this user guide, you will find detailed descriptions and examples that descri
 
    Basic Simulation <basic-simulation/index>
    Detailed Simulation Setup <detailed-simulation-setup/index>
-   Spherical Harmonics <spherical-harmonics/index>
+   Gravitational Harmonics <gravitational-harmonics/index>
