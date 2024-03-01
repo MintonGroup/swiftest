@@ -20,31 +20,34 @@ Gravitational Harmonics coefficients
 =====================================
 
 Swiftest adopts the  :math:`4\pi` or geodesy normalization for the gravitational harmonics coefficients described 
-in `Weiczorek et al. (2015) <https://sseh.uchicago.edu/doc/Weiczorek_2015.pdf>`__.
+in `Weiczorek et al. (2015) <https://sseh.uchicago.edu/doc/Weiczorek_2015.pdf>`__. 
 
 The coefficients can be computed in a number of ways: 
 
 - Using the axes measurements of the body. (:func:`clm_from_ellipsoid <swiftest.shgrav.clm_from_ellipsoid>`)
-- Using a surface relief grid (:func:`clm_from_relief <swiftest.shgrav.clm_from_relief>`). 
-   - Note: This function is still in development and may not work as expected.
+
+- Using a surface relief grid (:func:`clm_from_relief <swiftest.shgrav.clm_from_relief>`). *Note: This function is still in development and may not work as expected.*
+
 - Manually entering the coefficients when adding the central body. (:func:`add_body <swiftest.Simulation.add_body>`)
-..    - Ensure to correctly normalize the coefficients if manually entering them. 
 
+Set up a Simulation
+====================
 
-Computing coefficients from axes measurements
-===============================================
-
-Given the axes measurements of a body, the gravitational harmonics coefficients can be computed in a straightforward 
-manner. Let's start with setting up the simulation object with units of `km`, `days`, and `kg`. ::
+Let's start with setting up the simulation object with units of `km`, `days`, and `kg`. ::
     
     import swiftest
 
     sim = swiftest.Simulation(DU2M = 1e3, TU = 'd', MU = 'kg', integrator = 'symba')
     sim.clean() 
 
-Define the central body parameters. Here we use Chariklo as an example body and refer to Jacobi Ellipsoid model from 
+Computing coefficients from axes measurements
+===============================================
+
+Given the axes measurements of a body, the gravitational harmonics coefficients can be computed in a straightforward 
+manner. Here we use Chariklo as an example body and refer to Jacobi Ellipsoid model from 
 `Leiva et al. (2017) <https://iopscience.iop.org/article/10.3847/1538-3881/aa8956>`__ for the axes measurements. ::
 
+    # Define the central body parameters. 
     cb_mass = 6.1e18
     cb_radius = 123
     cb_a = 157 
@@ -61,9 +64,35 @@ The output coefficients are already correctly normalized. ::
 
     c_lm, cb_radius = swiftest.clm_from_ellipsoid(mass = cb_mass, density = cb_density, a = cb_a, b = cb_b, c = cb_c, lmax = 6, lref_radius = True)
 
-Add the central body to the simulation. ::
+Add the central body to the simulation along with the coefficients. ::
 
     sim.add_body(name = 'Chariklo', mass = cb_mass, rot = cb_rot, radius = cb_radius, c_lm = c_lm)
+
+Now the user can set up the rest of the simulation as they prefer.
+
+Final Steps for Running the Simulation
+=======================================
+
+Add other bodies to the simulation. ::
+
+    # Add user-defined massive bodies
+    npl         = 5
+    density_pl  = cb_density
+
+    name_pl     = ["SemiBody_01", "SemiBody_02", "SemiBody_03", "SemiBody_04", "SemiBody_05"]
+    a_pl        = rng.uniform(250, 400, npl)
+    e_pl        = rng.uniform(0.0, 0.05, npl)
+    inc_pl      = rng.uniform(0.0, 10, npl)
+    capom_pl    = rng.uniform(0.0, 360.0, npl)
+    omega_pl    = rng.uniform(0.0, 360.0, npl)
+    capm_pl     = rng.uniform(0.0, 360.0, npl)
+    R_pl        = np.array([0.5, 1.0, 1.2, 0.75, 0.8])
+    M_pl        = 4.0 / 3 * np.pi * R_pl**3 * density_pl
+    Ip_pl       = np.full((npl,3),0.4,)
+    rot_pl      = np.zeros((npl,3))
+    mtiny       = 1.1 * np.max(M_pl)
+
+    sim.add_body(name=name_pl, a=a_pl, e=e_pl, inc=inc_pl, capom=capom_pl, omega=omega_pl, capm=capm_pl, mass=M_pl, radius=R_pl,  Ip=Ip_pl, rot=rot_pl)
 
 Set the parameters for the simulation and run. ::
 
