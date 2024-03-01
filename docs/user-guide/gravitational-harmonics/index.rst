@@ -40,7 +40,7 @@ The coefficients can be computed in a number of ways:
 
 - Manually entering the coefficients when adding the central body. (:func:`add_body <swiftest.Simulation.add_body>`)
 
-Computing coefficients from axes measurements
+Computing Coefficients from Axes Measurements
 ===============================================
 
 Given the axes measurements of a body, the gravitational harmonics coefficients can be computed in a straightforward 
@@ -88,11 +88,11 @@ Additional Capabilities of Swiftest's Coefficient Generator Functions
 The output from :func:`clm_from_ellipsoid <swiftest.shgrav.clm_from_ellipsoid>` and :func:`clm_from_relief <swiftest.shgrav.clm_from_relief>`
 can be customised to the user's needs. Here we show some of the additional capabilities of these functions.
 
-Setting a reference radius for the coefficients
+Setting a Reference Radius for the Coefficients
 -------------------------------------------------
 
 The coefficients are computed with respect to a reference radius. `SHTOOLS <https://shtools.github.io/SHTOOLS/>`__ calculates it's own radius from 
-the axes passed, but there are difference ways to calculate the reference radius for non-spherical bodies in the literature. As a result, Swiftest allows 
+the axes passed, but there are different ways to calculate the reference radius for non-spherical bodies in the literature. As a result, Swiftest allows 
 the user to explicitly set a reference radius (``ref_radius``) which scales the coefficients accordingly. This is particularly useful when a 
 specific radius is desired.
 
@@ -111,7 +111,7 @@ By default, ``lref_radius`` is set to ``False``. In this case, the function only
 
     c_lm = swiftest.clm_from_ellipsoid(mass = cb_mass, density = cb_density, a = cb_a, b = cb_b, c = cb_c)
 
-We recommend extracting the ``ref_radius`` from the function output and using it accordingly.
+We recommend extracting the ``ref_radius`` from the function output and using it when adding the central body to the simulation.
 
 Combinations of Principal Axes
 -------------------------------
@@ -150,41 +150,3 @@ characteristic wavelength (:math:`\lambda`) of a harmonic degree (:math:`l`) to 
     \lambda = \frac{2\pi R}{\sqrt{l(l+1)}} 
 
     \lambda = R \Rightarrow l = 6
-
-.. Final Steps for Running the Simulation
-.. =======================================
-
-.. Add other bodies to the simulation. ::
-
-..     # Add user-defined massive bodies
-..     npl         = 5
-..     density_pl  = cb_density
-
-..     name_pl     = ["SemiBody_01", "SemiBody_02", "SemiBody_03", "SemiBody_04", "SemiBody_05"]
-..     a_pl        = rng.uniform(250, 400, npl)
-..     e_pl        = rng.uniform(0.0, 0.05, npl)
-..     inc_pl      = rng.uniform(0.0, 10, npl)
-..     capom_pl    = rng.uniform(0.0, 360.0, npl)
-..     omega_pl    = rng.uniform(0.0, 360.0, npl)
-..     capm_pl     = rng.uniform(0.0, 360.0, npl)
-..     R_pl        = np.array([0.5, 1.0, 1.2, 0.75, 0.8])
-..     M_pl        = 4.0 / 3 * np.pi * R_pl**3 * density_pl
-..     Ip_pl       = np.full((npl,3),0.4,)
-..     rot_pl      = np.zeros((npl,3))
-..     mtiny       = 1.1 * np.max(M_pl)
-
-..     sim.add_body(name=name_pl, a=a_pl, e=e_pl, inc=inc_pl, capom=capom_pl, omega=omega_pl, capm=capm_pl, mass=M_pl, radius=R_pl,  Ip=Ip_pl, rot=rot_pl)
-
-.. Set the parameters for the simulation and run. ::
-
-..     sim.set_parameter(tstart=0.0, tstop=10.0, dt=0.01, istep_out=10, dump_cadence=0, compute_conservation_values=True, mtiny=mtiny)
-
-..     # Run the simulation
-..     sim.run()
-
-
-
-
-.. .. toctree::
-..    :maxdepth: 2
-..    :hidden:
