@@ -100,6 +100,15 @@ Initial Conditions Generation Functions
     swiftest.init_cond.horizons_get_physical_properties
     swiftest.init_cond.vec2xr
 
+Gravitional Harmonics Functions
+===============================
+
+.. autosummary::
+    :toctree: generated/
+
+    swiftest.shgrav.clm_from_ellipsoid
+    swiftest.shgrav.clm_from_relief
+
 
 Input/Output Processing Functions
 ==================================
