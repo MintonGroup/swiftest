@@ -149,7 +149,7 @@ characteristic wavelength (:math:`\lambda`) of a harmonic degree (:math:`l`) to 
 
     \lambda = \frac{2\pi R}{\sqrt{l(l+1)}} 
 
-    \lambda = R \rightarrow l = 6
+    \lambda = R \Rightarrow l = 6
 
 .. Final Steps for Running the Simulation
 .. =======================================
