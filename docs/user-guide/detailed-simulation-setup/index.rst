@@ -88,7 +88,7 @@ Initialize orbital elements and then add the bodies. ::
 Cartesian Coordinates
 ----------------------
 
-The process is similar for adding bodies with Cartesian coordinates. However, the parameter `init_cond_format` must be set to `XV` before adding the bodies.
+The process is similar for adding bodies with cartesian coordinates. However, the parameter `init_cond_format` must be set to `XV` before adding the bodies.
 The process of setting parameters is explained in the next section. 
 Start by defining the position and velocity vectors. Here we define the orbital velocities and scale them by a random value. ::
    
@@ -113,7 +113,7 @@ Start by defining the position and velocity vectors. Here we define the orbital 
 
    sim.add_body(name=name_pl, rh=rh_pl, vh=vh_pl, mass=M_pl, radius=R_pl,  Ip=Ip_pl, rot=rot_pl)
 
-The process is similar for **test particles**. The only difference is to exclude ``mass`` and ``radius``. 
+The process is similar for **test particles**. They only need the orbital elements or the cartesian coordinates. 
 Here is an example with orbital elements: ::
 
     # Add 10 user-defined test particles.
