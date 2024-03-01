@@ -23,10 +23,11 @@ contains
       ! Arguments
       character(len=:), intent(in), allocatable :: integrator      !! Symbolic code of the requested integrator  
       character(len=:), intent(in), allocatable :: param_file_name !! Name of the input parameters file
-      character(len=:), intent(in), allocatable :: display_style   !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"   
+      character(len=:), intent(in), allocatable :: display_style   !! Style of the output display 
+                                                                   !! {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"   
 
       ! Internals
-      class(swiftest_nbody_system), allocatable :: nbody_system      !! Polymorphic object containing the nbody system to be integrated
+      class(swiftest_nbody_system), allocatable :: nbody_system !! Polymorphic object containing the nbody system to be integrated
       type(swiftest_parameters)                 :: param             !! Run configuration parameters
       class(swiftest_storage),      allocatable :: system_history    !! Stores the system history between output dumps
       type(walltimer)                           :: integration_timer !! Object used for computing elapsed wall time
@@ -101,7 +102,8 @@ contains
          if (param%log_output) flush(param%display_unit)
 
 #ifdef COARRAY  
-         ! The following line lets us read in the input files one image at a time. Letting each image read the input in is faster than broadcasting all of the data
+         ! The following line lets us read in the input files one image at a time. Letting each image read the input in is faster 
+         ! than broadcasting all of the data
          if (param%lcoarray .and. (this_image() /= 1)) sync images(this_image() - 1)
 #endif 
          call nbody_system%initialize(system_history, param)
@@ -112,14 +114,16 @@ contains
          if (param%lcoarray) call nbody_system%coarray_distribute(param)
 #endif
 
-         ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial conditions to file.
+         ! If this is a new run, compute energy initial conditions (if energy tracking is turned on) and write the initial 
+         ! conditions to file.
          call nbody_system%display_run_information(param, integration_timer, phase="first")
 
          if (param%lenergy) then
             if (param%lrestart) then
                call nbody_system%get_t0_values(system_history%nc, param)
             else
-               call nbody_system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and momentum
+               call nbody_system%conservation_report(param, lterminal=.false.) ! This will save the initial values of energy and 
+                                                                               ! momentum
             end if
             call nbody_system%conservation_report(param, lterminal=.true.)
          end if

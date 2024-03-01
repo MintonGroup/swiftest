@@ -11,7 +11,7 @@
 ##################################################
 # Define the project and the depencies that it has
 ##################################################
-CMAKE_MINIMUM_REQUIRED(VERSION 3.6.0...3.27.1)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.23.1...3.28.3)
 SET(SKBUILD_PROJECT_NAME "swiftest" CACHE STRING "Name of project set by scikit-build")
 
 # Get version stored in text file
@@ -28,27 +28,44 @@ ELSE()
         CMAKE_POLICY(SET CMP0148 OLD)
     ENDIF ()
 
+    # The following section is modified from Numpy f2py documentation
+    IF(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
+        MESSAGE(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.\n")
+    ENDIF()
+
     # Set some options the user may choose
     OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
     OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
     OPTION(USE_SIMD "Use SIMD vectorization" ON)
     OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
+    # Define the paths to the source code and python files
+    SET(SRC "${CMAKE_SOURCE_DIR}/src")
+    SET(PY "${CMAKE_SOURCE_DIR}/swiftest")
+
+    # Make sure paths are correct for Unix or Windows style
+    FILE(TO_CMAKE_PATH ${SRC} SRC)
+    FILE(TO_CMAKE_PATH ${PY} PY)
+
     INCLUDE(GNUInstallDirs)
     IF (SKBUILD)
-        SET(INSTALL_BINDIR ${SKBUILD_PLATLIB_DIR}/${SKBUILD_PROJECT_NAME}) 
-        SET(INSTALL_LIBDIR ${SKBUILD_PLATLIB_DIR}/${SKBUILD_PROJECT_NAME}) 
-        SET(INSTALL_INCLUDEDIR ${INSTALL_LIBDIR}) 
+        SET(INSTALL_BINDIR ${SKBUILD_SCRIPTS_DIR})
+        SET(INSTALL_LIBDIR ${SKBUILD_DATA_DIR}/lib) 
+        SET(INSTALL_INCLUDEDIR ${SKBUILD_HEADERS_DIR}) 
+        SET(INSTALL_PYPROJ ${SKBUILD_PLATLIB_DIR}/${SKBUILD_PROJECT_NAME}) 
         IF (APPLE)
-            SET(CMAKE_INSTALL_RPATH "@loader_path")
+            SET(CMAKE_INSTALL_RPATH "@loader_path;${CMAKE_BINARY_DIR}/bin")
         ELSEIF (LINUX)
-            SET(CMAKE_INSTALL_RPATH $ORIGIN)
+            SET(CMAKE_INSTALL_RPATH "@ORIGIN;${CMAKE_BINARY_DIR}/bin")
         ENDIF ()
     ELSE ()
+        SET(INSTALL_PYPROJ ${PY})
         SET(INSTALL_BINDIR ${CMAKE_INSTALL_BINDIR})
         SET(INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR})
         SET(INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR})
     ENDIF ()
+    
+    SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
     # Have the .mod files placed in the include folder
     SET(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mod)
@@ -57,6 +74,7 @@ ELSE()
     FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" LOCAL_MODULE_PATH)
     LIST(APPEND CMAKE_MODULE_PATH ${LOCAL_MODULE_PATH})
 
+    # Add in the external dependency libraries 
     IF (CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
         SET(COMPILER_OPTIONS "Intel" CACHE STRING "Compiler identified as Intel")
     ELSEIF (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
@@ -65,10 +83,22 @@ ELSE()
         MESSAGE(FATAL_ERROR "Compiler ${CMAKE_Fortran_COMPILER_ID} not recognized!") 
     ENDIF ()
 
-    # The following section is modified from Numpy f2py documentation
-    IF(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
-    MESSAGE(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.\n")
+    IF (COMPILER_OPTIONS STREQUAL "GNU")
+        IF (APPLE)
+            SET(BLA_VENDOR "Apple" CACHE STRING "BLAS vendor")
+        ELSE ()
+            SET(BLA_VENDOR "OpenBLAS" CACHE STRING "BLAS vendor")
+        ENDIF ()
+    ELSEIF (COMPILER_OPTIONS STREQUAL "INTEL")
+        SET(BLA_VENDOR "Intel10_64lp" CACHE STRING "BLAS vendor")
     ENDIF()
+    SET(BLA_STATIC ON)
+    FIND_PACKAGE(BLAS REQUIRED)
+    FIND_PACKAGE(LAPACK REQUIRED)
+    FIND_PACKAGE(FFTW3 REQUIRED)
+    FIND_PACKAGE(SHTOOLS REQUIRED)
+
+
 
     FIND_PACKAGE(NETCDF_Fortran REQUIRED)
     IF (MSVC)
@@ -85,9 +115,6 @@ ELSE()
     FIND_PACKAGE(Python COMPONENTS Interpreter Development.Module REQUIRED)
 
 
-    SET(SRC "${CMAKE_SOURCE_DIR}/src")
-    SET(PY "${CMAKE_SOURCE_DIR}/swiftest")
-
     #####################################
     # Tell how to install this executable
     #####################################
@@ -99,11 +126,6 @@ ELSE()
         SET(CMAKE_INSTALL_PREFIX /usr/local CACHE PATH "Path for install")
     ENDIF()
 
-
-    # Make sure paths are correct for Unix or Windows style
-    FILE(TO_CMAKE_PATH ${SRC} SRC)
-    FILE(TO_CMAKE_PATH ${PY} PY)
-
     # Set the name of the swiftest library
     SET(SWIFTEST_LIBRARY ${SKBUILD_PROJECT_NAME})
 
@@ -113,13 +135,11 @@ ELSE()
     ENDIF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
     INCLUDE(SetParallelizationLibrary)
 
-    IF (COMPILER_OPTIONS STREQUAL "Intel" AND NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
-        INCLUDE(SetMKL)
-    ENDIF ()
     INCLUDE(SetSwiftestFlags) 
 
-
-
+    IF (NOT BUILD_SHARED_LIBS)
+        SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
+    ENDIF()
     # The source for the SWIFTEST binary and have it placed in the bin folder
     ADD_SUBDIRECTORY(${SRC} ${CMAKE_INSTALL_BINDIR})
     ADD_SUBDIRECTORY(${PY})

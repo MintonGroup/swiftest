@@ -22,7 +22,7 @@ printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
 printf "*********************************************************\n"
 printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
-printf "Installing to ${PREFIX}\n"
+printf "Installing to ${NCDIR}\n"
 printf "\n"
 
 NC_VER="4.9.2"
@@ -48,16 +48,15 @@ printf "CPATH: ${CPATH}\n"
 printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
 printf "LDFLAGS: ${LDFLAGS}\n"
 printf "HDF5_ROOT: ${HDF5_ROOT}\n"
+printf "INSTALL_PREFIX: ${NCDIR}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/netcdf-c-*
-NCDIR="${PREFIX}"
-ZLIB_ROOT=${PREFIX}
 cmake -B build -S . -G Ninja  \
     -DCMAKE_BUILD_TYPE:STRING="Release" \
     -DHDF5_DIR:PATH=${HDF5_ROOT}/cmake \
     -DHDF5_ROOT:PATH=${HDF5_ROOT} \
-    -DCMAKE_FIND_ROOT_PATH:PATH="${PREFIX}" \
+    -DCMAKE_FIND_ROOT_PATH:PATH="${NCDIR}" \
     -DCMAKE_INSTALL_PREFIX:STRING="${NCDIR}" \
     -DENABLE_DAP:BOOL=OFF \
     -DENABLE_BYTERANGE:BOOL=OFF \
@@ -68,7 +67,7 @@ cmake -B build -S . -G Ninja  \
     -DENABLE_REMOTE_FORTRAN_BOOTSTRAP:BOOL=ON
 
 cmake --build build -j${NPROC} 
-if [ -w ${PREFIX} ]; then
+if [ -w ${NCDIR} ]; then
     cmake --install build 
 else
     sudo cmake --install build 

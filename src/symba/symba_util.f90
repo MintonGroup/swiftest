@@ -19,16 +19,19 @@ contains
       !! This method will automatically resize the destination body if it is too small
       implicit none
       !! Arguments
-      class(symba_pl),                 intent(inout) :: self         !! SyMBA massive body object
-      class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      class(symba_pl), intent(inout) :: self  
+         !! SyMBA massive body object
+      class(swiftest_body), intent(in) :: source       
+         !! Source object to append
+      logical, dimension(:), intent(in) :: lsource_mask 
+         !! Logical mask indicating which elements to append to
 
       select type(source)
       class is (symba_pl)
          call util_append(self%levelg, source%levelg, lsource_mask=lsource_mask)
          call util_append(self%levelm, source%levelm, lsource_mask=lsource_mask)
-
-         call swiftest_util_append_pl(self, source, lsource_mask) ! Note: helio_pl does not have its own append method, so we skip back to the base class
+         ! Note: helio_pl does not have its own append method, so we skip back to the base class
+         call swiftest_util_append_pl(self, source, lsource_mask) 
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class symba_pl or its descendents!"
          call base_util_exit(FAILURE)
@@ -45,16 +48,19 @@ contains
       !! This method will automatically resize the destination body if it is too small
       implicit none
       !! Arguments
-      class(symba_tp),                 intent(inout) :: self         !! SyMBA test particle object
-      class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      class(symba_tp),  intent(inout) :: self 
+         !! SyMBA test particle object
+      class(swiftest_body), intent(in) :: source  
+         !! Source object to append
+      logical, dimension(:), intent(in) :: lsource_mask 
+         !! Logical mask indicating which elements to append to
 
       select type(source)
       class is (symba_tp)
          call util_append(self%levelg, source%levelg, lsource_mask=lsource_mask)
          call util_append(self%levelm, source%levelm, lsource_mask=lsource_mask)
-
-         call swiftest_util_append_tp(self, source, lsource_mask) ! Note: helio_tp does not have its own append method, so we skip back to the base class
+         ! Note: helio_tp does not have its own append method, so we skip back to the base class
+         call swiftest_util_append_tp(self, source, lsource_mask) 
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class symba_tp or its descendents!"
          call base_util_exit(FAILURE)
@@ -70,7 +76,8 @@ contains
       !! Deallocates all allocatabale arrays
       implicit none
       ! Arguments
-      class(symba_pl),  intent(inout) :: self !! SyMBA massive body object
+      class(symba_pl),  intent(inout) :: self 
+         !! SyMBA massive body object
 
       if (allocated(self%levelg)) deallocate(self%levelg)
       if (allocated(self%levelm)) deallocate(self%levelm)
@@ -88,6 +95,7 @@ contains
       implicit none
       ! Arguments
       class(symba_nbody_system), intent(inout) :: self
+         !! SyMBA nbody_system object
 
       self%irec = -1
       call self%helio_nbody_system%dealloc()
@@ -102,7 +110,8 @@ contains
       !! Deallocates all allocatabale arrays
       implicit none
       ! Arguments
-      class(symba_tp),  intent(inout) :: self !! SyMBA test particle object
+      class(symba_tp),  intent(inout) :: self 
+         !! SyMBA test particle object
 
       if (allocated(self%levelg)) deallocate(self%levelg)
       if (allocated(self%levelm)) deallocate(self%levelm)
@@ -121,17 +130,20 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(symba_pl),       intent(inout) :: self       !! SyMBA masive body object
-      class(swiftest_body),  intent(in)    :: inserts    !! Inserted object 
-      logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      class(symba_pl), intent(inout) :: self
+         !! SyMBA masive body object
+      class(swiftest_body), intent(in) :: inserts
+         !! Inserted object 
+      logical, dimension(:), intent(in) :: lfill_list
+         !! Logical array of bodies to merge into the keeps
 
       associate(keeps => self)
          select type(inserts)
          class is (symba_pl)
             call util_fill(keeps%levelg, inserts%levelg, lfill_list)
             call util_fill(keeps%levelm, inserts%levelm, lfill_list)
-
-            call swiftest_util_fill_pl(keeps, inserts, lfill_list)  ! Note: helio_pl does not have its own fill method, so we skip back to the base class
+            ! Note: helio_pl does not have its own fill method, so we skip back to the base class
+            call swiftest_util_fill_pl(keeps, inserts, lfill_list)  
          class default
             write(*,*) "Invalid object passed to the fill method. Source must be of class symba_pl or its descendents!"
             call base_util_exit(FAILURE)
@@ -150,18 +162,20 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(symba_tp),       intent(inout) :: self       !! SyMBA test particle object
-      class(swiftest_body),  intent(in)    :: inserts    !! Inserted object 
-      logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      class(symba_tp), intent(inout) :: self 
+         !! SyMBA test particle object
+      class(swiftest_body), intent(in) :: inserts 
+         !! Inserted object 
+      logical, dimension(:), intent(in) :: lfill_list 
+         !! Logical array of bodies to merge into the keeps
 
       associate(keeps => self)
          select type(inserts)
          class is (symba_tp)
-            call util_fill(keeps%nplenc, inserts%nplenc, lfill_list)
             call util_fill(keeps%levelg, inserts%levelg, lfill_list)
             call util_fill(keeps%levelm, inserts%levelm, lfill_list)
-            
-            call swiftest_util_fill_tp(keeps, inserts, lfill_list) ! Note: helio_tp does not have its own fill method, so we skip back to the base class
+            ! Note: helio_tp does not have its own fill method, so we skip back to the base class
+            call swiftest_util_fill_tp(keeps, inserts, lfill_list) 
          class default
             write(*,*) "Invalid object passed to the fill method. Source must be of class symba_tp or its descendents!"
             call base_util_exit(FAILURE)
@@ -185,10 +199,17 @@ contains
       !!       2019. hal-0204751
       implicit none
       ! Arguments
-      class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
-      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters
+      class(symba_pl), intent(inout) :: self  
+         !! SyMBA massive body object
+      class(swiftest_parameters), intent(inout) :: param 
+         !! Current run configuration parameters
       ! Internals
       integer(I8B) :: npl, nplm
+
+      if (self%nbody == 0) then
+         self%nplm = 0
+         return
+      end if
 
       associate(pl => self, nplplm => self%nplplm)
          npl = int(self%nbody, kind=I8B)
@@ -199,7 +220,8 @@ contains
             nplm = npl
          end if
          pl%nplm = int(nplm, kind=I4B)
-         nplplm = nplm * npl - nplm * (nplm + 1_I8B) / 2_I8B ! number of entries in a strict lower triangle, npl x npl, minus first column including only mutually interacting bodies
+         ! number of entries in a strict lower triangle, npl x npl, minus first column including only mutually interacting bodies
+         nplplm = nplm * npl - nplm * (nplm + 1_I8B) / 2_I8B 
 
          call swiftest_util_flatten_eucl_plpl(pl, param)
       end associate
@@ -214,8 +236,10 @@ contains
       !! Checks the current size of a SyMBA massive body object against the requested size and resizes it if it is too small.
       implicit none
       ! Arguments
-      class(symba_pl), intent(inout) :: self  !! SyMBA massive body object
-      integer(I4B),    intent(in)    :: nnew  !! New size neded
+      class(symba_pl), intent(inout) :: self  
+         !! SyMBA massive body object
+      integer(I4B), intent(in) :: nnew  
+         !! New size neded
 
       call util_resize(self%levelg, nnew)
       call util_resize(self%levelm, nnew)
@@ -231,8 +255,10 @@ contains
       !! Checks the current size of a test particle object against the requested size and resizes it if it is too small.
       implicit none
       ! Arguments
-      class(symba_tp), intent(inout) :: self  !! SyMBA test particle object
-      integer(I4B),    intent(in)    :: nnew  !! New size neded
+      class(symba_tp), intent(inout) :: self 
+         !! SyMBA test particle object
+      integer(I4B), intent(in):: nnew 
+         !! New size neded
 
       call util_resize(self%levelg, nnew)
       call util_resize(self%levelm, nnew)
@@ -249,12 +275,15 @@ contains
       !!
       implicit none
       ! Arguments
-      class(symba_pl), intent(inout) :: self !! SyMBA massive body object
-      integer(I4B),    intent(in)    :: scale !! Current recursion depth
+      class(symba_pl), intent(inout) :: self 
+         !! SyMBA massive body object
+      integer(I4B), intent(in) :: scale 
+         !! Current recursion depth
       ! Internals
       integer(I4B) :: i
       real(DP)     :: rshell_irec
 
+      if (self%nbody == 0) return
       associate(pl => self, npl => self%nbody)
          rshell_irec = 1._DP
          do i = 1, scale
@@ -275,48 +304,22 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(symba_nbody_system),               intent(inout) :: self           !! SyMBA nbody_system object
-      class(swiftest_storage),    allocatable, intent(inout) :: system_history !! Stores the system history between output dumps
-      class(swiftest_parameters),              intent(inout) :: param          !! Current run configuration parameters 
-      ! Internals
-      type(encounter_storage)  :: encounter_history
-      type(collision_storage)  :: collision_history
+      class(symba_nbody_system), intent(inout) :: self 
+         !! SyMBA nbody_system object
+      class(swiftest_storage),allocatable, intent(inout) :: system_history 
+         !! Stores the system history between output dumps
+      class(swiftest_parameters), intent(inout) :: param 
+         !! Current run configuration parameters 
 
-      call encounter_history%setup(4096)
-      call collision_history%setup(4096)
       ! Call parent method
       associate(nbody_system => self)
          call helio_util_setup_initialize_system(nbody_system, system_history, param)
          call nbody_system%pltp_encounter%setup(0_I8B)
          call nbody_system%plpl_encounter%setup(0_I8B)
          call nbody_system%plpl_collision%setup(0_I8B)
+         call nbody_system%pltp_collision%setup(0_I8B)
 
-         if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
-            allocate(encounter_netcdf_parameters :: encounter_history%nc)
-            select type(nc => encounter_history%nc)
-            class is (encounter_netcdf_parameters)
-               nc%file_name = ENCOUNTER_OUTFILE
-               if (.not.param%lrestart) then
-                  call nc%initialize(param)
-                  call nc%close()
-               end if
-            end select
-            allocate(nbody_system%encounter_history, source=encounter_history)
-         end if
-        
-         allocate(collision_netcdf_parameters :: collision_history%nc)
-         select type(nc => collision_history%nc)
-         class is (collision_netcdf_parameters)
-            nc%file_name = COLLISION_OUTFILE
-            if (param%lrestart) then
-               call nc%open(param) ! This will find the nc%max_idslot variable
-            else
-               call nc%initialize(param)
-            end if
-            call nc%close()
-         end select
-         allocate(nbody_system%collision_history, source=collision_history)
-
+         if (allocated(nbody_system%collider)) deallocate(nbody_system%collider)
          select case(param%collision_model)
          case("MERGE")
             allocate(collision_basic :: nbody_system%collider)
@@ -326,12 +329,6 @@ contains
             allocate(collision_fraggle :: nbody_system%collider)
          end select
          call nbody_system%collider%setup(nbody_system)
-
-         nbody_system%collider%max_rot = MAX_ROT_SI * param%TU2S
-         select type(nc => collision_history%nc)
-         class is (collision_netcdf_parameters)
-            nbody_system%collider%maxid_collision = nc%max_idslot
-         end select
 
       end associate
 
@@ -347,11 +344,14 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine symba_util_setup.f90
       implicit none
       ! Arguments
-      class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
-      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
+      class(symba_pl), intent(inout) :: self  
+         !! SyMBA massive body object
+      integer(I4B),  intent(in) :: n 
+         !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in) :: param 
+         !! Current run configuration parameter
 
-      !> Call allocation method for parent class. 
+      ! Call allocation method for parent class. 
       call self%helio_pl%setup(n, param) 
       if (n == 0) return
 
@@ -372,9 +372,12 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_util_setup.f90
       implicit none
       ! Arguments
-      class(symba_tp),            intent(inout) :: self  !! SyMBA test particle object
-      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
+      class(symba_tp), intent(inout) :: self  
+         !! SyMBA test particle object
+      integer(I4B), intent(in) :: n 
+         !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in) :: param 
+         !! Current run configuration parameter
 
       !> Call allocation method for parent class. 
       call self%helio_tp%setup(n, param) 
@@ -397,9 +400,12 @@ contains
       !! sortby is a string indicating which array component to sort.
       implicit none
       ! Arguments
-      class(symba_pl), intent(inout) :: self      !! SyMBA massive body object
-      character(*),    intent(in)    :: sortby    !! Sorting attribute
-      logical,         intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
+      class(symba_pl), intent(inout) :: self      
+         !! SyMBA massive body object
+      character(*), intent(in)    :: sortby    
+         !! Sorting attribute
+      logical, intent(in)    :: ascending 
+         !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
       integer(I4B), dimension(:), allocatable :: ind
       integer(I4B)                        :: direction
@@ -438,9 +444,12 @@ contains
       !! sortby is a string indicating which array component to sort.
       implicit none
       ! Arguments
-      class(symba_tp), intent(inout) :: self      !! SyMBA test particle object
-      character(*),    intent(in)    :: sortby    !! Sorting attribute
-      logical,         intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
+      class(symba_tp), intent(inout) :: self  
+         !! SyMBA test particle object
+      character(*), intent(in)  :: sortby  
+         !! Sorting attribute
+      logical, intent(in) :: ascending 
+         !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
       integer(I4B), dimension(:), allocatable :: ind
       integer(I4B)                        :: direction
@@ -480,8 +489,10 @@ contains
       !! This is a helper utility used to make polymorphic sorting work on Swiftest structures.
       implicit none
       ! Arguments
-      class(symba_pl),               intent(inout) :: self !! SyMBA massive body object
-      integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
+      class(symba_pl), intent(inout) :: self !
+         ! SyMBA massive body object
+      integer(I4B), dimension(:), intent(in) :: ind 
+         !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
 
       associate(pl => self, npl => self%nbody)
          call util_sort_rearrange(pl%levelg,     ind, npl)
@@ -500,8 +511,10 @@ contains
       !! This is a helper utility used to make polymorphic sorting work on Swiftest structures.
       implicit none
       ! Arguments
-      class(symba_tp),               intent(inout) :: self !! SyMBA test particle object
-      integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
+      class(symba_tp), intent(inout) :: self 
+         !! SyMBA test particle object
+      integer(I4B), dimension(:), intent(in) :: ind
+         !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
 
       associate(tp => self, ntp => self%nbody)
          call util_sort_rearrange(tp%nplenc, ind, ntp)
@@ -522,10 +535,14 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
       implicit none
       ! Arguments
-      class(symba_pl),       intent(inout) :: self        !! SyMBA massive body object
-      class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
-      logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
-      logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
+      class(symba_pl), intent(inout) :: self        
+         !! SyMBA massive body object
+      class(swiftest_body), intent(inout) :: discards
+         !! Discarded object 
+      logical, dimension(:), intent(in) :: lspill_list
+         !! Logical array of bodies to spill into the discards
+      logical,  intent(in)  :: ldestructive 
+         !! Logical flag indicating whether or not this operation should alter body by removing the discard list
 
       ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
       !> Spill all the common components
@@ -553,17 +570,20 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
       implicit none
       ! Arguments
-      class(symba_tp),       intent(inout) :: self         !! SyMBA test particle object
-      class(swiftest_body),  intent(inout) :: discards     !! Discarded object 
-      logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-      logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
+      class(symba_tp), intent(inout) :: self  
+         !! SyMBA test particle object
+      class(swiftest_body),  intent(inout) :: discards     
+         !! Discarded object 
+      logical, dimension(:), intent(in) :: lspill_list  
+         !! Logical array of bodies to spill into the discards
+      logical, intent(in) :: ldestructive 
+         !! Logical flag indicating whether or not this operation should alter body by removing the discard list
 
       ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
       !> Spill all the common components
       associate(keeps => self)
          select type(discards)
          class is (symba_tp)
-            call util_spill(keeps%nplenc, discards%nplenc, lspill_list, ldestructive)
             call util_spill(keeps%levelg, discards%levelg, lspill_list, ldestructive)
             call util_spill(keeps%levelm, discards%levelm, lspill_list, ldestructive)
 

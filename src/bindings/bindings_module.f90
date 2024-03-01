@@ -29,7 +29,7 @@ module bindings_module
          return
       end subroutine bindings_c2f_string
 
-      subroutine bindings_c_driver(c_integrator, c_param_file_name, c_display_style) bind(c)
+      subroutine bindings_c_driver(c_integrator, c_param_file_name, c_display_style) bind(c, name="bindings_c_driver")
          implicit none
          character(kind=c_char), dimension(*), intent(in) :: c_integrator, c_param_file_name, c_display_style
          character(len=:), allocatable :: integrator, param_file_name, display_style

@@ -23,9 +23,12 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_kick_getaccb_ns.f90
       implicit none
       ! Arguments
-      class(swiftest_body),         intent(inout) :: self   !! Swiftest generic body object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      class(swiftest_body),         intent(inout) :: self   
+         !! Swiftest generic body object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  
+         !! Current run configuration parameters 
       ! Internals
       real(DP)                  :: rmag, rdotv, vmag2
       integer(I4B)              :: i
@@ -62,12 +65,18 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_whm_kick_getacch.f90
       implicit none
       ! Arguments
-      real(DP), dimension(:),     intent(in)    :: mu     !! Gravitational constant
-      real(DP), dimension(:,:),   intent(in)    :: x      !! Position vectors
-      logical,  dimension(:),     intent(in)    :: lmask  !! Logical mask indicating which bodies to compute
-      integer(I4B),               intent(in)    :: n      !! Total number of bodies
-      real(DP),                   intent(in)    :: inv_c2 !! Inverse speed of light squared: 1 / c**2
-      real(DP), dimension(:,:),   intent(out)   :: agr    !! Accelerations
+      real(DP), dimension(:),     intent(in)    :: mu     
+         !! Gravitational constant
+      real(DP), dimension(:,:),   intent(in)    :: x      
+         !! Position vectors
+      logical,  dimension(:),     intent(in)    :: lmask  
+         !! Logical mask indicating which bodies to compute
+      integer(I4B),               intent(in)    :: n      
+         !! Total number of bodies
+      real(DP),                   intent(in)    :: inv_c2 
+         !! Inverse speed of light squared: 1 / c**2
+      real(DP), dimension(:,:),   intent(out)   :: agr    
+         !! Accelerations
       ! Internals
       integer(I4B)                              :: i
       real(DP)                                  :: beta, rjmag4
@@ -100,10 +109,14 @@ contains
       !! Adapted from David A. Minton's Swifter routine gr_whm_p4.f90  
       implicit none
       ! Arguments
-      real(DP), intent(in)    :: inv_c2     !! One over speed of light squared (1/c**2)
-      real(DP), intent(inout) :: rx, ry, rz !! Position vector
-      real(DP), intent(in)    :: vx, vy, vz !! Velocity vector
-      real(DP), intent(in)    :: dt         !! Step size
+      real(DP), intent(in)    :: inv_c2     
+         !! One over speed of light squared (1/c**2)
+      real(DP), intent(inout) :: rx, ry, rz  
+         !! Position vector
+      real(DP), intent(in)    :: vx, vy, vz 
+         !! Velocity vector
+      real(DP), intent(in)    :: dt         
+         !! Step size
       ! Internals
       real(DP) :: drx, dry, drz
       real(DP) :: vmag2
@@ -133,11 +146,16 @@ contains
       !! Adapted from David A. Minton's Swifter routine gr_pseudovel2vel.f90 
       implicit none
       ! Arguments
-      class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters 
-      real(DP),                   intent(in)  :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
-      real(DP), dimension(:),     intent(in)  :: rh    !! Heliocentric position vector 
-      real(DP), dimension(:),     intent(in)  :: pv    !! Pseudovelocity velocity vector - see Saha & Tremain (1994), eq. (32)
-      real(DP), dimension(:),     intent(out) :: vh    !! Heliocentric velocity vector 
+      class(swiftest_parameters), intent(in)  :: param 
+         !! Current run configuration parameters 
+      real(DP),                   intent(in)  :: mu    
+         !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
+      real(DP), dimension(:),     intent(in)  :: rh    
+         !! Heliocentric position vector 
+      real(DP), dimension(:),     intent(in)  :: pv    
+         !! Pseudovelocity velocity vector - see Saha & Tremain (1994), eq. (32)
+      real(DP), dimension(:),     intent(out) :: vh    
+         !! Heliocentric velocity vector 
       ! Internals
       real(DP) :: vmag2, rmag, grterm
    
@@ -191,11 +209,16 @@ contains
       !! Adapted from David A. Minton's Swifter routine gr_vel2pseudovel.f90
       implicit none
       ! Arguments
-      class(swiftest_parameters), intent(in)  :: param !! Current run configuration parameters 
-      real(DP),                   intent(in)  :: mu    !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
-      real(DP), dimension(:),     intent(in)  :: rh    !! Heliocentric position vector 
-      real(DP), dimension(:),     intent(in)  :: vh    !! Heliocentric velocity vector 
-      real(DP), dimension(:),     intent(out) :: pv    !! Pseudovelocity vector - see Saha & Tremain (1994), eq. (32)
+      class(swiftest_parameters), intent(in)  :: param 
+         !! Current run configuration parameters 
+      real(DP),                   intent(in)  :: mu    
+         !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body
+      real(DP), dimension(:),     intent(in)  :: rh    
+         !! Heliocentric position vector 
+      real(DP), dimension(:),     intent(in)  :: vh    
+         !! Heliocentric velocity vector 
+      real(DP), dimension(:),     intent(out) :: pv    
+         !! Pseudovelocity vector - see Saha & Tremain (1994), eq. (32)
       ! Internals
       real(DP)                       :: v2, G, pv2, rterm, det
       real(DP), dimension(NDIM,NDIM) :: J,Jinv
@@ -264,11 +287,14 @@ contains
       !! Wrapper function that converts from heliocentric velocity to pseudovelocity for Swiftest bodies
       implicit none
       ! Arguments
-      class(swiftest_body),       intent(inout) :: self  !! Swiftest particle object
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+      class(swiftest_body),       intent(inout) :: self  
+         !! Swiftest particle object
+      class(swiftest_parameters), intent(in)    :: param 
+         !! Current run configuration parameters 
       ! Internals
       integer(I4B)                                 :: i
-      real(DP), dimension(:,:), allocatable        :: pv !! Temporary holder of pseudovelocity for in-place conversion
+      real(DP), dimension(:,:), allocatable        :: pv    
+         !! Temporary holder of pseudovelocity for in-place conversion
       
       associate(n => self%nbody)
          if (n == 0) return

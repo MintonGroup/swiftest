@@ -50,6 +50,7 @@ ${SCRIPT_DIR}/build_zlib.sh ${ARGS}
 ${SCRIPT_DIR}/build_hdf5.sh ${ARGS}
 ${SCRIPT_DIR}/build_netcdf-c.sh ${ARGS}
 ${SCRIPT_DIR}/build_netcdf-fortran.sh ${ARGS}
+${SCRIPT_DIR}/build_shtools.sh ${ARGS}
 
 printf "\n"
 printf "*********************************************************\n"

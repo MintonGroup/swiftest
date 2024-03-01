@@ -30,7 +30,8 @@ contains
       real(DP), intent(in) :: dt            !! Step size
       logical,  intent(in) :: lvdotr        !! Logical flag indicating that these two bodies are approaching in the current substep
       logical, intent(out) :: lcollision    !! Logical flag indicating whether these two bodies will collide or not
-      logical, intent(out) :: lclosest      !! Logical flag indicating that, while not a collision, this is the closest approach for this pair of bodies
+      logical, intent(out) :: lclosest      !! Logical flag indicating that, while not a collision, this is the closest approach for
+                                            !!  this pair of bodies
       ! Internals
       real(DP) :: r2, rlim2, a, e, q, vdotr, tcr2, dt2
 
@@ -39,7 +40,8 @@ contains
       lclosest = .false. 
       if (r2 <= rlim2) then ! checks if bodies are actively colliding in this time step
          lcollision = .true.
-      else ! if they are not actively colliding in  this time step, checks if they are going to collide next time step based on velocities and q 
+      else ! if they are not actively colliding in  this time step, checks if they are going to collide next time step based on 
+           ! velocities and q 
          lcollision = .false.
          vdotr = xr * vxr + yr * vyr + zr * vzr
          if (lvdotr .and. (vdotr > 0.0_DP)) then 
@@ -67,13 +69,13 @@ contains
       !! Adapted from Hal Levison's Swift routine symba5_merge.f
       implicit none
       ! Arguments
-      class(collision_list_plpl),   intent(inout) :: self           !! SyMBA pl-tp encounter list object
-      class(base_nbody_system),     intent(inout) :: nbody_system         !! SyMBA nbody system object
-      class(base_parameters),       intent(inout) :: param          !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: t              !! current time
-      real(DP),                     intent(in)    :: dt             !! step size
-      integer(I4B),                 intent(in)    :: irec           !! Current recursion level
-      logical,                      intent(out)   :: lany_collision !! Returns true if cany pair of encounters resulted in a collision 
+      class(collision_list_plpl), intent(inout) :: self !! SyMBA pl-tp encounter list object
+      class(base_nbody_system), intent(inout) :: nbody_system  !! SyMBA nbody system object
+      class(base_parameters),intent(inout) :: param !! Current run configuration parameters 
+      real(DP),  intent(in) :: t !! current time
+      real(DP), intent(in) :: dt  !! step size
+      integer(I4B), intent(in)  :: irec  !! Current recursion level
+      logical, intent(out) :: lany_collision !! Returns true if cany pair of encounters resulted in a collision 
       ! Internals
       logical, dimension(:), allocatable        :: lcollision, lmask
       real(DP), dimension(NDIM)                 :: xr, vr
@@ -113,14 +115,16 @@ contains
                vr(:) = pl%vb(:, i) - pl%vb(:, j)
                rlim = pl%radius(i) + pl%radius(j)
                Gmtot = pl%Gmass(i) + pl%Gmass(j)
-               call collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), Gmtot, rlim, dt, self%lvdotr(k), lcollision(k), self%lclosest(k))
+               call collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), Gmtot, rlim, dt, self%lvdotr(k), lcollision(k), &
+                                        self%lclosest(k))
             end do
 
             lany_collision = any(lcollision(:))
             lany_closest = (param%lenc_save_closest .and. any(self%lclosest(:)))
 
             if (lany_collision .or. lany_closest) then
-               call pl%rh2rb(nbody_system%cb) ! Update the central body barycenteric position vector to get us out of DH and into bary
+               call pl%rh2rb(nbody_system%cb) ! Update the central body barycenteric position vector to get us out of DH and into 
+                                              ! barycentric coordinates
                do k = 1_I8B, nenc
                   if (.not.lcollision(k) .and. .not. self%lclosest(k)) cycle
                   i = self%index1(k)
@@ -134,10 +138,12 @@ contains
                   self%r2(:,k) = pl%rh(:,j) + nbody_system%cb%rb(:)
                   self%v2(:,k) = pl%vb(:,j) 
                   if (lcollision(k)) then
-                     ! Check to see if either of these bodies has been involved with a collision before, and if so, make this a collider pair
+                     ! Check to see if either of these bodies has been involved with a collision before, and if so, make this a 
+                     ! collider pair
                      if (pl%lcollision(i) .or. pl%lcollision(j)) call pl%make_impactors([i,j])
 
-                     ! Set the collision flag for these to bodies to true in case they become involved in another collision later in the step
+                     ! Set the collision flag for these to bodies to true in case they become involved in another collision later in
+                     ! the step
                      pl%lcollision([i, j]) = .true.
                      pl%status([i, j]) = COLLIDED
                      call pl%info(i)%set_value(status="COLLIDED")
@@ -169,13 +175,13 @@ contains
       !! Adapted from Hal Levison's Swift routine symba5_merge.f
       implicit none
       ! Arguments
-      class(collision_list_pltp),          intent(inout) :: self           !! SyMBA pl-tp encounter list object
-      class(base_nbody_system), intent(inout) :: nbody_system         !! SyMBA nbody system object
-      class(base_parameters),   intent(inout) :: param          !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: t              !! current time
-      real(DP),                     intent(in)    :: dt             !! step size
-      integer(I4B),                 intent(in)    :: irec           !! Current recursion level
-      logical,                      intent(out)   :: lany_collision !! Returns true if cany pair of encounters resulted in a collision 
+      class(collision_list_pltp),intent(inout) :: self  !! SyMBA pl-tp encounter list object
+      class(base_nbody_system), intent(inout) :: nbody_system !! SyMBA nbody system object
+      class(base_parameters), intent(inout) :: param !! Current run configuration parameters 
+      real(DP), intent(in) :: t !! current time
+      real(DP), intent(in) :: dt  !! step size
+      integer(I4B), intent(in)  :: irec  !! Current recursion level
+      logical, intent(out)  :: lany_collision !! Returns true if cany pair of encounters resulted in a collision 
       ! Internals
       logical, dimension(:), allocatable        :: lcollision, lmask
       real(DP), dimension(NDIM)                 :: xr, vr
@@ -187,11 +193,9 @@ contains
 
       lany_collision = .false.
       if (self%nenc == 0) return
+
       select type(nbody_system)
       class is (swiftest_nbody_system)
-      select type(param)
-      class is (swiftest_parameters)
-
          associate(pl => nbody_system%pl, tp => nbody_system%tp)
 
             nenc = self%nenc
@@ -219,7 +223,8 @@ contains
                j = self%index2(k)
                xr(:) = pl%rh(:, i) - tp%rh(:, j) 
                vr(:) = pl%vb(:, i) - tp%vb(:, j)
-               call collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%Gmass(i), pl%radius(i), dt, self%lvdotr(k), lcollision(k), self%lclosest(k))
+               call collision_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), pl%Gmass(i), pl%radius(i), dt, self%lvdotr(k), &
+                                        lcollision(k), self%lclosest(k))
             end do
 
             lany_collision = any(lcollision(:))
@@ -227,7 +232,8 @@ contains
 
 
             if (lany_collision .or. lany_closest) then
-               call pl%rh2rb(nbody_system%cb) ! Update the central body barycenteric position vector to get us out of DH and into bary
+               call pl%rh2rb(nbody_system%cb) ! Update the central body barycenteric position vector to get us out of DH and into 
+                                              ! barycentric coordiantes
                do k = 1, nenc
                   if (.not.lcollision(k) .and. .not. self%lclosest(k)) cycle
                   i = self%index1(k)
@@ -249,21 +255,19 @@ contains
                      write(timestr, *) t
                      call tp%info(j)%set_value(status="DISCARDED_PLR", discard_time=t, discard_rh=tp%rh(:,j), discard_vh=tp%vh(:,j))
                      write(message, *) "Particle " // trim(adjustl(tp%info(j)%name)) // " ("  // trim(adjustl(idstrj)) // ")" &
-                           //  " collided with massive body " // trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstri)) // ")" &
-                           //  " at t = " // trim(adjustl(timestr))
+                           //  " collided with massive body " // trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstri)) &
+                           // ")" //  " at t = " // trim(adjustl(timestr))
                      call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
                   end if
                end do
 
                ! Extract the pl-tp encounter list and return the pl-tp collision_list
-               allocate(tmp, mold=self)
-               call self%spill(tmp, lcollision, ldestructive=.true.) ! Remove this encounter pair from the encounter list
+               call self%extract_collisions(nbody_system, param)
             end if
 
             ! Take snapshots of pairs of bodies at close approach (but not collision) if requested
             if (lany_closest) call nbody_system%encounter_history%take_snapshot(param, nbody_system, t, "closest") 
          end associate
-      end select
       end select
 
       return 

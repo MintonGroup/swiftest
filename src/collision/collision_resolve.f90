@@ -11,19 +11,19 @@ submodule (collision) s_collision_resolve
    use swiftest
 contains
 
-
    module subroutine collision_resolve_consolidate_impactors(self, nbody_system, param, idx_parent, lflag)
       !! author: David A. Minton
       !! 
-      !! Loops through the pl-pl collision list and groups families together by index. Outputs the indices of all impactors%id members, 
-      !! and pairs of quantities (x and v vectors, mass, radius, L_spin, and Ip) that can be used to resolve the collisional outcome.
+      !! Loops through the pl-pl collision list and groups families together by index. Outputs the indices of all impactors%id 
+      !! members, and pairs of quantities (x and v vectors, mass, radius, L_spin, and Ip) that can be used to resolve the 
+      !! collisional outcome.
       implicit none
       ! Arguments
-      class(collision_impactors),               intent(out)   :: self         !! Collision impactors object
-      class(base_nbody_system),                 intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),                   intent(in)    :: param        !! Current run configuration parameters with Swiftest additions
-      integer(I4B),               dimension(:), intent(inout) :: idx_parent !! Index of the two bodies considered the "parents" of the collision
-      logical,                                  intent(out)   :: lflag      !! Logical flag indicating whether a impactors%id was successfully created or not
+      class(collision_impactors),intent(out) :: self !! Collision impactors object
+      class(base_nbody_system),intent(inout) :: nbody_system !! Swiftest nbody system object
+      class(base_parameters), intent(in) :: param !! Current run configuration parameters with Swiftest additions
+      integer(I4B), dimension(:), intent(inout) :: idx_parent !! Index of the two bodies considered the "parents" of the collision
+      logical, intent(out) :: lflag !! Logical flag indicating whether a impactors%id was successfully created or not
       ! Internals
       type collidx_array
          integer(I4B), dimension(:), allocatable :: id
@@ -45,7 +45,8 @@ contains
             ! If all of these bodies share a parent, but this is still a unique collision, move the last child
             ! out of the parent's position and make it the secondary body
             if (idx_parent(1) == idx_parent(2)) then
-               if (nchild(1) == 0) then ! There is only one valid body recorded in this pair (this could happen due to restructuring of the kinship relationships, though it should be rare)
+               if (nchild(1) == 0) then ! There is only one valid body recorded in this pair (this could happen due to restructuring
+                                        ! of the kinship relationships, though it should be rare)
                   lflag = .false. 
                   call pl%reset_kinship([idx_parent(1)])
                   return
@@ -220,7 +221,7 @@ contains
             unique_parent_idx = pack(collision_idx(:), lplpl_unique_parent(:))
 
             ! Scrub all pl-pl collisions involving unique pairs of parents, which will remove all duplicates and leave behind
-            ! all pairs that have themselves as parents but are not part of the unique parent list. This can hapepn in rare cases
+            ! all pairs that have themselves as parents but are not part of the unique parent list. This can happen in rare cases
             ! due to restructuring of parent/child relationships when there are large numbers of multi-body collisions in a single
             ! step
             lplpl_unique_parent(:) = .true.
@@ -233,15 +234,16 @@ contains
                end associate
             end do
 
-            ! Reassemble collision index list to include only those containing the unique pairs of parents, plus all the non-unique pairs that don't
-            ! contain a parent body on the unique parent list.
+            ! Reassemble collision index list to include only those containing the unique pairs of parents, plus all the non-unique
+            ! pairs that don't contain a parent body on the unique parent list.
             ncollisions = nunique_parent + count(lplpl_unique_parent)
             collision_idx = [unique_parent_idx(:), pack(collision_idx(:), lplpl_unique_parent(:))]
 
             ! Create a mask that contains only the pl-pl encounters that did not result in a collision, and then discard them
             lplpl_collision(:) = .false.
             lplpl_collision(collision_idx(:)) = .true.
-            call self%spill(nbody_system%plpl_collision, lplpl_collision, ldestructive=.true.) ! Extract any encounters that are not collisions from the list.
+            ! Extract any encounters that are not collisions from the list.
+            call self%spill(nbody_system%plpl_collision, lplpl_collision, ldestructive=.true.) 
          end associate
       end select
       end select
@@ -255,6 +257,39 @@ contains
       class(collision_list_pltp), intent(inout) :: self   !! pl-tp encounter list
       class(base_nbody_system),   intent(inout) :: nbody_system !! Swiftest nbody system object
       class(base_parameters),     intent(in)    :: param  !! Current run configuration parameters
+      ! Internals
+      logical,      dimension(:), allocatable :: lpltp_collision
+      integer(I8B)                            :: ncollisions, index_coll, k, npltpenc
+      integer(I8B), dimension(:), allocatable :: collision_idx
+
+      select type(nbody_system)
+      class is (swiftest_nbody_system)
+      select type (pl => nbody_system%pl)
+      class is (swiftest_pl)
+      select type (tp => nbody_system%tp)
+      class is (swiftest_tp)
+         associate(idx1 => self%index1, idx2 => self%index2)
+            npltpenc = self%nenc
+            allocate(lpltp_collision(npltpenc))
+            lpltp_collision(:) = self%status(1_I8B:npltpenc) == COLLIDED
+            if (.not.any(lpltp_collision)) return 
+            ! Collisions have been detected in this step. So we need to determine which of them are between unique bodies.
+
+            ! Get the subset of pl-tp encounters that lead to a collision
+            ncollisions = count(lpltp_collision(:))
+            allocate(collision_idx(ncollisions))
+            collision_idx = pack([(k, k=1_I8B, npltpenc)], lpltp_collision)
+
+            ! Create a mask that contains only the pl-tp encounters that did not result in a collision, and then discard them
+            lpltp_collision(:) = .false.
+            lpltp_collision(collision_idx(:)) = .true.
+            ! Extract any encounters that are not collisions from the list.
+            call self%spill(nbody_system%pltp_collision, lpltp_collision, ldestructive=.true.) 
+         end associate
+      end select
+      end select
+      end select
+
 
       return
    end subroutine collision_resolve_extract_pltp
@@ -351,8 +386,9 @@ contains
       class is (swiftest_nbody_system)
       select type(param)
       class is (swiftest_parameters)
-         associate(pl => nbody_system%pl, pl_discards => nbody_system%pl_discards, info => nbody_system%pl%info, pl_adds => nbody_system%pl_adds, cb => nbody_system%cb, &
-            collider => nbody_system%collider, impactors => nbody_system%collider%impactors,fragments => nbody_system%collider%fragments)
+         associate(pl => nbody_system%pl, pl_discards => nbody_system%pl_discards, info => nbody_system%pl%info, &
+                   pl_adds => nbody_system%pl_adds, cb => nbody_system%cb, collider => nbody_system%collider,  &
+                   impactors => nbody_system%collider%impactors,fragments => nbody_system%collider%fragments)
 
             ! Add the impactors%id bodies to the subtraction list
             nimpactors = impactors%ncoll
@@ -496,7 +532,7 @@ contains
             allocate(plsub, mold=pl)
             call pl%spill(plsub, lmask, ldestructive=.false.)
 
-            call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nimpactors)])
+            ! call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nimpactors)])
 
             ! Save the before/after snapshots
             select type(before => collider%before)
@@ -551,7 +587,8 @@ contains
       class is (swiftest_parameters)
          associate(plpl_collision => nbody_system%plpl_collision, &
                    collision_history => nbody_system%collision_history, pl => nbody_system%pl, cb => nbody_system%cb, &
-                   collider => nbody_system%collider, fragments => nbody_system%collider%fragments, impactors => nbody_system%collider%impactors)
+                   collider => nbody_system%collider, fragments => nbody_system%collider%fragments, &
+                   impactors => nbody_system%collider%impactors)
             if (plpl_collision%nenc == 0) return ! No collisions to resolve
 
 
@@ -571,11 +608,13 @@ contains
                   ncollisions = plpl_collision%nenc
                   write(timestr,*) t
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, "")
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "***********************************************************" // &
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT,&
+                                                            "***********************************************************" // &
                                                             "***********************************************************")
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Collision between massive bodies detected at time t = " // &
                                                             trim(adjustl(timestr)))
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "***********************************************************" // &
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, &
+                                                            "***********************************************************" // &
                                                             "***********************************************************")
 
                   do k = 1_I8B, ncollisions
@@ -608,16 +647,18 @@ contains
                   ! Destroy the collision list now that the collisions are resolved
                   call plpl_collision%setup(0_I8B)
 
-                  if ((nbody_system%pl_adds%nbody == 0) .and. (nbody_system%pl_discards%nbody == 0)) exit
+                  if ((nbody_system%pl_adds%nbody == 0) .and. (.not.any(pl%ldiscard(:)))) exit
                   if (allocated(idnew)) deallocate(idnew)
                   nnew = nbody_system%pl_adds%nbody
                   allocate(idnew, source=nbody_system%pl_adds%id)
                   mnew = sum(nbody_system%pl_adds%mass(:))
 
-                  ! Rearrange the arrays: Remove discarded bodies, add any new bodies, re-sort, and recompute all indices and encounter lists
+                  ! Rearrange the arrays: Remove discarded bodies, add any new bodies, re-sort, and recompute all indices and 
+                  ! encounter lists
                   call pl%rearray(nbody_system, param)
 
-                  ! Destroy the add/discard list so that we don't append the same body multiple times if another collision is detected
+                  ! Destroy the add/discard list so that we don't append the same body multiple times if another collision 
+                  ! is detected
                   call nbody_system%pl_discards%setup(0, param)
                   call nbody_system%pl_adds%setup(0, param)
 
@@ -641,13 +682,17 @@ contains
                   end if
 
 
-                  ! Check whether or not any of the particles that were just added are themselves in a collision state. This will generate a new plpl_collision 
+                  ! Check whether or not any of the particles that were just added are themselves in a collision state. This will 
+                  ! generate a new plpl_collision 
                   call self%collision_check(nbody_system, param, t, dt, irec, lplpl_collision)
 
                   if (.not.lplpl_collision) exit
                   if (loop == MAXCASCADE) then
-                     call swiftest_io_log_one_message(COLLISION_LOG_OUT,"A runaway collisional cascade has been detected in collision_resolve_plpl.")
-                     call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Consider reducing the step size or changing the parameters in the collisional model to reduce the number of fragments.")
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT,"A runaway collisional cascade has been detected in " // &
+                                                                        "collision_resolve_plpl.")
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Consider reducing the step size or changing the " // &
+                                                                        "parameters in the collisional model to reduce the " // &
+                                                                        "number of fragments.")
                      call base_util_exit(FAILURE,unit=param%display_unit)
                   end if
                end associate
@@ -675,19 +720,92 @@ contains
       real(DP),                   intent(in)    :: t      !! Current simulation tim
       real(DP),                   intent(in)    :: dt     !! Current simulation step size
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
+      ! Internals
+      class(swiftest_pl), allocatable :: plsub
+      class(swiftest_tp), allocatable :: tpsub
+      logical :: lpltp_collision
+      character(len=STRMAX) :: timestr, idstr
+      integer(I4B) :: i, j, nnew, loop
+      integer(I8B) :: k, ncollisions
+      integer(I4B), dimension(:), allocatable :: idnew      
+      logical, dimension(:), allocatable :: lmask
      
       ! Make sure coordinate systems are all synced up due to being inside the recursion at this point
       select type(nbody_system)
       class is (swiftest_nbody_system)
       select type(param)
       class is (swiftest_parameters)
-         call nbody_system%pl%vb2vh(nbody_system%cb)
-         call nbody_system%tp%vb2vh(nbody_system%cb%vb)
-         call nbody_system%pl%b2h(nbody_system%cb)
-         call nbody_system%tp%b2h(nbody_system%cb)
+         associate(pltp_collision => nbody_system%pltp_collision, &
+            collision_history => nbody_system%collision_history, pl => nbody_system%pl, cb => nbody_system%cb, &
+            tp => nbody_system%tp, collider => nbody_system%collider, impactors => nbody_system%collider%impactors)
+            call pl%vb2vh(nbody_system%cb)
+            call tp%vb2vh(nbody_system%cb%vb)
+            call pl%b2h(nbody_system%cb)
+            call tp%b2h(nbody_system%cb)
 
-         ! Discard the collider
-         call nbody_system%tp%discard(nbody_system, param)
+            ! Restructure the massive bodies based on the outcome of the collision
+            call tp%rearray(nbody_system, param)
+
+            ! Check for discards
+            call nbody_system%tp%discard(nbody_system, param)
+
+            associate(idx1 => pltp_collision%index1, idx2 => pltp_collision%index2)
+               ncollisions = pltp_collision%nenc
+               write(timestr,*) t
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "")
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT,"***********************************************************" // &
+                                                                  "***********************************************************")
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Collision between test particle and massive body detected " // &
+                                                                   "at time t = " // trim(adjustl(timestr)))
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT,"***********************************************************" // &
+                                                                  "***********************************************************")
+
+               do k = 1_I8B, ncollisions
+                  ! Advance the collision id number and save it
+                  collider%maxid_collision = max(collider%maxid_collision, maxval(nbody_system%pl%info(:)%collision_id))
+                  collider%maxid_collision = collider%maxid_collision + 1
+                  collider%collision_id = collider%maxid_collision
+                  write(idstr,*) collider%collision_id
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "collision_id " // trim(adjustl(idstr)))
+                  collider%impactors%regime = COLLRESOLVE_REGIME_MERGE
+                  allocate(lmask, mold=pl%lmask)
+                  lmask(:) = .false.
+                  lmask(idx1(k)) = .true.
+                  
+                  allocate(plsub, mold=pl)
+                  call pl%spill(plsub, lmask, ldestructive=.false.)
+      
+                  ! Save the before snapshots
+                  select type(before => collider%before)
+                  class is (swiftest_nbody_system)
+                     call move_alloc(plsub, before%pl)
+                  end select
+
+                  deallocate(lmask)
+                  allocate(lmask, mold=tp%lmask)
+                  lmask(:) = .false.
+                  lmask(idx2(k)) = .true.
+                  
+                  allocate(tpsub, mold=tp)
+                  call tp%spill(tpsub, lmask, ldestructive=.false.)
+      
+                  ! Save the before snapshots
+                  select type(before => collider%before)
+                  class is (swiftest_nbody_system)
+                     call move_alloc(tpsub, before%tp)
+                  end select
+
+                  call collision_history%take_snapshot(param,nbody_system, t, "particle") 
+
+                  call impactors%dealloc()
+               end do
+
+               ! Destroy the collision list now that the collisions are resolved
+               call pltp_collision%setup(0_I8B)
+
+            end associate
+
+         end associate
       end select
       end select
 
