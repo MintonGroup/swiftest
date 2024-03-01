@@ -20,6 +20,7 @@ build:
   jobs:
     pre_build:
       - ford fortran_docs.md 
+      - pip install pyshtools
       - DOC_BUILD=1 pip install .
 python:
   install:

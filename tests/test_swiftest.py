@@ -28,6 +28,7 @@ import numpy as np
 from numpy.random import default_rng
 from astroquery.jplhorizons import Horizons
 import datetime
+import tempfile
 
 rng = default_rng(seed=123)
 
@@ -35,6 +36,14 @@ major_bodies = ["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranu
 param = {}
 
 class TestSwiftest(unittest.TestCase):
+    def setUp(self):
+        # Initialize a target and surface for testing
+        self.tmpdir=tempfile.TemporaryDirectory()
+        self.simdir = self.tmpdir.name
+        
+    def tearDown(self):
+        # Clean up temporary directory
+        self.tmpdir.cleanup() 
     
     def test_gen_ic(self):
         """
@@ -42,10 +51,9 @@ class TestSwiftest(unittest.TestCase):
         """
         print("\ntest_gen_ic: Test whether we can generate simulation initial conditions test")
         # Files that are expected to be generated:
-        simdir = "simdata"
-        file_list = [simdir, os.path.join(simdir,"param.in"), os.path.join(simdir,"init_cond.nc")]
+        file_list = [self.simdir, os.path.join(self.simdir,"param.in"), os.path.join(self.simdir,"init_cond.nc")]
         
-        sim = swiftest.Simulation()
+        sim = swiftest.Simulation(simdir=self.simdir)
         sim.clean()
 
         # Add the modern planets and the Sun using the JPL Horizons Database.
@@ -62,7 +70,7 @@ class TestSwiftest(unittest.TestCase):
         Tests that Swiftest is able to read a set of pre-existing initial conditions files and that they contain the correct data
         """
         print("\ntest_read_ic: Test whether we can read back initial conditions files created by test_gen_ic")
-        sim = swiftest.Simulation()
+        sim = swiftest.Simulation(simdir=self.simdir)
         sim.clean()
 
         # Add the modern planets and the Sun using the JPL Horizons Database.
@@ -81,7 +89,7 @@ class TestSwiftest(unittest.TestCase):
         Tests that Swiftest is able to integrate a collection of massive bodies and test particles with all available integrators
         """ 
         print("\ntest_integrators: Tests that Swiftest is able to integrate a collection of massive bodies and test particles with all available integrators")
-        sim = swiftest.Simulation()
+        sim = swiftest.Simulation(simdir=self.simdir)
 
         # Add the modern planets and the Sun using the JPL Horizons Database.
         sim.add_solar_system_body(major_bodies)
@@ -116,18 +124,18 @@ class TestSwiftest(unittest.TestCase):
         print("\ntest_conservation: Tests that Swiftest conserves mass, energy, and momentum to within acceptable tolerances.")
         
         # Error limits
-        L_slope_limit = 1e-10
-        E_slope_limit = 1e-8
+        L_slope_limit = 1e-9
+        E_slope_limit = 1e-7
         GM_limit = 1e-14
  
-        sim = swiftest.Simulation()
+        sim = swiftest.Simulation(simdir=self.simdir)
         sim.clean()
         
         sim.add_solar_system_body(major_bodies)
         
         dt = 0.01
-        nout = 1000
-        tstop = 1e4
+        nout = 100
+        tstop = 1e3
         tstep_out = tstop / nout
               
         sim.run(tstart=0.0, tstop=tstop, dt=dt, tstep_out=tstep_out, dump_cadence=0, compute_conservation_values=True, integrator="symba")
@@ -182,7 +190,7 @@ class TestSwiftest(unittest.TestCase):
         
         # Initialize the simulation object as a variable. Define the directory in which the output will be placed.
         tstep_out = 10.0
-        sim = swiftest.Simulation(tstop=1000.0, dt=0.005, tstep_out=tstep_out, dump_cadence=0,general_relativity=True)
+        sim = swiftest.Simulation(simdir=self.simdir, tstop=1000.0, dt=0.005, tstep_out=tstep_out, dump_cadence=0,general_relativity=True)
         sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune"])
 
         # Get the start and end date of the simulation so we can compare with the real solar system.

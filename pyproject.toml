@@ -13,7 +13,7 @@ maintainers = [
     {name = 'David A. Minton', email='daminton@purdue.edu'},
 ]
 readme = "README.md"
-requires-python=">=3.8"
+requires-python=">=3.9"
 license={file = "LICENSE"}
 classifiers=[
 'Development Status :: 3 - Alpha',
@@ -24,20 +24,20 @@ classifiers=[
 ]
 keywords=['astronomy','astrophysics', 'planetary', 'n-body',  'integrator', 'symplectic', 'wisdom-holman', 'symba']
 dependencies = [
-    'numpy>=1.24.3',
-    'scipy>=1.10.1',
-    'xarray>=2023.1',
-    'dask>=2023.5',
-    'distributed>=2023.5',
-    'bottleneck>=1.3.5',
-    'h5netcdf>=1.1',
-    'h5py>=3.9',
-    'netcdf4>=1.6.2',
-    'matplotlib>=3.7.1',
-    'astropy>=5.2',
+    'numpy>=1.26.4',
+    'scipy>=1.12.0',
+    'xarray>=2024.2.0',
+    'dask>=2024.2.1',
+    'distributed>=2024.2.1',
+    'bottleneck>=1.3.8',
+    'h5netcdf>=1.3.0',
+    'h5py>=3.10.0',
+    'netcdf4>=1.6.5',
+    'matplotlib>=3.8.3',
+    'astropy>=6.0.0',
     'astroquery>=0.4.6',
-    'tqdm>=4.65',
-    'cython>=3.0.0',
+    'tqdm>=4.66.2',
+    'cython>=3.0.8',
 ]
 
 [project.optional-dependencies]
@@ -48,8 +48,8 @@ Repository = 'https://github.itap.purdue.edu/MintonGroup/swiftest'
 
 [build-system]
 requires = [
-    "scikit-build-core>=0.8",
-    "cython>=3.0",
+    "scikit-build-core>=0.8.2",
+    "cython>=3.0.8",
 ]
 build-backend = "scikit_build_core.build"
 
@@ -133,7 +133,7 @@ PATH="${HDF5_ROOT}/bin:${PATH}"
 CMAKE_INSTALL_LIBDIR="lib"
 
 [tool.cibuildwheel.linux]
-skip = "cp312-* pp* -manylinux_i686* *-musllinux*"
+skip = "pp* -manylinux_i686* *-musllinux*"
 before-all = [
     "yum install epel-release -y",
     "yum install doxygen libxml2-devel libcurl-devel fftw-static openblas-devel lapack-devel -y",
