@@ -686,7 +686,7 @@ contains
       class(swiftest_netcdf_parameters), intent(inout) :: nc     !! Parameters used to identify a particular NetCDF dataset
       class(swiftest_parameters),        intent(inout) :: param
       ! Internals
-      integer(I4B)                              :: itmax, idmax, tslot
+      integer(I4B)                              :: itmax, idmax, tslot, status
       real(DP), dimension(:), allocatable       :: vals
       logical, dimension(:), allocatable        :: plmask, tpmask
       real(DP), dimension(1)                    :: rtemp
@@ -754,6 +754,23 @@ contains
                cb%L0(:) = Ip0(3) * mass0 * cb%R0**2 * rot0(:)
                L(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
                cb%dL(:) = L(:) - cb%L0
+
+               status = nf90_inq_varid(nc%id, nc%j2rp2_varname, nc%j2rp2_varid)
+               if (status == NF90_NOERR) then
+                  call netcdf_io_check( nf90_get_var(nc%id, nc%j2rp2_varid, cb%j2rp2, start=[tslot]), &
+                                        "netcdf_io_get_t0_values_system nf90_getvar j2rp2_varid"  )
+               else 
+                  cb%j2rp2 = 0.0_DP
+               end if
+      
+               status = nf90_inq_varid(nc%id, nc%j4rp4_varname, nc%j4rp4_varid)   
+               if (status == NF90_NOERR) then      
+                  call netcdf_io_check( nf90_get_var(nc%id, nc%j4rp4_varid, cb%j4rp4, start=[tslot]), &
+                                        "netcdf_io_get_t0_values_system nf90_getvar j4rp4_varid"  )
+               else 
+                  cb%j4rp4 = 0.0_DP
+               end if
+
             end if
 
             ! Retrieve the current bookkeeping variables
@@ -766,15 +783,6 @@ contains
                                   "netcdf_io_get_t0_values_system E_collisions_varid" )
             call netcdf_io_check( nf90_get_var(nc%id, nc%E_untracked_varid,  self%E_untracked,  start=[tslot]), &
                                    "netcdf_io_get_t0_values_system E_untracked_varid" )
-
-            ! ! SH gravity variable dimensions
-
-            ! call netcdf_io_check( nf90_get_var(nc%id, nc%sign_dimname, nc%sign_dimid), &
-            !                        "swiftest_io_netcdf_open nf90_inq_dimid sign_dimid")
-            ! call netcdf_io_check( nf90_inq_dimid(nc%id, nc%l_dimname, nc%l_dimid), &
-            !                        "swiftest_io_netcdf_open nf90_inq_dimid l_dimid")
-            ! call netcdf_io_check( nf90_inq_dimid(nc%id, nc%m_dimname, nc%m_dimid), &
-            !                        "swiftest_io_netcdf_open nf90_inq_dimid m_dimid")      
 
          end if
 
@@ -803,7 +811,7 @@ contains
       integer(I4B), parameter :: NO_FILL = 0
       logical :: fileExists
       character(len=STRMAX) :: errmsg
-      integer(I4B) :: ndims
+      integer(I4B) :: i, ndims
 
       associate(nc => self)
 
@@ -839,13 +847,7 @@ contains
                                "netcdf_io_initialize_output nf90_def_dim name_dimid" ) ! dimension to store particle id numbers
          call netcdf_io_check( nf90_def_dim(nc%id, nc%str_dimname, NAMELEN, nc%str_dimid), &
                                "netcdf_io_initialize_output nf90_def_dim str_dimid"  )  ! Dimension for string variables 
-         
-         call netcdf_io_check( nf90_def_dim(nc%id, nc%sign_dimname, NF90_UNLIMITED, nc%sign_dimid), &
-                               "swiftest_io_netcdf_open nf90_def_dim sign_dimid")
-         call netcdf_io_check( nf90_def_dim(nc%id, nc%l_dimname, NF90_UNLIMITED, nc%l_dimid), &
-                               "swiftest_io_netcdf_open nf90_def_dim l_dimid")
-         call netcdf_io_check( nf90_def_dim(nc%id, nc%m_dimname, NF90_UNLIMITED, nc%m_dimid), &
-                               "swiftest_io_netcdf_open nf90_def_dim m_dimid")
+        
 
          ! Dimension coordinates
          call netcdf_io_check( nf90_def_var(nc%id, nc%time_dimname, nc%out_type, nc%time_dimid, nc%time_varid), &
@@ -854,13 +856,6 @@ contains
                                "netcdf_io_initialize_output nf90_def_var space_varid"  )
          call netcdf_io_check( nf90_def_var(nc%id, nc%name_dimname, NF90_CHAR, [nc%str_dimid, nc%name_dimid], nc%name_varid), &
                                "netcdf_io_initialize_output nf90_def_var name_varid"  )
-
-         call netcdf_io_check( nf90_def_var(nc%id, nc%sign_dimname, nc%out_type, nc%sign_dimid, nc%sign_varid), &
-                               "swiftest_io_netcdf_open nf90_def_var sign_varid")
-         call netcdf_io_check( nf90_def_var(nc%id, nc%l_dimname, nc%out_type, nc%l_dimid, nc%l_varid), &
-                               "swiftest_io_netcdf_open nf90_def_var l_varid")
-         call netcdf_io_check( nf90_def_var(nc%id, nc%m_dimname, nc%out_type, nc%m_dimid, nc%m_varid), &
-                               "swiftest_io_netcdf_open nf90_def_var m_varid")
 
          ! Variables
          call netcdf_io_check( nf90_def_var(nc%id, nc%id_varname, NF90_INT, nc%name_dimid, nc%id_varid), &
@@ -962,13 +957,37 @@ contains
 
          if (param%lrotation) then
             call netcdf_io_check( nf90_def_var(nc%id, nc%Ip_varname, nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], &
-                                               nc%Ip_varid), &
-                                  "netcdf_io_initialize_output nf90_def_var Ip_varid"  )
+                                  nc%Ip_varid), "netcdf_io_initialize_output nf90_def_var Ip_varid"  )
             call netcdf_io_check( nf90_def_var(nc%id, nc%rot_varname, nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], &
-                                               nc%rot_varid), &
-                                  "netcdf_io_initialize_output nf90_def_var rot_varid"  )
+                                   nc%rot_varid), "netcdf_io_initialize_output nf90_def_var rot_varid"  )
             call netcdf_io_check( nf90_def_var(nc%id, nc%rotphase_varname, nc%out_type, nc%time_dimid, nc%rotphase_varid), &
                                   "netcdf_io_initialize_output nf90_def_var rotphase_varid"  )
+
+
+            if (nc%lc_lm_exists) then
+               call netcdf_io_check( nf90_def_dim(nc%id, nc%sign_dimname, NF90_UNLIMITED, nc%sign_dimid), &
+                                    "swiftest_io_netcdf_open nf90_def_dim sign_dimid")
+               call netcdf_io_check( nf90_def_dim(nc%id, nc%l_dimname, NF90_UNLIMITED, nc%l_dimid), &
+                                    "swiftest_io_netcdf_open nf90_def_dim l_dimid")
+               call netcdf_io_check( nf90_def_dim(nc%id, nc%m_dimname, NF90_UNLIMITED, nc%m_dimid), &
+                                    "swiftest_io_netcdf_open nf90_def_dim m_dimid")
+
+               call netcdf_io_check( nf90_def_var(nc%id, nc%sign_dimname, nc%out_type, nc%sign_dimid, nc%sign_varid), &
+                                    "swiftest_io_netcdf_open nf90_def_var sign_varid")
+               call netcdf_io_check( nf90_def_var(nc%id, nc%l_dimname, nc%out_type, nc%l_dimid, nc%l_varid), &
+                                    "swiftest_io_netcdf_open nf90_def_var l_varid")
+               call netcdf_io_check( nf90_def_var(nc%id, nc%m_dimname, nc%out_type, nc%m_dimid, nc%m_varid), &
+                                    "swiftest_io_netcdf_open nf90_def_var m_varid")
+               call netcdf_io_check( nf90_def_var(nc%id, nc%c_lm_varname, nc%out_type, [nc%m_dimid, nc%l_dimid, nc%sign_dimid], &
+                                     nc%c_lm_varid), "netcdf_io_initialize_output nf90_def_var c_lm_varid" )
+              
+            else
+               call netcdf_io_check( nf90_def_var(nc%id, nc%j2rp2_varname, nc%out_type, nc%time_dimid, nc%j2rp2_varid), &
+                                    "netcdf_io_initialize_output nf90_def_var j2rp2_varid"  )
+               call netcdf_io_check( nf90_def_var(nc%id, nc%j4rp4_varname, nc%out_type, nc%time_dimid, nc%j4rp4_varid), &
+                                    "netcdf_io_initialize_output nf90_def_var j4rp4_varid"  )
+            end if
+                        
          end if
 
          ! if (param%ltides) then
@@ -1004,16 +1023,6 @@ contains
                                   "netcdf_io_initialize_output nf90_def_var E_untracked_varid"  )
             call netcdf_io_check( nf90_def_var(nc%id, nc%GMescape_varname, nc%out_type, nc%time_dimid, nc%GMescape_varid), &
                                   "netcdf_io_initialize_output nf90_def_var GMescape_varid"  )
-         end if
-
-         call netcdf_io_check( nf90_def_var(nc%id, nc%j2rp2_varname, nc%out_type, nc%time_dimid, nc%j2rp2_varid), &
-                                  "netcdf_io_initialize_output nf90_def_var j2rp2_varid"  )
-         call netcdf_io_check( nf90_def_var(nc%id, nc%j4rp4_varname, nc%out_type, nc%time_dimid, nc%j4rp4_varid), &
-                                  "netcdf_io_initialize_output nf90_def_var j4rp4_varid"  )
-
-         if (nc%lc_lm_exists) then
-            call netcdf_io_check( nf90_def_var(nc%id, nc%c_lm_varname, nc%out_type, [nc%m_dimid, nc%l_dimid, nc%sign_dimid], &
-                              nc%c_lm_varid), "netcdf_io_initialize_output nf90_def_var c_lm_varid" )
          end if
 
          ! Set fill mode to NaN for all variables
@@ -1061,6 +1070,17 @@ contains
          ! Add in the space dimension coordinates
          call netcdf_io_check( nf90_put_var(nc%id, nc%space_varid, nc%space_coords, start=[1], count=[NDIM]), &
                                   "netcdf_io_initialize_output nf90_put_var space"  )
+
+         if (param%lrotation .and. nc%lc_lm_exists) then
+
+            ! Populate coordinate values for l and m and export to hdf file
+            call netcdf_io_check( nf90_put_var(nc%id, nc%l_varid, [(i, i=0, nc%l_dim_max-1)]), &
+                                 "netcdf_io_write_frame_cb nf90_put_var l_varid")
+            call netcdf_io_check( nf90_put_var(nc%id, nc%m_varid, [(i, i=0, nc%m_dim_max-1)]), &
+                                 "netcdf_io_write_frame_cb nf90_put_var m_varid")
+            call netcdf_io_check( nf90_put_var(nc%id, nc%sign_varid, [1,-1]), &
+                                  "netcdf_io_write_frame_cb nf90_put_var sign_varid")
+         end if
 
       end associate
       return
@@ -1354,7 +1374,6 @@ contains
       integer(I4B)                                :: ierr  !! Error code: returns 0 if the read is successful
       ! Internals
       integer(I4B)                              :: i, idmax, npl_check, ntp_check, str_max, status, npl, ntp
-      integer(I4B)                              :: l_dim_max, m_dim_max ! dimensions for c_lm array
       real(DP), dimension(:), allocatable       :: rtemp
       real(DP), dimension(:,:), allocatable     :: vectemp
       integer(I4B), dimension(:), allocatable   :: itemp
@@ -1527,8 +1546,8 @@ contains
 
             ! Set initial central body angular momentum for bookkeeping
             cb%L0(:) = cb%Ip(3) * cb%mass * cb%R0**2 * cb%rot(:) 
-            
-            ! rotphase may not be input by the user
+           
+            ! Check if rotphase is input by user. If not, set to 0 
             status = nf90_inq_varid(nc%id, nc%rotphase_varname, nc%rotphase_varid)
             if (status == NF90_NOERR) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%rotphase_varid, cb%rotphase, start=[tslot]), &
@@ -1537,6 +1556,53 @@ contains
             else
                cb%rotphase = 0.0_DP
             end if
+
+            ! Check if the J2 and J4 terms are input by user. If not, set them to 0
+            status = nf90_inq_varid(nc%id, nc%j2rp2_varname, nc%j2rp2_varid)
+            if (status == NF90_NOERR) then
+               call netcdf_io_check( nf90_get_var(nc%id, nc%j2rp2_varid, cb%j2rp2, start=[tslot]), &
+                                     "netcdf_io_read_frame_system nf90_getvar j2rp2_varid"  )
+            else 
+               cb%j2rp2 = 0.0_DP
+            end if
+
+            status = nf90_inq_varid(nc%id, nc%j4rp4_varname, nc%j4rp4_varid)   
+            if (status == NF90_NOERR) then      
+               call netcdf_io_check( nf90_get_var(nc%id, nc%j4rp4_varid, cb%j4rp4, start=[tslot]), &
+                                     "netcdf_io_read_frame_system nf90_getvar j4rp4_varid"  )
+            else 
+               cb%j4rp4 = 0.0_DP
+            end if
+  
+            ! Check if gravitational harmonics coefficients, c_lm, are set by the user. Also ensure that
+            ! c_lm and j2rp2/j4rp4 are not both set.
+            status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
+            if (status == NF90_NOERR) then
+               call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%l_dimid, len = nc%l_dim_max),&
+                                     "netcdf_io_read_frame_system nf90_inquire_dimension l_dimid"  )
+               call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%m_dimid, len = nc%m_dim_max), &
+                                      "netcdf_io_read_frame_system nf90_inquire_dimension m_dimid")
+              
+               if (nc%l_dim_max /= nc%m_dim_max) then
+                  write(*,*) "Error reading in NetCDF file: c_lm requires l_dim_max = m_dim_max"
+                  call base_util_exit(FAILURE,param%display_unit) 
+               end if
+   
+               if(.not. allocated(cb%c_lm)) allocate(cb%c_lm(nc%m_dim_max, nc%l_dim_max, 2)) 
+               call netcdf_io_check( nf90_get_var(nc%id, nc%c_lm_varid, cb%c_lm, count = [nc%m_dim_max, nc%l_dim_max, 2]), &
+                                     "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
+               
+               if (abs(cb%j2rp2) > tiny(1.0_DP) .or. (abs(cb%j4rp4) > tiny(1.0_DP))) then
+                  write(*,*) "Error reading in NetCDF file: cannot use both c_lm and j2rp2/j4rp4"
+                  call base_util_exit(FAILURE,param%display_unit) 
+               end if
+   
+               nc%lc_lm_exists = .true.
+            else
+               if (allocated(cb%c_lm)) deallocate(cb%c_lm)
+               nc%lc_lm_exists = .false.
+            end if
+
          end if
 
          ! if (param%ltides) then
@@ -1551,38 +1617,9 @@ contains
          !    if (npl > 0) pl%Q(:) = pack(rtemp, plmask)
          ! end if
 
-         status = nf90_inq_varid(nc%id, nc%j2rp2_varname, nc%j2rp2_varid)
-         if (status == NF90_NOERR) then
-            call netcdf_io_check( nf90_get_var(nc%id, nc%j2rp2_varid, cb%j2rp2, start=[tslot]), &
-                                  "netcdf_io_read_frame_system nf90_getvar j2rp2_varid"  )
-         else 
-            cb%j2rp2 = 0.0_DP
-         end if
 
-         status = nf90_inq_varid(nc%id, nc%j4rp4_varname, nc%j4rp4_varid)   
-         if (status == NF90_NOERR) then      
-            call netcdf_io_check( nf90_get_var(nc%id, nc%j4rp4_varid, cb%j4rp4, start=[tslot]), &
-                                  "netcdf_io_read_frame_system nf90_getvar j4rp4_varid"  )
-         else 
-            cb%j4rp4 = 0.0_DP
-         end if
 
-         status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
-         if (status == NF90_NOERR) then
-            call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%l_dimid, len = l_dim_max), "netcdf_io_read_frame_system nf90_inquire_dimension l_dimid"  )
-            call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%m_dimid, len = m_dim_max), "netcdf_io_read_frame_system nf90_inquire_dimension m_dimid")
-            
-            if(.not. allocated(cb%c_lm)) then
-               allocate(cb%c_lm(m_dim_max, l_dim_max, 2)) 
-            end if
-            call netcdf_io_check( nf90_get_var(nc%id, nc%c_lm_varid, cb%c_lm, count = [m_dim_max, l_dim_max, 2]), "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
-            
-            ! ordering of dimensions above seen to stackoverflow to prevent error 'NetCDF: Start + count exceeds dimension bound'
-            nc%lc_lm_exists = .true.
-         else
-            if (allocated(cb%c_lm)) deallocate(cb%c_lm)
-            nc%lc_lm_exists = .false.
-         end if
+
 
          call self%read_particle_info(nc, param, plmask, tpmask) 
 
@@ -2097,7 +2134,6 @@ contains
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       ! Internals
       integer(I4B)                              :: idslot, old_mode, tmp, i
-      integer(I4B)                              :: l_dim_max, m_dim_max
       integer(I4B), dimension(:), allocatable   :: lm_coords
       integer(I4B) :: status
 
@@ -2119,10 +2155,7 @@ contains
                                   "swiftest_io_netcdf_write_frame_cb nf90_put_var cb mass_varid"  )
          if (param%lclose) call netcdf_io_check( nf90_put_var(nc%id, nc%radius_varid, self%radius, start=[idslot, tslot]), &
                                   "swiftest_io_netcdf_write_frame_cb nf90_put_var cb radius_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%j2rp2_varid, self%j2rp2, start=[tslot]), &
-                                  "swiftest_io_netcdf_write_frame_cb nf90_put_var cb j2rp2_varid" )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%j4rp4_varid, self%j4rp4, start=[tslot]), &
-                                  "swiftest_io_netcdf_write_frame_cb nf90_put_var cb j4rp4_varid" )
+
          if (param%lrotation) then
             call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid, self%Ip(:), start=[1, idslot, tslot], count=[NDIM,1,1]), &
                                   "swiftest_io_netcdf_write_frame_cb nf90_put_var cb Ip_varid"  )
@@ -2130,30 +2163,17 @@ contains
                                                count=[NDIM,1,1]), &
                                   "swiftest_io_netcdf_write_frame_cb nf90_put_var cb rot_varid"  )
             
-            ! Following the template of j2rp2
             call netcdf_io_check( nf90_put_var(nc%id, nc%rotphase_varid, self%rotphase * RAD2DEG, start = [tslot]), & 
                                   "swiftest_io_netcdf_write_frame_cb nf90_put_var cb rotphase")
-         end if
-
-         if (allocated(self%c_lm)) then
-            status = nf90_inq_varid(nc%id, nc%c_lm_varname, nc%c_lm_varid)
-            if (status == NF90_NOERR) then
-               m_dim_max = size(self%c_lm, 1)
-               l_dim_max = size(self%c_lm, 2)
-
-            ! Populate coordinate values for l and m and export to hdf file
-               allocate(lm_coords(l_dim_max))
-               do i = 0, l_dim_max - 1
-                  lm_coords(i + 1) = i 
-               end do
-
-               call netcdf_io_check( nf90_put_var(nc%id, nc%l_varid, lm_coords), "netcdf_io_write_frame_cb nf90_put_var l_varid")
-               call netcdf_io_check( nf90_put_var(nc%id, nc%m_varid, lm_coords), "netcdf_io_write_frame_cb nf90_put_var m_varid")
-               call netcdf_io_check( nf90_put_var(nc%id, nc%sign_varid, [1,-1]), "netcdf_io_write_frame_cb nf90_put_var sign_varid")
-
-               ! Write dimension-coordinates to file
-               call netcdf_io_check( nf90_put_var(nc%id, nc%c_lm_varid, self%c_lm, count = [m_dim_max, l_dim_max, 2]), &
-                                     "netcdf_io_write_frame_cb nf90_put_var c_lm_varid")
+            
+            if (nc%lc_lm_exists) then
+               call netcdf_io_check( nf90_put_var(nc%id, nc%c_lm_varid, self%c_lm, count = [nc%m_dim_max, nc%l_dim_max, 2]), &
+                                       "netcdf_io_write_frame_cb nf90_put_var c_lm_varid")
+            else
+               call netcdf_io_check( nf90_put_var(nc%id, nc%j2rp2_varid, self%j2rp2, start=[tslot]), &
+                                    "swiftest_io_netcdf_write_frame_cb nf90_put_var cb j2rp2_varid" )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%j4rp4_varid, self%j4rp4, start=[tslot]), &
+                                    "swiftest_io_netcdf_write_frame_cb nf90_put_var cb j4rp4_varid" )
             end if
          end if
 
