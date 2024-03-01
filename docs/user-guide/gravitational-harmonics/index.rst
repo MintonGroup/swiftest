@@ -64,7 +64,7 @@ The output coefficients are already correctly normalized. ::
 
     c_lm, cb_radius = swiftest.clm_from_ellipsoid(mass = cb_mass, density = cb_density, a = cb_a, b = cb_b, c = cb_c, lref_radius = True)
 
-*Note: Here we set the reference radius flag to `True` and ask the function to return the reference radius. More in the 
+*Note: Here we set the reference radius flag to* `True` *and ask the function to return the reference radius. More in the 
 additional capabilities section below. The maximum degree is set to 6 by default to ensure computational efficiency.*
 
 Add the central body to the simulation along with the coefficients. ::
