@@ -1,10 +1,9 @@
 # Swiftest 
 
 ---
-Swiftest is a software packaged designed to model the dynamical evolution of gravitational systems. Swiftest is a re-write of the
-`Swifter <https://www.boulder.swri.edu/swifter/>`__ software package 
-Swiftest is a software packaged designed to model the dynamical evolution of gravitational systems. Swiftest is a re-write of the [Swifter](https://www.boulder.swri.edu/swifter/) software package that incorporates modern programming techniques and performance
-improvements. 
+Swiftest is a software packaged designed to model the long-term dynamical dynamics of n-body systems with a dominant central body, 
+like the solar system. Swiftest is a re-write of the [Swifter](https://www.boulder.swri.edu/swifter/) software package that 
+incorporates modern programming techniques and performance improvements. 
 
 #### Installation
 
