@@ -133,7 +133,7 @@ PATH="${HDF5_ROOT}/bin:${PATH}"
 CMAKE_INSTALL_LIBDIR="lib"
 
 [tool.cibuildwheel.linux]
-skip = "pp* *-manylinux_i686* *-musllinux*"
+skip = "pp* *-manylinux_i686* *-musllinux* cp312-*_aarch64*"
 before-all = [
     "yum install epel-release -y",
     "yum install doxygen libxml2-devel libcurl-devel fftw-static openblas-devel lapack-devel -y",
