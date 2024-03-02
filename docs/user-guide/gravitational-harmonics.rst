@@ -2,6 +2,8 @@
 Gravitational Harmonics
 ##########################
 
+.. rubric:: by Kaustub Anand
+
 Here, we show how to use Swiftest's Gravitational Harmonics capabilities. This is based on ``spherical_harmonics_cb`` 
 in ``swiftest/examples``. Swiftest uses `SHTOOLS <https://shtools.github.io/SHTOOLS/>`__ to compute the gravitational 
 harmonics coefficients for a given body and calculate it's associated acceleration kick. The conventions and formulae used here 
