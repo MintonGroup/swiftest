@@ -2,6 +2,8 @@
 Detailed Simulation
 #####################
 
+.. rubric:: by Kaustub Anand
+
 Here, we will walk you through the basic features of Swiftest and using them in Python. 
 This is based on ``/Basic_Simulation`` in ``swiftest/examples``.
 
@@ -31,7 +33,7 @@ The biggest body in the simulation is taken as the central body.
 Solar System Bodies
 =========================
 
-We can add solar system bodies to the simulation using the ``add_solar_system_body`` method. 
+We can add solar system bodies to the simulation using the :func:`add_solar_system_body <swiftest.Simulation.add_solar_system_body>` method. 
 This method uses JPL Horizons to extract the parameters. ::
    
    # Add the modern planets and the Sun using the JPL Horizons Database.
@@ -51,8 +53,8 @@ We can add other small bodies too. ::
 User Defined Bodies
 =========================
 
-For completeness, let's also add some bodies with user defined parameters using ``sim.add_body()``.
-We will randomize the initial conditions and therefore import the ``numpy.random`` module.::
+For completeness, let's also add some bodies with user defined parameters using :func:`sim.add_body <swiftest.Simulation.add_body>`.
+We will randomize the initial conditions and therefore import the `numpy.random <https://numpy.org/doc/stable/reference/random/index.html#module-numpy.random>`__ module.::
 
    from numpy.random import default_rng
    rng = default_rng(seed=123)
@@ -88,7 +90,7 @@ Initialize orbital elements and then add the bodies. ::
 Cartesian Coordinates
 ----------------------
 
-The process is similar for adding bodies with Cartesian coordinates. However, the parameter `init_cond_format` must be set to `XV` before adding the bodies.
+The process is similar for adding bodies with cartesian coordinates. However, the parameter `init_cond_format` must be set to `XV` before adding the bodies.
 The process of setting parameters is explained in the next section. 
 Start by defining the position and velocity vectors. Here we define the orbital velocities and scale them by a random value. ::
    
@@ -113,7 +115,7 @@ Start by defining the position and velocity vectors. Here we define the orbital 
 
    sim.add_body(name=name_pl, rh=rh_pl, vh=vh_pl, mass=M_pl, radius=R_pl,  Ip=Ip_pl, rot=rot_pl)
 
-The process is similar for **test particles**. The only difference is to exclude ``mass`` and ``radius``. 
+The process is similar for **test particles**. They only need the orbital elements or the cartesian coordinates. 
 Here is an example with orbital elements: ::
 
     # Add 10 user-defined test particles.
@@ -141,7 +143,7 @@ This can be done in multiple ways:
     sim = swiftest.Simulation(simdir = simdir, integrator = 'symba', init_cond_format = 'EL', tstart=0.0, tstop=1.0e6, dt=0.01, 
                                 istep_out=100, dump_cadence=0, compute_conservation_values=True, mtiny=mtiny)
     
-- ``sim.set_parameter()``: Set individual parameters in the simulation. The user can set one or multiple at a time. ::
+- :func:`sim.set_parameter <swiftest.Simulation.set_parameter>`: Set individual parameters in the simulation. The user can set one or multiple at a time. ::
 
     sim.set_parameter(tstart=0.0, tstop=1.0e6, dt=0.01, istep_out=100, dump_cadence=0, compute_conservation_values=True, mtiny=mtiny)
     sim.set_parameter(rmin = 0.05)
@@ -149,8 +151,8 @@ This can be done in multiple ways:
 We now set up the simulation parameters. Here we have a simulation starting from `0.0 y` and running for `1 My = 1e6 years` 
 with time steps of `0.01 years`. The timestep should be less than or equal to 1/10 of the orbital period of the innermost body. 
 
-The user can then write the parameters to the `param.in` file by using ``sim.write_param()``.
-To see the parameters of the simulation, use ``sim.get_parameter()``.
+The user can then write the parameters to the `param.in` file by using :func:`write_param <swiftest.Simulation.write_param>`.
+To see the parameters of the simulation, use :func:`sim.get_parameter <swiftest.Simulation.get_parameter>`.
 
 Running the Simulation
 ========================

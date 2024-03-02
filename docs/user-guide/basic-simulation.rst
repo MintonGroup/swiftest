@@ -2,6 +2,8 @@
 Basic Simulation
 #################
 
+.. rubric:: by David A. Minton
+
 Here, we will walk you through the basic features of Swiftest and using them in Python. 
 
 Start with importing Swiftest. ::
@@ -196,7 +198,7 @@ Here is an example where we can generate a simple plot of the semimajor axis vs.
 
   sim.data['a'].where(sim.data.particle_type != 'Central Body', drop=True).plot(x='time',hue='name')
 
-.. image:: ../../_static/basic_simulation_a_vs_t_plot.png
+.. image:: ../_static/basic_simulation_a_vs_t_plot.png
 
 This is just a simple example of what you can do with the simulation data. Xarray has a large number of built-in plotting and 
 data processing functions. For more information, see the `Xarray documentation <https://docs.xarray.dev/en/stable/>`__.
