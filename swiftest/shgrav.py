@@ -14,13 +14,20 @@
 # 
 
 from .constants import GC
+import os
 
-try:
-    import pyshtools as pysh
+PYSHTOOLS_AVAILABLE = False
+
+if 'READTHEDOCS' in os.environ:
+    # Assume pyshtools is available when building on ReadTheDocs
     PYSHTOOLS_AVAILABLE = True
-except ModuleNotFoundError:
-    PYSHTOOLS_AVAILABLE = False
-    print("pyshtools is not installed. Some features will be unavailable.")
+else:
+    try:
+        import pyshtools as pysh
+        PYSHTOOLS_AVAILABLE = True
+    except ModuleNotFoundError:
+        print("pyshtools is not installed. Some features will be unavailable.")
+
 
 if PYSHTOOLS_AVAILABLE:
 
