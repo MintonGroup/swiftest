@@ -44,13 +44,13 @@ cd ${DEPENDENCY_DIR}/SHTOOLS*
 case $FC in
     *"ifort"*|*"ifx"*)
         echo "Using Intel Fortran compiler"
-        make F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -m64 -fpp -free -O3 -Tf" fortran
-        make F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -m64 -fpp -free -O3 -Tf" fortran-mp
+        make F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -m64 -fpp -free -O3 ${FFLAGS} -Tf" fortran
+        make F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -m64 -fpp -free -O3 ${FFLAGS} -Tf" fortran-mp
         ;;
     *)
         echo "Everything else"
-        make F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -O3 -std=gnu -ffast-math" fortran
-        make F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -O3 -std=gnu -ffast-math" fortran-mp
+        make F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -O3 -std=gnu -ffast-math ${FFLAGS}" fortran
+        make F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -O3 -std=gnu -ffast-math ${FFLAGS}" fortran-mp
         ;;
 esac
 
