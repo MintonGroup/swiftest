@@ -73,7 +73,8 @@ build-verbosity = 1
 [tool.cibuildwheel.macos.environment]
 ROOT_DIR="$(pwd)"
 MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion)"
-PREFIX="/usr/local"
+SDKROOT="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk" 
+PREFIX="${ROOT_DIR}/build/deps/usr/local"
 HOMEBREW_PREFIX="$(brew --prefix)"
 ARCH="$(uname -m)"
 LD_LIBRARY_PATH="/usr/local/lib:${PREFIX}/lib:${HOMEBREW_PREFIX}/lib"

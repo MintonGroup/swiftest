@@ -4,7 +4,8 @@ set -a
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion)"
-PREFIX="/usr/local"
+SDKROOT="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk" 
+PREFIX=${PREFIX:-"/usr/local"}
 HOMEBREW_PREFIX="$(brew --prefix)"
 LD_LIBRARY_PATH="/usr/local/lib:${PREFIX}/lib:${HOMEBREW_PREFIX}/lib"
 DYLD_LIBRARY_PATH="${LD_LIBRARY_PATH}"
