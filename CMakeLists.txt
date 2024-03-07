@@ -49,10 +49,10 @@ ELSE()
 
     INCLUDE(GNUInstallDirs)
     IF (SKBUILD)
-        SET(INSTALL_BINDIR ${SKBUILD_SCRIPTS_DIR})
-        SET(INSTALL_LIBDIR ${SKBUILD_DATA_DIR}/lib) 
-        SET(INSTALL_INCLUDEDIR ${SKBUILD_HEADERS_DIR}) 
         SET(INSTALL_PYPROJ ${SKBUILD_PLATLIB_DIR}/${SKBUILD_PROJECT_NAME}) 
+        SET(INSTALL_BINDIR ${INSTALL_PYPROJ})
+        SET(INSTALL_LIBDIR ${CMAKE_BINARY_DIR}/lib) 
+        SET(INSTALL_INCLUDEDIR ${SKBUILD_HEADERS_DIR}) 
         SET(CMAKE_INSTALL_RPATH "${CMAKE_BINARY_DIR}/bin")
         SET(CMAKE_LIBRARY_PATH "${CMAKE_CURRENT_BINARY_DIR}/deps/usr/lib")
     ELSE ()
@@ -144,7 +144,7 @@ ELSE()
     ENDIF()
 
     # Set deployment target for macOS
-    IF (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    IF (APPLE)
         # Execute the shell command to get the macOS version and extract the major version
         EXECUTE_PROCESS(
             COMMAND bash -c "sw_vers -productVersion | cut -d. -f1"

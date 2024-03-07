@@ -48,6 +48,9 @@ repository = 'https://github.com/MintonGroup/swiftest'
 documentation = 'https://swiftest.readthedocs.io/en/latest/'
 changelog = 'https://swiftest.readthedocs.io/en/latest/whats-new.html'
 
+[project.entry-points.console_scripts]
+swiftest_driver = "swiftest.wrapper:run_swiftest_driver"
+
 [build-system]
 requires = [
     "scikit-build-core>=0.8.2",
@@ -72,6 +75,7 @@ build-verbosity = 1
 
 [tool.cibuildwheel.macos.environment]
 SDKROOT="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk" 
+MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion)"
 ROOT_DIR="$(pwd)"
 PREFIX="${ROOT_DIR}/build/deps/usr/local"
 HOMEBREW_PREFIX="$(brew --prefix)"
@@ -81,7 +85,7 @@ DYLD_LIBRARY_PATH="${LD_LIBRARY_PATH}"
 REPAIR_LIBRARY_PATH="${LD_LIBRARY_PATH}"
 LDFLAGS="-Wl,-rpath,${ROOT_DIR}/lib  -Wl,-no_compact_unwind -L${PREFIX}/lib -L${HOMEBREW_PREFIX}/lib" 
 CPATH="${PREFIX}/include:${HOMEBREW_PREFIX}/include:${ROOT_DIR}/include"
-CPPFLAGS="-isystem ${PREFIX}/includ "
+CPPFLAGS="-isystem ${PREFIX}/include"
 LIBS="-lomp"
 FCFLAGS="-arch ${ARCH}"
 FFLAGS="${FCFLAGS}"
