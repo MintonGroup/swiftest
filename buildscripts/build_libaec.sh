@@ -49,27 +49,13 @@ printf "INSTALL_PREFIX: ${SZIP_ROOT}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/libaec-*
-cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${SZIP_ROOT} -DCMAKE_INSTALL_LIBDIR=lib -DBUILD_SHARED_LIBS:BOOL=OFF -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON 
+cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${SZIP_ROOT} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON 
     
 cmake --build build -j${NPROC}
 if [ -w ${SZIP_ROOT} ]; then
     cmake --install build 
-    if [ $OS = "MacOSX" ]; then
-        rm -f ${SZIP_ROOT}/lib/libaec*dylib
-        rm -f ${SZIP_ROOT}/lib/libsz*dylib
-    else
-        rm -f ${SZIP_ROOT}/lib/libaec*so
-        rm -f ${SZIP_ROOT}/lib/libsz*so
-    fi
 else
     sudo cmake --install build
-    if [ $OS = "MacOSX" ]; then
-        sudo rm -f ${SZIP_ROOT}/lib/libaec*dylib
-        sudo rm -f ${SZIP_ROOT}/lib/libsz*dylib
-    else
-        sudo rm -f ${SZIP_ROOT}/lib/libaec*so
-        sudo rm -f ${SZIP_ROOT}/lib/libsz*so
-    fi
 fi
 
 if [ $? -ne 0 ]; then
