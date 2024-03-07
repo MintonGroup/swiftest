@@ -48,8 +48,8 @@ repository = 'https://github.com/MintonGroup/swiftest'
 documentation = 'https://swiftest.readthedocs.io/en/latest/'
 changelog = 'https://swiftest.readthedocs.io/en/latest/whats-new.html'
 
-[project.entry-points.console_scripts]
-swiftest_driver = "swiftest.wrapper:run_swiftest_driver"
+[project.scripts]
+swiftest_driver = "swiftest.cli:main"
 
 [build-system]
 requires = [
