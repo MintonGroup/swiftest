@@ -65,6 +65,11 @@ printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/hdfsrc
 
+if [ $OS = "MacOSX" ]; then
+    rm -rf ${PREFIX}/lib/*.dylib
+else
+    rm -rf ${PREFIX}/lib/*.so
+fi
 ZLIB_LIBRARY="${ZLIB_ROOT}/lib/libz.a"
 SZIP_LIBRARY="${SZIP_ROOT}/lib/libsz.a"
 
