@@ -351,7 +351,7 @@ class Simulation(object):
         self.collisions = xr.Dataset()
 
         # Set the location of the parameter input file, choosing the default if it isn't specified.
-        self.simdir = Path.cwd() / Path(simdir)
+        self.simdir = Path(simdir).resolve()
         param_file = Path(kwargs.pop("param_file", "param.in"))
 
         # Parameters are set in reverse priority order. First the defaults, then values from a pre-existing input file,
@@ -413,7 +413,7 @@ class Simulation(object):
         """
         Internal callable function that executes the swiftest_driver run
         """
-        from ._bindings import driver
+        from .core import driver
 
         with _cwd(self.simdir):
             driver(self.integrator,str(self.param_file), "progress")
@@ -1161,10 +1161,10 @@ class Simulation(object):
                 update_list.append("big_discard")     
                 
         if simdir is not None:
-            self.simdir = Path(simdir)
+            self.simdir = Path(simdir).resolve()
             if self.simdir.exists():
                 if not self.simdir.is_dir():
-                    msg = f"Cannot create the {self.simdir.resolve()} directory: File exists."
+                    msg = f"Cannot create the {self.simdir} directory: File exists."
                     msg += "\nDelete the file or change the location of param_file"
                     raise NotADirectoryError(msg)
             self.param_file = Path(kwargs.pop("param_file","param.in"))

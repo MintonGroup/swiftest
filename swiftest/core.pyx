@@ -1,6 +1,6 @@
 # cython: language_level=3, c_string_type=unicode, c_string_encoding=ascii
 
-cdef extern from "_bindings.h":
+cdef extern from "core.h":
     void bindings_c_driver(char* integrator, char* param_file_name, char* display_style) noexcept nogil
 
 def driver(integrator, param_file_name, display_style):

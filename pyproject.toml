@@ -1,6 +1,6 @@
 [project]
 name = "swiftest"
-version = "2024.3.0"
+version = "2024.3.1"
 authors=[
     {name = 'David A. Minton', email='daminton@purdue.edu'},
     {name = 'Carlisle Wishard'},
@@ -16,7 +16,7 @@ readme = "README.md"
 requires-python=">=3.9"
 license={file = "LICENSE"}
 classifiers=[
-'Development Status :: 3 - Alpha',
+'Development Status :: 4 - Beta',
 'Intended Audience :: Science/Research',
 'Topic :: Scientific/Engineering :: Astronomy',
 'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
@@ -44,7 +44,12 @@ dependencies = [
 pyshtools = ["pyshtools"] 
 
 [project.urls]
-Repository = 'https://github.itap.purdue.edu/MintonGroup/swiftest'
+repository = 'https://github.com/MintonGroup/swiftest'
+documentation = 'https://swiftest.readthedocs.io/en/latest/'
+changelog = 'https://swiftest.readthedocs.io/en/latest/whats-new.html'
+
+[project.scripts]
+swiftest = "swiftest.cli:main"
 
 [build-system]
 requires = [
@@ -52,6 +57,7 @@ requires = [
     "cython>=3.0.8",
 ]
 build-backend = "scikit_build_core.build"
+
 
 [tool.scikit-build]
 cmake.version = ">=3.23.1"
@@ -68,19 +74,20 @@ skip = "pp* *i686 *-manylinux_i686 *_ppc64le *_s390x *-musllinux* *-win32"
 build-verbosity = 1
 
 [tool.cibuildwheel.macos.environment]
-ROOT_DIR="$(pwd)"
+SDKROOT="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk" 
 MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion)"
-PREFIX="/usr/local"
+ROOT_DIR="$(pwd)"
+PREFIX="${ROOT_DIR}/build/deps/usr/local"
 HOMEBREW_PREFIX="$(brew --prefix)"
 ARCH="$(uname -m)"
-LD_LIBRARY_PATH="/usr/local/lib:${PREFIX}/lib:${HOMEBREW_PREFIX}/lib"
+LD_LIBRARY_PATH="${PREFIX}/lib:${HOMEBREW_PREFIX}/lib"
 DYLD_LIBRARY_PATH="${LD_LIBRARY_PATH}"
 REPAIR_LIBRARY_PATH="${LD_LIBRARY_PATH}"
 LDFLAGS="-Wl,-rpath,${ROOT_DIR}/lib  -Wl,-no_compact_unwind -L${PREFIX}/lib -L${HOMEBREW_PREFIX}/lib" 
-CPATH="/usr/local/include:${PREFIX}/include:${HOMEBREW_PREFIX}/include:${ROOT_DIR}/include"
-CPPFLAGS="-isystem ${PREFIX}/include -isystem /usr/local/include"
+CPATH="${PREFIX}/include:${HOMEBREW_PREFIX}/include:${ROOT_DIR}/include"
+CPPFLAGS="-isystem ${PREFIX}/include"
 LIBS="-lomp"
-FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -arch ${ARCH}"
+FCFLAGS="-arch ${ARCH}"
 FFLAGS="${FCFLAGS}"
 CFLAGS="${FCFLAGS} -Wno-deprecated-non-prototype -arch ${ARCH}"
 CXXFLAGS="${CFLAGS}"
@@ -107,7 +114,7 @@ NETCDF_FORTRAN_DIR="${PREFIX}/lib/cmake/netCDF"
 [tool.cibuildwheel.macos]
 before-all = [
     "brew install coreutils pkg-config fftw vecLibFort",
-    "LIBS=\"\" buildscripts/build_dependencies.sh -p ${PREFIX} -d ${HOME}/Downloads -m ${MACOSX_DEPLOYMENT_TARGET}"
+    "LIBS=\"\" buildscripts/build_dependencies.sh -p ${PREFIX} -d ${HOME}/Downloads"
 ]
 repair-wheel-command = """\
 DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel \
@@ -133,7 +140,7 @@ PATH="${HDF5_ROOT}/bin:${PATH}"
 CMAKE_INSTALL_LIBDIR="lib"
 
 [tool.cibuildwheel.linux]
-skip = "pp* *-manylinux_i686* *-musllinux*"
+skip = "pp* *-manylinux_i686* *-musllinux* cp312-*_aarch64*"
 before-all = [
     "yum install epel-release -y",
     "yum install doxygen libxml2-devel libcurl-devel fftw-static openblas-devel lapack-devel -y",
