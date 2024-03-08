@@ -3,8 +3,10 @@
 set -a
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
-MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion)"
-PREFIX="/usr/local"
+MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion | cut -d. -f1)" # Gets only the major version number
+SDKROOT="/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk" 
+CMAKE_OSX_SYSROOT="${SDKROOT}"
+PREFIX=${PREFIX:-"/usr/local"}
 HOMEBREW_PREFIX="$(brew --prefix)"
 LD_LIBRARY_PATH="/usr/local/lib:${PREFIX}/lib:${HOMEBREW_PREFIX}/lib"
 DYLD_LIBRARY_PATH="${LD_LIBRARY_PATH}"
@@ -24,6 +26,8 @@ NETCDF_FORTRAN_HOME="${NFDIR}"
 NETCDF_FORTRAN_INCLUDE="${NFDIR}/include"
 ZLIB_ROOT=${ZLIB_ROOT:-"${ZLIB_HOME}"}
 ZLIB_ROOT=${ZLIB_ROOT:-"${PREFIX}"}
+SZIP_ROOT=${SZIP_ROOT:-"${SZIP_HOME}"}
+SZIP_ROOT=${SZIP_ROOT:-"${PREFIX}"}
 HDF5_ROOT=${HDF5_ROOT:-"${HDF5_HOME}"}
 HDF5_ROOT=${HDF5_ROOT:-"${PREFIX}"}
 HDF5_LIBDIR="${HDF5_ROOT}/lib"

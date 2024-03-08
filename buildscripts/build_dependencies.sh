@@ -47,6 +47,7 @@ if [ $OS = "MacOSX" ]; then
 fi
 
 ${SCRIPT_DIR}/build_zlib.sh ${ARGS}
+${SCRIPT_DIR}/build_libaec.sh ${ARGS}
 ${SCRIPT_DIR}/build_hdf5.sh ${ARGS}
 ${SCRIPT_DIR}/build_netcdf-c.sh ${ARGS}
 ${SCRIPT_DIR}/build_netcdf-fortran.sh ${ARGS}
