@@ -2,9 +2,9 @@ name: swiftest
 
 on:
   workflow_dispatch:
-  push
+  push:
     branches:
-      - debug:
+      - debug
 
 jobs:
   build_wheels:
