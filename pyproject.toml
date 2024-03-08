@@ -49,7 +49,7 @@ documentation = 'https://swiftest.readthedocs.io/en/latest/'
 changelog = 'https://swiftest.readthedocs.io/en/latest/whats-new.html'
 
 [project.scripts]
-swiftest_driver = "swiftest.cli:main"
+swiftest = "swiftest.cli:main"
 
 [build-system]
 requires = [

@@ -69,5 +69,5 @@ FROM scratch as export-wheel
 COPY --from=build-swiftest /swiftest/dist/ ./
 
 FROM scratch as export-driver
-COPY --from=build-swiftest /swiftest/build/bin/swiftest_driver ./
+COPY --from=build-swiftest /swiftest/build/bin/swiftest ./
 COPY --from=build-swiftest /swiftest/build/bin/libswiftest.so ./
