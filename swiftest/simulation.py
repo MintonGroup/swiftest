@@ -413,7 +413,7 @@ class Simulation(object):
         """
         Internal callable function that executes the swiftest_driver run
         """
-        from ._bindings import driver
+        from .core import driver
 
         with _cwd(self.simdir):
             driver(self.integrator,str(self.param_file), "progress")

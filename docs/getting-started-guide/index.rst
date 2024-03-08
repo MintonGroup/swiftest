@@ -23,7 +23,7 @@ fully incorporates collisional fragments into the gravitational system, evolving
 their growth and any future fragmentation events in which they are involved.
 
 Swiftest is written in Modern Fortran and is designed to be run from Python. The Python package provides a set of tools for generating 
-initial conditions, running simulations, and processing output data. Swiftest can also be run from the command line using the ``swiftest_driver`` executable,
+initial conditions, running simulations, and processing output data. Swiftest can also be run from the command line using the ``swiftest`` executable,
 provided that initial conditions and configuration files are available in the path. 
 
 
@@ -37,7 +37,7 @@ command::
 
 This will install the ``swiftest`` Python package, which can be
 incorporated into Python projects using ``import swiftest``. It also
-will install a standalone executable called ``swiftest_driver``, which
+will install a standalone executable called ``swiftest``, which
 can execute simulations from the command line, provided that initial
 conditions and configuration files are available in the path.
 
@@ -128,10 +128,10 @@ Or, alternatively, if you wish to install an editable version::
 Building the exectuable using CMake
 -----------------------------------
 
-Although Swiftest is designed to be run from Python, it is also possible to run Swiftest simulations from the command line using the ``swiftest_driver`` executable, provided it has 
+Although Swiftest is designed to be run from Python, it is also possible to run Swiftest simulations from the command line using the ``swiftest`` executable, provided it has 
 an initial conditions file and a configuration parameter file, which are typically generated using the Python package. 
 
-The ``swiftest_driver`` is compiled through `CMake <https://cmake.org/>`__. Compiling
+The ``swiftest`` is compiled through `CMake <https://cmake.org/>`__. Compiling
 with CMake has a number of benefits that provide a streamlined
 experience for the Swiftest user and developer. At compilation, CMake
 will automatically select the set of flags that are compatible with the
@@ -215,7 +215,7 @@ To see a list of all possible options available to CMake::
 
    $ cmake -B build -S . -LA
 
-The Swiftest executable, called ``swiftest_driver`` as well as the shared library, either ``libswiftest.so`` or ``libswiftest.dylib``, 
+The Swiftest executable, called ``swiftest`` as well as the shared library, either ``libswiftest.so`` or ``libswiftest.dylib``, 
 depending on your platform, should now be created in the ``build/bin/`` directory. You can also install the it into your system by running::
 
    $ cmake --install build

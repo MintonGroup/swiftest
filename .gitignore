@@ -4,7 +4,6 @@
 !*/
 # whitelist only the files that ever need to be tracked
 !*.f90
-swiftest_driver.sh
 !CMakeLists.txt
 !*.cmake
 !COPYING
@@ -66,7 +65,7 @@ docs/_static/fortran_docs/*/**
 !environment.yml
 !.dockerignore
 
-swiftest/_bindings.cpython*
+swiftest/core.cpython*
 bin/
 build/*
 lib*

@@ -8,7 +8,7 @@ def main():
 
     # Determine the path to the binary relative to this script
     package_root = os.path.dirname(os.path.abspath(__file__))
-    binary_path = os.path.join(package_root, 'swiftest_driver')
+    binary_path = os.path.join(package_root, 'swiftest')
 
     # sys.argv[1:] contains all the arguments passed to the script, excluding the script name itself
     args = [binary_path] + sys.argv[1:]

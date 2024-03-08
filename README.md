@@ -13,7 +13,7 @@ For most users, installing swiftest can be done via pip using the command:
 pip install swiftest
 ```
 
-This will install the `swiftest` Python package, which can be incorporated into Python projects using `import swiftest`. It also will install a standalone executable called `swiftest_driver`, which can execute simulations from the command line, provided that initial conditions and configuration files are available in the path. 
+This will install the `swiftest` Python package, which can be incorporated into Python projects using `import swiftest`. It also will install a standalone executable called `swiftest`, which can execute simulations from the command line, provided that initial conditions and configuration files are available in the path. 
 
 #### Documentation
 
