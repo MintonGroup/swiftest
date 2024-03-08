@@ -1,8 +1,7 @@
 #!/bin/bash
-# This script will build all of the dependency libraries needed by Swiftest. Builds the following from source:
-# Zlib, hdf5, netcdf-c, netcdf-fortran
+# This script will build the bz2 library needed by HDF5
 # 
-# Copyright 2023 - David Minton
+# Copyright 2024 - David Minton
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -17,28 +16,28 @@ ARGS=$@
 . ${SCRIPT_DIR}/set_compilers.sh
 
 NPROC=$(nproc)
+BZ2_ROOT=${BZ2_ROOT:-"${BZ2_HOME}"}
+BZ2_ROOT=${BZ2_ROOT:-"${PREFIX}"}
 
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
 printf "*********************************************************\n"
 printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
-printf "Installing to ${NFDIR}\n"
+printf "Installing to ${BZ2_ROOT}\n"
 printf "\n"
+BZ2_VER="1.0.8"
 
-NF_VER="4.6.1"
 printf "*********************************************************\n"
-printf "*          FETCHING NETCDF-FORTRAN SOURCE                  *\n"
+printf "*             FETCHING BZ2 SOURCE                      *\n"
 printf "*********************************************************\n"
 printf "Copying files to ${DEPENDENCY_DIR}\n"
-if [ ! -d ${DEPENDENCY_DIR}/netcdf-fortran-${NF_VER} ]; then
-    [ -d ${DEPENDENCY_DIR}/netcdf-fortran-* ] && rm -rf ${DEPENDENCY_DIR}/netcdf-fortran-*
-    curl -s -L https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v${NF_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
-fi 
-CFLAGS="$(${NCDIR}/bin/nc-config --cflags) $CFLAGS"
-LIBS="$(${NCDIR}/bin/nc-config --libs) $LIBS"
-printf "\n"
+mkdir -p ${DEPENDENCY_DIR}
+if [ ! -d ${DEPENDENCY_DIR}/bzip2-${BZ2_VER} ]; then
+    [ -d ${DEPENDENCY_DIR}/bzip2-* ] && rm -rf ${DEPENDENCY_DIR}/bzip2-*
+    curl -L https://sourceware.org/pub/bzip2/bzip2-${BZ2_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+fi
 printf "*********************************************************\n"
-printf "*          BUILDING NETCDF-FORTRAN LIBRARY              *\n"
+printf "*               BUILDING BZ2 LIBRARY                  *\n"
 printf "*********************************************************\n"
 printf "LIBS: ${LIBS}\n"
 printf "CFLAGS: ${CFLAGS}\n"
@@ -46,33 +45,29 @@ printf "CPPFLAGS: ${CPPFLAGS}\n"
 printf "CPATH: ${CPATH}\n"
 printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
 printf "LDFLAGS: ${LDFLAGS}\n"
+printf "INSTALL_PREFIX: ${BZ2_ROOT}\n"
 printf "*********************************************************\n"
 
-cd ${DEPENDENCY_DIR}/netcdf-fortran-*
-NCLIBDIR=$(${NCDIR}/bin/nc-config --libdir)
-if [ $OS = "MacOSX" ]; then
-    netCDF_LIBRARIES="${NCLIBDIR}/libnetcdf.dylib"
-else
-    netCDF_LIBRARIES="${NCLIBDIR}/libnetcdf.so"
+cd ${DEPENDENCY_DIR}/bzip2-*
+printf "Updating Makefile with new flags\n"
+# Update the Makefile to use the environment flags set by this script
+if [ ! -f Makefile.bak ]; then
+    mv Makefile Makefile.bak
 fi
-cmake -B build -S . -G Ninja \
-    -DnetCDF_INCLUDE_DIR:PATH="${NCDIR}/include" \
-    -DnetCDF_LIBRARIES:FILEPATH="${netCDF_LIBRARIES}"  \
-    -DCMAKE_INSTALL_PREFIX:PATH=${NFDIR} \
-    -DCMAKE_INSTALL_LIBDIR="lib" \
-    -DBUILD_EXAMPLES:BOOL=OFF \
-    -DBUILD_TESTING:BOOL=OFF \
-    -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON \
-    -DENABLE_TESTS:BOOL=OFF     
+sed 's/^LDFLAGS=$/LDFLAGS+= /' Makefile.bak > Makefile.tmp
+sed 's/^CFLAGS=-Wall -Winline -O2 -g $(BIGFILES)$/CFLAGS+=-Wall -Winline -O2 -g $(BIGFILES)/' Makefile.tmp > Makefile
+rm Makefile.tmp
 
-cmake --build build -j${NPROC} 
-if [ -w ${NFDIR} ]; then
-    cmake --install build 
+make clean
+make
+    
+if [ -w ${BZ2_ROOT} ]; then
+    make install PREFIX=${BZ2_ROOT}
 else
-    sudo cmake --install build 
+    sudo make install PREFIX=${BZ2_ROOT}
 fi
 
 if [ $? -ne 0 ]; then
-   printf "netcdf-fortran could not be compiled.\n"
+   printf "bz2 could not be compiled.\n"
    exit 1
 fi

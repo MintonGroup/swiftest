@@ -1,7 +1,7 @@
 #!/bin/bash
-# Builds the following from source: SHTOOLS
+# This script will build the libaec library needed by HDF5
 # 
-# Copyright 2023 - David Minton
+# Copyright 2024 - David Minton
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -14,54 +14,51 @@ set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 . ${SCRIPT_DIR}/set_compilers.sh
+
 NPROC=$(nproc)
-SHTOOLS_VER="4.11.10"
+SZIP_ROOT=${SZIP_ROOT:-"${LIBAEC_HOME}"}
+SZIP_ROOT=${SZIP_ROOT:-"${PREFIX}"}
 
 printf "*********************************************************\n"
-printf "*             FETCHING SHTOOLS SOURCE                      *\n"
+printf "*          STARTING DEPENDENCY BUILD                    *\n"
+printf "*********************************************************\n"
+printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
+printf "Installing to ${SZIP_ROOT}\n"
+printf "\n"
+LIBAEC_VER="1.1.2"
+
+printf "*********************************************************\n"
+printf "*             FETCHING LIBAEC SOURCE                      *\n"
 printf "*********************************************************\n"
 printf "Copying files to ${DEPENDENCY_DIR}\n"
 mkdir -p ${DEPENDENCY_DIR}
-if [ ! -d ${DEPENDENCY_DIR}/SHTOOLS-${SHTOOLS_VER} ]; then
-    [ -d ${DEPENDENCY_DIR}/SHTOOLS-* ] && rm -rf ${DEPENDENCY_DIR}/SHTOOLS-*
-    curl -L https://github.com/SHTOOLS/SHTOOLS/archive/refs/tags/v${SHTOOLS_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+if [ ! -d ${DEPENDENCY_DIR}/libaec-${LIBAEC_VER} ]; then
+    [ -d ${DEPENDENCY_DIR}/libaec-* ] && rm -rf ${DEPENDENCY_DIR}/libaec-*
+    curl -L https://github.com/MathisRosenhauer/libaec/releases/download/v${LIBAEC_VER}/libaec-${LIBAEC_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
 fi
-
 printf "*********************************************************\n"
-printf "*               BUILDING SHTOOLS LIBRARY                   *\n"
+printf "*               BUILDING LIBAEC LIBRARY                  *\n"
 printf "*********************************************************\n"
 printf "LIBS: ${LIBS}\n"
-printf "FFLAGS: ${FFLAGS}\n"
 printf "CFLAGS: ${CFLAGS}\n"
 printf "CPPFLAGS: ${CPPFLAGS}\n"
 printf "CPATH: ${CPATH}\n"
 printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
 printf "LDFLAGS: ${LDFLAGS}\n"
+printf "INSTALL_PREFIX: ${SZIP_ROOT}\n"
 printf "*********************************************************\n"
 
-cd ${DEPENDENCY_DIR}/SHTOOLS*
-
-case $FC in
-    *"ifort"*|*"ifx"*)
-        echo "Using Intel Fortran compiler"
-        make -j${NPROC} F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -m64 -fpp -free -O3 ${FFLAGS} -Tf" fortran
-        make -j${NPROC} F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -m64 -fpp -free -O3 ${FFLAGS} -Tf" fortran-mp
-        ;;
-    *)
-        echo "Everything else"
-        make -j${NPROC} F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -O3 -std=gnu -ffast-math ${FFLAGS}" fortran
-        make -j${NPROC} F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -O3 -std=gnu -ffast-math ${FFLAGS}" fortran-mp
-        ;;
-esac
-
-if [ -w ${PREFIX} ]; then
-    make F95="${FC}" PREFIX="${PREFIX}" install
+cd ${DEPENDENCY_DIR}/libaec-*
+cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${SZIP_ROOT} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON  -DBUILD_SHARED_LIBS:BOOL=OFF
+    
+cmake --build build -j${NPROC}
+if [ -w ${SZIP_ROOT} ]; then
+    cmake --install build 
 else
-    sudo make F95="${FC}" PREFIX="${PREFIX}" install
+    sudo cmake --install build
 fi
-cd ..
 
 if [ $? -ne 0 ]; then
-   printf "SHTOOLS could not be compiled.\n"
+   printf "libaec could not be compiled.\n"
    exit 1
 fi

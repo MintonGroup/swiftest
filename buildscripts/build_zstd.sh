@@ -1,8 +1,7 @@
 #!/bin/bash
-# This script will build all of the dependency libraries needed by Swiftest. Builds the following from source:
-# Zlib, hdf5, netcdf-c, netcdf-fortran
+# This script will build the zstd library needed by HDF5
 # 
-# Copyright 2023 - David Minton
+# Copyright 2024 - David Minton
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -17,29 +16,28 @@ ARGS=$@
 . ${SCRIPT_DIR}/set_compilers.sh
 
 NPROC=$(nproc)
+ZSTD_ROOT=${ZSTD_ROOT:-"${ZSTD_HOME}"}
+ZSTD_ROOT=${ZSTD_ROOT:-"${PREFIX}"}
 
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
 printf "*********************************************************\n"
 printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
-printf "Installing to ${NCDIR}\n"
+printf "Installing to ${ZSTD_ROOT}\n"
 printf "\n"
-
-NC_VER="4.9.2"
+ZSTD_VER="1.5.5"
 
 printf "*********************************************************\n"
-printf "*            FETCHING NETCDF-C SOURCE                   *\n"
+printf "*             FETCHING ZSTD SOURCE                      *\n"
 printf "*********************************************************\n"
 printf "Copying files to ${DEPENDENCY_DIR}\n"
-
-if [ ! -d ${DEPENDENCY_DIR}/netcdf-c-${NC_VER} ]; then
-    [ -d ${DEPENDENCY_DIR}/netcdf-c-* ] && rm -rf ${DEPENDENCY_DIR}/netcdf-c-*
-    curl -s -L https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NC_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+mkdir -p ${DEPENDENCY_DIR}
+if [ ! -d ${DEPENDENCY_DIR}/zstd-${ZSTD_VER} ]; then
+    [ -d ${DEPENDENCY_DIR}/zstd-* ] && rm -rf ${DEPENDENCY_DIR}/zstd-*
+    curl -L https://github.com/facebook/zstd/releases/download/v${ZSTD_VER}/zstd-${ZSTD_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
 fi
-
-printf "\n"
 printf "*********************************************************\n"
-printf "*              BUILDING NETCDF-C LIBRARY                *\n"
+printf "*               BUILDING ZSTD LIBRARY                  *\n"
 printf "*********************************************************\n"
 printf "LIBS: ${LIBS}\n"
 printf "CFLAGS: ${CFLAGS}\n"
@@ -47,45 +45,20 @@ printf "CPPFLAGS: ${CPPFLAGS}\n"
 printf "CPATH: ${CPATH}\n"
 printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
 printf "LDFLAGS: ${LDFLAGS}\n"
-printf "HDF5_ROOT: ${HDF5_ROOT}\n"
-printf "INSTALL_PREFIX: ${NCDIR}\n"
+printf "INSTALL_PREFIX: ${ZSTD_ROOT}\n"
 printf "*********************************************************\n"
 
-cd ${DEPENDENCY_DIR}/netcdf-c-*
-cmake -B build -S . -G Ninja  \
-    -DCMAKE_BUILD_TYPE:STRING="Release" \
-    -DHDF5_DIR:PATH=${HDF5_ROOT}/cmake \
-    -DHDF5_ROOT:PATH=${HDF5_ROOT} \
-    -DCMAKE_FIND_ROOT_PATH:PATH="${NCDIR}" \
-    -DCMAKE_INSTALL_PREFIX:STRING="${NCDIR}" \
-    -DENABLE_DAP:BOOL=OFF \
-    -DENABLE_BYTERANGE:BOOL=OFF \
-    -DENABLE_NCZARR:BOOL=OFF \
-    -DENABLE_NCZARR_FILTERS:BOOL=OFF \
-    -DENABLE_LIBXML2:BOOL=OFF \
-    -DCMAKE_INSTALL_LIBDIR="lib" \
-    -DENABLE_REMOTE_FORTRAN_BOOTSTRAP:BOOL=OFF \
-    -DENABLE_PLUGINS:BOOL=OFF \
-    -DBUILD_UTILITIES:BOOL=OFF \
-    -DBUILD_TESTING:BOOL=OFF \
-    -DBUILD_TESTSETS:BOOL=OFF \
-    -DENABLE_DAP_REMOTE_TESTS:BOOL=OFF \
-    -DENABLE_EXAMPLES:BOOL=OFF \
-    -DENABLE_NCZARR_FILTERS_TESTING:BOOL=OFF \
-    -DENABLE_SHARED_LIBRARY_VERSION:BOOL=OFF \
-    -DENABLE_TESTS:BOOL=OFF \
-    -DENABLE_EXTRA_TESTS:BOOL=OFF \
-    -DENABLE_UNIT_TESTS:BOOL=OFF \
-    -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON 
-
-cmake --build build -j${NPROC} 
-if [ -w ${NCDIR} ]; then
+cd ${DEPENDENCY_DIR}/zstd-*
+cd build/cmake
+cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${ZSTD_ROOT} -DCMAKE_INSTALL_LIBDIR="lib" -DBUILD_SHARED_LIBS:BOOL=OFF -DZSTD_BUILD_SHARED:BOOL=OFF -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON 
+cmake --build build -j${NPROC}    
+if [ -w ${ZSTD_ROOT} ]; then
     cmake --install build 
 else
     sudo cmake --install build 
 fi
 
 if [ $? -ne 0 ]; then
-   printf "netcdf-c could not be compiled."\n
+   printf "zstd could not be compiled.\n"
    exit 1
 fi

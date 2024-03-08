@@ -3,10 +3,10 @@
 set -a
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
-MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion)"
-PREFIX="/usr/local"
+MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion | cut -d. -f1)" # Gets only the major version number
+PREFIX=${PREFIX:-"/usr/local"}
 HOMEBREW_PREFIX="$(brew --prefix)"
-LD_LIBRARY_PATH="/usr/local/lib:${PREFIX}/lib:${HOMEBREW_PREFIX}/lib"
+LD_LIBRARY_PATH="${PREFIX}/lib:${HOMEBREW_PREFIX}/lib:/usr/local/lib"
 DYLD_LIBRARY_PATH="${LD_LIBRARY_PATH}"
 LDFLAGS="-Wl,-rpath,${ROOT_DIR}/lib  -Wl,-no_compact_unwind -L${PREFIX}/lib -L${HOMEBREW_PREFIX}/lib" 
 CPATH="/usr/local/include:${PREFIX}/include:${HOMEBREW_PREFIX}/include:${ROOT_DIR}/include"
@@ -24,6 +24,12 @@ NETCDF_FORTRAN_HOME="${NFDIR}"
 NETCDF_FORTRAN_INCLUDE="${NFDIR}/include"
 ZLIB_ROOT=${ZLIB_ROOT:-"${ZLIB_HOME}"}
 ZLIB_ROOT=${ZLIB_ROOT:-"${PREFIX}"}
+SZIP_ROOT=${SZIP_ROOT:-"${SZIP_HOME}"}
+SZIP_ROOT=${SZIP_ROOT:-"${PREFIX}"}
+BZ2_ROOT=${BZ2_ROOT:-"${BZ2_HOME}"}
+BZ2_ROOT=${BZ2_ROOT:-"${PREFIX}"}
+ZSTD_ROOT=${ZSTD_ROOT:-"${ZSTD_HOME}"}
+ZSTD_ROOT=${ZSTD_ROOT:-"${PREFIX}"}
 HDF5_ROOT=${HDF5_ROOT:-"${HDF5_HOME}"}
 HDF5_ROOT=${HDF5_ROOT:-"${PREFIX}"}
 HDF5_LIBDIR="${HDF5_ROOT}/lib"
