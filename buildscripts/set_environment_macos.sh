@@ -17,7 +17,6 @@ FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET}"
 FFLAGS="${FCFLAGS}"
 CFLAGS="${FCFLAGS} -Wno-deprecated-non-prototype"
 CXXFLAGS="${CFLAGS}"
-
 NCDIR=${NETCDF_HOME:-"${PREFIX}"}
 NFDIR=${NETCDF_FORTRAN_HOME:-"${PREFIX}"}
 NETCDF_FORTRAN_HOME="${NFDIR}"
@@ -35,6 +34,7 @@ HDF5_ROOT=${HDF5_ROOT:-"${PREFIX}"}
 HDF5_LIBDIR="${HDF5_ROOT}/lib"
 HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
 HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
+PATH="${PREFIX}/bin:${HDF5_ROOT}/bin:${HOMEBREW_PREFIX}/bin:${PATH}"
 FC="$(command -v gfortran-12)"
 F77="${FC}"
 F95="${FC}"
