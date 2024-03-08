@@ -158,9 +158,6 @@ IF (NOT BUILD_SHARED_LIBS AND NOT WINOPT)
             SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
                 Fortran  "-static-libstdc++" 
             )
-            SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
-                Fortran  "-static-libquadmath" 
-            )
         ENDIF ()
         IF (USE_OPENMP)
             SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
