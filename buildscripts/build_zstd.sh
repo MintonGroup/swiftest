@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script will build the libaec library needed by HDF5
+# This script will build the zstd library needed by HDF5
 # 
 # Copyright 2024 - David Minton
 # This file is part of Swiftest.
@@ -16,28 +16,28 @@ ARGS=$@
 . ${SCRIPT_DIR}/set_compilers.sh
 
 NPROC=$(nproc)
-SZIP_ROOT=${SZIP_ROOT:-"${LIBAEC_HOME}"}
-SZIP_ROOT=${SZIP_ROOT:-"${PREFIX}"}
+ZSTD_ROOT=${ZSTD_ROOT:-"${ZSTD_HOME}"}
+ZSTD_ROOT=${ZSTD_ROOT:-"${PREFIX}"}
 
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
 printf "*********************************************************\n"
 printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
-printf "Installing to ${SZIP_ROOT}\n"
+printf "Installing to ${ZSTD_ROOT}\n"
 printf "\n"
-LIBAEC_VER="1.1.2"
+ZSTD_VER="1.5.5"
 
 printf "*********************************************************\n"
-printf "*             FETCHING LIBAEC SOURCE                      *\n"
+printf "*             FETCHING ZSTD SOURCE                      *\n"
 printf "*********************************************************\n"
 printf "Copying files to ${DEPENDENCY_DIR}\n"
 mkdir -p ${DEPENDENCY_DIR}
-if [ ! -d ${DEPENDENCY_DIR}/libaec-${LIBAEC_VER} ]; then
-    [ -d ${DEPENDENCY_DIR}/libaec-* ] && rm -rf ${DEPENDENCY_DIR}/libaec-*
-    curl -L https://github.com/MathisRosenhauer/libaec/releases/download/v${LIBAEC_VER}/libaec-${LIBAEC_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+if [ ! -d ${DEPENDENCY_DIR}/zstd-${ZSTD_VER} ]; then
+    [ -d ${DEPENDENCY_DIR}/zstd-* ] && rm -rf ${DEPENDENCY_DIR}/zstd-*
+    curl -L https://github.com/facebook/zstd/releases/download/v${ZSTD_VER}/zstd-${ZSTD_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
 fi
 printf "*********************************************************\n"
-printf "*               BUILDING LIBAEC LIBRARY                  *\n"
+printf "*               BUILDING ZSTD LIBRARY                  *\n"
 printf "*********************************************************\n"
 printf "LIBS: ${LIBS}\n"
 printf "CFLAGS: ${CFLAGS}\n"
@@ -45,20 +45,20 @@ printf "CPPFLAGS: ${CPPFLAGS}\n"
 printf "CPATH: ${CPATH}\n"
 printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
 printf "LDFLAGS: ${LDFLAGS}\n"
-printf "INSTALL_PREFIX: ${SZIP_ROOT}\n"
+printf "INSTALL_PREFIX: ${ZSTD_ROOT}\n"
 printf "*********************************************************\n"
 
-cd ${DEPENDENCY_DIR}/libaec-*
-cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${SZIP_ROOT} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON  -DBUILD_SHARED_LIBS:BOOL=OFF
-    
-cmake --build build -j${NPROC}
-if [ -w ${SZIP_ROOT} ]; then
+cd ${DEPENDENCY_DIR}/zstd-*
+cd build/cmake
+cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${ZSTD_ROOT} -DCMAKE_INSTALL_LIBDIR="lib" -DBUILD_SHARED_LIBS:BOOL=OFF -DZSTD_BUILD_SHARED:BOOL=OFF -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON 
+cmake --build build -j${NPROC}    
+if [ -w ${ZSTD_ROOT} ]; then
     cmake --install build 
 else
-    sudo cmake --install build
+    sudo cmake --install build 
 fi
 
 if [ $? -ne 0 ]; then
-   printf "libaec could not be compiled.\n"
+   printf "zstd could not be compiled.\n"
    exit 1
 fi

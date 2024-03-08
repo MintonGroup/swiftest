@@ -34,8 +34,8 @@ if [ ! -d ${DEPENDENCY_DIR}/netcdf-fortran-${NF_VER} ]; then
     [ -d ${DEPENDENCY_DIR}/netcdf-fortran-* ] && rm -rf ${DEPENDENCY_DIR}/netcdf-fortran-*
     curl -s -L https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v${NF_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
 fi 
-CFLAGS="$(nc-config --cflags) $CFLAGS"
-LIBS="$(nc-config --libs) $LIBS"
+CFLAGS="$(${NCDIR}/bin/nc-config --cflags) $CFLAGS"
+LIBS="$(${NCDIR}/bin/nc-config --libs) $LIBS"
 printf "\n"
 printf "*********************************************************\n"
 printf "*          BUILDING NETCDF-FORTRAN LIBRARY              *\n"

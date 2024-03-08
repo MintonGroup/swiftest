@@ -66,12 +66,12 @@ printf "*********************************************************\n"
 cd ${DEPENDENCY_DIR}/hdfsrc
 
 if [ $OS = "MacOSX" ]; then
-    ZLIB_LIBRARY="${ZLIB_ROOT}/lib/libz.dylib"
-    SZIP_LIBRARY="${SZIP_ROOT}/lib/libsz.dylib"
+    rm -rf ${PREFIX}/lib/*.dylib
 else
-    ZLIB_LIBRARY="${ZLIB_ROOT}/lib/libz.so"
-    SZIP_LIBRARY="${SZIP_ROOT}/lib/libsz.so"
+    rm -rf ${PREFIX}/lib/*.so
 fi
+ZLIB_LIBRARY="${ZLIB_ROOT}/lib/libz.a"
+SZIP_LIBRARY="${SZIP_ROOT}/lib/libsz.a"
 
 ARGLIST="-DCMAKE_INSTALL_PREFIX:PATH=${HDF5_ROOT} \
     -DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING="NO" \

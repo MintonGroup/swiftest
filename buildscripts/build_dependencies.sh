@@ -46,8 +46,12 @@ if [ $OS = "MacOSX" ]; then
     ${SCRIPT_DIR}/get_lomp.sh ${ARGS}
 fi
 
+mkdir -p ${PREFIX}
+
 ${SCRIPT_DIR}/build_zlib.sh ${ARGS}
 ${SCRIPT_DIR}/build_libaec.sh ${ARGS}
+${SCRIPT_DIR}/build_bzip2.sh ${ARGS}
+${SCRIPT_DIR}/build_zstd.sh ${ARGS}
 ${SCRIPT_DIR}/build_hdf5.sh ${ARGS}
 ${SCRIPT_DIR}/build_netcdf-c.sh ${ARGS}
 ${SCRIPT_DIR}/build_netcdf-fortran.sh ${ARGS}

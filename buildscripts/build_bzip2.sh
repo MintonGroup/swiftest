@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script will build the libaec library needed by HDF5
+# This script will build the bz2 library needed by HDF5
 # 
 # Copyright 2024 - David Minton
 # This file is part of Swiftest.
@@ -16,28 +16,28 @@ ARGS=$@
 . ${SCRIPT_DIR}/set_compilers.sh
 
 NPROC=$(nproc)
-SZIP_ROOT=${SZIP_ROOT:-"${LIBAEC_HOME}"}
-SZIP_ROOT=${SZIP_ROOT:-"${PREFIX}"}
+BZ2_ROOT=${BZ2_ROOT:-"${BZ2_HOME}"}
+BZ2_ROOT=${BZ2_ROOT:-"${PREFIX}"}
 
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
 printf "*********************************************************\n"
 printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
-printf "Installing to ${SZIP_ROOT}\n"
+printf "Installing to ${BZ2_ROOT}\n"
 printf "\n"
-LIBAEC_VER="1.1.2"
+BZ2_VER="1.0.8"
 
 printf "*********************************************************\n"
-printf "*             FETCHING LIBAEC SOURCE                      *\n"
+printf "*             FETCHING BZ2 SOURCE                      *\n"
 printf "*********************************************************\n"
 printf "Copying files to ${DEPENDENCY_DIR}\n"
 mkdir -p ${DEPENDENCY_DIR}
-if [ ! -d ${DEPENDENCY_DIR}/libaec-${LIBAEC_VER} ]; then
-    [ -d ${DEPENDENCY_DIR}/libaec-* ] && rm -rf ${DEPENDENCY_DIR}/libaec-*
-    curl -L https://github.com/MathisRosenhauer/libaec/releases/download/v${LIBAEC_VER}/libaec-${LIBAEC_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+if [ ! -d ${DEPENDENCY_DIR}/bzip2-${BZ2_VER} ]; then
+    [ -d ${DEPENDENCY_DIR}/bzip2-* ] && rm -rf ${DEPENDENCY_DIR}/bzip2-*
+    curl -L https://sourceware.org/pub/bzip2/bzip2-${BZ2_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
 fi
 printf "*********************************************************\n"
-printf "*               BUILDING LIBAEC LIBRARY                  *\n"
+printf "*               BUILDING BZ2 LIBRARY                  *\n"
 printf "*********************************************************\n"
 printf "LIBS: ${LIBS}\n"
 printf "CFLAGS: ${CFLAGS}\n"
@@ -45,20 +45,29 @@ printf "CPPFLAGS: ${CPPFLAGS}\n"
 printf "CPATH: ${CPATH}\n"
 printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
 printf "LDFLAGS: ${LDFLAGS}\n"
-printf "INSTALL_PREFIX: ${SZIP_ROOT}\n"
+printf "INSTALL_PREFIX: ${BZ2_ROOT}\n"
 printf "*********************************************************\n"
 
-cd ${DEPENDENCY_DIR}/libaec-*
-cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${SZIP_ROOT} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON  -DBUILD_SHARED_LIBS:BOOL=OFF
+cd ${DEPENDENCY_DIR}/bzip2-*
+printf "Updating Makefile with new flags\n"
+# Update the Makefile to use the environment flags set by this script
+if [ ! -f Makefile.bak ]; then
+    mv Makefile Makefile.bak
+fi
+sed 's/^LDFLAGS=$/LDFLAGS+= /' Makefile.bak > Makefile.tmp
+sed 's/^CFLAGS=-Wall -Winline -O2 -g $(BIGFILES)$/CFLAGS+=-Wall -Winline -O2 -g $(BIGFILES)/' Makefile.tmp > Makefile
+rm Makefile.tmp
+
+make clean
+make
     
-cmake --build build -j${NPROC}
-if [ -w ${SZIP_ROOT} ]; then
-    cmake --install build 
+if [ -w ${BZ2_ROOT} ]; then
+    make install PREFIX=${BZ2_ROOT}
 else
-    sudo cmake --install build
+    sudo make install PREFIX=${BZ2_ROOT}
 fi
 
 if [ $? -ne 0 ]; then
-   printf "libaec could not be compiled.\n"
+   printf "bz2 could not be compiled.\n"
    exit 1
 fi
