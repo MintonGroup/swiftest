@@ -112,7 +112,6 @@ def horizons_get_physical_properties(altid,**kwargs):
         return radius
 
     def get_rotrate(raw_response):
-        raw_response=jpl.raw_response
         rotrate = [s for s in raw_response.split('\n') if 'rot. rat' in s.lower()]
         if len(rotrate) == 0:
             rotrate = [s for s in raw_response.split('\n') if 'ROTPER' in s.upper()] # Try the small body version
@@ -153,19 +152,20 @@ def horizons_get_physical_properties(altid,**kwargs):
 
     for id in altid:
         jpl,idlist,namelist = horizons_query(id=id,ephemerides_start_date='2023-07-26',verbose=False,**kwargs)
-        Rpl = get_radius(jpl.raw_response) 
+        raw_response = jpl.ephemerides_async().text
+        Rpl = get_radius(raw_response) 
         if Rpl is not None:
             Rpl *= 1e3
             break
-        
-    Gmass = get_Gmass(jpl.raw_response)
+    raw_response = jpl.ephemerides_async().text   
+    Gmass = get_Gmass(raw_response)
     if Rpl is None or Gmass is None:
         rot = np.full(3,np.nan) 
     else:
         print(f"Physical properties found for {namelist[0]}") 
         Gmass *= 1e9  # JPL returns GM in units of km**3 / s**2, so convert to SI
 
-        rotrate = get_rotrate(jpl.raw_response)
+        rotrate = get_rotrate(raw_response)
         if rotrate is None:
             rotrate = 0.0
         else:
