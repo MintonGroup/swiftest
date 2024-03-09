@@ -50,8 +50,8 @@ you can do so by following the instructions below. This will require a Fortran c
 be installed on your system. The instructions below are for building Swiftest on a Linux or MacOS system. Windows support is 
 currently being explored. 
 
-You can obtain the latest version of Swiftest from the GitHub `repository <https://github.com/profminton/cratermaker>`__ , or from
-from a `releases <https://github.com/profminton/cratermaker/releases>`__ as a tarball.
+You can obtain the latest version of Swiftest from the GitHub `repository <https://github.com/MintonGroup/swiftest>`__ , or from
+from a `releases <https://github.com/MintonGroup/swiftest/releases>`__ as a tarball.
 
 Required Dependencies
 ---------------------
