@@ -50,13 +50,25 @@ printf "INSTALL_PREFIX: ${ZLIB_ROOT}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/zlib-*
-cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${ZLIB_ROOT} 
+cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${ZLIB_ROOT} -DCMAKE_INSTALL_LIBDIR="lib" -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON 
     
 cmake --build build -j${NPROC}
 if [ -w ${ZLIB_ROOT} ]; then
     cmake --install build 
+    # Remove shared libraries
+    if [ $OS = "MacOSX" ]; then
+        rm -f ${ZLIB_ROOT}/lib/libz*.dylib
+    else
+        rm -f ${ZLIB_ROOT}/lib/libz*.so
+    fi
 else
     sudo cmake --install build
+    # Remove shared libraries
+    if [ $OS = "MacOSX" ]; then
+        sudo rm -f ${ZLIB_ROOT}/lib/libz*.dylib
+    else
+        sudo rm -f ${ZLIB_ROOT}/lib/libz*.so
+    fi
 fi
 
 if [ $? -ne 0 ]; then
