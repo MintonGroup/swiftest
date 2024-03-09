@@ -664,6 +664,7 @@ def swiftest2xr(param, verbose=True, dask=False):
             ds = xr.open_dataset(param['BIN_OUT'], mask_and_scale=False)
         
         ds = process_netcdf_input(ds, param)
+        ds.close()
     else:
         print(f"Error encountered. OUT_TYPE {param['OUT_TYPE']} not recognized.")
         return None
@@ -910,6 +911,7 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
             print(f"Writing initial conditions to file {infile_name}")
         frame = reorder_dims(frame)
         frame.to_netcdf(path=infile_name)
+        frame.close()
         return frame
 
     # All other file types need seperate files for each of the inputs
