@@ -82,8 +82,62 @@ class TestSwiftest(unittest.TestCase):
         # Check to see if all parameter values read in from file match the expected parameters saved when generating the file
         self.assertTrue(all([v == param[k] for k,v in sim.param.items() if k in param]))
         return
+    
+    def test_read_multi_dir(self):
+        """
+        Tests that Swiftest can generate a set of initial conditions, copy them into a new directory, and then run those from a
+        different Simulation object (test inspired by Kaustub Anand's workflow)
+        """
+        
+        def copy_folder_contents(src, dst):
+            """
+            Copy the contents of the folder 'src' to the folder 'dst'.
 
-      
+            Parameters
+            ----------
+            src : str
+                The path of the source directory.
+            dst : str
+                The path of the destination directory.
+
+            Returns
+            -------
+            None
+            """
+            import shutil
+
+            # Ensure the destination directory exists
+            os.makedirs(dst, exist_ok=True)
+
+            # Iterate over all items in the source directory
+            for item in os.listdir(src):
+                src_path = os.path.join(src, item)
+                dst_path = os.path.join(dst, item)
+
+                # Copy files and directories
+                if os.path.isdir(src_path):
+                    # Recursively copy a directory to a destination
+                    shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
+                else:
+                    # Copy a single file
+                    shutil.copy(src_path, dst_path)
+            
+            return        
+
+        simdir1 = os.path.join(self.simdir, "sim1")
+        simdir2 = os.path.join(self.simdir, "sim2")
+        sim1 = swiftest.Simulation(simdir=simdir1, tstop=1.0,dt=0.01)
+        sim1.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars"])
+        sim1.save() 
+        copy_folder_contents(simdir1, simdir2)
+        sim2 = swiftest.Simulation(read_param=True, simdir=simdir2)
+        try:
+            sim2.run()
+        except:
+            self.fail("Failed to run simulation from copied directory")
+        
+        return
+        
     def test_integrators(self):
         """
         Tests that Swiftest is able to integrate a collection of massive bodies and test particles with all available integrators

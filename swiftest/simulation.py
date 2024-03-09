@@ -75,7 +75,7 @@ class Simulation(object):
         
         Parameters
         ----------
-        read_param : bool, default True
+        read_param : bool, default False
             If true, read in a pre-existing parameter input file given by the argument `param_file` if it exists.
             Otherwise, create a new parameter file using the arguments passed to Simulation or defaults
         read_data : bool, default False

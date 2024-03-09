@@ -32,7 +32,7 @@ if ! command -v ninja &> /dev/null; then
         curl -L https://github.com/ninja-build/ninja/archive/refs/tags/v${NINJA_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
     fi
     cd ${DEPENDENCY_DIR}/ninja-*
-    cmake -B build -S . -DCMAKE_INSTALL_PREFIX=${PREFIX}
+    cmake -B build -S . -DCMAKE_INSTALL_PREFIX=/usr/local
     cmake --build build 
     if [ -w ${PREFIX} ]; then
         cmake --install build 
