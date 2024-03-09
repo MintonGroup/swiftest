@@ -3,6 +3,16 @@
 What's New
 ==========
 
+v2024.03.2
+----------
+
+Bug Fixes
+~~~~~~~~~
+- Fixed issue causing the get_solar_system_body method to break when using astroquery 0.4.7. Switched to using the ephemerides_async method instead of getting the raw_response attribute. `GH19`_
+
+.. _GH19: https://github.com/MintonGroup/swiftest/issues/19
+
+
 v2024.03.1
 ----------
 
