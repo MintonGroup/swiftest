@@ -3,6 +3,32 @@
 What's New
 ==========
 
+v2024.03.1
+----------
+
+Bug Fixes
+~~~~~~~~~
+- Fixed problem that was causing the standalone swiftest console executable to not be found on the path when installing from wheel. This has been fixed by wrapping the executable in a Python wrapper called `cli.py` that is used to generate an executable script.  
+- Fixed a bug that that was causing a file read error when reading a copied initial conditions file. This was caused by the file not being closed after being read.
+
+Breaking Changes
+~~~~~~~~~~~~~~~~
+- The binary executable has been refactored from `swiftest_driver` to `swiftest`
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Addressed an issue where the latest OS X update broke dependency builds, ensuring environment compatibility.
+- Streamlined code structure by refactoring `simulation_class` to `simulation`.
+- Refactored `_bindings` module to `core`. In a future we plan to develop a more extensive core API exposing some of the lower level integration functions from the Fortran side into the Python module.
+- Removed outdated JOSS paper draft rendering workflow and specific CI/CD action on push to optimize development processes.
+- Skipped building the Python 3.12 wheel for linux aarch64 in cibuildwheel due to missing h5py, addressing compatibility issues.
+- Modified the dependency build scripts to skip tests when building dependent libraries (namely HDF5, NetCDF-C, and NetCDF-Fortran) in order to speed up the wheel generation on github actions.
+
+Documentation
+~~~~~~~~~~~~~
+- Updated development status and primary repository location to keep the community informed. 
+
+
 v2024.03.0 
 ------------
 
