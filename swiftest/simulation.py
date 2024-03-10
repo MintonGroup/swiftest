@@ -2199,7 +2199,10 @@ class Simulation(object):
         if name == None and ephemeris_id == None:
             warnings.warn("Either `name` and/or `ephemeris_id` must be supplied to add_solar_system_body")
             return None
-
+        if name is not None:
+            if type(name) is str or type(name) is int:
+                name = [name]
+                
         if ephemeris_id is not None:
             if type(ephemeris_id) is int or type(ephemeris_id) is str:
                 ephemeris_id = [ephemeris_id]
@@ -2209,8 +2212,6 @@ class Simulation(object):
                 warnings.warn(f"The length of ephemeris_id ({len(ephemeris_id)}) does not match the length of name ({len(name)})",stacklevel=2)
                 return None
         else:
-            if type(name) is str:
-                name = [name]
             ephemeris_id = [None] * len(name)
 
         if self.ephemeris_date is None:
