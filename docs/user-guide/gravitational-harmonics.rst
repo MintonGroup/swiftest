@@ -1,6 +1,6 @@
-##########################
-Gravitational Harmonics
-##########################
+###################################################
+Using SHTOOLS to model non-spherical central bodies
+###################################################
 
 .. rubric:: by Kaustub Anand
 
