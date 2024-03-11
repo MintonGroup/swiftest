@@ -2209,8 +2209,7 @@ class Simulation(object):
             if name is None:
                 name = [None] * len(ephemeris_id)
             elif len(ephemeris_id) != len(name):
-                warnings.warn(f"The length of ephemeris_id ({len(ephemeris_id)}) does not match the length of name ({len(name)})",stacklevel=2)
-                return None
+                raise ValueError(f"The length of ephemeris_id ({len(ephemeris_id)}) does not match the length of name ({len(name)})")
         else:
             ephemeris_id = [None] * len(name)
 
@@ -2435,7 +2434,7 @@ class Simulation(object):
                  **kwargs: Any
                  ) -> None:
         """
-        Adds a body (test particle or massive body) to the internal DataSet given a set up 6 vectors (orbital elements
+        Adds a body (test particle or massive body) to the internal Dataset given a set up 6 vectors (orbital elements
         or cartesian state vectors, depending on the value of self.param). Input all angles in degress.
 
         This method will update self.data with the new body or bodies added to the existing Dataset.
@@ -2443,7 +2442,7 @@ class Simulation(object):
         Parameters
         ----------
         name : str or array-like of str, optional
-            Name or names of Bodies. If none passed, name will be "Body<idval>"
+            Name or names of Bodies. If none passed, name will be "Body{id}"
         id : int or array-like of int, optional
             Unique id values. If not passed, an id will be assigned in ascending order starting from the pre-existing
             Dataset ids.
@@ -2660,6 +2659,86 @@ class Simulation(object):
         self.save(verbose=False)
 
         return
+    
+    
+    def _get_nvals(self, ds):
+        """
+        Computes the values of ntp, npl, and nplm.
+        
+        Parameters
+        ----------
+        ds : xarray Dataset
+            Dataset to evaluate
+            
+        Returns
+        -------
+        ds : xarray Dataset
+            Dataset with updated values of ntp, npl, and nplm values. 
+        """
+        if "name" in ds.dims:
+            count_dim = "name"
+        elif "id" in ds.dims:
+            count_dim = "id"
+        if "Gmass" in ds:
+            ds['ntp'] = ds[count_dim].where(np.isnan(ds['Gmass']) | (ds['Gmass'] == 0.0)).count(dim=count_dim)
+            ds['npl'] = ds[count_dim].where(~np.isnan(ds['Gmass']) & (ds['Gmass'] != 0.0)).count(dim=count_dim) - 1
+            if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
+                ds['nplm'] = ds[count_dim].where(ds['Gmass'] > self.param['GMTINY']).count(dim=count_dim) - 1
+        else:
+            ds['ntp'] = ds[count_dim].count(dim=count_dim)
+            ds['npl'] = xr.full_like(ds['ntp'],0)
+            if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
+                ds['nplm'] = xr.full_like(ds['ntp'],0)
+        return ds
+
+
+    def remove_body(self,
+                    name: str | List[str] | npt.NDArray[np.str_] | None=None,
+                    id: int | list[int] | npt.NDArray[np.int_] | None=None):
+    
+        """
+        Removes a body (test particle or massive body) from the internal Dataset 
+
+        This method will update `data` and `init_cond` attributes with the body or bodies removed.
+         
+        Only `name` or `id` may be passed, but not both.
+        
+        Parameters
+        ----------
+        name : str or array-like of str, optional
+            Name or names of bodies to remove. 
+        id : int or array-like of int, optional
+            Id value or values of bodies to removed. 
+            
+        Returns
+        -------
+        None
+        """
+        
+        if name is None and id is None:
+            raise ValueError("You must pass either name or id as arguments")
+        if name is not None and id is not None:
+            raise ValueError("You must pass only name or id as arguments, but not both")
+        
+        if name is not None:
+            if type(name) is str or type(name) is int:
+                name = [name]
+            for n in name:
+                self.data = self.data.where(self.data.name != n, drop=True)
+                self.init_cond = self.init_cond.where(self.init_cond.name != n, drop=True)
+                
+        else: 
+            if type(id) is int or type(id) is name:
+                id = [id]
+            for i in id:
+                self.data = self.data.where(self.data.id != i, drop=True)
+                self.init_cond = self.init_cond.where(self.init_cond.id != i, drop=True)
+                
+        self.data = self._get_nvals(self.data)      
+        self.init_cond = self._get_nvals(self.init_cond) 
+             
+        return
+
 
     def _combine_and_fix_dsnew(self,
                                dsnew: xr.Dataset,
@@ -2703,26 +2782,9 @@ class Simulation(object):
             self.data = io.fix_types(self.data, ftype=np.float32)
 
         self.set_central_body(align_to_central_body_rotation)
-        def get_nvals(ds):
-            if "name" in ds.dims:
-                count_dim = "name"
-            elif "id" in ds.dims:
-                count_dim = "id"
-            if "Gmass" in ds:
-                ds['ntp'] = ds[count_dim].where(np.isnan(ds['Gmass'])).count(dim=count_dim)
-                ds['npl'] = ds[count_dim].where(~(np.isnan(ds['Gmass']))).count(dim=count_dim) - 1
-                if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
-                    ds['nplm'] = ds[count_dim].where(ds['Gmass'] > self.param['GMTINY']).count(dim=count_dim) - 1
-            else:
-                ds['ntp'] = ds[count_dim].count(dim=count_dim)
-                ds['npl'] = xr.full_like(ds['ntp'],0)
-                if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
-                   ds['nplm'] = xr.full_like(ds['ntp'],0)
-            return ds
 
-        dsnew = get_nvals(dsnew)
-        self.data = get_nvals(self.data)
-        
+        dsnew = self._get_nvals(dsnew)
+        self.data = self._get_nvals(self.data)
 
         self.data = self.data.sortby("id")
         self.data = io.reorder_dims(self.data)
@@ -2947,7 +3009,7 @@ class Simulation(object):
         if self.codename == "Swiftest":
             self.data = io.swiftest2xr(param_tmp, verbose=self.verbose, dask=dask)
             if self.verbose:
-                print('Swiftest simulation data stored as xarray DataSet .data')
+                print('Swiftest simulation data stored as xarray Dataset .data')
             if read_init_cond:
                 if self.verbose:
                     print("Reading initial conditions file as .init_cond")
@@ -2966,7 +3028,7 @@ class Simulation(object):
 
         elif self.codename == "Swifter":
             self.data = io.swifter2xr(param_tmp, verbose=self.verbose)
-            if self.verbose: print('Swifter simulation data stored as xarray DataSet .data')
+            if self.verbose: print('Swifter simulation data stored as xarray Dataset .data')
         elif self.codename == "Swift":
             warnings.warn("Reading Swift simulation data is not implemented yet",stacklevel=2)
         else:
