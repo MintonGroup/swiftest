@@ -62,25 +62,107 @@ class TestSwiftest(unittest.TestCase):
         
         for f in file_list:
             self.assertTrue(os.path.exists(f))
-        return
 
-            
-    def test_read_ic(self):
-        """
-        Tests that Swiftest is able to read a set of pre-existing initial conditions files and that they contain the correct data
-        """
         print("\ntest_read_ic: Test whether we can read back initial conditions files created by test_gen_ic")
-        sim = swiftest.Simulation(simdir=self.simdir)
-        sim.clean()
-
+        sim2 = swiftest.Simulation(simdir=self.simdir, read_param=True, read_data=False)
         # Add the modern planets and the Sun using the JPL Horizons Database.
-        sim.add_solar_system_body(major_bodies)
-        sim.save()
         # Check if all names in Dataset read in from file match the expected list of names
-        self.assertTrue((major_bodies == sim.init_cond['name']).all(), msg="Name mismatch in Dataset")
+        self.assertTrue((major_bodies == sim2.init_cond['name']).all(), msg="Name mismatch in Dataset")
         
         # Check to see if all parameter values read in from file match the expected parameters saved when generating the file
-        self.assertTrue(all([v == param[k] for k,v in sim.param.items() if k in param]))
+        self.assertTrue(all([v == param[k] for k,v in sim2.param.items() if k in param]))
+        return
+    
+    def test_add_body_combinations(self):
+        """
+        Tests various combinations of arguments to the Simulation.add_body and Simulation.add_solar_system_body methods to ensure argument checking is working as intended.
+        """
+        
+        sim = swiftest.Simulation(simdir=self.simdir)
+        sim.clean() 
+        
+        # Test that we can can pass a single body:
+        sim.add_solar_system_body(name="Sun")
+        
+        # Test that we can add multiple bodies:
+        sim.add_solar_system_body(name=["Mercury","Venus","Earth"])
+        
+        # Test that we can pass by ephemeris_id alone
+        sim.add_solar_system_body(ephemeris_id=["Mars","500"])
+      
+        # Test that we can initialize a body with only the semimajor axis 
+        sim.add_body(a=1.0) 
+        self.assertEqual(sim.init_cond.isel(name=-1).e.values[0], 0.0, msg="Failed to initialize body with only semimajor axis")
+        self.assertEqual(sim.init_cond.isel(name=-1).inc.values[0], 0.0, msg="Failed to initialize body with only semimajor axis")
+        self.assertEqual(sim.init_cond.isel(name=-1).capom.values[0], 0.0, msg="Failed to initialize body with only semimajor axis")
+        self.assertEqual(sim.init_cond.isel(name=-1).omega.values[0], 0.0, msg="Failed to initialize body with only semimajor axis")
+        self.assertEqual(sim.init_cond.isel(name=-1).capm.values[0], 0.0, msg="Failed to initialize body with only semimajor axis")
+        
+        # Test that we can input cartesian coordinates
+        sim.add_body(mass=1.0, rh=[1.0,0.0,0.0], vh=[0.0,1.0,0.0])
+       
+        # orbital elements without semimajor axis 
+        with self.assertRaises(ValueError):
+           sim.add_body(e=0.0, inc=0.0, capom=0.0, omega=0.0, capm=0.0) 
+         
+        # Mix of elements and cartesian inputs
+        with self.assertRaises(ValueError):
+            sim.add_body(a=1.0, e=0.0, rh=[1.0,0.0,0.0], vh=[0.0,1.0,0.0])
+            
+        # Position but not velocity
+        with self.assertRaises(ValueError):
+            sim.add_body(rh=[1.0,0.0,0.0])
+            
+        # Velocity but not position
+        with self.assertRaises(ValueError):
+            sim.add_body(vh=[0.0,1.0,0.0])
+            
+        # Add central body with orbital elements
+        with self.assertRaises(ValueError):
+            sim.add_body(a=1.0, mass=1.0, J2=1.0e-6)
+            
+        # Add J2 and c_lm values
+        with self.assertRaises(ValueError):
+            sim.add_body(mass=1.0, J2=1.0e-6, c_lm=np.ones([2,7]))
+            
+        # Wrong shape of c_lm
+        with self.assertRaises(ValueError):
+            sim.add_body(mass=1.0, c_lm=[1.0,0.0,0.0])
+            
+        # Mismatched lengths of input arguments
+        with self.assertRaises(ValueError):
+            sim.add_solar_system_body(name=["Mercury","Venus","Earth"], ephemeris_id=["Mars","500"])
+        with self.assertRaises(ValueError):
+            sim.add_body(a=[1.0,2.0], e=0.0)
+        with self.assertRaises(ValueError):
+            sim.add_body(rh=[[1.0,0.0,0.0],[2.0,0.0,0.0]], vh=[0.0,1.0,0.0])     
+        with self.assertRaises(ValueError):
+            sim.add_body(rh=[1.0,0.0], vh=[0.0,1.0])
+      
+        # mass and Gmass at the same time 
+        with self.assertRaises(ValueError):
+            sim.add_body(a=1.0, mass=1.0, Gmass=4*np.pi**2)
+            
+        return
+    
+    def test_mixed_element_cart_input(self):
+        """
+        Tests that we can mix orbital element and cartesian input
+        """
+        
+        sim = swiftest.Simulation(simdir=self.simdir)
+        sim.clean() 
+        
+        # Test that we can can pass a single body:
+        sim.add_solar_system_body(name="Sun")
+        
+        sim.add_body(a=[1.0])
+        sim.add_body(rh=[2.0,0.0,0.0], vh=[0.0,1.0,0.0])
+        try:
+            sim.run(tstop=0.02, dt=0.01)
+        except:
+            self.fail("Failed to run simulation with mixed element and cartesian input")
+        
         return
     
     def test_read_multi_dir(self):

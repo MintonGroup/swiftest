@@ -70,6 +70,7 @@ Adding Bodies to a Simulation
     Simulation.add_body
     Simulation.add_solar_system_body
     Simulation.set_central_body
+    Simulation.remove_body
 
 
 File Input and Output

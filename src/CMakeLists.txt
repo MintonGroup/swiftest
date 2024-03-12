@@ -188,10 +188,35 @@ SET(TESTFILE "${CMAKE_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}")
 SET(TESTFILE "${TESTFILE}/CMakeTmp/testFortranQuadPrecisionReal.f90")
 FILE(WRITE "${TESTFILE}"
 "
-program TestQuadPrecisionReal
-integer, parameter :: QP = selected_Real_kind(30) 
-real(QP) :: x
-end program TestQuadPrecisionReal
+module TestQuadPrecisionReal
+  use, intrinsic :: iso_c_binding 
+  integer, parameter :: DP = c_double  
+  integer, parameter :: QP = c_long_double 
+  interface foo
+    module procedure foo_DP
+    module procedure foo_QP
+  end interface foo
+  contains
+   subroutine foo_DP(x)
+    implicit none
+    real(DP), intent(in) :: x
+    write(*,*) 'double', x
+    return
+  end subroutine foo_DP
+  subroutine foo_QP(x)
+    implicit none
+    real(QP), intent(in) :: x
+    write(*,*) 'quad', x
+    return
+  end subroutine foo_QP
+end module TestQuadPrecisionReal
+
+program test
+   use TestQuadPrecisionReal
+   real(QP) :: x = 1.0_QP
+   call foo(x)
+end program test
+
 ")
 TRY_COMPILE(QUADPREC ${CMAKE_BINARY_DIR} ${TESTFILE} COMPILE_DEFINITIONS "${CMAKE_Fortran_FLAGS}" OUTPUT_VARIABLE OUTPUT)
 IF (QUADPREC)
