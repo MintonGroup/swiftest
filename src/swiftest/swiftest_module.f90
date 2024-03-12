@@ -855,16 +855,7 @@ module swiftest
       end subroutine swiftest_drift_one
 
       module subroutine swiftest_drift_cb_rotphase_update(self, param, dt)
-         
-            !! Author : Kaustub Anand
-         
-            !! subroutine to update the rotation phase of the central body
-         
-            !! Units: radians
-         
-            !! initial 0 is set at the x-axis 
-   
-         ! Arguments
+         implicit none
          class(swiftest_cb),           intent(inout) :: self   
             !! Swiftest central body data structure
          class(swiftest_parameters),   intent(in)    :: param  

@@ -9,7 +9,7 @@
 
 submodule (swiftest) s_swiftest_orbel
    real(DP), parameter :: TINYVALUE = 4.0e-15_DP 
-      !> Tiny value used to prevent floating point errors. Value set based on the Swifter TINY parameter.
+      !! Tiny value used to prevent floating point errors. Value set based on the Swifter TINY parameter.
 contains
 
    module subroutine swiftest_orbel_el2xv_vec(self, cb)
@@ -19,10 +19,8 @@ contains
       !! Swiftest body object. This method deallocates all of the orbital elements after it is finished.
       implicit none
       ! Arguments
-      class(swiftest_body), intent(inout) :: self 
-         !> Swiftest body object
-      class(swiftest_cb),  intent(inout) :: cb 
-         !> Swiftest central body objec
+      class(swiftest_body), intent(inout) :: self !! Swiftest body object
+      class(swiftest_cb),  intent(inout) :: cb !! Swiftest central body objec
       ! Internals
       integer(I4B) :: i, n
    

@@ -40,5 +40,7 @@ module bindings_module
 
          call swiftest_io_get_args(integrator,param_file_name,display_style,from_cli=.false.)
          call swiftest_driver(integrator,param_file_name,display_style)
-   end subroutine bindings_c_driver
+      end subroutine bindings_c_driver
+
+      !subroutine bindings_
 end module bindings_module 
