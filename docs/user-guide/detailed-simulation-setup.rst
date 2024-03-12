@@ -1,11 +1,11 @@
-#####################
-Detailed Simulation
-#####################
+#########################
+Detailed simulation setup
+#########################
 
-.. rubric:: by Kaustub Anand
+.. rubric:: by Kaustub Anand and David A. Minton
 
 Here, we will walk you through the basic features of Swiftest and using them in Python. 
-This is based on ``/Basic_Simulation`` in ``swiftest/examples``.
+This is based on ``swiftest/examples/Basic_Simulation``.
 
 Start with importing Swiftest and other packages we will use in this tutorial. ::
     
@@ -16,25 +16,21 @@ Initial Simulation Setup
 ===========================
 
 Create a Swiftest Simulation object and clean the simulation directory of any previous Swiftest objects, if any.
-Outputs are stored in the ``/simdata`` directory by default. ::
+Outputs are stored in the ``./simdata`` directory by default. ::
 
    sim = swiftest.Simulation()
-   sim.clean()
 
 An optional argument can be passed to specify the simulation directory ::
 
-   simdir = '/path/to/simdir'
-   sim = swiftest.Simulation(simdir=simdir)
-   sim.clean()
+   sim = swiftest.Simulation(simdir='/path/to/simdata')
 
-Now that we have a simulation object set up (with default parameters), we can add bodies to the simulation. 
-The biggest body in the simulation is taken as the central body.
+The argument to `simdir` can either be a relative path or an absolute path.  Now that we have a simulation object set up (with default parameters), we can add bodies to the simulation.  The most massive body in the simulation is taken as the central body.
 
 Solar System Bodies
 =========================
 
-We can add solar system bodies to the simulation using the :func:`add_solar_system_body <swiftest.Simulation.add_solar_system_body>` method. 
-This method uses JPL Horizons to extract the parameters. ::
+We can add solar system bodies to the simulation using the :meth:`add_solar_system_body <swiftest.Simulation.add_solar_system_body>` method. 
+This method uses JPL Horizons to extract the parameters of a particular body given a name. ::
    
    # Add the modern planets and the Sun using the JPL Horizons Database.
    sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune"])
@@ -50,10 +46,29 @@ We can add other small bodies too. ::
    # Add in some Centaurs
    sim.add_solar_system_body(name=["Chiron","Chariklo"])
 
-User Defined Bodies
+.. note::
+   The :meth:`add_solar_system_body <swiftest.Simulation.add_solar_system_body>` method is designed for ease of use. If you pass the `name` argument alone, it will make a "best guess" as to which body to retrieve, using the `astroquery.jplhorizons` module. If you want more control over which body to pass to JPL Horizons, you can supply the optional argument `ephemeris_id` in addition to `name`. The string argument passed to `name` is then used internally by Swiftest to identify the body, but the query to JPL Horizons is made with `ephemeris_id`. Therefore the following two calls are equivalent::
+
+      sim.add_solar_system_body(name="Sun")
+      sim.add_solar_system_body(name="Sun", ephemeris_id="0")
+
+.. note::
+   The arguments `name="Earth"` and `name="Pluto"` are handled as special cases in :meth:`add_solar_system_body <swiftest.Simulation.add_solar_system_body>` due to their unusually massive satellites. When "Earth" (or "Pluto") is requested, then the mass the Moon (Charon) is added to the body mass and the initial conditions are set to the Earth-Moon (Pluto-Charon) barycenter. If you wish to instead request the planet directly, you should pass `ephemeris_id` instead. 
+
+User-defined bodies
 =========================
 
-For completeness, let's also add some bodies with user defined parameters using :func:`sim.add_body <swiftest.Simulation.add_body>`.
+You can add a user-defined body with arbitrary initial conditions using using :meth:`sim.add_body <swiftest.Simulation.add_body>`. This method contains a number of optional arguments, and different combinations of arguments can result in different kinds of bodies. 
+
+- id: This is a unique, positive integer id for the body. Usually you would not pass this argument, as an id will be automatically assigned in the order in which it was added, and the central body is always assigned to be id 0.
+
+- name: This is a unique, string name for the body. If you do not pass this, then the name will be set to "Body{id}"
+
+- a,e,inc,capom,omega,capm: These are used to set the initial osculating orbital elements for the body when the Simulation is set to `init_cond_format="EL"` (or the equivalent `param["IN_FORM"] = "EL"`). 
+
+
+
+
 We will randomize the initial conditions and therefore import the `numpy.random <https://numpy.org/doc/stable/reference/random/index.html#module-numpy.random>`__ module.::
 
    from numpy.random import default_rng
@@ -143,7 +158,7 @@ This can be done in multiple ways:
     sim = swiftest.Simulation(simdir = simdir, integrator = 'symba', init_cond_format = 'EL', tstart=0.0, tstop=1.0e6, dt=0.01, 
                                 istep_out=100, dump_cadence=0, compute_conservation_values=True, mtiny=mtiny)
     
-- :func:`sim.set_parameter <swiftest.Simulation.set_parameter>`: Set individual parameters in the simulation. The user can set one or multiple at a time. ::
+- :meth:`sim.set_parameter <swiftest.Simulation.set_parameter>`: Set individual parameters in the simulation. The user can set one or multiple at a time. ::
 
     sim.set_parameter(tstart=0.0, tstop=1.0e6, dt=0.01, istep_out=100, dump_cadence=0, compute_conservation_values=True, mtiny=mtiny)
     sim.set_parameter(rmin = 0.05)
@@ -151,8 +166,8 @@ This can be done in multiple ways:
 We now set up the simulation parameters. Here we have a simulation starting from `0.0 y` and running for `1 My = 1e6 years` 
 with time steps of `0.01 years`. The timestep should be less than or equal to 1/10 of the orbital period of the innermost body. 
 
-The user can then write the parameters to the `param.in` file by using :func:`write_param <swiftest.Simulation.write_param>`.
-To see the parameters of the simulation, use :func:`sim.get_parameter <swiftest.Simulation.get_parameter>`.
+The user can then write the parameters to the `param.in` file by using :meth:`write_param <swiftest.Simulation.write_param>`.
+To see the parameters of the simulation, use :meth:`sim.get_parameter <swiftest.Simulation.get_parameter>`.
 
 Running the Simulation
 ========================

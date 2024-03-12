@@ -855,16 +855,7 @@ module swiftest
       end subroutine swiftest_drift_one
 
       module subroutine swiftest_drift_cb_rotphase_update(self, param, dt)
-         
-            !! Author : Kaustub Anand
-         
-            !! subroutine to update the rotation phase of the central body
-         
-            !! Units: radians
-         
-            !! initial 0 is set at the x-axis 
-   
-         ! Arguments
+         implicit none
          class(swiftest_cb),           intent(inout) :: self   
             !! Swiftest central body data structure
          class(swiftest_parameters),   intent(in)    :: param  
@@ -1615,6 +1606,28 @@ module swiftest
             !! Swiftest nbody system object
       end subroutine swiftest_obl_pot_system
 
+      pure elemental module subroutine swiftest_orbel_el2xv(mu, a, ie, inc, capom, omega, capm, rx, ry, rz, vx, vy, vz)
+         implicit none
+         real(DP), intent(in)  :: mu
+            !! Gravitational constant
+         real(DP), intent(in)  :: a
+            !! semimajor axis
+         real(DP), intent(in) :: ie
+            !! eccentricity input. If <0 then 0.0 is used
+         real(DP), intent(in)  :: inc
+            !! inclination (radians)
+         real(DP), intent(in)  :: capom
+            !! longitude of ascending node (radians)
+         real(DP), intent(in)  :: omega
+            !! argument of periapsis (radians)
+         real(DP), intent(in)  :: capm
+            !! mean anomaly (radians)
+         real(DP), intent(out) :: rx, ry, rz
+            !! Position vector
+         real(DP), intent(out) :: vx, vy, vz
+            !! Velocity vector
+      end subroutine swiftest_orbel_el2xv
+
       module subroutine swiftest_orbel_el2xv_vec(self, cb)
          implicit none
          class(swiftest_body), intent(inout) :: self 
@@ -1666,7 +1679,7 @@ module swiftest
             !! time of pericenter passage
       end subroutine swiftest_orbel_xv2aqt
 
-      pure module subroutine swiftest_orbel_xv2el(mu, rx, ry, rz, vx, vy, vz, &
+      pure elemental module subroutine swiftest_orbel_xv2el(mu, rx, ry, rz, vx, vy, vz, &
                                                       a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf)
          implicit none
          real(DP), intent(in)  :: mu    
