@@ -2666,13 +2666,17 @@ class Simulation(object):
                 capm = np.array([np.nan])
                 
         # Convert EL to XV input if needed
+        mu = np.full(nbodies, self.data.isel(name=0).Gmass.values[0])
+        if Gmass is not None:
+            mu = mu + Gmass
+        elif mass is not None:
+            mu = mu + self.GU * mass
+         
         if self.param['IN_FORM'] == "XV" and rh is None:
-            mu = self.data.isel(name=0).Gmass.values[0]
             rx, ry, rz, vx, vy, vz = el2xv(mu,a, e, inc, capom, omega, capm)
             rh = np.array([rx, ry, rz]).T
             vh = np.array([vx, vy, vz]).T
         elif self.param['IN_FORM'] == "EL" and a is None:
-            mu = self.data.isel(name=0).Gmass.values[0]
             a, e, inc, capom, omega, capm, *_ = xv2el(mu, rh[:,0], rh[:,1], rh[:,2], vh[:,0], vh[:,1], vh[:,2])
                 
         dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
@@ -2794,6 +2798,7 @@ class Simulation(object):
                 msg = "Non-unique names detected for bodies. The Dataset will be dimensioned by integer id instead of name."
                 msg +="\nConsider using unique names instead."
                 print(msg)
+        dsnew['status'] = xr.zeros_like(dsnew['id'])
 
         self.data = xr.combine_by_coords([self.data, dsnew])
 
