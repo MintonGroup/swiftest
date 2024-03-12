@@ -23,15 +23,14 @@ contains
       !! enough, this will allocate space for it.
       implicit none
       ! Arguments
-      type(swiftest_particle_info), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
-      type(swiftest_particle_info), dimension(:), allocatable, intent(in)           :: source       !! Array to append 
-      integer(I4B),                                            intent(in), optional :: nold         !! Extent of original array. 
-                                                                                                    !! If passed, the source array 
-                                                                                                    !! will begin at arr(nold+1). 
-                                                                                                    !! Otherwise, the size of arr 
-                                                                                                    !! will be used.
-      logical,                      dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which
-                                                                                                    !! elements to append to
+      type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr  
+         !> Destination array 
+      type(swiftest_particle_info), dimension(:), allocatable, intent(in) :: source 
+         !> Array to append 
+      integer(I4B), intent(in), optional :: nold 
+         !> Extent of original array. If passed the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
+      logical, dimension(:), intent(in), optional :: lsource_mask 
+         !> Logical mask indicating which elements to append to
       ! Internals
       integer(I4B) :: nnew, nsrc, nend_orig, i
       integer(I4B), dimension(:), allocatable :: idx
@@ -78,14 +77,14 @@ contains
       !! will allocate space for it.
       implicit none
       ! Arguments
-      type(swiftest_kinship), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
-      type(swiftest_kinship), dimension(:), allocatable, intent(in)           :: source       !! Array to append 
-      integer(I4B),                                      intent(in), optional :: nold         !! Extent of original array. 
-                                                                                              !! If passed, the source array will 
-                                                                                              !! begin at arr(nold+1). Otherwise, 
-                                                                                              !! the size of arr will be used.
-      logical,                dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which 
-                                                                                              !! elements to append to
+      type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: arr 
+         !> Destination array 
+      type(swiftest_kinship), dimension(:), allocatable, intent(in) :: source 
+         !> Array to append 
+      integer(I4B), intent(in), optional :: nold 
+         !> Extent of original array. If passed the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
+      logical, dimension(:), intent(in), optional :: lsource_mask 
+         !> Logical mask indicating which elements to append to
       ! Internals
       integer(I4B) :: nnew, nsrc, nend_orig
 
@@ -128,11 +127,12 @@ contains
       !! This method will automatically resize the destination body if it is too small
       implicit none
       ! Arguments
-      class(swiftest_body),  intent(inout) :: self         !! Swiftest body object
-      class(swiftest_body),  intent(in)    :: source       !! Source object to append
-      logical, dimension(:), intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      ! Internals
-
+      class(swiftest_body),  intent(inout) :: self  
+         !> Swiftest body object
+      class(swiftest_body),  intent(in) :: source  
+         !> Source object to append
+      logical, dimension(:), intent(in) :: lsource_mask 
+         !> Logical mask indicating which elements to append to
 
       call util_append(self%id, source%id, lsource_mask=lsource_mask)
       call util_append(self%info, source%info, lsource_mask=lsource_mask)
@@ -174,9 +174,12 @@ contains
       !! This method will automatically resize the destination body if it is too small
       implicit none
       ! Arguments
-      class(swiftest_pl),              intent(inout) :: self         !! Swiftest massive body object
-      class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      class(swiftest_pl), intent(inout) :: self 
+         !> Swiftest massive body object
+      class(swiftest_body),  intent(in) :: source 
+         !> Source object to append
+      logical, dimension(:), intent(in) :: lsource_mask 
+         !> Logical mask indicating which elements to append to
 
       select type(source)
       class is (swiftest_pl)
@@ -218,9 +221,12 @@ contains
       !! This method will automatically resize the destination body if it is too small
       implicit none
       ! Arguments
-      class(swiftest_tp),              intent(inout) :: self         !! Swiftest test particle object
-      class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      class(swiftest_tp), intent(inout) :: self 
+         !> Swiftest test particle object
+      class(swiftest_body), intent(in) :: source  
+         !> Source object to append
+      logical, dimension(:), intent(in):: lsource_mask 
+         !> Logical mask indicating which elements to append to
 
       select type(source)
       class is (swiftest_tp)
