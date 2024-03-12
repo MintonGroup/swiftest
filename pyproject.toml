@@ -55,6 +55,7 @@ swiftest = "swiftest.cli:main"
 requires = [
     "scikit-build-core>=0.8.2",
     "cython>=3.0.8",
+    "numpy>=1.26.4",
 ]
 build-backend = "scikit_build_core.build"
 

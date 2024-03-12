@@ -408,11 +408,11 @@ def solar_system_horizons(name: str,
         Gmass,Rpl,rot = horizons_get_physical_properties(altid,**kwargs)
         # If the user inputs "Earth" or Pluto, then the Earth-Moon or Pluto-Charon barycenter and combined mass is used. 
         # To use the Earth or Pluto alone, simply pass "399" or "999", respectively to name
-        if ephemeris_id == "Earth":
+        if name == "Earth":
             print("Combining mass of Earth and the Moon")
             Gmass_moon,tmp,tmp = horizons_get_physical_properties(["301"],**kwargs)
             Gmass += Gmass_moon
-        elif ephemeris_id == "Pluto":
+        elif name == "Pluto":
             print("Combining mass of Pluto and Charon")
             Gmass_charon,tmp,tmp = horizons_get_physical_properties(["901"],**kwargs)
             Gmass += Gmass_charon 
