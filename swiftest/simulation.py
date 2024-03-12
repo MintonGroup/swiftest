@@ -2536,11 +2536,11 @@ class Simulation(object):
                     else:
                         if val.shape[-1] != 3:
                             raise ValueError(f"Argument must be a 3-dimensional vector. This one has {val.shape[0]}!")
-                        if val.dim == 1:
+                        if val.size == 3:
                             n = 1
                         else:
                             n = val.shape[0]
-                elif n == 1:
+                if n == 1:
                     if val.shape != (1,3) and val.shape != (3,):
                         raise ValueError(f"Argument is an incorrect shape. Expected {(n,3)} or {(3,1)}. Got {val.shape} instead")
                     elif val.shape == (3,):
@@ -2623,8 +2623,6 @@ class Simulation(object):
                 raise ValueError("Cannot use J2/J4 and c_lm inputs simultaneously!")
         if c_lm is not None:
             is_central_body = True
-            if J2 is not None or J4 is not None:
-                raise ValueError("Cannot use J2/J4 and c_lm inputs simultaneously!")
            
         if rh is not None and vh is None:
             raise ValueError("If rh is passed, vh must also be passed")
@@ -2634,6 +2632,20 @@ class Simulation(object):
         if rh is not None:
             if a is not None or e is not None or inc is not None or capom is not None or omega is not None or capm is not None:
                 raise ValueError("Only cartesian values or orbital elements may be passed, but not both.")
+        elif not is_central_body:
+            if a is None: 
+                raise ValueError("Orbital element input requires at least a value for a (semimajor axis)")
+            if e is None:
+                e = np.zeros_like(a)
+            if inc is None:
+                inc = np.zeros_like(a)
+            if capom is None:
+                capom = np.zeros_like(a)
+            if omega is None:
+                omega = np.zeros_like(a)
+            if capm is None:
+                capm = np.zeros_like(a) 
+        
         if is_central_body:
             if a is not None or e is not None or inc is not None or capom is not None or omega is not None or capm is not None:
                 raise ValueError("Orbital elements cannot be passed for a central body.")
@@ -2651,6 +2663,14 @@ class Simulation(object):
                 capom = np.array([np.nan])
                 omega = np.array([np.nan])
                 capm = np.array([np.nan])
+                
+        # Convert EL to XV input if needed
+        if self.param['IN_FORM'] == "XV" and rh is None:
+            mu = self.data.isel(name=0).Gmass.values[0]
+            rh, vh = tool.el2xv_vec(mu,a, e, inc, capom, omega, capm)
+        elif self.param['IN_FORM'] == "EL" and a is None:
+            mu = self.data.isel(name=0).Gmass.values[0]
+            a, e, inc, capom, omega, capm, *_ = tool.xv2el_vec(mu, rh, vh)
                 
         dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
                                  Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, c_lm=c_lm, rotphase=rotphase, time=time)
