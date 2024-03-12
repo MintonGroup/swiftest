@@ -2490,6 +2490,7 @@ class Simulation(object):
         None
             Sets the data and init_cond instance variables each with an Xarray Dataset containing the body or bodies that were added
         """
+        from .core import xv2el, el2xv
 
         #convert all inputs to numpy arrays
         def input_to_array(val,t,n=None):
@@ -2667,10 +2668,12 @@ class Simulation(object):
         # Convert EL to XV input if needed
         if self.param['IN_FORM'] == "XV" and rh is None:
             mu = self.data.isel(name=0).Gmass.values[0]
-            rh, vh = tool.el2xv_vec(mu,a, e, inc, capom, omega, capm)
+            rx, ry, rz, vx, vy, vz = el2xv(mu,a, e, inc, capom, omega, capm)
+            rh = np.array([rx, ry, rz]).T
+            vh = np.array([vx, vy, vz]).T
         elif self.param['IN_FORM'] == "EL" and a is None:
             mu = self.data.isel(name=0).Gmass.values[0]
-            a, e, inc, capom, omega, capm, *_ = tool.xv2el_vec(mu, rh, vh)
+            a, e, inc, capom, omega, capm, *_ = xv2el(mu, rh[:,0], rh[:,1], rh[:,2], vh[:,0], vh[:,1], vh[:,2])
                 
         dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
                                  Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, c_lm=c_lm, rotphase=rotphase, time=time)
