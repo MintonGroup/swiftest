@@ -43,7 +43,7 @@ contains
    end subroutine swiftest_orbel_el2xv_vec
 
 
-   pure elemental subroutine swiftest_orbel_el2xv(mu, a, ie, inc, capom, omega, capm, rx, ry, rz, vx, vy, vz)
+   pure elemental module subroutine swiftest_orbel_el2xv(mu, a, ie, inc, capom, omega, capm, rx, ry, rz, vx, vy, vz)
       !! author: David A. Minton
       !!
       !! Compute osculating orbital elements from relative C)rtesian position and velocity
@@ -911,7 +911,8 @@ contains
    end subroutine swiftest_orbel_xv2el_vec 
 
 
-   pure module subroutine swiftest_orbel_xv2el(mu, rx, ry, rz, vx, vy, vz, a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf)
+   pure elemental module subroutine swiftest_orbel_xv2el(mu, rx, ry, rz, vx, vy, vz, &
+                                                         a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf)
       !! author: David A. Minton
       !!
       !! Compute osculating orbital elements from relative Cartesian position and velocity
