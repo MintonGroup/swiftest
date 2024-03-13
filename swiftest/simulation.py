@@ -2431,6 +2431,7 @@ class Simulation(object):
                  J4: float | List[float] | npt.NDArray[np.float_] | None=None,
                  c_lm: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
                  align_to_central_body_rotation: bool = False,
+                 verbose: bool = True,
                  **kwargs: Any
                  ) -> None:
         """
@@ -2678,7 +2679,10 @@ class Simulation(object):
             vh = np.array([vx, vy, vz]).T
         elif self.param['IN_FORM'] == "EL" and a is None:
             a, e, inc, capom, omega, capm, *_ = xv2el(mu, rh[:,0], rh[:,1], rh[:,2], vh[:,0], vh[:,1], vh[:,2])
-                
+               
+        if verbose:
+            for n in name:
+                print(f"Adding {n}") 
         dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
                                  Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, c_lm=c_lm, rotphase=rotphase, time=time)
 

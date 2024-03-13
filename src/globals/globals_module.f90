@@ -45,7 +45,7 @@ module globals
    integer(I4B), parameter :: UPPERCASE_OFFSET = iachar('A') - iachar('a') !! ASCII character set parameter for lower to upper 
                                                                            !! conversion - offset between upper and lower
 
-   character(*), parameter :: VERSION = "2024.3.2" !! Swiftest version
+   character(*), parameter :: VERSION = "2024.3.3" !! Swiftest version
 
    !> Symbolic name for integrator types
    character(*), parameter :: UNKNOWN_INTEGRATOR = "UKNOWN INTEGRATOR"
