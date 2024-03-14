@@ -2491,7 +2491,7 @@ class Simulation(object):
         None
             Sets the data and init_cond instance variables each with an Xarray Dataset containing the body or bodies that were added
         """
-        # from .core import xv2el, el2xv
+        from .core import xv2el, el2xv
 
         #convert all inputs to numpy arrays
         def input_to_array(val,t,n=None):
@@ -2673,12 +2673,10 @@ class Simulation(object):
         elif mass is not None:
             mu = mu + self.GU * mass
          
-        # if self.param['IN_FORM'] == "XV" and rh is None:
-        #     rx, ry, rz, vx, vy, vz = el2xv(mu,a, e, inc, capom, omega, capm)
-        #     rh = np.array([rx, ry, rz]).T
-        #     vh = np.array([vx, vy, vz]).T
-        # elif self.param['IN_FORM'] == "EL" and a is None:
-        #     a, e, inc, capom, omega, capm, *_ = xv2el(mu, rh[:,0], rh[:,1], rh[:,2], vh[:,0], vh[:,1], vh[:,2])
+        if self.param['IN_FORM'] == "XV" and rh is None:
+            rh, vh = el2xv(mu,a, e, inc, capom, omega, capm)
+        elif self.param['IN_FORM'] == "EL" and a is None:
+            a, e, inc, capom, omega, capm, *_ = xv2el(mu, rh, vh)
                
         if verbose:
             for n in name:

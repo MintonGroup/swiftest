@@ -55,18 +55,9 @@ def el2xv(cnp.ndarray[cnp.float64_t, ndim=1] mu,
 
     Returns
     -------
-    rx : array of floats
-        x-coordinate of position vector
-    ry : array of floats
-        y-coordinate of position vector
-    rz : array of floats
-        z-coordinate of position vector
-    vx : array of floats
-        x-coordinate of velocity vector
-    vy : array of floats
-        y-coordinate of velocity vector
-    vz : array of floats
-        z-coordinate of velocity vector
+    rh : (n,3) array of floats
+        position vector
+    vh : (n,3) array of floats
     """ 
     if not (mu.size == a.size == e.size == inc.size == capom.size == omega.size == capm.size):
         raise ValueError("All input arrays must have the same length")
@@ -77,19 +68,26 @@ def el2xv(cnp.ndarray[cnp.float64_t, ndim=1] mu,
     mu = np.ascontiguousarray(mu, dtype=np.float64)
     a = np.ascontiguousarray(a, dtype=np.float64)
     e = np.ascontiguousarray(e, dtype=np.float64)
-    inc = np.ascontiguousarray(inc, dtype=np.float64)
-    capom = np.ascontiguousarray(capom, dtype=np.float64)
-    omega = np.ascontiguousarray(omega, dtype=np.float64)
-    capm = np.ascontiguousarray(capm, dtype=np.float64)
+    # Convert angular quantities to radians and ensure they are contiguous
+    inc_rad = np.ascontiguousarray(np.deg2rad(inc), dtype=np.float64)
+    capom_rad = np.ascontiguousarray(np.deg2rad(capom), dtype=np.float64)
+    omega_rad = np.ascontiguousarray(np.deg2rad(omega), dtype=np.float64)
+    capm_rad = np.ascontiguousarray(np.deg2rad(capm), dtype=np.float64)
 
     # Make memory view of the numpy arrays and convert angular quantities to radians
     cdef cnp.float64_t[::1] mu_v = mu
     cdef cnp.float64_t[::1] a_v = a
     cdef cnp.float64_t[::1] e_v = e
-    cdef cnp.float64_t[::1] inc_v = np.deg2rad(inc)
-    cdef cnp.float64_t[::1] capom_v = np.deg2rad(capom)
-    cdef cnp.float64_t[::1] omega_v = np.deg2rad(omega)
-    cdef cnp.float64_t[::1] capm_v = np.deg2rad(capm) 
+    cdef cnp.float64_t[::1] inc_v = inc_rad
+    cdef cnp.float64_t[::1] capom_v = capom_rad
+    cdef cnp.float64_t[::1] omega_v = omega_rad
+    cdef cnp.float64_t[::1] capm_v = capm_rad
+
+    # Make memory view of the numpy arrays
+    cdef cnp.float64_t[::1] inc_v = a_rad
+    cdef cnp.float64_t[::1] capom_v = capom_rad
+    cdef cnp.float64_t[::1] omega_v = omega_rad
+    cdef cnp.float64_t[::1] capm_v = capm_rad    
 
     # Create arrays for outputs
     _rx = np.empty(nbody, dtype=np.float64)
@@ -112,16 +110,15 @@ def el2xv(cnp.ndarray[cnp.float64_t, ndim=1] mu,
     except:
         raise Warning("Failure in bindings_orbel_el2xv")
 
-    return rx, ry, rz, vx, vy, vz
+    rh = np.stack((rx, ry, rz), axis=1)
+    vh = np.stack((vx, vy, vz), axis=1)
+
+    return rh, vh
 
 
 def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
-          cnp.ndarray[cnp.float64_t, ndim=1] rx,
-          cnp.ndarray[cnp.float64_t, ndim=1] ry,
-          cnp.ndarray[cnp.float64_t, ndim=1] rz,
-          cnp.ndarray[cnp.float64_t, ndim=1] vx,
-          cnp.ndarray[cnp.float64_t, ndim=1] vy,
-          cnp.ndarray[cnp.float64_t, ndim=1] vz):
+          cnp.ndarray[cnp.float64_t, ndim=2] rh,
+          cnp.ndarray[cnp.float64_t, ndim=2] vh):
     """
     Convert state vectors to orbital elements
 
@@ -129,18 +126,9 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
     ----------
     mu : array of floats
         Gravitational parameter
-    rx : array of floats
-        x-coordinate of position vector
-    ry : array of floats
-        y-coordinate of position vector
-    rz : array of floats
-        z-coordinate of position vector
-    vx : array of floats
-        x-coordinate of velocity vector
-    vy : array of floats
-        y-coordinate of velocity vector
-    vz : array of floats
-        z-coordinate of velocity vector
+    rh : (N,3) array of floats
+        position vector
+    vh : (N,3) array of floats
 
     Returns
     -------
@@ -166,19 +154,18 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
         Eccentric true anomaly (degrees)
     """ 
 
-    if not (mu.size == rx.size == ry.size == rz.size == vx.size == vy.size == vz.size):
-        raise ValueError("All input arrays must have the same length")
+    # Ensure the input arrays are compatible
+    if not (mu.size == rh.shape[0] == vh.shape[0]):
+        raise ValueError("mu, rh, and vh must have compatible dimensions.")
 
     cdef int nbody = mu.size
 
     # Ensure memory-contiguous numpy arrays
     mu = np.ascontiguousarray(mu, dtype=np.float64)
-    rx = np.ascontiguousarray(rx, dtype=np.float64)
-    ry = np.ascontiguousarray(ry, dtype=np.float64)
-    rz = np.ascontiguousarray(rz, dtype=np.float64)
-    vx = np.ascontiguousarray(vx, dtype=np.float64)
-    vy = np.ascontiguousarray(vy, dtype=np.float64)
-    vz = np.ascontiguousarray(vz, dtype=np.float64)
+
+    # Extracting individual components from 2D arrays
+    rx, ry, rz = rh[:,0], rh[:,1], rh[:,2]
+    vx, vy, vz = vh[:,0], vh[:,1], vh[:,2]
 
     # Make memory view of the numpy arrays
     cdef cnp.float64_t[::1] mu_v = mu
