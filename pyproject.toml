@@ -69,7 +69,7 @@ build-dir = "build/{wheel_tag}"
 cmake.verbose = true
 
 [tool.cibuildwheel]
-test-command = "pytest {package}/tests"
+test-command = "pytest -vv {package}/tests"
 test-requires = ['pytest']
 skip = "pp* *i686 *-manylinux_i686 *_ppc64le *_s390x *-musllinux* *-win32"
 build-verbosity = 1
