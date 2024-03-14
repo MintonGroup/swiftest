@@ -29,10 +29,10 @@ def driver(integrator, param_file_name, display_style):
 def el2xv(cnp.ndarray[cnp.float64_t, ndim=1] mu,
           cnp.ndarray[cnp.float64_t, ndim=1] a,
           cnp.ndarray[cnp.float64_t, ndim=1] e,
-            cnp.ndarray[cnp.float64_t, ndim=1] inc,
-            cnp.ndarray[cnp.float64_t, ndim=1] capom,
-            cnp.ndarray[cnp.float64_t, ndim=1] omega,
-            cnp.ndarray[cnp.float64_t, ndim=1] capm):
+          cnp.ndarray[cnp.float64_t, ndim=1] inc,
+          cnp.ndarray[cnp.float64_t, ndim=1] capom,
+          cnp.ndarray[cnp.float64_t, ndim=1] omega,
+          cnp.ndarray[cnp.float64_t, ndim=1] capm):
     """
     Convert orbital elements to state vectors
 
@@ -192,7 +192,7 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
 
     # Create arrays for outputs
     _a = np.empty(nbody, dtype=np.float64)
-    _e = np.empty(nbody, dtype=np.float64)p.empty(nbody, dtype=np.float64)
+    _e = np.empty(nbody, dtype=np.float64)
     _inc = np.empty(nbody, dtype=np.float64)
     _capom = np.empty(nbody, dtype=np.float64)
     _omega = np.empty(nbody, dtype=np.float64)
