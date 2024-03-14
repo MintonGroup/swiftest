@@ -98,8 +98,7 @@ def el2xv(cnp.ndarray[cnp.float64_t, ndim=1] mu,
     cdef cnp.float64_t[::1] vz = _vz
 
     try:
-        with cython.boundscheck(False):
-            bindings_orbel_el2xv(nbody, &mu_v[0], &a_v[0], &e_v[0], &inc_v[0], &capom_v[0], &omega_v[0], &capm_v[0], &rx[0], &ry[0], &rz[0], &vx[0], &vy[0], &vz[0])
+        bindings_orbel_el2xv(nbody, &mu_v[0], &a_v[0], &e_v[0], &inc_v[0], &capom_v[0], &omega_v[0], &capm_v[0], &rx[0], &ry[0], &rz[0], &vx[0], &vy[0], &vz[0])
     except:
         raise Warning("Failure in bindings_orbel_el2xv")
 
@@ -193,8 +192,7 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
     cdef cnp.float64_t[::1] capf = _capf
 
     try:
-        with cython.boundscheck(False):
-            bindings_orbel_xv2el(nbody, &mu_v[0], &rx_v[0], &ry_v[0], &rz_v[0], &vx_v[0], &vy_v[0], &vz_v[0], &a[0], &e[0], &inc[0], &capom[0], &omega[0], &capm[0], &lam[0], &f[0], &cape[0], &capf[0])
+        bindings_orbel_xv2el(nbody, &mu_v[0], &rx_v[0], &ry_v[0], &rz_v[0], &vx_v[0], &vy_v[0], &vz_v[0], &a[0], &e[0], &inc[0], &capom[0], &omega[0], &capm[0], &lam[0], &f[0], &cape[0], &capf[0])
     except:
         raise Warning("Failure in bindings_orbel_xv2el")
 
