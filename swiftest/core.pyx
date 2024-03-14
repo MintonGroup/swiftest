@@ -68,7 +68,6 @@ def el2xv(cnp.ndarray[cnp.float64_t, ndim=1] mu,
     mu = np.ascontiguousarray(mu, dtype=np.float64)
     a = np.ascontiguousarray(a, dtype=np.float64)
     e = np.ascontiguousarray(e, dtype=np.float64)
-    # Convert angular quantities to radians and ensure they are contiguous
     inc_rad = np.ascontiguousarray(np.deg2rad(inc), dtype=np.float64)
     capom_rad = np.ascontiguousarray(np.deg2rad(capom), dtype=np.float64)
     omega_rad = np.ascontiguousarray(np.deg2rad(omega), dtype=np.float64)
@@ -82,12 +81,6 @@ def el2xv(cnp.ndarray[cnp.float64_t, ndim=1] mu,
     cdef cnp.float64_t[::1] capom_v = capom_rad
     cdef cnp.float64_t[::1] omega_v = omega_rad
     cdef cnp.float64_t[::1] capm_v = capm_rad
-
-    # Make memory view of the numpy arrays
-    cdef cnp.float64_t[::1] inc_v = a_rad
-    cdef cnp.float64_t[::1] capom_v = capom_rad
-    cdef cnp.float64_t[::1] omega_v = omega_rad
-    cdef cnp.float64_t[::1] capm_v = capm_rad    
 
     # Create arrays for outputs
     _rx = np.empty(nbody, dtype=np.float64)
@@ -175,7 +168,6 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
     cdef cnp.float64_t[::1] vx_v = vx
     cdef cnp.float64_t[::1] vy_v = vy
     cdef cnp.float64_t[::1] vz_v = vz
-
 
     # Create arrays for outputs
     _a = np.empty(nbody, dtype=np.float64)
