@@ -3369,7 +3369,23 @@ class Simulation(object):
             cbname = self.data.name.isel(id=cbid).values[()]
         else:
             raise ValueError("No 'name' or 'id' dimensions found in dataset.")
-        
+
+        if cbidx != 0:
+            if 'name' in self.data.dims:
+                if 0 in self.data.id.values:
+                    name_0 = self.data.name.where(self.data.id == 0, drop=True).values[()]
+                    self.data['id'].loc[dict(name=name_0)] = cbidx
+                self.data['id'].loc[dict(name=cbname)] = 0
+            else:
+                if 0 in self.data.id.values:
+                    self.data['id'].loc[dict(id=0)] = cbidx
+                self.data['id'].loc[dict(id=cbidx)] = 0
+            
+        if 'name' in self.data.dims: 
+            cbda =  self.data.sel(name=cbname)
+        else:
+            cbda = self.data.sel(id=cbidx)
+
         # For coordinate frame change
         if self.param['IN_FORM'] == 'EL':
             # convert orbital elements to cartesian
@@ -3394,36 +3410,25 @@ class Simulation(object):
 
             # add temporary rh and vh vectors to the dataset
             rh_xr = xr.DataArray(rh, 
-                              dims=('space', 'time', 'name'), 
+                              dims=('name', 'space', 'time'), 
                               coords={'space': np.array(['x', 'y', 'z']), 
                                       'time': self.data.time.values, # check if this should be T0 or TSTART
                                       'name': self.data.name.values}) # name or id??
             
             vh_xr = xr.DataArray(vh,
-                                dims=('space', 'time', 'name'), 
+                                dims=('name', 'space', 'time'), 
                                 coords={'space': np.array(['x', 'y', 'z']), 
                                         'time': self.data.time.values, # check if this should be T0 or TSTART
                                         'name': self.data.name.values}) # name or id??
             self.data['rh'] = rh_xr
             self.data['vh'] = vh_xr
 
-        if cbidx != 0:
-            if 'name' in self.data.dims:
-                if 0 in self.data.id.values:
-                    name_0 = self.data.name.where(self.data.id == 0, drop=True).values[()]
-                    self.data['id'].loc[dict(name=name_0)] = cbidx
-                self.data['id'].loc[dict(name=cbname)] = 0
+            if 'name' in self.data.dims: 
+                cbda =  self.data.sel(name=cbname)
             else:
-                if 0 in self.data.id.values:
-                    self.data['id'].loc[dict(id=0)] = cbidx
-                self.data['id'].loc[dict(id=cbidx)] = 0
-            
+                cbda = self.data.sel(id=cbidx)
+
         # Ensure that the central body is at the origin
-        if 'name' in self.data.dims: 
-            cbda =  self.data.sel(name=cbname)
-        else:
-            cbda = self.data.sel(id=cbidx)
-        
         pos_skip = ['space','Ip','rot']
         for var in self.data.variables:
             if 'space' in self.data[var].dims and var not in pos_skip:
@@ -3434,8 +3439,8 @@ class Simulation(object):
 
         if self.param['IN_FORM'] == 'EL':
             # convert shifted rh and vh back to orbital elements
-            rh = self.data.rh.values.isel(time = 0)
-            vh = self.data.vh.values.isel(time = 0)
+            rh = self.data.isel(time = 0).rh.values
+            vh = self.data.isel(time = 0).vh.values
 
             a, e, inc, capom, omega, capm, *_ = xv2el(mu, rh[:,0], rh[:,1], rh[:,2], vh[:,0], vh[:,1], vh[:,2])
             new_orb_el = dict(zip(orb_elements, (a, e, inc, capom, omega, capm)))
