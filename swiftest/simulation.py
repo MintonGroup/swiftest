@@ -3389,20 +3389,23 @@ class Simulation(object):
 
             rx, ry, rz, vx, vy, vz = el2xv(mu, original_orb_el['a'], original_orb_el['e'], original_orb_el['inc'], original_orb_el['capom'], original_orb_el['omega'], original_orb_el['capm'])
             
-            rh_data = np.array([[rx, ry, rz]]).T
-            vh_data = np.array([[vx, vy, vz]]).T
+            rh = np.array([[rx, ry, rz]]).T
+            vh = np.array([[vx, vy, vz]]).T
 
             # add temporary rh and vh vectors to the dataset
-            rh = xr.Dataset(rh_data, 
+            rh_xr = xr.DataArray(rh, 
                               dims=('space', 'time', 'name'), 
                               coords={'space': np.array(['x', 'y', 'z']), 
-                                      'time': self.data.time.values, 
-                                      'name': self.data.name.values}) # check if this should be T0 or TSTART
+                                      'time': self.data.time.values, # check if this should be T0 or TSTART
+                                      'name': self.data.name.values}) # name or id??
             
-            vh = xr.DataArray(vh_data, dims=('space', 'time', 'name'), coords={'space': np.array(['x', 'y', 'z']), 'time': [self.param['T0']]}) # check if this should be T0 or TSTART
-
-            self.data['rh'] = rh
-            self.data['vh'] = vh
+            vh_xr = xr.DataArray(vh,
+                                dims=('space', 'time', 'name'), 
+                                coords={'space': np.array(['x', 'y', 'z']), 
+                                        'time': self.data.time.values, # check if this should be T0 or TSTART
+                                        'name': self.data.name.values}) # name or id??
+            self.data['rh'] = rh_xr
+            self.data['vh'] = vh_xr
 
         if cbidx != 0:
             if 'name' in self.data.dims:
@@ -3425,40 +3428,24 @@ class Simulation(object):
         for var in self.data.variables:
             if 'space' in self.data[var].dims and var not in pos_skip:
                 self.data[var] -= cbda[var]
-        # else:
-        #     # convert orbital elements to cartesian -> change reference frame -> convert back to orbital elements
-        #     nbodies = len(self.data.name.values)
-        #     mu = np.full(nbodies, cbda.Gmass.values)
-
-        #     if "Gmass" in self.data:
-        #         mu = mu + self.data.Gmass.values[0]
-        #     elif "mass" in self.data:
-        #         mu = mu + self.GU * self.data.mass.values[0]
-
-        #     orb_elements = ['a','e','inc','capom','omega','capm']
-        #     original_orb_el = dict(zip(orb_elements, np.zeros(len(orb_elements))))
-
-        #     for orb_el in orb_elements:
-        #         original_orb_el[orb_el] = self.data[orb_el].values[0] # adjusts shape for el2xv
-
-        #     rx, ry, rz, vx, vy, vz = el2xv(mu, original_orb_el['a'], original_orb_el['e'], original_orb_el['inc'], original_orb_el['capom'], original_orb_el['omega'], original_orb_el['capm'])
-            
-        #     rh = np.array([rx, ry, rz]).T
-        #     vh = np.array([vx, vy, vz]).T
-
-        #     # change the reference frame
-        #     rh -= rh[0]
-        #     vh -= vh[0]
-
-        #     # convert back to orbital elements and replace in the dataset
-        #     a, e, inc, capom, omega, capm, *_ = xv2el(mu, rh[:,0], rh[:,1], rh[:,2], vh[:,0], vh[:,1], vh[:,2])
-        #     new_orb_el = dict(zip(orb_elements, (a, e, inc, capom, omega, capm)))
-
-        #     for orb_el in orb_elements:
-        #         self.data[orb_el] -= original_orb_el[orb_el] + new_orb_el[orb_el]
                 
         if align_to_central_body_rotation and 'rot' in cbda:
             self.data = tool.rotate_to_vector(self.data,cbda.rot.isel(time=0).values[()])
+
+        if self.param['IN_FORM'] == 'EL':
+            # convert shifted rh and vh back to orbital elements
+            rh = self.data.rh.values.isel(time = 0)
+            vh = self.data.vh.values.isel(time = 0)
+
+            a, e, inc, capom, omega, capm, *_ = xv2el(mu, rh[:,0], rh[:,1], rh[:,2], vh[:,0], vh[:,1], vh[:,2])
+            new_orb_el = dict(zip(orb_elements, (a, e, inc, capom, omega, capm)))
+
+            for orb_el in orb_elements:
+                self.data[orb_el] -= original_orb_el[orb_el] + new_orb_el[orb_el]
+
+            # drop rh and vh to keep consistent with the original dataset
+            self.data = self.data.drop_vars['rh']
+            self.data = self.data.drop_vars['vh']
         
         if self.param['CHK_CLOSE']:
            if 'CHK_RMIN' not in self.param:
