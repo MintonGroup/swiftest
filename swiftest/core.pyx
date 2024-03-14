@@ -2,11 +2,16 @@
 cimport cython
 cimport numpy as cnp
 import numpy as np
+import warnings
+import traceback
+
+
+
 
 cdef extern from "core.h":
     void bindings_c_driver(char* integrator, char* param_file_name, char* display_style) noexcept nogil
-    void bindings_orbel_el2xv(int nbody, double *mu, double *a, double *e, double *inc, double *capom, double *omega, double *capm, double *rx, double *ry, double *rz, double *vx, double *vy, double *vz) 
-    void bindings_orbel_xv2el(int nbody, double *mu, double *rx, double *ry, double *rz, double *vx, double *vy, double *vz, double *a, double *e, double *inc, double *capom, double *omega, double *capm, double *lam, double *f, double *cape, double *capf) 
+    void bindings_orbel_el2xv(int nbody, double *mu, double *a, double *e, double *inc, double *capom, double *omega, double *capm, double *rx, double *ry, double *rz, double *vx, double *vy, double *vz) noexcept nogil
+    void bindings_orbel_xv2el(int nbody, double *mu, double *rx, double *ry, double *rz, double *vx, double *vy, double *vz, double *a, double *e, double *inc, double *capom, double *omega, double *capm, double *lam, double *f, double *cape, double *capf) noexcept nogil
 
 def driver(integrator, param_file_name, display_style):
     b_integrator = bytes(integrator,'ascii') + b'\x00'
@@ -21,8 +26,10 @@ def driver(integrator, param_file_name, display_style):
     try:
         with nogil:
             bindings_c_driver(c_integrator, c_param_file_name, c_display_style)
-    except:
-        raise Warning("The Swiftest driver did not terminate normally")
+    except Exception as e:  
+        traceback_details = traceback.format_exc()
+        warning_message = f"An unexpected error occurred in bindings_c_driver: {e}\n{traceback_details}"
+        warnings.warn(warning_message, RuntimeWarning)
 
     return
 
@@ -99,8 +106,10 @@ def el2xv(cnp.ndarray[cnp.float64_t, ndim=1] mu,
 
     try:
         bindings_orbel_el2xv(nbody, &mu_v[0], &a_v[0], &e_v[0], &inc_v[0], &capom_v[0], &omega_v[0], &capm_v[0], &rx[0], &ry[0], &rz[0], &vx[0], &vy[0], &vz[0])
-    except:
-        raise Warning("Failure in bindings_orbel_el2xv")
+    except Exception as e:  
+        traceback_details = traceback.format_exc()
+        warning_message = f"An unexpected error occurred in bindings_orbel_el2xv: {e}\n{traceback_details}"
+        warnings.warn(warning_message, RuntimeWarning)
 
     rh = np.stack((rx, ry, rz), axis=1)
     vh = np.stack((vx, vy, vz), axis=1)
@@ -193,8 +202,10 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
 
     try:
         bindings_orbel_xv2el(nbody, &mu_v[0], &rx_v[0], &ry_v[0], &rz_v[0], &vx_v[0], &vy_v[0], &vz_v[0], &a[0], &e[0], &inc[0], &capom[0], &omega[0], &capm[0], &lam[0], &f[0], &cape[0], &capf[0])
-    except:
-        raise Warning("Failure in bindings_orbel_xv2el")
+    except Exception as e:  
+        traceback_details = traceback.format_exc()
+        warning_message = f"An unexpected error occurred in bindings_orbel_xv2el: {e}\n{traceback_details}"
+        warnings.warn(warning_message, RuntimeWarning)
 
     inc = np.rad2deg(inc)
     capom = np.rad2deg(capom)
