@@ -3449,8 +3449,8 @@ class Simulation(object):
                 self.data[orb_el] -= original_orb_el[orb_el] + new_orb_el[orb_el]
 
             # drop rh and vh to keep consistent with the original dataset
-            self.data = self.data.drop_vars['rh']
-            self.data = self.data.drop_vars['vh']
+            self.data = self.data.drop_vars('rh')
+            self.data = self.data.drop_vars('vh')
         
         if self.param['CHK_CLOSE']:
            if 'CHK_RMIN' not in self.param:
