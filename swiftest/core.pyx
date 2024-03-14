@@ -9,9 +9,9 @@ import traceback
 
 
 cdef extern from "core.h":
-    void bindings_c_driver(char* integrator, char* param_file_name, char* display_style) noexcept nogil
-    void bindings_orbel_el2xv(int nbody, double *mu, double *a, double *e, double *inc, double *capom, double *omega, double *capm, double *rx, double *ry, double *rz, double *vx, double *vy, double *vz) noexcept nogil
-    void bindings_orbel_xv2el(int nbody, double *mu, double *rx, double *ry, double *rz, double *vx, double *vy, double *vz, double *a, double *e, double *inc, double *capom, double *omega, double *capm, double *lam, double *f, double *cape, double *capf) noexcept nogil
+    void bindings_c_driver(char* integrator, char* param_file_name, char* display_style) nogil
+    void bindings_orbel_el2xv(int nbody, double *mu, double *a, double *e, double *inc, double *capom, double *omega, double *capm, double *rx, double *ry, double *rz, double *vx, double *vy, double *vz) 
+    void bindings_orbel_xv2el(int nbody, double *mu, double *rx, double *ry, double *rz, double *vx, double *vy, double *vz, double *a, double *e, double *inc, double *capom, double *omega, double *capm, double *lam, double *f, double *cape, double *capf) 
 
 def driver(integrator, param_file_name, display_style):
     b_integrator = bytes(integrator,'ascii') + b'\x00'
