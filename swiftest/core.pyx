@@ -71,6 +71,7 @@ def el2xv(cnp.ndarray[cnp.float64_t, ndim=1] mu,
     # Ensure memory-contiguous numpy arrays
     mu = np.ascontiguousarray(mu, dtype=np.float64)
     a = np.ascontiguousarray(a, dtype=np.float64)
+    a = np.where(a<0.0,-a, a)
     e = np.ascontiguousarray(e, dtype=np.float64)
     inc_rad = np.ascontiguousarray(np.deg2rad(inc), dtype=np.float64)
     capom_rad = np.ascontiguousarray(np.deg2rad(capom), dtype=np.float64)

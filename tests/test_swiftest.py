@@ -53,15 +53,26 @@ class TestSwiftest(unittest.TestCase):
         # Generate a set of random position-velocity vectors
         from swiftest import xv2el, el2xv
         
-        mu=np.array([1.0])
-        rh=np.array([[1.0,0.1,-0.01]])
-        vh=np.array([[0.1,1.0,0.05]])
-        a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf = xv2el(mu, rh, vh)
-        rh_new, vh_new = el2xv(mu, a,e,inc,capom,omega,capm)
+        # Test that we can reliably convert between orbital elements and state vectors
+        n = 1000
+        mu    = np.ones(n)
+        a     = rng.uniform(0.1, 1.5, n)
+        e     = rng.uniform(0.0, 2.0, n)
+        inc   = rng.uniform(0.0, 180.0, n)
+        capom = rng.uniform(0.0, 360.0, n)
+        omega = rng.uniform(0.0, 360.0, n)
+        capm  = rng.uniform(0.0, 360.0, n)
+       
+        rh, vh = el2xv(mu, a, e, inc, capom, omega, capm)
+        a2, e2, inc2, capom2, omega2, capm2, varpi, lam, f, cape, capf = xv2el(mu, rh, vh) 
         
         # Check that the original and converted position-velocity vectors are the same
-        self.assertTrue(np.allclose(rh,rh_new),msg="rh and rh_new are not the same")
-        self.assertTrue(np.allclose(vh,vh_new),msg="vh and vh_new are not the same")
+        self.assertTrue(np.allclose(a,a2),msg=f"Error converting a: {a}, {a2}")
+        self.assertTrue(np.allclose(e,e2),msg=f"Error converting a: {e}, {e2}")
+        self.assertTrue(np.allclose(inc,inc2),msg=f"Error converting a: {inc}, {inc2}")
+        self.assertTrue(np.allclose(capom,capom2),msg=f"Error converting a: {capom}, {capom2}")
+        self.assertTrue(np.allclose(omega,omega2),msg=f"Error converting a: {omega}, {omega2}")
+        self.assertTrue(np.allclose(capm,capm2),msg=f"Error converting a: {capm}, {capm2}")
         return
     
     def test_gen_ic(self):

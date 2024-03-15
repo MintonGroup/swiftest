@@ -1054,6 +1054,7 @@ contains
             w = atan2(sw, cw)
             if (w < 0.0_DP) w = w + TWOPI
             capm = e * sinh(capf) - capf
+            a = -a
       end select
       omega = u - w
       if (omega < 0.0_DP) omega = omega + TWOPI
