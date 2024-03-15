@@ -3390,7 +3390,7 @@ class Simulation(object):
         if self.param['IN_FORM'] == 'EL':
             # convert orbital elements to cartesian vectors with respect to the Sun
             nbodies = len(self.data.name.values)
-            mu = np.full(nbodies, swiftest.GMSun * self.param["TU2S"] ** 2 * self.param["MU2KG"] / self.param["DU2M"] ** 3)
+            mu = np.full(nbodies, constants.GMSun * self.param["TU2S"] ** 2 / self.param["DU2M"] ** 3)
 
             if "Gmass" in self.data:
                 mu = mu + self.data.Gmass.values[0]
@@ -3446,7 +3446,7 @@ class Simulation(object):
             new_orb_el = dict(zip(orb_elements, (a, e, inc, capom, omega, capm)))
 
             for orb_el in orb_elements:
-                self.data[orb_el] -= original_orb_el[orb_el] + new_orb_el[orb_el]
+                self.data[orb_el] -= original_orb_el[orb_el] - new_orb_el[orb_el]
 
             # drop rh and vh to keep consistent with the original dataset
             self.data = self.data.drop_vars('rh')
