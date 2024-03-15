@@ -12,3 +12,4 @@ If not, see: https://www.gnu.org/licenses.
 from .constants import *
 from .simulation import Simulation
 from .shgrav import clm_from_ellipsoid, clm_from_relief
+from .core import xv2el, el2xv

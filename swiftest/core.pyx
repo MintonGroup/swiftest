@@ -5,13 +5,10 @@ import numpy as np
 import warnings
 import traceback
 
-
-
-
 cdef extern from "core.h":
     void bindings_c_driver(char* integrator, char* param_file_name, char* display_style) nogil
-    void bindings_orbel_el2xv(int nbody, double *mu, double *a, double *e, double *inc, double *capom, double *omega, double *capm, double *rx, double *ry, double *rz, double *vx, double *vy, double *vz) 
-    void bindings_orbel_xv2el(int nbody, double *mu, double *rx, double *ry, double *rz, double *vx, double *vy, double *vz, double *a, double *e, double *inc, double *capom, double *omega, double *capm, double *lam, double *f, double *cape, double *capf) 
+    void bindings_orbel_el2xv(int nbody, double *mu, double *a, double *e, double *inc, double *capom, double *omega, double *capm, double *rx, double *ry, double *rz, double *vx, double *vy, double *vz) nogil
+    void bindings_orbel_xv2el(int nbody, double *mu, double *rx, double *ry, double *rz, double *vx, double *vy, double *vz, double *a, double *e, double *inc, double *capom, double *omega, double *capm, double *lam, double *f, double *cape, double *capf) nogil
 
 def driver(integrator, param_file_name, display_style):
     b_integrator = bytes(integrator,'ascii') + b'\x00'
@@ -104,16 +101,12 @@ def el2xv(cnp.ndarray[cnp.float64_t, ndim=1] mu,
     cdef cnp.float64_t[::1] vy = _vy
     cdef cnp.float64_t[::1] vz = _vz
 
-    try:
+    with cython.boundscheck(False):
         with nogil:
             bindings_orbel_el2xv(nbody, &mu_v[0], &a_v[0], &e_v[0], &inc_v[0], &capom_v[0], &omega_v[0], &capm_v[0], &rx[0], &ry[0], &rz[0], &vx[0], &vy[0], &vz[0])
-    except Exception as e:  
-        traceback_details = traceback.format_exc()
-        warning_message = f"An unexpected error occurred in bindings_orbel_el2xv: {e}\n{traceback_details}"
-        warnings.warn(warning_message, RuntimeWarning)
 
-    rh = np.stack((rx, ry, rz), axis=1)
-    vh = np.stack((vx, vy, vz), axis=1)
+    cdef cnp.ndarray[cnp.float64_t, ndim=2] rh = np.stack((rx, ry, rz), axis=1)
+    cdef cnp.ndarray[cnp.float64_t, ndim=2] vh = np.stack((vx, vy, vz), axis=1)
 
     return rh, vh
 
@@ -162,12 +155,18 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
 
     cdef int nbody = mu.size
 
-    # Ensure memory-contiguous numpy arrays
-    mu = np.ascontiguousarray(mu, dtype=np.float64)
-
     # Extracting individual components from 2D arrays
     rx, ry, rz = rh[:,0], rh[:,1], rh[:,2]
     vx, vy, vz = vh[:,0], vh[:,1], vh[:,2]
+
+    # Ensure memory-contiguous numpy arrays
+    mu = np.ascontiguousarray(mu, dtype=np.float64)
+    rx = np.ascontiguousarray(rx, dtype=np.float64)
+    ry = np.ascontiguousarray(ry, dtype=np.float64)
+    rz = np.ascontiguousarray(rz, dtype=np.float64)
+    vx = np.ascontiguousarray(vx, dtype=np.float64)
+    vy = np.ascontiguousarray(vy, dtype=np.float64)
+    vz = np.ascontiguousarray(vz, dtype=np.float64)
 
     # Make memory view of the numpy arrays
     cdef cnp.float64_t[::1] mu_v = mu
@@ -201,23 +200,22 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
     cdef cnp.float64_t[::1] cape = _cape
     cdef cnp.float64_t[::1] capf = _capf
 
-    try:
+    with cython.boundscheck(False):
         with nogil:
             bindings_orbel_xv2el(nbody, &mu_v[0], &rx_v[0], &ry_v[0], &rz_v[0], &vx_v[0], &vy_v[0], &vz_v[0], &a[0], &e[0], &inc[0], &capom[0], &omega[0], &capm[0], &lam[0], &f[0], &cape[0], &capf[0])
-    except Exception as e:  
-        traceback_details = traceback.format_exc()
-        warning_message = f"An unexpected error occurred in bindings_orbel_xv2el: {e}\n{traceback_details}"
-        warnings.warn(warning_message, RuntimeWarning)
 
-    inc = np.rad2deg(inc)
-    capom = np.rad2deg(capom)
-    omega = np.rad2deg(omega)
-    capm = np.rad2deg(capm)
-    lam = np.rad2deg(lam)
-    f = np.rad2deg(f)
-    cape = np.rad2deg(cape)
-    capf = np.rad2deg(capf)
+    # Convert angular quantities to degrees 
+    cdef cnp.ndarray[cnp.float64_t, ndim=1] a_np = np.asarray(a)
+    cdef cnp.ndarray[cnp.float64_t, ndim=1] e_np = np.asarray(e)
+    cdef cnp.ndarray[cnp.float64_t, ndim=1] inc_np = np.rad2deg(np.asarray(inc))
+    cdef cnp.ndarray[cnp.float64_t, ndim=1] capom_np = np.rad2deg(np.asarray(capom))
+    cdef cnp.ndarray[cnp.float64_t, ndim=1] omega_np = np.rad2deg(np.asarray(omega))
+    cdef cnp.ndarray[cnp.float64_t, ndim=1] capm_np = np.rad2deg(np.asarray(capm))
+    cdef cnp.ndarray[cnp.float64_t, ndim=1] lam_np = np.rad2deg(np.asarray(lam))
+    cdef cnp.ndarray[cnp.float64_t, ndim=1] f_np = np.rad2deg(np.asarray(f))
+    cdef cnp.ndarray[cnp.float64_t, ndim=1] cape_np = np.rad2deg(np.asarray(cape))
+    cdef cnp.ndarray[cnp.float64_t, ndim=1] capf_np = np.rad2deg(np.asarray(capf))
 
-    return a, e, inc, capom, omega, capm, lam, f, cape, capf
+    return a_np, e_np, inc_np, capom_np, omega_np, capm_np, lam_np, f_np, cape_np, capf_np
 
 
