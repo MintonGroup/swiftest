@@ -3388,9 +3388,9 @@ class Simulation(object):
 
         # For coordinate frame change
         if self.param['IN_FORM'] == 'EL':
-            # convert orbital elements to cartesian
+            # convert orbital elements to cartesian vectors with respect to the Sun
             nbodies = len(self.data.name.values)
-            mu = np.full(nbodies, cbda.Gmass.values)
+            mu = np.full(nbodies, swiftest.GMSun * self.param["TU2S"] ** 2 * self.param["MU2KG"] / self.param["DU2M"] ** 3)
 
             if "Gmass" in self.data:
                 mu = mu + self.data.Gmass.values[0]
