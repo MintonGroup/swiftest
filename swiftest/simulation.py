@@ -2676,7 +2676,7 @@ class Simulation(object):
         if self.param['IN_FORM'] == "XV" and rh is None:
             rh, vh = el2xv(mu,a, e, inc, capom, omega, capm)
         elif self.param['IN_FORM'] == "EL" and a is None:
-            a, e, inc, capom, omega, capm, lam, f, cape, capf = xv2el(mu, rh, vh)
+            a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf = xv2el(mu, rh, vh)
                
         if verbose:
             for n in name:

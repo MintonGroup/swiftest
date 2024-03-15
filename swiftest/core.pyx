@@ -8,7 +8,7 @@ import traceback
 cdef extern from "core.h":
     void bindings_c_driver(char* integrator, char* param_file_name, char* display_style) nogil
     void bindings_orbel_el2xv(int nbody, double *mu, double *a, double *e, double *inc, double *capom, double *omega, double *capm, double *rx, double *ry, double *rz, double *vx, double *vy, double *vz) nogil
-    void bindings_orbel_xv2el(int nbody, double *mu, double *rx, double *ry, double *rz, double *vx, double *vy, double *vz, double *a, double *e, double *inc, double *capom, double *omega, double *capm, double *lam, double *f, double *cape, double *capf) nogil
+    void bindings_orbel_xv2el(int nbody, double *mu, double *rx, double *ry, double *rz, double *vx, double *vy, double *vz, double *a, double *e, double *inc, double *capom, double *omega, double *capm, double *varpi, double *lam, double *f, double *cape, double *capf) nogil
 
 def driver(integrator, param_file_name, display_style):
     b_integrator = bytes(integrator,'ascii') + b'\x00'
@@ -139,6 +139,8 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
         Argument of periapsis (degrees)
     capm : array of floats
         Mean anomaly (degrees)
+    varpi : array of floats
+        Longitude of periapsis (degrees)
     lam : array of floats
         True longitude (degrees)
     f : array of floats
@@ -202,7 +204,7 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
 
     with cython.boundscheck(False):
         with nogil:
-            bindings_orbel_xv2el(nbody, &mu_v[0], &rx_v[0], &ry_v[0], &rz_v[0], &vx_v[0], &vy_v[0], &vz_v[0], &a[0], &e[0], &inc[0], &capom[0], &omega[0], &capm[0], &lam[0], &f[0], &cape[0], &capf[0])
+            bindings_orbel_xv2el(nbody, &mu_v[0], &rx_v[0], &ry_v[0], &rz_v[0], &vx_v[0], &vy_v[0], &vz_v[0], &a[0], &e[0], &inc[0], &capom[0], &omega[0], &capm[0], &varpi[0], &lam[0], &f[0], &cape[0], &capf[0])
 
     # Convert angular quantities to degrees 
     cdef cnp.ndarray[cnp.float64_t, ndim=1] a_np = np.asarray(a)

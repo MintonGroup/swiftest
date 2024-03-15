@@ -44,6 +44,25 @@ class TestSwiftest(unittest.TestCase):
     def tearDown(self):
         # Clean up temporary directory
         self.tmpdir.cleanup() 
+        
+    def test_xv2el2xv(self):
+        """
+        Tests that the functions xv2el and el2xv are able to convert between position-velocity and orbital elements without any exceptions being raised
+        """
+        print("\ntest_000_xv2el2xv: Tests that the functions xv2el and el2xv are able to convert between position-velocity and orbital elements without any exceptions being raised")
+        # Generate a set of random position-velocity vectors
+        from swiftest import xv2el, el2xv
+        
+        mu=np.array([1.0])
+        rh=np.array([[1.0,0.1,-0.01]])
+        vh=np.array([[0.1,1.0,0.05]])
+        a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf = xv2el(mu, rh, vh)
+        rh_new, vh_new = el2xv(mu, a,e,inc,capom,omega,capm)
+        
+        # Check that the original and converted position-velocity vectors are the same
+        self.assertTrue(np.allclose(rh,rh_new),msg="rh and rh_new are not the same")
+        self.assertTrue(np.allclose(vh,vh_new),msg="vh and vh_new are not the same")
+        return
     
     def test_gen_ic(self):
         """
