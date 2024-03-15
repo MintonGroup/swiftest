@@ -186,6 +186,7 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
     _capom = np.empty(nbody, dtype=np.float64)
     _omega = np.empty(nbody, dtype=np.float64)
     _capm = np.empty(nbody, dtype=np.float64)
+    _varpi = np.empty(nbody, dtype=np.float64)
     _lam = np.empty(nbody, dtype=np.float64)
     _f = np.empty(nbody, dtype=np.float64)
     _cape = np.empty(nbody, dtype=np.float64)
@@ -197,6 +198,7 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
     cdef cnp.float64_t[::1] capom = _capom
     cdef cnp.float64_t[::1] omega = _omega
     cdef cnp.float64_t[::1] capm = _capm
+    cdef cnp.float64_t[::1] varpi = _varpi
     cdef cnp.float64_t[::1] lam = _lam
     cdef cnp.float64_t[::1] f = _f
     cdef cnp.float64_t[::1] cape = _cape
@@ -213,11 +215,12 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
     cdef cnp.ndarray[cnp.float64_t, ndim=1] capom_np = np.rad2deg(np.asarray(capom))
     cdef cnp.ndarray[cnp.float64_t, ndim=1] omega_np = np.rad2deg(np.asarray(omega))
     cdef cnp.ndarray[cnp.float64_t, ndim=1] capm_np = np.rad2deg(np.asarray(capm))
+    cdef cnp.ndarray[cnp.float64_t, ndim=1] varpi_np = np.rad2deg(np.asarray(varpi))
     cdef cnp.ndarray[cnp.float64_t, ndim=1] lam_np = np.rad2deg(np.asarray(lam))
     cdef cnp.ndarray[cnp.float64_t, ndim=1] f_np = np.rad2deg(np.asarray(f))
     cdef cnp.ndarray[cnp.float64_t, ndim=1] cape_np = np.rad2deg(np.asarray(cape))
     cdef cnp.ndarray[cnp.float64_t, ndim=1] capf_np = np.rad2deg(np.asarray(capf))
 
-    return a_np, e_np, inc_np, capom_np, omega_np, capm_np, lam_np, f_np, cape_np, capf_np
+    return a_np, e_np, inc_np, capom_np, omega_np, capm_np, varpi_np, lam_np, f_np, cape_np, capf_np
 
 
