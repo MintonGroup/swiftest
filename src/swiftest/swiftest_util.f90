@@ -2420,7 +2420,7 @@ contains
       if (cb%Gmass <= tiny(1.0_DP)) return
 
       call self%xv2el(cb) 
-      where(self%a(1:self%nbody) > 0.0_DP)
+      where(self%e(1:self%nbody) < 1.0_DP)
          self%rhill(1:self%nbody) = self%a(1:self%nbody) * (self%Gmass(1:self%nbody) / cb%Gmass / 3)**THIRD 
       elsewhere
          self%rhill(1:self%nbody) = (.mag.self%rh(:,1:self%nbody)) * (self%Gmass(1:self%nbody) / cb%Gmass / 3)**THIRD 
