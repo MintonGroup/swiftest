@@ -89,6 +89,42 @@ File Input and Output
     Simulation.convert
     Simulation.clean
 
+Data Representation
+===================
+
+DataArray
+----------
+
+.. autosummary::
+    :toctree: generated/
+
+    SwiftestDataArray
+
+DataArray Methods
+------------------
+
+.. autosummary::
+    :toctree: generated/
+
+    SwiftestDataArray.magnitude
+    SwiftestDataArray.rotate
+
+Dataset
+-------
+
+.. autosummary::
+    :toctree: generated/
+
+    SwiftestDataset
+
+Dataset Methods
+----------------
+
+.. autosummary::
+  :toctree: generated/
+
+  SwiftestDataset.rotate_to_pole
+
 
 Initial Conditions Generation Functions
 =======================================
@@ -163,14 +199,8 @@ Miscellaneous helper functions
 .. autosummary::
     :toctree: generated/
 
-    swiftest.tool.magnitude
     swiftest.tool.wrap_angle
     swiftest.tool.follow_swift
-    swiftest.tool.danby
-    swiftest.tool.el2xv_one
-    swiftest.tool.el2xv_vec
-    swiftest.tool.xv2el_one
-    swiftest.tool.xv2el_vec
 
 Constants
 =========
