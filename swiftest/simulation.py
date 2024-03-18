@@ -3394,7 +3394,7 @@ class Simulation(object):
                 self.data[var] -= cbda[var]
                 
         if align_to_central_body_rotation and 'rot' in cbda:
-            self.data = self.data.rotate_to_pole(cbda.rot.isel(time=0).values[()])
+            self.data = self.data.rotate(pole=cbda.rot.isel(time=0).values[()])
         
         if self.param['CHK_CLOSE']:
            if 'CHK_RMIN' not in self.param:

@@ -13,6 +13,7 @@ import numpy as np
 import astropy.constants as const
 import astropy.units as u
 from astropy.coordinates import SkyCoord
+from typing import Union, Tuple, List
 
 # Constants in SI units
 GC = const.G.value[()]

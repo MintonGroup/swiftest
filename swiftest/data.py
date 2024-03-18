@@ -80,7 +80,14 @@ class SwiftestDataArray(xr.DataArray):
         
         # Define a function to apply the rotation, which will be used with apply_ufunc
         def apply_rotation(vector, rotation):
-            return rotation.apply(vector)        
+            if len(rotation) > 1:
+                # If 'rotation' is a stack of rotations, apply each rotation sequentially
+                for single_rotation in rotation:
+                    vector = single_rotation.apply(vector)
+                return vector
+            else:
+                # If 'rotation' represents a single rotation, apply it directly
+                return rotation.apply(vector)
         
         da = xr.apply_ufunc(
             apply_rotation,
@@ -183,7 +190,7 @@ class SwiftestDataset(xr.Dataset):
         )
 
 
-    def rotate_to_pole(ds, new_pole, skip_vars=['space','Ip']):
+    def rotate(self, rotvec=None, pole=None, skip_vars=['space','Ip']):
         """
         Rotates the coordinate system such that the z-axis is aligned with an input pole.  The new pole is defined by the input vector. 
         This will change all variables in the Dataset that have the "space" dimension, except for those passed to the skip_vars parameter.
@@ -192,7 +199,9 @@ class SwiftestDataset(xr.Dataset):
         ----------
         ds : SwiftestDataset
             Dataset containing the vector quantity
-        new_pole : (3) float array
+        rotvec: (N,3) or (3,) float array
+            Rotation vector
+        pole : (3) float array
             New pole vector
         skip_vars : list of str, optional
             List of variable names to skip. The default is ['space','Ip'].
@@ -201,32 +210,46 @@ class SwiftestDataset(xr.Dataset):
         -------
         ds : SwiftestDataset
             Dataset with the new pole vector applied to all variables with the "space" dimension
+            
+        Notes
+        -----
+        You can pass either rotvec or pole, but not both. If both, or none, are passed, the function will raise an exception. 
         """
-        
-        if 'space' not in ds.dims:
+        if rotvec is not None and pole is not None:
+            raise ValueError("You can only pass either rotvec or pole, but not both")
+        if rotvec is None and pole is None:
+            raise ValueError("You must pass either rotvec or pole")
+         
+        if 'space' not in self.dims:
             raise ValueError("Dataset must have a 'space' dimension")    
         
         # Verify that the new pole is a 3-element array
-        if len(new_pole) != 3:
-            print("New pole must be a 3-element array")
-            return ds
+        if pole is not None:
+            if len(pole) != 3:
+                raise ValueError("Pole vector must be a 3-element array")
     
-        # Normalize the new pole vector to ensure it is a unit vector
-        pole_mag = np.linalg.norm(new_pole)
-        unit_pole = new_pole / pole_mag
+            # Normalize the new pole vector to ensure it is a unit vector
+            pole_mag = np.linalg.norm(pole)
+            unit_pole = pole / pole_mag
         
-        # Define the original and target vectors
-        target_vector = np.array([0, 0, 1])  # Rotate so that the z-axis is aligned with the new pole
-        original_vector = unit_pole.reshape(1, 3)  
+            # Define the original and target vectors
+            target_vector = np.array([0, 0, 1])  # Rotate so that the z-axis is aligned with the new pole
+            original_vector = unit_pole.reshape(1, 3)  
         
-        # Use align_vectors to get the rotation that aligns the z-axis with Mars_rot
-        rotvec, _ = R.align_vectors(target_vector, original_vector)
+            # Use align_vectors to get the rotation that aligns the z-axis with Mars_rot
+            rotvec, _ = R.align_vectors(target_vector, original_vector)
+        elif rotvec is not None:
+            rotvec = np.asarray(rotvec)
+            if (rotvec.shape[-1]) != 3:
+                raise ValueError("Rotation vector must be a 3-element array")
+            
+            rotvec = R.from_rotvec(rotvec) 
 
         # Loop through each variable in the dataset and apply the rotation if 'space' dimension is present
-        for var in ds.variables:
-            if 'space' in ds[var].dims and var not in skip_vars:
-                ds[var] = ds[var].rotate(rotvec)
+        for var in self.variables:
+            if 'space' in self[var].dims and var not in skip_vars:
+                self[var] = self[var].rotate(rotvec)
                 
-        return ds
+        return self
             
                 
