@@ -13,24 +13,29 @@ import numpy as np
 import xarray as xr
 from scipy.spatial.transform import Rotation as R
 
-def magnitude(ds,x):
+def magnitude(da: xr.DataArray) -> xr.DataArray:
     """
     Computes the magnitude of a vector quantity from a Dataset.
     
     Parameters
     ----------
-    ds : Xarray Dataset
-        Dataset containing the vector quantity
-    x : str
-        Name of the vector quantity variable in the Dataset, which must have a "space" dimension (x,y,z coordinates)
+    da : xarray DataArray
+        DataArray containing the vector quantity
+        
+    Returns
+    -------
+    mag : Xarray DataArray
+        DataArray containing the magnitude of the vector quantity 
     """
     dim = "space"
     ord = None
+    
+    if dim not in da.dims:
+        raise ValueError(f"Dimension {dim} not found in DataArray")
     return xr.apply_ufunc(
-        np.linalg.norm, ds[x].where(~np.isnan(ds[x])), input_core_dims=[[dim]], kwargs={"ord": ord, "axis": -1}, dask="allowed"
+        np.linalg.norm, da.where(~np.isnan(da)), input_core_dims=[[dim]], kwargs={"ord": ord, "axis": -1}, dask="allowed"
     )
     
-        
 def wrap_angle(angle):
     """
     Converts angles to be between 0 and 360 degrees.

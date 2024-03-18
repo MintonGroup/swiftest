@@ -315,7 +315,7 @@ class TestSwiftest(unittest.TestCase):
         # Calculate the angular momentum error
         sim.data['L_tot'] = sim.data['L_orbit'] + sim.data['L_spin'] + sim.data['L_escape']
         sim.data['DL'] = sim.data['L_tot'] - sim.data['L_tot'].isel(time=0)
-        L_error = swiftest.tool.magnitude(sim.data,'DL') / swiftest.tool.magnitude(sim.data.isel(time=0), 'L_tot')
+        L_error = swiftest.tool.magnitude(sim.data['DL']) / swiftest.tool.magnitude(sim.data['L_tot'].isel(time=0))
 
         # Calculate the energy error
         E_error = (sim.data['TE'] - sim.data['TE'].isel(time=0)) / sim.data['TE'].isel(time=0)
