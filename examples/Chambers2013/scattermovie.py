@@ -74,7 +74,7 @@ class AnimatedScatter(object):
 
         self.radscale = 2000
         nframes = int(ds['time'].size / framejump)
-        ds['rot_mag'] = swiftest.tool.magnitude(ds["rot"])
+        ds['rot_mag'] = ds['rot'].magnitude()
         ds['rot_mag'] = ROT2PERIOD / ds['rot_mag']
         self.Rcb = ds['radius'].sel(name="Sun").isel(time=0).values[()]
         self.ds = ds

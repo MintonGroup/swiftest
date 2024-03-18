@@ -1,5 +1,6 @@
 import xarray as xr
-from typing import IO
+import numpy as np
+from scipy.spatial.transform import Rotation as R
 
 class SwiftestDataArray(xr.DataArray):
     """
@@ -34,6 +35,64 @@ class SwiftestDataArray(xr.DataArray):
         variable."""
         xrds = super().to_dataset()
         return SwiftestDataset(xrds)
+    
+    def magnitude(self, name: str | None = None): 
+        """
+        Computes the magnitude of a vector quantity. Note: The DataArray must have the "space" dimension. 
+        
+        Parameters
+        ----------
+        name : str, optional
+            Name of the new DataArray. By default, the string "_mag" is appended to the original name.
+        
+        Returns
+        -------
+        mag : SwiftestDataArray
+            DataArray containing the magnitude of the vector quantity 
+        """
+        dim = "space"
+        ord = None
+        
+        if dim not in self.dims:
+            raise ValueError(f"Dimension {dim} not found in DataArray")
+        if name is None:
+            name = self.name + "_mag"
+        da = xr.apply_ufunc(
+            np.linalg.norm, self.where(~np.isnan(self)), input_core_dims=[[dim]], kwargs={"ord": ord, "axis": -1}, dask="allowed"
+        )
+        
+        da = da.rename(name)
+        return SwiftestDataArray(da)
+
+
+    def rotate(self, rotation):
+        """
+        Rotates a vector quantity using a rotation matrix. The DataArray must have the "space" dimension. 
+        
+        Parameters
+        ----------
+        rotation : (3) float array
+            Rotation vector
+        """
+       
+        if "space" not in self.dims:
+            raise ValueError("DataArray must have a 'space' dimension")
+        
+        # Define a function to apply the rotation, which will be used with apply_ufunc
+        def apply_rotation(vector, rotation):
+            return rotation.apply(vector)        
+        
+        da = xr.apply_ufunc(
+            apply_rotation,
+            self,
+            kwargs={'rotation': rotation},
+            input_core_dims=[['space']],
+            output_core_dims=[['space']],
+            vectorize=True,
+            dask='parallelized',
+            output_dtypes=[self.dtype]
+        )
+        return SwiftestDataArray(da) 
     
 
 class SwiftestDataset(xr.Dataset):
@@ -123,4 +182,51 @@ class SwiftestDataset(xr.Dataset):
             **kwargs,
         )
 
-     
+
+    def rotate_to_pole(ds, new_pole, skip_vars=['space','Ip']):
+        """
+        Rotates the coordinate system such that the z-axis is aligned with an input pole.  The new pole is defined by the input vector. 
+        This will change all variables in the Dataset that have the "space" dimension, except for those passed to the skip_vars parameter.
+        
+        Parameters
+        ----------
+        ds : SwiftestDataset
+            Dataset containing the vector quantity
+        new_pole : (3) float array
+            New pole vector
+        skip_vars : list of str, optional
+            List of variable names to skip. The default is ['space','Ip'].
+            
+        Returns
+        -------
+        ds : SwiftestDataset
+            Dataset with the new pole vector applied to all variables with the "space" dimension
+        """
+        
+        if 'space' not in ds.dims:
+            raise ValueError("Dataset must have a 'space' dimension")    
+        
+        # Verify that the new pole is a 3-element array
+        if len(new_pole) != 3:
+            print("New pole must be a 3-element array")
+            return ds
+    
+        # Normalize the new pole vector to ensure it is a unit vector
+        pole_mag = np.linalg.norm(new_pole)
+        unit_pole = new_pole / pole_mag
+        
+        # Define the original and target vectors
+        target_vector = np.array([0, 0, 1])  # Rotate so that the z-axis is aligned with the new pole
+        original_vector = unit_pole.reshape(1, 3)  
+        
+        # Use align_vectors to get the rotation that aligns the z-axis with Mars_rot
+        rotvec, _ = R.align_vectors(target_vector, original_vector)
+
+        # Loop through each variable in the dataset and apply the rotation if 'space' dimension is present
+        for var in ds.variables:
+            if 'space' in ds[var].dims and var not in skip_vars:
+                ds[var] = ds[var].rotate(rotvec)
+                
+        return ds
+            
+                

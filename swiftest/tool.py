@@ -10,32 +10,7 @@ If not, see: https://www.gnu.org/licenses.
 """
 
 import numpy as np
-import xarray as xr
-from scipy.spatial.transform import Rotation as R
 
-def magnitude(da: xr.DataArray) -> xr.DataArray:
-    """
-    Computes the magnitude of a vector quantity from a Dataset.
-    
-    Parameters
-    ----------
-    da : xarray DataArray
-        DataArray containing the vector quantity
-        
-    Returns
-    -------
-    mag : Xarray DataArray
-        DataArray containing the magnitude of the vector quantity 
-    """
-    dim = "space"
-    ord = None
-    
-    if dim not in da.dims:
-        raise ValueError(f"Dimension {dim} not found in DataArray")
-    return xr.apply_ufunc(
-        np.linalg.norm, da.where(~np.isnan(da)), input_core_dims=[[dim]], kwargs={"ord": ord, "axis": -1}, dask="allowed"
-    )
-    
 def wrap_angle(angle):
     """
     Converts angles to be between 0 and 360 degrees.
@@ -125,70 +100,3 @@ def follow_swift(ds, ifol=None, nskp=None):
         print(f"Error writing to follow.out")
     
     return fol
-
-
-def rotate_to_vector(ds, new_pole, skip_vars=['space','Ip']):
-    """
-    Rotates the coordinate system such that the z-axis is aligned with an input pole.  The new pole is defined by the input vector. 
-    This will change all variables in the Dataset that have the "space" dimension, except for those passed to the skip_vars parameter.
-    
-    Parameters
-    ----------
-    ds : Xarray Dataset
-        Dataset containing the vector quantity
-    new_pole : (3) float array
-        New pole vector
-    skip_vars : list of str, optional
-        List of variable names to skip. The default is ['space','Ip'].
-        
-    Returns
-    -------
-    ds : Xarray Dataset
-        Dataset with the new pole vector applied to all variables with the "space" dimension
-    """
-    
-    if 'space' not in ds.dims:
-        print("No space dimension in Dataset")
-        return ds
-    
-    # Verify that the new pole is a 3-element array
-    if len(new_pole) != 3:
-        print("New pole must be a 3-element array")
-        return ds
-  
-    # Normalize the new pole vector to ensure it is a unit vector
-    pole_mag = np.linalg.norm(new_pole)
-    unit_pole = new_pole / pole_mag
-    
-    # Define the original and target vectors
-    target_vector = np.array([0, 0, 1])  # Rotate so that the z-axis is aligned with the new pole
-    original_vector = unit_pole.reshape(1, 3)  
-    
-    # Use align_vectors to get the rotation that aligns the z-axis with Mars_rot
-    rotation, _ = R.align_vectors(target_vector, original_vector)
-
-    # Define a function to apply the rotation, which will be used with apply_ufunc
-    def apply_rotation(vector, rotation):
-        return rotation.apply(vector)
-    
-    # Function to apply rotation to a DataArray
-    def rotate_dataarray(da, rotation):
-        return xr.apply_ufunc(
-            apply_rotation,
-            da,
-            kwargs={'rotation': rotation},
-            input_core_dims=[['space']],
-            output_core_dims=[['space']],
-            vectorize=True,
-            dask='parallelized',
-            output_dtypes=[da.dtype]
-        )
-
-    # Loop through each variable in the dataset and apply the rotation if 'space' dimension is present
-    for var in ds.variables:
-        if 'space' in ds[var].dims and var not in skip_vars:
-            ds[var] = rotate_dataarray(ds[var], rotation)
-            
-    return ds
-        
-        
