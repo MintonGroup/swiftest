@@ -218,7 +218,7 @@ contains
       !! author: David A. Minton
       !!
       !! Check to see if planets should be discarded based on their positions or because they are unbound
-      !s
+      !!
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: symba_discard_pl.f90
       !! Adapted from Hal Levison's Swift routine discard_massive5.f 

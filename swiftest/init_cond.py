@@ -408,11 +408,11 @@ def solar_system_horizons(name: str,
         Gmass,Rpl,rot = horizons_get_physical_properties(altid,**kwargs)
         # If the user inputs "Earth" or Pluto, then the Earth-Moon or Pluto-Charon barycenter and combined mass is used. 
         # To use the Earth or Pluto alone, simply pass "399" or "999", respectively to name
-        if ephemeris_id == "Earth":
+        if name == "Earth":
             print("Combining mass of Earth and the Moon")
             Gmass_moon,tmp,tmp = horizons_get_physical_properties(["301"],**kwargs)
             Gmass += Gmass_moon
-        elif ephemeris_id == "Pluto":
+        elif name == "Pluto":
             print("Combining mass of Pluto and Charon")
             Gmass_charon,tmp,tmp = horizons_get_physical_properties(["901"],**kwargs)
             Gmass += Gmass_charon 
@@ -506,7 +506,7 @@ def vec2xr(param: Dict, **kwargs: Any):
     vector_vars = ["rh","vh","Ip","rot"]
     scalar_vars = ["name","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4", "rotphase"]
     sph_vars = ["c_lm"]
-    time_vars =  ["rh","vh","Ip","rot","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4", "rotphase"]
+    time_vars =  ["status","rh","vh","Ip","rot","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4", "rotphase"]
 
     # Check for valid keyword arguments
     kwargs = {k:kwargs[k] for k,v in kwargs.items() if v is not None}
@@ -534,7 +534,7 @@ def vec2xr(param: Dict, **kwargs: Any):
                     )
     time_vars = [v for v in time_vars if v in ds]
     for v in time_vars:
-        ds[v] = ds[v].expand_dims({"time":1}).assign_coords({"time": kwargs['time']})
+        ds[v] = ds[v].expand_dims(dim={"time":1}, axis=0).assign_coords({"time": kwargs['time']})
 
     # create a C_lm Dataset and combine
 

@@ -2199,18 +2199,18 @@ class Simulation(object):
         if name == None and ephemeris_id == None:
             warnings.warn("Either `name` and/or `ephemeris_id` must be supplied to add_solar_system_body")
             return None
-
+        if name is not None:
+            if type(name) is str or type(name) is int:
+                name = [name]
+                
         if ephemeris_id is not None:
             if type(ephemeris_id) is int or type(ephemeris_id) is str:
                 ephemeris_id = [ephemeris_id]
             if name is None:
                 name = [None] * len(ephemeris_id)
             elif len(ephemeris_id) != len(name):
-                warnings.warn(f"The length of ephemeris_id ({len(ephemeris_id)}) does not match the length of name ({len(name)})",stacklevel=2)
-                return None
+                raise ValueError(f"The length of ephemeris_id ({len(ephemeris_id)}) does not match the length of name ({len(name)})")
         else:
-            if type(name) is str:
-                name = [name]
             ephemeris_id = [None] * len(name)
 
         if self.ephemeris_date is None:
@@ -2431,10 +2431,11 @@ class Simulation(object):
                  J4: float | List[float] | npt.NDArray[np.float_] | None=None,
                  c_lm: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
                  align_to_central_body_rotation: bool = False,
+                 verbose: bool = True,
                  **kwargs: Any
                  ) -> None:
         """
-        Adds a body (test particle or massive body) to the internal DataSet given a set up 6 vectors (orbital elements
+        Adds a body (test particle or massive body) to the internal Dataset given a set up 6 vectors (orbital elements
         or cartesian state vectors, depending on the value of self.param). Input all angles in degress.
 
         This method will update self.data with the new body or bodies added to the existing Dataset.
@@ -2442,7 +2443,7 @@ class Simulation(object):
         Parameters
         ----------
         name : str or array-like of str, optional
-            Name or names of Bodies. If none passed, name will be "Body<idval>"
+            Name or names of Bodies. If none passed, name will be "Body{id}"
         id : int or array-like of int, optional
             Unique id values. If not passed, an id will be assigned in ascending order starting from the pre-existing
             Dataset ids.
@@ -2490,6 +2491,7 @@ class Simulation(object):
         None
             Sets the data and init_cond instance variables each with an Xarray Dataset containing the body or bodies that were added
         """
+        from .core import xv2el, el2xv
 
         #convert all inputs to numpy arrays
         def input_to_array(val,t,n=None):
@@ -2536,11 +2538,11 @@ class Simulation(object):
                     else:
                         if val.shape[-1] != 3:
                             raise ValueError(f"Argument must be a 3-dimensional vector. This one has {val.shape[0]}!")
-                        if val.dim == 1:
+                        if val.size == 3:
                             n = 1
                         else:
                             n = val.shape[0]
-                elif n == 1:
+                if n == 1:
                     if val.shape != (1,3) and val.shape != (3,):
                         raise ValueError(f"Argument is an incorrect shape. Expected {(n,3)} or {(3,1)}. Got {val.shape} instead")
                     elif val.shape == (3,):
@@ -2623,8 +2625,6 @@ class Simulation(object):
                 raise ValueError("Cannot use J2/J4 and c_lm inputs simultaneously!")
         if c_lm is not None:
             is_central_body = True
-            if J2 is not None or J4 is not None:
-                raise ValueError("Cannot use J2/J4 and c_lm inputs simultaneously!")
            
         if rh is not None and vh is None:
             raise ValueError("If rh is passed, vh must also be passed")
@@ -2634,6 +2634,20 @@ class Simulation(object):
         if rh is not None:
             if a is not None or e is not None or inc is not None or capom is not None or omega is not None or capm is not None:
                 raise ValueError("Only cartesian values or orbital elements may be passed, but not both.")
+        elif not is_central_body:
+            if a is None: 
+                raise ValueError("Orbital element input requires at least a value for a (semimajor axis)")
+            if e is None:
+                e = np.zeros_like(a)
+            if inc is None:
+                inc = np.zeros_like(a)
+            if capom is None:
+                capom = np.zeros_like(a)
+            if omega is None:
+                omega = np.zeros_like(a)
+            if capm is None:
+                capm = np.zeros_like(a) 
+        
         if is_central_body:
             if a is not None or e is not None or inc is not None or capom is not None or omega is not None or capm is not None:
                 raise ValueError("Orbital elements cannot be passed for a central body.")
@@ -2652,6 +2666,21 @@ class Simulation(object):
                 omega = np.array([np.nan])
                 capm = np.array([np.nan])
                 
+        # Convert EL to XV input if needed
+        mu = np.full(nbodies, self.data.isel(name=0).Gmass.values[0])
+        if Gmass is not None:
+            mu = mu + Gmass
+        elif mass is not None:
+            mu = mu + self.GU * mass
+         
+        if self.param['IN_FORM'] == "XV" and rh is None:
+            rh, vh = el2xv(mu,a, e, inc, capom, omega, capm)
+        elif self.param['IN_FORM'] == "EL" and a is None:
+            a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf = xv2el(mu, rh, vh)
+               
+        if verbose:
+            for n in name:
+                print(f"Adding {n}") 
         dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
                                  Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, c_lm=c_lm, rotphase=rotphase, time=time)
 
@@ -2659,6 +2688,86 @@ class Simulation(object):
         self.save(verbose=False)
 
         return
+    
+    
+    def _get_nvals(self, ds):
+        """
+        Computes the values of ntp, npl, and nplm.
+        
+        Parameters
+        ----------
+        ds : xarray Dataset
+            Dataset to evaluate
+            
+        Returns
+        -------
+        ds : xarray Dataset
+            Dataset with updated values of ntp, npl, and nplm values. 
+        """
+        if "name" in ds.dims:
+            count_dim = "name"
+        elif "id" in ds.dims:
+            count_dim = "id"
+        if "Gmass" in ds:
+            ds['ntp'] = ds[count_dim].where(np.isnan(ds['Gmass']) | (ds['Gmass'] == 0.0)).count(dim=count_dim)
+            ds['npl'] = ds[count_dim].where(~np.isnan(ds['Gmass']) & (ds['Gmass'] != 0.0)).count(dim=count_dim) - 1
+            if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
+                ds['nplm'] = ds[count_dim].where(ds['Gmass'] > self.param['GMTINY']).count(dim=count_dim) - 1
+        else:
+            ds['ntp'] = ds[count_dim].count(dim=count_dim)
+            ds['npl'] = xr.full_like(ds['ntp'],0)
+            if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
+                ds['nplm'] = xr.full_like(ds['ntp'],0)
+        return ds
+
+
+    def remove_body(self,
+                    name: str | List[str] | npt.NDArray[np.str_] | None=None,
+                    id: int | list[int] | npt.NDArray[np.int_] | None=None):
+    
+        """
+        Removes a body (test particle or massive body) from the internal Dataset 
+
+        This method will update `data` and `init_cond` attributes with the body or bodies removed.
+         
+        Only `name` or `id` may be passed, but not both.
+        
+        Parameters
+        ----------
+        name : str or array-like of str, optional
+            Name or names of bodies to remove. 
+        id : int or array-like of int, optional
+            Id value or values of bodies to removed. 
+            
+        Returns
+        -------
+        None
+        """
+        
+        if name is None and id is None:
+            raise ValueError("You must pass either name or id as arguments")
+        if name is not None and id is not None:
+            raise ValueError("You must pass only name or id as arguments, but not both")
+        
+        if name is not None:
+            if type(name) is str or type(name) is int:
+                name = [name]
+            for n in name:
+                self.data = self.data.where(self.data.name != n, drop=True)
+                self.init_cond = self.init_cond.where(self.init_cond.name != n, drop=True)
+                
+        else: 
+            if type(id) is int or type(id) is name:
+                id = [id]
+            for i in id:
+                self.data = self.data.where(self.data.id != i, drop=True)
+                self.init_cond = self.init_cond.where(self.init_cond.id != i, drop=True)
+                
+        self.data = self._get_nvals(self.data)      
+        self.init_cond = self._get_nvals(self.init_cond) 
+             
+        return
+
 
     def _combine_and_fix_dsnew(self,
                                dsnew: xr.Dataset,
@@ -2691,6 +2800,7 @@ class Simulation(object):
                 msg = "Non-unique names detected for bodies. The Dataset will be dimensioned by integer id instead of name."
                 msg +="\nConsider using unique names instead."
                 print(msg)
+        dsnew['status'] = xr.zeros_like(dsnew['id'])
 
         self.data = xr.combine_by_coords([self.data, dsnew])
 
@@ -2702,26 +2812,9 @@ class Simulation(object):
             self.data = io.fix_types(self.data, ftype=np.float32)
 
         self.set_central_body(align_to_central_body_rotation)
-        def get_nvals(ds):
-            if "name" in ds.dims:
-                count_dim = "name"
-            elif "id" in ds.dims:
-                count_dim = "id"
-            if "Gmass" in ds:
-                ds['ntp'] = ds[count_dim].where(np.isnan(ds['Gmass'])).count(dim=count_dim)
-                ds['npl'] = ds[count_dim].where(~(np.isnan(ds['Gmass']))).count(dim=count_dim) - 1
-                if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
-                    ds['nplm'] = ds[count_dim].where(ds['Gmass'] > self.param['GMTINY']).count(dim=count_dim) - 1
-            else:
-                ds['ntp'] = ds[count_dim].count(dim=count_dim)
-                ds['npl'] = xr.full_like(ds['ntp'],0)
-                if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
-                   ds['nplm'] = xr.full_like(ds['ntp'],0)
-            return ds
 
-        dsnew = get_nvals(dsnew)
-        self.data = get_nvals(self.data)
-        
+        dsnew = self._get_nvals(dsnew)
+        self.data = self._get_nvals(self.data)
 
         self.data = self.data.sortby("id")
         self.data = io.reorder_dims(self.data)
@@ -2946,7 +3039,7 @@ class Simulation(object):
         if self.codename == "Swiftest":
             self.data = io.swiftest2xr(param_tmp, verbose=self.verbose, dask=dask)
             if self.verbose:
-                print('Swiftest simulation data stored as xarray DataSet .data')
+                print('Swiftest simulation data stored as xarray Dataset .data')
             if read_init_cond:
                 if self.verbose:
                     print("Reading initial conditions file as .init_cond")
@@ -2965,7 +3058,7 @@ class Simulation(object):
 
         elif self.codename == "Swifter":
             self.data = io.swifter2xr(param_tmp, verbose=self.verbose)
-            if self.verbose: print('Swifter simulation data stored as xarray DataSet .data')
+            if self.verbose: print('Swifter simulation data stored as xarray Dataset .data')
         elif self.codename == "Swift":
             warnings.warn("Reading Swift simulation data is not implemented yet",stacklevel=2)
         else:

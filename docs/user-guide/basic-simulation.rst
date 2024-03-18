@@ -1,10 +1,10 @@
 #################
-Basic Simulation
+Basic simulation
 #################
 
 .. rubric:: by David A. Minton
 
-Here, we will walk you through the basic features of Swiftest and using them in Python. 
+Here we will walk you through the basic features of Swiftest and using them in Python. 
 
 Start with importing Swiftest. ::
     

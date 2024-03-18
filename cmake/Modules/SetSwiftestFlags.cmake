@@ -559,7 +559,7 @@ IF (CMAKE_BUILD_TYPE STREQUAL "RELEASE" OR CMAKE_BUILD_TYPE STREQUAL "PROFILE")
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_RELEASE "${CMAKE_Fortran_FLAGS_RELEASE}"
                 Fortran "-ip"  # Intel
             )
-    ENDIF ()
+        ENDIF ()
 
     ELSEIF(COMPILER_OPTIONS STREQUAL "GNU")
         # Unroll loops

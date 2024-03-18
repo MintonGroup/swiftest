@@ -8,18 +8,19 @@
 ! If not, see: https://www.gnu.org/licenses. 
 
 submodule (swiftest) s_swiftest_orbel
-   real(DP), parameter :: TINYVALUE = 4.0e-15_DP !! Tiny value used to prevent floating point errors. Value set based on the Swifter TINY parameter.
+   real(DP), parameter :: TINYVALUE = 4.0e-15_DP 
+      !! Tiny value used to prevent floating point errors. Value set based on the Swifter TINY parameter.
 contains
 
    module subroutine swiftest_orbel_el2xv_vec(self, cb)
       !! author: David A. Minton
       !!
-      !! A wrapper method that converts all of the orbital element vectors into cartesian position and velocity vectors for a Swiftest body object.
-      !! This method deallocates all of the orbital elements after it is finished.
+      !! A wrapper method that converts all of the orbital element vectors into cartesian position and velocity vectors for a 
+      !! Swiftest body object. This method deallocates all of the orbital elements after it is finished.
       implicit none
       ! Arguments
-      class(swiftest_body),         intent(inout) :: self !! Swiftest body object
-      class(swiftest_cb),           intent(inout) :: cb   !! Swiftest central body objec
+      class(swiftest_body), intent(inout) :: self !! Swiftest body object
+      class(swiftest_cb),  intent(inout) :: cb !! Swiftest central body objec
       ! Internals
       integer(I4B) :: i, n
    
@@ -42,7 +43,7 @@ contains
    end subroutine swiftest_orbel_el2xv_vec
 
 
-   pure elemental subroutine swiftest_orbel_el2xv(mu, a, ie, inc, capom, omega, capm, rx, ry, rz, vx, vy, vz)
+   pure elemental module subroutine swiftest_orbel_el2xv(mu, a, ie, inc, capom, omega, capm, rx, ry, rz, vx, vy, vz)
       !! author: David A. Minton
       !!
       !! Compute osculating orbital elements from relative C)rtesian position and velocity
@@ -68,7 +69,6 @@ contains
       real(DP) :: d11, d12, d13, d21, d22, d23
       real(DP) :: scap, ccap, shcap, chcap
       real(DP) :: sqe, sqgma, xfac1, xfac2, ri, vfac1, vfac2
-
 
       if(ie < 0.0_DP) then
          !write(*,*) ' ERROR in swiftest_orbel_el2xv: e<0, setting e=0!!1'
@@ -876,7 +876,8 @@ contains
    module subroutine swiftest_orbel_xv2el_vec(self, cb)
       !! author: David A. Minton
       !!
-      !! A wrapper method that converts all of the cartesian position and velocity vectors of a Swiftest body object to orbital elements.
+      !! A wrapper method that converts all of the cartesian position and velocity vectors of a Swiftest body object to orbital 
+      !! elements.
       implicit none
       ! Arguments
       class(swiftest_body), intent(inout) :: self !! Swiftest body object
@@ -910,7 +911,8 @@ contains
    end subroutine swiftest_orbel_xv2el_vec 
 
 
-   pure module subroutine swiftest_orbel_xv2el(mu, rx, ry, rz, vx, vy, vz, a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf)
+   pure elemental module subroutine swiftest_orbel_xv2el(mu, rx, ry, rz, vx, vy, vz, &
+                                                         a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf)
       !! author: David A. Minton
       !!
       !! Compute osculating orbital elements from relative Cartesian position and velocity
@@ -1052,6 +1054,7 @@ contains
             w = atan2(sw, cw)
             if (w < 0.0_DP) w = w + TWOPI
             capm = e * sinh(capf) - capf
+            a = -a
       end select
       omega = u - w
       if (omega < 0.0_DP) omega = omega + TWOPI

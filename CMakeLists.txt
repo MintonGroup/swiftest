@@ -22,7 +22,7 @@ IF (DEFINED ENV{DOC_BUILD})
     PROJECT(${SKBUILD_PROJECT_NAME} VERSION ${VERSION})
 ELSE()
     SET(SKBUILD_SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/bin" CACHE STRING "Install location of binary executable")
-    PROJECT(${SKBUILD_PROJECT_NAME} LANGUAGES C Fortran VERSION ${VERSION})
+    PROJECT(${SKBUILD_PROJECT_NAME} LANGUAGES C CXX Fortran VERSION ${VERSION})
     # Use the old method to get Python packages, as that's what scikit-build uses
     IF (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.27")
         CMAKE_POLICY(SET CMP0148 OLD)
@@ -32,6 +32,9 @@ ELSE()
     IF(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
         MESSAGE(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there.\n")
     ENDIF()
+
+    # Ensure scikit-build modules
+    FIND_PACKAGE(Python COMPONENTS Interpreter Development.Module NumPy REQUIRED)
 
     # Set some options the user may choose
     OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
@@ -101,7 +104,6 @@ ELSE()
     FIND_PACKAGE(SHTOOLS REQUIRED)
 
 
-
     FIND_PACKAGE(NETCDF_Fortran REQUIRED)
     IF (MSVC)
         FIND_PACKAGE(HDF5 NAMES hdf5 COMPONENTS C HL REQUIRED CONFIG)
@@ -113,8 +115,6 @@ ELSE()
         FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
     ENDIF ()
 
-    # Ensure scikit-build modules
-    FIND_PACKAGE(Python COMPONENTS Interpreter Development.Module REQUIRED)
 
 
     #####################################

@@ -3,6 +3,28 @@
 What's New
 ==========
 
+v2024.03.3
+----------
+
+New Features
+~~~~~~~~~~~~
+- Added binding modules and started writing code to connect the Fortran el2xv and xv2el to Python and removed the Python implementation of these functions. This allows the Python code to call the same Fortran functions for converting state vectors to orbital elements and back again that the core Swiftest code uses, which are nearly identical to the original implementations of these functions written by Martin Duncan in 1992.
+
+Bug Fixes
+~~~~~~~~~
+- Fixed problem with length check when passing ephemeris_id and name as scalars.
+- Add explicit status variable when adding bodies to ensure that they get counted properly.
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Updated initial conditions generators to catch more bad or inconsistent inputs and added more tests to cover these cases.
+- Updated build script environment variables to help make the MacOS build more robust.
+- Switched from using `iso_fortran_env` to `iso_c_binding` for basic type definitions in order to make it easier to expose the Fortran library API to Python.
+
+Documentation
+~~~~~~~~~~~~~
+- Updated the documentation too demonstrate the use of the standalone executable.
+
 v2024.03.2
 ----------
 
