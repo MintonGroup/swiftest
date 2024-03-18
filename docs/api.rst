@@ -123,7 +123,7 @@ Dataset Methods
 .. autosummary::
   :toctree: generated/
 
-  SwiftestDataset.rotate_to_pole
+  SwiftestDataset.rotate
 
 
 Initial Conditions Generation Functions
