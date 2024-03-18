@@ -15,6 +15,7 @@ from . import io
 from . import init_cond
 from . import tool
 from . import constants
+from .data import SwiftestDataArray, SwiftestDataset
 import os
 from pathlib import Path
 import datetime
@@ -345,10 +346,10 @@ class Simulation(object):
         self.verbose = kwargs.pop("verbose",True)
 
         self.param = {}
-        self.data = xr.Dataset()
-        self.init_cond = xr.Dataset()
-        self.encounters = xr.Dataset()
-        self.collisions = xr.Dataset()
+        self.data = SwiftestDataset()
+        self.init_cond = SwiftestDataset()
+        self.encounters = SwiftestDataset()
+        self.collisions = SwiftestDataset()
 
         # Set the location of the parameter input file, choosing the default if it isn't specified.
         self.simdir = Path(simdir).resolve()
@@ -2193,7 +2194,7 @@ class Simulation(object):
         Returns
         -------
         None
-            initial conditions data stored as an Xarray Dataset in the init_cond instance variable
+            initial conditions data stored as a SwiftestDataset in the init_cond instance variable
         """
         
         if name == None and ephemeris_id == None:
@@ -2489,7 +2490,7 @@ class Simulation(object):
         Returns
         -------
         None
-            Sets the data and init_cond instance variables each with an Xarray Dataset containing the body or bodies that were added
+            Sets the data and init_cond instance variables each with a SwiftestDataset containing the body or bodies that were added
         """
         from .core import xv2el, el2xv
 
@@ -2690,18 +2691,18 @@ class Simulation(object):
         return
     
     
-    def _get_nvals(self, ds):
+    def _get_nvals(self, ds: SwiftestDataset) -> SwiftestDataset:
         """
         Computes the values of ntp, npl, and nplm.
         
         Parameters
         ----------
-        ds : xarray Dataset
+        ds : SwiftestDataset
             Dataset to evaluate
             
         Returns
         -------
-        ds : xarray Dataset
+        ds : SwiftestDataset
             Dataset with updated values of ntp, npl, and nplm values. 
         """
         if "name" in ds.dims:
@@ -2770,16 +2771,16 @@ class Simulation(object):
 
 
     def _combine_and_fix_dsnew(self,
-                               dsnew: xr.Dataset,
+                               dsnew: SwiftestDataset,
                                align_to_central_body_rotation: bool = False,
                                **kwargs: Any
-                               ) -> xr.Dataset:
+                               ) -> SwiftestDataset:
         """
         Combines the new Dataset with the old one. Also computes the values of ntp and npl and sets the proper types.
         
         Parameters
         ----------
-        dsnew : xarray Dataset
+        dsnew : SwiftestDataset
             Dataset with new bodies
         align_to_central_body_rotation : bool, default False
             If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
@@ -2787,7 +2788,7 @@ class Simulation(object):
 
         Returns
         -------
-        dsnew : xarray Dataset
+        dsnew : SwiftestDataset
             Updated Dataset with ntp, npl values and types fixed.
         """
         
@@ -2955,7 +2956,7 @@ class Simulation(object):
                 cbname: str="cb.swiftest.in", 
                 conversion_questions: Dict={}, 
                 dask: bool=False
-                ) -> xr.Dataset:
+                ) -> SwiftestDataset:
         """
         Converts simulation input files from one format to another (Swift, Swifter, or Swiftest). 
 
@@ -2978,7 +2979,7 @@ class Simulation(object):
 
         Returns
         -------
-        oldparam : xarray dataset
+        oldparam : Dict
             The old parameter configuration.
         """
         oldparam = self.param
@@ -3015,7 +3016,7 @@ class Simulation(object):
                          dask : bool = False
                          ) -> None:
         """
-        Reads in simulation data from an output file and stores it as an Xarray Dataset in the `data` instance variable.
+        Reads in simulation data from an output file and stores it as a SwiftestDataset in the `data` instance variable.
 
         Parameters
         ----------
@@ -3058,7 +3059,7 @@ class Simulation(object):
 
         elif self.codename == "Swifter":
             self.data = io.swifter2xr(param_tmp, verbose=self.verbose)
-            if self.verbose: print('Swifter simulation data stored as xarray Dataset .data')
+            if self.verbose: print('Swifter simulation data stored as SwiftestDataset .data')
         elif self.codename == "Swift":
             warnings.warn("Reading Swift simulation data is not implemented yet",stacklevel=2)
         else:
@@ -3069,7 +3070,7 @@ class Simulation(object):
                             dask: bool=False
                             ) -> None:
         """
-        Reads in an encounter history file and stores it as an Xarray Dataset in the `encounters` instance variable.
+        Reads in an encounter history file and stores it as a SwiftestDataset in the `encounters` instance variable.
         
         Parameters
         ----------
@@ -3079,7 +3080,7 @@ class Simulation(object):
         Returns
         -------
         None
-            Sets the encounters instance variable xarray dataset 
+            Sets the encounters instance variable SwiftestDataset 
         """
         enc_file = self.simdir / "encounters.nc"
         if not os.path.exists(enc_file):
@@ -3136,7 +3137,7 @@ class Simulation(object):
     def follow(self, 
                codestyle: str="Swifter", 
                dask: bool=False
-               ) -> xr.Dataset:
+               ) -> SwiftestDataset:
         """
         An implementation of the Swift tool_follow algorithm. Under development. Currently only for Swift simulations. 
 
@@ -3243,7 +3244,7 @@ class Simulation(object):
                                     new_initial_conditions_file: os.PathLike="bin_in.nc", 
                                     restart: bool=False, 
                                     codename: str="Swiftest"
-                                    ) -> xr.Dataset:
+                                    ) -> SwiftestDataset:
         """
         Generates a set of input files from a old output file.
 

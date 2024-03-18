@@ -13,4 +13,4 @@ from .constants import *
 from .simulation import Simulation
 from .shgrav import clm_from_ellipsoid, clm_from_relief
 from .tool import magnitude, rotate_to_vector
-from .core import xv2el, el2xv
+from .data import SwiftestDataArray, SwiftestDataset
