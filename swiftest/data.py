@@ -251,5 +251,62 @@ class SwiftestDataset(xr.Dataset):
                 self[var] = self[var].rotate(rotvec)
                 
         return self
+    
             
+    def xv2el(self, GMcb: xr.DataArray | float):
+        """
+        Converts A Dataset's Cartesian state vectors to orbital elements. The DataArray must have the "space" dimension. 
+        
+        Parameters
+        ----------
+        GMcb : xr.DataArray or float 
+            Gravitational parameter of the central body
+        
+        Returns
+        -------
+        SwiftestDataset
+            Dataset containing the computed orbital elements.
+        """
+        from .core import xv2el
+        if 'space' not in self.dims:
+            raise ValueError("Dataset must have a 'space' dimension")
+        if 'rh' not in self.variables or 'vh' not in self.variables:
+            raise ValueError("Dataset must have 'rh' and 'vh' variables")
+       
+        if 'id' in self.dims:
+            index_dim = 'id'
+        elif 'name' in self.dims:
+            index_dim = 'name'
+        else:
+            raise ValueError("Dataset must have an 'id' or 'name' dimension")
+            
+        if isinstance(GMcb, xr.DataArray):
+            if 'id' in GMcb.dims:
+                GMcb = GMcb.isel(id=0)
+            elif 'name' in GMcb.dims:
+                GMcb = GMcb.isel(name=0)
                 
+            # GMcb = GMcb.drop_vars(['name','id'],errors='ignore')
+            GMcb = GMcb.values
+            
+        if 'Gmass' in self:
+            mu = xr.where(self['Gmass'] > 0.0, GMcb + self['Gmass'], GMcb)
+        else:
+            mu = GMcb
+        
+        result = xr.apply_ufunc(
+            xv2el,  
+            mu,  
+            self['rh'],  
+            self['vh'],  
+            input_core_dims=[[index_dim], [index_dim, 'space'], [index_dim, 'space']],  
+            output_core_dims=[[index_dim]] * 11,  
+            vectorize=True,  
+            dask="parallelized",  
+            output_dtypes=[np.float64] * 11  
+        )
+        
+        varnames = ['a', 'e', 'inc', 'capom', 'omega', 'capm', 'varpi', 'lam', 'f', 'cape', 'capf']
+        dataset = xr.Dataset({var: result[i] for i, var in enumerate(varnames)})
+        dsnew = xr.merge([self, dataset])
+        return dsnew

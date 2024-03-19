@@ -11,6 +11,7 @@ If not, see: https://www.gnu.org/licenses.
 from __future__ import annotations
 
 import swiftest
+from .data import SwiftestDataArray, SwiftestDataset
 import numpy as np
 import numpy.typing as npt
 from astroquery.jplhorizons import Horizons
@@ -39,7 +40,7 @@ def horizons_get_physical_properties(altid,**kwargs):
 
     Returns
     -------
-    GMass : float
+    Gmass : float
         G*Mass of the body
     radius : float
         The radius of the body in m
@@ -476,7 +477,7 @@ def vec2xr(param: Dict, **kwargs: Any):
     vh : (n,3) array-like of float, optional
         Velocity vector array. 
     Gmass : float or array-like of float, optional
-        G*mass values if these are massive bodies (only one of mass or Gmass can be passed)
+        G*mass values if these are massive bodies 
     radius : float or array-like of float, optional
         Radius values if these are massive bodies
     rhill : float or array-like of float, optional
@@ -495,7 +496,7 @@ def vec2xr(param: Dict, **kwargs: Any):
 
     Returns
     -------
-    ds : xarray dataset
+    ds : SwiftestDataset
         Dataset containing the variables of all bodies passed in kwargs
     """
     scalar_dims = ['id']
@@ -504,9 +505,9 @@ def vec2xr(param: Dict, **kwargs: Any):
     sph_dims = ['sign', 'l', 'm'] # Spherical Harmonics dimensions
 
     vector_vars = ["rh","vh","Ip","rot"]
-    scalar_vars = ["name","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4", "rotphase"]
+    scalar_vars = ["name","a","e","inc","capom","omega","capm","mass","Gmass","radius","rhill","j2rp2","j4rp4", "rotphase"]
     sph_vars = ["c_lm"]
-    time_vars =  ["status","rh","vh","Ip","rot","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4", "rotphase"]
+    time_vars =  ["status","rh","vh","Ip","rot","a","e","inc","capom","omega","capm","mass","Gmass","radius","rhill","j2rp2","j4rp4", "rotphase"]
 
     # Check for valid keyword arguments
     kwargs = {k:kwargs[k] for k,v in kwargs.items() if v is not None}
@@ -519,7 +520,15 @@ def vec2xr(param: Dict, **kwargs: Any):
 
     if "time" not in kwargs:
         kwargs["time"] = np.array([0.0])
-
+        
+    if param['CHK_CLOSE']:
+        if "Gmass" in kwargs and "radius" not in kwargs:
+            raise ValueError("If Gmass is passed, then radius must also be passed when CHK_CLOSE is True")
+        
+    if "Gmass" in kwargs:
+        GU = swiftest.GC * param["TU2S"] ** 2 * param["MU2KG"] / param["DU2M"] ** 3
+        kwargs['mass'] = kwargs['Gmass'] / GU
+        
     valid_arguments = vector_vars + scalar_vars + sph_vars + ['time','id']
 
     kwargs = {k:v for k,v in kwargs.items() if k in valid_arguments}
@@ -548,4 +557,4 @@ def vec2xr(param: Dict, **kwargs: Any):
                             )
         ds = xr.combine_by_coords([ds, clm_xr])
 
-    return ds
+    return SwiftestDataset(ds)

@@ -120,7 +120,7 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
 
     Parameters
     ----------
-    mu : array of floats
+    mu : (N,) array of floats
         Gravitational parameter
     rh : (N,3) array of floats
         position vector
@@ -158,28 +158,19 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
 
     cdef int nbody = mu.size
 
-    # Extracting individual components from 2D arrays
-    rx, ry, rz = rh[:,0], rh[:,1], rh[:,2]
-    vx, vy, vz = vh[:,0], vh[:,1], vh[:,2]
-
     # Ensure memory-contiguous numpy arrays
     mu = np.ascontiguousarray(mu, dtype=np.float64)
-    rx = np.ascontiguousarray(rx, dtype=np.float64)
-    ry = np.ascontiguousarray(ry, dtype=np.float64)
-    rz = np.ascontiguousarray(rz, dtype=np.float64)
-    vx = np.ascontiguousarray(vx, dtype=np.float64)
-    vy = np.ascontiguousarray(vy, dtype=np.float64)
-    vz = np.ascontiguousarray(vz, dtype=np.float64)
+    mu.flags.writeable = True  
+    rh = np.ascontiguousarray(rh, dtype=np.float64)
+    rh.flags.writeable = True  
+    vh = np.ascontiguousarray(vh, dtype=np.float64)
+    vh.flags.writeable = True  
 
     # Make memory view of the numpy arrays
     cdef cnp.float64_t[::1] mu_v = mu
-    cdef cnp.float64_t[::1] rx_v = rx
-    cdef cnp.float64_t[::1] ry_v = ry
-    cdef cnp.float64_t[::1] rz_v = rz
-    cdef cnp.float64_t[::1] vx_v = vx
-    cdef cnp.float64_t[::1] vy_v = vy
-    cdef cnp.float64_t[::1] vz_v = vz
-
+    cdef cnp.float64_t[:, ::1] rh_v = rh
+    cdef cnp.float64_t[:, ::1] vh_v = vh
+ 
     # Create arrays for outputs
     _a = np.empty(nbody, dtype=np.float64)
     _e = np.empty(nbody, dtype=np.float64)
@@ -207,7 +198,10 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
 
     with cython.boundscheck(False):
         with nogil:
-            bindings_orbel_xv2el(nbody, &mu_v[0], &rx_v[0], &ry_v[0], &rz_v[0], &vx_v[0], &vy_v[0], &vz_v[0], &a[0], &e[0], &inc[0], &capom[0], &omega[0], &capm[0], &varpi[0], &lam[0], &f[0], &cape[0], &capf[0])
+            bindings_orbel_xv2el(nbody, &mu_v[0], 
+                                &rh_v[:, 0][0], &rh_v[:, 1][0], &rh_v[:, 2][0], 
+                                &vh_v[:, 0][0], &vh_v[:, 1][0], &vh_v[:, 2][0], 
+                                &a[0], &e[0], &inc[0], &capom[0], &omega[0], &capm[0], &varpi[0], &lam[0], &f[0], &cape[0], &capf[0])
 
     # Convert angular quantities to degrees 
     cdef cnp.ndarray[cnp.float64_t, ndim=1] a_np = np.asarray(a)

@@ -2492,7 +2492,6 @@ class Simulation(object):
         None
             Sets the data and init_cond instance variables each with a SwiftestDataset containing the body or bodies that were added
         """
-        from .core import xv2el, el2xv
 
         #convert all inputs to numpy arrays
         def input_to_array(val,t,n=None):
@@ -2668,16 +2667,12 @@ class Simulation(object):
                 capm = np.array([np.nan])
                 
         # Convert EL to XV input if needed
-        mu = np.full(nbodies, self.data.isel(name=0).Gmass.values[0])
-        if Gmass is not None:
-            mu = mu + Gmass
-        elif mass is not None:
-            mu = mu + self.GU * mass
+        # mu = np.full(nbodies, self.data.isel(name=0).Gmass.values[0])
+        # if Gmass is not None:
+        #     mu = mu + Gmass
+        # elif mass is not None:
+        #     mu = mu + self.GU * mass
          
-        if self.param['IN_FORM'] == "XV" and rh is None:
-            rh, vh = el2xv(mu,a, e, inc, capom, omega, capm)
-        elif self.param['IN_FORM'] == "EL" and a is None:
-            a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf = xv2el(mu, rh, vh)
                
         if verbose:
             for n in name:
@@ -2685,7 +2680,13 @@ class Simulation(object):
         dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
                                  Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, c_lm=c_lm, rotphase=rotphase, time=time)
 
-        dsnew = self._combine_and_fix_dsnew(dsnew,align_to_central_body_rotation,**kwargs)
+        if not is_central_body:
+            if self.param['IN_FORM'] == "XV" and rh is None:
+                print("howdy") 
+            elif self.param['IN_FORM'] == "EL" and a is None:
+                GMcb = self.data['Gmass'].where(self.data['id'] == 0, drop=True)
+                dsnew = dsnew.xv2el(GMcb = GMcb)
+            dsnew = self._combine_and_fix_dsnew(dsnew,align_to_central_body_rotation,**kwargs)
         self.save(verbose=False)
 
         return
@@ -3387,14 +3388,15 @@ class Simulation(object):
             cbda =  self.data.sel(name=cbname)
         else:
             cbda = self.data.sel(id=cbidx)
-        
+       
         pos_skip = ['space','Ip','rot']
         for var in self.data.variables:
-            if 'space' in self.data[var].dims and var not in pos_skip:
+            if 'space' in self.data[var].dims and var not in pos_skip and not np.isnan(self.data[var].values).any():
                 self.data[var] -= cbda[var]
                 
         if align_to_central_body_rotation and 'rot' in cbda:
-            self.data = self.data.rotate(pole=cbda.rot.isel(time=0).values[()])
+            if not np.isnan(cbda.rot.isel(time=0).values).any():
+                self.data = self.data.rotate(pole=cbda.rot.isel(time=0).values[()])
         
         if self.param['CHK_CLOSE']:
            if 'CHK_RMIN' not in self.param:

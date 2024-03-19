@@ -892,7 +892,6 @@ def select_active_from_frame(ds: SwiftestDataset,
     elif count_dim == "name":
         frame = frame.sel(name=iactive.values)
 
-
     return frame
 
 
