@@ -2503,6 +2503,8 @@ class Simulation(object):
             rotation is enabled.
         is_central_body : bool, default False
             If True, the body is a central body with its cartesian state vectors set to the origin.
+        verbose : bool, default True
+            If True, prints the values of the added bodies
         
         Returns
         -------
@@ -2727,9 +2729,10 @@ class Simulation(object):
         elif "id" in ds.dims:
             count_dim = "id"
             
-        if "particle_type" in ds:
-            cb = ds.where(ds['particle_type'] == constants.CB_TYPE_NAME, drop=True)
-            cbdimval = cb[count_dim].values[0]
+        if "particle_type" in ds and constants.CB_TYPE_NAME in ds['particle_type']:
+            cb = ds.isel(time=0)
+            cb = cb[count_dim].where(cb['particle_type'] == constants.CB_TYPE_NAME, drop=True)
+            cbdimval = cb.values[0]
         else:
             cbdimval = None
             
@@ -3392,11 +3395,12 @@ class Simulation(object):
             warnings.warn("No bodies with Gmass values found in dataset. Cannot set central body.",stacklevel=2)
             return
        
-        cbidx = self.data.Gmass.argmax().values[()] 
         if 'name' in self.data.dims:
+            cbidx = self.data.Gmass.argmax(dim='name').values[()] 
             cbid = self.data.id.isel(name=cbidx).values[()]
             cbname = self.data.name.isel(name=cbidx).values[()]
         elif 'id' in self.data.dims:
+            cbidx = self.data.Gmass.argmax(dim='id').values[()] 
             cbid = self.data.id.isel(id=cbidx).values[()]
             cbname = self.data.name.isel(id=cbidx).values[()]
         else:
@@ -3417,9 +3421,9 @@ class Simulation(object):
             
         # Ensure that the central body is at the origin
         if 'name' in self.data.dims: 
-            cbda =  self.data.sel(name=cbname)
+            cbda =  self.data.sel(name=cbname).isel(name=0)
         else:
-            cbda = self.data.sel(id=cbid)
+            cbda = self.data.sel(id=cbid).isel(id=0)
        
         pos_skip = ['space','Ip','rot']
         for var in self.data.variables:

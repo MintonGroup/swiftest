@@ -51,7 +51,7 @@ class TestSwiftest(unittest.TestCase):
         """
         print("\ntest_000_xv2el2xv: Tests that the functions xv2el and el2xv are able to convert between position-velocity and orbital elements without any exceptions being raised")
         # Generate a set of random position-velocity vectors
-        from swiftest import xv2el, el2xv
+        from swiftest.core import xv2el, el2xv
         
         # Test that we can reliably convert between orbital elements and state vectors
         n = 1000
@@ -129,7 +129,7 @@ class TestSwiftest(unittest.TestCase):
         self.assertEqual(sim.init_cond.isel(name=-1).capm.values[0], 0.0, msg="Failed to initialize body with only semimajor axis")
         
         # Test that we can input cartesian coordinates
-        sim.add_body(mass=1.0, rh=[1.0,0.0,0.0], vh=[0.0,1.0,0.0])
+        sim.add_body(mass=1.0, radius=1.0, rh=[1.0,0.0,0.0], vh=[0.0,1.0,0.0])
        
         # orbital elements without semimajor axis 
         with self.assertRaises(ValueError):
@@ -149,15 +149,15 @@ class TestSwiftest(unittest.TestCase):
             
         # Add central body with orbital elements
         with self.assertRaises(ValueError):
-            sim.add_body(a=1.0, mass=1.0, J2=1.0e-6)
+            sim.add_body(a=1.0, mass=1.0, radius=1.0, J2=1.0e-6)
             
         # Add J2 and c_lm values
         with self.assertRaises(ValueError):
-            sim.add_body(mass=1.0, J2=1.0e-6, c_lm=np.ones([2,7]))
+            sim.add_body(mass=1.0, radius=1.0, J2=1.0e-6, c_lm=np.ones([2,7]))
             
         # Wrong shape of c_lm
         with self.assertRaises(ValueError):
-            sim.add_body(mass=1.0, c_lm=[1.0,0.0,0.0])
+            sim.add_body(mass=1.0, radius=1.0, c_lm=[1.0,0.0,0.0])
             
         # Mismatched lengths of input arguments
         with self.assertRaises(ValueError):
@@ -171,7 +171,11 @@ class TestSwiftest(unittest.TestCase):
       
         # mass and Gmass at the same time 
         with self.assertRaises(ValueError):
-            sim.add_body(a=1.0, mass=1.0, Gmass=4*np.pi**2)
+            sim.add_body(a=1.0, mass=1.0, radius=1.0, Gmass=4*np.pi**2)
+            
+        # mass without radius
+        with self.assertRaises(ValueError):
+            sim.add_body(a=1.0, mass=1.0)
             
         return
     

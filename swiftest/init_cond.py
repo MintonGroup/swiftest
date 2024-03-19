@@ -364,16 +364,14 @@ def solar_system_horizons(name: str,
         if param['ROTATION']:
             Ip = Ipsun
             rot = rotcb
-        if param['IN_FORM'] == 'XV':
-            rh = np.array([0.0, 0.0, 0.0])
-            vh = np.array([0.0, 0.0, 0.0])
-        elif param['IN_FORM'] == 'EL':
-            a = np.nan
-            e = np.nan
-            inc = np.nan
-            capom = np.nan
-            omega = np.nan
-            capm = np.nan
+        rh = np.array([0.0, 0.0, 0.0])
+        vh = np.array([0.0, 0.0, 0.0])
+        a = np.nan
+        e = np.nan
+        inc = np.nan
+        capom = np.nan
+        omega = np.nan
+        capm = np.nan
     else: # Fetch solar system ephemerides from Horizons
         if ephemeris_id is None:
             ephemeris_id = name
@@ -387,24 +385,22 @@ def solar_system_horizons(name: str,
                 name = altname[0]
         else:
             return None
-        
-        if param['IN_FORM'] == 'XV':
-            rx = jpl.vectors()['x'][0] * DCONV
-            ry = jpl.vectors()['y'][0] * DCONV
-            rz = jpl.vectors()['z'][0] * DCONV
-            vx = jpl.vectors()['vx'][0] * VCONV
-            vy = jpl.vectors()['vy'][0] * VCONV
-            vz = jpl.vectors()['vz'][0] * VCONV
+    
+        rx = jpl.vectors()['x'][0] * DCONV
+        ry = jpl.vectors()['y'][0] * DCONV
+        rz = jpl.vectors()['z'][0] * DCONV
+        vx = jpl.vectors()['vx'][0] * VCONV
+        vy = jpl.vectors()['vy'][0] * VCONV
+        vz = jpl.vectors()['vz'][0] * VCONV
 
-            rh = np.array([rx,ry,rz])
-            vh = np.array([vx,vy,vz])
-        elif param['IN_FORM'] == 'EL':
-            a = jpl.elements()['a'][0] * DCONV
-            e = jpl.elements()['e'][0]
-            inc = jpl.elements()['incl'][0]
-            capom = jpl.elements()['Omega'][0]
-            omega = jpl.elements()['w'][0]
-            capm = jpl.elements()['M'][0]
+        rh = np.array([rx,ry,rz])
+        vh = np.array([vx,vy,vz])
+        a = jpl.elements()['a'][0] * DCONV
+        e = jpl.elements()['e'][0]
+        inc = jpl.elements()['incl'][0]
+        capom = jpl.elements()['Omega'][0]
+        omega = jpl.elements()['w'][0]
+        capm = jpl.elements()['M'][0]
 
         Gmass,Rpl,rot = horizons_get_physical_properties(altid,**kwargs)
         # If the user inputs "Earth" or Pluto, then the Earth-Moon or Pluto-Charon barycenter and combined mass is used. 
@@ -435,8 +431,6 @@ def solar_system_horizons(name: str,
                     Ip = np.array([0.0, 0.0, planetIpz[name]])
                 else:
                     Ip = np.array([0.4, 0.4, 0.4])
-        else:
-            Gmass = None
 
     # Only the Sun gets assigned its own special id for now. All other ids will be sorted later
     if name == "Sun":
