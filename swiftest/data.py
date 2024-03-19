@@ -1,6 +1,7 @@
 import xarray as xr
 import numpy as np
 from scipy.spatial.transform import Rotation as R
+from .constants import *
 
 class SwiftestDataArray(xr.DataArray):
     """
@@ -253,7 +254,7 @@ class SwiftestDataset(xr.Dataset):
         return self
     
             
-    def xv2el(self, GMcb: xr.DataArray | float):
+    def xv2el(self, GMcb: xr.DataArray | float | None = None):
         """
         Converts A Dataset's Cartesian state vectors to orbital elements. The DataArray must have the "space" dimension. 
         
@@ -279,7 +280,17 @@ class SwiftestDataset(xr.Dataset):
             index_dim = 'name'
         else:
             raise ValueError("Dataset must have an 'id' or 'name' dimension")
-            
+        
+        if GMcb is None:
+            if 'Gmass' not in self:
+                raise ValueError("Dataset must have a 'Gmass' variable for the central body")
+            if 'particle_type' in self.variables:
+                GMcb = self['Gmass'].where(self['particle_type'] == CB_TYPE_NAME, drop=True)
+            else:
+                GMcb = self['Gmass'].where(self['id'] == 0, drop=True)
+            if GMcb.size != 1:
+                raise ValueError("Dataset must have a single central body") 
+        
         if isinstance(GMcb, xr.DataArray):
             if 'id' in GMcb.dims:
                 GMcb = GMcb.isel(id=0)

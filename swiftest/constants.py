@@ -32,4 +32,7 @@ J2Sun = 2.198e-7
 J4Sun = -4.805e-9
 rotpoleSun = SkyCoord(ra=286.13 * u.degree, dec=63.87 * u.degree).cartesian
 rotSun = (360.0 / 25.05) / JD2S  * rotpoleSun 
-
+CB_TYPE_NAME = "Central Body"
+PL_TYPE_NAME = "Massive Body"
+TP_TYPE_NAME = "Test Particle"
+PL_TINY_TYPE_NAME = "Semi-Interacting Massive Body"

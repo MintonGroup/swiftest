@@ -2156,6 +2156,7 @@ class Simulation(object):
                               date: str | None = None,
                               source: str = "HORIZONS", 
                               align_to_central_body_rotation: bool = False,
+                              is_central_body: bool = False,
                               **kwargs: Any
                               ) -> None:
         """
@@ -2188,6 +2189,9 @@ class Simulation(object):
         align_to_central_body_rotation : bool, default False
             If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
             rotation is enabled.
+        is_central_body : bool, default False
+            If True, the body is the central body of the system. This is automatically set if "Sun" is the body requested. Otherwise,
+            you must set this to True if you want the body to be the central body.
         **kwargs : Any
             Additional keyword arguments to pass to the query method (i.e. astroquery.Horizons)
             
@@ -2227,6 +2231,10 @@ class Simulation(object):
 
         if source.upper() != "HORIZONS":
             warnings.warn("Currently only the JPL Horizons ephemeris service is supported",stacklevel=2)
+            
+        if is_central_body and len(name) != 1:
+            raise ValueError("If is_central_body is True, then only one body can be added at a time")
+        
 
         body_list = []
         for i,n in enumerate(name):
@@ -2273,6 +2281,11 @@ class Simulation(object):
         kwargs['id'] = np.where(kwargs['id'] < 0,np.arange(start=maxid+1,stop=maxid+1+nbodies,dtype=int),kwargs['id'])
         
         dsnew = init_cond.vec2xr(self.param,**kwargs)
+        
+        if is_central_body:
+            dsnew['particle_type'] = xr.full_like(dsnew['name'], constants.CB_TYPE_NAME)
+        else:
+            dsnew['particle_type'] = xr.where(dsnew['id'] == 0, constants.CB_TYPE_NAME, "")
 
         dsnew = self._combine_and_fix_dsnew(dsnew,align_to_central_body_rotation, **kwargs)
         if dsnew['id'].max(dim='name') > 0 and dsnew['name'].size > 0:
@@ -2432,6 +2445,7 @@ class Simulation(object):
                  J4: float | List[float] | npt.NDArray[np.float_] | None=None,
                  c_lm: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
                  align_to_central_body_rotation: bool = False,
+                 is_central_body: bool = False,
                  verbose: bool = True,
                  **kwargs: Any
                  ) -> None:
@@ -2479,14 +2493,17 @@ class Simulation(object):
         rotphase : float, optional
             rotation phase angle in degreesif these are massive bodies with rotation enabled
         J2 : float, optional
-            Normalized J2 values (e.g. J2*R**2, where R is the central body radius) if this is a central body (only one of J2 or c_lm can be passed)
+            Normalized J2 values (e.g. J2*R**2, where R is the body radius) if this is a central body (only one of J2 or c_lm can be passed)
         J4 : float, optional
-            Normalized J4 values (e.g. J4*R**4, where R is the central body radius) if this is a central body (only one of J4 or c_lm can be passed)
+            Normalized J4 values (e.g. J4*R**4, where R is the body radius) if this is a central body (only one of J4 or c_lm can be passed)
         c_lm : (2,l_max+1,l_max+1) array-like of float, optional
             Spherical harmonics coefficients if this is a central body (only one of J2/J4 or c_lm can be passed)
         align_to_central_body_rotation : bool, default False
             If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
             rotation is enabled.
+        is_central_body : bool, default False
+            If True, the body is a central body with its cartesian state vectors set to the origin.
+        
         Returns
         -------
         None
@@ -2617,14 +2634,21 @@ class Simulation(object):
                 raise ValueError("Cannot use mass and Gmass inputs simultaneously!")
             else: 
                 Gmass = self.GU * mass
-      
-        is_central_body = False 
-        if J2 is not None or J4 is not None:
-            is_central_body = True
+     
+        if is_central_body: 
+            if nbodies > 1:
+                raise ValueError("Only one central body may be passed.")
+            if J2 is not None or J4 is not None:
+                is_central_body = True
+                if c_lm is not None:
+                    raise ValueError("Cannot use J2/J4 and c_lm inputs simultaneously!")
             if c_lm is not None:
-                raise ValueError("Cannot use J2/J4 and c_lm inputs simultaneously!")
-        if c_lm is not None:
-            is_central_body = True
+                is_central_body = True
+        else: 
+            if J2 is not None or J4 is not None:
+                raise ValueError("J2 and J4 can only be used for central bodies.")
+            if c_lm is not None:
+                raise ValueError("c_lm can only be used for central bodies.")
            
         if rh is not None and vh is None:
             raise ValueError("If rh is passed, vh must also be passed")
@@ -2666,14 +2690,6 @@ class Simulation(object):
                 omega = np.array([np.nan])
                 capm = np.array([np.nan])
                 
-        # Convert EL to XV input if needed
-        # mu = np.full(nbodies, self.data.isel(name=0).Gmass.values[0])
-        # if Gmass is not None:
-        #     mu = mu + Gmass
-        # elif mass is not None:
-        #     mu = mu + self.GU * mass
-         
-               
         if verbose:
             for n in name:
                 print(f"Adding {n}") 
@@ -2684,8 +2700,8 @@ class Simulation(object):
             if self.param['IN_FORM'] == "XV" and rh is None:
                 print("howdy") 
             elif self.param['IN_FORM'] == "EL" and a is None:
-                GMcb = self.data['Gmass'].where(self.data['id'] == 0, drop=True)
-                dsnew = dsnew.xv2el(GMcb = GMcb)
+                GMcb = self.data['Gmass'].where(self.data['particle_type'] == constants.CB_TYPE_NAME, drop=True)
+                dsnew = dsnew.xv2el(GMcb)
             dsnew = self._combine_and_fix_dsnew(dsnew,align_to_central_body_rotation,**kwargs)
         self.save(verbose=False)
 
@@ -2710,16 +2726,30 @@ class Simulation(object):
             count_dim = "name"
         elif "id" in ds.dims:
             count_dim = "id"
-        if "Gmass" in ds:
-            ds['ntp'] = ds[count_dim].where(np.isnan(ds['Gmass']) | (ds['Gmass'] == 0.0)).count(dim=count_dim)
-            ds['npl'] = ds[count_dim].where(~np.isnan(ds['Gmass']) & (ds['Gmass'] != 0.0)).count(dim=count_dim) - 1
-            if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
-                ds['nplm'] = ds[count_dim].where(ds['Gmass'] > self.param['GMTINY']).count(dim=count_dim) - 1
+            
+        if "particle_type" in ds:
+            cb = ds.where(ds['particle_type'] == constants.CB_TYPE_NAME, drop=True)
+            cbdimval = cb[count_dim].values[0]
         else:
-            ds['ntp'] = ds[count_dim].count(dim=count_dim)
-            ds['npl'] = xr.full_like(ds['ntp'],0)
+            cbdimval = None
+            
+        if "Gmass" in ds:
+            ds['particle_type'] = xr.where((ds[count_dim] != cbdimval) 
+                                           & np.isnan(ds['Gmass']) 
+                                           | (ds['Gmass'] == 0.0), 
+                                           constants.TP_TYPE_NAME, 
+                                           xr.where(ds[count_dim] != cbdimval, constants.PL_TYPE_NAME, constants.CB_TYPE_NAME))
             if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
-                ds['nplm'] = xr.full_like(ds['ntp'],0)
+                ds['particle_type'] = xr.where((ds['particle_type'] == constants.PL_TYPE_NAME) 
+                                               & (ds['Gmass'] < self.param['GMTINY']), 
+                                               constants.PL_TINY_TYPE_NAME, 
+                                               ds['particle_type'])
+        else:
+            ds['particle_type'] = xr.where(ds[count_dim] != cbdimval, constants.TP_TYPE_NAME, constants.CB_TYPE_NAME)
+        ds['ntp'] = ds[count_dim].where(ds['particle_type'] == constants.TP_TYPE_NAME).count(dim=count_dim)
+        ds['npl'] = ds[count_dim].where(ds['particle_type'] == constants.PL_TYPE_NAME).count(dim=count_dim)
+        if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
+            ds['nplm'] = ds[count_dim].where(ds['particle_type'] == constants.PL_TINY_TYPE_NAME).count(dim=count_dim)
         return ds
 
 
@@ -3362,32 +3392,34 @@ class Simulation(object):
             warnings.warn("No bodies with Gmass values found in dataset. Cannot set central body.",stacklevel=2)
             return
        
-        cbid = self.data.Gmass.argmax().values[()] 
+        cbidx = self.data.Gmass.argmax().values[()] 
         if 'name' in self.data.dims:
-            cbidx = self.data.id.isel(name=cbid).values[()]
-            cbname = self.data.name.isel(name=cbid).values[()]
+            cbid = self.data.id.isel(name=cbidx).values[()]
+            cbname = self.data.name.isel(name=cbidx).values[()]
         elif 'id' in self.data.dims:
-            cbidx = self.data.id.isel(id=cbid).values[()]
-            cbname = self.data.name.isel(id=cbid).values[()]
+            cbid = self.data.id.isel(id=cbidx).values[()]
+            cbname = self.data.name.isel(id=cbidx).values[()]
         else:
             raise ValueError("No 'name' or 'id' dimensions found in dataset.")
        
-        if cbidx != 0:
+        if cbid != 0:
             if 'name' in self.data.dims:
                 if 0 in self.data.id.values:
                     name_0 = self.data.name.where(self.data.id == 0, drop=True).values[()]
-                    self.data['id'].loc[dict(name=name_0)] = cbidx
+                    self.data['id'].loc[dict(name=name_0)] = cbid
                 self.data['id'].loc[dict(name=cbname)] = 0
+                self.data['particle_type'].loc[dict(name=cbname)] = constants.CB_TYPE_NAME
             else:
                 if 0 in self.data.id.values:
-                    self.data['id'].loc[dict(id=0)] = cbidx
-                self.data['id'].loc[dict(id=cbidx)] = 0
+                    self.data['id'].loc[dict(id=0)] = cbid
+                self.data['id'].loc[dict(id=cbid)] = 0
+                self.data['particle_type'].loc[dict(id=cbid)] = constants.CB_TYPE_NAME
             
         # Ensure that the central body is at the origin
         if 'name' in self.data.dims: 
             cbda =  self.data.sel(name=cbname)
         else:
-            cbda = self.data.sel(id=cbidx)
+            cbda = self.data.sel(id=cbid)
        
         pos_skip = ['space','Ip','rot']
         for var in self.data.variables:
@@ -3401,4 +3433,5 @@ class Simulation(object):
         if self.param['CHK_CLOSE']:
            if 'CHK_RMIN' not in self.param:
                self.param['CHK_RMIN'] = cbda.radius.values.item()
+               
         return 
