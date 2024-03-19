@@ -166,7 +166,7 @@ class Simulation(object):
             * "ASCII" `init_cond_file_name = {"CB" : "cb.in", "PL" : "pl.in", "TP" : "tp.in"}`
             
             Parameter input file equivalent is `NC_IN`, `CB_IN`, `PL_IN`, `TP_IN`
-        init_cond_format : {"EL", "XV"}, default "EL"
+        init_cond_format : {"EL", "XV"}, default "XV"
             Indicates whether the input initial conditions are given as orbital elements or cartesian position and
             velocity vectors.
             If `codename` is "Swift" or "Swifter", EL initial conditions are converted to XV.
@@ -1413,10 +1413,7 @@ class Simulation(object):
             if "IN_FORM" in self.param:
                 init_cond_format = self.param['IN_FORM']
             else:
-                if self.codename.title() == "Swiftest":
-                    init_cond_format = "EL"
-                else:
-                    init_cond_format = "XV"
+                init_cond_format = "XV"
 
         if init_cond_file_type is None:
             if "IN_TYPE" in self.param:
@@ -2679,19 +2676,17 @@ class Simulation(object):
                 raise ValueError("Orbital elements cannot be passed for a central body.")
             if nbodies > 1:
                 raise ValueError("Only one central body may be passed.")
-            if self.param['IN_FORM'] == "XV":
-                if rh is None:
-                    rh = np.zeros((1,3))
-                if vh is None:
-                    vh = np.zeros((1,3))
-            elif self.param['IN_FORM'] == "EL":
-                a = np.array([np.nan])
-                e = np.array([np.nan])
-                inc = np.array([np.nan])
-                capom = np.array([np.nan])
-                omega = np.array([np.nan])
-                capm = np.array([np.nan])
-                
+            if rh is None:
+                rh = np.zeros((1,3))
+            if vh is None:
+                vh = np.zeros((1,3))
+            a = np.array([np.nan])
+            e = np.array([np.nan])
+            inc = np.array([np.nan])
+            capom = np.array([np.nan])
+            omega = np.array([np.nan])
+            capm = np.array([np.nan])
+            
         if verbose:
             for n in name:
                 print(f"Adding {n}") 
