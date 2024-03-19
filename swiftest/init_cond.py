@@ -278,6 +278,7 @@ def solar_system_horizons(name: str,
                           param: Dict,
                           ephemerides_start_date: str,
                           ephemeris_id: str | None = None,
+                          central_body_name: str = "Sun",
                           **kwargs: Any):
     """
     Initializes a Swiftest dataset containing the major planets of the Solar System at a particular data from JPL/Horizons
@@ -366,12 +367,6 @@ def solar_system_horizons(name: str,
             rot = rotcb
         rh = np.array([0.0, 0.0, 0.0])
         vh = np.array([0.0, 0.0, 0.0])
-        a = np.nan
-        e = np.nan
-        inc = np.nan
-        capom = np.nan
-        omega = np.nan
-        capm = np.nan
     else: # Fetch solar system ephemerides from Horizons
         if ephemeris_id is None:
             ephemeris_id = name
@@ -385,6 +380,20 @@ def solar_system_horizons(name: str,
                 name = altname[0]
         else:
             return None
+        
+        if central_body_name != "Sun":
+            jplcb, altidcb, altnamecb = horizons_query(central_body_name,ephemerides_start_date,**kwargs)
+            cbrx = jplcb.vectors()['x'][0] * DCONV
+            cbry = jplcb.vectors()['y'][0] * DCONV
+            cbrz = jplcb.vectors()['z'][0] * DCONV
+            cbvx = jplcb.vectors()['vx'][0] * VCONV
+            cbvy = jplcb.vectors()['vy'][0] * VCONV
+            cbvz = jplcb.vectors()['vz'][0] * VCONV
+            cbrh = np.array([cbrx,cbry,cbrz])
+            cbvh = np.array([cbvx,cbvy,cbvz])
+        else:
+            cbrh = np.zeros(3)
+            cbvh = np.zeros(3)
     
         rx = jpl.vectors()['x'][0] * DCONV
         ry = jpl.vectors()['y'][0] * DCONV
@@ -393,14 +402,8 @@ def solar_system_horizons(name: str,
         vy = jpl.vectors()['vy'][0] * VCONV
         vz = jpl.vectors()['vz'][0] * VCONV
 
-        rh = np.array([rx,ry,rz])
-        vh = np.array([vx,vy,vz])
-        a = jpl.elements()['a'][0] * DCONV
-        e = jpl.elements()['e'][0]
-        inc = jpl.elements()['incl'][0]
-        capom = jpl.elements()['Omega'][0]
-        omega = jpl.elements()['w'][0]
-        capm = jpl.elements()['M'][0]
+        rh = np.array([rx,ry,rz]) - cbrh
+        vh = np.array([vx,vy,vz]) - cbvh
 
         Gmass,Rpl,rot = horizons_get_physical_properties(altid,**kwargs)
         # If the user inputs "Earth" or Pluto, then the Earth-Moon or Pluto-Charon barycenter and combined mass is used. 

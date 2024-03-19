@@ -2231,11 +2231,18 @@ class Simulation(object):
             
         if is_central_body and len(name) != 1:
             raise ValueError("If is_central_body is True, then only one body can be added at a time")
+       
+        cbname = "Sun" 
+        if is_central_body:
+            cbname = name[0]
+        else:
+            if "particle_type" in self.data.variables and constants.CB_TYPE_NAME in self.data.particle_type:
+                cbname = self.data.where(self.data.particle_type == constants.CB_TYPE_NAME, drop=True)
+                cbname = cbname['name'].values[0]
         
-
         body_list = []
         for i,n in enumerate(name):
-            body = init_cond.solar_system_horizons(n, self.param, date, ephemeris_id=ephemeris_id[i],**kwargs)
+            body = init_cond.solar_system_horizons(n, self.param, date, ephemeris_id=ephemeris_id[i],central_body_name=cbname, **kwargs)
             if body is not None:
                 body_list.append(body)
 
