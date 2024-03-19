@@ -296,10 +296,8 @@ class SwiftestDataset(xr.Dataset):
                 GMcb = GMcb.isel(id=0)
             elif 'name' in GMcb.dims:
                 GMcb = GMcb.isel(name=0)
+            GMcb = GMcb.expand_dims(dim={"id": self.id})
                 
-            # GMcb = GMcb.drop_vars(['name','id'],errors='ignore')
-            GMcb = GMcb.values
-            
         if 'Gmass' in self:
             mu = xr.where(self['Gmass'] > 0.0, GMcb + self['Gmass'], GMcb)
         else:
@@ -319,5 +317,91 @@ class SwiftestDataset(xr.Dataset):
         
         varnames = ['a', 'e', 'inc', 'capom', 'omega', 'capm', 'varpi', 'lam', 'f', 'cape', 'capf']
         dataset = xr.Dataset({var: result[i] for i, var in enumerate(varnames)})
+        if "name" in dataset.variables:
+            dataset = dataset.drop_vars("name")        
         dsnew = xr.merge([self, dataset])
         return dsnew
+    
+        
+    def el2xv(self, GMcb: xr.DataArray | float | None = None):
+        """
+        Converts a Dataset's orbital elements to Cartesian state vectors. The DataArray must have the appropriate dimensions for orbital elements.
+        
+        Parameters
+        ----------
+        GMcb : xr.DataArray or float
+            Gravitational parameter of the central body
+        
+        Returns
+        -------
+        SwiftestDataset
+            Dataset containing the computed state vectors (position 'rh' and velocity 'vh').
+        """
+        from .core import el2xv  # Assuming el2xv is implemented in the .core module
+
+        if 'space' not in self.dims:
+            raise ValueError("Dataset must have a 'space' dimension")
+        
+        required_vars = ['a', 'e', 'inc', 'capom', 'omega', 'capm']
+        for var in required_vars:
+            if var not in self.variables:
+                raise ValueError(f"Dataset must have '{var}' variables")
+        
+        # Identify the index dimension
+        if 'id' in self.dims:
+            index_dim = 'id'
+        elif 'name' in self.dims:
+            index_dim = 'name'
+        else:
+            raise ValueError("Dataset must have an 'id' or 'name' dimension")
+        
+        if GMcb is None:
+            if 'Gmass' not in self:
+                raise ValueError("Dataset must have a 'Gmass' variable for the central body")
+            if 'particle_type' in self.variables:
+                GMcb = self['Gmass'].where(self['particle_type'] == CB_TYPE_NAME, drop=True)
+            else:
+                GMcb = self['Gmass'].where(self['id'] == 0, drop=True)
+            if GMcb.size != 1:
+                raise ValueError("Dataset must have a single central body") 
+        
+        if isinstance(GMcb, xr.DataArray):
+            if 'id' in GMcb.dims:
+                GMcb = GMcb.isel(id=0)
+            elif 'name' in GMcb.dims:
+                GMcb = GMcb.isel(name=0)
+            GMcb = GMcb.expand_dims(dim={"id": self.id})
+                
+        if 'Gmass' in self:
+            mu = xr.where(self['Gmass'] > 0.0, GMcb + self['Gmass'], GMcb)
+        else:
+            mu = GMcb
+        
+        # Prepare the orbital elements for the function call
+        a = self['a']
+        e = self['e']
+        inc = self['inc']
+        capom = self['capom']
+        omega = self['omega']
+        capm = self['capm']
+
+        # Use apply_ufunc to convert orbital elements back to state vectors
+        rh, vh = xr.apply_ufunc(
+            el2xv,  # Function to apply
+            mu, a, e, inc, capom, omega, capm,  # Inputs
+            input_core_dims=[[index_dim], [index_dim], [index_dim], [index_dim], [index_dim], [index_dim], [index_dim]],  # Core dimensions for each input
+            output_core_dims=[[index_dim, 'space'], [index_dim, 'space']],  # Core dimensions for outputs (position and velocity vectors)
+            vectorize=True,  # Automatically vectorize over non-core dimensions
+            dask="parallelized",  # Enable parallelized computation for Dask arrays, if applicable
+            output_dtypes=[np.float64, np.float64]  # Expected data types for outputs
+        )
+
+        # Create a new Dataset with the state vectors
+        new_vars = {'rh': rh, 'vh': vh}
+        dataset = xr.Dataset(new_vars)
+        if "name" in dataset.variables:
+            dataset = dataset.drop_vars("name")
+        dsnew = xr.merge([self, dataset])
+
+        return dsnew
+    

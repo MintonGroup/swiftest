@@ -2699,10 +2699,10 @@ class Simulation(object):
                                  Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, c_lm=c_lm, rotphase=rotphase, time=time)
 
         if not is_central_body:
-            if self.param['IN_FORM'] == "XV" and rh is None:
-                print("howdy") 
-            elif self.param['IN_FORM'] == "EL" and a is None:
-                GMcb = self.data['Gmass'].where(self.data['particle_type'] == constants.CB_TYPE_NAME, drop=True)
+            GMcb = self.data['Gmass'].where(self.data['particle_type'] == constants.CB_TYPE_NAME, drop=True)
+            if rh is None or vh is None:
+                dsnew = dsnew.el2xv(GMcb)
+            if a is None:
                 dsnew = dsnew.xv2el(GMcb)
             dsnew = self._combine_and_fix_dsnew(dsnew,align_to_central_body_rotation,**kwargs)
         self.save(verbose=False)

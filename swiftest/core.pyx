@@ -42,26 +42,26 @@ def el2xv(cnp.ndarray[cnp.float64_t, ndim=1] mu,
 
     Parameters
     ----------
-    mu : array of floats
+    mu : (N,) array of floats
         Gravitational parameter
-    a : array of floats
+    a : (N,) array of floats
         Semi-major axis
-    e : array of floats
+    e : (N,) array of floats
         Eccentricity
-    inc : array of floats
+    inc : (N,) array of floats
         Inclination (degrees)
-    capom : array of floats
+    capom : (N,) array of floats
         Longitude of the ascending node (degrees)
-    omega : array of floats
+    omega : (N,) array of floats
         Argument of periapsis (degrees)
-    capm : array of floats
+    capm : (N,) array of floats
         Mean anomaly (degrees)
 
     Returns
     -------
-    rh : (n,3) array of floats
+    rh : (N,3) array of floats
         position vector
-    vh : (n,3) array of floats
+    vh : (N,3) array of floats
     """ 
     if not (mu.size == a.size == e.size == inc.size == capom.size == omega.size == capm.size):
         raise ValueError("All input arrays must have the same length")
@@ -70,13 +70,19 @@ def el2xv(cnp.ndarray[cnp.float64_t, ndim=1] mu,
 
     # Ensure memory-contiguous numpy arrays
     mu = np.ascontiguousarray(mu, dtype=np.float64)
+    mu.flags.writeable = True  
     a = np.ascontiguousarray(a, dtype=np.float64)
-    a = np.where(a<0.0,-a, a)
+    a.flags.writeable = True
     e = np.ascontiguousarray(e, dtype=np.float64)
+    e.flags.writeable = True
     inc_rad = np.ascontiguousarray(np.deg2rad(inc), dtype=np.float64)
+    inc_rad.flags.writeable = True
     capom_rad = np.ascontiguousarray(np.deg2rad(capom), dtype=np.float64)
+    capom_rad.flags.writeable = True
     omega_rad = np.ascontiguousarray(np.deg2rad(omega), dtype=np.float64)
+    omega_rad.flags.writeable = True
     capm_rad = np.ascontiguousarray(np.deg2rad(capm), dtype=np.float64)
+    capm_rad.flags.writeable = True
 
     # Make memory view of the numpy arrays and convert angular quantities to radians
     cdef cnp.float64_t[::1] mu_v = mu
@@ -128,27 +134,27 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
 
     Returns
     -------
-    a : array of floats
+    a : (N,) array of floats
         Semi-major axis
-    e : array of floats
+    e : (N,) array of floats
         Eccentricity
-    inc : array of floats
+    inc : (N,) array of floats
         Inclination (degrees)
-    capom : array of floats
+    capom : (N,) array of floats
         Longitude of the ascending node (degrees)
-    omega : array of floats
+    omega : (N,) array of floats
         Argument of periapsis (degrees)
-    capm : array of floats
+    capm : (N,) array of floats
         Mean anomaly (degrees)
-    varpi : array of floats
+    varpi : (N,) array of floats
         Longitude of periapsis (degrees)
-    lam : array of floats
+    lam : (N,) array of floats
         True longitude (degrees)
-    f : array of floats
+    f : (N,) array of floats
         True anomaly (degrees)
-    cape : array of floats
+    cape : (N,) array of floats
         Eccentric anomaly (degrees)
-    capf : array of floats
+    capf : (N,) array of floats
         Eccentric true anomaly (degrees)
     """ 
 
@@ -161,15 +167,17 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
     # Ensure memory-contiguous numpy arrays
     mu = np.ascontiguousarray(mu, dtype=np.float64)
     mu.flags.writeable = True  
-    rh = np.ascontiguousarray(rh, dtype=np.float64)
     rh.flags.writeable = True  
-    vh = np.ascontiguousarray(vh, dtype=np.float64)
     vh.flags.writeable = True  
 
     # Make memory view of the numpy arrays
     cdef cnp.float64_t[::1] mu_v = mu
-    cdef cnp.float64_t[:, ::1] rh_v = rh
-    cdef cnp.float64_t[:, ::1] vh_v = vh
+    cdef cnp.float64_t[::1] rx_v = np.ascontiguousarray(rh[:, 0], dtype=np.float64)
+    cdef cnp.float64_t[::1] ry_v = np.ascontiguousarray(rh[:, 1], dtype=np.float64)
+    cdef cnp.float64_t[::1] rz_v = np.ascontiguousarray(rh[:, 2], dtype=np.float64)
+    cdef cnp.float64_t[::1] vx_v = np.ascontiguousarray(vh[:, 0], dtype=np.float64)
+    cdef cnp.float64_t[::1] vy_v = np.ascontiguousarray(vh[:, 1], dtype=np.float64)
+    cdef cnp.float64_t[::1] vz_v = np.ascontiguousarray(vh[:, 2], dtype=np.float64)
  
     # Create arrays for outputs
     _a = np.empty(nbody, dtype=np.float64)
@@ -199,8 +207,8 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
     with cython.boundscheck(False):
         with nogil:
             bindings_orbel_xv2el(nbody, &mu_v[0], 
-                                &rh_v[:, 0][0], &rh_v[:, 1][0], &rh_v[:, 2][0], 
-                                &vh_v[:, 0][0], &vh_v[:, 1][0], &vh_v[:, 2][0], 
+                                &rx_v[0], &ry_v[0], &rz_v[0], 
+                                &vx_v[0], &vy_v[0], &vz_v[0], 
                                 &a[0], &e[0], &inc[0], &capom[0], &omega[0], &capm[0], &varpi[0], &lam[0], &f[0], &cape[0], &capf[0])
 
     # Convert angular quantities to degrees 
