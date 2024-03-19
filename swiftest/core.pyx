@@ -224,6 +224,21 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
     cdef cnp.ndarray[cnp.float64_t, ndim=1] cape_np = np.rad2deg(np.asarray(cape))
     cdef cnp.ndarray[cnp.float64_t, ndim=1] capf_np = np.rad2deg(np.asarray(capf))
 
+    for i in range(nbody):
+        if (rx_v[i] == 0.0 and ry_v[i] == 0.0 and rz_v[i] == 0.0 and vx_v[i] == 0.0 and vy_v[i] == 0.0 and vz_v[i] == 0.0):
+            a_np[i] = np.nan
+            e_np[i] = np.nan
+            inc_np[i] = np.nan
+            capom_np[i] = np.nan
+            omega_np[i] = np.nan
+            capm_np[i] = np.nan
+            varpi_np[i] = np.nan
+            lam_np[i] = np.nan
+            f_np[i] = np.nan
+            cape_np[i] = np.nan
+            capf_np[i] = np.nan
+
+
     return a_np, e_np, inc_np, capom_np, omega_np, capm_np, varpi_np, lam_np, f_np, cape_np, capf_np
 
 

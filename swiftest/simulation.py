@@ -2686,7 +2686,7 @@ class Simulation(object):
             capom = np.array([np.nan])
             omega = np.array([np.nan])
             capm = np.array([np.nan])
-            
+           
         if verbose:
             for n in name:
                 print(f"Adding {n}") 
@@ -2820,7 +2820,10 @@ class Simulation(object):
         dsnew : SwiftestDataset
             Updated Dataset with ntp, npl values and types fixed.
         """
-        
+            
+        if not isinstance(dsnew, SwiftestDataset):
+            dsnew = SwiftestDataset(dsnew)        
+            
         if "id" not in self.data.dims:
             if len(np.unique(dsnew['name'])) == len(dsnew['name']):
                dsnew = dsnew.swap_dims({"id" : "name"})
@@ -2833,7 +2836,10 @@ class Simulation(object):
         dsnew['status'] = xr.zeros_like(dsnew['id'])
 
         self.data = xr.combine_by_coords([self.data, dsnew])
-
+        
+        if not isinstance(self.data, SwiftestDataset):
+            self.data = SwiftestDataset(self.data)
+           
         if self.param['OUT_TYPE'] == "NETCDF_DOUBLE":
             dsnew = io.fix_types(dsnew, ftype=np.float64)
             self.data = io.fix_types(self.data, ftype=np.float64)
@@ -3419,16 +3425,23 @@ class Simulation(object):
             cbda =  self.data.sel(name=cbname).isel(name=0)
         else:
             cbda = self.data.sel(id=cbid).isel(id=0)
-       
+      
+        recompute_el = False 
         pos_skip = ['space','Ip','rot']
         for var in self.data.variables:
             if 'space' in self.data[var].dims and var not in pos_skip and not np.isnan(self.data[var].values).any():
-                self.data[var] -= cbda[var]
+                if np.any(self.data[var].values != 0.0):
+                    recompute_el = True
+                    self.data[var] -= cbda[var]
                 
         if align_to_central_body_rotation and 'rot' in cbda:
             if not np.isnan(cbda.rot.isel(time=0).values).any():
                 self.data = self.data.rotate(pole=cbda.rot.isel(time=0).values[()])
-        
+                recompute_el = True
+       
+        if recompute_el:
+            self.data = self.data.xv2el()
+
         if self.param['CHK_CLOSE']:
            if 'CHK_RMIN' not in self.param:
                self.param['CHK_RMIN'] = cbda.radius.values.item()

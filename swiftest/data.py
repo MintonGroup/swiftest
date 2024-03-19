@@ -81,7 +81,7 @@ class SwiftestDataArray(xr.DataArray):
         
         # Define a function to apply the rotation, which will be used with apply_ufunc
         def apply_rotation(vector, rotation):
-            if len(rotation) > 1:
+            if not rotation.single: 
                 # If 'rotation' is a stack of rotations, apply each rotation sequentially
                 for single_rotation in rotation:
                     vector = single_rotation.apply(vector)
@@ -253,74 +253,6 @@ class SwiftestDataset(xr.Dataset):
                 
         return self
     
-            
-    def xv2el(self, GMcb: xr.DataArray | float | None = None):
-        """
-        Converts A Dataset's Cartesian state vectors to orbital elements. The DataArray must have the "space" dimension. 
-        
-        Parameters
-        ----------
-        GMcb : xr.DataArray or float 
-            Gravitational parameter of the central body
-        
-        Returns
-        -------
-        SwiftestDataset
-            Dataset containing the computed orbital elements.
-        """
-        from .core import xv2el
-        if 'space' not in self.dims:
-            raise ValueError("Dataset must have a 'space' dimension")
-        if 'rh' not in self.variables or 'vh' not in self.variables:
-            raise ValueError("Dataset must have 'rh' and 'vh' variables")
-       
-        if 'id' in self.dims:
-            index_dim = 'id'
-        elif 'name' in self.dims:
-            index_dim = 'name'
-        else:
-            raise ValueError("Dataset must have an 'id' or 'name' dimension")
-        
-        if GMcb is None:
-            if 'Gmass' not in self:
-                raise ValueError("Dataset must have a 'Gmass' variable for the central body")
-            if 'particle_type' in self.variables:
-                GMcb = self['Gmass'].where(self['particle_type'] == CB_TYPE_NAME, drop=True)
-            else:
-                GMcb = self['Gmass'].where(self['id'] == 0, drop=True)
-            if GMcb.size != 1:
-                raise ValueError("Dataset must have a single central body") 
-        
-        if isinstance(GMcb, xr.DataArray):
-            if 'id' in GMcb.dims:
-                GMcb = GMcb.isel(id=0)
-            elif 'name' in GMcb.dims:
-                GMcb = GMcb.isel(name=0)
-            GMcb = GMcb.expand_dims(dim={"id": self.id})
-                
-        if 'Gmass' in self:
-            mu = xr.where(self['Gmass'] > 0.0, GMcb + self['Gmass'], GMcb)
-        else:
-            mu = GMcb
-        
-        result = xr.apply_ufunc(
-            xv2el,  
-            mu,  
-            self['rh'],  
-            self['vh'],  
-            input_core_dims=[[index_dim], [index_dim, 'space'], [index_dim, 'space']],  
-            output_core_dims=[[index_dim]] * 11,  
-            vectorize=True,  
-            dask="parallelized",  
-            output_dtypes=[np.float64] * 11  
-        )
-        
-        varnames = ['a', 'e', 'inc', 'capom', 'omega', 'capm', 'varpi', 'lam', 'f', 'cape', 'capf']
-        dataset = xr.Dataset({var: result[i] for i, var in enumerate(varnames)})
-        if "name" in dataset.variables:
-            dataset = dataset.drop_vars("name")        
-        dsnew = xr.merge([self, dataset])
-        return dsnew
     
         
     def el2xv(self, GMcb: xr.DataArray | float | None = None):
@@ -368,9 +300,10 @@ class SwiftestDataset(xr.Dataset):
         if isinstance(GMcb, xr.DataArray):
             if 'id' in GMcb.dims:
                 GMcb = GMcb.isel(id=0)
+                GMcb = GMcb.expand_dims(dim={"id": self.id})
             elif 'name' in GMcb.dims:
                 GMcb = GMcb.isel(name=0)
-            GMcb = GMcb.expand_dims(dim={"id": self.id})
+                GMcb = GMcb.expand_dims(dim={"name": self.name})
                 
         if 'Gmass' in self:
             mu = xr.where(self['Gmass'] > 0.0, GMcb + self['Gmass'], GMcb)
@@ -401,7 +334,77 @@ class SwiftestDataset(xr.Dataset):
         dataset = xr.Dataset(new_vars)
         if "name" in dataset.variables:
             dataset = dataset.drop_vars("name")
-        dsnew = xr.merge([self, dataset])
+        dsnew = xr.merge([dataset, self], compat="override")
 
         return dsnew
-    
+     
+                
+    def xv2el(self, GMcb: xr.DataArray | float | None = None):
+        """
+        Converts A Dataset's Cartesian state vectors to orbital elements. The DataArray must have the "space" dimension. 
+        
+        Parameters
+        ----------
+        GMcb : xr.DataArray or float 
+            Gravitational parameter of the central body
+        
+        Returns
+        -------
+        SwiftestDataset
+            Dataset containing the computed orbital elements.
+        """
+        from .core import xv2el
+        if 'space' not in self.dims:
+            raise ValueError("Dataset must have a 'space' dimension")
+        if 'rh' not in self.variables or 'vh' not in self.variables:
+            raise ValueError("Dataset must have 'rh' and 'vh' variables")
+       
+        if 'id' in self.dims:
+            index_dim = 'id'
+        elif 'name' in self.dims:
+            index_dim = 'name'
+        else:
+            raise ValueError("Dataset must have an 'id' or 'name' dimension")
+        
+        if GMcb is None:
+            if 'Gmass' not in self:
+                raise ValueError("Dataset must have a 'Gmass' variable for the central body")
+            if 'particle_type' in self.variables:
+                GMcb = self['Gmass'].where(self['particle_type'] == CB_TYPE_NAME, drop=True)
+            else:
+                GMcb = self['Gmass'].where(self['id'] == 0, drop=True)
+            if GMcb.size != 1:
+                raise ValueError("Dataset must have a single central body") 
+        
+        if isinstance(GMcb, xr.DataArray):
+            if 'id' in GMcb.dims:
+                GMcb = GMcb.isel(id=0)
+                GMcb = GMcb.expand_dims(dim={"id": self.id})
+            elif 'name' in GMcb.dims:
+                GMcb = GMcb.isel(name=0)
+                GMcb = GMcb.expand_dims(dim={"name": self.name})
+                
+        if 'Gmass' in self:
+            mu = xr.where(self['Gmass'] > 0.0, GMcb + self['Gmass'], GMcb)
+        else:
+            mu = GMcb
+        
+        result = xr.apply_ufunc(
+            xv2el,  
+            mu,  
+            self['rh'],  
+            self['vh'],  
+            input_core_dims=[[index_dim], [index_dim, 'space'], [index_dim, 'space']],  
+            output_core_dims=[[index_dim]] * 11,  
+            vectorize=True,  
+            dask="parallelized",  
+            output_dtypes=[np.float64] * 11  
+        )
+        
+        varnames = ['a', 'e', 'inc', 'capom', 'omega', 'capm', 'varpi', 'lam', 'f', 'cape', 'capf']
+        dataset = xr.Dataset({var: result[i] for i, var in enumerate(varnames)})
+        if "name" in dataset.variables:
+            dataset = dataset.drop_vars("name")        
+        dsnew = xr.merge([dataset, self], compat="override")
+        
+        return dsnew
