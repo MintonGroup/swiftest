@@ -2711,6 +2711,47 @@ class Simulation(object):
 
         return
     
+    def _set_particle_type(self, ds: SwiftestDataset) -> SwiftestDataset:
+        """
+        Sets the particle type based on the values of Gmass. 
+        
+        Parameters
+        ----------
+        ds : SwiftestDataset
+            Dataset to evaluate
+            
+        Returns
+        -------
+        ds : SwiftestDataset
+            Dataset with updated particle type values. 
+        """
+        if "name" in ds.dims:
+            count_dim = "name"
+        elif "id" in ds.dims:
+            count_dim = "id"
+            
+        if "particle_type" in ds and constants.CB_TYPE_NAME in ds['particle_type']:
+            cb = ds.isel(time=0)
+            cb = cb[count_dim].where(cb['particle_type'] == constants.CB_TYPE_NAME, drop=True)
+            cbdimval = cb.values[0]
+        else:
+            cbdimval = None            
+            
+        if "Gmass" in ds:
+            ds['particle_type'] = xr.where((ds[count_dim] != cbdimval) 
+                                           & np.isnan(ds['Gmass']) 
+                                           | (ds['Gmass'] == 0.0), 
+                                           constants.TP_TYPE_NAME, 
+                                           xr.where(ds[count_dim] != cbdimval, constants.PL_TYPE_NAME, constants.CB_TYPE_NAME))
+            if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
+                ds['particle_type'] = xr.where((ds['particle_type'] == constants.PL_TYPE_NAME) 
+                                               & (ds['Gmass'] < self.param['GMTINY']), 
+                                               constants.PL_TINY_TYPE_NAME, 
+                                               ds['particle_type'])
+        else:
+            ds['particle_type'] = xr.where(ds[count_dim] != cbdimval, constants.TP_TYPE_NAME, constants.CB_TYPE_NAME)
+        return ds
+    
     
     def _get_nvals(self, ds: SwiftestDataset) -> SwiftestDataset:
         """
@@ -2731,26 +2772,8 @@ class Simulation(object):
         elif "id" in ds.dims:
             count_dim = "id"
             
-        if "particle_type" in ds and constants.CB_TYPE_NAME in ds['particle_type']:
-            cb = ds.isel(time=0)
-            cb = cb[count_dim].where(cb['particle_type'] == constants.CB_TYPE_NAME, drop=True)
-            cbdimval = cb.values[0]
-        else:
-            cbdimval = None
+        ds = self._set_particle_type(ds)
             
-        if "Gmass" in ds:
-            ds['particle_type'] = xr.where((ds[count_dim] != cbdimval) 
-                                           & np.isnan(ds['Gmass']) 
-                                           | (ds['Gmass'] == 0.0), 
-                                           constants.TP_TYPE_NAME, 
-                                           xr.where(ds[count_dim] != cbdimval, constants.PL_TYPE_NAME, constants.CB_TYPE_NAME))
-            if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
-                ds['particle_type'] = xr.where((ds['particle_type'] == constants.PL_TYPE_NAME) 
-                                               & (ds['Gmass'] < self.param['GMTINY']), 
-                                               constants.PL_TINY_TYPE_NAME, 
-                                               ds['particle_type'])
-        else:
-            ds['particle_type'] = xr.where(ds[count_dim] != cbdimval, constants.TP_TYPE_NAME, constants.CB_TYPE_NAME)
         ds['ntp'] = ds[count_dim].where(ds['particle_type'] == constants.TP_TYPE_NAME).count(dim=count_dim)
         ds['npl'] = ds[count_dim].where(ds['particle_type'] == constants.PL_TYPE_NAME).count(dim=count_dim)
         if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
@@ -3426,6 +3449,8 @@ class Simulation(object):
                     self.data['id'].loc[dict(id=0)] = cbid
                 self.data['id'].loc[dict(id=cbid)] = 0
                 self.data['particle_type'].loc[dict(id=cbid)] = constants.CB_TYPE_NAME
+                
+        self.data = self._set_particle_type(self.data)
             
         # Ensure that the central body is at the origin
         if 'name' in self.data.dims: 

@@ -300,10 +300,20 @@ class SwiftestDataset(xr.Dataset):
         if isinstance(GMcb, xr.DataArray):
             if 'id' in GMcb.dims:
                 GMcb = GMcb.isel(id=0)
-                GMcb = GMcb.expand_dims(dim={"id": self.id})
             elif 'name' in GMcb.dims:
                 GMcb = GMcb.isel(name=0)
-                GMcb = GMcb.expand_dims(dim={"name": self.name})
+                
+        if isinstance(GMcb, xr.DataArray):
+            if 'id' in GMcb.dims:
+                GMcb = GMcb.isel(id=0)
+            elif 'name' in GMcb.dims:
+                GMcb = GMcb.isel(name=0)
+        else:
+            GMcb = xr.DataArray(data = GMcb)
+            
+        for dim in self.dims:
+            if dim not in GMcb.dims and dim != 'space':
+                GMcb = GMcb.expand_dims(dim={dim: self[dim]}) 
                 
         if 'Gmass' in self:
             mu = xr.where(self['Gmass'] > 0.0, GMcb + self['Gmass'], GMcb)
@@ -379,10 +389,14 @@ class SwiftestDataset(xr.Dataset):
         if isinstance(GMcb, xr.DataArray):
             if 'id' in GMcb.dims:
                 GMcb = GMcb.isel(id=0)
-                GMcb = GMcb.expand_dims(dim={"id": self.id})
             elif 'name' in GMcb.dims:
                 GMcb = GMcb.isel(name=0)
-                GMcb = GMcb.expand_dims(dim={"name": self.name})
+        else:
+            GMcb = xr.DataArray(data = GMcb)
+            
+        for dim in self.dims:
+            if dim not in GMcb.dims and dim != 'space':
+                GMcb = GMcb.expand_dims(dim={dim: self[dim]}) 
                 
         if 'Gmass' in self:
             mu = xr.where(self['Gmass'] > 0.0, GMcb + self['Gmass'], GMcb)
