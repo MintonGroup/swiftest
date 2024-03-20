@@ -158,7 +158,7 @@ def horizons_get_physical_properties(altid,jpl=None,**kwargs):
             jpl,_,namelist= horizons_query(id=id,ephemerides_start_date='2023-07-26',verbose=False,**kwargs)
         else:
             namelist = [jpl.table['targetname'][0]]
-        raw_response = jpl.ephemerides_async().text
+        raw_response = jpl.vectors_async().text
         Rpl = get_radius(raw_response) 
         if Rpl is not None:
             Rpl *= 1e3
@@ -254,7 +254,7 @@ def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=
         jpl = Horizons(id=id, location='@sun',
                             epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
                                     'step': ephemerides_step},**kwargs)
-        eph=jpl.ephemerides()
+        _=jpl.ephemerides()
         altid = [id]
         altname =[jpl.table['targetname'][0]]
     except Exception as e:
@@ -264,7 +264,7 @@ def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=
             jpl = Horizons(id=id, location='@sun',
                         epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
                                 'step': ephemerides_step})
-            eph=jpl.ephemerides()
+            _=jpl.ephemerides()
         else:
             print(f"Could not find {id} in the JPL/Horizons system")
             return None,None,None
@@ -387,7 +387,7 @@ def solar_system_horizons(name: str,
             return None
         
         if central_body_name != "Sun":
-            jplcb, altidcb, altnamecb = horizons_query(central_body_name,ephemerides_start_date,**kwargs)
+            jplcb, *_ = horizons_query(central_body_name,ephemerides_start_date,**kwargs)
             cbrx = jplcb.vectors()['x'][0] * DCONV
             cbry = jplcb.vectors()['y'][0] * DCONV
             cbrz = jplcb.vectors()['z'][0] * DCONV
@@ -415,11 +415,11 @@ def solar_system_horizons(name: str,
         # To use the Earth or Pluto alone, simply pass "399" or "999", respectively to name
         if name == "Earth":
             print("Combining mass of Earth and the Moon")
-            Gmass_moon,tmp,tmp = horizons_get_physical_properties(["301"],**kwargs)
+            Gmass_moon,*_ = horizons_get_physical_properties(["301"],**kwargs)
             Gmass += Gmass_moon
         elif name == "Pluto":
             print("Combining mass of Pluto and Charon")
-            Gmass_charon,tmp,tmp = horizons_get_physical_properties(["901"],**kwargs)
+            Gmass_charon,*_ = horizons_get_physical_properties(["901"],**kwargs)
             Gmass += Gmass_charon 
         
         if Gmass is not None:

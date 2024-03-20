@@ -2231,14 +2231,15 @@ class Simulation(object):
             
         if is_central_body and len(name) != 1:
             raise ValueError("If is_central_body is True, then only one body can be added at a time")
-       
-        cbname = "Sun" 
-        if is_central_body:
+      
+        # Sun is the default central body 
+        
+        cbname = "Sun"
+        if is_central_body: # Unless the user specifies otherwise
             cbname = name[0]
-        else:
+        else: # Or there is a central body already defined in the Dataset
             if "particle_type" in self.data.variables and constants.CB_TYPE_NAME in self.data.particle_type:
-                cbname = self.data.where(self.data.particle_type == constants.CB_TYPE_NAME, drop=True)
-                cbname = cbname['name'].values[0]
+                cbname = self.data['name'].where(self.data.isel(time=0).particle_type == constants.CB_TYPE_NAME, drop=True).values[0]
         
         body_list = []
         for i,n in enumerate(name):
@@ -2288,9 +2289,31 @@ class Simulation(object):
         
         if is_central_body:
             dsnew['particle_type'] = xr.full_like(dsnew['name'], constants.CB_TYPE_NAME)
+            dsnew['particle_type'] = dsnew['particle_type'].expand_dims(dim={"time":1}, axis=0).assign_coords({"time": dsnew.time.values})
         else:
             dsnew['particle_type'] = xr.where(dsnew['id'] == 0, constants.CB_TYPE_NAME, "")
-
+            dsnew['particle_type'] = dsnew['particle_type'].expand_dims(dim={"time":1}, axis=0).assign_coords({"time": dsnew.time.values})
+            
+            if constants.CB_TYPE_NAME in dsnew['particle_type']:
+                cbname = dsnew['name'].where(dsnew.isel(time=0)['particle_type'] == constants.CB_TYPE_NAME,drop=True).values[0]
+                GMcb = dsnew['Gmass'].where(dsnew['particle_type'] == constants.CB_TYPE_NAME, drop=True)
+            elif constants.CB_TYPE_NAME in self.data.particle_type:
+                cbname = self.data['name'].where(self.data.isel(time=0)['particle_type'] == constants.CB_TYPE_NAME,drop=True).values[0]
+                GMcb = self.data['Gmass'].where(self.data['particle_type'] == constants.CB_TYPE_NAME, drop=True)
+            else:
+                cbname = "Sun"
+                GMcb = self.GU * (constants.MSun / self.MU2KG)
+                
+            
+            if align_to_central_body_rotation: 
+                jpl,altid,altname = init_cond.horizons_query(cbname,date)
+                _,_,rot = init_cond.horizons_get_physical_properties(altid,jpl)
+                if rot is not None:
+                    rot *= self.param['TU2S']
+                    dsnew = dsnew.rotate(pole=rot)
+                    
+            dsnew = dsnew.xv2el(GMcb)
+             
         dsnew = self._combine_and_fix_dsnew(dsnew,align_to_central_body_rotation, **kwargs)
         if dsnew['id'].max(dim='name') > 0 and dsnew['name'].size > 0:
            self.save(verbose=False)
@@ -3437,7 +3460,9 @@ class Simulation(object):
         else:
             raise ValueError("No 'name' or 'id' dimensions found in dataset.")
        
+        recompute_el = False 
         if cbid != 0:
+            recompute_el = True
             if 'name' in self.data.dims:
                 if 0 in self.data.id.values:
                     name_0 = self.data.name.where(self.data.id == 0, drop=True).values[()]
@@ -3458,18 +3483,18 @@ class Simulation(object):
         else:
             cbda = self.data.sel(id=cbid).isel(id=0)
       
-        recompute_el = False 
         pos_skip = ['space','Ip','rot']
         for var in self.data.variables:
             if 'space' in self.data[var].dims and var not in pos_skip and not np.isnan(self.data[var].values).any():
-                if np.any(self.data[var].values != 0.0):
+                if np.any(cbda[var].values != 0.0):
                     recompute_el = True
                     self.data[var] -= cbda[var]
-                
-        if align_to_central_body_rotation and 'rot' in cbda:
+               
+        # If the central body origin has changed and we expect the system to be aligned with its rotation frame, then rotate the system
+        # before computing the orbital elements 
+        if align_to_central_body_rotation and 'rot' in cbda and recompute_el: 
             if "rot" in cbda and not np.isnan(cbda.rot.isel(time=0).values).any():
                 self.data = self.data.rotate(pole=cbda.rot.isel(time=0).values[()])
-                recompute_el = True
        
         if recompute_el:
             self.data = self.data.xv2el()

@@ -49,7 +49,7 @@ class TestSwiftest(unittest.TestCase):
         """
         Tests that the functions xv2el and el2xv are able to convert between position-velocity and orbital elements without any exceptions being raised
         """
-        print("\ntest_000_xv2el2xv: Tests that the functions xv2el and el2xv are able to convert between position-velocity and orbital elements without any exceptions being raised")
+        print("\ntest_xv2el2xv: Tests that the functions xv2el and el2xv are able to convert between position-velocity and orbital elements without any exceptions being raised")
         # Generate a set of random position-velocity vectors
         from swiftest.core import xv2el, el2xv
         
@@ -388,8 +388,175 @@ class TestSwiftest(unittest.TestCase):
             self.assertLess(np.abs(dvarpi_err),dvarpi_limit,msg=f'{dvarpi_err:.2e} /{sim.TU_name} is higher than threshold value of {dvarpi_limit:.2e} "/{sim.TU_name}')
 
         return
-       
+    
+    def test_planetocentric(self):
+        """
+        Tests that Swiftest is able to set up a simulation in a planetocentric frame and that the results are consistent with the expected values
+        """
+        print("\ntest_planetocentric: Compare an unrotated body-centric frame in Swiftest to the JPL Horizons ephemeris ")
+        sim = swiftest.Simulation(simdir=self.simdir)
+        sim.clean()         
         
+        cbname = "Mars"
+        cbcenter = "@4"
+        satname = ["Phobos","Deimos"]
+        sim.add_solar_system_body(cbname, is_central_body=True)
+        sim.add_solar_system_body(satname)
+
+        def get_jpl_data(id):
+            tstart = datetime.date.fromisoformat(sim.ephemeris_date)
+            tstep = datetime.timedelta(days=1)
+            tend = tstart + tstep
+            ephemerides_start_date = sim.ephemeris_date
+            ephemerides_end_date = tend.isoformat()
+            ephemerides_step = '1d' 
+            
+            jpl = Horizons(id=id, location=cbcenter,
+                epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
+                'step': ephemerides_step})
+            eph = jpl.ephemerides()
+            DCONV = swiftest.AU2M / sim.param['DU2M']
+            VCONV = (swiftest.AU2M / swiftest.JD2S) / (sim.param['DU2M'] / sim.param['TU2S'])    
+        
+            vec_tab = jpl.vectors() 
+            rx = vec_tab['x'][0] * DCONV
+            ry = vec_tab['y'][0] * DCONV
+            rz = vec_tab['z'][0] * DCONV
+            vx = vec_tab['vx'][0] * VCONV
+            vy = vec_tab['vy'][0] * VCONV
+            vz = vec_tab['vz'][0] * VCONV
+            
+            elem_tab = jpl.elements()
+            
+            a = elem_tab['a'][0] * DCONV
+            e = elem_tab['e'][0]
+            inc = elem_tab['incl'][0]
+            capom = elem_tab['Omega'][0]
+            omega = elem_tab['w'][0]
+            capm = elem_tab['M'][0]
+
+            rh = np.array([rx,ry,rz]) 
+            vh = np.array([vx,vy,vz]) 
+            elem = np.array([a,e,inc,capom,omega,capm])
+            return rh,vh,elem
+                
+        for sat in satname:
+            sim_rh = sim.init_cond.sel(name=sat,time=0).rh.values
+            sim_vh = sim.init_cond.sel(name=sat,time=0).vh.values
+            sim_elem = np.array([sim.init_cond[var].sel(name=sat,time=0).values.item() for var in ['a','e','inc','capom','omega','capm']])
+            
+            jpl_rh,jpl_vh,jpl_elem = get_jpl_data(sat)
+            self.assertTrue(np.allclose(sim_rh,jpl_rh),msg=f"Error in rh for {sat}: {sim_rh - jpl_rh}")
+            self.assertTrue(np.allclose(sim_vh,jpl_vh),msg=f"Error in vh for {sat}: {sim_vh - jpl_vh}") 
+            self.assertTrue(np.allclose(sim_elem,jpl_elem, rtol=1e-4),msg=f"Error in elements for {sat}: {sim_elem - jpl_elem}") 
+            
+        return
+   
+    def test_central_body_rotation(self):
+        """
+        Tests that Swiftest is able to rotate solar system bodies into the equatorial frame of a central body correctly.
+        """
+        print("\ntest_central_body_rotation: Tests that Swiftest is able to rotate solar system bodies into the equatorial frame of a central body correctly")
+        sim = swiftest.Simulation(simdir=self.simdir)
+        sim.clean()
+        # Precomputed values for [Mars, Phobos, and Deimos] in the ecliptic and Mars equatorial frames
+        inc_vals = {"ecliptic": np.array([ np.nan, 26.55406151, 24.06273241]),
+                    "mars equator": np.array([np.nan, 1.0753048, 2.6925768])}
+        rot_vals = {"ecliptic": np.array([[ 57176.72129971,  -7162.31013346, 114478.65911179],
+                                                [183617.63838933, -15311.68519899, 368719.81695279], 
+                                                [ 42015.96468119,  -6035.89004401,  95062.95557518]]),
+                    "mars equator": np.array([[-7.60184592e-28,  0.00000000e+00,  1.28163331e+05],
+                                        [-3.81633732e+02,  7.73720290e+03,  4.12121558e+05],
+                                        [-4.89032977e+03, -1.60117170e+02,  1.03994220e+05]])}
+        
+        # No rotation should keep it in the ecliptic frame 
+        sim.add_solar_system_body(["Mars","Phobos","Deimos"]) # Default should be ecliptic
+        sim_inc = sim.init_cond.isel(time=0).inc.values
+        sim_rot = sim.init_cond.isel(time=0).rot.values
+
+        inc_close = np.allclose(sim_inc,inc_vals["ecliptic"],equal_nan=True)
+        rot_close = np.allclose(sim_rot,rot_vals["ecliptic"])
+        
+        self.assertTrue(inc_close,msg=f"Error in inclination 1")
+        self.assertTrue(rot_close,msg=f"Error in rotation 1")
+
+        # Rotating to match the Mars pole
+        sim = swiftest.Simulation()
+        sim.clean()
+
+        sim.add_solar_system_body(["Mars","Phobos","Deimos"],align_to_central_body_rotation=True)
+        sim_inc = sim.init_cond.isel(time=0).inc.values
+        sim_rot = sim.init_cond.isel(time=0).rot.values
+
+        inc_close = np.allclose(sim_inc,inc_vals["mars equator"],equal_nan=True)
+        rot_close = np.allclose(sim_rot,rot_vals["mars equator"])        
+       
+        self.assertTrue(inc_close,msg=f"Error in inclination 2")
+        self.assertTrue(rot_close,msg=f"Error in rotation 2")
+        
+        sim = swiftest.Simulation()
+        sim.clean()
+
+        # Mix and match
+        sim.add_solar_system_body("Mars") # ecliptic
+        sim.add_solar_system_body(["Phobos","Deimos"],align_to_central_body_rotation=True) # mars equator
+        sim_inc = sim.init_cond.isel(time=0).inc.values
+        sim_rot = sim.init_cond.isel(time=0).rot.values
+
+        inc_close = np.allclose(sim_inc[1:],inc_vals["mars equator"][1:]) 
+        rot_close = np.allclose(sim_rot[0:1],rot_vals["ecliptic"][0:1]) and np.allclose(sim_rot[1:],rot_vals["mars equator"][1:]) 
+        
+        self.assertTrue(inc_close,msg=f"Error in inclination 3")
+        self.assertTrue(rot_close,msg=f"Error in rotation 3")
+
+        sim = swiftest.Simulation()
+        sim.clean()
+
+        sim.add_solar_system_body("Mars",align_to_central_body_rotation=True)
+        sim.add_solar_system_body(["Phobos","Deimos"]) # ecliptic 
+        sim_inc = sim.init_cond.isel(time=0).inc.values
+        sim_rot = sim.init_cond.isel(time=0).rot.values
+
+        inc_close = np.allclose(sim_inc[1:],inc_vals["ecliptic"][1:]) 
+        rot_close = np.allclose(sim_rot[0:1],rot_vals["mars equator"][0:1]) and np.allclose(sim_rot[1:],rot_vals["ecliptic"][1:]) 
+        
+        self.assertTrue(inc_close,msg=f"Error in inclination 4")
+        self.assertTrue(rot_close,msg=f"Error in rotation 4")
+
+        sim = swiftest.Simulation()
+        sim.clean()
+
+
+        sim.add_solar_system_body("Mars",align_to_central_body_rotation=True)
+        sim.add_solar_system_body("Phobos") # ecliptic
+        sim.add_solar_system_body("Deimos",align_to_central_body_rotation=True) # mars equator
+        sim_inc = sim.init_cond.isel(time=0).inc.values
+        sim_rot = sim.init_cond.isel(time=0).rot.values
+
+        inc_close = np.allclose(sim_inc[1:2],inc_vals["ecliptic"][1:2]) and np.allclose(sim_inc[2:],inc_vals["mars equator"][2:])
+        rot_close = np.allclose(sim_rot[0:1],rot_vals["mars equator"][0:1]) and np.allclose(sim_rot[1:2],rot_vals["ecliptic"][1:2]) and np.allclose(sim_rot[2:],rot_vals["mars equator"][2:])
+        
+        self.assertTrue(inc_close,msg=f"Error in inclination 5")
+        self.assertTrue(rot_close,msg=f"Error in rotation 5")
+
+        sim = swiftest.Simulation()
+        sim.clean()
+
+        sim.add_solar_system_body("Mars",align_to_central_body_rotation=True)
+        sim.add_solar_system_body("Phobos",align_to_central_body_rotation=True) # mars equator
+        sim.add_solar_system_body("Deimos") # ecliptic
+        sim_inc = sim.init_cond.isel(time=0).inc.values
+        sim_rot = sim.init_cond.isel(time=0).rot.values
+
+        inc_close = np.allclose(sim_inc[1:2],inc_vals["mars equator"][1:2]) and np.allclose(sim_inc[2:],inc_vals["ecliptic"][2:])
+        rot_close = np.allclose(sim_rot[0:2],rot_vals["mars equator"][0:2]) and np.allclose(sim_rot[2:2],rot_vals["ecliptic"][2:]) 
+        
+        self.assertTrue(inc_close,msg=f"Error in inclination 6")
+        self.assertTrue(rot_close,msg=f"Error in rotation 6")
+        
+        return 
+
+         
 if __name__ == '__main__':
     os.environ["HDF5_USE_FILE_LOCKING"]="FALSE"
     unittest.main()
