@@ -2184,7 +2184,7 @@ class Simulation(object):
             The source of the ephemerides.
             Currently only the JPL Horizons ephemeris is implemented, so this is ignored.
         align_to_central_body_rotation : bool, default False
-            If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
+            If True, the cartesian coordinates will be aligned to the rotation pole of the central body. Otherwise, the This is only valid for when
             rotation is enabled.
         is_central_body : bool, default False
             If True, the body is the central body of the system. This is automatically set if "Sun" is the body requested. Otherwise,
@@ -3467,7 +3467,7 @@ class Simulation(object):
                     self.data[var] -= cbda[var]
                 
         if align_to_central_body_rotation and 'rot' in cbda:
-            if not np.isnan(cbda.rot.isel(time=0).values).any():
+            if "rot" in cbda and not np.isnan(cbda.rot.isel(time=0).values).any():
                 self.data = self.data.rotate(pole=cbda.rot.isel(time=0).values[()])
                 recompute_el = True
        
