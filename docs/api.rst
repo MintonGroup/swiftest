@@ -202,6 +202,19 @@ Miscellaneous helper functions
     swiftest.tool.wrap_angle
     swiftest.tool.follow_swift
 
+
+Core
+----
+
+Compiled Fortran routines for the core of the Swiftest project.
+
+.. autosummary::
+   :toctree: generated/
+
+   swiftest.core.driver
+   swiftest.core.el2xv
+   swiftest.core.xv2el
+
 Constants
 =========
 
