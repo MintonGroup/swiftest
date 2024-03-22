@@ -2153,7 +2153,6 @@ class Simulation(object):
                               date: str | None = None,
                               source: str = "HORIZONS", 
                               align_to_central_body_rotation: bool = False,
-                              is_central_body: bool = False,
                               **kwargs: Any
                               ) -> None:
         """
@@ -2170,7 +2169,6 @@ class Simulation(object):
         To obtain initial conditions for either Earth or Pluto alone, pass `ephemeris_id` == "399" for Earth or 
         `ephemeris_id` == "999" for Pluto.  
 
-
         Parameters
         ----------
         name : str, optional | List[str]
@@ -2186,9 +2184,6 @@ class Simulation(object):
         align_to_central_body_rotation : bool, default False
             If True, the cartesian coordinates will be aligned to the rotation pole of the central body. Otherwise, the This is only valid for when
             rotation is enabled.
-        is_central_body : bool, default False
-            If True, the body is the central body of the system. This is automatically set if "Sun" is the body requested. Otherwise,
-            you must set this to True if you want the body to be the central body.
         **kwargs : Any
             Additional keyword arguments to pass to the query method (i.e. astroquery.Horizons)
             
@@ -2197,6 +2192,7 @@ class Simulation(object):
         None
             initial conditions data stored as a SwiftestDataset in the init_cond instance variable
         """
+        from .constants import CB_TYPE_NAME, MSun
         
         if name == None and ephemeris_id == None:
             warnings.warn("Either `name` and/or `ephemeris_id` must be supplied to add_solar_system_body")
@@ -2229,17 +2225,11 @@ class Simulation(object):
         if source.upper() != "HORIZONS":
             warnings.warn("Currently only the JPL Horizons ephemeris service is supported",stacklevel=2)
             
-        if is_central_body and len(name) != 1:
-            raise ValueError("If is_central_body is True, then only one body can be added at a time")
-      
         # Sun is the default central body 
-        
-        cbname = "Sun"
-        if is_central_body: # Unless the user specifies otherwise
-            cbname = name[0]
-        else: # Or there is a central body already defined in the Dataset
-            if "particle_type" in self.data.variables and constants.CB_TYPE_NAME in self.data.particle_type:
-                cbname = self.data['name'].where(self.data.isel(time=0).particle_type == constants.CB_TYPE_NAME, drop=True).values[0]
+        if "particle_type" in self.data.variables and CB_TYPE_NAME in self.data.particle_type:
+            cbname = self.data['name'].where(self.data.isel(time=0).particle_type == CB_TYPE_NAME, drop=True).values[0]
+        else:
+            cbname = "Sun"
         
         body_list = []
         for i,n in enumerate(name):
@@ -2252,71 +2242,59 @@ class Simulation(object):
            print("No valid bodies found")
            return 
         elif len(body_list) == 1:
-            values = list(np.hsplit(np.array(body_list[0],dtype=np.dtype(object)),17))
+            values = list(np.hsplit(np.array(body_list[0],dtype=np.dtype(object)),10))
         else:
-            values = list(np.squeeze(np.hsplit(np.array(body_list,np.dtype(object)),17)))
-        keys = ["id","name","a","e","inc","capom","omega","capm","rh","vh","Gmass","radius","rhill","Ip","rot","j2rp2","j4rp4"]
-        kwargs = dict(zip(keys,values))
-        scalar_floats = ["a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4"]
+            values = list(np.squeeze(np.hsplit(np.array(body_list,np.dtype(object)),10)))
+        keys = ["name","rh","vh","Gmass","radius","rhill","Ip","rot","j2rp2","j4rp4"]
+        vec2xr_kwargs = dict(zip(keys,values))
+        scalar_floats = ["Gmass","radius","rhill","j2rp2","j4rp4"]
         vector_floats = ["rh","vh","Ip","rot"]
         scalar_ints = ["id"]
 
-        for k,v in kwargs.items():
+        for k,v in vec2xr_kwargs.items():
             if k in scalar_ints:
                 v[v == None] = -1
-                kwargs[k] = v.astype(int)
+                vec2xr_kwargs[k] = v.astype(int)
             elif k in scalar_floats:
-                kwargs[k] = v.astype(np.float64)
-                if all(np.isnan(kwargs[k])):
-                    kwargs[k] = None
+                vec2xr_kwargs[k] = v.astype(np.float64)
+                if all(np.isnan(vec2xr_kwargs[k])):
+                    vec2xr_kwargs[k] = None
             elif k in vector_floats:
-                kwargs[k] = np.vstack(v)
-                kwargs[k] = kwargs[k].astype(np.float64)
-                if np.all(np.isnan(kwargs[k])):
-                    kwargs[k] = None
+                vec2xr_kwargs[k] = np.vstack(v)
+                vec2xr_kwargs[k] = vec2xr_kwargs[k].astype(np.float64)
+                if np.all(np.isnan(vec2xr_kwargs[k])):
+                    vec2xr_kwargs[k] = None
 
-        kwargs['time'] = np.array([self.param['TSTART']])
+        vec2xr_kwargs['time'] = np.array([self.param['TSTART']])
         
-        if len(self.data) == 0:
-            maxid = -1
-        else:
-            maxid = self.data.id.max().values[()]
+        # Create a Dataset containing the new bodies
+        dsnew = init_cond.vec2xr(self.param,**vec2xr_kwargs)
+        dsnew = self._set_id_number(dsnew)
+        dsnew = self._set_particle_type(dsnew)
+        if 'particle_type' in self.data:
+            if CB_TYPE_NAME in self.data['particle_type'] and CB_TYPE_NAME in dsnew['particle_type']:
+                self.data = self._set_particle_type(self.data) # Make sure we update the original dataset if there is going to be a central body change
 
-        nbodies = kwargs["name"].size
-        kwargs['id'] = np.where(kwargs['id'] < 0,np.arange(start=maxid+1,stop=maxid+1+nbodies,dtype=int),kwargs['id'])
-        
-        dsnew = init_cond.vec2xr(self.param,**kwargs)
-        
-        if is_central_body:
-            dsnew['particle_type'] = xr.full_like(dsnew['name'], constants.CB_TYPE_NAME)
-            dsnew['particle_type'] = dsnew['particle_type'].expand_dims(dim={"time":1}, axis=0).assign_coords({"time": dsnew.time.values})
+        if CB_TYPE_NAME in dsnew['particle_type']:
+            cbname = dsnew['name'].where(dsnew['particle_type'] == CB_TYPE_NAME,drop=True).values[0]
+            GMcb = dsnew['Gmass'].sel(name=cbname)
+        elif CB_TYPE_NAME in self.data.particle_type:
+            cbname = self.data['name'].where(self.data['particle_type'] == CB_TYPE_NAME,drop=True).values[0]
+            GMcb = self.data['Gmass'].sel(name=cbname)
         else:
-            dsnew['particle_type'] = xr.where(dsnew['id'] == 0, constants.CB_TYPE_NAME, "")
-            dsnew['particle_type'] = dsnew['particle_type'].expand_dims(dim={"time":1}, axis=0).assign_coords({"time": dsnew.time.values})
-            
-            if constants.CB_TYPE_NAME in dsnew['particle_type']:
-                cbname = dsnew['name'].where(dsnew.isel(time=0)['particle_type'] == constants.CB_TYPE_NAME,drop=True).values[0]
-                GMcb = dsnew['Gmass'].where(dsnew['particle_type'] == constants.CB_TYPE_NAME, drop=True)
-            elif constants.CB_TYPE_NAME in self.data.particle_type:
-                cbname = self.data['name'].where(self.data.isel(time=0)['particle_type'] == constants.CB_TYPE_NAME,drop=True).values[0]
-                GMcb = self.data['Gmass'].where(self.data['particle_type'] == constants.CB_TYPE_NAME, drop=True)
-            else:
-                cbname = "Sun"
-                GMcb = self.GU * (constants.MSun / self.MU2KG)
+            raise ValueError("No central body found in either the new dataset or the existing dataset")
+        
+        if align_to_central_body_rotation and cbname not in dsnew['name']: # If a new central body is being added, then the rotation occurs after the two datasets are merged
+            jpl,altid,_ = init_cond.horizons_query(cbname,date)
+            _,_,rot = init_cond.horizons_get_physical_properties(altid,jpl)
+            if rot is not None:
+                rot *= self.param['TU2S']
+                dsnew = dsnew.rotate(pole=rot)
                 
-            
-            if align_to_central_body_rotation: 
-                jpl,altid,altname = init_cond.horizons_query(cbname,date)
-                _,_,rot = init_cond.horizons_get_physical_properties(altid,jpl)
-                if rot is not None:
-                    rot *= self.param['TU2S']
-                    dsnew = dsnew.rotate(pole=rot)
-                    
-            dsnew = dsnew.xv2el(GMcb)
+        dsnew = dsnew.xv2el(GMcb)
              
         dsnew = self._combine_and_fix_dsnew(dsnew,align_to_central_body_rotation, **kwargs)
-        if dsnew['id'].max(dim='name') > 0 and dsnew['name'].size > 0:
-           self.save(verbose=False)
+        self.save(verbose=False)
 
         return
 
@@ -2452,7 +2430,6 @@ class Simulation(object):
 
     def add_body(self,
                  name: str | List[str] | npt.NDArray[np.str_] | None=None,
-                 id: int | list[int] | npt.NDArray[np.int_] | None=None,
                  a: float | List[float] | npt.NDArray[np.float_] | None = None,
                  e: float | List[float] | npt.NDArray[np.float_] | None = None,
                  inc: float | List[float] | npt.NDArray[np.float_] | None = None,
@@ -2472,7 +2449,6 @@ class Simulation(object):
                  J4: float | List[float] | npt.NDArray[np.float_] | None=None,
                  c_lm: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
                  align_to_central_body_rotation: bool = False,
-                 is_central_body: bool = False,
                  verbose: bool = True,
                  **kwargs: Any
                  ) -> None:
@@ -2486,9 +2462,6 @@ class Simulation(object):
         ----------
         name : str or array-like of str, optional
             Name or names of Bodies. If none passed, name will be "Body{id}"
-        id : int or array-like of int, optional
-            Unique id values. If not passed, an id will be assigned in ascending order starting from the pre-existing
-            Dataset ids.
         a : float or array-like of float, optional
             semimajor axis for param['IN_FORM'] == "EL"
         e : float or array-like of float, optional
@@ -2528,8 +2501,6 @@ class Simulation(object):
         align_to_central_body_rotation : bool, default False
             If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
             rotation is enabled.
-        is_central_body : bool, default False
-            If True, the body is a central body with its cartesian state vectors set to the origin.
         verbose : bool, default True
             If True, prints the values of the added bodies
         
@@ -2538,6 +2509,7 @@ class Simulation(object):
         None
             Sets the data and init_cond instance variables each with a SwiftestDataset containing the body or bodies that were added
         """
+        from .constants import CB_TYPE_NAME
 
         #convert all inputs to numpy arrays
         def input_to_array(val,t,n=None):
@@ -2624,7 +2596,6 @@ class Simulation(object):
         capom,nbodies = input_to_array(capom,"f",nbodies)
         omega,nbodies = input_to_array(omega,"f",nbodies)
         capm,nbodies = input_to_array(capm,"f",nbodies)
-        id,nbodies = input_to_array(id,"i",nbodies)
         mass,nbodies = input_to_array(mass,"f",nbodies)
         Gmass,nbodies = input_to_array(Gmass,"f",nbodies)
         rhill,nbodies = input_to_array(rhill,"f",nbodies)
@@ -2640,21 +2611,13 @@ class Simulation(object):
 
         c_lm, nbodies = input_to_clm_array(c_lm, nbodies)
 
-        if len(self.data) == 0:
-            maxid = -1
-        else:
-            maxid = self.data.id.max().values[()]
-
-        if id is None:
-            id = np.arange(start=maxid+1,stop=maxid+1+nbodies,dtype=int)
-
         if name is None:
+            if len(self.data) == 0:
+                maxid = -1
+            else:
+                maxid = self.data.id.max().values[()]
+            id = np.arange(start=maxid+1,stop=maxid+1+nbodies,dtype=int)
             name=np.char.mod(f"Body%d",id)
-
-        if len(self.data) > 0:
-            dup_id = np.in1d(id, self.data.id)
-            if any(dup_id):
-                raise ValueError(f"Duplicate ids detected: ", *id[dup_id])
 
         time = [self.param['TSTART']]
 
@@ -2664,21 +2627,6 @@ class Simulation(object):
             else: 
                 Gmass = self.GU * mass
      
-        if is_central_body: 
-            if nbodies > 1:
-                raise ValueError("Only one central body may be passed.")
-            if J2 is not None or J4 is not None:
-                is_central_body = True
-                if c_lm is not None:
-                    raise ValueError("Cannot use J2/J4 and c_lm inputs simultaneously!")
-            if c_lm is not None:
-                is_central_body = True
-        else: 
-            if J2 is not None or J4 is not None:
-                raise ValueError("J2 and J4 can only be used for central bodies.")
-            if c_lm is not None:
-                raise ValueError("c_lm can only be used for central bodies.")
-           
         if rh is not None and vh is None:
             raise ValueError("If rh is passed, vh must also be passed")
         if vh is not None and rh is None:
@@ -2687,7 +2635,7 @@ class Simulation(object):
         if rh is not None:
             if a is not None or e is not None or inc is not None or capom is not None or omega is not None or capm is not None:
                 raise ValueError("Only cartesian values or orbital elements may be passed, but not both.")
-        elif not is_central_body:
+        else:
             if a is None: 
                 raise ValueError("Orbital element input requires at least a value for a (semimajor axis)")
             if e is None:
@@ -2701,39 +2649,110 @@ class Simulation(object):
             if capm is None:
                 capm = np.zeros_like(a) 
         
-        if is_central_body:
-            if a is not None or e is not None or inc is not None or capom is not None or omega is not None or capm is not None:
-                raise ValueError("Orbital elements cannot be passed for a central body.")
-            if nbodies > 1:
-                raise ValueError("Only one central body may be passed.")
-            if rh is None:
-                rh = np.zeros((1,3))
-            if vh is None:
-                vh = np.zeros((1,3))
-            a = np.array([np.nan])
-            e = np.array([np.nan])
-            inc = np.array([np.nan])
-            capom = np.array([np.nan])
-            omega = np.array([np.nan])
-            capm = np.array([np.nan])
-           
         if verbose:
             for n in name:
                 print(f"Adding {n}") 
-        dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
+        dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm,
                                  Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, c_lm=c_lm, rotphase=rotphase, time=time)
 
-        if not is_central_body:
-            GMcb = self.data['Gmass'].where(self.data['particle_type'] == constants.CB_TYPE_NAME, drop=True)
-            if rh is None or vh is None:
-                dsnew = dsnew.el2xv(GMcb)
-            if a is None:
-                dsnew = dsnew.xv2el(GMcb)
-            dsnew = self._combine_and_fix_dsnew(dsnew,align_to_central_body_rotation,**kwargs)
+        dsnew = self._set_id_number(dsnew)
+        dsnew = self._set_particle_type(dsnew)
+        if 'particle_type' in self.data:
+            if CB_TYPE_NAME in self.data['particle_type'] and CB_TYPE_NAME in dsnew['particle_type']:
+                self.data = self._set_particle_type(self.data) # Make sure we update the original dataset if there is going to be a central body change      
+                
+        if CB_TYPE_NAME in dsnew['particle_type']:
+            cbname = dsnew['name'].where(dsnew['particle_type'] == CB_TYPE_NAME,drop=True).values[0]
+            GMcb = dsnew['Gmass'].sel(name=cbname)
+        elif CB_TYPE_NAME in self.data.particle_type:
+            cbname = self.data['name'].where(self.data['particle_type'] == CB_TYPE_NAME,drop=True).values[0]
+            GMcb = self.data['Gmass'].sel(name=cbname)
+        else:
+            raise ValueError("No central body found in either the old or new Dataset")                  
+                
+        if rh is None or vh is None:
+            dsnew = dsnew.el2xv(GMcb)
+        if a is None:
+            dsnew = dsnew.xv2el(GMcb)
+            
+        dsnew = self._combine_and_fix_dsnew(dsnew,align_to_central_body_rotation,**kwargs)
         self.save(verbose=False)
 
         return
     
+    def _set_id_number(self, ds: SwiftestDataset) -> SwiftestDataset:
+        """
+        Sets the id numbers for new bodies to be added to the Dataset. It will set the most massive body of both the old and new 
+        Dataset to have id=0 to indicate that it is to be considered the central body.
+        
+        Parameters
+        ----------
+        ds : SwiftestDataset
+            Dataset to evaluate
+            
+        Returns
+        -------
+        ds : SwiftestDataset
+            Dataset with updated id values. 
+            
+        Notes
+        -----
+        If a body from the new Dataset is found to be more massive than one from the existing Dataset, then the id of the old central
+        body will be modified to no longer be id==0. 
+        """
+       
+        # Make sure neither the old nor the new Dataset is indexed by id, as these will shift
+        if 'id' in ds.dims:
+            ds = ds.swap_dims({"id":"name"})
+        if 'id' in self.data.dims:
+            self.data = self.data.swap_dims({"id":"name"})
+            
+        nnew = ds.name.size
+        if 'name' in self.data:
+            nold = self.data.name.size
+        else:
+            nold = 0
+             
+        # Increment id numbers 
+        if len(self.data) == 0:
+            maxid = 0
+        else:
+            maxid = self.data.id.max().values[()]
+            
+        # Find out which body will be the central body (i.e. the most massive)
+        if 'Gmass' in ds:
+            new_bigidx = ds['Gmass'].argmax(dim='name')
+            new_bigname = ds['name'].isel(name=new_bigidx).values[()]
+            new_Gmass = ds['Gmass'].isel(name=new_bigidx).values[0]
+        else:
+            new_bigname = None
+
+        if 'Gmass' in self.data:
+            old_bigidx = self.data['Gmass'].argmax(dim='name')
+            old_bigname = self.data['name'].isel(name=old_bigidx).values[()]
+            old_Gmass = self.data['Gmass'].isel(name=old_bigidx).values[0]
+        else:
+            old_bigname = None
+           
+        if new_bigname is None and old_bigname is None:
+            raise ValueError("No central body found in either the old or new Dataset")
+       
+        # Establish a new id variable for the new Dataset 
+        ds['id'] = xr.DataArray(np.arange(start=maxid+1,stop=maxid+1+nnew,dtype=int),dims="name")
+        if old_bigname is None:
+            oldid = ds['id'].sel(name=new_bigname).values[()]
+            ds['id'].loc[{"name":new_bigname}] = 0
+            # Ensure we don't have a gap:
+            ds['id'] = xr.where(ds['id'] > oldid, ds['id'] - 1, ds['id']) 
+        elif new_bigname is not None:
+            if new_Gmass > old_Gmass:
+                oldid = ds['id'].sel(name=new_bigname).values[()]
+                ds['id'].loc[{"name":new_bigname}] = 0
+                self.data['id'].loc[{"name":old_bigname}] = oldid
+                
+        return SwiftestDataset(ds)
+    
+       
     def _set_particle_type(self, ds: SwiftestDataset) -> SwiftestDataset:
         """
         Sets the particle type based on the values of Gmass. 
@@ -2748,31 +2767,21 @@ class Simulation(object):
         ds : SwiftestDataset
             Dataset with updated particle type values. 
         """
-        if "name" in ds.dims:
-            count_dim = "name"
-        elif "id" in ds.dims:
-            count_dim = "id"
-            
-        if "particle_type" in ds and constants.CB_TYPE_NAME in ds['particle_type']:
-            cb = ds.isel(time=0)
-            cb = cb[count_dim].where(cb['particle_type'] == constants.CB_TYPE_NAME, drop=True)
-            cbdimval = cb.values[0]
-        else:
-            cbdimval = None            
-            
+        from .constants import TP_TYPE_NAME, PL_TYPE_NAME, CB_TYPE_NAME, PL_TINY_TYPE_NAME
+        
         if "Gmass" in ds:
-            ds['particle_type'] = xr.where((ds[count_dim] != cbdimval) 
-                                           & np.isnan(ds['Gmass']) 
-                                           | (ds['Gmass'] == 0.0), 
-                                           constants.TP_TYPE_NAME, 
-                                           xr.where(ds[count_dim] != cbdimval, constants.PL_TYPE_NAME, constants.CB_TYPE_NAME))
+            Gmass = ds.isel(time=0).Gmass
+            ds['particle_type'] = xr.where(ds['id'] == 0, CB_TYPE_NAME, 
+                                                          xr.where(np.isnan(Gmass) | (Gmass == 0.0), TP_TYPE_NAME, 
+                                                                                                     PL_TYPE_NAME)
+                                            )
             if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
-                ds['particle_type'] = xr.where((ds['particle_type'] == constants.PL_TYPE_NAME) 
-                                               & (ds['Gmass'] < self.param['GMTINY']), 
-                                               constants.PL_TINY_TYPE_NAME, 
+                ds['particle_type'] = xr.where((ds['particle_type'] == PL_TYPE_NAME) 
+                                               & (Gmass < self.param['GMTINY']), 
+                                               PL_TINY_TYPE_NAME, 
                                                ds['particle_type'])
         else:
-            ds['particle_type'] = xr.where(ds[count_dim] != cbdimval, constants.TP_TYPE_NAME, constants.CB_TYPE_NAME)
+            ds['particle_type'] = xr.full_like(ds['name'],TP_TYPE_NAME)
         return ds
     
     
@@ -2794,13 +2803,15 @@ class Simulation(object):
             count_dim = "name"
         elif "id" in ds.dims:
             count_dim = "id"
-            
-        ds = self._set_particle_type(ds)
+           
+        if "particle_type" not in ds: 
+            ds = self._set_particle_type(ds)
             
         ds['ntp'] = ds[count_dim].where(ds['particle_type'] == constants.TP_TYPE_NAME).count(dim=count_dim)
         ds['npl'] = ds[count_dim].where(ds['particle_type'] == constants.PL_TYPE_NAME).count(dim=count_dim)
         if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
             ds['nplm'] = ds[count_dim].where(ds['particle_type'] == constants.PL_TINY_TYPE_NAME).count(dim=count_dim)
+            
         return ds
 
 
@@ -2878,11 +2889,7 @@ class Simulation(object):
             dsnew = SwiftestDataset(dsnew)        
             
         if "id" not in self.data.dims:
-            if len(np.unique(dsnew['name'])) == len(dsnew['name']):
-               dsnew = dsnew.swap_dims({"id" : "name"})
-               if "id" in dsnew:
-                   dsnew = dsnew.reset_coords("id")
-            else:
+            if not len(np.unique(dsnew['name'])) == len(dsnew['name']):
                 msg = "Non-unique names detected for bodies. The Dataset will be dimensioned by integer id instead of name."
                 msg +="\nConsider using unique names instead."
                 print(msg)
@@ -3475,8 +3482,6 @@ class Simulation(object):
                 self.data['id'].loc[dict(id=cbid)] = 0
                 self.data['particle_type'].loc[dict(id=cbid)] = constants.CB_TYPE_NAME
                 
-        self.data = self._set_particle_type(self.data)
-            
         # Ensure that the central body is at the origin
         if 'name' in self.data.dims: 
             cbda =  self.data.sel(name=cbname).isel(name=0)

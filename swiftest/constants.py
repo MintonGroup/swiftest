@@ -11,8 +11,7 @@ If not, see: https://www.gnu.org/licenses.
 
 import numpy as np
 import astropy.constants as const
-import astropy.units as u
-from astropy.coordinates import SkyCoord
+
 from typing import Union, Tuple, List
 
 # Constants in SI units
@@ -27,11 +26,6 @@ GMEarth = const.GM_earth.value
 JD2S = 86400
 YR2S = 365.25 * JD2S
 einsteinC = 299792458.0
-# Solar oblatenes values: From Mecheri et al. (2004), using Corbard (b) 2002 values (Table II)
-J2Sun = 2.198e-7
-J4Sun = -4.805e-9
-rotpoleSun = SkyCoord(ra=286.13 * u.degree, dec=63.87 * u.degree).cartesian
-rotSun = (360.0 / 25.05) / JD2S  * rotpoleSun 
 CB_TYPE_NAME = "Central Body"
 PL_TYPE_NAME = "Massive Body"
 TP_TYPE_NAME = "Test Particle"

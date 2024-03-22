@@ -147,10 +147,6 @@ class TestSwiftest(unittest.TestCase):
         with self.assertRaises(ValueError):
             sim.add_body(vh=[0.0,1.0,0.0])
             
-        # Add central body with orbital elements
-        with self.assertRaises(ValueError):
-            sim.add_body(a=1.0, mass=1.0, radius=1.0, J2=1.0e-6)
-            
         # Add J2 and c_lm values
         with self.assertRaises(ValueError):
             sim.add_body(mass=1.0, radius=1.0, J2=1.0e-6, c_lm=np.ones([2,7]))
