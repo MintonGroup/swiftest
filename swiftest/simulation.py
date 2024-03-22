@@ -2151,7 +2151,6 @@ class Simulation(object):
                               name: str | List[str] | None = None,
                               ephemeris_id: int | List[int] | None = None,
                               date: str | None = None,
-                              source: str = "HORIZONS", 
                               align_to_central_body_rotation: bool = False,
                               **kwargs: Any
                               ) -> None:
@@ -2178,9 +2177,6 @@ class Simulation(object):
         date : str, optional
             ISO-formatted date sto use when obtaining the ephemerides in the format YYYY-MM-DD. Defaults to value
             set by `set_ephemeris_date`.
-        source : str, default "Horizons"
-            The source of the ephemerides.
-            Currently only the JPL Horizons ephemeris is implemented, so this is ignored.
         align_to_central_body_rotation : bool, default False
             If True, the cartesian coordinates will be aligned to the rotation pole of the central body. Otherwise, the This is only valid for when
             rotation is enabled.
@@ -2192,7 +2188,7 @@ class Simulation(object):
         None
             initial conditions data stored as a SwiftestDataset in the init_cond instance variable
         """
-        from .constants import CB_TYPE_NAME, MSun
+        from .constants import CB_TYPE_NAME
         
         if name == None and ephemeris_id == None:
             warnings.warn("Either `name` and/or `ephemeris_id` must be supplied to add_solar_system_body")
@@ -2222,9 +2218,6 @@ class Simulation(object):
             warnings.warn(f"{date} is not a valid date format. Must be 'YYYY-MM-DD'. Setting to {self.ephemeris_date}",stacklevel=2)
             date = self.ephemeris_date
 
-        if source.upper() != "HORIZONS":
-            warnings.warn("Currently only the JPL Horizons ephemeris service is supported",stacklevel=2)
-            
         # Sun is the default central body 
         if "particle_type" in self.data.variables and CB_TYPE_NAME in self.data.particle_type:
             cbname = self.data['name'].where(self.data.isel(time=0).particle_type == CB_TYPE_NAME, drop=True).values[0]
