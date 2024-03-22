@@ -3645,7 +3645,7 @@ class Simulation(object):
     
     @MU2KG.setter
     def MU2KG(self, value: FloatLike) -> None:
-        if not isinstance(value, FloatLike):
+        if not isinstance(value, (float, int, np.number)):
             raise TypeError("Mass unit to kilogram conversion value must be a float")
         self._MU2KG = np.float64(value)
         self._KG2MU = 1.0 / self._MU2KG
@@ -3660,7 +3660,7 @@ class Simulation(object):
     
     @KG2MU.setter
     def KG2MU(self, value: FloatLike) -> None:
-        if not isinstance(value, FloatLike):
+        if not isinstance(value, (float, int, np.number)):
             raise TypeError("Kilogram to mass unit conversion value must be a float")
         self._KG2MU = np.float64(value)
         self._MU2KG = 1.0 / self._KG2MU
@@ -3675,7 +3675,7 @@ class Simulation(object):
     
     @DU2M.setter
     def DU2M(self, value: FloatLike) -> None:
-        if not isinstance(value, FloatLike):
+        if not isinstance(value, (float, int, np.number)):
             raise TypeError("Distance unit to meter conversion value must be a float")
         self._DU2M = np.float64(value)
         self._M2DU = 1.0 / self._DU2M
@@ -3690,7 +3690,7 @@ class Simulation(object):
     
     @M2DU.setter
     def M2DU(self, value: FloatLike) -> None:
-        if not isinstance(value, FloatLike):
+        if not isinstance(value, (float, int, np.number)):
             raise TypeError("Meter to distance unit conversion value must be a float")
         self._M2DU = np.float64(value)
         self._DU2M = 1.0 / self._M2DU
@@ -3705,7 +3705,7 @@ class Simulation(object):
     
     @TU2S.setter
     def TU2S(self, value: FloatLike) -> None:
-        if not isinstance(value, FloatLike):
+        if not isinstance(value, (float, int, np.number)):
             raise TypeError("Time unit to second conversion value must be a float")
         self._TU2S = np.float64(value)
         self._S2TU = 1.0 / self._TU2S
@@ -3720,7 +3720,7 @@ class Simulation(object):
     
     @S2TU.setter
     def S2TU(self, value: FloatLike) -> None:
-        if not isinstance(value, FloatLike):
+        if not isinstance(value, (float, int, np.number)):
             raise TypeError("Second to time unit conversion value must be a float")
         self._S2TU = np.float64(value)
         self._TU2S = 1.0 / self._S2TU
@@ -3735,7 +3735,7 @@ class Simulation(object):
     
     @GU.setter
     def GU(self, value: FloatLike) -> None:
-        if not isinstance(value, FloatLike):
+        if not isinstance(value, (float, int, np.number)):
             raise TypeError("Gravitational constant value must be a float")
         self._GU = np.float64(value)
         return
