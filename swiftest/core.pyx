@@ -42,26 +42,26 @@ def el2xv(cnp.ndarray[cnp.float64_t, ndim=1] mu,
 
     Parameters
     ----------
-    mu : array of floats
+    mu : (N,) array of floats
         Gravitational parameter
-    a : array of floats
+    a : (N,) array of floats
         Semi-major axis
-    e : array of floats
+    e : (N,) array of floats
         Eccentricity
-    inc : array of floats
+    inc : (N,) array of floats
         Inclination (degrees)
-    capom : array of floats
+    capom : (N,) array of floats
         Longitude of the ascending node (degrees)
-    omega : array of floats
+    omega : (N,) array of floats
         Argument of periapsis (degrees)
-    capm : array of floats
+    capm : (N,) array of floats
         Mean anomaly (degrees)
 
     Returns
     -------
-    rh : (n,3) array of floats
+    rh : (N,3) array of floats
         position vector
-    vh : (n,3) array of floats
+    vh : (N,3) array of floats
     """ 
     if not (mu.size == a.size == e.size == inc.size == capom.size == omega.size == capm.size):
         raise ValueError("All input arrays must have the same length")
@@ -70,13 +70,19 @@ def el2xv(cnp.ndarray[cnp.float64_t, ndim=1] mu,
 
     # Ensure memory-contiguous numpy arrays
     mu = np.ascontiguousarray(mu, dtype=np.float64)
+    mu.flags.writeable = True  
     a = np.ascontiguousarray(a, dtype=np.float64)
-    a = np.where(a<0.0,-a, a)
+    a.flags.writeable = True
     e = np.ascontiguousarray(e, dtype=np.float64)
+    e.flags.writeable = True
     inc_rad = np.ascontiguousarray(np.deg2rad(inc), dtype=np.float64)
+    inc_rad.flags.writeable = True
     capom_rad = np.ascontiguousarray(np.deg2rad(capom), dtype=np.float64)
+    capom_rad.flags.writeable = True
     omega_rad = np.ascontiguousarray(np.deg2rad(omega), dtype=np.float64)
+    omega_rad.flags.writeable = True
     capm_rad = np.ascontiguousarray(np.deg2rad(capm), dtype=np.float64)
+    capm_rad.flags.writeable = True
 
     # Make memory view of the numpy arrays and convert angular quantities to radians
     cdef cnp.float64_t[::1] mu_v = mu
@@ -120,7 +126,7 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
 
     Parameters
     ----------
-    mu : array of floats
+    mu : (N,) array of floats
         Gravitational parameter
     rh : (N,3) array of floats
         position vector
@@ -128,27 +134,27 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
 
     Returns
     -------
-    a : array of floats
+    a : (N,) array of floats
         Semi-major axis
-    e : array of floats
+    e : (N,) array of floats
         Eccentricity
-    inc : array of floats
+    inc : (N,) array of floats
         Inclination (degrees)
-    capom : array of floats
+    capom : (N,) array of floats
         Longitude of the ascending node (degrees)
-    omega : array of floats
+    omega : (N,) array of floats
         Argument of periapsis (degrees)
-    capm : array of floats
+    capm : (N,) array of floats
         Mean anomaly (degrees)
-    varpi : array of floats
+    varpi : (N,) array of floats
         Longitude of periapsis (degrees)
-    lam : array of floats
+    lam : (N,) array of floats
         True longitude (degrees)
-    f : array of floats
+    f : (N,) array of floats
         True anomaly (degrees)
-    cape : array of floats
+    cape : (N,) array of floats
         Eccentric anomaly (degrees)
-    capf : array of floats
+    capf : (N,) array of floats
         Eccentric true anomaly (degrees)
     """ 
 
@@ -158,28 +164,21 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
 
     cdef int nbody = mu.size
 
-    # Extracting individual components from 2D arrays
-    rx, ry, rz = rh[:,0], rh[:,1], rh[:,2]
-    vx, vy, vz = vh[:,0], vh[:,1], vh[:,2]
-
     # Ensure memory-contiguous numpy arrays
     mu = np.ascontiguousarray(mu, dtype=np.float64)
-    rx = np.ascontiguousarray(rx, dtype=np.float64)
-    ry = np.ascontiguousarray(ry, dtype=np.float64)
-    rz = np.ascontiguousarray(rz, dtype=np.float64)
-    vx = np.ascontiguousarray(vx, dtype=np.float64)
-    vy = np.ascontiguousarray(vy, dtype=np.float64)
-    vz = np.ascontiguousarray(vz, dtype=np.float64)
+    mu.flags.writeable = True  
+    rh.flags.writeable = True  
+    vh.flags.writeable = True  
 
     # Make memory view of the numpy arrays
     cdef cnp.float64_t[::1] mu_v = mu
-    cdef cnp.float64_t[::1] rx_v = rx
-    cdef cnp.float64_t[::1] ry_v = ry
-    cdef cnp.float64_t[::1] rz_v = rz
-    cdef cnp.float64_t[::1] vx_v = vx
-    cdef cnp.float64_t[::1] vy_v = vy
-    cdef cnp.float64_t[::1] vz_v = vz
-
+    cdef cnp.float64_t[::1] rx_v = np.ascontiguousarray(rh[:, 0], dtype=np.float64)
+    cdef cnp.float64_t[::1] ry_v = np.ascontiguousarray(rh[:, 1], dtype=np.float64)
+    cdef cnp.float64_t[::1] rz_v = np.ascontiguousarray(rh[:, 2], dtype=np.float64)
+    cdef cnp.float64_t[::1] vx_v = np.ascontiguousarray(vh[:, 0], dtype=np.float64)
+    cdef cnp.float64_t[::1] vy_v = np.ascontiguousarray(vh[:, 1], dtype=np.float64)
+    cdef cnp.float64_t[::1] vz_v = np.ascontiguousarray(vh[:, 2], dtype=np.float64)
+ 
     # Create arrays for outputs
     _a = np.empty(nbody, dtype=np.float64)
     _e = np.empty(nbody, dtype=np.float64)
@@ -207,7 +206,10 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
 
     with cython.boundscheck(False):
         with nogil:
-            bindings_orbel_xv2el(nbody, &mu_v[0], &rx_v[0], &ry_v[0], &rz_v[0], &vx_v[0], &vy_v[0], &vz_v[0], &a[0], &e[0], &inc[0], &capom[0], &omega[0], &capm[0], &varpi[0], &lam[0], &f[0], &cape[0], &capf[0])
+            bindings_orbel_xv2el(nbody, &mu_v[0], 
+                                &rx_v[0], &ry_v[0], &rz_v[0], 
+                                &vx_v[0], &vy_v[0], &vz_v[0], 
+                                &a[0], &e[0], &inc[0], &capom[0], &omega[0], &capm[0], &varpi[0], &lam[0], &f[0], &cape[0], &capf[0])
 
     # Convert angular quantities to degrees 
     cdef cnp.ndarray[cnp.float64_t, ndim=1] a_np = np.asarray(a)
@@ -221,6 +223,21 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
     cdef cnp.ndarray[cnp.float64_t, ndim=1] f_np = np.rad2deg(np.asarray(f))
     cdef cnp.ndarray[cnp.float64_t, ndim=1] cape_np = np.rad2deg(np.asarray(cape))
     cdef cnp.ndarray[cnp.float64_t, ndim=1] capf_np = np.rad2deg(np.asarray(capf))
+
+    for i in range(nbody):
+        if (rx_v[i] == 0.0 and ry_v[i] == 0.0 and rz_v[i] == 0.0 and vx_v[i] == 0.0 and vy_v[i] == 0.0 and vz_v[i] == 0.0):
+            a_np[i] = np.nan
+            e_np[i] = np.nan
+            inc_np[i] = np.nan
+            capom_np[i] = np.nan
+            omega_np[i] = np.nan
+            capm_np[i] = np.nan
+            varpi_np[i] = np.nan
+            lam_np[i] = np.nan
+            f_np[i] = np.nan
+            cape_np[i] = np.nan
+            capf_np[i] = np.nan
+
 
     return a_np, e_np, inc_np, capom_np, omega_np, capm_np, varpi_np, lam_np, f_np, cape_np, capf_np
 

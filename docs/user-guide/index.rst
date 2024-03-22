@@ -16,5 +16,6 @@ In this user guide, you will find detailed descriptions and examples that descri
 
    Basic simulation <basic-simulation>
    Detailed simulation setup <detailed-simulation-setup>
+   Planetocentric Initial Conditions <planetocentric-init_cond>
    Using the standalone executable <standalone-executable>
    Using SHTOOLS to model non-spherical central bodies <gravitational-harmonics>

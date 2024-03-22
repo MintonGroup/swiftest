@@ -11,21 +11,21 @@ If not, see: https://www.gnu.org/licenses.
 from __future__ import annotations
 
 import swiftest
+from .data import SwiftestDataset
 import numpy as np
-import numpy.typing as npt
+import numpy.typing as ArrayLike
 from astroquery.jplhorizons import Horizons
 import astropy.units as u
 from astropy.coordinates import SkyCoord
 import datetime
 import xarray as xr
 from typing import (
-    Literal,
     Dict,
     List,
     Any
 )
 
-def horizons_get_physical_properties(altid,**kwargs):
+def horizons_get_physical_properties(altid,jpl=None,**kwargs):
     """
     Parses the raw output from JPL Horizons in order to extract physical properties of a body if they exist
     
@@ -34,12 +34,14 @@ def horizons_get_physical_properties(altid,**kwargs):
     ----------
     altid : list of str
         List of ids to use for Horizons query
+    jpl : HorizonsClass
+        An astroquery.jplhorizons HorizonsClass object. If None, a new query will be made.
     **kwargs: Any
-            Additional keyword arguments to pass to the query method (see https://astroquery.readthedocs.io/en/latest/jplhorizons/jplhorizons.html)
+        Additional keyword arguments to pass to the query method (see https://astroquery.readthedocs.io/en/latest/jplhorizons/jplhorizons.html)
 
     Returns
     -------
-    GMass : float
+    Gmass : float
         G*Mass of the body
     radius : float
         The radius of the body in m
@@ -151,13 +153,18 @@ def horizons_get_physical_properties(altid,**kwargs):
         altid = [altid]
 
     for id in altid:
-        jpl,idlist,namelist = horizons_query(id=id,ephemerides_start_date='2023-07-26',verbose=False,**kwargs)
-        raw_response = jpl.ephemerides_async().text
+        if jpl is None:
+            jpl,_,namelist= horizons_query(id=id,ephemerides_start_date='2023-07-26',verbose=False,**kwargs)
+        else:
+            namelist = [jpl.table['targetname'][0]]
+        raw_response = jpl.vectors_async().text
         Rpl = get_radius(raw_response) 
         if Rpl is not None:
             Rpl *= 1e3
+            rotpole = get_rotpole(jpl)
             break
-    raw_response = jpl.ephemerides_async().text   
+        else:
+            jpl = None
     Gmass = get_Gmass(raw_response)
     if Rpl is None or Gmass is None:
         rot = np.full(3,np.nan) 
@@ -171,7 +178,6 @@ def horizons_get_physical_properties(altid,**kwargs):
         else:
             rotrate = np.rad2deg(rotrate)
 
-        rotpole = get_rotpole(jpl)
         rot = rotpole*rotrate
             
     return Gmass,Rpl,rot
@@ -236,7 +242,6 @@ def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=
         else:
             return None,None
         
-        
     # Horizons date time internal variables
     tstart = datetime.date.fromisoformat(ephemerides_start_date)
     tstep = datetime.timedelta(days=1)
@@ -248,7 +253,7 @@ def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=
         jpl = Horizons(id=id, location='@sun',
                             epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
                                     'step': ephemerides_step},**kwargs)
-        eph=jpl.ephemerides()
+        _=jpl.ephemerides()
         altid = [id]
         altname =[jpl.table['targetname'][0]]
     except Exception as e:
@@ -258,7 +263,7 @@ def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=
             jpl = Horizons(id=id, location='@sun',
                         epochs={'start': ephemerides_start_date, 'stop': ephemerides_end_date,
                                 'step': ephemerides_step})
-            eph=jpl.ephemerides()
+            _=jpl.ephemerides()
         else:
             print(f"Could not find {id} in the JPL/Horizons system")
             return None,None,None
@@ -277,6 +282,7 @@ def solar_system_horizons(name: str,
                           param: Dict,
                           ephemerides_start_date: str,
                           ephemeris_id: str | None = None,
+                          central_body_name: str = "Sun",
                           **kwargs: Any):
     """
     Initializes a Swiftest dataset containing the major planets of the Solar System at a particular data from JPL/Horizons
@@ -297,9 +303,27 @@ def solar_system_horizons(name: str,
 
     Returns
     -------
-    ds : xarray dataset
-        Initial conditions of body formatted for Swiftest
-    
+    name : string
+        Name of the body
+    rh : (3,) array of np.float64
+        Position vector array relative to the central body.
+    vh : (3,) array of np.float64
+        Velocity vector array relative to the central body.
+    Gmass : np.float64
+        G*mass values if these are massive bodies
+    Rpl : np.float64
+        Radius values if these are massive bodies
+    rhill : np.float64 
+        The Hill's radius values if these are massive bodies 
+    Ip : (3,) array of np.float64
+        Principal axes moments of inertia vectors if these are massive bodies.
+    rot : (3,) array of np.float
+        Rotation rate vectors if these are massive bodies in deg/TU
+    j2r2 : np.float64
+        J_2R^2 value for the body if known
+    j4r4 : np.float64
+        J_4R^4 value for the body if known
+         
     Notes
     --------
     When passing `name` == "Earth" or `name` == "Pluto", it a body is generated that has initial conditions matching the system
@@ -319,60 +343,62 @@ def solar_system_horizons(name: str,
         'Neptune': np.longdouble(0.23),
         'Pluto': np.longdouble(0.4)
         }
+   
+    # J2 and J4 for the major planets are from From Murray & Dermott (1999) Table A.4. 
+    # The Sun is from Mecheri et al. (2004), using Corbard (b) 2002 values (Table II)
+    planetJ2 = {
+        'Sun' : np.longdouble(2.198e-7),
+        'Mercury' : np.longdouble(60.0 * 1e-6),
+        'Venus' : np.longdouble(4.0 * 1e-6),
+        'Earth' : np.longdouble(1083.0 * 1e-6),
+        'Mars' : np.longdouble(1960.0 * 1e-6),
+        'Jupiter': np.longdouble(14736.0 * 1e-6),
+        'Saturn': np.longdouble(16298.0 * 1e-6),
+        'Uranus': np.longdouble(3343.0 * 1e-6),
+        'Neptune': np.longdouble(3411.0 * 1e-6),
+    }
+    planetJ4 = { 
+        'Sun' : np.longdouble(-4.805e-9),
+        'Mercury' : np.longdouble(0.0),
+        'Venus' : np.longdouble(2.0 * 1e-6),
+        'Earth' : np.longdouble(-2.0 * 1e-6),
+        'Mars' : np.longdouble(-19.0 * 1e-6),
+        'Jupiter': np.longdouble(-587.0 * 1e-6),
+        'Saturn': np.longdouble(-915.0 * 1e-6),
+        'Uranus': np.longdouble(-29.0 * 1e-6),
+        'Neptune': np.longdouble(-35.0 * 1e-6),
+    }
 
     # Unit conversion factors
     DCONV = swiftest.AU2M / param['DU2M']
     VCONV = (swiftest.AU2M / swiftest.JD2S) / (param['DU2M'] / param['TU2S'])
     THIRDLONG = np.longdouble(1.0) / np.longdouble(3.0)
     
-    # Central body value vectors
-    GMcb = swiftest.GMSun * param['TU2S'] ** 2 / param['DU2M'] ** 3
-    Rcb = swiftest.RSun / param['DU2M']
-    J2RP2 = swiftest.J2Sun * (swiftest.RSun / param['DU2M']) ** 2
-    J4RP4 = swiftest.J4Sun * (swiftest.RSun / param['DU2M']) ** 4
-    
-    rotcb = swiftest.rotSun * param['TU2S'] 
-    rotcb = np.array([rotcb.x.value, rotcb.y.value, rotcb.z.value])
-    Ipsun = np.array([0.0, 0.0, planetIpz['Sun']])
-
     param_tmp = param
     param_tmp['OUT_FORM'] = 'XVEL'
 
     rh = np.full(3,np.nan)
     vh = np.full(3,np.nan)
-    a = None
-    e = None
-    inc = None
-    capom = None
-    omega = None
-    capm = None
     Ip = np.full(3,np.nan)
     rot = np.full(3,np.nan)
     rhill = None
     Gmass = None
     Rpl = None
-    J2 = None
-    J4 = None
+    j2r2 = None
+    j4r4 = None
+   
 
     if name == "Sun" or ephemeris_id == "0": # Create central body
         print("Creating the Sun as a central body")
-        Gmass = GMcb
-        Rpl = Rcb
-        J2 = J2RP2
-        J4 = J4RP4
-        if param['ROTATION']:
-            Ip = Ipsun
-            rot = rotcb
-        if param['IN_FORM'] == 'XV':
-            rh = np.array([0.0, 0.0, 0.0])
-            vh = np.array([0.0, 0.0, 0.0])
-        elif param['IN_FORM'] == 'EL':
-            a = np.nan
-            e = np.nan
-            inc = np.nan
-            capom = np.nan
-            omega = np.nan
-            capm = np.nan
+        # Central body value vectors
+        rotpoleSun = SkyCoord(ra=286.13 * u.degree, dec=63.87 * u.degree).cartesian
+        rotSun = (360.0 / 25.05) / swiftest.JD2S  * rotpoleSun           
+        rot = rotSun * param['TU2S'] 
+        rot = np.array([rot.x.value, rot.y.value, rot.z.value])
+        Gmass = swiftest.GMSun * param['TU2S'] ** 2 / param['DU2M'] ** 3
+        Rpl = swiftest.RSun / param['DU2M']
+        rh = np.array([0.0, 0.0, 0.0])
+        vh = np.array([0.0, 0.0, 0.0])
     else: # Fetch solar system ephemerides from Horizons
         if ephemeris_id is None:
             ephemeris_id = name
@@ -387,66 +413,89 @@ def solar_system_horizons(name: str,
         else:
             return None
         
-        if param['IN_FORM'] == 'XV':
-            rx = jpl.vectors()['x'][0] * DCONV
-            ry = jpl.vectors()['y'][0] * DCONV
-            rz = jpl.vectors()['z'][0] * DCONV
-            vx = jpl.vectors()['vx'][0] * VCONV
-            vy = jpl.vectors()['vy'][0] * VCONV
-            vz = jpl.vectors()['vz'][0] * VCONV
+        if central_body_name != "Sun":
+            jplcb, altidcb, _ = horizons_query(central_body_name,ephemerides_start_date,**kwargs)
+            GMcb,*_ = horizons_get_physical_properties(altidcb,jplcb)
+            GMcb *= param['TU2S'] ** 2 / param['DU2M'] ** 3
+            cbrx = jplcb.vectors()['x'][0] * DCONV
+            cbry = jplcb.vectors()['y'][0] * DCONV
+            cbrz = jplcb.vectors()['z'][0] * DCONV
+            cbvx = jplcb.vectors()['vx'][0] * VCONV
+            cbvy = jplcb.vectors()['vy'][0] * VCONV
+            cbvz = jplcb.vectors()['vz'][0] * VCONV
+            cbrh = np.array([cbrx,cbry,cbrz])
+            cbvh = np.array([cbvx,cbvy,cbvz])
+        else:
+            GMcb = swiftest.GMSun * param['TU2S'] ** 2 / param['DU2M'] ** 3
+            cbrh = np.zeros(3)
+            cbvh = np.zeros(3)
+    
+        rx = jpl.vectors()['x'][0] * DCONV
+        ry = jpl.vectors()['y'][0] * DCONV
+        rz = jpl.vectors()['z'][0] * DCONV
+        vx = jpl.vectors()['vx'][0] * VCONV
+        vy = jpl.vectors()['vy'][0] * VCONV
+        vz = jpl.vectors()['vz'][0] * VCONV
 
-            rh = np.array([rx,ry,rz])
-            vh = np.array([vx,vy,vz])
-        elif param['IN_FORM'] == 'EL':
-            a = jpl.elements()['a'][0] * DCONV
-            e = jpl.elements()['e'][0]
-            inc = jpl.elements()['incl'][0]
-            capom = jpl.elements()['Omega'][0]
-            omega = jpl.elements()['w'][0]
-            capm = jpl.elements()['M'][0]
+        rh = np.array([rx,ry,rz]) - cbrh
+        vh = np.array([vx,vy,vz]) - cbvh
 
-        Gmass,Rpl,rot = horizons_get_physical_properties(altid,**kwargs)
+        Gmass,Rpl,rot = horizons_get_physical_properties(altid,jpl,**kwargs)
         # If the user inputs "Earth" or Pluto, then the Earth-Moon or Pluto-Charon barycenter and combined mass is used. 
         # To use the Earth or Pluto alone, simply pass "399" or "999", respectively to name
         if name == "Earth":
             print("Combining mass of Earth and the Moon")
-            Gmass_moon,tmp,tmp = horizons_get_physical_properties(["301"],**kwargs)
+            Gmass_moon,*_ = horizons_get_physical_properties(["301"],**kwargs)
             Gmass += Gmass_moon
         elif name == "Pluto":
             print("Combining mass of Pluto and Charon")
-            Gmass_charon,tmp,tmp = horizons_get_physical_properties(["901"],**kwargs)
+            Gmass_charon,*_ = horizons_get_physical_properties(["901"],**kwargs)
             Gmass += Gmass_charon 
         
         if Gmass is not None:
             # Convert from SI to system units
             Gmass *= param['TU2S'] ** 2 / param['DU2M'] ** 3
             
-            if param['CHK_CLOSE']:
-                Rpl /= param['DU2M']
+            Rpl /= param['DU2M']
 
             # Generate planet value vectors
-            if (param['RHILL_PRESENT']):
-                rhill = jpl.elements()['a'][0] * DCONV * (3 * Gmass / GMcb) ** (-THIRDLONG)
+            rhill = jpl.elements()['a'][0] * DCONV * (3 * Gmass / GMcb) ** (-THIRDLONG)
 
-            if (param['ROTATION']):
-                rot *= param['TU2S']
-                if name in planetIpz:
-                    Ip = np.array([0.0, 0.0, planetIpz[name]])
-                else:
-                    Ip = np.array([0.4, 0.4, 0.4])
-        else:
-            Gmass = None
-
-    # Only the Sun gets assigned its own special id for now. All other ids will be sorted later
-    if name == "Sun":
-        id = 0
+            rot *= param['TU2S']
+            
+    if name in planetIpz:
+        Ip = np.array([0.0, 0.0, planetIpz[name]])
     else:
-        id = -1
+        Ip = np.array([0.4, 0.4, 0.4])
+               
+    if name in planetJ2:
+        j2r2 = planetJ2[name] * Rpl**2 
+        j4r4 = planetJ4[name] * Rpl**4
 
-    return id,name,a,e,inc,capom,omega,capm,rh,vh,Gmass,Rpl,rhill,Ip,rot,J2,J4
+    return name,rh,vh,Gmass,Rpl,rhill,Ip,rot,j2r2,j4r4
 
 
-def vec2xr(param: Dict, **kwargs: Any):
+def vec2xr(param: Dict, 
+           name: str | ArrayLike[str],
+           id : int | ArrayLike[int] | None = None,
+           a : float | ArrayLike[float] | None = None,
+           e : float | ArrayLike[float] | None = None,
+           inc : float | ArrayLike[float] | None = None,
+           capom : float | ArrayLike[float] | None = None,
+           omega : float | ArrayLike[float] | None = None,
+           capm : float | ArrayLike[float] | None = None,
+           rh : ArrayLike[float] | None = None,
+           vh : ArrayLike[float] | None = None,
+           Gmass : float | ArrayLike[float] | None = None,
+           radius : float | ArrayLike[float] | None = None,
+           rhill : float | ArrayLike[float] | None = None,
+           rot: ArrayLike[float] | None = None,
+           rotphase: float | None = None,
+           Ip: ArrayLike[float] | None = None,
+           j2rp2: float | ArrayLike[float] | None = None,
+           j4rp4: float | ArrayLike[float] | None = None,
+           c_lm: ArrayLike[float] | None = None,
+           time: ArrayLike[float] | None = None) -> SwiftestDataset:
     """
     Converts and stores the variables of all bodies in an xarray dataset.
 
@@ -454,11 +503,10 @@ def vec2xr(param: Dict, **kwargs: Any):
     ----------
     param : dict
         Swiftest simulation parameters.
-    name : str or array-like of str, optional
-        Name or names of Bodies. If none passed, name will be "Body<id>"
+    name : str or array-like of str
+        Name or names of bodies. Bodies are indexed by name, so these must be unique 
     id : int or array-like of int, optional
-        Unique id values. If not passed, an id will be assigned in ascending order starting from the pre-existing
-        Dataset ids.
+        Unique id values. 
     a : float or array-like of float, optional
         semimajor axis for param['IN_FORM'] == "EL"
     e : float or array-like of float, optional
@@ -476,76 +524,118 @@ def vec2xr(param: Dict, **kwargs: Any):
     vh : (n,3) array-like of float, optional
         Velocity vector array. 
     Gmass : float or array-like of float, optional
-        G*mass values if these are massive bodies (only one of mass or Gmass can be passed)
+        G*mass values if these are massive bodies 
     radius : float or array-like of float, optional
         Radius values if these are massive bodies
     rhill : float or array-like of float, optional
         Hill's radius values if these are massive bodies
     rot:  (n,3) array-like of float, optional
         Rotation rate vectors if these are massive bodies with rotation enabled in deg/TU
+    rotphase : float
+        rotational phase angle of the central body in degrees
     Ip: (n,3) array-like of flaot, optional
         Principal axes moments of inertia vectors if these are massive bodies with rotation enabled. This can be used
         instead of passing Ip1, Ip2, and Ip3 separately
-    time : array of floats
-        Time at start of simulation
+    j2rp2 : float or array-like of float, optional
+        J_2R^2 value for the body 
+    j4rp4 : float or array-like of float, optional
+        J_4R^4 value for the body 
     c_lm : (2, lmax + 1, lmax + 1) array of floats, optional
         Spherical Harmonics coefficients; lmax = max spherical harmonics order
-    rotphase : float
-        rotational phase angle of the central body in degrees
+    time : array of floats
+        Time at start of simulation
 
     Returns
     -------
-    ds : xarray dataset
+    ds : SwiftestDataset
         Dataset containing the variables of all bodies passed in kwargs
     """
-    scalar_dims = ['id']
-    vector_dims = ['id','space']
+    
+    # Validate the inputs
+    if name is None:
+        raise ValueError("Name must be passed")
+    
+    if isinstance(name, str):
+        nbody = 1
+    else:
+        nbody = len(name)
+        
+    def validate_scalars(var,nbody):
+        if var is not None and len(var) != nbody:
+            raise ValueError(f"{var} must be the same length as name")
+        
+    def validate_vectors(var,nbody):
+        if var is not None and var.shape[-1] != 3:
+            raise ValueError(f"{var} must have shape (n,3)")
+    
+    validate_scalars(id,nbody)
+    validate_scalars(a,nbody)
+    validate_scalars(e,nbody)
+    validate_scalars(inc,nbody)
+    validate_scalars(capom,nbody)
+    validate_scalars(omega,nbody)
+    validate_scalars(capm,nbody)
+    validate_vectors(rh,nbody)
+    validate_vectors(vh,nbody)
+    validate_scalars(Gmass,nbody)
+    validate_scalars(radius,nbody)
+    validate_scalars(rhill,nbody)
+    validate_vectors(rot,nbody)
+    validate_vectors(Ip,nbody)
+    validate_scalars(rotphase,nbody)
+     
+    scalar_dims = ['name']
+    vector_dims = ['name','space']
     space_coords = np.array(["x","y","z"])
-    sph_dims = ['sign', 'l', 'm'] # Spherical Harmonics dimensions
 
     vector_vars = ["rh","vh","Ip","rot"]
-    scalar_vars = ["name","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4", "rotphase"]
+    scalar_vars = ["id","a","e","inc","capom","omega","capm","mass","Gmass","radius","rhill","j2rp2","j4rp4", "rotphase"]
     sph_vars = ["c_lm"]
-    time_vars =  ["status","rh","vh","Ip","rot","a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4", "rotphase"]
-
-    # Check for valid keyword arguments
-    kwargs = {k:kwargs[k] for k,v in kwargs.items() if v is not None}
-  
+    time_vars =  ["status","rh","vh","Ip","rot","a","e","inc","capom","omega","capm","mass","Gmass","radius","rhill","j2rp2","j4rp4", "rotphase"]
+    
     if "ROTATION" in param and param['ROTATION'] == True: 
-        if "rot" not in kwargs and "Gmass" in kwargs:
-            kwargs['rot'] = np.zeros((len(kwargs['Gmass']),3))
-        if "Ip" not in kwargs and "Gmass" in kwargs:
-            kwargs['Ip'] = np.full((len(kwargs['Gmass']),3), 0.4)
+        if rot is None and Gmass is not None:
+           rot = np.zeros((nbody,3))
+        if Ip is None and Gmass is not None: 
+            Ip = np.full((nbody,3), 0.4)
 
-    if "time" not in kwargs:
-        kwargs["time"] = np.array([0.0])
+    if time is None:
+        time = np.array([0.0])
+        
+    if param['CHK_CLOSE']:
+        if Gmass is not None and radius is None: 
+            raise ValueError("If Gmass is passed, then radius must also be passed when CHK_CLOSE is True")
+        
+    if Gmass is not None: 
+        GU = swiftest.GC * param["TU2S"] ** 2 * param["MU2KG"] / param["DU2M"] ** 3
+        mass = Gmass / GU
+        
+    valid_vars = vector_vars + scalar_vars + sph_vars + ['time','id']
 
-    valid_arguments = vector_vars + scalar_vars + sph_vars + ['time','id']
+    input_vars = {k:v for k,v in locals().items() if k in valid_vars and v is not None}
 
-    kwargs = {k:v for k,v in kwargs.items() if k in valid_arguments}
-
-    data_vars = {k:(scalar_dims,v) for k,v in kwargs.items() if k in scalar_vars}
-    data_vars.update({k:(vector_dims,v) for k,v in kwargs.items() if k in vector_vars})
+    data_vars = {k:(scalar_dims,v) for k,v in input_vars.items() if k in scalar_vars}
+    data_vars.update({k:(vector_dims,v) for k,v in input_vars.items() if k in vector_vars})
     ds = xr.Dataset(data_vars=data_vars,
                     coords={
-                        "id":(["id"],kwargs['id']),
+                        "name":(["name"],name),
                         "space":(["space"],space_coords),
                     }
                     )
     time_vars = [v for v in time_vars if v in ds]
     for v in time_vars:
-        ds[v] = ds[v].expand_dims(dim={"time":1}, axis=0).assign_coords({"time": kwargs['time']})
+        ds[v] = ds[v].expand_dims(dim={"time":1}, axis=0).assign_coords({"time": time})
 
     # create a C_lm Dataset and combine
+    if c_lm is not None:
+        clm_xr = xr.DataArray(data = c_lm,
+                              coords = {
+                                'sign':(['sign'], [1, -1]),
+                                'l': (['l'], range(0, c_lm.shape[1])),
+                                'm':(['m'], range(0, c_lm.shape[2]))
+                              }
+                             ).to_dataset(name='c_lm')
 
-    if "c_lm" in kwargs:
-        clm_xr = xr.Dataset(data_vars = {k:(sph_dims, v) for k,v in kwargs.items() if k in sph_vars}, 
-                            coords = {
-                                    'sign':(['sign'], [1, -1]),
-                                    'l': (['l'], range(0, kwargs['c_lm'].shape[1])),
-                                    'm':(['m'], range(0, kwargs['c_lm'].shape[2]))
-                            }
-                            )
         ds = xr.combine_by_coords([ds, clm_xr])
 
-    return ds
+    return SwiftestDataset(ds)
