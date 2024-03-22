@@ -8,6 +8,10 @@ In this user guide, you will find detailed descriptions and examples that descri
 
 - A more in-depth :doc:`Detailed Simulation Setup <detailed-simulation-setup>`
 
+- Setting up :doc:`Planetocentric Initial Conditions <planetocentric-init_cond>`
+
+- Using the :doc:`Standalone Executable <standalone-executable>`
+
 - Understanding the :doc:`Gravitational Harmonics capabilities <gravitational-harmonics>`
 
 .. toctree::

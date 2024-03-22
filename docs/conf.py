@@ -42,6 +42,15 @@ extensions = [
     "sphinx_inline_tabs",
 ]
 
+# Sometimes the savefig directory doesn't exist and needs to be created
+# https://github.com/ipython/ipython/issues/8733
+# becomes obsolete when we can pin ipython>=5.2; see ci/requirements/doc.yml
+ipython_savefig_dir = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "_build", "html", "_static"
+)
+if not os.path.exists(ipython_savefig_dir):
+    os.makedirs(ipython_savefig_dir)
+
 
 templates_path = ['_templates']
 

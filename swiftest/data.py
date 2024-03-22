@@ -1,3 +1,4 @@
+from __future__ import annotations
 import xarray as xr
 import numpy as np
 from scipy.spatial.transform import Rotation as R

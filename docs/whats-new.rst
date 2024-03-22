@@ -8,11 +8,11 @@ v2024.03.3
 
 New Features
 ~~~~~~~~~~~~
-- Introduced new classes :class:`swiftest.data.SwiftestDataArray` and :class:`swiftest.data.SwiftestDataset`. These are extensions of `xarray.DataArray <https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html>`__ and `xarray.Dataset <https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html>`__, respectively. These are now used to define the internal data storage attributes, like :attr:`swiftest.Simulation.data`, :attr:`swiftest.Simulation.init_cond`, :attr:`swiftest.Simulation.collisions`, and :attr:`swiftest.Simulation.encounters`. `GH24_`
+- Introduced new classes :class:`swiftest.data.SwiftestDataArray` and :class:`swiftest.data.SwiftestDataset`. These are extensions of `xarray.DataArray <https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html>`__ and `xarray.Dataset <https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html>`__, respectively. These are now used to define the internal data storage attributes, like :attr:`swiftest.Simulation.data`, :attr:`swiftest.Simulation.init_cond`, :attr:`swiftest.Simulation.collisions`, and :attr:`swiftest.Simulation.encounters`. `GH24`_
 
 - Added binding modules and started writing code to connect the Fortran el2xv and xv2el to Python and removed the Python implementation of these functions. This allows the Python code to call the same Fortran functions for converting state vectors to orbital elements and back again that the core Swiftest code uses, which are nearly identical to the original implementations of these functions written by Martin Duncan in 1992. The functions themselves are accessible via :func:`swiftest.core.el2xv` and :func:`swiftest.core.xv2el`.  
 
-- The :meth:`swiftest.Simulation.add_solar_system_body` and :meth:`swiftest.Simulation.add_body` methods have been overhauled to make selecting the central body in a more consistent way. Central bodies are now chosen automatically to be the most massive body in the system.
+- The :meth:`swiftest.Simulation.add_solar_system_body` and :meth:`swiftest.Simulation.add_body` methods have been overhauled to make selecting the central body in a more consistent way. Central bodies are now chosen automatically to be the most massive body in the system, and the all other bodies' position and velocity vectors are translated to the central body's frame. We also include a new argument to these functions called ``align_to_central_body_rotation`` which can be used to rotate bodies into a frame that is aligned with the central body's rotation vector. This is useful for using :meth:`~swiftest.Simulation.add_solar_system_body` to set bodies other than the Sun to be the central body, as otherwise it aligns all bodies to the ecliptic. See :doc:`planetocentric initial conditions <user-guide/planetocentric-init_cond>` for details of how this works.
 
 .. _GH24: https://github.com/MintonGroup/swiftest/issues/24
 
@@ -25,11 +25,13 @@ Internal Changes
 ~~~~~~~~~~~~~~~~
 - Updated initial conditions generators to catch more bad or inconsistent inputs and added more tests to cover these cases.
 - Updated build script environment variables to help make the MacOS build more robust.
+- Improved the efficiency of the :func:`~init_cond.solar_system_horizons` function when fetching physical parameters. It can now accept a jpl HorizonsClass object as an argument so that it can re-use a previous query to look for physical parameters, and only execute a new query on an altid if they are not found.
 - Switched from using `iso_fortran_env` to `iso_c_binding` for basic type definitions in order to make it easier to expose the Fortran library API to Python.
 
 Documentation
 ~~~~~~~~~~~~~
-- Updated the documentation too demonstrate the use of the standalone executable.
+- Added a new documentation page to demonstrate the use of the :doc:`standalone executable <user-guide/standalone-executable>`.
+- Added a new documentation page for setting :doc:`planetocentric initial conditions <user-guide/planetocentric-init_cond>`
 
 v2024.03.2
 ----------
