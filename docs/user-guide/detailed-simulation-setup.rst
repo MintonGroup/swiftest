@@ -125,9 +125,9 @@ Cartesian Coordinates
 
 The process is similar for adding bodies with cartesian coordinates. However, the parameter `init_cond_format` must be set to `XV` before adding the bodies.
 The process of setting parameters is explained in the next section. 
-Start by defining the position and velocity vectors. Here we define the orbital velocities and scale them by a random value. ::
+Start by defining the position and velocity vectors. Here we define the orbital velocities and scale them by a random value. 
 
-.. ipython:: python
+.. code-block:: python
 
    # position vectors
    rh_pl = rng.uniform(-5, 5, (npl,3))
