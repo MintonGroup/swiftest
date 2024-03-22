@@ -8,7 +8,13 @@ v2024.03.3
 
 New Features
 ~~~~~~~~~~~~
-- Added binding modules and started writing code to connect the Fortran el2xv and xv2el to Python and removed the Python implementation of these functions. This allows the Python code to call the same Fortran functions for converting state vectors to orbital elements and back again that the core Swiftest code uses, which are nearly identical to the original implementations of these functions written by Martin Duncan in 1992.
+- Introduced new classes :class:`swiftest.data.SwiftestDataArray` and :class:`swiftest.data.SwiftestDataset`. These are extensions of `xarray.DataArray <https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html>`__ and `xarray.Dataset <https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html>`__, respectively. These are now used to define the internal data storage attributes, like :attr:`swiftest.Simulation.data`, :attr:`swiftest.Simulation.init_cond`, :attr:`swiftest.Simulation.collisions`, and :attr:`swiftest.Simulation.encounters`. `GH24_`
+
+- Added binding modules and started writing code to connect the Fortran el2xv and xv2el to Python and removed the Python implementation of these functions. This allows the Python code to call the same Fortran functions for converting state vectors to orbital elements and back again that the core Swiftest code uses, which are nearly identical to the original implementations of these functions written by Martin Duncan in 1992. The functions themselves are accessible via :func:`swiftest.core.el2xv` and :func:`swiftest.core.xv2el`.  
+
+- The :meth:`swiftest.Simulation.add_solar_system_body` and :meth:`swiftest.Simulation.add_body` methods have been overhauled to make selecting the central body in a more consistent way. Central bodies are now chosen automatically to be the most massive body in the system.
+
+.. _GH24: https://github.com/MintonGroup/swiftest/issues/24
 
 Bug Fixes
 ~~~~~~~~~

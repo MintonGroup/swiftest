@@ -26,6 +26,7 @@ import shutil
 import warnings
 import contextlib
 from typing import (
+    Union,
     Literal,
     Dict,
     List,
@@ -33,6 +34,8 @@ from typing import (
     Any
 )
 from cython import nogil
+
+FloatLike = Union[float, int, np.number]
 
 @contextlib.contextmanager
 def _cwd(newdir):
@@ -46,6 +49,7 @@ def _cwd(newdir):
 class Simulation(object):
     """
     This is a class that defines the basic Swift/Swifter/Swiftest simulation object
+    
     """
 
     def __init__(self,read_param: bool = False, 
@@ -342,17 +346,29 @@ class Simulation(object):
             Parameter input file equivalent is None
         """
 
+        # Define some instance variables
         self._getter_column_width = 32
+        self._param = {}
+        self._data = SwiftestDataset()
+        self._init_cond = SwiftestDataset()
+        self._encounters = SwiftestDataset()
+        self._collisions = SwiftestDataset()
+        self._simdir = None 
+        self._MU_name = "MU"
+        self._DU_name = "DU"
+        self._TU_name = "TU"
+        self._MU2KG = None
+        self._KG2MU = None
+        self._TU2S = None
+        self._S2TU = None
+        self._DU2M = None
+        self._M2DU = None
+        self._GU = None
+        self._integrator = "symba"
+        self._codename = "Swiftest"
+        
+        self.simdir = simdir 
         self.verbose = kwargs.pop("verbose",True)
-
-        self.param = {}
-        self.data = SwiftestDataset()
-        self.init_cond = SwiftestDataset()
-        self.encounters = SwiftestDataset()
-        self.collisions = SwiftestDataset()
-
-        # Set the location of the parameter input file, choosing the default if it isn't specified.
-        self.simdir = Path(simdir).resolve()
         param_file = Path(kwargs.pop("param_file", "param.in"))
 
         # Parameters are set in reverse priority order. First the defaults, then values from a pre-existing input file,
@@ -907,16 +923,7 @@ class Simulation(object):
         update_list = []
         
         if codename is not None:
-            valid_codename = ["Swiftest", "Swifter", "Swift"]
-            if codename.title() not in valid_codename:
-                warnings.warn(f"{codename} is not a valid codename. Valid options are ",",".join(valid_codename),stacklevel=2)
-                try:
-                    self.codename
-                except:
-                    self.codename = valid_codename[0]
-            else:
-                self.codename = codename.title()
-
+            self.codename = codename 
             self.param['! VERSION'] = f"{self.codename} input file"
             update_list.append("codename")
         
@@ -926,16 +933,8 @@ class Simulation(object):
             self.param = io.swiftest2swifter_param(self.param, J2, J4) 
 
         if integrator is not None:
-            valid_integrator = ["symba","rmvs","whm","helio"]
-            if integrator.lower() not in valid_integrator:
-                warnings.warn(f"{integrator} is not a valid integrator. Valid options are ",",".join(valid_integrator),stacklevel=2)
-                try:
-                    self.integrator
-                except:
-                    self.integrator = valid_integrator[0]
-            else:
-                self.integrator = integrator.lower()
-            update_list.append("integrator")
+            self.integrator = integrator
+            
 
         if mtiny is not None or gmtiny is not None:
             if self.integrator != "symba":
@@ -1162,12 +1161,7 @@ class Simulation(object):
                 update_list.append("big_discard")     
                 
         if simdir is not None:
-            self.simdir = Path(simdir).resolve()
-            if self.simdir.exists():
-                if not self.simdir.is_dir():
-                    msg = f"Cannot create the {self.simdir} directory: File exists."
-                    msg += "\nDelete the file or change the location of param_file"
-                    raise NotADirectoryError(msg)
+            self.simdir = simdir
             self.param_file = Path(kwargs.pop("param_file","param.in"))
 
         if self.codename == "Swiftest": 
@@ -1792,13 +1786,6 @@ class Simulation(object):
         MU2KG_old = None
         DU2M_old = None
         TU2S_old = None
-
-        if "MU_name" not in dir(self):
-            self.MU_name = "MU"
-        if "DU_name" not in dir(self):
-            self.DU_name = "DU"
-        if "TU_name" not in dir(self):
-            self.TU_name = "TU"
 
         update_list = []
         if MU is not None or MU2KG is not None:
@@ -3502,3 +3489,310 @@ class Simulation(object):
                self.param['CHK_RMIN'] = cbda.radius.values.item()
                
         return 
+    
+    @property
+    def param(self) -> Dict:
+        """
+        Dict: A dictionary of simulation parameters. These are stored in the param.in file
+        """
+        return self._param
+    
+    @param.setter
+    def param(self, value: Dict) -> None:
+        if not isinstance(value, dict):
+            raise TypeError("Parameter value must be a dictionary")
+        self._param = value
+        return
+    
+    @property
+    def data(self) -> SwiftestDataset:
+        """
+        SwiftestDataset: A dataset containing the simulation data
+        """
+        return self._data
+    
+    @data.setter
+    def data(self, value: SwiftestDataset) -> None:
+        if not isinstance(value, SwiftestDataset):
+            if isinstance(value, xr.Dataset):
+                value = SwiftestDataset(value)
+            else:
+                raise TypeError("Data value must be a SwiftestDataset")
+        self._data = value
+        return
+    
+    @property
+    def init_cond(self) -> SwiftestDataset:
+        """
+        SwiftestDataset: A dataset containing the initial conditions
+        """
+        return self._init_cond
+    
+    @init_cond.setter
+    def init_cond(self, value: SwiftestDataset) -> None:
+        if not isinstance(value, SwiftestDataset):
+            if isinstance(value, xr.Dataset):
+                value = SwiftestDataset(value)
+            else:
+                raise TypeError("Initial conditions value must be a SwiftestDataset")
+        self._init_cond = value
+        return
+    
+    @property
+    def encounters(self) -> SwiftestDataset:
+        """
+        SwiftestDataset: A dataset containing the encounter history
+        """
+        return self._encounters
+    
+    @encounters.setter
+    def encounters(self, value: SwiftestDataset) -> None:
+        if not isinstance(value, SwiftestDataset):
+            if isinstance(value, xr.Dataset):
+                value = SwiftestDataset(value)
+            else:
+                raise TypeError("Encounters value must be a SwiftestDataset")
+        self._encounters = value
+        return
+    
+    @property
+    def collisions(self) -> SwiftestDataset:
+        """
+        SwiftestDataset: A dataset containing the collision history
+        """
+        return self._collisions
+    
+    @collisions.setter
+    def collisions(self, value: SwiftestDataset) -> None:
+        if not isinstance(value, SwiftestDataset):
+            if isinstance(value, xr.Dataset):
+                value = SwiftestDataset(value)
+            else:
+                raise TypeError("Collisions value must be a SwiftestDataset")
+        self._collisions = value
+        return
+    
+    @property
+    def simdir(self) -> Path:
+        """
+        Path: The simulation directory
+        """
+        return self._simdir
+    
+    @simdir.setter
+    def simdir(self, value: os.PathLike | Path) -> None:
+        try:
+            value = Path(value).resolve()
+        except:
+            raise TypeError("Simulation directory value must be a a valid path")
+        
+        if value.exists():
+            if not value.is_dir():
+                msg = f"Cannot create the {self.simdir} directory: File exists."
+                msg += "\nDelete the file or change the location of param_file"
+                raise NotADirectoryError(msg)        
+        self._simdir = value
+        return
+    
+    @property
+    def MU_name(self) -> str:
+        """
+        str: The name of the mass unit currently defined in the simulation.
+        """
+        return self._MU_name
+    
+    @MU_name.setter
+    def MU_name(self, value: str) -> None:
+        if not isinstance(value, str):
+            raise TypeError("Mass unit name value must be a string")
+        self._MU_name = value
+        return
+    
+    @property
+    def DU_name(self) -> str:
+        """
+        str: The name of the distance unit currently defined in the simulation.
+        """
+        return self._DU_name
+    
+    @DU_name.setter
+    def DU_name(self, value: str) -> None:
+        if not isinstance(value, str):
+            raise TypeError("Distance unit name value must be a string")
+        self._DU_name = value
+        return
+    
+    @property
+    def TU_name(self) -> str:
+        """
+        str: The name of the time unit currently defined in the simulation.
+        """
+        return self._TU_name
+    
+    @TU_name.setter
+    def TU_name(self, value: str) -> None:
+        if not isinstance(value, str):
+            raise TypeError("Time unit name value must be a string")
+        self._TU_name = value
+        return
+    
+    @property
+    def MU2KG(self) -> FloatLike:
+        """
+        np.float64: The conversion factor from mass unit to kilograms.
+        """
+        return self._MU2KG
+    
+    @MU2KG.setter
+    def MU2KG(self, value: FloatLike) -> None:
+        if not isinstance(value, FloatLike):
+            raise TypeError("Mass unit to kilogram conversion value must be a float")
+        self._MU2KG = np.float64(value)
+        self._KG2MU = 1.0 / self._MU2KG
+        return 
+   
+    @property
+    def KG2MU(self) -> FloatLike:
+        """
+        np.float64: The conversion factor from kilograms to mass unit.
+        """
+        return self._KG2MU
+    
+    @KG2MU.setter
+    def KG2MU(self, value: FloatLike) -> None:
+        if not isinstance(value, FloatLike):
+            raise TypeError("Kilogram to mass unit conversion value must be a float")
+        self._KG2MU = np.float64(value)
+        self._MU2KG = 1.0 / self._KG2MU
+        return 
+    
+    @property
+    def DU2M(self) -> FloatLike:
+        """
+        np.float64: The conversion factor from distance unit to meters.
+        """
+        return self._DU2M
+    
+    @DU2M.setter
+    def DU2M(self, value: FloatLike) -> None:
+        if not isinstance(value, FloatLike):
+            raise TypeError("Distance unit to meter conversion value must be a float")
+        self._DU2M = np.float64(value)
+        self._M2DU = 1.0 / self._DU2M
+        return
+    
+    @property
+    def M2DU(self) -> FloatLike:
+        """
+        np.float64: The conversion factor from meters to distance unit.
+        """
+        return self._M2DU
+    
+    @M2DU.setter
+    def M2DU(self, value: FloatLike) -> None:
+        if not isinstance(value, FloatLike):
+            raise TypeError("Meter to distance unit conversion value must be a float")
+        self._M2DU = np.float64(value)
+        self._DU2M = 1.0 / self._M2DU
+        return
+    
+    @property
+    def TU2S(self) -> FloatLike:
+        """
+        np.float64: The conversion factor from time unit to seconds.
+        """
+        return self._TU2S
+    
+    @TU2S.setter
+    def TU2S(self, value: FloatLike) -> None:
+        if not isinstance(value, FloatLike):
+            raise TypeError("Time unit to second conversion value must be a float")
+        self._TU2S = np.float64(value)
+        self._S2TU = 1.0 / self._TU2S
+        return
+    
+    @property
+    def S2TU(self) -> FloatLike:
+        """
+        np.float64: The conversion factor from seconds to time unit.
+        """
+        return self._S2TU
+    
+    @S2TU.setter
+    def S2TU(self, value: FloatLike) -> None:
+        if not isinstance(value, FloatLike):
+            raise TypeError("Second to time unit conversion value must be a float")
+        self._S2TU = np.float64(value)
+        self._TU2S = 1.0 / self._S2TU
+        return
+   
+    @property
+    def GU(self) -> FloatLike:
+        """
+        np.float64: The gravitational constant in the simulation units.
+        """
+        return self._GU
+    
+    @GU.setter
+    def GU(self, value: FloatLike) -> None:
+        if not isinstance(value, FloatLike):
+            raise TypeError("Gravitational constant value must be a float")
+        self._GU = np.float64(value)
+        return
+    
+    @property
+    def integrator(self) -> str:
+        """
+        Literal["symba","rmvs","whm","helio"]: The name of the integrator used in the simulation. Currently supports "symba", "rmvs", "whm", and "helio".
+        """
+        return self._integrator
+    
+    @integrator.setter
+    def integrator(self, value: str) -> None:
+        if not isinstance(value, str):
+            raise TypeError("Integrator value must be a string")
+        
+        valid_integrator = ["symba","rmvs","whm","helio"]        
+        if value.lower() not in valid_integrator:
+            raise ValueError(f"{value} is not a valid integrator. Valid options are ",",".join(valid_integrator))
+        
+        self._integrator = value.lower()
+        return
+    
+    @property
+    def codename(self) -> str:
+        """
+        Literal["Swiftest","Swifter","Swift"]: The name of the n-body code used in the simulation. Currently supports "Swiftest", "Swifter", and "Swift".
+        """
+        return self._codename
+    
+    @codename.setter
+    def codename(self, value: str) -> None:
+        if not isinstance(value, str):
+            raise TypeError("Code name value must be a string")
+        
+        valid_codename = ["Swiftest","Swifter","Swift"]
+        if value.title() not in valid_codename:
+            raise ValueError(f"{value} is not a valid code name. Valid options are ",",".join(valid_codename))
+        
+        self._codename = value.title()
+        return
+    
+   
+    @property
+    def verbose(self) -> bool:
+        """
+        bool: A boolean value indicating whether verbose output is enabled.
+        """
+        return self._verbose
+    
+    @verbose.setter
+    def verbose(self, value: bool) -> None:
+        if not isinstance(value, bool):
+            raise TypeError("Verbose value must be a boolean")
+        self._verbose = value
+        return
+    
+    
+    
+    

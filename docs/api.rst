@@ -89,6 +89,32 @@ File Input and Output
     Simulation.convert
     Simulation.clean
 
+Attributes
+----------
+
+.. autosummary::
+   :toctree: generated/
+
+    Simulation.param
+    Simulation.data
+    Simulation.init_cond
+    Simulation.encounters
+    Simulation.collisions
+    Simulation.MU_name
+    Simulation.DU_name
+    Simulation.TU_name
+    Simulation.MU2KG
+    Simulation.KG2MU
+    Simulation.TU2S
+    Simulation.S2TU
+    Simulation.DU2M
+    Simulation.M2DU
+    Simulation.GU
+    Simulation.integrator
+    Simulation.codename
+    Simulation.simdir
+    Simulation.verbose
+
 Data Representation
 ===================
 
