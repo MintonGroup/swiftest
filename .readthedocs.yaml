@@ -28,8 +28,8 @@ build:
       - mamba update --yes --quiet --name=base --channel=defaults mamba
     pre_build:
       - printenv
-      - PREFIX=${TMPDIR}/usr/local source buildscripts/set_environment_linux.sh; buildscripts/build_dependencies.sh
-      - PREFIX=${TMPDIR}/usr/local source buildscripts/set_environment_linux.sh; pip install .
+      - PREFIX=${TMPDIR}/usr/local . buildscripts/set_environment_linux.sh; buildscripts/build_dependencies.sh
+      - PREFIX=${TMPDIR}/usr/local . buildscripts/set_environment_linux.sh; pip install .
       - ford fortran_docs.md 
 
 conda:
