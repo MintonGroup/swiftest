@@ -15,6 +15,7 @@ from . import io
 from . import init_cond
 from . import tool
 from . import constants
+from .data import SwiftestDataArray, SwiftestDataset
 import os
 from pathlib import Path
 import datetime
@@ -25,6 +26,7 @@ import shutil
 import warnings
 import contextlib
 from typing import (
+    Union,
     Literal,
     Dict,
     List,
@@ -32,6 +34,8 @@ from typing import (
     Any
 )
 from cython import nogil
+
+FloatLike = Union[float, int, np.number]
 
 @contextlib.contextmanager
 def _cwd(newdir):
@@ -45,6 +49,7 @@ def _cwd(newdir):
 class Simulation(object):
     """
     This is a class that defines the basic Swift/Swifter/Swiftest simulation object
+    
     """
 
     def __init__(self,read_param: bool = False, 
@@ -165,7 +170,7 @@ class Simulation(object):
             * "ASCII" `init_cond_file_name = {"CB" : "cb.in", "PL" : "pl.in", "TP" : "tp.in"}`
             
             Parameter input file equivalent is `NC_IN`, `CB_IN`, `PL_IN`, `TP_IN`
-        init_cond_format : {"EL", "XV"}, default "EL"
+        init_cond_format : {"EL", "XV"}, default "XV"
             Indicates whether the input initial conditions are given as orbital elements or cartesian position and
             velocity vectors.
             If `codename` is "Swift" or "Swifter", EL initial conditions are converted to XV.
@@ -341,17 +346,29 @@ class Simulation(object):
             Parameter input file equivalent is None
         """
 
+        # Define some instance variables
         self._getter_column_width = 32
+        self._param = {}
+        self._data = SwiftestDataset()
+        self._init_cond = SwiftestDataset()
+        self._encounters = SwiftestDataset()
+        self._collisions = SwiftestDataset()
+        self._simdir = None 
+        self._MU_name = "MU"
+        self._DU_name = "DU"
+        self._TU_name = "TU"
+        self._MU2KG = None
+        self._KG2MU = None
+        self._TU2S = None
+        self._S2TU = None
+        self._DU2M = None
+        self._M2DU = None
+        self._GU = None
+        self._integrator = "symba"
+        self._codename = "Swiftest"
+        
+        self.simdir = simdir 
         self.verbose = kwargs.pop("verbose",True)
-
-        self.param = {}
-        self.data = xr.Dataset()
-        self.init_cond = xr.Dataset()
-        self.encounters = xr.Dataset()
-        self.collisions = xr.Dataset()
-
-        # Set the location of the parameter input file, choosing the default if it isn't specified.
-        self.simdir = Path(simdir).resolve()
         param_file = Path(kwargs.pop("param_file", "param.in"))
 
         # Parameters are set in reverse priority order. First the defaults, then values from a pre-existing input file,
@@ -906,16 +923,7 @@ class Simulation(object):
         update_list = []
         
         if codename is not None:
-            valid_codename = ["Swiftest", "Swifter", "Swift"]
-            if codename.title() not in valid_codename:
-                warnings.warn(f"{codename} is not a valid codename. Valid options are ",",".join(valid_codename),stacklevel=2)
-                try:
-                    self.codename
-                except:
-                    self.codename = valid_codename[0]
-            else:
-                self.codename = codename.title()
-
+            self.codename = codename 
             self.param['! VERSION'] = f"{self.codename} input file"
             update_list.append("codename")
         
@@ -925,16 +933,8 @@ class Simulation(object):
             self.param = io.swiftest2swifter_param(self.param, J2, J4) 
 
         if integrator is not None:
-            valid_integrator = ["symba","rmvs","whm","helio"]
-            if integrator.lower() not in valid_integrator:
-                warnings.warn(f"{integrator} is not a valid integrator. Valid options are ",",".join(valid_integrator),stacklevel=2)
-                try:
-                    self.integrator
-                except:
-                    self.integrator = valid_integrator[0]
-            else:
-                self.integrator = integrator.lower()
-            update_list.append("integrator")
+            self.integrator = integrator
+            
 
         if mtiny is not None or gmtiny is not None:
             if self.integrator != "symba":
@@ -1161,12 +1161,7 @@ class Simulation(object):
                 update_list.append("big_discard")     
                 
         if simdir is not None:
-            self.simdir = Path(simdir).resolve()
-            if self.simdir.exists():
-                if not self.simdir.is_dir():
-                    msg = f"Cannot create the {self.simdir} directory: File exists."
-                    msg += "\nDelete the file or change the location of param_file"
-                    raise NotADirectoryError(msg)
+            self.simdir = simdir
             self.param_file = Path(kwargs.pop("param_file","param.in"))
 
         if self.codename == "Swiftest": 
@@ -1412,10 +1407,7 @@ class Simulation(object):
             if "IN_FORM" in self.param:
                 init_cond_format = self.param['IN_FORM']
             else:
-                if self.codename.title() == "Swiftest":
-                    init_cond_format = "EL"
-                else:
-                    init_cond_format = "XV"
+                init_cond_format = "XV"
 
         if init_cond_file_type is None:
             if "IN_TYPE" in self.param:
@@ -1795,13 +1787,6 @@ class Simulation(object):
         DU2M_old = None
         TU2S_old = None
 
-        if "MU_name" not in dir(self):
-            self.MU_name = "MU"
-        if "DU_name" not in dir(self):
-            self.DU_name = "DU"
-        if "TU_name" not in dir(self):
-            self.TU_name = "TU"
-
         update_list = []
         if MU is not None or MU2KG is not None:
             update_list.append("MU")
@@ -2153,7 +2138,6 @@ class Simulation(object):
                               name: str | List[str] | None = None,
                               ephemeris_id: int | List[int] | None = None,
                               date: str | None = None,
-                              source: str = "HORIZONS", 
                               align_to_central_body_rotation: bool = False,
                               **kwargs: Any
                               ) -> None:
@@ -2171,7 +2155,6 @@ class Simulation(object):
         To obtain initial conditions for either Earth or Pluto alone, pass `ephemeris_id` == "399" for Earth or 
         `ephemeris_id` == "999" for Pluto.  
 
-
         Parameters
         ----------
         name : str, optional | List[str]
@@ -2181,11 +2164,8 @@ class Simulation(object):
         date : str, optional
             ISO-formatted date sto use when obtaining the ephemerides in the format YYYY-MM-DD. Defaults to value
             set by `set_ephemeris_date`.
-        source : str, default "Horizons"
-            The source of the ephemerides.
-            Currently only the JPL Horizons ephemeris is implemented, so this is ignored.
         align_to_central_body_rotation : bool, default False
-            If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
+            If True, the cartesian coordinates will be aligned to the rotation pole of the central body. Otherwise, the This is only valid for when
             rotation is enabled.
         **kwargs : Any
             Additional keyword arguments to pass to the query method (i.e. astroquery.Horizons)
@@ -2193,24 +2173,25 @@ class Simulation(object):
         Returns
         -------
         None
-            initial conditions data stored as an Xarray Dataset in the init_cond instance variable
+            initial conditions data stored as a SwiftestDataset in the init_cond instance variable
         """
+        from .constants import CB_TYPE_NAME
         
         if name == None and ephemeris_id == None:
             warnings.warn("Either `name` and/or `ephemeris_id` must be supplied to add_solar_system_body")
             return None
-
+        if name is not None:
+            if type(name) is str or type(name) is int:
+                name = [name]
+                
         if ephemeris_id is not None:
             if type(ephemeris_id) is int or type(ephemeris_id) is str:
                 ephemeris_id = [ephemeris_id]
             if name is None:
                 name = [None] * len(ephemeris_id)
             elif len(ephemeris_id) != len(name):
-                warnings.warn(f"The length of ephemeris_id ({len(ephemeris_id)}) does not match the length of name ({len(name)})",stacklevel=2)
-                return None
+                raise ValueError(f"The length of ephemeris_id ({len(ephemeris_id)}) does not match the length of name ({len(name)})")
         else:
-            if type(name) is str:
-                name = [name]
             ephemeris_id = [None] * len(name)
 
         if self.ephemeris_date is None:
@@ -2224,12 +2205,15 @@ class Simulation(object):
             warnings.warn(f"{date} is not a valid date format. Must be 'YYYY-MM-DD'. Setting to {self.ephemeris_date}",stacklevel=2)
             date = self.ephemeris_date
 
-        if source.upper() != "HORIZONS":
-            warnings.warn("Currently only the JPL Horizons ephemeris service is supported",stacklevel=2)
-
+        # Sun is the default central body 
+        if "particle_type" in self.data.variables and CB_TYPE_NAME in self.data.particle_type:
+            cbname = self.data['name'].where(self.data.isel(time=0).particle_type == CB_TYPE_NAME, drop=True).values[0]
+        else:
+            cbname = "Sun"
+        
         body_list = []
         for i,n in enumerate(name):
-            body = init_cond.solar_system_horizons(n, self.param, date, ephemeris_id=ephemeris_id[i],**kwargs)
+            body = init_cond.solar_system_horizons(n, self.param, date, ephemeris_id=ephemeris_id[i],central_body_name=cbname, **kwargs)
             if body is not None:
                 body_list.append(body)
 
@@ -2238,44 +2222,59 @@ class Simulation(object):
            print("No valid bodies found")
            return 
         elif len(body_list) == 1:
-            values = list(np.hsplit(np.array(body_list[0],dtype=np.dtype(object)),17))
+            values = list(np.hsplit(np.array(body_list[0],dtype=np.dtype(object)),10))
         else:
-            values = list(np.squeeze(np.hsplit(np.array(body_list,np.dtype(object)),17)))
-        keys = ["id","name","a","e","inc","capom","omega","capm","rh","vh","Gmass","radius","rhill","Ip","rot","j2rp2","j4rp4"]
-        kwargs = dict(zip(keys,values))
-        scalar_floats = ["a","e","inc","capom","omega","capm","Gmass","radius","rhill","j2rp2","j4rp4"]
+            values = list(np.squeeze(np.hsplit(np.array(body_list,np.dtype(object)),10)))
+        keys = ["name","rh","vh","Gmass","radius","rhill","Ip","rot","j2rp2","j4rp4"]
+        vec2xr_kwargs = dict(zip(keys,values))
+        scalar_floats = ["Gmass","radius","rhill","j2rp2","j4rp4"]
         vector_floats = ["rh","vh","Ip","rot"]
         scalar_ints = ["id"]
 
-        for k,v in kwargs.items():
+        for k,v in vec2xr_kwargs.items():
             if k in scalar_ints:
                 v[v == None] = -1
-                kwargs[k] = v.astype(int)
+                vec2xr_kwargs[k] = v.astype(int)
             elif k in scalar_floats:
-                kwargs[k] = v.astype(np.float64)
-                if all(np.isnan(kwargs[k])):
-                    kwargs[k] = None
+                vec2xr_kwargs[k] = v.astype(np.float64)
+                if all(np.isnan(vec2xr_kwargs[k])):
+                    vec2xr_kwargs[k] = None
             elif k in vector_floats:
-                kwargs[k] = np.vstack(v)
-                kwargs[k] = kwargs[k].astype(np.float64)
-                if np.all(np.isnan(kwargs[k])):
-                    kwargs[k] = None
+                vec2xr_kwargs[k] = np.vstack(v)
+                vec2xr_kwargs[k] = vec2xr_kwargs[k].astype(np.float64)
+                if np.all(np.isnan(vec2xr_kwargs[k])):
+                    vec2xr_kwargs[k] = None
 
-        kwargs['time'] = np.array([self.param['TSTART']])
+        vec2xr_kwargs['time'] = np.array([self.param['TSTART']])
         
-        if len(self.data) == 0:
-            maxid = -1
+        # Create a Dataset containing the new bodies
+        dsnew = init_cond.vec2xr(self.param,**vec2xr_kwargs)
+        dsnew = self._set_id_number(dsnew)
+        dsnew = self._set_particle_type(dsnew)
+        if 'particle_type' in self.data:
+            if CB_TYPE_NAME in self.data['particle_type'] and CB_TYPE_NAME in dsnew['particle_type']:
+                self.data = self._set_particle_type(self.data) # Make sure we update the original dataset if there is going to be a central body change
+
+        if CB_TYPE_NAME in dsnew['particle_type']:
+            cbname = dsnew['name'].where(dsnew['particle_type'] == CB_TYPE_NAME,drop=True).values[0]
+            GMcb = dsnew['Gmass'].sel(name=cbname)
+        elif CB_TYPE_NAME in self.data.particle_type:
+            cbname = self.data['name'].where(self.data['particle_type'] == CB_TYPE_NAME,drop=True).values[0]
+            GMcb = self.data['Gmass'].sel(name=cbname)
         else:
-            maxid = self.data.id.max().values[()]
-
-        nbodies = kwargs["name"].size
-        kwargs['id'] = np.where(kwargs['id'] < 0,np.arange(start=maxid+1,stop=maxid+1+nbodies,dtype=int),kwargs['id'])
+            raise ValueError("No central body found in either the new dataset or the existing dataset")
         
-        dsnew = init_cond.vec2xr(self.param,**kwargs)
-
+        if align_to_central_body_rotation and cbname not in dsnew['name']: # If a new central body is being added, then the rotation occurs after the two datasets are merged
+            jpl,altid,_ = init_cond.horizons_query(cbname,date)
+            _,_,rot = init_cond.horizons_get_physical_properties(altid,jpl)
+            if rot is not None:
+                rot *= self.param['TU2S']
+                dsnew = dsnew.rotate(pole=rot)
+                
+        dsnew = dsnew.xv2el(GMcb)
+             
         dsnew = self._combine_and_fix_dsnew(dsnew,align_to_central_body_rotation, **kwargs)
-        if dsnew['id'].max(dim='name') > 0 and dsnew['name'].size > 0:
-           self.save(verbose=False)
+        self.save(verbose=False)
 
         return
 
@@ -2411,7 +2410,6 @@ class Simulation(object):
 
     def add_body(self,
                  name: str | List[str] | npt.NDArray[np.str_] | None=None,
-                 id: int | list[int] | npt.NDArray[np.int_] | None=None,
                  a: float | List[float] | npt.NDArray[np.float_] | None = None,
                  e: float | List[float] | npt.NDArray[np.float_] | None = None,
                  inc: float | List[float] | npt.NDArray[np.float_] | None = None,
@@ -2431,10 +2429,11 @@ class Simulation(object):
                  J4: float | List[float] | npt.NDArray[np.float_] | None=None,
                  c_lm: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
                  align_to_central_body_rotation: bool = False,
+                 verbose: bool = True,
                  **kwargs: Any
                  ) -> None:
         """
-        Adds a body (test particle or massive body) to the internal DataSet given a set up 6 vectors (orbital elements
+        Adds a body (test particle or massive body) to the internal Dataset given a set up 6 vectors (orbital elements
         or cartesian state vectors, depending on the value of self.param). Input all angles in degress.
 
         This method will update self.data with the new body or bodies added to the existing Dataset.
@@ -2442,10 +2441,7 @@ class Simulation(object):
         Parameters
         ----------
         name : str or array-like of str, optional
-            Name or names of Bodies. If none passed, name will be "Body<idval>"
-        id : int or array-like of int, optional
-            Unique id values. If not passed, an id will be assigned in ascending order starting from the pre-existing
-            Dataset ids.
+            Name or names of Bodies. If none passed, name will be "Body{id}"
         a : float or array-like of float, optional
             semimajor axis for param['IN_FORM'] == "EL"
         e : float or array-like of float, optional
@@ -2477,19 +2473,23 @@ class Simulation(object):
         rotphase : float, optional
             rotation phase angle in degreesif these are massive bodies with rotation enabled
         J2 : float, optional
-            Normalized J2 values (e.g. J2*R**2, where R is the central body radius) if this is a central body (only one of J2 or c_lm can be passed)
+            Normalized J2 values (e.g. J2*R**2, where R is the body radius) if this is a central body (only one of J2 or c_lm can be passed)
         J4 : float, optional
-            Normalized J4 values (e.g. J4*R**4, where R is the central body radius) if this is a central body (only one of J4 or c_lm can be passed)
+            Normalized J4 values (e.g. J4*R**4, where R is the body radius) if this is a central body (only one of J4 or c_lm can be passed)
         c_lm : (2,l_max+1,l_max+1) array-like of float, optional
             Spherical harmonics coefficients if this is a central body (only one of J2/J4 or c_lm can be passed)
         align_to_central_body_rotation : bool, default False
             If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
             rotation is enabled.
+        verbose : bool, default True
+            If True, prints the values of the added bodies
+        
         Returns
         -------
         None
-            Sets the data and init_cond instance variables each with an Xarray Dataset containing the body or bodies that were added
+            Sets the data and init_cond instance variables each with a SwiftestDataset containing the body or bodies that were added
         """
+        from .constants import CB_TYPE_NAME
 
         #convert all inputs to numpy arrays
         def input_to_array(val,t,n=None):
@@ -2536,11 +2536,11 @@ class Simulation(object):
                     else:
                         if val.shape[-1] != 3:
                             raise ValueError(f"Argument must be a 3-dimensional vector. This one has {val.shape[0]}!")
-                        if val.dim == 1:
+                        if val.size == 3:
                             n = 1
                         else:
                             n = val.shape[0]
-                elif n == 1:
+                if n == 1:
                     if val.shape != (1,3) and val.shape != (3,):
                         raise ValueError(f"Argument is an incorrect shape. Expected {(n,3)} or {(3,1)}. Got {val.shape} instead")
                     elif val.shape == (3,):
@@ -2576,7 +2576,6 @@ class Simulation(object):
         capom,nbodies = input_to_array(capom,"f",nbodies)
         omega,nbodies = input_to_array(omega,"f",nbodies)
         capm,nbodies = input_to_array(capm,"f",nbodies)
-        id,nbodies = input_to_array(id,"i",nbodies)
         mass,nbodies = input_to_array(mass,"f",nbodies)
         Gmass,nbodies = input_to_array(Gmass,"f",nbodies)
         rhill,nbodies = input_to_array(rhill,"f",nbodies)
@@ -2592,21 +2591,13 @@ class Simulation(object):
 
         c_lm, nbodies = input_to_clm_array(c_lm, nbodies)
 
-        if len(self.data) == 0:
-            maxid = -1
-        else:
-            maxid = self.data.id.max().values[()]
-
-        if id is None:
-            id = np.arange(start=maxid+1,stop=maxid+1+nbodies,dtype=int)
-
         if name is None:
+            if len(self.data) == 0:
+                maxid = -1
+            else:
+                maxid = self.data.id.max().values[()]
+            id = np.arange(start=maxid+1,stop=maxid+1+nbodies,dtype=int)
             name=np.char.mod(f"Body%d",id)
-
-        if len(self.data) > 0:
-            dup_id = np.in1d(id, self.data.id)
-            if any(dup_id):
-                raise ValueError(f"Duplicate ids detected: ", *id[dup_id])
 
         time = [self.param['TSTART']]
 
@@ -2615,17 +2606,7 @@ class Simulation(object):
                 raise ValueError("Cannot use mass and Gmass inputs simultaneously!")
             else: 
                 Gmass = self.GU * mass
-      
-        is_central_body = False 
-        if J2 is not None or J4 is not None:
-            is_central_body = True
-            if c_lm is not None:
-                raise ValueError("Cannot use J2/J4 and c_lm inputs simultaneously!")
-        if c_lm is not None:
-            is_central_body = True
-            if J2 is not None or J4 is not None:
-                raise ValueError("Cannot use J2/J4 and c_lm inputs simultaneously!")
-           
+     
         if rh is not None and vh is None:
             raise ValueError("If rh is passed, vh must also be passed")
         if vh is not None and rh is None:
@@ -2634,43 +2615,245 @@ class Simulation(object):
         if rh is not None:
             if a is not None or e is not None or inc is not None or capom is not None or omega is not None or capm is not None:
                 raise ValueError("Only cartesian values or orbital elements may be passed, but not both.")
-        if is_central_body:
-            if a is not None or e is not None or inc is not None or capom is not None or omega is not None or capm is not None:
-                raise ValueError("Orbital elements cannot be passed for a central body.")
-            if nbodies > 1:
-                raise ValueError("Only one central body may be passed.")
-            if self.param['IN_FORM'] == "XV":
-                if rh is None:
-                    rh = np.zeros((1,3))
-                if vh is None:
-                    vh = np.zeros((1,3))
-            elif self.param['IN_FORM'] == "EL":
-                a = np.array([np.nan])
-                e = np.array([np.nan])
-                inc = np.array([np.nan])
-                capom = np.array([np.nan])
-                omega = np.array([np.nan])
-                capm = np.array([np.nan])
-                
-        dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm, id=id,
+        else:
+            if a is None: 
+                raise ValueError("Orbital element input requires at least a value for a (semimajor axis)")
+            if e is None:
+                e = np.zeros_like(a)
+            if inc is None:
+                inc = np.zeros_like(a)
+            if capom is None:
+                capom = np.zeros_like(a)
+            if omega is None:
+                omega = np.zeros_like(a)
+            if capm is None:
+                capm = np.zeros_like(a) 
+        
+        if verbose:
+            for n in name:
+                print(f"Adding {n}") 
+        dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm,
                                  Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, c_lm=c_lm, rotphase=rotphase, time=time)
 
+        dsnew = self._set_id_number(dsnew)
+        dsnew = self._set_particle_type(dsnew)
+        if 'particle_type' in self.data:
+            if CB_TYPE_NAME in self.data['particle_type'] and CB_TYPE_NAME in dsnew['particle_type']:
+                self.data = self._set_particle_type(self.data) # Make sure we update the original dataset if there is going to be a central body change      
+                
+        if CB_TYPE_NAME in dsnew['particle_type']:
+            cbname = dsnew['name'].where(dsnew['particle_type'] == CB_TYPE_NAME,drop=True).values[0]
+            GMcb = dsnew['Gmass'].sel(name=cbname)
+        elif CB_TYPE_NAME in self.data.particle_type:
+            cbname = self.data['name'].where(self.data['particle_type'] == CB_TYPE_NAME,drop=True).values[0]
+            GMcb = self.data['Gmass'].sel(name=cbname)
+        else:
+            raise ValueError("No central body found in either the old or new Dataset")                  
+                
+        if rh is None or vh is None:
+            dsnew = dsnew.el2xv(GMcb)
+        if a is None:
+            dsnew = dsnew.xv2el(GMcb)
+            
         dsnew = self._combine_and_fix_dsnew(dsnew,align_to_central_body_rotation,**kwargs)
         self.save(verbose=False)
 
         return
+    
+    def _set_id_number(self, ds: SwiftestDataset) -> SwiftestDataset:
+        """
+        Sets the id numbers for new bodies to be added to the Dataset. It will set the most massive body of both the old and new 
+        Dataset to have id=0 to indicate that it is to be considered the central body.
+        
+        Parameters
+        ----------
+        ds : SwiftestDataset
+            Dataset to evaluate
+            
+        Returns
+        -------
+        ds : SwiftestDataset
+            Dataset with updated id values. 
+            
+        Notes
+        -----
+        If a body from the new Dataset is found to be more massive than one from the existing Dataset, then the id of the old central
+        body will be modified to no longer be id==0. 
+        """
+       
+        # Make sure neither the old nor the new Dataset is indexed by id, as these will shift
+        if 'id' in ds.dims:
+            ds = ds.swap_dims({"id":"name"})
+        if 'id' in self.data.dims:
+            self.data = self.data.swap_dims({"id":"name"})
+            
+        nnew = ds.name.size
+        if 'name' in self.data:
+            nold = self.data.name.size
+        else:
+            nold = 0
+             
+        # Increment id numbers 
+        if len(self.data) == 0:
+            maxid = 0
+        else:
+            maxid = self.data.id.max().values[()]
+            
+        # Find out which body will be the central body (i.e. the most massive)
+        if 'Gmass' in ds:
+            new_bigidx = ds['Gmass'].argmax(dim='name')
+            new_bigname = ds['name'].isel(name=new_bigidx).values[()]
+            new_Gmass = ds['Gmass'].isel(name=new_bigidx).values[0]
+        else:
+            new_bigname = None
+
+        if 'Gmass' in self.data:
+            old_bigidx = self.data['Gmass'].argmax(dim='name')
+            old_bigname = self.data['name'].isel(name=old_bigidx).values[()]
+            old_Gmass = self.data['Gmass'].isel(name=old_bigidx).values[0]
+        else:
+            old_bigname = None
+           
+        if new_bigname is None and old_bigname is None:
+            raise ValueError("No central body found in either the old or new Dataset")
+       
+        # Establish a new id variable for the new Dataset 
+        ds['id'] = xr.DataArray(np.arange(start=maxid+1,stop=maxid+1+nnew,dtype=int),dims="name")
+        if old_bigname is None:
+            oldid = ds['id'].sel(name=new_bigname).values[()]
+            ds['id'].loc[{"name":new_bigname}] = 0
+            # Ensure we don't have a gap:
+            ds['id'] = xr.where(ds['id'] > oldid, ds['id'] - 1, ds['id']) 
+        elif new_bigname is not None:
+            if new_Gmass > old_Gmass:
+                oldid = ds['id'].sel(name=new_bigname).values[()]
+                ds['id'].loc[{"name":new_bigname}] = 0
+                self.data['id'].loc[{"name":old_bigname}] = oldid
+                
+        return SwiftestDataset(ds)
+    
+       
+    def _set_particle_type(self, ds: SwiftestDataset) -> SwiftestDataset:
+        """
+        Sets the particle type based on the values of Gmass. 
+        
+        Parameters
+        ----------
+        ds : SwiftestDataset
+            Dataset to evaluate
+            
+        Returns
+        -------
+        ds : SwiftestDataset
+            Dataset with updated particle type values. 
+        """
+        from .constants import TP_TYPE_NAME, PL_TYPE_NAME, CB_TYPE_NAME, PL_TINY_TYPE_NAME
+        
+        if "Gmass" in ds:
+            Gmass = ds.isel(time=0).Gmass
+            ds['particle_type'] = xr.where(ds['id'] == 0, CB_TYPE_NAME, 
+                                                          xr.where(np.isnan(Gmass) | (Gmass == 0.0), TP_TYPE_NAME, 
+                                                                                                     PL_TYPE_NAME)
+                                            )
+            if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
+                ds['particle_type'] = xr.where((ds['particle_type'] == PL_TYPE_NAME) 
+                                               & (Gmass < self.param['GMTINY']), 
+                                               PL_TINY_TYPE_NAME, 
+                                               ds['particle_type'])
+        else:
+            ds['particle_type'] = xr.full_like(ds['name'],TP_TYPE_NAME)
+        return ds
+    
+    
+    def _get_nvals(self, ds: SwiftestDataset) -> SwiftestDataset:
+        """
+        Computes the values of ntp, npl, and nplm.
+        
+        Parameters
+        ----------
+        ds : SwiftestDataset
+            Dataset to evaluate
+            
+        Returns
+        -------
+        ds : SwiftestDataset
+            Dataset with updated values of ntp, npl, and nplm values. 
+        """
+        if "name" in ds.dims:
+            count_dim = "name"
+        elif "id" in ds.dims:
+            count_dim = "id"
+           
+        if "particle_type" not in ds: 
+            ds = self._set_particle_type(ds)
+            
+        ds['ntp'] = ds[count_dim].where(ds['particle_type'] == constants.TP_TYPE_NAME).count(dim=count_dim)
+        ds['npl'] = ds[count_dim].where(ds['particle_type'] == constants.PL_TYPE_NAME).count(dim=count_dim)
+        if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
+            ds['nplm'] = ds[count_dim].where(ds['particle_type'] == constants.PL_TINY_TYPE_NAME).count(dim=count_dim)
+            
+        return ds
+
+
+    def remove_body(self,
+                    name: str | List[str] | npt.NDArray[np.str_] | None=None,
+                    id: int | list[int] | npt.NDArray[np.int_] | None=None):
+    
+        """
+        Removes a body (test particle or massive body) from the internal Dataset 
+
+        This method will update `data` and `init_cond` attributes with the body or bodies removed.
+         
+        Only `name` or `id` may be passed, but not both.
+        
+        Parameters
+        ----------
+        name : str or array-like of str, optional
+            Name or names of bodies to remove. 
+        id : int or array-like of int, optional
+            Id value or values of bodies to removed. 
+            
+        Returns
+        -------
+        None
+        """
+        
+        if name is None and id is None:
+            raise ValueError("You must pass either name or id as arguments")
+        if name is not None and id is not None:
+            raise ValueError("You must pass only name or id as arguments, but not both")
+        
+        if name is not None:
+            if type(name) is str or type(name) is int:
+                name = [name]
+            for n in name:
+                self.data = self.data.where(self.data.name != n, drop=True)
+                self.init_cond = self.init_cond.where(self.init_cond.name != n, drop=True)
+                
+        else: 
+            if type(id) is int or type(id) is name:
+                id = [id]
+            for i in id:
+                self.data = self.data.where(self.data.id != i, drop=True)
+                self.init_cond = self.init_cond.where(self.init_cond.id != i, drop=True)
+                
+        self.data = self._get_nvals(self.data)      
+        self.init_cond = self._get_nvals(self.init_cond) 
+             
+        return
+
 
     def _combine_and_fix_dsnew(self,
-                               dsnew: xr.Dataset,
+                               dsnew: SwiftestDataset,
                                align_to_central_body_rotation: bool = False,
                                **kwargs: Any
-                               ) -> xr.Dataset:
+                               ) -> SwiftestDataset:
         """
         Combines the new Dataset with the old one. Also computes the values of ntp and npl and sets the proper types.
         
         Parameters
         ----------
-        dsnew : xarray Dataset
+        dsnew : SwiftestDataset
             Dataset with new bodies
         align_to_central_body_rotation : bool, default False
             If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
@@ -2678,22 +2861,25 @@ class Simulation(object):
 
         Returns
         -------
-        dsnew : xarray Dataset
+        dsnew : SwiftestDataset
             Updated Dataset with ntp, npl values and types fixed.
         """
-        
+            
+        if not isinstance(dsnew, SwiftestDataset):
+            dsnew = SwiftestDataset(dsnew)        
+            
         if "id" not in self.data.dims:
-            if len(np.unique(dsnew['name'])) == len(dsnew['name']):
-               dsnew = dsnew.swap_dims({"id" : "name"})
-               if "id" in dsnew:
-                   dsnew = dsnew.reset_coords("id")
-            else:
+            if not len(np.unique(dsnew['name'])) == len(dsnew['name']):
                 msg = "Non-unique names detected for bodies. The Dataset will be dimensioned by integer id instead of name."
                 msg +="\nConsider using unique names instead."
                 print(msg)
+        dsnew['status'] = xr.zeros_like(dsnew['id'])
 
         self.data = xr.combine_by_coords([self.data, dsnew])
-
+        
+        if not isinstance(self.data, SwiftestDataset):
+            self.data = SwiftestDataset(self.data)
+           
         if self.param['OUT_TYPE'] == "NETCDF_DOUBLE":
             dsnew = io.fix_types(dsnew, ftype=np.float64)
             self.data = io.fix_types(self.data, ftype=np.float64)
@@ -2702,26 +2888,9 @@ class Simulation(object):
             self.data = io.fix_types(self.data, ftype=np.float32)
 
         self.set_central_body(align_to_central_body_rotation)
-        def get_nvals(ds):
-            if "name" in ds.dims:
-                count_dim = "name"
-            elif "id" in ds.dims:
-                count_dim = "id"
-            if "Gmass" in ds:
-                ds['ntp'] = ds[count_dim].where(np.isnan(ds['Gmass'])).count(dim=count_dim)
-                ds['npl'] = ds[count_dim].where(~(np.isnan(ds['Gmass']))).count(dim=count_dim) - 1
-                if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
-                    ds['nplm'] = ds[count_dim].where(ds['Gmass'] > self.param['GMTINY']).count(dim=count_dim) - 1
-            else:
-                ds['ntp'] = ds[count_dim].count(dim=count_dim)
-                ds['npl'] = xr.full_like(ds['ntp'],0)
-                if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
-                   ds['nplm'] = xr.full_like(ds['ntp'],0)
-            return ds
 
-        dsnew = get_nvals(dsnew)
-        self.data = get_nvals(self.data)
-        
+        dsnew = self._get_nvals(dsnew)
+        self.data = self._get_nvals(self.data)
 
         self.data = self.data.sortby("id")
         self.data = io.reorder_dims(self.data)
@@ -2862,7 +3031,7 @@ class Simulation(object):
                 cbname: str="cb.swiftest.in", 
                 conversion_questions: Dict={}, 
                 dask: bool=False
-                ) -> xr.Dataset:
+                ) -> SwiftestDataset:
         """
         Converts simulation input files from one format to another (Swift, Swifter, or Swiftest). 
 
@@ -2885,7 +3054,7 @@ class Simulation(object):
 
         Returns
         -------
-        oldparam : xarray dataset
+        oldparam : Dict
             The old parameter configuration.
         """
         oldparam = self.param
@@ -2922,7 +3091,7 @@ class Simulation(object):
                          dask : bool = False
                          ) -> None:
         """
-        Reads in simulation data from an output file and stores it as an Xarray Dataset in the `data` instance variable.
+        Reads in simulation data from an output file and stores it as a SwiftestDataset in the `data` instance variable.
 
         Parameters
         ----------
@@ -2946,7 +3115,7 @@ class Simulation(object):
         if self.codename == "Swiftest":
             self.data = io.swiftest2xr(param_tmp, verbose=self.verbose, dask=dask)
             if self.verbose:
-                print('Swiftest simulation data stored as xarray DataSet .data')
+                print('Swiftest simulation data stored as xarray Dataset .data')
             if read_init_cond:
                 if self.verbose:
                     print("Reading initial conditions file as .init_cond")
@@ -2965,7 +3134,7 @@ class Simulation(object):
 
         elif self.codename == "Swifter":
             self.data = io.swifter2xr(param_tmp, verbose=self.verbose)
-            if self.verbose: print('Swifter simulation data stored as xarray DataSet .data')
+            if self.verbose: print('Swifter simulation data stored as SwiftestDataset .data')
         elif self.codename == "Swift":
             warnings.warn("Reading Swift simulation data is not implemented yet",stacklevel=2)
         else:
@@ -2976,7 +3145,7 @@ class Simulation(object):
                             dask: bool=False
                             ) -> None:
         """
-        Reads in an encounter history file and stores it as an Xarray Dataset in the `encounters` instance variable.
+        Reads in an encounter history file and stores it as a SwiftestDataset in the `encounters` instance variable.
         
         Parameters
         ----------
@@ -2986,7 +3155,7 @@ class Simulation(object):
         Returns
         -------
         None
-            Sets the encounters instance variable xarray dataset 
+            Sets the encounters instance variable SwiftestDataset 
         """
         enc_file = self.simdir / "encounters.nc"
         if not os.path.exists(enc_file):
@@ -3043,7 +3212,7 @@ class Simulation(object):
     def follow(self, 
                codestyle: str="Swifter", 
                dask: bool=False
-               ) -> xr.Dataset:
+               ) -> SwiftestDataset:
         """
         An implementation of the Swift tool_follow algorithm. Under development. Currently only for Swift simulations. 
 
@@ -3150,7 +3319,7 @@ class Simulation(object):
                                     new_initial_conditions_file: os.PathLike="bin_in.nc", 
                                     restart: bool=False, 
                                     codename: str="Swiftest"
-                                    ) -> xr.Dataset:
+                                    ) -> SwiftestDataset:
         """
         Generates a set of input files from a old output file.
 
@@ -3267,42 +3436,363 @@ class Simulation(object):
             warnings.warn("No bodies with Gmass values found in dataset. Cannot set central body.",stacklevel=2)
             return
        
-        cbid = self.data.Gmass.argmax().values[()] 
         if 'name' in self.data.dims:
-            cbidx = self.data.id.isel(name=cbid).values[()]
-            cbname = self.data.name.isel(name=cbid).values[()]
+            cbidx = self.data.Gmass.argmax(dim='name').values[()] 
+            cbid = self.data.id.isel(name=cbidx).values[()]
+            cbname = self.data.name.isel(name=cbidx).values[()]
         elif 'id' in self.data.dims:
-            cbidx = self.data.id.isel(id=cbid).values[()]
-            cbname = self.data.name.isel(id=cbid).values[()]
+            cbidx = self.data.Gmass.argmax(dim='id').values[()] 
+            cbid = self.data.id.isel(id=cbidx).values[()]
+            cbname = self.data.name.isel(id=cbidx).values[()]
         else:
             raise ValueError("No 'name' or 'id' dimensions found in dataset.")
        
-        if cbidx != 0:
+        recompute_el = False 
+        if cbid != 0:
+            recompute_el = True
             if 'name' in self.data.dims:
                 if 0 in self.data.id.values:
                     name_0 = self.data.name.where(self.data.id == 0, drop=True).values[()]
-                    self.data['id'].loc[dict(name=name_0)] = cbidx
+                    self.data['id'].loc[dict(name=name_0)] = cbid
                 self.data['id'].loc[dict(name=cbname)] = 0
+                self.data['particle_type'].loc[dict(name=cbname)] = constants.CB_TYPE_NAME
             else:
                 if 0 in self.data.id.values:
-                    self.data['id'].loc[dict(id=0)] = cbidx
-                self.data['id'].loc[dict(id=cbidx)] = 0
-            
+                    self.data['id'].loc[dict(id=0)] = cbid
+                self.data['id'].loc[dict(id=cbid)] = 0
+                self.data['particle_type'].loc[dict(id=cbid)] = constants.CB_TYPE_NAME
+                
         # Ensure that the central body is at the origin
         if 'name' in self.data.dims: 
-            cbda =  self.data.sel(name=cbname)
+            cbda =  self.data.sel(name=cbname).isel(name=0)
         else:
-            cbda = self.data.sel(id=cbidx)
-        
+            cbda = self.data.sel(id=cbid).isel(id=0)
+      
         pos_skip = ['space','Ip','rot']
         for var in self.data.variables:
-            if 'space' in self.data[var].dims and var not in pos_skip:
-                self.data[var] -= cbda[var]
-                
-        if align_to_central_body_rotation and 'rot' in cbda:
-            self.data = tool.rotate_to_vector(self.data,cbda.rot.isel(time=0).values[()])
-        
+            if 'space' in self.data[var].dims and var not in pos_skip and not np.isnan(self.data[var].values).any():
+                if np.any(cbda[var].values != 0.0):
+                    recompute_el = True
+                    self.data[var] -= cbda[var]
+               
+        # If the central body origin has changed and we expect the system to be aligned with its rotation frame, then rotate the system
+        # before computing the orbital elements 
+        if align_to_central_body_rotation and 'rot' in cbda and recompute_el: 
+            if "rot" in cbda and not np.isnan(cbda.rot.isel(time=0).values).any():
+                self.data = self.data.rotate(pole=cbda.rot.isel(time=0).values[()])
+       
+        if recompute_el:
+            self.data = self.data.xv2el()
+
         if self.param['CHK_CLOSE']:
            if 'CHK_RMIN' not in self.param:
                self.param['CHK_RMIN'] = cbda.radius.values.item()
+               
         return 
+    
+    @property
+    def param(self) -> Dict:
+        """
+        Dict: A dictionary of simulation parameters. These are stored in the param.in file
+        """
+        return self._param
+    
+    @param.setter
+    def param(self, value: Dict) -> None:
+        if not isinstance(value, dict):
+            raise TypeError("Parameter value must be a dictionary")
+        self._param = value
+        return
+    
+    @property
+    def data(self) -> SwiftestDataset:
+        """
+        SwiftestDataset: A dataset containing the simulation data
+        """
+        return self._data
+    
+    @data.setter
+    def data(self, value: SwiftestDataset) -> None:
+        if not isinstance(value, SwiftestDataset):
+            if isinstance(value, xr.Dataset):
+                value = SwiftestDataset(value)
+            else:
+                raise TypeError("Data value must be a SwiftestDataset")
+        self._data = value
+        return
+    
+    @property
+    def init_cond(self) -> SwiftestDataset:
+        """
+        SwiftestDataset: A dataset containing the initial conditions
+        """
+        return self._init_cond
+    
+    @init_cond.setter
+    def init_cond(self, value: SwiftestDataset) -> None:
+        if not isinstance(value, SwiftestDataset):
+            if isinstance(value, xr.Dataset):
+                value = SwiftestDataset(value)
+            else:
+                raise TypeError("Initial conditions value must be a SwiftestDataset")
+        self._init_cond = value
+        return
+    
+    @property
+    def encounters(self) -> SwiftestDataset:
+        """
+        SwiftestDataset: A dataset containing the encounter history
+        """
+        return self._encounters
+    
+    @encounters.setter
+    def encounters(self, value: SwiftestDataset) -> None:
+        if not isinstance(value, SwiftestDataset):
+            if isinstance(value, xr.Dataset):
+                value = SwiftestDataset(value)
+            else:
+                raise TypeError("Encounters value must be a SwiftestDataset")
+        self._encounters = value
+        return
+    
+    @property
+    def collisions(self) -> SwiftestDataset:
+        """
+        SwiftestDataset: A dataset containing the collision history
+        """
+        return self._collisions
+    
+    @collisions.setter
+    def collisions(self, value: SwiftestDataset) -> None:
+        if not isinstance(value, SwiftestDataset):
+            if isinstance(value, xr.Dataset):
+                value = SwiftestDataset(value)
+            else:
+                raise TypeError("Collisions value must be a SwiftestDataset")
+        self._collisions = value
+        return
+    
+    @property
+    def simdir(self) -> Path:
+        """
+        Path: The simulation directory
+        """
+        return self._simdir
+    
+    @simdir.setter
+    def simdir(self, value: os.PathLike | Path) -> None:
+        try:
+            value = Path(value).resolve()
+        except:
+            raise TypeError("Simulation directory value must be a a valid path")
+        
+        if value.exists():
+            if not value.is_dir():
+                msg = f"Cannot create the {self.simdir} directory: File exists."
+                msg += "\nDelete the file or change the location of param_file"
+                raise NotADirectoryError(msg)        
+        self._simdir = value
+        return
+    
+    @property
+    def MU_name(self) -> str:
+        """
+        str: The name of the mass unit currently defined in the simulation.
+        """
+        return self._MU_name
+    
+    @MU_name.setter
+    def MU_name(self, value: str) -> None:
+        if not isinstance(value, str):
+            raise TypeError("Mass unit name value must be a string")
+        self._MU_name = value
+        return
+    
+    @property
+    def DU_name(self) -> str:
+        """
+        str: The name of the distance unit currently defined in the simulation.
+        """
+        return self._DU_name
+    
+    @DU_name.setter
+    def DU_name(self, value: str) -> None:
+        if not isinstance(value, str):
+            raise TypeError("Distance unit name value must be a string")
+        self._DU_name = value
+        return
+    
+    @property
+    def TU_name(self) -> str:
+        """
+        str: The name of the time unit currently defined in the simulation.
+        """
+        return self._TU_name
+    
+    @TU_name.setter
+    def TU_name(self, value: str) -> None:
+        if not isinstance(value, str):
+            raise TypeError("Time unit name value must be a string")
+        self._TU_name = value
+        return
+    
+    @property
+    def MU2KG(self) -> FloatLike:
+        """
+        np.float64: The conversion factor from mass unit to kilograms.
+        """
+        return self._MU2KG
+    
+    @MU2KG.setter
+    def MU2KG(self, value: FloatLike) -> None:
+        if not isinstance(value, (float, int, np.number)):
+            raise TypeError("Mass unit to kilogram conversion value must be a float")
+        self._MU2KG = np.float64(value)
+        self._KG2MU = 1.0 / self._MU2KG
+        return 
+   
+    @property
+    def KG2MU(self) -> FloatLike:
+        """
+        np.float64: The conversion factor from kilograms to mass unit.
+        """
+        return self._KG2MU
+    
+    @KG2MU.setter
+    def KG2MU(self, value: FloatLike) -> None:
+        if not isinstance(value, (float, int, np.number)):
+            raise TypeError("Kilogram to mass unit conversion value must be a float")
+        self._KG2MU = np.float64(value)
+        self._MU2KG = 1.0 / self._KG2MU
+        return 
+    
+    @property
+    def DU2M(self) -> FloatLike:
+        """
+        np.float64: The conversion factor from distance unit to meters.
+        """
+        return self._DU2M
+    
+    @DU2M.setter
+    def DU2M(self, value: FloatLike) -> None:
+        if not isinstance(value, (float, int, np.number)):
+            raise TypeError("Distance unit to meter conversion value must be a float")
+        self._DU2M = np.float64(value)
+        self._M2DU = 1.0 / self._DU2M
+        return
+    
+    @property
+    def M2DU(self) -> FloatLike:
+        """
+        np.float64: The conversion factor from meters to distance unit.
+        """
+        return self._M2DU
+    
+    @M2DU.setter
+    def M2DU(self, value: FloatLike) -> None:
+        if not isinstance(value, (float, int, np.number)):
+            raise TypeError("Meter to distance unit conversion value must be a float")
+        self._M2DU = np.float64(value)
+        self._DU2M = 1.0 / self._M2DU
+        return
+    
+    @property
+    def TU2S(self) -> FloatLike:
+        """
+        np.float64: The conversion factor from time unit to seconds.
+        """
+        return self._TU2S
+    
+    @TU2S.setter
+    def TU2S(self, value: FloatLike) -> None:
+        if not isinstance(value, (float, int, np.number)):
+            raise TypeError("Time unit to second conversion value must be a float")
+        self._TU2S = np.float64(value)
+        self._S2TU = 1.0 / self._TU2S
+        return
+    
+    @property
+    def S2TU(self) -> FloatLike:
+        """
+        np.float64: The conversion factor from seconds to time unit.
+        """
+        return self._S2TU
+    
+    @S2TU.setter
+    def S2TU(self, value: FloatLike) -> None:
+        if not isinstance(value, (float, int, np.number)):
+            raise TypeError("Second to time unit conversion value must be a float")
+        self._S2TU = np.float64(value)
+        self._TU2S = 1.0 / self._S2TU
+        return
+   
+    @property
+    def GU(self) -> FloatLike:
+        """
+        np.float64: The gravitational constant in the simulation units.
+        """
+        return self._GU
+    
+    @GU.setter
+    def GU(self, value: FloatLike) -> None:
+        if not isinstance(value, (float, int, np.number)):
+            raise TypeError("Gravitational constant value must be a float")
+        self._GU = np.float64(value)
+        return
+    
+    @property
+    def integrator(self) -> str:
+        """
+        Literal["symba","rmvs","whm","helio"]: The name of the integrator used in the simulation. Currently supports "symba", "rmvs", "whm", and "helio".
+        """
+        return self._integrator
+    
+    @integrator.setter
+    def integrator(self, value: str) -> None:
+        if not isinstance(value, str):
+            raise TypeError("Integrator value must be a string")
+        
+        valid_integrator = ["symba","rmvs","whm","helio"]        
+        if value.lower() not in valid_integrator:
+            raise ValueError(f"{value} is not a valid integrator. Valid options are ",",".join(valid_integrator))
+        
+        self._integrator = value.lower()
+        return
+    
+    @property
+    def codename(self) -> str:
+        """
+        Literal["Swiftest","Swifter","Swift"]: The name of the n-body code used in the simulation. Currently supports "Swiftest", "Swifter", and "Swift".
+        """
+        return self._codename
+    
+    @codename.setter
+    def codename(self, value: str) -> None:
+        if not isinstance(value, str):
+            raise TypeError("Code name value must be a string")
+        
+        valid_codename = ["Swiftest","Swifter","Swift"]
+        if value.title() not in valid_codename:
+            raise ValueError(f"{value} is not a valid code name. Valid options are ",",".join(valid_codename))
+        
+        self._codename = value.title()
+        return
+    
+   
+    @property
+    def verbose(self) -> bool:
+        """
+        bool: A boolean value indicating whether verbose output is enabled.
+        """
+        return self._verbose
+    
+    @verbose.setter
+    def verbose(self, value: bool) -> None:
+        if not isinstance(value, bool):
+            raise TypeError("Verbose value must be a boolean")
+        self._verbose = value
+        return
+    
+    
+    
+    

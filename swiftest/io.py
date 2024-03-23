@@ -9,7 +9,9 @@ You should have received a copy of the GNU General Public License along with Swi
 If not, see: https://www.gnu.org/licenses. 
 """
 
-import swiftest
+from .init_cond import vec2xr
+from.constants import MSun, AU2M, YR2S, JD2S, GC
+from .data import SwiftestDataArray, SwiftestDataset
 import numpy as np
 from scipy.io import FortranFile
 import xarray as xr
@@ -66,7 +68,7 @@ lower_str_param = ["NC_IN", "PL_IN", "TP_IN", "CB_IN", "CHK_QMIN_RANGE"]
 
 param_keys = ['! VERSION'] + int_param + float_param + upper_str_param + lower_str_param+ bool_param
 
-# This defines Xarray Dataset variables that are strings, which must be processed due to quirks in how NetCDF-Fortran
+# This defines SwiftestDataset variables that are strings, which must be processed due to quirks in how NetCDF-Fortran
 # handles strings differently than Python's Xarray.
 string_varnames = ["name", "particle_type", "origin_type", "stage", "regime"]
 char_varnames = ["space"]
@@ -157,14 +159,18 @@ def _real2float(realstr):
     return float(realstr.replace('d', 'E').replace('D', 'E'))
 
 
-def read_swiftest_param(param_file_name, param, verbose=True):
+def read_swiftest_param(param_file_name: os.PathLike, param: dict, verbose: bool=True) -> dict:
     """
     Reads in a Swiftest param.in file and saves it as a dictionary
 
     Parameters
     ----------
-    param_file_name : string
+    param_file_name : PathLike
         File name of the input parameter file
+    param : dict
+        Dictionary to store the entries in the user parameter file
+    verbose : bool, default True
+        Print out information about the file being read
 
     Returns
     -------
@@ -209,17 +215,17 @@ def read_swiftest_param(param_file_name, param, verbose=True):
     return param
 
 
-def reorder_dims(ds):
+def reorder_dims(ds: SwiftestDataset) -> SwiftestDataset:
     """
     Re-order dimension coordinates so that they are in the same order as the Fortran side
     
     Parameters
     ----------
-    ds : xarray dataset
+    ds : SwiftestDataset
     
     Returns
     -------
-    ds : xarray dataset with the dimensions re-ordered
+    ds : SwiftestDataset with the dimensions re-ordered
     """
     idx = ds.indexes
     if "id" in idx:
@@ -233,13 +239,14 @@ def reorder_dims(ds):
     return ds
 
 
-def read_swifter_param(param_file_name, verbose=True):
+def read_swifter_param(param_file_name: os.PathLike, 
+                       verbose: bool=True) -> dict:
     """
     Reads in a Swifter param.in file and saves it as a dictionary
 
     Parameters
     ----------
-    param_file_name : string
+    param_file_name : PathLike
         File name of the input parameter file
     verbose : bool, default True
         Print out information about the file being read
@@ -317,7 +324,9 @@ def read_swifter_param(param_file_name, verbose=True):
     return param
 
 
-def read_swift_param(param_file_name, startfile="swift.in", verbose=True):
+def read_swift_param(param_file_name: os.PathLike, 
+                     startfile: os.PathLike="swift.in", 
+                     verbose: bool=True) -> dict:
     """
     Reads in a Swift param.in file and saves it as a dictionary
 
@@ -327,6 +336,8 @@ def read_swift_param(param_file_name, startfile="swift.in", verbose=True):
         File name of the input parameter file
     startfile : string, default "swift.in"
         File name of the input start file
+    verbose : bool, default True
+        Print out information about the file being read 
         
     Returns
     -------
@@ -405,7 +416,7 @@ def read_swift_param(param_file_name, startfile="swift.in", verbose=True):
     return param
 
 
-def write_swift_param(param, param_file_name):
+def write_swift_param(param: dict, param_file_name: os.PathLike) -> None:
     """
     Writes a Swift param.in file.
 
@@ -413,7 +424,7 @@ def write_swift_param(param, param_file_name):
     ----------
     param : dictionary
         The entries in the user parameter file
-    param_file_name : string
+    param_file_name : PathLike
         File name of the input parameter file
 
     Returns
@@ -431,7 +442,7 @@ def write_swift_param(param, param_file_name):
     return
 
 
-def write_labeled_param(param, param_file_name):
+def write_labeled_param(param: dict, param_file_name: os.PathLike) -> None:
     """
     Writes a Swifter/Swiftest param.in file.
 
@@ -439,7 +450,7 @@ def write_labeled_param(param, param_file_name):
     ----------
     param : dictionary
         The entries in the user parameter file
-    param_file_name : string
+    param_file_name : PathLike
         File name of the input parameter file
 
     Returns
@@ -575,7 +586,7 @@ def _swifter_stream(f, param):
 
 def swifter2xr(param, verbose=True):
     """
-    Converts a Swifter binary data file into an xarray DataSet.
+    Converts a Swifter binary data file into an SwiftestDataset.
 
     Parameters
     ----------
@@ -585,7 +596,7 @@ def swifter2xr(param, verbose=True):
         Print out information about the file being read
     Returns
     -------
-    xarray dataset
+    SwiftestDataset
     """
     dims = ['time', 'id','vec']
     pl = []
@@ -598,10 +609,10 @@ def swifter2xr(param, verbose=True):
             sys.stdout.flush()
             
             pvec_args = dict(zip(plab,pvec))
-            pl.append(swiftest.init_cond.vec2xr(param,time=t,**pvec_args))
+            pl.append(vec2xr(param,time=t,**pvec_args))
             if ntp > 0:
                 tvec_args = dict(zip(tlab,tvec))
-                tp.append(swiftest.init_cond.vec2xr(param,time=t,**tvec_args))
+                tp.append(vec2xr(param,time=t,**tvec_args))
             
         plds = xr.concat(pl, dim='time')
         if len(tp) > 0: 
@@ -611,10 +622,10 @@ def swifter2xr(param, verbose=True):
         if len(tp) > 0:
             ds = xr.combine_by_coords([plds, tpds])
         if verbose: print(f"Successfully converted {ds.sizes['time']} output frames.")
-    return ds
+    return SwiftestDataset(ds)
 
 
-def process_netcdf_input(ds, param):
+def process_netcdf_input(ds: xr.Dataset, param: dict) -> SwiftestDataset:
     """
     Performs several tasks to convert raw NetCDF files output by the Fortran program into a form that
     is used by the Python side. These include:
@@ -626,8 +637,11 @@ def process_netcdf_input(ds, param):
 
     Returns
     -------
-    ds : xarray dataset
+    ds : SwiftestDataset
     """
+    
+    if not isinstance(ds, SwiftestDataset):
+        ds = SwiftestDataset(ds)
 
     if param['OUT_TYPE'] == "NETCDF_DOUBLE":
         ds = fix_types(ds,ftype=np.float64)
@@ -637,7 +651,7 @@ def process_netcdf_input(ds, param):
     return ds
 
 
-def swiftest2xr(param, verbose=True, dask=False):
+def swiftest2xr(param: dict, verbose: bool=True, dask: bool=False) -> SwiftestDataset:
     """
     Converts a Swiftest binary data file into an xarray DataSet.
 
@@ -652,7 +666,7 @@ def swiftest2xr(param, verbose=True, dask=False):
 
     Returns
     -------
-    xarray dataset
+    SwiftestDataset
     """
 
 
@@ -673,50 +687,52 @@ def swiftest2xr(param, verbose=True, dask=False):
     return ds
 
 
-def _xstrip_nonstr(a):
+def _xstrip_nonstr(da: SwiftestDataArray) -> SwiftestDataArray:
     """
-    Cleans up the string values in the DataSet to remove extra white space
+    Cleans up the string values in the DataArray to remove extra white space
 
     Parameters
     ----------
-    a  : xarray
+    da  : SwiftestDataArray
         Input dataset
 
     Returns
     -------
-    da : xarray dataset with the strings cleaned up
+    SwiftestDataset with the strings cleaned up
     """
     func = lambda x: np.char.strip(x)
-    return xr.apply_ufunc(func, a.str.decode(encoding='utf-8'),dask='parallelized')
+    return xr.apply_ufunc(func, da.str.decode(encoding='utf-8'),dask='parallelized')
 
 
-def _xstrip_str(a):
+def _xstrip_str(da: SwiftestDataset) -> SwiftestDataset:
     """
-    Cleans up the string values in the DataSet to remove extra white space
+    Cleans up the string values in the DataArray to remove extra white space
 
     Parameters
     ----------
-    a    : xarray dataset
+    da    : SwiftestDataArray
+        Input DataArray padded with spaces.
 
     Returns
     -------
-    da : xarray dataset with the strings cleaned up
+    SwiftestDataset with the strings cleaned up
     """
     func = lambda x: np.char.strip(x)
-    return xr.apply_ufunc(func, a,dask='parallelized')
+    return xr.apply_ufunc(func, da,dask='parallelized')
 
 
-def _string_converter(da):
+def _string_converter(da: SwiftestDataArray) -> SwiftestDataArray:
     """
     Converts a string to a unicode string 
 
     Parameters
     ----------
-    da    : xarray dataset
+    da    : SwiftestDataArray
+        Input DataArray with non-unicode strings
 
     Returns
     -------
-    da : xarray dataset with the strings cleaned up
+    da : SwiftestDataArray with the strings cleaned up
     """
 
     da = da.astype('<U32')
@@ -725,13 +741,13 @@ def _string_converter(da):
     return da
 
 
-def _char_converter(da):
+def _char_converter(da: SwiftestDataArray) -> SwiftestDataArray:
     """`
     Converts a string to a unicode string
 
     Parameters
     ----------
-    da    : xarray dataset
+    da    : SwiftestDataArray
 
     Returns
     -------
@@ -744,17 +760,17 @@ def _char_converter(da):
     return da
 
 
-def _clean_string_values(ds):
+def _clean_string_values(ds: SwiftestDataset) -> SwiftestDataset:
     """
     Cleans up the string values in the DataSet that have artifacts as a result of coming from NetCDF Fortran
 
     Parameters
     ----------
-    ds    : xarray dataset
+    ds    : SwiftestDataset
  
     Returns
     -------
-    ds : xarray dataset with the strings cleaned up
+    ds : SwiftestDataset with the strings cleaned up
     """
 
     for n in string_varnames:
@@ -767,17 +783,17 @@ def _clean_string_values(ds):
     return ds
 
 
-def _unclean_string_values(ds):
+def _unclean_string_values(ds: SwiftestDataset) -> SwiftestDataset:
     """
     Returns strings back to a format readable to NetCDF Fortran
 
     Parameters
     ----------
-    ds    : xarray dataset
+    ds    : SwiftestDataset
 
     Returns
     -------
-    ds : xarray dataset with the strings cleaned up
+    ds : SwiftestDataset with the strings cleaned up
     """
 
     for c in string_varnames:
@@ -792,13 +808,15 @@ def _unclean_string_values(ds):
     return ds
 
 
-def fix_types(ds,itype=np.int64,ftype=np.float64):
+def fix_types(ds: SwiftestDataset,
+              itype: np.dtype=np.int64,
+              ftype: np.dtype=np.float64) -> SwiftestDataset:
     """
     Converts all variables in the dataset to the specified type
     
     Parameters
     ----------
-    ds    : xarray dataset
+    ds : SwiftestDataset
         Input dataset to convert
     itype : numpy type, default np.int64
         Integer type to convert to
@@ -807,7 +825,7 @@ def fix_types(ds,itype=np.int64,ftype=np.float64):
         
     Returns
     -------
-    ds : xarray dataset with the types converted
+    ds : SwiftestDataset with the types converted
     """
     ds = _clean_string_values(ds)
     for intvar in int_varnames:
@@ -823,17 +841,18 @@ def fix_types(ds,itype=np.int64,ftype=np.float64):
     for floatcoord in float_coordnames:
         ds[floatcoord] = ds[floatcoord].astype(np.float64)
 
-
     return ds
 
 
-def select_active_from_frame(ds, param, framenum=-1):
+def select_active_from_frame(ds: SwiftestDataset, 
+                             param: dict, 
+                             framenum: int=-1) -> SwiftestDataset:
     """
     Selects a particular frame from a DataSet and returns only the active particles in that frame
 
     Parameters
     ----------
-    ds : xarray dataset
+    ds : SwiftestDataset
         Dataset containing Swiftest n-body data
     param : dict
         Swiftest input parameters. This method uses the names of the cb, pl, and tp files from the input
@@ -873,22 +892,32 @@ def select_active_from_frame(ds, param, framenum=-1):
     elif count_dim == "name":
         frame = frame.sel(name=iactive.values)
 
-
     return frame
 
 
-def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,framenum=-1,verbose=True):
+def swiftest_xr2infile(ds: SwiftestDataset, 
+                       param: dict, 
+                       in_type: str="NETCDF_DOUBLE", 
+                       infile_name: os.PathLike=None,
+                       framenum: int=-1,
+                       verbose: bool=True) -> None:
     """
     Writes a set of Swiftest input files from a single frame of a Swiftest xarray dataset
 
     Parameters
     ----------
-    ds : xarray dataset
+    ds : SwiftestDataset
         Dataset containing Swiftest n-body data in XV format
     param : dict
         Swiftest input parameters. This method uses the names of the cb, pl, and tp files from the input
+    in_type : str, default="NETCDF_DOUBLE"
+        Type of input file to write. Options are "NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"
+    infile_name : PathLike, default=None
+        Name of the input file to write. If not passed, the default is to use the name from the input parameters
     framenum : int (default=-1)
         Time frame to use to generate the initial conditions. If this argument is not passed, the default is to use the last frame in the dataset.
+    verbose : bool, default True
+        Print out information about the file being written.
 
     Returns
     -------
@@ -897,7 +926,6 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
     param_tmp = param.copy()
     param_tmp['OUT_FORM'] = param['IN_FORM']
     frame = select_active_from_frame(ds, param_tmp, framenum)
-
 
     if in_type == "NETCDF_DOUBLE" or in_type == "NETCDF_FLOAT":
         # Convert strings back to byte form and save the NetCDF file
@@ -916,7 +944,7 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
 
     # All other file types need seperate files for each of the inputs
     cb = frame.isel(name=0)
-    pl = frame.where(name != cb.name)
+    pl = frame.where(frame['name'] != cb.name)
     pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['j2rp2', 'j2rp2'],errors="ignore")
     tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'j2rp2', 'j4rp4'],errors="ignore")
     
@@ -993,13 +1021,16 @@ def swiftest_xr2infile(ds, param, in_type="NETCDF_DOUBLE", infile_name=None,fram
     return
 
 
-def swifter_xr2infile(ds, param, simdir=os.getcwd, framenum=-1):
+def swifter_xr2infile(ds: SwiftestDataset, 
+                      param: dict, 
+                      simdir: os.PathLike=os.getcwd, 
+                      framenum: int=-1) -> None:
     """
     Writes a set of Swifter input files from a single frame of a Swiftest xarray dataset
 
     Parameters
     ----------
-    ds : xarray dataset
+    ds : SwiftestDataset
         Dataset containing Swifter n-body data in XV format
     framenum : int
         Time frame to use to generate the initial conditions. If this argument is not passed, the default is to use the last frame in the dataset.
@@ -1008,7 +1039,7 @@ def swifter_xr2infile(ds, param, simdir=os.getcwd, framenum=-1):
 
     Returns
     -------
-    A set of input files for a Swifter run
+    None
     """
 
     frame = ds.isel(time=framenum)
@@ -1064,7 +1095,10 @@ def swifter_xr2infile(ds, param, simdir=os.getcwd, framenum=-1):
     return
 
 
-def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
+def swift2swifter(swift_param: dict, 
+                  plname: os.PathLike="", 
+                  tpname: os.PathLike="", 
+                  conversion_questions: dict={}) -> dict:
     """
     Converts from a Swift run to a Swifter run
 
@@ -1285,7 +1319,11 @@ def swift2swifter(swift_param, plname="", tpname="", conversion_questions={}):
     return swifter_param
 
 
-def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_questions={}):
+def swifter2swiftest(swifter_param: dict, 
+                     plname: os.PathLike="", 
+                     tpname: os.PathLike="", 
+                     cbname: os.PathLike="", 
+                     conversion_questions: dict={}) -> dict:
     """
     Converts from a Swifter run to a Swiftest run
 
@@ -1444,14 +1482,14 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
             sys.exit(-1)
     if unit_type == 1 or unit_system.upper() == 'MSUN-AU-YEAR':
         print("Unit system is MSun-AU-year")
-        swiftest_param['MU2KG'] = swiftest.MSun
-        swiftest_param['DU2M'] = swiftest.AU2M
-        swiftest_param['TU2S'] = swiftest.YR2S
+        swiftest_param['MU2KG'] = MSun
+        swiftest_param['DU2M'] = AU2M
+        swiftest_param['TU2S'] = YR2S
     elif unit_type == 2 or unit_system.upper() == 'MSUN-AU-DAY':
         print("Unit system is MSun-AU-day")
-        swiftest_param['MU2KG'] = swiftest.MSun
-        swiftest_param['DU2M'] = swiftest.AU2M
-        swiftest_param['TU2S'] = swiftest.JD2S
+        swiftest_param['MU2KG'] = MSun
+        swiftest_param['DU2M'] = AU2M
+        swiftest_param['TU2S'] = JD2S
     elif unit_type == 3 or unit_system.upper() == 'SI':
         print("Unit system is SI: kg-m-s")
         swiftest_param['MU2KG'] = 1.0
@@ -1468,7 +1506,7 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
         swiftest_param['MU2KG'] = input("Mass value in kilograms: ")
         swiftest_param['DU2M'] = input("Distance value in meters: ")
         swiftest_param['TU2S'] = input("Time unit in seconds: ")
-    GU = swiftest.GC / (swiftest_param['DU2M'] ** 3 / (swiftest_param['MU2KG'] * swiftest_param['TU2S'] ** 2))
+    GU = GC / (swiftest_param['DU2M'] ** 3 / (swiftest_param['MU2KG'] * swiftest_param['TU2S'] ** 2))
     print(f"Central body mass: {GMcb / GU} MU ({(GMcb / GU) * swiftest_param['MU2KG']} kg)")
    
     cbrad = conversion_questions.get('CBRAD', None)
@@ -1538,7 +1576,11 @@ def swifter2swiftest(swifter_param, plname="", tpname="", cbname="", conversion_
     return swiftest_param
 
 
-def swift2swiftest(swift_param, plname="", tpname="", cbname="", conversion_questions={}):
+def swift2swiftest(swift_param: dict, 
+                   plname: os.PathLike="", 
+                   tpname: os.PathLike="", 
+                   cbname: os.PathLike="", 
+                   conversion_questions: dict={}) -> dict:
     """
     Converts from a Swift run to a Swiftest run
 

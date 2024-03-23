@@ -70,6 +70,7 @@ Adding Bodies to a Simulation
     Simulation.add_body
     Simulation.add_solar_system_body
     Simulation.set_central_body
+    Simulation.remove_body
 
 
 File Input and Output
@@ -87,6 +88,68 @@ File Input and Output
     Simulation.save
     Simulation.convert
     Simulation.clean
+
+Attributes
+----------
+
+.. autosummary::
+   :toctree: generated/
+
+    Simulation.param
+    Simulation.data
+    Simulation.init_cond
+    Simulation.encounters
+    Simulation.collisions
+    Simulation.MU_name
+    Simulation.DU_name
+    Simulation.TU_name
+    Simulation.MU2KG
+    Simulation.KG2MU
+    Simulation.TU2S
+    Simulation.S2TU
+    Simulation.DU2M
+    Simulation.M2DU
+    Simulation.GU
+    Simulation.integrator
+    Simulation.codename
+    Simulation.simdir
+    Simulation.verbose
+
+Data Representation
+===================
+
+DataArray
+----------
+
+.. autosummary::
+    :toctree: generated/
+
+    SwiftestDataArray
+
+DataArray Methods
+------------------
+
+.. autosummary::
+    :toctree: generated/
+
+    SwiftestDataArray.magnitude
+    SwiftestDataArray.rotate
+
+Dataset
+-------
+
+.. autosummary::
+    :toctree: generated/
+
+    SwiftestDataset
+
+Dataset Methods
+----------------
+
+.. autosummary::
+  :toctree: generated/
+
+  SwiftestDataset.rotate
 
 
 Initial Conditions Generation Functions
@@ -162,14 +225,21 @@ Miscellaneous helper functions
 .. autosummary::
     :toctree: generated/
 
-    swiftest.tool.magnitude
     swiftest.tool.wrap_angle
     swiftest.tool.follow_swift
-    swiftest.tool.danby
-    swiftest.tool.el2xv_one
-    swiftest.tool.el2xv_vec
-    swiftest.tool.xv2el_one
-    swiftest.tool.xv2el_vec
+
+
+Core
+----
+
+Compiled Fortran routines for the core of the Swiftest project.
+
+.. autosummary::
+   :toctree: generated/
+
+   swiftest.core.driver
+   swiftest.core.el2xv
+   swiftest.core.xv2el
 
 Constants
 =========

@@ -12,3 +12,5 @@ If not, see: https://www.gnu.org/licenses.
 from .constants import *
 from .simulation import Simulation
 from .shgrav import clm_from_ellipsoid, clm_from_relief
+from .data import SwiftestDataArray, SwiftestDataset
+from . import core

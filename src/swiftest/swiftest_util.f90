@@ -23,15 +23,14 @@ contains
       !! enough, this will allocate space for it.
       implicit none
       ! Arguments
-      type(swiftest_particle_info), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
-      type(swiftest_particle_info), dimension(:), allocatable, intent(in)           :: source       !! Array to append 
-      integer(I4B),                                            intent(in), optional :: nold         !! Extent of original array. 
-                                                                                                    !! If passed, the source array 
-                                                                                                    !! will begin at arr(nold+1). 
-                                                                                                    !! Otherwise, the size of arr 
-                                                                                                    !! will be used.
-      logical,                      dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which
-                                                                                                    !! elements to append to
+      type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr  
+         !! Destination array 
+      type(swiftest_particle_info), dimension(:), allocatable, intent(in) :: source 
+         !! Array to append 
+      integer(I4B), intent(in), optional :: nold 
+         !! Extent of original array. If passed the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
+      logical, dimension(:), intent(in), optional :: lsource_mask 
+         !! Logical mask indicating which elements to append to
       ! Internals
       integer(I4B) :: nnew, nsrc, nend_orig, i
       integer(I4B), dimension(:), allocatable :: idx
@@ -78,14 +77,14 @@ contains
       !! will allocate space for it.
       implicit none
       ! Arguments
-      type(swiftest_kinship), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
-      type(swiftest_kinship), dimension(:), allocatable, intent(in)           :: source       !! Array to append 
-      integer(I4B),                                      intent(in), optional :: nold         !! Extent of original array. 
-                                                                                              !! If passed, the source array will 
-                                                                                              !! begin at arr(nold+1). Otherwise, 
-                                                                                              !! the size of arr will be used.
-      logical,                dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which 
-                                                                                              !! elements to append to
+      type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: arr 
+         !! Destination array 
+      type(swiftest_kinship), dimension(:), allocatable, intent(in) :: source 
+         !! Array to append 
+      integer(I4B), intent(in), optional :: nold 
+         !! Extent of original array. If passed the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
+      logical, dimension(:), intent(in), optional :: lsource_mask 
+         !! Logical mask indicating which elements to append to
       ! Internals
       integer(I4B) :: nnew, nsrc, nend_orig
 
@@ -128,11 +127,12 @@ contains
       !! This method will automatically resize the destination body if it is too small
       implicit none
       ! Arguments
-      class(swiftest_body),  intent(inout) :: self         !! Swiftest body object
-      class(swiftest_body),  intent(in)    :: source       !! Source object to append
-      logical, dimension(:), intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      ! Internals
-
+      class(swiftest_body),  intent(inout) :: self  
+         !! Swiftest body object
+      class(swiftest_body),  intent(in) :: source  
+         !! Source object to append
+      logical, dimension(:), intent(in) :: lsource_mask 
+         !! Logical mask indicating which elements to append to
 
       call util_append(self%id, source%id, lsource_mask=lsource_mask)
       call util_append(self%info, source%info, lsource_mask=lsource_mask)
@@ -174,9 +174,12 @@ contains
       !! This method will automatically resize the destination body if it is too small
       implicit none
       ! Arguments
-      class(swiftest_pl),              intent(inout) :: self         !! Swiftest massive body object
-      class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      class(swiftest_pl), intent(inout) :: self 
+         !! Swiftest massive body object
+      class(swiftest_body),  intent(in) :: source 
+         !! Source object to append
+      logical, dimension(:), intent(in) :: lsource_mask 
+         !! Logical mask indicating which elements to append to
 
       select type(source)
       class is (swiftest_pl)
@@ -218,9 +221,12 @@ contains
       !! This method will automatically resize the destination body if it is too small
       implicit none
       ! Arguments
-      class(swiftest_tp),              intent(inout) :: self         !! Swiftest test particle object
-      class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      class(swiftest_tp), intent(inout) :: self 
+         !! Swiftest test particle object
+      class(swiftest_body), intent(in) :: source  
+         !! Source object to append
+      logical, dimension(:), intent(in):: lsource_mask 
+         !! Logical mask indicating which elements to append to
 
       select type(source)
       class is (swiftest_tp)
@@ -932,7 +938,7 @@ contains
       logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
 
       ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
-      !> Fill all the common components
+      !! Fill all the common components
       associate(keeps => self)
          call util_fill(keeps%id,         inserts%id,         lfill_list)
          call util_fill(keeps%info,       inserts%info,       lfill_list)
@@ -984,7 +990,7 @@ contains
 
       select type (inserts) ! The standard requires us to select the type of both arguments in order to access all the components
          class is (swiftest_pl)
-            !> Fill components specific to the massive body class
+            !! Fill components specific to the massive body class
             call util_fill(keeps%mass,    inserts%mass,    lfill_list)
             call util_fill(keeps%Gmass,   inserts%Gmass,   lfill_list)
             call util_fill(keeps%rhill,   inserts%rhill,   lfill_list)
@@ -1029,7 +1035,7 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (swiftest_tp)
-            !> Spill components specific to the test particle class
+            !! Spill components specific to the test particle class
             call util_fill(keeps%nplenc,  inserts%nplenc,  lfill_list)
 
             call swiftest_util_fill_body(keeps, inserts, lfill_list)
@@ -2414,7 +2420,7 @@ contains
       if (cb%Gmass <= tiny(1.0_DP)) return
 
       call self%xv2el(cb) 
-      where(self%a(1:self%nbody) > 0.0_DP)
+      where(self%e(1:self%nbody) < 1.0_DP)
          self%rhill(1:self%nbody) = self%a(1:self%nbody) * (self%Gmass(1:self%nbody) / cb%Gmass / 3)**THIRD 
       elsewhere
          self%rhill(1:self%nbody) = (.mag.self%rh(:,1:self%nbody)) * (self%Gmass(1:self%nbody) / cb%Gmass / 3)**THIRD 
@@ -2755,8 +2761,8 @@ contains
       ! Internals
       integer(I4B) :: i
 
-      !> Call allocation method for parent class
-      !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
+      !! Call allocation method for parent class
+      !! The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
       call swiftest_util_setup_body(self, n, param)
       if (n == 0) return
 
@@ -2822,8 +2828,8 @@ contains
       integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
 
-      !> Call allocation method for parent class
-      !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
+      !! Call allocation method for parent class
+      !! The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
       call swiftest_util_setup_body(self, n, param)
       if (n == 0) return
 
@@ -3357,7 +3363,7 @@ contains
       integer(I4B) :: nbody_old
 
       ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
-      !> Spill all the common components
+      !! Spill all the common components
       associate(keeps => self)
          
          call util_spill(keeps%id,         discards%id,         lspill_list, ldestructive)
@@ -3415,7 +3421,7 @@ contains
       associate(keeps => self)
          select type (discards) !The standard requires us to select the type of both arguments in order to access all the components
          class is (swiftest_pl)
-            !> Spill components specific to the massive body class
+            !! Spill components specific to the massive body class
             call util_spill(keeps%mass,    discards%mass,    lspill_list, ldestructive)
             call util_spill(keeps%Gmass,   discards%Gmass,   lspill_list, ldestructive)
             call util_spill(keeps%rhill,   discards%rhill,   lspill_list, ldestructive)
@@ -3463,7 +3469,7 @@ contains
       associate(keeps => self, ntp => self%nbody)
          select type(discards)
          class is (swiftest_tp)
-            !> Spill components specific to the test particle class
+            !! Spill components specific to the test particle class
             call util_spill(keeps%nplenc,  discards%nplenc,  lspill_list, ldestructive)
             call swiftest_util_spill_body(keeps, discards, lspill_list, ldestructive)
          class default

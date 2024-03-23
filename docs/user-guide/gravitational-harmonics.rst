@@ -1,6 +1,6 @@
-##########################
-Gravitational Harmonics
-##########################
+###################################################
+Using SHTOOLS to model non-spherical central bodies
+###################################################
 
 .. rubric:: by Kaustub Anand
 
@@ -21,12 +21,13 @@ degree :math:`l` and order :math:`m`; :math:`C_{lm}` is the corresponding coeffi
 Set up a Simulation
 ====================
 
-Let's start with setting up the simulation object with units of `km`, `days`, and `kg`. ::
+Let's start with setting up the simulation object with units of `km`, `days`, and `kg`. 
+
+.. ipython:: python
     
     import swiftest
 
     sim = swiftest.Simulation(DU2M = 1e3, TU = 'd', MU = 'kg', integrator = 'symba')
-    sim.clean() 
  
 Gravitational Harmonics Coefficients
 =====================================
@@ -47,7 +48,9 @@ Computing Coefficients from Axes Measurements
 
 Given the axes measurements of a body, the gravitational harmonics coefficients can be computed in a straightforward 
 manner. Here we use Chariklo as an example body and refer to Jacobi Ellipsoid model from 
-`Leiva et al. (2017) <https://iopscience.iop.org/article/10.3847/1538-3881/aa8956>`__ for the axes measurements. ::
+`Leiva et al. (2017) <https://iopscience.iop.org/article/10.3847/1538-3881/aa8956>`__ for the axes measurements. 
+
+.. ipython:: python
 
     # Define the central body parameters. 
     cb_mass = 6.1e18
@@ -62,19 +65,25 @@ manner. Here we use Chariklo as an example body and refer to Jacobi Ellipsoid mo
     cb_rot = [[0, 0, 360.0 / cb_T_rotation]] # degrees/TU
 
 Once the central body parameters are defined, we can compute the gravitational harmonics coefficients (:math:`C_{lm}`).
-The output coefficients are already correctly normalized. ::
+The output coefficients are already correctly normalized. 
+
+.. ipython:: python
 
     c_lm, cb_radius = swiftest.clm_from_ellipsoid(mass = cb_mass, density = cb_density, a = cb_a, b = cb_b, c = cb_c, lref_radius = True)
 
 *Note: Here we set the reference radius flag to* `True` *and ask the function to return the reference radius. More in the 
 additional capabilities section below. The maximum degree is set to 6 by default to ensure computational efficiency.*
 
-Add the central body to the simulation along with the coefficients. ::
+Add the central body to the simulation along with the coefficients. 
+
+.. ipython:: python
 
     sim.add_body(name = 'Chariklo', mass = cb_mass, rot = cb_rot, radius = cb_radius, c_lm = c_lm)
 
 If the :math:`J_{2}` and :math:`J_{4}` terms are passed as well, Swiftest ignores them and uses the :math:`C_{lm}` terms instead.
-Now the user can set up the rest of the simulation as usual. ::
+Now the user can set up the rest of the simulation as usual. 
+
+.. code-block:: python
 
     # add other bodies and set simulation parameters
     .
@@ -94,7 +103,9 @@ the right shape. The dimensions of ``c_lm`` is ``[sign, l, m]`` where:
 - The dimension ``l`` corresponds to the degree of the Spherical Harmonic and is of length :math:`l_{max} + 1`.
 - The dimension ``m`` corresponds to the order of the Spherical Harmonic and is of length :math:`l_{max} + 1`.
 
-:math:`l_{max}` is the highest order of the coefficients. ::
+:math:`l_{max}` is the highest order of the coefficients. 
+
+.. code-block:: python
 
     c_lm = ..... # defined by the user
     sim.add_body(name = 'Body', mass = cb_mass, rot = cb_rot, radius = cb_radius, c_lm = c_lm)
@@ -114,17 +125,23 @@ the user to explicitly set a reference radius (``ref_radius``) which scales the 
 specific radius is desired.
 
 This is done by setting ``lref_radius = True`` and passing a ``ref_radius``. Here we pass the Central Body radius (``cb_radius``) manually set earlier as 
-the reference. ::
+the reference. 
+
+.. code-block:: python
 
     c_lm, ref_radius = swiftest.clm_from_ellipsoid(mass = cb_mass, density = cb_density, a = cb_a, b = cb_b, c = cb_c, lref_radius = True, ref_radius = cb_radius)
 
 When ``lref_radius == True``, it tells the function to return the reference radius used to calculate the 
 coefficients and look for any reference radius (``ref_radius``) passed. If no reference radius is passed, the function returns the radius calculated
-internally. ::
+internally. 
+
+.. code-block:: python
         
     c_lm, ref_radius = swiftest.clm_from_ellipsoid(mass = cb_mass, density = cb_density, a = cb_a, b = cb_b, c = cb_c, lref_radius = True)
 
-By default, ``lref_radius`` is set to ``False``. In this case, the function only returns the coefficients. ::
+By default, ``lref_radius`` is set to ``False``. In this case, the function only returns the coefficients. 
+
+.. code-block:: python
 
     c_lm = swiftest.clm_from_ellipsoid(mass = cb_mass, density = cb_density, a = cb_a, b = cb_b, c = cb_c)
 
@@ -134,7 +151,9 @@ Combinations of Principal Axes
 -------------------------------
 
 The user can pass any combinations of the principal axes (``a``, ``b``, and ``c``) with ``a`` being the only required one. This is particularly 
-useful for cases like oblate spheroids (:math:`a = b \neq c`). For example, the following statements are equivalent: ::
+useful for cases like oblate spheroids (:math:`a = b \neq c`). For example, the following statements are equivalent: 
+
+.. code-block:: python
     
     c_lm, ref_radius = swiftest.clm_from_ellipsoid(mass = cb_mass, density = cb_density, a = cb_a, b = cb_b, c = cb_c, lref_radius = True)
 
@@ -142,7 +161,9 @@ useful for cases like oblate spheroids (:math:`a = b \neq c`). For example, the 
 
     c_lm, ref_radius = swiftest.clm_from_ellipsoid(mass = cb_mass, density = cb_density, a = cb_a, c = cb_c, lref_radius = True)
 
-For bodies with :math:`a \neq b = c`, the following statements are equivalent: ::
+For bodies with :math:`a \neq b = c`, the following statements are equivalent: 
+
+.. code-block:: python
     
     c_lm, ref_radius = swiftest.clm_from_ellipsoid(mass = cb_mass, density = cb_density, a = cb_a, b = cb_b, c = cb_c, lref_radius = True)
 
@@ -154,7 +175,9 @@ For bodies with :math:`a \neq b = c`, the following statements are equivalent: :
 Setting the Maximum Degree :math:`l`
 -------------------------------------
 
-The user can set the maximum degree :math:`l` for the coefficients. ::
+The user can set the maximum degree :math:`l` for the coefficients. 
+
+.. code-block:: python
 
     lmax = 4
     c_lm, ref_radius = swiftest.clm_from_ellipsoid(mass = cb_mass, density = cb_density, a = cb_a, b = cb_b, c = cb_c, lmax = lmax, lref_radius = True)

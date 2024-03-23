@@ -13,22 +13,19 @@ module globals
    !!
    !! Basic parameters, definitions, and global type definitions used throughout the Swiftest project
    !! Adapted from David E. Kaufmann's Swifter routine: globals.f90 and module_swifter.f90
-   use, intrinsic :: iso_fortran_env  ! Use the intrinsic kind definitions
+   use, intrinsic :: iso_c_binding  ! Use the intrinsic kind definitions
+   use, intrinsic :: iso_fortran_env, only: OUTPUT_UNIT
    implicit none
    public
 
-   integer, parameter :: I8B = int64 !! Symbolic name for kind types of 8-byte integers
-   integer, parameter :: I4B = int32 !! Symbolic name for kind types of 4-byte integers
-   integer, parameter :: I2B = int16 !! Symbolic name for kind types of 2-byte integers
-   integer, parameter :: I1B = int8  !! Symbolic name for kind types of 1-byte integers
+   integer, parameter :: I8B = c_int_least64_t !! Symbolic name for kind types of 8-byte integers
+   integer, parameter :: I4B = c_int_least32_t !! Symbolic name for kind types of 4-byte integers
+   integer, parameter :: I2B = c_int_least16_t !! Symbolic name for kind types of 2-byte integers
+   integer, parameter :: I1B = c_int_least8_t  !! Symbolic name for kind types of 1-byte integers
 
-   integer, parameter :: SP = real32  !! Symbolic name for kind types of single-precision reals
-   integer, parameter :: DP = real64  !! Symbolic name for kind types of double-precision reals
-#ifdef QUADPREC
-   integer, parameter :: QP = selected_Real_kind(30) !! Symbolic name for kind types of quad-precision reals
-#else
-   integer, parameter :: QP = real64 !! Stick to DP
-#endif
+   integer, parameter :: SP = c_float  !! Symbolic name for kind types of single-precision reals
+   integer, parameter :: DP = c_double  !! Symbolic name for kind types of double-precision reals
+   integer, parameter :: QP = c_long_double !! Symbolic name for kind types of quad-precision reals
 
    real(DP), parameter :: PIBY2  = 1.570796326794896619231321691639751442099_DP !! Definition of /(\pi / 2\)
    real(DP), parameter :: PI     = 3.141592653589793238462643383279502884197_DP !! Definition of /(\pi\)
@@ -48,7 +45,7 @@ module globals
    integer(I4B), parameter :: UPPERCASE_OFFSET = iachar('A') - iachar('a') !! ASCII character set parameter for lower to upper 
                                                                            !! conversion - offset between upper and lower
 
-   character(*), parameter :: VERSION = "2024.3.2" !! Swiftest version
+   character(*), parameter :: VERSION = "2024.3.3" !! Swiftest version
 
    !> Symbolic name for integrator types
    character(*), parameter :: UNKNOWN_INTEGRATOR = "UKNOWN INTEGRATOR"

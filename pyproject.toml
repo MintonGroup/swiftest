@@ -1,6 +1,6 @@
 [project]
 name = "swiftest"
-version = "2024.3.2"
+version = "2024.3.3"
 authors=[
     {name = 'David A. Minton', email='daminton@purdue.edu'},
     {name = 'Carlisle Wishard'},
@@ -55,6 +55,7 @@ swiftest = "swiftest.cli:main"
 requires = [
     "scikit-build-core>=0.8.2",
     "cython>=3.0.8",
+    "numpy>=1.26.4",
 ]
 build-backend = "scikit_build_core.build"
 
@@ -68,7 +69,7 @@ build-dir = "build/{wheel_tag}"
 cmake.verbose = true
 
 [tool.cibuildwheel]
-test-command = "pytest {package}/tests"
+test-command = "pytest -vv {package}/tests"
 test-requires = ['pytest']
 skip = "pp* *i686 *-manylinux_i686 *_ppc64le *_s390x *-musllinux* *-win32"
 build-verbosity = 1
@@ -132,6 +133,7 @@ HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
 HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
 LD_LIBRARY_PATH="${PREFIX}/lib:/project/lib:${HDF5_LIBDIR}"
 CPATH="${PREFIX}/include:/project/include:${HDF5_INCLUDE_DIR}"
+CFLAGS="-Wa,--noexecstack"
 NETCDF_FORTRAN_DIR="${PREFIX}/lib/cmake/netCDF"
 HDF5_DIR="${HDF5_ROOT}/cmake"
 SHTOOLS_HOME="${PREFIX}"
