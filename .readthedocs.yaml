@@ -19,6 +19,8 @@ build:
     - libfftw3-dev
     - liblapack-dev
     - libopenblas-dev
+    - build-essential
+    - cmake
 
   jobs:
     pre_create_environment:
