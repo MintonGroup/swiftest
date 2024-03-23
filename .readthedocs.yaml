@@ -14,12 +14,19 @@ build:
     python: mambaforge-4.10
   apt_packages:
     - graphviz
+    - libxml2-dev
+    - libcurl-dev
+    - libfftw3-dev
+    - liblapack-dev
+    - libopenblas-dev
+
   jobs:
     pre_create_environment:
       - mamba update --yes --quiet --name=base --channel=defaults mamba
     pre_build:
-      - ford fortran_docs.md 
+      - buildscripts/build_dependencies.sh -p /usr/local
       - pip install .
+      - ford fortran_docs.md 
 
 conda:
   environment: docs/environment.yml
