@@ -75,7 +75,7 @@ fi
 set -a
 case $OS in
     Linux-gnu)
-        FC=$(command -v gfortran)
+        FC=${FC:-$(command -v gfortran)}
         CC=$(command -v gcc)
         CXX=$(command -v g++)
         CPP=$(command -v cpp)

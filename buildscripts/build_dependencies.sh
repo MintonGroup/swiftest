@@ -19,6 +19,10 @@ ARGS=$@
 set -e
 cd $ROOT_DIR
 
+mkdir -p "${PREFIX}"
+touch ${PREFIX}/testfile.tmp
+ls -lha ${PREFIX}
+
 if ! command -v ninja &> /dev/null; then
     NINJA_VER="1.11.1"
 
@@ -34,7 +38,7 @@ if ! command -v ninja &> /dev/null; then
     cd ${DEPENDENCY_DIR}/ninja-*
     cmake -B build -S . -DCMAKE_INSTALL_PREFIX=/usr/local
     cmake --build build 
-    if [ -w ${PREFIX} ]; then
+    if [ -w "${PREFIX}" ]; then
         cmake --install build 
     else
         sudo cmake --install build
@@ -46,7 +50,6 @@ if [ $OS = "MacOSX" ]; then
     ${SCRIPT_DIR}/get_lomp.sh ${ARGS}
 fi
 
-mkdir -p ${PREFIX}
 
 ${SCRIPT_DIR}/build_zlib.sh ${ARGS}
 ${SCRIPT_DIR}/build_libaec.sh ${ARGS}

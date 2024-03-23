@@ -54,7 +54,7 @@ case $FC in
         ;;
 esac
 
-if [ -w ${PREFIX} ]; then
+if [ -w "${PREFIX}" ]; then
     make F95="${FC}" PREFIX="${PREFIX}" install
 else
     sudo make F95="${FC}" PREFIX="${PREFIX}" install

@@ -52,7 +52,7 @@ cd ${DEPENDENCY_DIR}/zstd-*
 cd build/cmake
 cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${ZSTD_ROOT} -DCMAKE_INSTALL_LIBDIR="lib" -DBUILD_SHARED_LIBS:BOOL=OFF -DZSTD_BUILD_SHARED:BOOL=OFF -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON 
 cmake --build build -j${NPROC}    
-if [ -w ${ZSTD_ROOT} ]; then
+if [ -w "${ZSTD_ROOT}" ]; then
     cmake --install build 
 else
     sudo cmake --install build 

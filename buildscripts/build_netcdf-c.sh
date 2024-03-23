@@ -79,7 +79,7 @@ cmake -B build -S . -G Ninja  \
     -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON 
 
 cmake --build build -j${NPROC} 
-if [ -w ${NCDIR} ]; then
+if [ -w "${NCDIR}" ]; then
     cmake --install build 
 else
     sudo cmake --install build 

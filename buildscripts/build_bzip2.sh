@@ -61,7 +61,7 @@ rm Makefile.tmp
 make clean
 make
     
-if [ -w ${BZ2_ROOT} ]; then
+if [ -w "${BZ2_ROOT}" ]; then
     make install PREFIX=${BZ2_ROOT}
 else
     sudo make install PREFIX=${BZ2_ROOT}

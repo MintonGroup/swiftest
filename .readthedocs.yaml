@@ -11,15 +11,24 @@ sphinx:
 build:
   os: ubuntu-22.04
   tools:
-    python: mambaforge-4.10
+    python: "3.11"
   apt_packages:
     - graphviz
-  jobs:
-    pre_create_environment:
-      - mamba update --yes --quiet --name=base --channel=defaults mamba
-    pre_build:
-      - ford fortran_docs.md 
-      - pip install .
+    - libxml2-dev
+    - libcurl4-openssl-dev
+    - libfftw3-dev
+    - liblapack-dev
+    - libopenblas-dev
+    - build-essential
+    - cmake
+    - ninja-build
+    - gfortran-12
 
-conda:
-  environment: docs/environment.yml
+  jobs:
+    pre_build:
+      - . buildscripts/set_environment_linux.sh && buildscripts/build_dependencies.sh -p ${PREFIX} && pip install .
+      - ford fortran_docs.md 
+
+python:
+  install: 
+    - requirements: docs/requirements.txt

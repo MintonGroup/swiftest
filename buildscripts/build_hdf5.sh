@@ -109,7 +109,7 @@ fi
 cmake -B build -C ./config/cmake/cacheinit.cmake -G Ninja ${ARGLIST} .
 
 cmake --build build -j${NPROC} --config Release
-if [ -w ${HDF5_ROOT} ]; then
+if [ -w "${HDF5_ROOT}" ]; then
     cmake --install build 
 else
     sudo cmake --install build 

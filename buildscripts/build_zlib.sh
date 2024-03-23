@@ -53,7 +53,7 @@ cd ${DEPENDENCY_DIR}/zlib-*
 cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${ZLIB_ROOT} -DCMAKE_INSTALL_LIBDIR="lib" -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON 
     
 cmake --build build -j${NPROC}
-if [ -w ${ZLIB_ROOT} ]; then
+if [ -w "${ZLIB_ROOT}" ]; then
     cmake --install build 
     # Remove shared libraries
     if [ $OS = "MacOSX" ]; then
