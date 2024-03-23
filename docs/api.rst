@@ -150,6 +150,8 @@ Dataset Methods
   :toctree: generated/
 
   SwiftestDataset.rotate
+  SwiftestDataset.xv2el
+  SwiftestDataset.el2xv
 
 
 Initial Conditions Generation Functions
