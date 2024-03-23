@@ -177,20 +177,20 @@ This can be done in multiple ways:
 
 - When creating the initial Swiftest simulation object
 
-.. ipython:: python
+.. code-block:: python
 
     sim = swiftest.Simulation(integrator = 'symba', tstart=0.0, tstop=1.0e3, dt=0.01, 
                                 tstep_out=1.0, dump_cadence=0, compute_conservation_values=True, mtiny=mtiny)
     
 - :meth:`sim.set_parameter <swiftest.Simulation.set_parameter>`: Set individual parameters in the simulation. The user can set one or multiple at a time.
 
-.. code-block:: python
+.. ipython:: python
 
-    sim.set_parameter(tstart=0.0, tstop=1.0e6, dt=0.01, istep_out=100, dump_cadence=0, compute_conservation_values=True, mtiny=mtiny)
+    sim.set_parameter(tstart=0.0, tstop=1.0e3, dt=0.01, tstep_out=1.0, dump_cadence=0, compute_conservation_values=True, mtiny=mtiny)
     sim.set_parameter(rmin = 0.05)
 
 We now set up the simulation parameters. Here we have a simulation starting from `0.0 y` and running for `1 My = 1e6 years` 
-with time steps of `0.01 years`. The timestep should be less than or equal to 1/10 of the orbital period of the innermost body. 
+with time steps of `0.01 years`. The timestep should be less than or equal to 1/20 of the orbital period of the innermost body. 
 
 The user can then write the parameters to the `param.in` file by using :meth:`write_param <swiftest.Simulation.write_param>`.
 To see the parameters of the simulation, use :meth:`sim.get_parameter <swiftest.Simulation.get_parameter>`.
@@ -222,7 +222,7 @@ Or, say, plot the eccentricity history of just the test particles:
 .. ipython:: python
 
    @savefig detailed_simulation_e_vs_t_tp.png width=800px
-   sim.data['e'].where(sim.data.particle_type == 'TestParticle',drop=True).plot(x='time',hue='name');
+   sim.data['e'].where(sim.data.particle_type == 'Test Particle',drop=True).plot(x='time',hue='name');
 
 .. .. toctree::
 ..    :maxdepth: 2
