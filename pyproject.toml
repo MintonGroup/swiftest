@@ -153,4 +153,3 @@ path = "version.txt"
 location = "source"
 template = '''${version}'''
 
-
