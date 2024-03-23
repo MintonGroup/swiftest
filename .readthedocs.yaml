@@ -15,7 +15,7 @@ build:
   apt_packages:
     - graphviz
     - libxml2-dev
-    - libcurl-dev
+    - libcurl4-openssl-dev
     - libfftw3-dev
     - liblapack-dev
     - libopenblas-dev
