@@ -27,7 +27,8 @@ build:
     pre_create_environment:
       - mamba update --yes --quiet --name=base --channel=defaults mamba
     pre_build:
-      - buildscripts/build_dependencies.sh -p '${PREFIX}''
+      - printenv
+      - buildscripts/build_dependencies.sh -p ${PREFIX}
       - pip install .
       - ford fortran_docs.md 
 
