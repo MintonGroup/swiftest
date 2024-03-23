@@ -21,6 +21,7 @@ build:
     - libopenblas-dev
     - build-essential
     - cmake
+    - ninja-build
 
   jobs:
     pre_create_environment:
