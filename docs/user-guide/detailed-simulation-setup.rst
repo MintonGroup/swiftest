@@ -151,7 +151,7 @@ Start by defining the position and velocity vectors. Here we define the orbital 
    sim.add_body(name=name_pl, rh=rh_pl, vh=vh_pl, mass=M_pl, radius=R_pl,  Ip=Ip_pl, rot=rot_pl)
 
 The process is similar for **test particles**. They only need the orbital elements or the cartesian coordinates. 
-Here is an example with orbital elements: ::
+Here is an example with orbital elements:
 
 .. ipython:: python
 
