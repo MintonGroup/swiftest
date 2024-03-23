@@ -23,7 +23,7 @@ Set up a Simulation
 
 Let's start with setting up the simulation object with units of `km`, `days`, and `kg`. 
 
-.. ipython:: python
+.. code-block:: python
     
     import swiftest
 
@@ -50,7 +50,7 @@ Given the axes measurements of a body, the gravitational harmonics coefficients 
 manner. Here we use Chariklo as an example body and refer to Jacobi Ellipsoid model from 
 `Leiva et al. (2017) <https://iopscience.iop.org/article/10.3847/1538-3881/aa8956>`__ for the axes measurements. 
 
-.. ipython:: python
+.. code-block:: python
 
     # Define the central body parameters. 
     cb_mass = 6.1e18
@@ -67,7 +67,7 @@ manner. Here we use Chariklo as an example body and refer to Jacobi Ellipsoid mo
 Once the central body parameters are defined, we can compute the gravitational harmonics coefficients (:math:`C_{lm}`).
 The output coefficients are already correctly normalized. 
 
-.. ipython:: python
+.. code-block:: python
 
     c_lm, cb_radius = swiftest.clm_from_ellipsoid(mass = cb_mass, density = cb_density, a = cb_a, b = cb_b, c = cb_c, lref_radius = True)
 
@@ -76,7 +76,7 @@ additional capabilities section below. The maximum degree is set to 6 by default
 
 Add the central body to the simulation along with the coefficients. 
 
-.. ipython:: python
+.. code-block:: python
 
     sim.add_body(name = 'Chariklo', mass = cb_mass, rot = cb_rot, radius = cb_radius, c_lm = c_lm)
 
@@ -113,7 +113,7 @@ the right shape. The dimensions of ``c_lm`` is ``[sign, l, m]`` where:
 Additional Capabilities of Swiftest's Coefficient Generator Functions
 ===========================================================================================
 
-The output from :func:`clm_from_ellipsoid <swiftest.shgrav.clm_from_ellipsoid>` and :func:`clm_from_relief <swiftest.shgrav.clm_from_relief>`
+The output from :func:`~swiftest.shgrav.clm_from_ellipsoid` and :func:`~swiftest.shgrav.clm_from_relief`
 can be customised to the user's needs. Here we show some of the additional capabilities of these functions.
 
 Setting a Reference Radius for the Coefficients
