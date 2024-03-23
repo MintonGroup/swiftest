@@ -16,6 +16,7 @@ By default, the initial state vectors of any bodies added via the Horizons ephem
 
 
 .. ipython:: python
+
     import swiftest
     sim = swiftest.Simulation()
     sim.add_solar_system_body(['Mars', 'Phobos', 'Deimos'])
@@ -28,6 +29,7 @@ The inclinations of Phobos and Deimos are 26.55 and 24.06 degrees, respectively,
 
 
 .. ipython:: python
+
     import swiftest
     sim = swiftest.Simulation()
     sim.add_solar_system_body(['Mars', 'Phobos', 'Deimos'],align_to_central_body_rotation=True)
@@ -57,6 +59,7 @@ When adding bodies to a simulation, it is possible to mix central body frames. I
 This sets up a simulation with Phobos and Deimos, with Phobos as the central body. The inclination of Phobos is ``nan`` because it is the central body. Now let's add Mars to the simulation, with ``align_to_central_body_rotation`` set to ``True`` and see how the inclinations change:
 
 .. ipython:: python
+
     sim.add_solar_system_body('Mars',align_to_central_body_rotation=True)
 
     sim.data.name.values

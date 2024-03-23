@@ -113,7 +113,7 @@ the right shape. The dimensions of ``c_lm`` is ``[sign, l, m]`` where:
 Additional Capabilities of Swiftest's Coefficient Generator Functions
 ===========================================================================================
 
-The output from :func:`clm_from_ellipsoid <swiftest.shgrav.clm_from_ellipsoid>` and :func:`clm_from_relief <swiftest.shgrav.clm_from_relief>`
+The output from :func:`~swiftest.shgrav.clm_from_ellipsoid` and :func:`~swiftest.shgrav.clm_from_relief`
 can be customised to the user's needs. Here we show some of the additional capabilities of these functions.
 
 Setting a Reference Radius for the Coefficients
