@@ -52,7 +52,7 @@ cd ${DEPENDENCY_DIR}/libaec-*
 cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${SZIP_ROOT} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON  -DBUILD_SHARED_LIBS:BOOL=OFF
     
 cmake --build build -j${NPROC}
-if [ -w ${SZIP_ROOT} ]; then
+if [ -w "${SZIP_ROOT}" ]; then
     cmake --install build 
 else
     sudo cmake --install build

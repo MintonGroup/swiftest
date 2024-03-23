@@ -66,7 +66,7 @@ cmake -B build -S . -G Ninja \
     -DENABLE_TESTS:BOOL=OFF     
 
 cmake --build build -j${NPROC} 
-if [ -w ${NFDIR} ]; then
+if [ -w "${NFDIR}" ]; then
     cmake --install build 
 else
     sudo cmake --install build 
