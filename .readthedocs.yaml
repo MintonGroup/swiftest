@@ -28,7 +28,7 @@ build:
       - mamba update --yes --quiet --name=base --channel=defaults mamba
     pre_build:
       - printenv
-      - buildscripts/build_dependencies.sh -p '${HOME}/usr/local'
+      - buildscripts/build_dependencies.sh
       - pip install .
       - ford fortran_docs.md 
 
