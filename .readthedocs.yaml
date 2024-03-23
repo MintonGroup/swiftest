@@ -28,8 +28,8 @@ build:
       - mamba update --yes --quiet --name=base --channel=defaults mamba
     pre_build:
       - printenv
-      - buildscripts/build_dependencies.sh
-      - pip install .
+      - . buildscripts/set_environment_linux.sh; buildscripts/build_dependencies.sh
+      - . buildscripts/set_environment_linux.sh; pip install .
       - ford fortran_docs.md 
 
 conda:
