@@ -19,9 +19,6 @@ ARCH=$(uname -m)
 
 # Parse arguments
 USTMT="Usage: ${0} [-d /path/to/dependency/source] [-p /prefix/path] [-m MACOSX_DEPLOYMENT_TARGET]"
-if [ $OS = "MacOSX" ]; then
-    MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-"$(sw_vers -productVersion | cut -d. -f1)"}
-fi
 
 while getopts ":d:p:m:h" ARG; do
     case "${ARG}" in
@@ -50,26 +47,19 @@ while getopts ":d:p:m:h" ARG; do
     esac
 done
 
-BUILD_DIR=${BUILD_DIR:-"${HOME}/Downloads"}
-PREFIX=${PREFIX:-"/usr/local"}
-DEPENDENCY_DIR=${DEPENDENCY_DIR:-${BUILD_DIR}}
-
+PREFIX=${PREFIX:-"${ROOT_DIR}/build/deps/usr/local"}
+DEPENDENCY_DIR=${DEPENDENCY_DIR:-"${ROOT_DIR}/build/deps/Downloads"}
 
 case $OS in
-    Linux*)
-        . ${SCRIPT_DIR}/set_environment_linux.sh
+    Darwin)
+        MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-"$(sw_vers -productVersion | cut -d. -f1)"} # Gets only the major version number}
         ;;
-    MacOSX|Darwin)
-        . ${SCRIPT_DIR}/set_environment_macos.sh
-        ;;
-
     *)
         printf "Unknown compiler type: ${OS}\n"
-        echo "Valid options are Linux, MacOSX, or Darwin"
+        echo "Valid options are Linux or Darwin"
         printf $USTMT
         exit 1
         ;;
 esac
-
 
 mkdir -p ${DEPENDENCY_DIR}

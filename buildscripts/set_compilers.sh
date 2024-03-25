@@ -22,7 +22,7 @@ ARCH=$(uname -m)
 
 case $OS in
     Darwin)
-        OS="MacOSX" 
+        OS="MacOS" 
 esac
 
 set -a
@@ -37,7 +37,7 @@ case $OS in
         NM=${NM:-$(command -v nm)}
         RANLIB=${RANLIB:-$(command -v ranlib)}
         ;;
-    MacOSX)
+    Darwin)
         FC=${FC:-"${HOMEBREW_PREFIX}/bin/gfortran-12"}
         CC=${CC:-"/usr/bin/clang"}
         CXX=${CXX:-"/usr/bin/clang++"}
@@ -48,7 +48,7 @@ case $OS in
         ;;
     *)
         printf "Unknown compiler type: ${OS}\n"
-        echo "Valid options are Linux, Darwin, MacOSX"
+        echo "Valid options are Linux, Darwin"
         printf $USTMT
         exit 1
         ;;

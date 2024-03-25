@@ -65,7 +65,7 @@ printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/hdfsrc
 
-if [ $OS = "MacOSX" ]; then
+if [ $OS = "Darwin" ]; then
     rm -rf ${PREFIX}/lib/*.dylib
 else
     rm -rf ${PREFIX}/lib/*.so
@@ -102,7 +102,7 @@ ARGLIST="-DCMAKE_INSTALL_PREFIX:PATH=${HDF5_ROOT} \
     -DHDF5_TEST_TOOLS:BOOL=OFF \
     -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON"
 
-if [ $OS = "MacOSX" ]; then
+if [ $OS = "Darwin" ]; then
     ARGLIST="${ARGLIST} -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=OFF"
 fi
 

@@ -14,14 +14,14 @@
 # Determine the platform and architecture
 SCRIPT_DIR=$(realpath $(dirname $0))
 set -a
+
+# Set default environment variables for the platform
+. ${SCRIPT_DIR}/set_environment.sh
+
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 set -e
 cd $ROOT_DIR
-
-mkdir -p "${PREFIX}"
-touch ${PREFIX}/testfile.tmp
-ls -lha ${PREFIX}
 
 if ! command -v ninja &> /dev/null; then
     NINJA_VER="1.11.1"
@@ -46,10 +46,9 @@ if ! command -v ninja &> /dev/null; then
 fi
 
 # Get the OpenMP Libraries
-if [ $OS = "MacOSX" ]; then
+if [ $OS = "Darwin" ]; then
     ${SCRIPT_DIR}/get_lomp.sh ${ARGS}
 fi
-
 
 ${SCRIPT_DIR}/build_zlib.sh ${ARGS}
 ${SCRIPT_DIR}/build_libaec.sh ${ARGS}

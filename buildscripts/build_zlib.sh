@@ -56,7 +56,7 @@ cmake --build build -j${NPROC}
 if [ -w "${ZLIB_ROOT}" ]; then
     cmake --install build 
     # Remove shared libraries
-    if [ $OS = "MacOSX" ]; then
+    if [ $OS = "Darwin" ]; then
         rm -f ${ZLIB_ROOT}/lib/libz*.dylib
     else
         rm -f ${ZLIB_ROOT}/lib/libz*.so
@@ -64,7 +64,7 @@ if [ -w "${ZLIB_ROOT}" ]; then
 else
     sudo cmake --install build
     # Remove shared libraries
-    if [ $OS = "MacOSX" ]; then
+    if [ $OS = "Darwin" ]; then
         sudo rm -f ${ZLIB_ROOT}/lib/libz*.dylib
     else
         sudo rm -f ${ZLIB_ROOT}/lib/libz*.so
