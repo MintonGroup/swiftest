@@ -205,6 +205,7 @@ class Simulation(object):
             
             * "AU"     - Astronomical Unit
             * "Rearth" - Earth radius
+            * "km"     - kilometer
             * "m"      - meter
             * "cm"     - centimeter
             
@@ -1736,6 +1737,7 @@ class Simulation(object):
             
             * "AU"     - Astronomical Unit
             * "Rearth" - Earth radius
+            * "km"     - kilometer
             * "m"      - meter
             * "cm"     - centimeter
             
@@ -3654,8 +3656,6 @@ class Simulation(object):
     
     @MU2KG.setter
     def MU2KG(self, value: FloatLike) -> None:
-        if value is None:
-            value = "MU"
         if not isinstance(value, (float, int, np.number)):
             raise TypeError("Mass unit to kilogram conversion value must be a float")
         self._MU2KG = np.float64(value)
