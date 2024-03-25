@@ -1811,7 +1811,7 @@ class Simulation(object):
                     self.param['MU2KG'] = 1.0
                     self.MU_name = "kg"
                 elif MU.upper() == "G":
-                    self.param['MU2KG'] = 1000.0
+                    self.param['MU2KG'] = 1e-3
                     self.MU_name = "g"
                 else:
                     warnings.warn(f"{MU} not a recognized unit system. Using MSun as a default.",stacklevel=2)
@@ -1832,11 +1832,14 @@ class Simulation(object):
                 elif DU.upper() == "REARTH":
                     self.param['DU2M'] = constants.REarth
                     self.DU_name = "REarth"
+                elif DU.upper() == "KM":
+                    self.param['DU2M'] = 1000.0
+                    self.DU_name = "km"
                 elif DU.upper() == "M":
                     self.param['DU2M'] = 1.0
                     self.DU_name = "m"
                 elif DU.upper() == "CM":
-                    self.param['DU2M'] = 100.0
+                    self.param['DU2M'] = 1e-2
                     self.DU_name = "cm"
                 else:
                     warnings.warn(f"{DU} not a recognized unit system. Using AU as a default.",stacklevel=2)
@@ -3603,6 +3606,8 @@ class Simulation(object):
     
     @MU_name.setter
     def MU_name(self, value: str) -> None:
+        if value is None:
+            value = 'MU'
         if not isinstance(value, str):
             raise TypeError("Mass unit name value must be a string")
         self._MU_name = value
@@ -3617,6 +3622,8 @@ class Simulation(object):
     
     @DU_name.setter
     def DU_name(self, value: str) -> None:
+        if value is None:
+            value = 'DU'
         if not isinstance(value, str):
             raise TypeError("Distance unit name value must be a string")
         self._DU_name = value
@@ -3631,6 +3638,8 @@ class Simulation(object):
     
     @TU_name.setter
     def TU_name(self, value: str) -> None:
+        if value is None:
+            value = 'TU'
         if not isinstance(value, str):
             raise TypeError("Time unit name value must be a string")
         self._TU_name = value
@@ -3645,6 +3654,8 @@ class Simulation(object):
     
     @MU2KG.setter
     def MU2KG(self, value: FloatLike) -> None:
+        if value is None:
+            value = "MU"
         if not isinstance(value, (float, int, np.number)):
             raise TypeError("Mass unit to kilogram conversion value must be a float")
         self._MU2KG = np.float64(value)
