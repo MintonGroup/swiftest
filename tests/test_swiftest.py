@@ -10,17 +10,6 @@
  If not, see: https://www.gnu.org/licenses. 
 """
 
-"""
-Tests that energy and momentum errors are within tolerances in a Swiftest simulation
-
-Input
-------
-
-Output
-------
-None
-"""
-
 import swiftest
 import unittest
 import os
@@ -477,7 +466,7 @@ class TestSwiftest(unittest.TestCase):
         self.assertTrue(rot_close,msg=f"Error in rotation 1")
 
         # Rotating to match the Mars pole
-        sim = swiftest.Simulation()
+        sim = swiftest.Simulation(simdir=self.simdir)
         sim.clean()
 
         sim.add_solar_system_body(["Mars","Phobos","Deimos"],align_to_central_body_rotation=True)
@@ -490,7 +479,7 @@ class TestSwiftest(unittest.TestCase):
         self.assertTrue(inc_close,msg=f"Error in inclination 2")
         self.assertTrue(rot_close,msg=f"Error in rotation 2")
         
-        sim = swiftest.Simulation()
+        sim = swiftest.Simulation(simdir=self.simdir)
         sim.clean()
 
         # Mix and match
@@ -505,7 +494,7 @@ class TestSwiftest(unittest.TestCase):
         self.assertTrue(inc_close,msg=f"Error in inclination 3")
         self.assertTrue(rot_close,msg=f"Error in rotation 3")
 
-        sim = swiftest.Simulation()
+        sim = swiftest.Simulation(simdir=self.simdir)
         sim.clean()
 
         sim.add_solar_system_body("Mars",align_to_central_body_rotation=True)
@@ -519,7 +508,7 @@ class TestSwiftest(unittest.TestCase):
         self.assertTrue(inc_close,msg=f"Error in inclination 4")
         self.assertTrue(rot_close,msg=f"Error in rotation 4")
 
-        sim = swiftest.Simulation()
+        sim = swiftest.Simulation(simdir=self.simdir)
         sim.clean()
 
 
@@ -535,7 +524,7 @@ class TestSwiftest(unittest.TestCase):
         self.assertTrue(inc_close,msg=f"Error in inclination 5")
         self.assertTrue(rot_close,msg=f"Error in rotation 5")
 
-        sim = swiftest.Simulation()
+        sim = swiftest.Simulation(simdir=self.simdir)
         sim.clean()
 
         sim.add_solar_system_body("Mars",align_to_central_body_rotation=True)
