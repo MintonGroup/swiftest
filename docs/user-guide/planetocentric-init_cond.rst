@@ -41,6 +41,7 @@ The inclinations of Phobos and Deimos are 26.55 and 24.06 degrees, respectively,
 Now we can see that the inclinations of Phobos and Deimos are 1.08 and 2.69 degrees, respectively, which is much more reasonable. The rotation vectors have also changed, as expected, with the x and y components of the rotation vector of Mars being nearly zero (well within floating point precision). This is because the coordinate frame of the system has been rotated to align the z-axis with the central body's north pole.
 
 
+
 Mixing Central Body Frames
 ==========================
 
