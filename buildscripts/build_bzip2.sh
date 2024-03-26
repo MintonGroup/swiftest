@@ -13,7 +13,6 @@ SCRIPT_DIR=$(realpath $(dirname $0))
 set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
-. ${SCRIPT_DIR}/set_compilers.sh
 
 NPROC=$(nproc)
 BZ2_ROOT=${BZ2_ROOT:-"${BZ2_HOME}"}

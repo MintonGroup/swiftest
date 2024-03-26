@@ -15,7 +15,6 @@ SCRIPT_DIR=$(realpath $(dirname $0))
 set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
-printf "MACOSX_DEPLOYMENT_TARGET: ${MACOSX_DEPLOYMENT_TARGET}\n"
 
 TARGET_MAJOR=`echo $MACOSX_DEPLOYMENT_TARGET | cut -d. -f1`
 TARGET_MINOR=`echo $MACOSX_DEPLOYMENT_TARGET | cut -d. -f2`
@@ -79,9 +78,18 @@ case $TARGET_MAJOR in
       ;;
 esac
 
+printf "*********************************************************\n"
+printf "*             FETCHING OPENMP LIBRARY                   *\n"
+printf "*********************************************************\n"
+LOMP_DIR="${PREFIX}/../.."
+printf "Copying files to ${LOMP_DIR}\n"
+mkdir -p ${DEPENDENCY_DIR}
+
 filename="openmp-${OMPVER}-darwin${DVER}-Release.tar.gz"
 #Download and install the libraries
 printf "Downloading ${filename}\n"
-curl -O https://mac.r-project.org/openmp/${filename} && \
-  sudo tar fvxz ${filename} -C / && \
-  rm ${filename}
+if [ -w "${LOMP_DIR}" ]; then
+   curl -L https://mac.r-project.org/openmp/${filename} | tar xvz -C ${LOMP_DIR}
+else
+   sudo curl -L https://mac.r-project.org/openmp/${filename} | tar xvz -C ${LOMP_DIR}
+fi

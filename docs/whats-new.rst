@@ -3,6 +3,15 @@
 What's New
 ==========
 
+v2024.03.4
+~~~~~~~~~~
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Overhauled the build scripts used when calling cibuildwheel to make them more robust across the various platforms we build for. This includes a more robust and consistent way to obtain the paths to compilers that lets us select gfortran-13, gfortran-12, or gfortran as our compiler depending on the availability, which is useful for building in the GitHub runners. `GH25`_
+
+.. _GH25: https://github.com/MintonGroup/swiftest/issues/25
+
 v2024.03.3
 ----------
 

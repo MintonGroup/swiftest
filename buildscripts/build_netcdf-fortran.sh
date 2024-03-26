@@ -14,7 +14,6 @@ SCRIPT_DIR=$(realpath $(dirname $0))
 set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
-. ${SCRIPT_DIR}/set_compilers.sh
 
 NPROC=$(nproc)
 
@@ -50,7 +49,7 @@ printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/netcdf-fortran-*
 NCLIBDIR=$(${NCDIR}/bin/nc-config --libdir)
-if [ $OS = "MacOSX" ]; then
+if [ $OS = "Darwin" ]; then
     netCDF_LIBRARIES="${NCLIBDIR}/libnetcdf.dylib"
 else
     netCDF_LIBRARIES="${NCLIBDIR}/libnetcdf.so"

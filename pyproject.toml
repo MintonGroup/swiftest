@@ -1,6 +1,6 @@
 [project]
 name = "swiftest"
-version = "2024.3.3"
+version = "2024.3.4"
 authors=[
     {name = 'David A. Minton', email='daminton@purdue.edu'},
     {name = 'Carlisle Wishard'},
@@ -59,7 +59,6 @@ requires = [
 ]
 build-backend = "scikit_build_core.build"
 
-
 [tool.scikit-build]
 cmake.version = ">=3.23.1"
 ninja.version = ">=1.11.1"
@@ -74,13 +73,20 @@ test-requires = ['pytest']
 skip = "pp* *i686 *-manylinux_i686 *_ppc64le *_s390x *-musllinux* *-win32"
 build-verbosity = 1
 
+
 [tool.cibuildwheel.macos.environment]
-MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion)"
 ROOT_DIR="$(pwd)"
-PREFIX="${ROOT_DIR}/build/deps/usr/local"
+DEPDIR="${ROOT_DIR}/build/deps/usr/local"
+NETCDF_FORTRAN_HOME="${DEPDIR}"
+NETCDF_FORTRAN_INCLUDE="${NETCDF_FORTRAN_HOME}/include"
+NETCDF_DIR="${NETCDF_FORTRAN_HOME}/lib/cmake/netCDF"
+NETCDF_FORTRAN_DIR="${NETCDF_FORTRAN_HOME}/lib/cmake/netCDF"
+SHTOOLS_HOME="${DEPDIR}"
+PATH="${DEPDIR}/bin:${PATH}"
+MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion)"
 HOMEBREW_PREFIX="$(brew --prefix)"
 ARCH="$(uname -m)"
-LD_LIBRARY_PATH="${PREFIX}/lib:${HOMEBREW_PREFIX}/lib"
+LD_LIBRARY_PATH="${DEPDIR}/lib:${HOMEBREW_PREFIX}/lib"
 DYLD_LIBRARY_PATH="${LD_LIBRARY_PATH}"
 REPAIR_LIBRARY_PATH="${LD_LIBRARY_PATH}"
 LDFLAGS="-Wl,-rpath,${ROOT_DIR}/lib  -Wl,-no_compact_unwind -L${PREFIX}/lib -L${HOMEBREW_PREFIX}/lib" 
@@ -91,61 +97,38 @@ FCFLAGS="-arch ${ARCH}"
 FFLAGS="${FCFLAGS}"
 CFLAGS="${FCFLAGS} -Wno-deprecated-non-prototype -arch ${ARCH}"
 CXXFLAGS="${CFLAGS}"
-HDF5_ROOT="${PREFIX}"
-HDF5_LIBDIR="${HDF5_ROOT}/lib"
-HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
-HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
-NCDIR="${PREFIX}"
-NFDIR="${PREFIX}"
-NETCDF_FORTRAN_HOME="${NFDIR}"
-NETCDF_FORTRAN_INCLUDE="${NFDIR}/include"
-SHTOOLS_HOME="${PREFIX}"
-FC="$(command -v gfortran-12)"
-F77="${FC}"
-F95="${FC}"
-CC="/usr/bin/clang"
-CXX="/usr/bin/clang++"
-CPP="/usr/bin/cpp"
-AR="/usr/bin/ar"
-NM="/usr/bin/nm"
-RANLIB="/usr/bin/ranlib"
-NETCDF_FORTRAN_DIR="${PREFIX}/lib/cmake/netCDF"
+
+[tool.cibuildwheel.linux.environment]
+ROOT_DIR="$(pwd)"
+DEPDIR="${ROOT_DIR}/build/deps/usr/local"
+NETCDF_FORTRAN_HOME="${DEPDIR}"
+NETCDF_FORTRAN_INCLUDE="${NETCDF_FORTRAN_HOME}/include"
+NETCDF_DIR="${NETCDF_FORTRAN_HOME}/lib/cmake/netCDF"
+NETCDF_FORTRAN_DIR="${NETCDF_FORTRAN_HOME}/lib/cmake/netCDF"
+SHTOOLS_HOME="${DEPDIR}"
+CPATH="${DEPDIR}/include:${CPATH}"
+PATH="${DEPDIR}/bin:${PATH}"
+LD_LIBRARY_PATH="${DEPDIR}/lib:${HOMEBREW_PREFIX}/lib"
+REPAIR_LIBRARY_PATH="${LD_LIBRARY_PATH}"
 
 [tool.cibuildwheel.macos]
 before-all = [
     "brew install coreutils pkg-config fftw vecLibFort",
-    "LIBS=\"\" buildscripts/build_dependencies.sh -p ${PREFIX} -d ${HOME}/Downloads"
+    "buildscripts/build_dependencies.sh -d ${HOME}/Downloads"
 ]
 repair-wheel-command = """\
 DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel \
 --require-archs {delocate_archs} -w {dest_dir} -v {wheel}
 """
 
-[tool.cibuildwheel.linux.environment]
-PREFIX="/usr/local"
-NCDIR="${PREFIX}"
-NFDIR="${PREFIX}"
-NETCDF_FORTRAN_HOME="${NFDIR}"
-NETCDF_FORTRAN_INCLUDE="${NFDIR}/include"
-HDF5_ROOT="${PREFIX}"
-HDF5_LIBDIR="${HDF5_ROOT}/lib"
-HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
-HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
-LD_LIBRARY_PATH="${PREFIX}/lib:/project/lib:${HDF5_LIBDIR}"
-CPATH="${PREFIX}/include:/project/include:${HDF5_INCLUDE_DIR}"
-CFLAGS="-Wa,--noexecstack"
-NETCDF_FORTRAN_DIR="${PREFIX}/lib/cmake/netCDF"
-HDF5_DIR="${HDF5_ROOT}/cmake"
-SHTOOLS_HOME="${PREFIX}"
-PATH="${HDF5_ROOT}/bin:${PATH}"
-CMAKE_INSTALL_LIBDIR="lib"
+
 
 [tool.cibuildwheel.linux]
 skip = "pp* *-manylinux_i686* *-musllinux* cp312-*_aarch64*"
 before-all = [
     "yum install epel-release -y",
     "yum install doxygen libxml2-devel libcurl-devel fftw-static openblas-devel lapack-devel -y",
-    "buildscripts/build_dependencies.sh -p /usr/local"
+    "buildscripts/build_dependencies.sh"
 ]
 
 [[tool.scikit-build.generate]]
