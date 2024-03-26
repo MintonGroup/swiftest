@@ -58,16 +58,16 @@
 
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+OS=$(uname -s)
 
 set -a
-ARGS=$@
-. ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
-
 PREFIX=${PREFIX:-"${ROOT_DIR}/build/deps/usr/local"}
 NCDIR=${NETCDF_HOME:-"${PREFIX}"}
 NFDIR=${NETCDF_FORTRAN_HOME:-"${PREFIX}"}
 NETCDF_FORTRAN_HOME="${NFDIR}"
 NETCDF_FORTRAN_INCLUDE="${NFDIR}/include"
+NETCDF_DIR="${NCDIR}/lib/cmake/netCDF"
+NETCDF_FORTRAN_DIR="${NFDIR}/lib/cmake/netCDF"
 ZLIB_ROOT=${ZLIB_ROOT:-"${ZLIB_HOME}"}
 ZLIB_ROOT=${ZLIB_ROOT:-"${PREFIX}"}
 SZIP_ROOT=${SZIP_ROOT:-"${SZIP_HOME}"}
@@ -87,13 +87,13 @@ LD_LIBRARY_PATH="${PREFIX}/lib:${LD_LIBRARY_PATH}"
 CPATH="${PREFIX}/include:${CPATH}"
 PATH="${PREFIX}/bin:${HDF5_ROOT}/bin:/usr/local/bin:${PATH}"
 CMAKE_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR:-"lib"}
-FC=${FC: -"$(command -v gfortran-13 || command -v gfortran-12 || command -v gfortran-11 || command -v gfortran)"}
+FC=${FC:-"$(command -v gfortran-13 || command -v gfortran-12 || command -v gfortran)"}
 F77=${F77:-"${FC}"}
 F95=${F95:-"${FC}"}
 
 if [ $OS = "Darwin" ]; then
     MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-"$(sw_vers -productVersion | cut -d. -f1)"} # Gets only the major version number
-    HOMEBREW_PREFIX=${HOMEBREW_PREFIX: -"$(brew --prefix)"}
+    HOMEBREW_PREFIX=${HOMEBREW_PREFIX:-"$(brew --prefix)"}
     LD_LIBRARY_PATH="${HOMEBREW_PREFIX}/lib:${LD_LIBRARY_PATH}"
     DYLD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${DYLD_LIBRARY_PATH}"
     LDFLAGS="-Wl,-rpath,${ROOT_DIR}/lib  -Wl,-no_compact_unwind -L${PREFIX}/lib -L${HOMEBREW_PREFIX}/lib ${LDFLAGS}" 

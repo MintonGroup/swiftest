@@ -13,15 +13,51 @@
 
 # Determine the platform and architecture
 SCRIPT_DIR=$(realpath $(dirname $0))
+ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 set -a
 
-# Set default environment variables for the platform
-. ${SCRIPT_DIR}/set_environment.sh
+# Default values for the installation directories
+PREFIX=${PREFIX:-"${ROOT_DIR}/build/deps/usr/local"}
+DEPENDENCY_DIR=${DEPENDENCY_DIR:-"${ROOT_DIR}/build/deps/Downloads"}
 
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 set -e
 cd $ROOT_DIR
+
+. ${SCRIPT_DIR}/set_environment.sh
+
+# Check if the PREFIX directory exists
+if [ ! -d "${PREFIX}" ]; then
+    CURRENT_DIR="${PREFIX}"
+
+    # Iterate up the directory hierarchy until an existing directory is found
+    while [ ! -d "$CURRENT_DIR" ] && [ "$CURRENT_DIR" != "/" ]; do
+        CURRENT_DIR=$(dirname "$CURRENT_DIR")
+    done
+
+    # Now, CURRENT_DIR holds the first existing directory in the hierarchy
+    # Check if you have write permission in this directory
+    if [ -w "$CURRENT_DIR" ]; then
+        mkdir -p "${PREFIX}"
+        echo "${PREFIX} created."
+    else
+        # If you don't have write permission, try to create the directory with sudo
+        echo "Attempting to create ${PREFIX} with elevated privileges..."
+        sudo mkdir -p "${PREFIX}"
+
+        # Check if creation was successful
+        if [ $? -eq 0 ]; then
+            echo "${PREFIX} created with elevated privileges."
+        else
+            echo "Failed to create ${PREFIX}. Please check your permissions."
+            exit 1
+        fi
+    fi
+else
+    echo "${PREFIX} already exists."
+fi
+
 
 if ! command -v ninja &> /dev/null; then
     NINJA_VER="1.11.1"

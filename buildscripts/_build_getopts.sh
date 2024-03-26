@@ -19,6 +19,7 @@ ARCH=$(uname -m)
 
 # Parse arguments
 USTMT="Usage: ${0} [-d /path/to/dependency/source] [-p /prefix/path] [-m MACOSX_DEPLOYMENT_TARGET]"
+MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion | cut -d. -f1)
 
 while getopts ":d:p:m:h" ARG; do
     case "${ARG}" in
@@ -46,20 +47,3 @@ while getopts ":d:p:m:h" ARG; do
         ;;
     esac
 done
-
-PREFIX=${PREFIX:-"${ROOT_DIR}/build/deps/usr/local"}
-DEPENDENCY_DIR=${DEPENDENCY_DIR:-"${ROOT_DIR}/build/deps/Downloads"}
-
-case $OS in
-    Darwin)
-        MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-"$(sw_vers -productVersion | cut -d. -f1)"} # Gets only the major version number}
-        ;;
-    *)
-        printf "Unknown compiler type: ${OS}\n"
-        echo "Valid options are Linux or Darwin"
-        printf $USTMT
-        exit 1
-        ;;
-esac
-
-mkdir -p ${DEPENDENCY_DIR}

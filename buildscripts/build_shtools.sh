@@ -13,7 +13,6 @@ SCRIPT_DIR=$(realpath $(dirname $0))
 set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
-. ${SCRIPT_DIR}/set_compilers.sh
 NPROC=$(nproc)
 SHTOOLS_VER="4.11.10"
 
