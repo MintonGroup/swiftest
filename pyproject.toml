@@ -95,8 +95,6 @@ FCFLAGS="-arch ${ARCH}"
 FFLAGS="${FCFLAGS}"
 CFLAGS="${FCFLAGS} -Wno-deprecated-non-prototype -arch ${ARCH}"
 CXXFLAGS="${CFLAGS}"
-CC="/usr/bin/clang"
-CXX="/usr/bin/clang++"
 
 [tool.cibuildwheel.linux.environment]
 ROOT_DIR="$(pwd)"
