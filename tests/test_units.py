@@ -47,6 +47,11 @@ class TestUnits(unittest.TestCase):
         self.assertEqual(sim.DU_name, "cm")
         self.assertEqual(sim.DU2M, 1e-2)
         self.assertEqual(sim.M2DU, 100.0)
+        
+        sim.set_parameter(DU="km")
+        self.assertEqual(sim.DU_name, "km")
+        self.assertEqual(sim.DU2M, 1e3)
+        
          
 if __name__ == '__main__':
     os.environ["HDF5_USE_FILE_LOCKING"]="FALSE"
