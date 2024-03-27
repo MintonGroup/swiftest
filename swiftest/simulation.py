@@ -2761,7 +2761,11 @@ class Simulation(object):
                                                PL_TINY_TYPE_NAME, 
                                                ds['particle_type'])
         else:
-            ds['particle_type'] = xr.full_like(ds['name'],TP_TYPE_NAME)
+            if(ds['name'].dtype.itemsize > TP_TYPE_NAME.dtype.itemsize):
+                dtype = ds['name'].dtype
+            else:
+                dtype = TP_TYPE_NAME.dtype
+            ds['particle_type'] = xr.full_like(ds['name'],TP_TYPE_NAME, dtype = dtype)
         return ds
     
     
