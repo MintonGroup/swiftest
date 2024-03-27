@@ -181,10 +181,11 @@ def get_solar_system_body_mass_rotation(id,jpl=None,ephemerides_start_date=const
     Gmass = get_Gmass(raw_response)
     if Rpl is None or Gmass is None:
         rot = np.full(3,np.nan) 
+        mass = None
     else:
         print(f"Physical properties found for {namelist[0]}") 
         Gmass *= 1e9  # JPL returns GM in units of km**3 / s**2, so convert to SI
-
+        mass = Gmass / swiftest.GC
         rotrate = get_rotrate(raw_response)
         if rotrate is None:
             rotrate = 0.0
@@ -193,7 +194,7 @@ def get_solar_system_body_mass_rotation(id,jpl=None,ephemerides_start_date=const
 
         rot = rotpole*rotrate
         
-    return {'Gmass':Gmass,'radius':Rpl,'rot':rot}
+    return {'Gmass':Gmass,'mass':mass,'radius':Rpl,'rot':rot}
 
 
 def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=False,**kwargs):
@@ -456,7 +457,7 @@ def get_solar_system_body(name: str,
         rh = np.array([rx,ry,rz]) - cbrh
         vh = np.array([vx,vy,vz]) - cbvh
 
-        Gmass,Rpl,rot = get_solar_system_body_mass_rotation(altid,jpl,**kwargs).values()
+        Gmass,_,Rpl,rot = get_solar_system_body_mass_rotation(altid,jpl,**kwargs).values()
         # If the user inputs "Earth" or Pluto, then the Earth-Moon or Pluto-Charon barycenter and combined mass is used. 
         # To use the Earth or Pluto alone, simply pass "399" or "999", respectively to name
         if name == "Earth":
@@ -488,8 +489,6 @@ def get_solar_system_body(name: str,
         j2rp2 = planetJ2[name] * Rpl**2 
         j4rp4 = planetJ4[name] * Rpl**4
         
-    
-
     return {'name':name,
             'rh':rh,
             'vh':vh,
