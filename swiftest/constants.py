@@ -11,7 +11,7 @@ If not, see: https://www.gnu.org/licenses.
 
 import numpy as np
 import astropy.constants as const
-
+import datetime
 from typing import Union, Tuple, List
 
 # Constants in SI units
@@ -30,3 +30,8 @@ CB_TYPE_NAME = "Central Body"
 PL_TYPE_NAME = "Massive Body"
 TP_TYPE_NAME = "Test Particle"
 PL_TINY_TYPE_NAME = "Semi-Interacting Massive Body"
+
+# The default value is Prof. Minton's Brimley/Cocoon line crossing date (aka MBCL)
+_mbday = datetime.date.fromisoformat('1976-08-05')
+_bcl = datetime.timedelta(days=18530)
+MINTON_BCL = (_mbday + _bcl).isoformat()

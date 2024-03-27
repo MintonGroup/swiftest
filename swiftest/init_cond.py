@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import swiftest
 from .data import SwiftestDataset
+from . import constants
 import numpy as np
 import numpy.typing as ArrayLike
 from astroquery.jplhorizons import Horizons
@@ -21,32 +22,35 @@ import datetime
 import xarray as xr
 from typing import (
     Dict,
-    List,
     Any
 )
 
-def horizons_get_physical_properties(altid,jpl=None,**kwargs):
+def get_solar_system_body_mass_rotation(id,jpl=None,ephemerides_start_date=constants.MINTON_BCL,**kwargs):
     """
     Parses the raw output from JPL Horizons in order to extract physical properties of a body if they exist
     
 
     Parameters
     ----------
-    altid : list of str
-        List of ids to use for Horizons query
+    id : string or list of strings
+        A string identifying which body is requested from JPL/Horizons (or a list of strings if multiple ids are possible, such as an altid list)
     jpl : HorizonsClass
         An astroquery.jplhorizons HorizonsClass object. If None, a new query will be made.
+    ephemerides_start_date : string
+        Date to use when obtaining the ephemerides in the format YYYY-MM-DD. Default is constants.MINTON_BCL
     **kwargs: Any
         Additional keyword arguments to pass to the query method (see https://astroquery.readthedocs.io/en/latest/jplhorizons/jplhorizons.html)
 
     Returns
     -------
-    Gmass : float
-        G*Mass of the body
-    radius : float
-        The radius of the body in m
-    rot: (3) float vector
-        The rotation rate vector oriented toward the north pole
+    dict :
+        A dictionary containing the following elements:
+        Gmass : float
+            G*Mass of the body in m^3/s^2
+        radius : float
+            The radius of the body in m
+        rot: (3) float vector
+            The rotation rate vector oriented toward the north pole in deg/s
     """
 
     def get_Gmass(raw_response):
@@ -148,15 +152,24 @@ def horizons_get_physical_properties(altid,jpl=None,**kwargs):
         rotpole = SkyCoord(ra=RA * u.degree, dec=DEC * u.degree,frame='icrs').transform_to('barycentricmeanecliptic').cartesian
          
         return np.array([rotpole.x.value, rotpole.y.value, rotpole.z.value])
-    
-    if type(altid) != list:
-        altid = [altid]
-
-    for id in altid:
-        if jpl is None:
-            jpl,_,namelist= horizons_query(id=id,ephemerides_start_date='2023-07-26',verbose=False,**kwargs)
+  
+    if ephemerides_start_date is None:
+        ephemerides_start_date = constants.MINTON_BCL 
+        
+    if jpl is None:
+        if type(id) != list:
+            id = [id]
+        jpl, altid, namelist = horizons_query(id=id[0],ephemerides_start_date=ephemerides_start_date,verbose=False,**kwargs)
+    else: 
+        if type(id) != list:
+            altid = [id]
         else:
-            namelist = [jpl.table['targetname'][0]]
+            altid = id
+
+    for i in altid:
+        if jpl is None:
+            jpl,_,namelist = horizons_query(id=i,ephemerides_start_date=ephemerides_start_date,verbose=False,**kwargs)
+        namelist = [jpl.table['targetname'][0]]
         raw_response = jpl.vectors_async().text
         Rpl = get_radius(raw_response) 
         if Rpl is not None:
@@ -179,8 +192,8 @@ def horizons_get_physical_properties(altid,jpl=None,**kwargs):
             rotrate = np.rad2deg(rotrate)
 
         rot = rotpole*rotrate
-            
-    return Gmass,Rpl,rot
+        
+    return {'Gmass':Gmass,'radius':Rpl,'rot':rot}
 
 
 def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=False,**kwargs):
@@ -216,8 +229,10 @@ def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=
 
         Parameters
         ----------
-        raw_response : string
-            Raw response from the JPL Horizons query
+        errstr : string
+            The error message returned from the Horizons query
+        exclude_spacecraft: bool (optional) - Default True
+            Indicate whether spacecraft ids should be exluded from the alternate id list        
 
         Returns
         -------
@@ -278,7 +293,7 @@ def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=
     return jpl,altid,altname
     
     
-def solar_system_horizons(name: str,
+def get_solar_system_body(name: str,
                           param: Dict,
                           ephemerides_start_date: str,
                           ephemeris_id: str | None = None,
@@ -290,7 +305,7 @@ def solar_system_horizons(name: str,
     Parameters
     ----------
     name  : string
-        Name of body to add to Dataset. If `id` is not supplied, this is also what will be searche for in the JPL/Horizon's database.
+        Name of body to add to Dataset. If `id` is not supplied, this is also what will be searched for in the JPL/Horizon's database.
         The first matching body is found (for major planets, this is the barycenter of a planet-satellite system)
     param : dict
         Swiftest paramuration parameters. This method uses the unit conversion factors to convert from JPL's AU-day system into the system specified in the param file
@@ -303,26 +318,27 @@ def solar_system_horizons(name: str,
 
     Returns
     -------
-    name : string
-        Name of the body
-    rh : (3,) array of np.float64
-        Position vector array relative to the central body.
-    vh : (3,) array of np.float64
-        Velocity vector array relative to the central body.
-    Gmass : np.float64
-        G*mass values if these are massive bodies
-    Rpl : np.float64
-        Radius values if these are massive bodies
-    rhill : np.float64 
-        The Hill's radius values if these are massive bodies 
-    Ip : (3,) array of np.float64
-        Principal axes moments of inertia vectors if these are massive bodies.
-    rot : (3,) array of np.float
-        Rotation rate vectors if these are massive bodies in deg/TU
-    j2r2 : np.float64
-        J_2R^2 value for the body if known
-    j4r4 : np.float64
-        J_4R^4 value for the body if known
+    dict : Contains the following elements:
+        name : string
+            Name of the body
+        rh : (3,) array of np.float64
+            Position vector array relative to the central body.
+        vh : (3,) array of np.float64
+            Velocity vector array relative to the central body.
+        Gmass : np.float64
+            G*mass values if these are massive bodies
+        radius : np.float64
+            Radius values if these are massive bodies
+        rhill : np.float64 
+            The Hill's radius values if these are massive bodies 
+        Ip : (3,) array of np.float64
+            Principal axes moments of inertia vectors if these are massive bodies.
+        rot : (3,) array of np.float
+            Rotation rate vectors if these are massive bodies in deg/TU
+        j2rp2 : np.float64
+            J_2R^2 value for the body if known
+        j4rp4 : np.float64
+            J_4R^4 value for the body if known
          
     Notes
     --------
@@ -384,8 +400,8 @@ def solar_system_horizons(name: str,
     rhill = None
     Gmass = None
     Rpl = None
-    j2r2 = None
-    j4r4 = None
+    j2rp2 = None
+    j4rp4 = None
    
 
     if name == "Sun" or ephemeris_id == "0": # Create central body
@@ -415,7 +431,7 @@ def solar_system_horizons(name: str,
         
         if central_body_name != "Sun":
             jplcb, altidcb, _ = horizons_query(central_body_name,ephemerides_start_date,**kwargs)
-            GMcb,*_ = horizons_get_physical_properties(altidcb,jplcb)
+            GMcb = get_solar_system_body_mass_rotation(altidcb,jplcb)['Gmass']
             GMcb *= param['TU2S'] ** 2 / param['DU2M'] ** 3
             cbrx = jplcb.vectors()['x'][0] * DCONV
             cbry = jplcb.vectors()['y'][0] * DCONV
@@ -440,16 +456,16 @@ def solar_system_horizons(name: str,
         rh = np.array([rx,ry,rz]) - cbrh
         vh = np.array([vx,vy,vz]) - cbvh
 
-        Gmass,Rpl,rot = horizons_get_physical_properties(altid,jpl,**kwargs)
+        Gmass,Rpl,rot = get_solar_system_body_mass_rotation(altid,jpl,**kwargs).values()
         # If the user inputs "Earth" or Pluto, then the Earth-Moon or Pluto-Charon barycenter and combined mass is used. 
         # To use the Earth or Pluto alone, simply pass "399" or "999", respectively to name
         if name == "Earth":
             print("Combining mass of Earth and the Moon")
-            Gmass_moon,*_ = horizons_get_physical_properties(["301"],**kwargs)
+            Gmass_moon = get_solar_system_body_mass_rotation(["301"],**kwargs)['Gmass']
             Gmass += Gmass_moon
         elif name == "Pluto":
             print("Combining mass of Pluto and Charon")
-            Gmass_charon,*_ = horizons_get_physical_properties(["901"],**kwargs)
+            Gmass_charon = get_solar_system_body_mass_rotation(["901"],**kwargs)['Gmass']
             Gmass += Gmass_charon 
         
         if Gmass is not None:
@@ -469,10 +485,21 @@ def solar_system_horizons(name: str,
         Ip = np.array([0.4, 0.4, 0.4])
                
     if name in planetJ2:
-        j2r2 = planetJ2[name] * Rpl**2 
-        j4r4 = planetJ4[name] * Rpl**4
+        j2rp2 = planetJ2[name] * Rpl**2 
+        j4rp4 = planetJ4[name] * Rpl**4
+        
+    
 
-    return name,rh,vh,Gmass,Rpl,rhill,Ip,rot,j2r2,j4r4
+    return {'name':name,
+            'rh':rh,
+            'vh':vh,
+            'Gmass':Gmass,
+            'radius': Rpl,
+            'rhill': rhill,
+            'Ip': Ip,
+            'rot': rot,
+            'j2rp2':j2rp2,
+            'j4rp4':j4rp4}
 
 
 def vec2xr(param: Dict, 

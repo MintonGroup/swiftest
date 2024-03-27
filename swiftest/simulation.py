@@ -2218,20 +2218,25 @@ class Simulation(object):
         
         body_list = []
         for i,n in enumerate(name):
-            body = init_cond.solar_system_horizons(n, self.param, date, ephemeris_id=ephemeris_id[i],central_body_name=cbname, **kwargs)
+            body = init_cond.get_solar_system_body(n, self.param, date, ephemeris_id=ephemeris_id[i],central_body_name=cbname, **kwargs)
             if body is not None:
                 body_list.append(body)
 
-        #Convert the list receieved from the solar_system_horizons output and turn it into arguments to vec2xr
+        #Convert the list receieved from the get_solar_system_body output and turn it into arguments to vec2xr
         if len(body_list) == 0:
            print("No valid bodies found")
            return 
-        elif len(body_list) == 1:
-            values = list(np.hsplit(np.array(body_list[0],dtype=np.dtype(object)),10))
         else:
-            values = list(np.squeeze(np.hsplit(np.array(body_list,np.dtype(object)),10)))
-        keys = ["name","rh","vh","Gmass","radius","rhill","Ip","rot","j2rp2","j4rp4"]
-        vec2xr_kwargs = dict(zip(keys,values))
+            vec2xr_kwargs = {}
+            for d in body_list:
+                if d is None:
+                    continue
+                for key, value in d.items():
+                    if key not in vec2xr_kwargs:
+                        vec2xr_kwargs[key] = [value]
+                    else:
+                        vec2xr_kwargs[key].append(value)
+        
         scalar_floats = ["Gmass","radius","rhill","j2rp2","j4rp4"]
         vector_floats = ["rh","vh","Ip","rot"]
         scalar_ints = ["id"]
@@ -2239,9 +2244,9 @@ class Simulation(object):
         for k,v in vec2xr_kwargs.items():
             if k in scalar_ints:
                 v[v == None] = -1
-                vec2xr_kwargs[k] = v.astype(int)
+                vec2xr_kwargs[k] = np.array(v, dtype=int)
             elif k in scalar_floats:
-                vec2xr_kwargs[k] = v.astype(np.float64)
+                vec2xr_kwargs[k] = np.array(v, dtype=np.float64)
                 if all(np.isnan(vec2xr_kwargs[k])):
                     vec2xr_kwargs[k] = None
             elif k in vector_floats:
@@ -2249,6 +2254,8 @@ class Simulation(object):
                 vec2xr_kwargs[k] = vec2xr_kwargs[k].astype(np.float64)
                 if np.all(np.isnan(vec2xr_kwargs[k])):
                     vec2xr_kwargs[k] = None
+            else:
+                vec2xr_kwargs[k] = np.array(v)
 
         vec2xr_kwargs['time'] = np.array([self.param['TSTART']])
         
@@ -2270,8 +2277,7 @@ class Simulation(object):
             raise ValueError("No central body found in either the new dataset or the existing dataset")
         
         if align_to_central_body_rotation and cbname not in dsnew['name']: # If a new central body is being added, then the rotation occurs after the two datasets are merged
-            jpl,altid,_ = init_cond.horizons_query(cbname,date)
-            _,_,rot = init_cond.horizons_get_physical_properties(altid,jpl)
+            rot = init_cond.get_solar_system_body_mass_rotation(cbname,ephemerides_start_date=date)['rot']
             if rot is not None:
                 rot *= self.param['TU2S']
                 dsnew = dsnew.rotate(pole=rot)
@@ -2312,13 +2318,9 @@ class Simulation(object):
         if ephemeris_date is None:
             return
 
-        # The default value is Prof. Minton's Brimley/Cocoon line crossing date (aka MBCL)
-        minton_bday = datetime.date.fromisoformat('1976-08-05')
-        brimley_cocoon_line = datetime.timedelta(days=18530)
-        minton_bcl = (minton_bday + brimley_cocoon_line).isoformat()
 
         if ephemeris_date is None or ephemeris_date.upper() == "MBCL":
-            ephemeris_date = minton_bcl
+            ephemeris_date = constants.MINTON_BCL
         elif ephemeris_date.upper() == "TODAY":
             ephemeris_date = datetime.date.today().isoformat()
         else:
@@ -2329,7 +2331,7 @@ class Simulation(object):
                 msg = f"{ephemeris_date} is not a valid format. Valid options include:", ', '.join(valid_date_args)
                 msg += "\nUsing MBCL for date."
                 warnings.warn(msg,stacklevel=2)
-                ephemeris_date = minton_bcl
+                ephemeris_date = constants.MINTON_BCL
 
         self.ephemeris_date = ephemeris_date
 

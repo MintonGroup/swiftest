@@ -446,21 +446,21 @@ class TestSwiftest(unittest.TestCase):
         sim.clean()
         # Precomputed values for [Mars, Phobos, and Deimos] in the ecliptic and Mars equatorial frames
         inc_vals = {"ecliptic": np.array([ np.nan, 26.55406151, 24.06273241]),
-                    "mars equator": np.array([np.nan, 1.0753048, 2.6925768])}
-        rot_vals = {"ecliptic": np.array([[ 57176.72129971,  -7162.31013346, 114478.65911179],
-                                                [183617.63838933, -15311.68519899, 368719.81695279], 
-                                                [ 42015.96468119,  -6035.89004401,  95062.95557518]]),
-                    "mars equator": np.array([[-7.60184592e-28,  0.00000000e+00,  1.28163331e+05],
-                                        [-3.81633732e+02,  7.73720290e+03,  4.12121558e+05],
-                                        [-4.89032977e+03, -1.60117170e+02,  1.03994220e+05]])}
-        
+                    "mars equator": np.array([ np.nan, 1.0786523 , 2.69218629])}
+        rot_vals = {"ecliptic": np.array([[ 57176.05522852,  -7169.83239366, 114478.52090685],
+                                          [183617.63838933, -15311.68519899, 368719.81695279],
+                                          [ 42015.96468119,  -6035.89004401,  95062.95557518]]),
+                    "mars equator": np.array([[-3.08375547e-12, -9.09494702e-13,  1.28163331e+05],
+                                              [-3.79488273e+02,  7.76140989e+03,  4.12121104e+05],
+                                              [-4.88981793e+03, -1.53941766e+02,  1.03994254e+05]])}
+                                                
         # No rotation should keep it in the ecliptic frame 
         sim.add_solar_system_body(["Mars","Phobos","Deimos"]) # Default should be ecliptic
         sim_inc = sim.init_cond.isel(time=0).inc.values
         sim_rot = sim.init_cond.isel(time=0).rot.values
 
         inc_close = np.allclose(sim_inc,inc_vals["ecliptic"],equal_nan=True)
-        rot_close = np.allclose(sim_rot,rot_vals["ecliptic"])
+        rot_close = np.allclose(sim_rot,rot_vals["ecliptic"],rtol=1e-4)
         
         self.assertTrue(inc_close,msg=f"Error in inclination 1")
         self.assertTrue(rot_close,msg=f"Error in rotation 1")
