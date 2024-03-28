@@ -14,7 +14,6 @@
 # Determine the platform and architecture
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
-set -a
 
 # Default values for the installation directories
 PREFIX=${PREFIX:-"${ROOT_DIR}/build/deps/usr/local"}

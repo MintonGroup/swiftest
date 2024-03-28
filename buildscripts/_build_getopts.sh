@@ -9,10 +9,9 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
-set -a
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
-
+set -a
 # Get platform and architecture
 OS=$(uname -s)
 ARCH=$(uname -m)
@@ -47,3 +46,4 @@ while getopts ":d:p:m:h" ARG; do
         ;;
     esac
 done
+set +a

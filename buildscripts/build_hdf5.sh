@@ -15,7 +15,6 @@ HDF5_VER="1_14_3"
 ZLIB_VER="1.3.1"
 
 SCRIPT_DIR=$(realpath $(dirname $0))
-set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 

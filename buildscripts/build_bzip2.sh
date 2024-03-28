@@ -10,7 +10,6 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 SCRIPT_DIR=$(realpath $(dirname $0))
-set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 
@@ -65,7 +64,7 @@ if [ -w "${BZ2_ROOT}" ]; then
 else
     sudo make install PREFIX=${BZ2_ROOT}
 fi
-
+set +a
 if [ $? -ne 0 ]; then
    printf "bz2 could not be compiled.\n"
    exit 1

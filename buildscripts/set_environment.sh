@@ -77,7 +77,7 @@ HDF5_DIR="${HDF5_ROOT}/cmake"
 SHTOOLS_HOME="${PREFIX}"
 LD_LIBRARY_PATH="${PREFIX}/lib"
 CPATH="${PREFIX}/include"
-PATH="${PREFIX}/bin:${HDF5_ROOT}/bin:${PATH}"
+PATH="${PREFIX}/bin:${PATH}"
 CMAKE_INSTALL_LIBDIR="lib"
 
 FC=${FC:-"$(command -v gfortran-13 || command -v gfortran-12 || command -v gfortran)"}
@@ -102,3 +102,4 @@ if [ $OS = "Darwin" ]; then
     CC=${CC:-"/usr/bin/clang"}
     CXX=${CXX:-"/usr/bin/clang++"}
 fi
+set +a
