@@ -41,7 +41,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-pyshtools = ["pyshtools"] 
+pyshtools = ["pyshtools>=4.12.2"] 
 
 [project.urls]
 repository = 'https://github.com/MintonGroup/swiftest'
