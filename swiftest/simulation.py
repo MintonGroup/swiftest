@@ -2973,13 +2973,8 @@ class Simulation(object):
             self.data = self.data.swap_dims({"id":"name"})
             
         nnew = ds.name.size
-        if 'name' in self.data:
-            nold = self.data.name.size
-        else:
-            nold = 0
-             
         # Increment id numbers 
-        if len(self.data) == 0:
+        if len(self.data) == 0 or self.data.id.sizes['name'] == 0:
             maxid = 0
         else:
             maxid = self.data.id.max().values[()]
@@ -2992,7 +2987,7 @@ class Simulation(object):
         else:
             new_bigname = None
 
-        if 'Gmass' in self.data:
+        if 'Gmass' in self.data and self.data.Gmass.sizes['name'] > 0:
             old_bigidx = self.data['Gmass'].argmax(dim='name')
             old_bigname = self.data['name'].isel(name=old_bigidx).values[()]
             old_Gmass = self.data['Gmass'].isel(name=old_bigidx).values[0]
@@ -3109,12 +3104,23 @@ class Simulation(object):
         if name is not None:
             if type(name) is str or type(name) is int:
                 name = [name]
+            invalid_names = ', '.join([n for n in name if n not in self.data.name.values])
+            if len(invalid_names) > 0:
+                warnings.warn(f"{invalid_names} not found in the Dataset. remove_body is ignoring these names.")
         else:
             if type(id) is int or type(id) is name:
                 id = [id]
+            invalid_ids = ', '.join([f'{i}' for i in id if i not in self.data.id.values])
+            if len(invalid_ids) > 0:
+                warnings.warn(f"id number(s) {invalid_ids} not found in the Dataset. remove_body is ignoring these ids.")
             name = self.data.name.where(self.data.id == id, drop=True).values.tolist()     
-            
+     
         keepnames = [n for n in self.data.name.values if n not in name] 
+        if len(keepnames) == 0:
+            warnings.warn("No bodies left in the Dataset after remove_body")
+        if len(keepnames) == len(self.data.name):
+            warnings.warn("No bodies found that can be removed from the Dataset.")
+            return
             
         self.data = self.data.sel(name=keepnames) 
         self.init_cond = self.init_cond.sel(name=keepnames)
@@ -3353,7 +3359,7 @@ class Simulation(object):
                    else:
                        warnings.warn(f"Initial conditions file file {init_cond_file} not found.", stacklevel=2)
                 else:
-                    warnings.warn("Reading in ASCII initial conditions files in Python is not yet supported")
+                    warnings.warn("Reading in ASCII initial conditions files in Python is not yet supported", stacklevel=2)
         elif codename == "Swifter":
             self.param = io.read_swifter_param(param_file, verbose=verbose)
         elif codename == "Swift":

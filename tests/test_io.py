@@ -411,6 +411,21 @@ class TestSwiftestIO(unittest.TestCase):
         sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars"])
         sim.remove_body("Mars")
         self.assertTrue("Mars" not in sim.init_cond.name.values)
+        
+        with self.assertWarns(Warning) as cm:  # Using Warning as the base class, adjust if needed
+            sim.remove_body("Arrakis")
+        self.assertIn("Arrakis not found in the Dataset", str(cm.warning))
+        
+        with self.assertWarns(Warning) as cm:
+            sim.remove_body(["Sun", "Mercury","Venus","Earth"])  # Remove all bodies
+        self.assertIn("No bodies left in the Dataset", str(cm.warning))
+        
+        sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars"])
+        sim.remove_body(id=4)
+        self.assertTrue("Mars" not in sim.init_cond.name.values)
+        with self.assertWarns(Warning) as cm:  # Using Warning as the base class, adjust if needed
+            sim.remove_body(id=10)
+        self.assertIn("10 not found in the Dataset", str(cm.warning))
         return    
     
 if __name__ == '__main__':
