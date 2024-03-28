@@ -2143,6 +2143,7 @@ class Simulation(object):
                               ephemeris_id: int | List[int] | None = None,
                               date: str | None = None,
                               align_to_central_body_rotation: bool = False,
+                              verbose: bool = True,
                               **kwargs: Any
                               ) -> None:
         """
@@ -2171,6 +2172,8 @@ class Simulation(object):
         align_to_central_body_rotation : bool, default False
             If True, the cartesian coordinates will be aligned to the rotation pole of the central body. Otherwise, the This is only valid for when
             rotation is enabled.
+        verbose : bool, default True
+            If True, then warnings will be printed if the name is already in use in the Dataset.
         **kwargs : Any
             Additional keyword arguments to pass to the query method (i.e. astroquery.Horizons)
             
@@ -2214,17 +2217,27 @@ class Simulation(object):
             cbname = self.data['name'].where(self.data.isel(time=0).particle_type == CB_TYPE_NAME, drop=True).values[0]
         else:
             cbname = "Sun"
+           
+        # Check to make sure we don't already have a body with the same name 
+        if "name" in self.data:
+            bad_names = [n for n in name if n in self.data.name.values]
+            if len(bad_names) > 0:
+                name = [n for n in name if n not in bad_names]
+                bad_names = ', '.join(bad_names) 
+                if verbose:
+                    warnings.warn(f"The following names are already in use and will not be added: {bad_names}",stacklevel=2)            
         
         body_list = []
         for i,n in enumerate(name):
-            body = init_cond.get_solar_system_body(name=n, ephemerides_start_date=date, ephemeris_id=ephemeris_id[i],central_body_name=cbname, **kwargs)
+            body = init_cond.get_solar_system_body(name=n, ephemerides_start_date=date, ephemeris_id=ephemeris_id[i],central_body_name=cbname, verbose=verbose,**kwargs)
             if body is not None:
                 body_list.append(body)
 
         #Convert the list receieved from the get_solar_system_body output and turn it into arguments to vec2xr
         if len(body_list) == 0:
-           print("No valid bodies found")
-           return 
+            if verbose:
+                print("No valid bodies found")
+                return 
         else:
             vec2xr_kwargs = {}
             for d in body_list:
@@ -2773,6 +2786,13 @@ class Simulation(object):
 
         time = [self.param['TSTART']]
 
+        if "name" in self.data:
+            bad_names = [n for n in name if n in self.data.name.values]
+            if len(bad_names) > 0:
+                name = [n for n in name if n not in bad_names]
+                bad_names = ', '.join(bad_names) 
+                if verbose:
+                    warnings.warn(f"The following names are already in use and will not be added: {bad_names}",stacklevel=2)
         if verbose:
             for n in name:
                 print(f"Adding {n}") 
@@ -3078,6 +3098,45 @@ class Simulation(object):
             
         return ds
 
+    def _get_valid_body_list(self, 
+                    name: str | List[str] | npt.NDArray[np.str_] | None=None,
+                    id: int | list[int] | npt.NDArray[np.int_] | None=None):                             
+        """
+        Returns a list of valid body names in the dataset given the input name or id.
+        
+        Parameters
+        ----------
+        name : str or array-like of str, optional
+            Name or names of bodies to select
+        id : int or array-like of int, optional
+            Id value or values of bodies to select
+           
+        Returns
+        -------
+        name : list of str
+            List of valid body names 
+        """ 
+        if name is None and id is None:
+            raise ValueError("You must pass either name or id as arguments")
+        if name is not None and id is not None:
+            raise ValueError("You must pass only name or id as arguments, but not both")
+        
+        if name is not None:
+            if type(name) is str or type(name) is int:
+                name = [name]
+            invalid_names = ', '.join([n for n in name if n not in self.data.name.values])
+            if len(invalid_names) > 0:
+                warnings.warn(f"{invalid_names} not found in the Dataset. remove_body is ignoring these names.")
+        else:
+            if type(id) is int or type(id) is name:
+                id = [id]
+            invalid_ids = ', '.join([f'{i}' for i in id if i not in self.data.id.values])
+            if len(invalid_ids) > 0:
+                warnings.warn(f"id number(s) {invalid_ids} not found in the Dataset. remove_body is ignoring these ids.")
+            name = self.data.name.where(self.data.id == id, drop=True).values.tolist()     
+     
+        return name
+    
     def remove_body(self,
                     name: str | List[str] | npt.NDArray[np.str_] | None=None,
                     id: int | list[int] | npt.NDArray[np.int_] | None=None):
@@ -3100,32 +3159,14 @@ class Simulation(object):
         -------
         None
         """
-        
-        if name is None and id is None:
-            raise ValueError("You must pass either name or id as arguments")
-        if name is not None and id is not None:
-            raise ValueError("You must pass only name or id as arguments, but not both")
-        
-        if name is not None:
-            if type(name) is str or type(name) is int:
-                name = [name]
-            invalid_names = ', '.join([n for n in name if n not in self.data.name.values])
-            if len(invalid_names) > 0:
-                warnings.warn(f"{invalid_names} not found in the Dataset. remove_body is ignoring these names.")
-        else:
-            if type(id) is int or type(id) is name:
-                id = [id]
-            invalid_ids = ', '.join([f'{i}' for i in id if i not in self.data.id.values])
-            if len(invalid_ids) > 0:
-                warnings.warn(f"id number(s) {invalid_ids} not found in the Dataset. remove_body is ignoring these ids.")
-            name = self.data.name.where(self.data.id == id, drop=True).values.tolist()     
-     
-        keepnames = [n for n in self.data.name.values if n not in name] 
+       
+        names = self._get_valid_body_list(name=name, id=id) 
+        keepnames = [n for n in self.data.name.values if n not in names] 
         if len(keepnames) == 0:
             warnings.warn("No bodies left in the Dataset after remove_body")
         if len(keepnames) == len(self.data.name):
             warnings.warn("No bodies found that can be removed from the Dataset.")
-            return
+            return    
             
         self.data = self.data.sel(name=keepnames) 
         self.init_cond = self.init_cond.sel(name=keepnames)
@@ -3170,7 +3211,9 @@ class Simulation(object):
         Parameters
         ----------
         name : str or array-like of str, optional
-            Name or names of Bodies. If none passed, name will be "Body{id}"
+            Name or names of bodies to modify. 
+        id : int or array-like of int, optional
+            Id value or values of bodies to modify. Only one of name or id may be passed, but not both.
         a : float or array-like of float, optional
             semimajor axis for param['IN_FORM'] == "EL"
         e : float or array-like of float, optional
@@ -3211,7 +3254,7 @@ class Simulation(object):
             If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
             rotation is enabled.
         verbose : bool, default True
-            If True, prints the values of the added bodies
+            If True, prints the values of the modified bodies
         
         Returns
         -------
@@ -3219,10 +3262,6 @@ class Simulation(object):
             Sets the data and init_cond instance variables each with a SwiftestDataset containing the body or bodies that were added
         """
         from .constants import CB_TYPE_NAME
-        if name is None and id is None:
-            raise ValueError("You must pass either name or id as arguments")
-        if name is not None and id is not None:
-            raise ValueError("You must pass only name or id as arguments, but not both")
         
         # This allows us to re-use the same validation function for both add_body and modify_body
         arguments = locals().copy()
@@ -3251,6 +3290,12 @@ class Simulation(object):
         j4rp4 = arguments['j4rp4']
         c_lm = arguments['c_lm']
         nbodies = arguments['nbodies']
+        
+        modnames = self._get_valid_body_list(name=name, id=id) 
+        if modnames is None or len(modnames) == 0:
+            return
+        
+         
                
         return
     

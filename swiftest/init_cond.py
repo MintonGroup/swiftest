@@ -292,6 +292,7 @@ def get_solar_system_body(name: str,
                           ephemeris_id: str | None = None,
                           ephemerides_start_date : str = constants.MINTON_BCL,
                           central_body_name: str = "Sun",
+                          verbose: bool = True,
                           **kwargs: Any):
     """
     Initializes a Swiftest dataset containing the major planets of the Solar System at a particular data from JPL/Horizons
@@ -307,6 +308,8 @@ def get_solar_system_body(name: str,
         Date to use when obtaining the ephemerides in the format YYYY-MM-DD. Default is constants.MINTON_BCL
     central_body_name : string
         Name of the central body to use when calculating the relative position and velocity vectors. Default is "Sun"
+    verbose : bool
+        Indicates whether to print messages about the query or not. Default is True
     **kwargs: Any
         Additional keyword arguments to pass to the query method (see https://astroquery.readthedocs.io/en/latest/jplhorizons/jplhorizons.html)
 
@@ -397,7 +400,8 @@ def get_solar_system_body(name: str,
     j4rp4 = None
    
     if name == "Sun" or ephemeris_id == "0": # Create central body
-        print("Creating the Sun as a central body")
+        if verbose:
+            print("Creating the Sun as a central body")
         # Central body value vectors
         rotpoleSun = SkyCoord(ra=286.13 * u.degree, dec=63.87 * u.degree).cartesian
         rot = (360.0 / 25.05) / constants.JD2S  * rotpoleSun           
@@ -409,12 +413,14 @@ def get_solar_system_body(name: str,
     else: # Fetch solar system ephemerides from Horizons
         if ephemeris_id is None:
             ephemeris_id = name
-            
-        print(f"Fetching ephemerides data for {ephemeris_id} from JPL/Horizons")
+           
+        if verbose: 
+            print(f"Fetching ephemerides data for {ephemeris_id} from JPL/Horizons")
         
         jpl,altid,altname = horizons_query(ephemeris_id,ephemerides_start_date,**kwargs)
         if jpl is not None:
-            print(f"Found ephemerides data for {altname[0]} ({altid[0]}) from JPL/Horizons")
+            if verbose:
+                print(f"Found ephemerides data for {altname[0]} ({altid[0]}) from JPL/Horizons")
             if name == None:
                 name = altname[0]
         else:
@@ -450,11 +456,13 @@ def get_solar_system_body(name: str,
         # If the user inputs "Earth" or Pluto, then the Earth-Moon or Pluto-Charon barycenter and combined mass is used. 
         # To use the Earth or Pluto alone, simply pass "399" or "999", respectively to name
         if name == "Earth":
-            print("Combining mass of Earth and the Moon")
+            if verbose:
+                print("Combining mass of Earth and the Moon")
             Gmass_moon = get_solar_system_body_mass_rotation(["301"],**kwargs)['Gmass']
             Gmass += Gmass_moon
         elif name == "Pluto":
-            print("Combining mass of Pluto and Charon")
+            if verbose:
+                print("Combining mass of Pluto and Charon")
             Gmass_charon = get_solar_system_body_mass_rotation(["901"],**kwargs)['Gmass']
             Gmass += Gmass_charon 
         
