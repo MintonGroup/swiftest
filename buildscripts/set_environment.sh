@@ -85,7 +85,7 @@ F77=${F77:-"${FC}"}
 F95=${F95:-"${FC}"}
 
 if [ $OS = "Darwin" ]; then
-    MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-"$(sw_vers -productVersion | cut -d. -f1)"} # Gets only the major version number
+    MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-"$(sw_vers -productVersion | cut -d. -f1).0"} # Gets only the major version number
     ARCH="$(uname -m)"
     HOMEBREW_PREFIX=${HOMEBREW_PREFIX:-"$(brew --prefix)"}
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${HOMEBREW_PREFIX}/lib"
