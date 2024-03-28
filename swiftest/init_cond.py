@@ -396,7 +396,6 @@ def get_solar_system_body(name: str,
     j2rp2 = None
     j4rp4 = None
    
-
     if name == "Sun" or ephemeris_id == "0": # Create central body
         print("Creating the Sun as a central body")
         # Central body value vectors

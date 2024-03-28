@@ -2449,8 +2449,8 @@ class Simulation(object):
                              rot: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None=None,
                              Ip: List[float] | npt.NDArray[np.float_] | None=None,
                              rotphase: float | List[float] | npt.NDArray[np.float_] | None=None,
-                             J2: float | List[float] | npt.NDArray[np.float_] | None=None,
-                             J4: float | List[float] | npt.NDArray[np.float_] | None=None,
+                             j2rp2: float | List[float] | npt.NDArray[np.float_] | None=None,
+                             j4rp4: float | List[float] | npt.NDArray[np.float_] | None=None,
                              c_lm: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
                              **kwargs: Any
                             ) -> None:
@@ -2493,10 +2493,10 @@ class Simulation(object):
             Principal axes moments of inertia vectors if these are massive bodies with rotation enabled.
         rotphase : float, optional
             rotation phase angle in degreesif these are massive bodies with rotation enabled
-        J2 : float, optional
-            Normalized J2 values (e.g. J2*R**2, where R is the body radius) if this is a central body (only one of J2 or c_lm can be passed)
-        J4 : float, optional
-            Normalized J4 values (e.g. J4*R**4, where R is the body radius) if this is a central body (only one of J4 or c_lm can be passed)
+        j2rp2 : float, optional
+            Non-normalized J2 values (e.g. J2*R**2, where R is the body radius) if this is a central body (only one of J2 or c_lm can be passed)
+        j4rp4 : float, optional
+            Non-normalized J4 values (e.g. J4*R**4, where R is the body radius) if this is a central body (only one of J4 or c_lm can be passed)
         c_lm : (2,l_max+1,l_max+1) array-like of float, optional
             Spherical harmonics coefficients if this is a central body (only one of J2/J4 or c_lm can be passed)
         align_to_central_body_rotation : bool, default False
@@ -2601,8 +2601,6 @@ class Simulation(object):
         Gmass,nbodies = input_to_array(Gmass,"f",nbodies)
         rhill,nbodies = input_to_array(rhill,"f",nbodies)
         radius,nbodies = input_to_array(radius,"f",nbodies)
-        J2,nbodies = input_to_array(J2,"f",nbodies)
-        J4,nbodies = input_to_array(J4,"f",nbodies)
 
         rh,nbodies = input_to_array_3d(rh,nbodies)
         vh,nbodies = input_to_array_3d(vh,nbodies)
@@ -2610,6 +2608,8 @@ class Simulation(object):
         Ip,nbodies = input_to_array_3d(Ip,nbodies)
         rotphase, nbodies = input_to_array(rotphase, "f", nbodies)
 
+        j2rp2,nbodies = input_to_array(j2rp2,"f",nbodies)
+        j4rp4,nbodies = input_to_array(j4rp4,"f",nbodies)
         c_lm, nbodies = input_to_clm_array(c_lm, nbodies)
        
         if mass is not None:
@@ -2619,6 +2619,10 @@ class Simulation(object):
         if rh is not None or vh is not None:
             if a is not None or e is not None or inc is not None or capom is not None or omega is not None or capm is not None:
                 raise ValueError("Only cartesian values or orbital elements may be passed, but not both.")
+            
+        if j2rp2 is not None or j4rp4 is not None:
+            if c_lm is not None:
+                raise ValueError("Cannot use J2/J4 and c_lm inputs simultaneously!")
      
         validated_arguments = locals().copy()
         validated_arguments.pop("self")  
@@ -2642,8 +2646,8 @@ class Simulation(object):
                  rot: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None=None,
                  Ip: List[float] | npt.NDArray[np.float_] | None=None,
                  rotphase: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 J2: float | List[float] | npt.NDArray[np.float_] | None=None,
-                 J4: float | List[float] | npt.NDArray[np.float_] | None=None,
+                 j2rp2: float | List[float] | npt.NDArray[np.float_] | None=None,
+                 j4rp4: float | List[float] | npt.NDArray[np.float_] | None=None,
                  c_lm: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
                  align_to_central_body_rotation: bool = False,
                  verbose: bool = True,
@@ -2691,10 +2695,10 @@ class Simulation(object):
             Principal axes moments of inertia vectors if these are massive bodies with rotation enabled.
         rotphase : float, optional
             rotation phase angle in degreesif these are massive bodies with rotation enabled
-        J2 : float, optional
-            Normalized J2 values (e.g. J2*R**2, where R is the body radius) if this is a central body (only one of J2 or c_lm can be passed)
-        J4 : float, optional
-            Normalized J4 values (e.g. J4*R**4, where R is the body radius) if this is a central body (only one of J4 or c_lm can be passed)
+        j2rp2 : float, optional
+            Non-normalized J2 values (e.g. J2*R**2, where R is the body radius) if this is a central body (only one of J2 or c_lm can be passed)
+        j4rp4 : float, optional
+            Non-normalized J4 values (e.g. J4*R**4, where R is the body radius) if this is a central body (only one of J4 or c_lm can be passed)
         c_lm : (2,l_max+1,l_max+1) array-like of float, optional
             Spherical harmonics coefficients if this is a central body (only one of J2/J4 or c_lm can be passed)
         align_to_central_body_rotation : bool, default False
@@ -2730,8 +2734,8 @@ class Simulation(object):
         rot = arguments['rot']
         Ip = arguments['Ip']
         rotphase = arguments['rotphase']
-        J2 = arguments['J2']
-        J4 = arguments['J4']
+        j2rp2 = arguments['j2rp2']
+        j4rp4 = arguments['j4rp4']
         c_lm = arguments['c_lm']
         nbodies = arguments['nbodies']
    
@@ -2773,7 +2777,8 @@ class Simulation(object):
             for n in name:
                 print(f"Adding {n}") 
         dsnew = self._vec2xr(name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm,
-                             Gmass=Gmass, mass=mass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, c_lm=c_lm, rotphase=rotphase, time=time)
+                             Gmass=Gmass, mass=mass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh, rot=rot, 
+                             j2rp2=j2rp2, j4rp4=j4rp4, c_lm=c_lm, rotphase=rotphase, time=time)
 
         dsnew = self._set_id_number(dsnew)
         dsnew = self._set_particle_type(dsnew)
@@ -3148,8 +3153,8 @@ class Simulation(object):
                 rot: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None=None,
                 Ip: List[float] | npt.NDArray[np.float_] | None=None,
                 rotphase: float | List[float] | npt.NDArray[np.float_] | None=None,
-                J2: float | List[float] | npt.NDArray[np.float_] | None=None,
-                J4: float | List[float] | npt.NDArray[np.float_] | None=None,
+                j2rp2: float | List[float] | npt.NDArray[np.float_] | None=None,
+                j4rp4: float | List[float] | npt.NDArray[np.float_] | None=None,
                 c_lm: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
                 align_to_central_body_rotation: bool = False,
                 verbose: bool = True,
@@ -3196,10 +3201,10 @@ class Simulation(object):
             Principal axes moments of inertia vectors if these are massive bodies with rotation enabled.
         rotphase : float, optional
             rotation phase angle in degreesif these are massive bodies with rotation enabled
-        J2 : float, optional
-            Normalized J2 values (e.g. J2*R**2, where R is the body radius) if this is a central body (only one of J2 or c_lm can be passed)
-        J4 : float, optional
-            Normalized J4 values (e.g. J4*R**4, where R is the body radius) if this is a central body (only one of J4 or c_lm can be passed)
+        j2rp2 : float, optional
+            Non-normalized J2 values (e.g. J2*R**2, where R is the body radius) if this is a central body (only one of J2 or c_lm can be passed)
+        j4rp4 : float, optional
+            Non-normalized J4 values (e.g. J4*R**4, where R is the body radius) if this is a central body (only one of J4 or c_lm can be passed)
         c_lm : (2,l_max+1,l_max+1) array-like of float, optional
             Spherical harmonics coefficients if this is a central body (only one of J2/J4 or c_lm can be passed)
         align_to_central_body_rotation : bool, default False
@@ -3242,8 +3247,8 @@ class Simulation(object):
         rot = arguments['rot']
         Ip = arguments['Ip']
         rotphase = arguments['rotphase']
-        J2 = arguments['J2']
-        J4 = arguments['J4']
+        j2rp2 = arguments['j2rp2']
+        j4rp4 = arguments['j4rp4']
         c_lm = arguments['c_lm']
         nbodies = arguments['nbodies']
                

@@ -137,7 +137,7 @@ class TestSwiftestIO(unittest.TestCase):
             
         # Add J2 and c_lm values
         with self.assertRaises(ValueError):
-            sim.add_body(mass=1.0, radius=1.0, J2=1.0e-6, c_lm=np.ones([2,7]))
+            sim.add_body(mass=1.0, radius=1.0, j2rp2=1.0e-6, c_lm=np.ones([2,7]))
             
         # Wrong shape of c_lm
         with self.assertRaises(ValueError):
