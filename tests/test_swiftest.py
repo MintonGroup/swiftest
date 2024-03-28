@@ -98,7 +98,6 @@ class TestSwiftest(unittest.TestCase):
         """
         
         sim = swiftest.Simulation(simdir=self.simdir)
-        sim.clean() 
         
         # Test that we can can pass a single body:
         sim.add_solar_system_body(name="Sun")

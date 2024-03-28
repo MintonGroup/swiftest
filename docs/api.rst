@@ -67,9 +67,9 @@ Adding Bodies to a Simulation
 .. autosummary::
     :toctree: generated/
 
-    Simulation.add_body
     Simulation.add_solar_system_body
-    Simulation.set_central_body
+    Simulation.add_body
+    Simulation.modify_body
     Simulation.remove_body
 
 
@@ -160,10 +160,9 @@ Initial Conditions Generation Functions
 .. autosummary::
     :toctree: generated/
 
-    swiftest.init_cond.solar_system_horizons
+    swiftest.init_cond.get_solar_system_body
     swiftest.init_cond.horizons_query
-    swiftest.init_cond.horizons_get_physical_properties
-    swiftest.init_cond.vec2xr
+    swiftest.init_cond.get_solar_system_body_mass_rotation
 
 Gravitional Harmonics Functions
 ===============================
@@ -205,19 +204,6 @@ Tools for fixing differences between NetCDF-Fortran and xarray data structures
     swiftest.io.reorder_dims
     swiftest.io.fix_types
 
-
-Conversions between legacy integrator formats and Swiftest
-----------------------------------------------------------
-
-.. autosummary::
-    :toctree: generated/
-
-    swiftest.io.swifter2swiftest
-    swiftest.io.swifter2xr
-    swiftest.io.swifter_xr2infile
-    swiftest.io.swiftest2swifter_param
-    swiftest.io.swift2swifter
-    swiftest.io.swift2swiftest
 
 Tools
 =====

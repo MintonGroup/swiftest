@@ -2276,7 +2276,7 @@ class Simulation(object):
         vec2xr_kwargs['time'] = np.array([self.param['TSTART']])
         
         # Create a Dataset containing the new bodies
-        dsnew = init_cond.vec2xr(self.param,**vec2xr_kwargs)
+        dsnew = self._vec2xr(**vec2xr_kwargs)
         dsnew = self._set_id_number(dsnew)
         dsnew = self._set_particle_type(dsnew)
         if 'particle_type' in self.data:
@@ -2431,9 +2431,199 @@ class Simulation(object):
 
         return tuple(arg_vals)
 
-    def _validate_body_input(self,**kwargs):
+    def _validate_body_arguments(self,
+                             name: str | List[str] | npt.NDArray[np.str_] | None=None,
+                             id : int | List[int] | npt.NDArray[np.int_] | None=None,
+                             a: float | List[float] | npt.NDArray[np.float_] | None = None,
+                             e: float | List[float] | npt.NDArray[np.float_] | None = None,
+                             inc: float | List[float] | npt.NDArray[np.float_] | None = None,
+                             capom: float | List[float] | npt.NDArray[np.float_] | None = None,
+                             omega: float | List[float] | npt.NDArray[np.float_] | None = None,
+                             capm: float | List[float] | npt.NDArray[np.float_] | None = None,
+                             rh: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+                             vh: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+                             mass: float | List[float] | npt.NDArray[np.float_] | None=None,
+                             Gmass: float | List[float] | npt.NDArray[np.float_] | None=None,
+                             radius: float | List[float] | npt.NDArray[np.float_] | None=None,
+                             rhill: float | List[float] | npt.NDArray[np.float_] | None=None,
+                             rot: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None=None,
+                             Ip: List[float] | npt.NDArray[np.float_] | None=None,
+                             rotphase: float | List[float] | npt.NDArray[np.float_] | None=None,
+                             J2: float | List[float] | npt.NDArray[np.float_] | None=None,
+                             J4: float | List[float] | npt.NDArray[np.float_] | None=None,
+                             c_lm: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+                             **kwargs: Any
+                            ) -> None:
+        """
+        Validates and formats the input the add_body and modify_body methods. 
+
+        Parameters
+        ----------
+        name : str or array-like of str, optional
+            Name or names of Bodies. 
+        id : int or array-like of int, optional
+            ID or IDs of Bodies.
+        a : float or array-like of float, optional
+            semimajor axis for param['IN_FORM'] == "EL"
+        e : float or array-like of float, optional
+            eccentricity  for param['IN_FORM'] == "EL"
+        inc : float or array-like of float, optional
+            inclination for param['IN_FORM'] == "EL"
+        capom : float or array-like of float, optional
+            longitude of ascending node for param['IN_FORM'] == "EL"
+        omega : float or array-like of float, optional
+            argument of periapsis for param['IN_FORM'] == "EL"
+        capm : float or array-like of float, optional
+            mean anomaly for param['IN_FORM'] == "EL"
+        rh : (n,3) array-like of float, optional
+            Position vector array.
+        vh : (n,3) array-like of float, optional
+            Velocity vector array.
+        mass : float or array-like of float, optional
+            mass values if these are massive bodies (only one of mass or Gmass can be passed)
+        Gmass : float or array-like of float, optional
+            G*mass values if these are massive bodies (only one of mass or Gmass can be passed)
+        radius : float or array-like of float, optional
+            Radius values if these are massive bodies
+        rhill : float or array-like of float, optional
+            Hill's radius values if these are massive bodies
+        rot : (3) or (n,3) array-like of float, optional
+            Rotation rate vectors if these are massive bodies with rotation enabled.
+        Ip : (3) or (n,3) array-like of float, optional
+            Principal axes moments of inertia vectors if these are massive bodies with rotation enabled.
+        rotphase : float, optional
+            rotation phase angle in degreesif these are massive bodies with rotation enabled
+        J2 : float, optional
+            Normalized J2 values (e.g. J2*R**2, where R is the body radius) if this is a central body (only one of J2 or c_lm can be passed)
+        J4 : float, optional
+            Normalized J4 values (e.g. J4*R**4, where R is the body radius) if this is a central body (only one of J4 or c_lm can be passed)
+        c_lm : (2,l_max+1,l_max+1) array-like of float, optional
+            Spherical harmonics coefficients if this is a central body (only one of J2/J4 or c_lm can be passed)
+        align_to_central_body_rotation : bool, default False
+            If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
+            rotation is enabled.
+        verbose : bool, default True
+            If True, prints the values of the added bodies
         
-        pass
+        Returns
+        -------
+        None
+            Sets the data and init_cond instance variables each with a SwiftestDataset containing the body or bodies that were added
+        """
+        
+        #convert all inputs to numpy arrays
+        def input_to_array(val,t,n=None):
+            if t == "f":
+                t = np.float64
+            elif t == "i":
+                t = np.int64
+            elif t == "s":
+                t = str
+
+            if val is None:
+                return None, n
+            elif isinstance(val, np.ndarray):
+                pass
+            elif np.isscalar(val):
+                val = np.array([val],dtype=t)
+            else:
+                try:
+                    val = np.array(val,dtype=t)
+                except:
+                    raise ValueError(f"{val} cannot be converted to a numpy array")
+
+            if n is None:
+                return val, len(val)
+            else:
+                if n != len(val):
+                    raise ValueError(f"Mismatched array lengths in add_body. Got {len(val)} when expecting {n}")
+                return val, n
+
+        def input_to_array_3d(val,n=None):
+            if val is None:
+                return None, n
+            elif isinstance(val, np.ndarray):
+                pass
+            else:
+                try:
+                    val = np.array(val,dtype=np.float64)
+                except:
+                    raise ValueError(f"{val} cannot be converted to a numpy array")
+                if n is None:
+                    ndims = len(val.shape)
+                    if ndims > 2 or ndims == 0:
+                        raise ValueError(f"Argument must be an (n,3) or (3,) array. This one is {val.shape}")
+                    else:
+                        if val.shape[-1] != 3:
+                            raise ValueError(f"Argument must be a 3-dimensional vector. This one has {val.shape[0]}!")
+                        if val.size == 3:
+                            n = 1
+                        else:
+                            n = val.shape[0]
+                if n == 1:
+                    if val.shape != (1,3) and val.shape != (3,):
+                        raise ValueError(f"Argument is an incorrect shape. Expected {(n,3)} or {(3,1)}. Got {val.shape} instead")
+                    elif val.shape == (3,):
+                        val = np.expand_dims(val,axis=0)
+                elif val.shape != (n,3) and val.shape != (3,n):
+                    raise ValueError(f"Argument is an incorrect shape. Expected {(n,3)} or {(3,n)}. Got {val.shape} instead")
+                elif val.shape == (3,n):
+                    val = val.T
+
+            return val, n
+        
+        def input_to_clm_array(val, n):
+            # Create function to convert c_lm array to numpy array
+            if val is None:
+                return None, n
+            elif isinstance(val, np.ndarray):
+                pass
+            else:
+                try:
+                    val = np.array(val,dtype=np.float64)
+                except:
+                    raise ValueError(f"{val} cannot be converted to a numpy array")
+                ndims = len(val.shape)
+                if ndims != 3 or val.shape[0] != 2 or val.shape[1] != val.shape[2]:
+                    raise ValueError(f'C_lm is an incorrect shape. Expected (2, l_max + 1, l_max + 1). got {val.shape} instead.')
+            return val, n
+
+        nbodies = None
+        name,nbodies = input_to_array(name,"s",nbodies)
+        id,nbodies = input_to_array(id,"i",nbodies)
+        a,nbodies = input_to_array(a,"f",nbodies)
+        e,nbodies = input_to_array(e,"f",nbodies)
+        inc,nbodies = input_to_array(inc,"f",nbodies)
+        capom,nbodies = input_to_array(capom,"f",nbodies)
+        omega,nbodies = input_to_array(omega,"f",nbodies)
+        capm,nbodies = input_to_array(capm,"f",nbodies)
+        mass,nbodies = input_to_array(mass,"f",nbodies)
+        Gmass,nbodies = input_to_array(Gmass,"f",nbodies)
+        rhill,nbodies = input_to_array(rhill,"f",nbodies)
+        radius,nbodies = input_to_array(radius,"f",nbodies)
+        J2,nbodies = input_to_array(J2,"f",nbodies)
+        J4,nbodies = input_to_array(J4,"f",nbodies)
+
+        rh,nbodies = input_to_array_3d(rh,nbodies)
+        vh,nbodies = input_to_array_3d(vh,nbodies)
+        rot,nbodies = input_to_array_3d(rot,nbodies)
+        Ip,nbodies = input_to_array_3d(Ip,nbodies)
+        rotphase, nbodies = input_to_array(rotphase, "f", nbodies)
+
+        c_lm, nbodies = input_to_clm_array(c_lm, nbodies)
+       
+        if mass is not None:
+            if Gmass is not None:
+                raise ValueError("Cannot use mass and Gmass inputs simultaneously!")
+
+        if rh is not None or vh is not None:
+            if a is not None or e is not None or inc is not None or capom is not None or omega is not None or capm is not None:
+                raise ValueError("Only cartesian values or orbital elements may be passed, but not both.")
+     
+        validated_arguments = locals().copy()
+        validated_arguments.pop("self")  
+         
+        return validated_arguments
 
     def add_body(self,
                  name: str | List[str] | npt.NDArray[np.str_] | None=None,
@@ -2520,131 +2710,37 @@ class Simulation(object):
         """
         from .constants import CB_TYPE_NAME
 
-        #convert all inputs to numpy arrays
-        def input_to_array(val,t,n=None):
-            if t == "f":
-                t = np.float64
-            elif t == "i":
-                t = np.int64
-            elif t == "s":
-                t = str
-
-            if val is None:
-                return None, n
-            elif isinstance(val, np.ndarray):
-                pass
-            elif np.isscalar(val):
-                val = np.array([val],dtype=t)
-            else:
-                try:
-                    val = np.array(val,dtype=t)
-                except:
-                    raise ValueError(f"{val} cannot be converted to a numpy array")
-
-            if n is None:
-                return val, len(val)
-            else:
-                if n != len(val):
-                    raise ValueError(f"Mismatched array lengths in add_body. Got {len(val)} when expecting {n}")
-                return val, n
-
-        def input_to_array_3d(val,n=None):
-            if val is None:
-                return None, n
-            elif isinstance(val, np.ndarray):
-                pass
-            else:
-                try:
-                    val = np.array(val,dtype=np.float64)
-                except:
-                    raise ValueError(f"{val} cannot be converted to a numpy array")
-                if n is None:
-                    ndims = len(val.shape)
-                    if ndims > 2 or ndims == 0:
-                        raise ValueError(f"Argument must be an (n,3) or (3,) array. This one is {val.shape}")
-                    else:
-                        if val.shape[-1] != 3:
-                            raise ValueError(f"Argument must be a 3-dimensional vector. This one has {val.shape[0]}!")
-                        if val.size == 3:
-                            n = 1
-                        else:
-                            n = val.shape[0]
-                if n == 1:
-                    if val.shape != (1,3) and val.shape != (3,):
-                        raise ValueError(f"Argument is an incorrect shape. Expected {(n,3)} or {(3,1)}. Got {val.shape} instead")
-                    elif val.shape == (3,):
-                        val = np.expand_dims(val,axis=0)
-                elif val.shape != (n,3) and val.shape != (3,n):
-                    raise ValueError(f"Argument is an incorrect shape. Expected {(n,3)} or {(3,n)}. Got {val.shape} instead")
-                elif val.shape == (3,n):
-                    val = val.T
-
-            return val, n
-        
-        def input_to_clm_array(val, n):
-            # Create function to convert c_lm array to numpy array
-            if val is None:
-                return None, n
-            elif isinstance(val, np.ndarray):
-                pass
-            else:
-                try:
-                    val = np.array(val,dtype=np.float64)
-                except:
-                    raise ValueError(f"{val} cannot be converted to a numpy array")
-                ndims = len(val.shape)
-                if ndims != 3 or val.shape[0] != 2 or val.shape[1] != val.shape[2]:
-                    raise ValueError(f'C_lm is an incorrect shape. Expected (2, l_max + 1, l_max + 1). got {val.shape} instead.')
-            return val, n
-
-        nbodies = None
-        name,nbodies = input_to_array(name,"s",nbodies)
-        a,nbodies = input_to_array(a,"f",nbodies)
-        e,nbodies = input_to_array(e,"f",nbodies)
-        inc,nbodies = input_to_array(inc,"f",nbodies)
-        capom,nbodies = input_to_array(capom,"f",nbodies)
-        omega,nbodies = input_to_array(omega,"f",nbodies)
-        capm,nbodies = input_to_array(capm,"f",nbodies)
-        mass,nbodies = input_to_array(mass,"f",nbodies)
-        Gmass,nbodies = input_to_array(Gmass,"f",nbodies)
-        rhill,nbodies = input_to_array(rhill,"f",nbodies)
-        radius,nbodies = input_to_array(radius,"f",nbodies)
-        J2,nbodies = input_to_array(J2,"f",nbodies)
-        J4,nbodies = input_to_array(J4,"f",nbodies)
-
-        rh,nbodies = input_to_array_3d(rh,nbodies)
-        vh,nbodies = input_to_array_3d(vh,nbodies)
-        rot,nbodies = input_to_array_3d(rot,nbodies)
-        Ip,nbodies = input_to_array_3d(Ip,nbodies)
-        rotphase, nbodies = input_to_array(rotphase, "f", nbodies)
-
-        c_lm, nbodies = input_to_clm_array(c_lm, nbodies)
-
-        if name is None:
-            if len(self.data) == 0:
-                maxid = -1
-            else:
-                maxid = self.data.id.max().values[()]
-            id = np.arange(start=maxid+1,stop=maxid+1+nbodies,dtype=int)
-            name=np.char.mod(f"Body%d",id)
-
-        time = [self.param['TSTART']]
-
-        if mass is not None:
-            if Gmass is not None:
-                raise ValueError("Cannot use mass and Gmass inputs simultaneously!")
-            else: 
-                Gmass = self.GU * mass
-     
+        # This allows us to re-use the same validation function for both add_body and modify_body
+        arguments = locals().copy()
+        arguments.pop("self")
+        arguments = self._validate_body_arguments(**arguments)
+        name = arguments['name']
+        a = arguments['a']
+        e = arguments['e']
+        inc = arguments['inc']
+        capom = arguments['capom']
+        omega = arguments['omega']
+        capm = arguments['capm']
+        rh = arguments['rh']
+        vh = arguments['vh']
+        mass = arguments['mass']
+        Gmass = arguments['Gmass']
+        radius = arguments['radius']
+        rhill = arguments['rhill']
+        rot = arguments['rot']
+        Ip = arguments['Ip']
+        rotphase = arguments['rotphase']
+        J2 = arguments['J2']
+        J4 = arguments['J4']
+        c_lm = arguments['c_lm']
+        nbodies = arguments['nbodies']
+   
+        # Adding new bodies imposes additional constraints on arguments that are not present when modifying existing bodies
         if rh is not None and vh is None:
             raise ValueError("If rh is passed, vh must also be passed")
         if vh is not None and rh is None:
             raise ValueError("If vh is passed, rh must also be passed")
-        
-        if rh is not None:
-            if a is not None or e is not None or inc is not None or capom is not None or omega is not None or capm is not None:
-                raise ValueError("Only cartesian values or orbital elements may be passed, but not both.")
-        else:
+        if rh is None:
             if a is None: 
                 raise ValueError("Orbital element input requires at least a value for a (semimajor axis)")
             if e is None:
@@ -2656,13 +2752,28 @@ class Simulation(object):
             if omega is None:
                 omega = np.zeros_like(a)
             if capm is None:
-                capm = np.zeros_like(a) 
-        
+                capm = np.zeros_like(a)
+                
+        if Gmass is not None:
+            mass = Gmass / self.GU
+        if mass is not None:
+            Gmass = mass * self.GU 
+
+        if name is None:
+            if len(self.data) == 0:
+                maxid = -1
+            else:
+                maxid = self.data.id.max().values[()]
+            id = np.arange(start=maxid+1,stop=maxid+1+nbodies,dtype=int)
+            name=np.char.mod(f"Body%d",id)
+
+        time = [self.param['TSTART']]
+
         if verbose:
             for n in name:
                 print(f"Adding {n}") 
-        dsnew = init_cond.vec2xr(self.param, name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm,
-                                 Gmass=Gmass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, c_lm=c_lm, rotphase=rotphase, time=time)
+        dsnew = self._vec2xr(name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm,
+                             Gmass=Gmass, mass=mass, radius=radius, rhill=rhill, Ip=Ip, rh=rh, vh=vh,rot=rot, j2rp2=J2, j4rp4=J4, c_lm=c_lm, rotphase=rotphase, time=time)
 
         dsnew = self._set_id_number(dsnew)
         dsnew = self._set_particle_type(dsnew)
@@ -2688,7 +2799,152 @@ class Simulation(object):
         self.save(verbose=False)
 
         return
-    
+
+    def _vec2xr(self,
+            name: str | npt.ArrayLike[str],
+            id : int | npt.ArrayLike[int] | None = None,
+            a : float | npt.ArrayLike[float] | None = None,
+            e : float | npt.ArrayLike[float] | None = None,
+            inc : float | npt.ArrayLike[float] | None = None,
+            capom : float | npt.ArrayLike[float] | None = None,
+            omega : float | npt.ArrayLike[float] | None = None,
+            capm : float | npt.ArrayLike[float] | None = None,
+            rh : npt.ArrayLike[float] | None = None,
+            vh : npt.ArrayLike[float] | None = None,
+            Gmass : float | npt.ArrayLike[float] | None = None,
+            mass : float | npt.ArrayLike[float] | None = None,
+            radius : float | npt.ArrayLike[float] | None = None,
+            rhill : float | npt.ArrayLike[float] | None = None,
+            rot: npt.ArrayLike[float] | None = None,
+            rotphase: float | None = None,
+            Ip: npt.ArrayLike[float] | None = None,
+            j2rp2: float | npt.ArrayLike[float] | None = None,
+            j4rp4: float | npt.ArrayLike[float] | None = None,
+            c_lm: npt.ArrayLike[float] | None = None,
+            time: npt.ArrayLike[float] | None = None) -> SwiftestDataset:
+        """
+        Converts and stores the variables of all bodies in an xarray dataset.
+
+        Parameters
+        ----------
+        param : dict
+            Swiftest simulation parameters.
+        name : str or array-like of str
+            Name or names of bodies. Bodies are indexed by name, so these must be unique 
+        id : int or array-like of int, optional
+            Unique id values. 
+        a : float or array-like of float, optional
+            semimajor axis for param['IN_FORM'] == "EL"
+        e : float or array-like of float, optional
+            eccentricity  for param['IN_FORM'] == "EL"
+        inc : float or array-like of float, optional
+            inclination for param['IN_FORM'] == "EL"
+        capom : float or array-like of float, optional
+            longitude of periapsis for param['IN_FORM'] == "EL"
+        omega : float or array-like of float, optional
+            argument of periapsis for param['IN_FORM'] == "EL"
+        capm : float or array-like of float, optional
+            mean anomaly for param['IN_FORM'] == "EL"
+        rh : (n,3) array-like of float, optional
+            Position vector array.
+        vh : (n,3) array-like of float, optional
+            Velocity vector array. 
+        Gmass : float or array-like of float, optional
+            G*mass values if these are massive bodies. If mass is passed, but Gmass is not, then Gmass is calculated from mass.
+        mass : float or array-like of float, optional
+            Mass values if these are massive bodies. If Gmass is passed, then mass is calculated from Gmass, regardless of whether mass is passed.
+        radius : float or array-like of float, optional
+            Radius values if these are massive bodies
+        rhill : float or array-like of float, optional
+            Hill's radius values if these are massive bodies
+        rot:  (n,3) array-like of float, optional
+            Rotation rate vectors if these are massive bodies with rotation enabled in deg/TU
+        rotphase : float
+            rotational phase angle of the central body in degrees
+        Ip: (n,3) array-like of flaot, optional
+            Principal axes moments of inertia vectors if these are massive bodies with rotation enabled. This can be used
+            instead of passing Ip1, Ip2, and Ip3 separately
+        j2rp2 : float or array-like of float, optional
+            J_2R^2 value for the body 
+        j4rp4 : float or array-like of float, optional
+            J_4R^4 value for the body 
+        c_lm : (2, lmax + 1, lmax + 1) array of floats, optional
+            Spherical Harmonics coefficients; lmax = max spherical harmonics order
+        time : array of floats
+            Time at start of simulation
+
+        Returns
+        -------
+        ds : SwiftestDataset
+            Dataset containing the variables of all bodies passed in kwargs
+        """
+        
+        # Validate the inputs
+        if name is None:
+            raise ValueError("Name must be passed")
+        
+        if isinstance(name, str):
+            nbody = 1
+        else:
+            nbody = len(name)
+            
+        scalar_dims = ['name']
+        vector_dims = ['name','space']
+        space_coords = np.array(["x","y","z"])
+
+        vector_vars = ["rh","vh","Ip","rot"]
+        scalar_vars = ["id","a","e","inc","capom","omega","capm","mass","Gmass","radius","rhill","j2rp2","j4rp4", "rotphase"]
+        sph_vars = ["c_lm"]
+        time_vars =  ["status","rh","vh","Ip","rot","a","e","inc","capom","omega","capm","mass","Gmass","radius","rhill","j2rp2","j4rp4", "rotphase"]
+        
+        if "ROTATION" in self.param and self.param['ROTATION'] == True: 
+            if rot is None and Gmass is not None:
+                rot = np.zeros((nbody,3))
+            if Ip is None and Gmass is not None: 
+                Ip = np.full((nbody,3), 0.4)
+
+        if time is None:
+            time = np.array([0.0])
+            
+        if self.param['CHK_CLOSE']:
+            if Gmass is not None and radius is None: 
+                raise ValueError("If Gmass is passed, then radius must also be passed when CHK_CLOSE is True")
+            
+        if Gmass is not None: 
+            mass = Gmass / self.GU
+        elif mass is not None:
+            Gmass = mass * self.GU
+            
+        valid_vars = vector_vars + scalar_vars + sph_vars + ['time','id']
+
+        input_vars = {k:v for k,v in locals().items() if k in valid_vars and v is not None}
+
+        data_vars = {k:(scalar_dims,v) for k,v in input_vars.items() if k in scalar_vars}
+        data_vars.update({k:(vector_dims,v) for k,v in input_vars.items() if k in vector_vars})
+        ds = xr.Dataset(data_vars=data_vars,
+                        coords={
+                            "name":(["name"],name),
+                            "space":(["space"],space_coords),
+                        }
+                        )
+        time_vars = [v for v in time_vars if v in ds]
+        for v in time_vars:
+            ds[v] = ds[v].expand_dims(dim={"time":1}, axis=0).assign_coords({"time": time})
+
+        # create a C_lm Dataset and combine
+        if c_lm is not None:
+            clm_xr = xr.DataArray(data = c_lm,
+                                coords = {
+                                    'sign':(['sign'], [1, -1]),
+                                    'l': (['l'], range(0, c_lm.shape[1])),
+                                    'm':(['m'], range(0, c_lm.shape[2]))
+                                }
+                                ).to_dataset(name='c_lm')
+
+            ds = xr.combine_by_coords([ds, clm_xr])
+
+        return SwiftestDataset(ds)
+        
     def _set_id_number(self, ds: SwiftestDataset) -> SwiftestDataset:
         """
         Sets the id numbers for new bodies to be added to the Dataset. It will set the most massive body of both the old and new 
@@ -2956,6 +3212,35 @@ class Simulation(object):
             raise ValueError("You must pass either name or id as arguments")
         if name is not None and id is not None:
             raise ValueError("You must pass only name or id as arguments, but not both")
+        
+        # This allows us to re-use the same validation function for both add_body and modify_body
+        arguments = locals().copy()
+        arguments.pop("self")
+        arguments = self._validate_body_arguments(**arguments)
+        locals().update(arguments) 
+        nbodies = arguments['nbodies']
+        name = arguments['name']
+        id = arguments['id']
+        a = arguments['a']
+        e = arguments['e']
+        inc = arguments['inc']
+        capom = arguments['capom']
+        omega = arguments['omega']
+        capm = arguments['capm']
+        rh = arguments['rh']
+        vh = arguments['vh']
+        mass = arguments['mass']
+        Gmass = arguments['Gmass']
+        radius = arguments['radius']
+        rhill = arguments['rhill']
+        rot = arguments['rot']
+        Ip = arguments['Ip']
+        rotphase = arguments['rotphase']
+        J2 = arguments['J2']
+        J4 = arguments['J4']
+        c_lm = arguments['c_lm']
+        nbodies = arguments['nbodies']
+               
         return
     
     def _combine_and_fix_dsnew(self,
@@ -3002,7 +3287,7 @@ class Simulation(object):
             dsnew = io.fix_types(dsnew, ftype=np.float32)
             self.data = io.fix_types(self.data, ftype=np.float32)
 
-        self.set_central_body(align_to_central_body_rotation)
+        self._set_central_body(align_to_central_body_rotation)
 
         dsnew = self._get_nvals(dsnew)
         self.data = self._get_nvals(self.data)
@@ -3530,7 +3815,7 @@ class Simulation(object):
                   os.remove(f)        
         return
 
-    def set_central_body(self, 
+    def _set_central_body(self, 
                          align_to_central_body_rotation: bool = False,
                          **kwargs: Any):
         """
