@@ -2218,7 +2218,7 @@ class Simulation(object):
         
         body_list = []
         for i,n in enumerate(name):
-            body = init_cond.get_solar_system_body(n, self.param, date, ephemeris_id=ephemeris_id[i],central_body_name=cbname, **kwargs)
+            body = init_cond.get_solar_system_body(name=n, ephemerides_start_date=date, ephemeris_id=ephemeris_id[i],central_body_name=cbname, **kwargs)
             if body is not None:
                 body_list.append(body)
 
@@ -2237,10 +2237,12 @@ class Simulation(object):
                     else:
                         vec2xr_kwargs[key].append(value)
         
-        scalar_floats = ["Gmass","radius","rhill","j2rp2","j4rp4"]
+        scalar_floats = ["Gmass","mass","radius","rhill","j2rp2","j4rp4"]
         vector_floats = ["rh","vh","Ip","rot"]
         scalar_ints = ["id"]
 
+        # Unit conversion factors
+        
         for k,v in vec2xr_kwargs.items():
             if k in scalar_ints:
                 v[v == None] = -1
@@ -2256,7 +2258,22 @@ class Simulation(object):
                     vec2xr_kwargs[k] = None
             else:
                 vec2xr_kwargs[k] = np.array(v)
-
+            if vec2xr_kwargs[k] is not None:
+                if k == 'Gmass': 
+                    vec2xr_kwargs[k] *= self.M2DU**3 / self.S2TU**2 
+                if k == 'mass':
+                    vec2xr_kwargs[k] *= self.KG2MU
+                if k == 'rh' or k == 'radius' or k == 'rhill':
+                    vec2xr_kwargs[k] *= self.M2DU
+                if k == 'vh':
+                    vec2xr_kwargs[k] *= self.M2DU / self.S2TU
+                if k == 'rot':
+                    vec2xr_kwargs[k] /=  self.S2TU
+                if k == 'j2rp2':
+                    vec2xr_kwargs[k] *= self.M2DU**2
+                if k == 'j4rp4':
+                    vec2xr_kwargs[k] *= self.M2DU**4
+                
         vec2xr_kwargs['time'] = np.array([self.param['TSTART']])
         
         # Create a Dataset containing the new bodies

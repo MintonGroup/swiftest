@@ -295,7 +295,6 @@ def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=
     
     
 def get_solar_system_body(name: str,
-                          param: Dict,
                           ephemerides_start_date: str,
                           ephemeris_id: str | None = None,
                           central_body_name: str = "Sun",
@@ -308,8 +307,6 @@ def get_solar_system_body(name: str,
     name  : string
         Name of body to add to Dataset. If `id` is not supplied, this is also what will be searched for in the JPL/Horizon's database.
         The first matching body is found (for major planets, this is the barycenter of a planet-satellite system)
-    param : dict
-        Swiftest paramuration parameters. This method uses the unit conversion factors to convert from JPL's AU-day system into the system specified in the param file
     ephemerides_start_date : string
         Date to use when obtaining the ephemerides in the format YYYY-MM-DD.
     ephemeris_id : string (optional)
@@ -323,19 +320,21 @@ def get_solar_system_body(name: str,
         name : string
             Name of the body
         rh : (3,) array of np.float64
-            Position vector array relative to the central body.
+            Position vector array relative to the central body in m.
         vh : (3,) array of np.float64
-            Velocity vector array relative to the central body.
+            Velocity vector array relative to the central body in m/s.
         Gmass : np.float64
-            G*mass values if these are massive bodies
+            G*mass values if these are massive bodies in m^3/s^2
+        mass : np.float64
+            Mass values if these are massive bodies in kg
         radius : np.float64
-            Radius values if these are massive bodies
+            Radius values if these are massive bodies in m
         rhill : np.float64 
-            The Hill's radius values if these are massive bodies 
+            The Hill's radius values if these are massive bodies in m
         Ip : (3,) array of np.float64
             Principal axes moments of inertia vectors if these are massive bodies.
         rot : (3,) array of np.float
-            Rotation rate vectors if these are massive bodies in deg/TU
+            Rotation rate vectors if these are massive bodies in deg/s
         j2rp2 : np.float64
             J_2R^2 value for the body if known
         j4rp4 : np.float64
@@ -387,13 +386,9 @@ def get_solar_system_body(name: str,
     }
 
     # Unit conversion factors
-    DCONV = swiftest.AU2M / param['DU2M']
-    VCONV = (swiftest.AU2M / swiftest.JD2S) / (param['DU2M'] / param['TU2S'])
-    THIRDLONG = np.longdouble(1.0) / np.longdouble(3.0)
+    DCONV = swiftest.AU2M 
+    VCONV = (swiftest.AU2M / swiftest.JD2S) 
     
-    param_tmp = param
-    param_tmp['OUT_FORM'] = 'XVEL'
-
     rh = np.full(3,np.nan)
     vh = np.full(3,np.nan)
     Ip = np.full(3,np.nan)
@@ -409,11 +404,10 @@ def get_solar_system_body(name: str,
         print("Creating the Sun as a central body")
         # Central body value vectors
         rotpoleSun = SkyCoord(ra=286.13 * u.degree, dec=63.87 * u.degree).cartesian
-        rotSun = (360.0 / 25.05) / swiftest.JD2S  * rotpoleSun           
-        rot = rotSun * param['TU2S'] 
+        rot = (360.0 / 25.05) / constants.JD2S  * rotpoleSun           
         rot = np.array([rot.x.value, rot.y.value, rot.z.value])
-        Gmass = swiftest.GMSun * param['TU2S'] ** 2 / param['DU2M'] ** 3
-        Rpl = swiftest.RSun / param['DU2M']
+        Gmass = swiftest.GMSun
+        Rpl = swiftest.RSun 
         rh = np.array([0.0, 0.0, 0.0])
         vh = np.array([0.0, 0.0, 0.0])
     else: # Fetch solar system ephemerides from Horizons
@@ -433,7 +427,6 @@ def get_solar_system_body(name: str,
         if central_body_name != "Sun":
             jplcb, altidcb, _ = horizons_query(central_body_name,ephemerides_start_date,**kwargs)
             GMcb = get_solar_system_body_mass_rotation(altidcb,jplcb)['Gmass']
-            GMcb *= param['TU2S'] ** 2 / param['DU2M'] ** 3
             cbrx = jplcb.vectors()['x'][0] * DCONV
             cbry = jplcb.vectors()['y'][0] * DCONV
             cbrz = jplcb.vectors()['z'][0] * DCONV
@@ -443,7 +436,7 @@ def get_solar_system_body(name: str,
             cbrh = np.array([cbrx,cbry,cbrz])
             cbvh = np.array([cbvx,cbvy,cbvz])
         else:
-            GMcb = swiftest.GMSun * param['TU2S'] ** 2 / param['DU2M'] ** 3
+            GMcb = swiftest.GMSun 
             cbrh = np.zeros(3)
             cbvh = np.zeros(3)
     
@@ -470,15 +463,7 @@ def get_solar_system_body(name: str,
             Gmass += Gmass_charon 
         
         if Gmass is not None:
-            # Convert from SI to system units
-            Gmass *= param['TU2S'] ** 2 / param['DU2M'] ** 3
-            
-            Rpl /= param['DU2M']
-
-            # Generate planet value vectors
-            rhill = jpl.elements()['a'][0] * DCONV * (3 * Gmass / GMcb) ** (-THIRDLONG)
-
-            rot *= param['TU2S']
+            rhill = jpl.elements()['a'][0] * DCONV * (Gmass / (3*GMcb))**(1.0/3.0)
             
     if name in planetIpz:
         Ip = np.array([0.0, 0.0, planetIpz[name]])
