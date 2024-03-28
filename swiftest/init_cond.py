@@ -295,8 +295,8 @@ def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=
     
     
 def get_solar_system_body(name: str,
-                          ephemerides_start_date: str,
                           ephemeris_id: str | None = None,
+                          ephemerides_start_date : str = constants.MINTON_BCL,
                           central_body_name: str = "Sun",
                           **kwargs: Any):
     """
@@ -307,12 +307,14 @@ def get_solar_system_body(name: str,
     name  : string
         Name of body to add to Dataset. If `id` is not supplied, this is also what will be searched for in the JPL/Horizon's database.
         The first matching body is found (for major planets, this is the barycenter of a planet-satellite system)
-    ephemerides_start_date : string
-        Date to use when obtaining the ephemerides in the format YYYY-MM-DD.
     ephemeris_id : string (optional)
-        If passed, this is passed to Horizons instead of `name`. This can be used to find a more precise body than given by `name`. 
+        If passed, this is passed to Horizons instead of `name`. This can be used to find a more precise body than given by `name`.
+    ephemerides_start_date : string
+        Date to use when obtaining the ephemerides in the format YYYY-MM-DD. Default is constants.MINTON_BCL
+    central_body_name : string
+        Name of the central body to use when calculating the relative position and velocity vectors. Default is "Sun"
     **kwargs: Any
-            Additional keyword arguments to pass to the query method (see https://astroquery.readthedocs.io/en/latest/jplhorizons/jplhorizons.html)
+        Additional keyword arguments to pass to the query method (see https://astroquery.readthedocs.io/en/latest/jplhorizons/jplhorizons.html)
 
     Returns
     -------
@@ -395,6 +397,7 @@ def get_solar_system_body(name: str,
     rot = np.full(3,np.nan)
     rhill = None
     Gmass = None
+    mass = None
     Rpl = None
     j2rp2 = None
     j4rp4 = None
@@ -464,6 +467,7 @@ def get_solar_system_body(name: str,
         
         if Gmass is not None:
             rhill = jpl.elements()['a'][0] * DCONV * (Gmass / (3*GMcb))**(1.0/3.0)
+            mass = Gmass / swiftest.GC
             
     if name in planetIpz:
         Ip = np.array([0.0, 0.0, planetIpz[name]])
@@ -478,6 +482,7 @@ def get_solar_system_body(name: str,
             'rh':rh,
             'vh':vh,
             'Gmass':Gmass,
+            'mass' : mass,
             'radius': Rpl,
             'rhill': rhill,
             'Ip': Ip,
@@ -498,6 +503,7 @@ def vec2xr(param: Dict,
            rh : ArrayLike[float] | None = None,
            vh : ArrayLike[float] | None = None,
            Gmass : float | ArrayLike[float] | None = None,
+           mass : float | ArrayLike[float] | None = None,
            radius : float | ArrayLike[float] | None = None,
            rhill : float | ArrayLike[float] | None = None,
            rot: ArrayLike[float] | None = None,
@@ -535,7 +541,9 @@ def vec2xr(param: Dict,
     vh : (n,3) array-like of float, optional
         Velocity vector array. 
     Gmass : float or array-like of float, optional
-        G*mass values if these are massive bodies 
+        G*mass values if these are massive bodies. If mass is passed, but Gmass is not, then Gmass is calculated from mass.
+    mass : float or array-like of float, optional
+        Mass values if these are massive bodies. If Gmass is passed, then mass is calculated from Gmass, regardless of whether mass is passed.
     radius : float or array-like of float, optional
         Radius values if these are massive bodies
     rhill : float or array-like of float, optional
@@ -589,6 +597,7 @@ def vec2xr(param: Dict,
     validate_vectors(rh,nbody)
     validate_vectors(vh,nbody)
     validate_scalars(Gmass,nbody)
+    validate_scalars(mass,nbody)
     validate_scalars(radius,nbody)
     validate_scalars(rhill,nbody)
     validate_vectors(rot,nbody)
@@ -617,9 +626,11 @@ def vec2xr(param: Dict,
         if Gmass is not None and radius is None: 
             raise ValueError("If Gmass is passed, then radius must also be passed when CHK_CLOSE is True")
         
+    GU = swiftest.GC * param["TU2S"] ** 2 * param["MU2KG"] / param["DU2M"] ** 3
     if Gmass is not None: 
-        GU = swiftest.GC * param["TU2S"] ** 2 * param["MU2KG"] / param["DU2M"] ** 3
         mass = Gmass / GU
+    elif mass is not None:
+        Gmass = mass * GU
         
     valid_vars = vector_vars + scalar_vars + sph_vars + ['time','id']
 
