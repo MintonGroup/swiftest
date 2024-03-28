@@ -3045,7 +3045,7 @@ class Simulation(object):
                                                PL_TINY_TYPE_NAME, 
                                                ds['particle_type'])
         else:
-            ds['particle_type'] = xr.full_like(ds['name'],TP_TYPE_NAME)
+            ds['particle_type'] = xr.full_like(ds['name'],TP_TYPE_NAME,dtype='<U32')
         return ds
     
     def _get_nvals(self, ds: SwiftestDataset) -> SwiftestDataset:
@@ -3108,16 +3108,15 @@ class Simulation(object):
         if name is not None:
             if type(name) is str or type(name) is int:
                 name = [name]
-            for n in name:
-                self.data = self.data.where(self.data.name != n, drop=True)
-                self.init_cond = self.init_cond.where(self.init_cond.name != n, drop=True)
-                
-        else: 
+        else:
             if type(id) is int or type(id) is name:
                 id = [id]
-            for i in id:
-                self.data = self.data.where(self.data.id != i, drop=True)
-                self.init_cond = self.init_cond.where(self.init_cond.id != i, drop=True)
+            name = self.data.name.where(self.data.id == id, drop=True).values.tolist()     
+            
+        keepnames = [n for n in self.data.name.values if n not in name] 
+            
+        self.data = self.data.sel(name=keepnames) 
+        self.init_cond = self.init_cond.sel(name=keepnames)
                 
         self.data = self._get_nvals(self.data)      
         self.init_cond = self._get_nvals(self.init_cond) 
