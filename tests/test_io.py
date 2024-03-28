@@ -237,7 +237,7 @@ class TestSwiftestIO(unittest.TestCase):
         
         return
 
-    def test_000planetocentric(self):
+    def test_planetocentric(self):
         """
         Tests that Swiftest is able to set up a simulation in a planetocentric frame and that the results are consistent with the expected values
         """
