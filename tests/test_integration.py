@@ -24,7 +24,7 @@ rng = default_rng(seed=123)
 major_bodies = ["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune"]
 param = {}
 
-class TestSwiftest(unittest.TestCase):
+class TestSwiftestIntegration(unittest.TestCase):
     def setUp(self):
         # Initialize a target and surface for testing
         self.tmpdir=tempfile.TemporaryDirectory()

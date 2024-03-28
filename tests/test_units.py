@@ -15,7 +15,7 @@ import os
 import tempfile
 import astropy.constants as const
 
-class TestUnits(unittest.TestCase):
+class TestSwiftestUnits(unittest.TestCase):
     def setUp(self):
         # Initialize a target and surface for testing
         self.tmpdir=tempfile.TemporaryDirectory()

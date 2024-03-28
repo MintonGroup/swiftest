@@ -24,7 +24,7 @@ rng = default_rng(seed=123)
 major_bodies = ["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune"]
 param = {}
 
-class TestSwiftest(unittest.TestCase):
+class TestSwiftestIO(unittest.TestCase):
     def setUp(self):
         # Initialize a target and surface for testing
         self.tmpdir=tempfile.TemporaryDirectory()
@@ -237,18 +237,16 @@ class TestSwiftest(unittest.TestCase):
         
         return
 
-    def test_planetocentric(self):
+    def test_000planetocentric(self):
         """
         Tests that Swiftest is able to set up a simulation in a planetocentric frame and that the results are consistent with the expected values
         """
         print("\ntest_planetocentric")
         sim = swiftest.Simulation(simdir=self.simdir)
-        sim.clean()         
-        
         cbname = "Mars"
         cbcenter = "@4"
         satname = ["Phobos","Deimos"]
-        sim.add_solar_system_body(cbname, is_central_body=True)
+        sim.add_solar_system_body(cbname)
         sim.add_solar_system_body(satname)
 
         def get_jpl_data(id):
