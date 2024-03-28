@@ -438,7 +438,13 @@ class TestSwiftestIO(unittest.TestCase):
         sim.modify_body(name='Mercury',a=100.0) 
         self.assertGreater(sim.data.sel(name='Mercury')['a'].values.item(), 99.0)
         
-        #self.assertTrue('j2rp2' in) 
+        self.assertTrue('j2rp2' in sim.data)
+        
+        sim.modify_body(name='Sun',c_lm = np.zeros([2, 3, 3]))
+        
+        self.assertTrue('c_lm' in sim.data) 
+        self.assertFalse('j2rp2' in sim.data)
+        self.assertFalse('sign' in sim.data.rh.dims)
         
         return
     

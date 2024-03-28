@@ -2923,7 +2923,7 @@ class Simulation(object):
         vector_vars = ["rh","vh","Ip","rot"]
         scalar_vars = ["id","a","e","inc","capom","omega","capm","mass","Gmass","radius","rhill","j2rp2","j4rp4", "rotphase"]
         sph_vars = ["c_lm"]
-        time_vars =  ["status","rh","vh","Ip","rot","a","e","inc","capom","omega","capm","mass","Gmass","radius","rhill","j2rp2","j4rp4", "rotphase"]
+        time_vars =  ["status","rh","vh","Ip","rot","a","e","inc","capom","omega","capm","mass","Gmass","radius","rhill","j2rp2","j4rp4", "rotphase", "c_lm"]
         
         if "ROTATION" in self.param and self.param['ROTATION'] == True: 
             if rot is None and Gmass is not None:
@@ -2958,10 +2958,6 @@ class Simulation(object):
                             "space":(["space"],space_coords),
                         }
                         )
-        time_vars = [v for v in time_vars if v in ds]
-        for v in time_vars:
-            ds[v] = ds[v].expand_dims(dim={"time":1}, axis=0).assign_coords({"time": time})
-
         # create a C_lm Dataset and combine
         if c_lm is not None:
             clm_xr = xr.DataArray(data = c_lm,
@@ -2971,8 +2967,13 @@ class Simulation(object):
                                     'm':(['m'], range(0, c_lm.shape[2]))
                                 }
                                 ).to_dataset(name='c_lm')
+            clm_xr = clm_xr.expand_dims(dim={"name":nbody}, axis=0)
 
             ds = xr.combine_by_coords([ds, clm_xr])
+            
+        time_vars = [v for v in time_vars if v in ds]
+        for v in time_vars:
+            ds[v] = ds[v].expand_dims(dim={"time":1}, axis=0).assign_coords({"time": time})
 
         return SwiftestDataset(ds)
         
@@ -3308,12 +3309,14 @@ class Simulation(object):
         else:
             cbname = self.data['name'].where(self.data['particle_type'] == CB_TYPE_NAME,drop=True).values[0]
             GMcb = self.data['Gmass'].sel(name=cbname)    
-                
-        if arguments['rh'] is None or arguments['vh'] is None:
-            dsnew = dsnew.el2xv(GMcb)
-        if arguments['a'] is None:
+              
+        if any(arguments[var] is not None for var in ['rh','vh']):
             dsnew = dsnew.xv2el(GMcb)
-            
+        if any(arguments[var] is not None for var in ['a','e','inc','capom','omega','capm']):  
+            dsnew = dsnew.el2xv(GMcb)
+        if any(arguments[var] is not None for var in ['mass','Gmass']):
+            dsnew = dsnew.xv2el(GMcb) 
+       
         dsnew = self._combine_and_fix_dsnew(dsnew,align_to_central_body_rotation,**kwargs)
         self.save(verbose=False)
             
