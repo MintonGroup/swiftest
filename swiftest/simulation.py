@@ -2846,7 +2846,8 @@ class Simulation(object):
             j2rp2: float | npt.ArrayLike[float] | None = None,
             j4rp4: float | npt.ArrayLike[float] | None = None,
             c_lm: npt.ArrayLike[float] | None = None,
-            time: npt.ArrayLike[float] | None = None) -> SwiftestDataset:
+            time: npt.ArrayLike[float] | None = None,
+            **kwargs: Any) -> SwiftestDataset:
         """
         Converts and stores the variables of all bodies in an xarray dataset.
 
@@ -2897,6 +2898,8 @@ class Simulation(object):
             Spherical Harmonics coefficients; lmax = max spherical harmonics order
         time : array of floats
             Time at start of simulation
+        **kwargs : Any
+            Additional keyword arguments. These are ignored.
 
         Returns
         -------
@@ -2929,7 +2932,10 @@ class Simulation(object):
                 Ip = np.full((nbody,3), 0.4)
 
         if time is None:
-            time = np.array([0.0])
+            if 'time' in self.data: 
+                time = self.data['time'].values[-1:]
+            else:
+                time = np.array([0.0])
             
         if self.param['CHK_CLOSE']:
             if Gmass is not None and radius is None: 
@@ -3204,7 +3210,7 @@ class Simulation(object):
         """
         Modifies an existing body in the internal Dataset given a new value of either the orbital elements
         or cartesian state vectors, or the physical property of the body (mass, radius, etc). Input all angles in degrees and dimensions
-        in the units defined in the current Simulation instance.
+        in the units defined in the current Simulation instance. Currently, this will only modify the last entry of the body in the time dimension.
 
         This method will update the data attribute with the modified body or bodies added to the existing Dataset.
 
@@ -3267,36 +3273,50 @@ class Simulation(object):
         arguments = locals().copy()
         arguments.pop("self")
         arguments = self._validate_body_arguments(**arguments)
-        locals().update(arguments) 
         nbodies = arguments['nbodies']
         name = arguments['name']
         id = arguments['id']
-        a = arguments['a']
-        e = arguments['e']
-        inc = arguments['inc']
-        capom = arguments['capom']
-        omega = arguments['omega']
-        capm = arguments['capm']
-        rh = arguments['rh']
-        vh = arguments['vh']
-        mass = arguments['mass']
-        Gmass = arguments['Gmass']
-        radius = arguments['radius']
-        rhill = arguments['rhill']
-        rot = arguments['rot']
-        Ip = arguments['Ip']
-        rotphase = arguments['rotphase']
-        j2rp2 = arguments['j2rp2']
-        j4rp4 = arguments['j4rp4']
-        c_lm = arguments['c_lm']
-        nbodies = arguments['nbodies']
-        
         modnames = self._get_valid_body_list(name=name, id=id) 
         if modnames is None or len(modnames) == 0:
             return
+        dsnew = self.data.sel(name=modnames)
         
-         
-               
+        if 'j2rp2' in dsnew or 'j4rp4' in dsnew:
+            if 'c_lm' in arguments:
+                dsnew.drop_vars(['j2rp2','j4rp4'])
+        elif 'c_lm' in dsnew:
+            if 'j2rp2' in arguments or 'j4rp4' in arguments:
+                dsnew.drop_vars('c_lm')
+        dsmod = self._vec2xr(**arguments)
+        dsnew.update(dsmod)
+        # Remove the old bodies prior to adding the modified ones
+        self.remove_body(name=modnames)
+        if 'mass' in arguments or 'Gmass' in arguments: 
+            dsnew = self._set_particle_type(dsnew)
+            if 'particle_type' in self.data:
+                if CB_TYPE_NAME in self.data['particle_type'] and CB_TYPE_NAME in dsnew['particle_type']:
+                    self.data = self._set_particle_type(self.data) # Make sure we update the original dataset if there is going to be a central body change      
+                
+            if CB_TYPE_NAME in dsnew['particle_type']:
+                cbname = dsnew['name'].where(dsnew['particle_type'] == CB_TYPE_NAME,drop=True).values[0]
+                GMcb = dsnew['Gmass'].sel(name=cbname)
+            elif CB_TYPE_NAME in self.data.particle_type:
+                cbname = self.data['name'].where(self.data['particle_type'] == CB_TYPE_NAME,drop=True).values[0]
+                GMcb = self.data['Gmass'].sel(name=cbname)
+            else:
+                raise ValueError("No central body found in either the old or new Dataset")                  
+        else:
+            cbname = self.data['name'].where(self.data['particle_type'] == CB_TYPE_NAME,drop=True).values[0]
+            GMcb = self.data['Gmass'].sel(name=cbname)    
+                
+        if arguments['rh'] is None or arguments['vh'] is None:
+            dsnew = dsnew.el2xv(GMcb)
+        if arguments['a'] is None:
+            dsnew = dsnew.xv2el(GMcb)
+            
+        dsnew = self._combine_and_fix_dsnew(dsnew,align_to_central_body_rotation,**kwargs)
+        self.save(verbose=False)
+            
         return
     
     def _combine_and_fix_dsnew(self,
@@ -3707,6 +3727,24 @@ class Simulation(object):
         if self.verbose: print('follow.out written')
         return fol
 
+    def _drop_oblate_except_cb(self, ds: SwiftestDataset) -> SwiftestDataset:
+        """
+        Drops the oblateness terms from all bodies except the central body.
+        """
+        cbname = ds['name'].where(ds['particle_type'] == constants.CB_TYPE_NAME,drop=True).values[0]
+        if 'j2rp2' in ds:
+            j2rp2 = ds['j2rp2'].sel(name=cbname)
+            ds['j2rp2'] = j2rp2
+        if 'j4rp4' in ds:
+            j4rp4 = ds['j4rp4'].sel(name=cbname)
+            ds['j4rp4'] = j4rp4
+        if 'c_lm' in ds:
+            c_lm = ds['c_lm'].sel(name=cbname)
+            ds['c_lm'] = c_lm
+            
+        return ds
+            
+            
     def save(self,
              codename: Literal["Swiftest", "Swifter", "Swift"] | None = None,
              param_file: str | os.PathLike | None = None,
@@ -3751,7 +3789,9 @@ class Simulation(object):
         if not self.simdir.exists():
             self.simdir.mkdir(parents=True, exist_ok=True)
             
+            
         self.init_cond = self.data.isel(time=[framenum]).copy(deep=True)
+        self.init_cond = self._drop_oblate_except_cb(self.init_cond)
         
         if codename == "Swiftest":
             infile_name = Path(self.simdir) / param['NC_IN']
@@ -3893,11 +3933,11 @@ class Simulation(object):
             return
        
         if 'name' in self.data.dims:
-            cbidx = self.data.Gmass.argmax(dim='name').values[()] 
+            cbidx = self.data.Gmass.argmax(dim='name').values[0] 
             cbid = self.data.id.isel(name=cbidx).values[()]
             cbname = self.data.name.isel(name=cbidx).values[()]
         elif 'id' in self.data.dims:
-            cbidx = self.data.Gmass.argmax(dim='id').values[()] 
+            cbidx = self.data.Gmass.argmax(dim='id').values[0] 
             cbid = self.data.id.isel(id=cbidx).values[()]
             cbname = self.data.name.isel(id=cbidx).values[()]
         else:
@@ -3920,9 +3960,9 @@ class Simulation(object):
                 
         # Ensure that the central body is at the origin
         if 'name' in self.data.dims: 
-            cbda =  self.data.sel(name=cbname).isel(name=0)
+            cbda =  self.data.sel(name=cbname)
         else:
-            cbda = self.data.sel(id=cbid).isel(id=0)
+            cbda = self.data.sel(id=cbid)
       
         pos_skip = ['space','Ip','rot']
         for var in self.data.variables:

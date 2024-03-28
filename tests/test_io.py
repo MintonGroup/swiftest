@@ -428,6 +428,20 @@ class TestSwiftestIO(unittest.TestCase):
         self.assertIn("10 not found in the Dataset", str(cm.warning))
         return    
     
+    def test_modify_body(self):
+        """
+        Tests that Swiftest is able to modify the properties of a body in the simulation 
+        """
+        print("\ntest_modify_body")
+        sim = swiftest.Simulation()
+        sim.add_solar_system_body(['Sun','Mercury'])
+        sim.modify_body(name='Mercury',a=100.0) 
+        self.assertGreater(sim.data.sel(name='Mercury')['a'].values.item(), 99.0)
+        
+        #self.assertTrue('j2rp2' in) 
+        
+        return
+    
 if __name__ == '__main__':
     os.environ["HDF5_USE_FILE_LOCKING"]="FALSE"
     unittest.main()
