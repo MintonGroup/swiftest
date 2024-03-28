@@ -8,7 +8,6 @@ of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Publ
 You should have received a copy of the GNU General Public License along with Swiftest. 
 If not, see: https://www.gnu.org/licenses. 
 """
-
 from __future__ import annotations
 
 from . import io
@@ -2432,6 +2431,10 @@ class Simulation(object):
 
         return tuple(arg_vals)
 
+    def _validate_body_input(self,**kwargs):
+        
+        pass
+
     def add_body(self,
                  name: str | List[str] | npt.NDArray[np.str_] | None=None,
                  a: float | List[float] | npt.NDArray[np.float_] | None = None,
@@ -2457,10 +2460,12 @@ class Simulation(object):
                  **kwargs: Any
                  ) -> None:
         """
-        Adds a body (test particle or massive body) to the internal Dataset given a set up 6 vectors (orbital elements
-        or cartesian state vectors, depending on the value of self.param). Input all angles in degress.
+        Adds a body (test particle or massive body) to the internal Dataset given a set of either orbital elements
+        or cartesian state vectors. If orbital elements are passed, cartesian state vectors are computed and vice versa, using the
+        currently-assigned central body, so cannot both be passed. Input all angles in degrees and dimensional quantities in the 
+        unit system defined in the current Simulation instance.
 
-        This method will update self.data with the new body or bodies added to the existing Dataset.
+        This method will update the data attribute with the new body or bodies added to the existing Dataset.
 
         Parameters
         ----------
@@ -2756,7 +2761,6 @@ class Simulation(object):
                 
         return SwiftestDataset(ds)
     
-       
     def _set_particle_type(self, ds: SwiftestDataset) -> SwiftestDataset:
         """
         Sets the particle type based on the values of Gmass. 
@@ -2788,7 +2792,6 @@ class Simulation(object):
             ds['particle_type'] = xr.full_like(ds['name'],TP_TYPE_NAME)
         return ds
     
-    
     def _get_nvals(self, ds: SwiftestDataset) -> SwiftestDataset:
         """
         Computes the values of ntp, npl, and nplm.
@@ -2817,7 +2820,6 @@ class Simulation(object):
             ds['nplm'] = ds[count_dim].where(ds['particle_type'] == constants.PL_TINY_TYPE_NAME).count(dim=count_dim)
             
         return ds
-
 
     def remove_body(self,
                     name: str | List[str] | npt.NDArray[np.str_] | None=None,
@@ -2866,7 +2868,96 @@ class Simulation(object):
              
         return
 
+    def modify_body(self,
+                name: str | List[str] | npt.NDArray[np.str_] | None=None,
+                id: int | list[int] | npt.NDArray[np.int_] | None=None,                   
+                a: float | List[float] | npt.NDArray[np.float_] | None = None,
+                e: float | List[float] | npt.NDArray[np.float_] | None = None,
+                inc: float | List[float] | npt.NDArray[np.float_] | None = None,
+                capom: float | List[float] | npt.NDArray[np.float_] | None = None,
+                omega: float | List[float] | npt.NDArray[np.float_] | None = None,
+                capm: float | List[float] | npt.NDArray[np.float_] | None = None,
+                rh: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+                vh: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+                mass: float | List[float] | npt.NDArray[np.float_] | None=None,
+                Gmass: float | List[float] | npt.NDArray[np.float_] | None=None,
+                radius: float | List[float] | npt.NDArray[np.float_] | None=None,
+                rhill: float | List[float] | npt.NDArray[np.float_] | None=None,
+                rot: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None=None,
+                Ip: List[float] | npt.NDArray[np.float_] | None=None,
+                rotphase: float | List[float] | npt.NDArray[np.float_] | None=None,
+                J2: float | List[float] | npt.NDArray[np.float_] | None=None,
+                J4: float | List[float] | npt.NDArray[np.float_] | None=None,
+                c_lm: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+                align_to_central_body_rotation: bool = False,
+                verbose: bool = True,
+                **kwargs: Any
+                ) -> None:
+        """
+        Modifies an existing body in the internal Dataset given a new value of either the orbital elements
+        or cartesian state vectors, or the physical property of the body (mass, radius, etc). Input all angles in degrees and dimensions
+        in the units defined in the current Simulation instance.
 
+        This method will update the data attribute with the modified body or bodies added to the existing Dataset.
+
+        Parameters
+        ----------
+        name : str or array-like of str, optional
+            Name or names of Bodies. If none passed, name will be "Body{id}"
+        a : float or array-like of float, optional
+            semimajor axis for param['IN_FORM'] == "EL"
+        e : float or array-like of float, optional
+            eccentricity  for param['IN_FORM'] == "EL"
+        inc : float or array-like of float, optional
+            inclination for param['IN_FORM'] == "EL"
+        capom : float or array-like of float, optional
+            longitude of ascending node for param['IN_FORM'] == "EL"
+        omega : float or array-like of float, optional
+            argument of periapsis for param['IN_FORM'] == "EL"
+        capm : float or array-like of float, optional
+            mean anomaly for param['IN_FORM'] == "EL"
+        rh : (n,3) array-like of float, optional
+            Position vector array.
+        vh : (n,3) array-like of float, optional
+            Velocity vector array.
+        mass : float or array-like of float, optional
+            mass values if these are massive bodies (only one of mass or Gmass can be passed)
+        Gmass : float or array-like of float, optional
+            G*mass values if these are massive bodies (only one of mass or Gmass can be passed)
+        radius : float or array-like of float, optional
+            Radius values if these are massive bodies
+        rhill : float or array-like of float, optional
+            Hill's radius values if these are massive bodies
+        rot : (3) or (n,3) array-like of float, optional
+            Rotation rate vectors if these are massive bodies with rotation enabled.
+        Ip : (3) or (n,3) array-like of float, optional
+            Principal axes moments of inertia vectors if these are massive bodies with rotation enabled.
+        rotphase : float, optional
+            rotation phase angle in degreesif these are massive bodies with rotation enabled
+        J2 : float, optional
+            Normalized J2 values (e.g. J2*R**2, where R is the body radius) if this is a central body (only one of J2 or c_lm can be passed)
+        J4 : float, optional
+            Normalized J4 values (e.g. J4*R**4, where R is the body radius) if this is a central body (only one of J4 or c_lm can be passed)
+        c_lm : (2,l_max+1,l_max+1) array-like of float, optional
+            Spherical harmonics coefficients if this is a central body (only one of J2/J4 or c_lm can be passed)
+        align_to_central_body_rotation : bool, default False
+            If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
+            rotation is enabled.
+        verbose : bool, default True
+            If True, prints the values of the added bodies
+        
+        Returns
+        -------
+        None
+            Sets the data and init_cond instance variables each with a SwiftestDataset containing the body or bodies that were added
+        """
+        from .constants import CB_TYPE_NAME
+        if name is None and id is None:
+            raise ValueError("You must pass either name or id as arguments")
+        if name is not None and id is not None:
+            raise ValueError("You must pass only name or id as arguments, but not both")
+        return
+    
     def _combine_and_fix_dsnew(self,
                                dsnew: SwiftestDataset,
                                align_to_central_body_rotation: bool = False,
