@@ -9,7 +9,6 @@ You should have received a copy of the GNU General Public License along with Swi
 If not, see: https://www.gnu.org/licenses. 
 """
 
-from .init_cond import vec2xr
 from.constants import MSun, AU2M, YR2S, JD2S, GC
 from .data import SwiftestDataArray, SwiftestDataset
 import numpy as np
@@ -584,45 +583,45 @@ def _swifter_stream(f, param):
                   ntp, [tpid, elemtvec], tlab
 
 
-def swifter2xr(param, verbose=True):
-    """
-    Converts a Swifter binary data file into an SwiftestDataset.
+# def swifter2xr(param, verbose=True):
+#     """
+#     Converts a Swifter binary data file into an SwiftestDataset.
 
-    Parameters
-    ----------
-    param : dict
-        Swifter parameters
-    verbose : bool, default True
-        Print out information about the file being read
-    Returns
-    -------
-    SwiftestDataset
-    """
-    dims = ['time', 'id','vec']
-    pl = []
-    tp = []
-    with FortranFile(param['BIN_OUT'], 'r') as f:
-        for t, npl, pvec, plab, \
-            ntp, tvec, tlab in _swifter_stream(f, param):
+#     Parameters
+#     ----------
+#     param : dict
+#         Swifter parameters
+#     verbose : bool, default True
+#         Print out information about the file being read
+#     Returns
+#     -------
+#     SwiftestDataset
+#     """
+#     dims = ['time', 'id','vec']
+#     pl = []
+#     tp = []
+#     with FortranFile(param['BIN_OUT'], 'r') as f:
+#         for t, npl, pvec, plab, \
+#             ntp, tvec, tlab in _swifter_stream(f, param):
             
-            sys.stdout.write('\r' + f"Reading in time {t[0]:.3e}")
-            sys.stdout.flush()
+#             sys.stdout.write('\r' + f"Reading in time {t[0]:.3e}")
+#             sys.stdout.flush()
             
-            pvec_args = dict(zip(plab,pvec))
-            pl.append(vec2xr(param,time=t,**pvec_args))
-            if ntp > 0:
-                tvec_args = dict(zip(tlab,tvec))
-                tp.append(vec2xr(param,time=t,**tvec_args))
+#             pvec_args = dict(zip(plab,pvec))
+#             pl.append(vec2xr(param,time=t,**pvec_args))
+#             if ntp > 0:
+#                 tvec_args = dict(zip(tlab,tvec))
+#                 tp.append(vec2xr(param,time=t,**tvec_args))
             
-        plds = xr.concat(pl, dim='time')
-        if len(tp) > 0: 
-            tpds = xr.concat(tp, dim='time')
+#         plds = xr.concat(pl, dim='time')
+#         if len(tp) > 0: 
+#             tpds = xr.concat(tp, dim='time')
         
-        if verbose: print('\nCreating Dataset')
-        if len(tp) > 0:
-            ds = xr.combine_by_coords([plds, tpds])
-        if verbose: print(f"Successfully converted {ds.sizes['time']} output frames.")
-    return SwiftestDataset(ds)
+#         if verbose: print('\nCreating Dataset')
+#         if len(tp) > 0:
+#             ds = xr.combine_by_coords([plds, tpds])
+#         if verbose: print(f"Successfully converted {ds.sizes['time']} output frames.")
+#     return SwiftestDataset(ds)
 
 
 def process_netcdf_input(ds: xr.Dataset, param: dict) -> SwiftestDataset:
@@ -1050,8 +1049,8 @@ def swifter_xr2infile(ds: SwiftestDataset,
 
     cb = frame.where(frame.id == 0, drop=True)
     pl = frame.where(frame.id > 0, drop=True)
-    pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['j2rp2', 'j4rp4'])
-    tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'j2rp2', 'j4rp4'])
+    pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['j2rp2', 'j4rp4','c_lm','sign','l','m'],errors="ignore")
+    tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'j2rp2', 'j4rp4','c_lm','sign','l','m'],errors="ignore")
     
     GMSun = np.double(cb['Gmass'])
     if param['CHK_CLOSE']:

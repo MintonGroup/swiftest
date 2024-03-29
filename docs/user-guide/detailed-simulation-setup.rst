@@ -11,8 +11,8 @@ Start with importing Swiftest and other packages we will use in this tutorial.
 
 .. ipython:: python
 
-    import swiftest
-    import numpy as np 
+   import swiftest
+   import numpy as np 
 
 Initial Simulation Setup 
 ===========================
@@ -23,6 +23,14 @@ Outputs are stored in the ``./simdata`` directory by default.
 .. ipython:: python
 
    sim = swiftest.Simulation()
+
+.. ipython:: python
+   :suppress:
+
+   import tempfile
+   tmpdir=tempfile.TemporaryDirectory()
+   sim.set_parameter(simdir=tmpdir.name)
+
 
 An optional argument can be passed to specify the simulation directory 
 
@@ -155,18 +163,18 @@ Here is an example with orbital elements:
 
 .. ipython:: python
 
-    # Add 10 user-defined test particles.
-    ntp = 10
+   # Add 10 user-defined test particles.
+   ntp = 10
 
-    name_tp     = ["TestParticle_01", "TestParticle_02", "TestParticle_03", "TestParticle_04", "TestParticle_05", "TestParticle_06", "TestParticle_07", "TestParticle_08", "TestParticle_09", "TestParticle_10"]
-    a_tp        = rng.uniform(0.3, 1.5, ntp)
-    e_tp        = rng.uniform(0.0, 0.2, ntp)
-    inc_tp      = rng.uniform(0.0, 10, ntp)
-    capom_tp    = rng.uniform(0.0, 360.0, ntp)
-    omega_tp    = rng.uniform(0.0, 360.0, ntp)
-    capm_tp     = rng.uniform(0.0, 360.0, ntp)
+   name_tp     = ["TestParticle_01", "TestParticle_02", "TestParticle_03", "TestParticle_04", "TestParticle_05", "TestParticle_06", "TestParticle_07", "TestParticle_08", "TestParticle_09", "TestParticle_10"]
+   a_tp        = rng.uniform(0.3, 1.5, ntp)
+   e_tp        = rng.uniform(0.0, 0.2, ntp)
+   inc_tp      = rng.uniform(0.0, 10, ntp)
+   capom_tp    = rng.uniform(0.0, 360.0, ntp)
+   omega_tp    = rng.uniform(0.0, 360.0, ntp)
+   capm_tp     = rng.uniform(0.0, 360.0, ntp)
 
-    sim.add_body(name=name_tp, a=a_tp, e=e_tp, inc=inc_tp, capom=capom_tp, omega=omega_tp, capm=capm_tp)
+   sim.add_body(name=name_tp, a=a_tp, e=e_tp, inc=inc_tp, capom=capom_tp, omega=omega_tp, capm=capm_tp)
 
 
 Customising Simulation Parameters
@@ -223,6 +231,48 @@ Or, say, plot the eccentricity history of just the test particles:
 
    @savefig detailed_simulation_e_vs_t_tp.png width=800px
    sim.data['e'].where(sim.data.particle_type == 'Test Particle',drop=True).plot(x='time',hue='name');
+
+
+Modifying and Removing Bodies
+==============================
+
+Modifying the properties of initial conditions bodies and removing them is easily done with :meth:`~swiftest.Simulation.modify_body` and :meth:`~swiftest.Simulation.remove_body`. Any property (other than ``name``, which is the unique identifier) can be modified.
+
+.. ipython:: python
+
+   print(sim.data.sel(name="TestParticle_01")[['a','e','inc','capom','omega','capm']])
+   sim.modify_body(name="TestParticle_01", a=1.0, e=0.1, inc=0.0, capom=0.0, omega=0.0, capm=0.0)
+   print(sim.data.sel(name="TestParticle_01")[['a','e','inc','capom','omega','capm']])
+
+
+Removing bodies is also straightforward:
+
+.. ipython:: python
+
+   sim.remove_body(name="TestParticle_02")
+
+You can also alter the central body. For instance, if you wanted to use a set of coefficients from the `SHTOOLS library <https://shtools.github.io/SHTOOLS/>`, you could do the following.
+
+.. ipython:: python
+
+   import swiftest
+   import pyshtools as pysh
+
+   sim = swiftest.Simulation()
+
+.. ipython:: python
+   :suppress:
+
+   import tempfile
+   tmpdir=tempfile.TemporaryDirectory()
+   sim.set_parameter(simdir=tmpdir.name)
+
+.. ipython:: python
+
+   c_lm_data = pysh.datasets.Mars.GMM3(lmax = 6) # gravitational potential coefficients
+   c_lm = c_lm_data.coeffs # 4pi normalized
+   sim.add_solar_system_body(["Mars","Phobos","Deimos"])
+   sim.modify_body(name="Mars", c_lm=c_lm)
 
 .. .. toctree::
 ..    :maxdepth: 2

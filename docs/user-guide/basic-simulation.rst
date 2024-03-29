@@ -19,9 +19,17 @@ Initial Simulation Setup
 Create a Swiftest :class:`~swiftest.Simulation` object.
 Outputs are stored in the ``./simdata`` directory by default. 
 
-.. ipython:: python
+.. code-block:: python
 
-   sim = swiftest.Simulation()
+    sim = swiftest.Simulation()
+  
+.. ipython:: python
+    :suppress:
+
+    import tempfile
+    tmpdir=tempfile.TemporaryDirectory()
+    sim = swiftest.Simulation(simdir=tmpdir.name)
+
 
 Now that we have a simulation object set up (with default parameters), we can add bodies to the simulation. 
 The biggest body in the simulation is taken as the central body. 
@@ -155,11 +163,11 @@ default name of ``data.nc``, which is a netCDF file. It is read in and stored as
 Here is an example of what the dataset looks like after the above simulation has been run
 
 .. ipython:: python
-  :suppress:
+    :suppress:
 
-  # Import xarray and set its output to show more lines
-  import xarray as xr
-  xr.set_options(display_max_rows=50)
+    # Import xarray and set its output to show more lines
+    import xarray as xr
+    xr.set_options(display_max_rows=50)
 
 .. ipython:: python
 
@@ -178,6 +186,11 @@ Here is an example where we can generate a simple plot of the semimajor axis vs.
 
 This is just a simple example of what you can do with the simulation data. Xarray has a large number of built-in plotting and 
 data processing functions. For more information, see the `Xarray documentation <https://docs.xarray.dev/en/stable/>`__.
+
+.. ipython:: python
+  :suppress:
+
+  tmpdir.cleanup() 
 
 ..    :maxdepth: 2
 ..    :hidden:
