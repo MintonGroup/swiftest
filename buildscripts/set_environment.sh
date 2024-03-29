@@ -54,6 +54,7 @@ OS=$(uname -s)
 
 set -a
 PREFIX="${ROOT_DIR}/build/deps/usr/local"
+DEPENDENCY_DIR="${ROOT_DIR}/build/deps/Downloads"
 NCDIR="${PREFIX}"
 NFDIR="${PREFIX}"
 NETCDF_FORTRAN_HOME="${NFDIR}"
@@ -79,6 +80,7 @@ LD_LIBRARY_PATH="${PREFIX}/lib"
 CPATH="${PREFIX}/include"
 PATH="${PREFIX}/bin:${PATH}"
 CMAKE_INSTALL_LIBDIR="lib"
+NPROC=$(nproc)
 
 FC=${FC:-"$(command -v gfortran-13 || command -v gfortran-12 || command -v gfortran)"}
 F77=${F77:-"${FC}"}

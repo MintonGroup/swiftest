@@ -15,15 +15,8 @@
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 
-# Default values for the installation directories
-PREFIX=${PREFIX:-"${ROOT_DIR}/build/deps/usr/local"}
-DEPENDENCY_DIR=${DEPENDENCY_DIR:-"${ROOT_DIR}/build/deps/Downloads"}
-
-ARGS=$@
-. ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
 set -e
 cd $ROOT_DIR
-
 . ${SCRIPT_DIR}/set_environment.sh
 
 # Check if the PREFIX directory exists

@@ -12,8 +12,11 @@
 
 # Determine the platform and architecture
 SCRIPT_DIR=$(realpath $(dirname $0))
-ARGS=$@
-. ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
+ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+
+set -e
+cd $ROOT_DIR
+. ${SCRIPT_DIR}/set_environment.sh
 
 TARGET_MAJOR=`echo $MACOSX_DEPLOYMENT_TARGET | cut -d. -f1`
 TARGET_MINOR=`echo $MACOSX_DEPLOYMENT_TARGET | cut -d. -f2`

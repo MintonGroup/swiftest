@@ -10,11 +10,14 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
-SCRIPT_DIR=$(realpath $(dirname $0))
-ARGS=$@
-. ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
+NC_VER="4.9.2"
 
-NPROC=$(nproc)
+SCRIPT_DIR=$(realpath $(dirname $0))
+ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+
+set -e
+cd $ROOT_DIR
+. ${SCRIPT_DIR}/set_environment.sh
 
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
@@ -23,7 +26,6 @@ printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
 printf "Installing to ${NCDIR}\n"
 printf "\n"
 
-NC_VER="4.9.2"
 
 printf "*********************************************************\n"
 printf "*            FETCHING NETCDF-C SOURCE                   *\n"

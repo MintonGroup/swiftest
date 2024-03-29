@@ -2,7 +2,7 @@
 # This script will build all of the dependency libraries needed by Swiftest. Builds the following from source:
 # Zlib, hdf5, netcdf-c, netcdf-fortran
 # 
-# Copyright 2023 - David Minton
+# Copyright 2024 - David Minton
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -10,16 +10,15 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
-
 HDF5_VER="1_14_3"
 ZLIB_VER="1.3.1"
 
 SCRIPT_DIR=$(realpath $(dirname $0))
-ARGS=$@
-. ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
+ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 
-
-NPROC=$(nproc)
+set -e
+cd $ROOT_DIR
+. ${SCRIPT_DIR}/set_environment.sh
 
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"

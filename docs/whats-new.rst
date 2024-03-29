@@ -19,7 +19,8 @@ Bug Fixes
 Internal Changes
 ~~~~~~~~~~~~~~~~
 - Overhauled the build scripts used when calling cibuildwheel to make them more robust across the various platforms we build for. This includes a more robust and consistent way to obtain the paths to compilers that lets us select gfortran-13, gfortran-12, or gfortran as our compiler depending on the availability, which is useful for building in the GitHub runners. `GH25`_
-- Added a more comprehensive suite of unit tests, including tests to 
+- Added a more comprehensive suite of unit tests, including tests to ensure that the new :meth:`~swiftest.Simulation.modify_body` method works as expected. `GH27`_
+- Upgraded SHTOOLS library version from 4.11.10 to 4.12.2.
 
 Documentation
 ~~~~~~~~~~~~~
