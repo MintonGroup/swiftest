@@ -53,7 +53,7 @@ ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 OS=$(uname -s)
 
 set -a
-PREFIX="${ROOT_DIR}/build/deps/usr/local"
+PREFIX="${PREFIX:-'${ROOT_DIR}/build/deps/usr/local'}"
 DEPENDENCY_DIR="${ROOT_DIR}/build/deps/Downloads"
 NCDIR="${PREFIX}"
 NFDIR="${PREFIX}"
