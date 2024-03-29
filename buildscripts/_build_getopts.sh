@@ -18,7 +18,7 @@ ARCH=$(uname -m)
 
 # Parse arguments
 USTMT="Usage: ${0} [-d /path/to/dependency/source] [-p /prefix/path] [-m MACOSX_DEPLOYMENT_TARGET]"
-MACOSX_DEPLOYMENT_TARGET=$(sw_vers -productVersion | cut -d. -f1)
+MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion | cut -d. -f1).0"
 
 while getopts ":d:p:m:h" ARG; do
     case "${ARG}" in

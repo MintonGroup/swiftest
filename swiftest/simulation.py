@@ -1,5 +1,5 @@
 """
-Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+Copyright 2024 - The Minton Group at Purdue University
 This file is part of Swiftest.
 Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -92,257 +92,10 @@ class Simulation(object):
         simdir : PathLike, default `"simdir"`
             Directory where simulation data will be stored, including the parameter file, initial conditions file, output file,
             dump files, and log files.
-        **kwargs : dict
-            See list of valid parameters and their defaults below
-        codename : {"Swiftest", "Swifter", "Swift"}, default "Swiftest"
-            Name of the n-body code that will be used.
-            Parameter input file equivalent is None
-        integrator : {"symba","rmvs","whm","helio"}, default "symba"
-            Name of the n-body integrator that will be used when executing a run.
-            Parameter input file equivalent is None
-        read_param : bool, default False
-            Read the parameter file given by `param_file`.
-        param_file : str, path-like, or file-lke, default "param.in"
-            Name of the parameter input file that will be passed to the integrator.
-            Parameter input file equivalent is None
-        t0 : float, default 0.0
-            The reference time for the start of the simulation. Defaults is 0.0.
-            Parameter input file equivalent is `T0`
-        tstart : float, default 0.0
-            The start time for a restarted simulation. For a new simulation, tstart will be set to t0 automatically.
-            Parameter input file equivalent is `TSTART`
-        tstop : float, optional
-            The stopping time for a simulation. `tstop` must be greater than `tstart`.
-            Parameter input file equivalent is `TSTOP`
-        dt : float, optional
-            The step size of the simulation. `dt` must be less than or equal to `tstop-tstart`.
-            Parameter input file equivalent is `DT`
-        istep_out : int, optional
-            The number of time steps between output saves to file. Only `istep_out` or `tstep_out` can be set.
-            Parameter input file equivalent is `ISTEP_OUT`
-        tstep_out : float, optional
-            The approximate time between when outputs are written to file. 
-            Passing this computes::
-            
-                istep_out = floor(tstep_out/dt)
-                
-            Only `istep_out` or `tstep_out` can be set. `tstep_out` must be less than `tstop`.
-            Parameter input file equivalent is None 
-        nstep_out : int, optional
-            The total number of times that outputs are written to file. Passing this allows for a geometric progression of output 
-            steps::
-            
-                TSTART, f**0 * TSTEP_OUT, f**1 * TSTEP_OUT, f**2 * TSTEP_OUT, ..., f**(nstep_out-1) * TSTEP_OUT
-                
-            where `f` is a factor that can stretch (or shrink) the time between outputs.  Setting::
-            
-                nstep_out = int((tstart - tstop) / (tstep_out))
-                
-            is equivalent to the standard linear output (i.e. `f==1`) and is the same as not passing anything for this argument. 
-            Passing `nstep_out` requires passing either `istep_out` or `tstep_out` as well.     
-        dump_cadence : int, optional
-            The number of output steps (given by `istep_out`) between when the saved data is dumped to a file. Setting it to 0
-            is equivalent to only dumping data to file at the end of the simulation. Default value is 10.
-            Parameter input file equivalent is `DUMP_CADENCE`
-        init_cond_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"}, default "NETCDF_DOUBLE"
-            The file type containing initial conditions for the simulation.
-            
-            * "NETCDF_DOUBLE" A single initial conditions input file in NetCDF file format of type NETCDF_DOUBLE.
-            * "NETCDF_FLOAT" A single initial conditions input file in NetCDF file format of type NETCDF_FLOAT.
-            * "ASCII"  Three initial conditions files in ASCII format. The individual files define the central body,
-            
-            massive body, and test particle initial conditions.
-            Parameter input file equivalent is `IN_TYPE`
-        init_cond_file_name : str, path-like, or dict, optional
-            Name of the input initial condition file or files. Whether to pass a single file name or a dictionary
-            depends on the argument passed to `init_cond_file_type`. If `init_cond_file_type={"NETCDF_DOUBLE","NETCDF_FLOAT"}`,
-            then this will be a single file name. If `init_cond_file_type="ASCII"` then this must be a dictionary where::
-            
-                init_cond_file_name = {
-                    "CB" - [path to central body initial conditions file] (Swiftest only),
-                    "PL" - [path to massive body initial conditions file], 
-                    "TP" - [path to test particle initial conditions file] }
-                                      
-            If no file name is provided then the following default file names will be used.
-            
-            * "NETCDF_DOUBLE", "NETCDF_FLOAT" `init_cond_file_name = "init_cond.nc"`
-            * "ASCII" `init_cond_file_name = {"CB" : "cb.in", "PL" : "pl.in", "TP" : "tp.in"}`
-            
-            Parameter input file equivalent is `NC_IN`, `CB_IN`, `PL_IN`, `TP_IN`
-        init_cond_format : {"EL", "XV"}, default "XV"
-            Indicates whether the input initial conditions are given as orbital elements or cartesian position and
-            velocity vectors.
-            If `codename` is "Swift" or "Swifter", EL initial conditions are converted to XV.
-            Parameter input file equivalent is `IN_FORM`
-        output_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT","REAL4","REAL8","XDR4","XDR8"}, default "NETCDF_DOUBLE"
-            The file type for the outputs of the simulation. Compatible file types depend on the `codename` argument.
-            
-            * Swiftest - Only "NETCDF_DOUBLE" or "NETCDF_FLOAT" supported.
-            * Swifter - Only "REAL4","REAL8","XDR4" or "XDR8"  supported.
-            * Swift - Only "REAL4" supported.
-            
-            Parameter input file equivalent is `OUT_TYPE`
-        output_file_name : str or path-like, optional
-            Name of output file to generate. If not supplied, then one of the default file names are used, depending on
-            the value passed to `output_file_type`. The default is "data.nc".
-            Parameter input file equivalent is `BIN_OUT`
-        output_format : {"XV","XVEL"}, default "XVEL"
-            Specifies the format for the data saved to the output file. If "XV" then cartesian position and velocity
-            vectors for all bodies are stored. If "XVEL" then the orbital elements are also stored.
-            Parameter input file equivalent is `OUT_FORM`
-        MU : str, default "MSUN"
-            The mass unit system to use. Case-insensitive valid options are 
-            
-            * "Msun"   - Solar mass
-            * "Mearth" - Earth mass
-            * "kg"     - kilograms
-            * "g"      - grams
-            
-            Parameter input file equivalent is None
-        DU : str, optional
-            The distance unit system to use. Case-insensitive valid options are
-            
-            * "AU"     - Astronomical Unit
-            * "Rearth" - Earth radius
-            * "km"     - kilometer
-            * "m"      - meter
-            * "cm"     - centimeter
-            
-            Parameter input file equivalent is None
-        TU : str, optional
-            The time unit system to use. Case-insensitive valid options are
-            
-            * "YR"     - Year
-            * "DAY"    - Julian day
-            * "d"      - Julian day
-            * "JD"     - Julian day
-            * "s"      - second
-            
-            Parameter input file equivalent is None
-        MU2KG : float, optional
-            The conversion factor to multiply by the mass unit that would convert it to kilogram.
-            Setting this overrides MU
-            Parameter input file equivalent is `MU2KG`
-        DU2M : float, optional
-            The conversion factor to multiply by the distance unit that would convert it to meter.
-            Setting this overrides DU
-            Parameter input file equivalent is `DU2M`
-        TU2S : float, optional
-            The conversion factor to multiply by the time unit that would convert it to seconds.
-            Setting this overrides TU
-            Parameter input file equivalent is `TU2S`
-        MU_name : str, optional
-            The name of the mass unit. When setting one of the standard units via `MU` a name will be
-            automatically set for the unit, so this argument will override the automatic name.
-            Parameter input file equivalent is None
-        DU_name : str, optional
-            The name of the distance unit. When setting one of the standard units via `DU` a name will be
-            automatically set for the unit, so this argument will override the automatic name.
-            Parameter input file equivalent is None
-        TU_name : str, optional
-            The name of the time unit. When setting one of the standard units via `TU` a name will be
-            automatically set for the unit, so this argument will override the automatic name.
-            Parameter input file equivalent is None
-        rmin : float, default value is the radius of the central body in the unit system defined by the unit input arguments.
-            Minimum distance of the simulation
-            Parameter input file equivalent are `CHK_QMIN`, `CHK_RMIN`, `CHK_QMIN_RANGE[0]`
-        rmax : float, default value is 10000 AU in the unit system defined by the unit input arguments.
-            Maximum distance of the simulation (CHK_RMAX, CHK_QMIN_RANGE[1])
-            Parameter input file equivalent are `CHK_RMAX`, `CHK_QMIN_RANGE[1]`
-        qmin_coord : str, {"HELIO", "BARY"}, default "HELIO"
-            coordinate frame to use for checking the minimum periapsis distance
-            Parameter input file equivalent is `QMIN_COORD`
-        mtiny : float, optional
-            The minimum mass of fully interacting bodies. Bodies below this mass interact with the larger bodies,
-            but not each other (SyMBA only). Only mtiny or gmtiny is accepted, not both.
-            Parameter input file equivalent is None
-        gmtiny : float, optional
-            The minimum G*mass of fully interacting bodies. Bodies below this mass interact with the larger bodies,
-            but not each other (SyMBA only). Only mtiny or gmtiny is accepted, not both.
-            Parameter input file equivalent is `GMTINY`
-        close_encounter_check : bool, default True
-            Check for close encounters between bodies. If set to True, then the radii of massive bodies must be included
-            in initial conditions.
-            Parameter input file equivalent is `CHK_CLOSE`
-        encounter_save : {"NONE","TRAJECTORY","CLOSEST", "BOTH"}, default "NONE"
-            Indicate if and how encounter data should be saved. If set to "TRAJECTORY", the position and velocity vectors
-            of all bodies undergoing close encounters are saved at each intermediate step to the encounter files.
-            If set to "CLOSEST", the position  and velocities at the point of closest approach between pairs of bodies are 
-            computed and stored to the encounter files. If set to "BOTH", then this stores the values that would be computed
-            in "TRAJECTORY" and "CLOSEST". If set to "NONE" no trajectory information is saved.
-            WARNING - Enabling this feature could lead to very large files.
-        general_relativity : bool, default True
-            Include the post-Newtonian correction in acceleration calculations. 
-            Parameter input file equivalent is "GR"
-        collision_model : {"MERGE","BOUNCE","FRAGGLE"}, default "MERGE"
-            This is used to set the collision/fragmentation model. 
-            This argument only applies to Swiftest-SyMBA simulations and will be ignored otherwise. 
-            Parameter input file equivalent is "COLLISION_MODEL"
-        minimum_fragment_gmass : float, optional
-            If fragmentation is turned on, this sets the mimimum G*mass of a collisional fragment that can be generated if a 
-            fragmentation model is enabled. Ignored otherwise.
-            Only set one of minimum_fragment_gmass or minimum_fragment_mass
-            Parameter input file equivalent is None
-        minimum_fragment_mass : float, optional
-            If fragmentation is turned on, this sets the mimimum mass of a collisional fragment that can be generated. if a 
-            fragmentation model is enabled. Ignored otherwise
-            Only set one of minimum_fragment_gmass or minimum_fragment_mass
-            Parameter input file equivalent is `MIN_GMFRAG`
-        nfrag_reduction : float, optional
-            If fragmentation is turne don, this is a reduction factor used to limit the number of fragments generated in a collision.
-            For instance, if the SFD of the collision would generated 300 fragments above the `minimum_fragment_mass`, then a value
-            of `nfrag_reduction = 30.0` would reduce it to 10.  
-            Currently only used by the Fraggle collision model.
-        rotation : bool, default True
-            If set to True, this turns on rotation tracking and radius, rotation vector, and moments of inertia values
-            must be included in the initial conditions.
-            This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
-            Parameter input file equivalent is `ROTATION`
-        compute_conservation_values : bool, default False
-            Turns on the computation of energy, angular momentum, and mass conservation and reports the values
-            every output step of a running simulation.
-            Parameter input file equivalent is `ENERGY`
-        extra_force : bool, default False
-            Turns on user-defined force function.
-            Parameter input file equivalent is `EXTRA_FORCE`
-        big_discard : bool, default False
-            Includes big bodies when performing a discard (Swifter only)
-            Parameter input file equivalent is `BIG_DISCARD`
-        rhill_present : bool, default False
-            Include the Hill's radius with the input files .
-            Parameter input file equivalent is `RHILL_PRESENT`
-        restart : bool, default False
-            If true, will restart an old run. The file given by `output_file_name` must exist before the run can
-            execute. If false, will start a new run. If the file given by `output_file_name` exists, it will be replaced
-            when the run is executed.
-            Parameter input file equivalent is `OUT_STAT`
-        interaction_loops : {"TRIANGULAR","FLAT"}, default "TRIANGULAR"
-            *Swiftest Experimental feature*
-            Specifies which algorithm to use for the computation of body-body gravitational forces.
-            
-            * "TRIANGULAR" - Upper-triangular double-loops.
-            * "FLAT" - Body-body interation pairs are flattened into a 1-D array.
-            
-            Parameter input file equivalent is `INTERACTION_LOOPS`
-        encounter_check_loops : {"TRIANGULAR","SORTSWEEP"}, default "TRIANGULAR"
-            *Swiftest Experimental feature*
-            Specifies which algorithm to use for checking whether bodies are in a close encounter state or not.
-            
-            * "TRIANGULAR" - Upper-triangular double-loops.
-            * "SORTSWEEP" - A Sort-Sweep algorithm is used to reduce the population of potential close encounter bodies.
-              This algorithm is still in development, and does not necessarily speed up the encounter checking.
-              Use with caution.
-              
-            Parameter input file equivalent is `ENCOUNTER_CHECK`
         dask : bool, default False
-            Use Dask to lazily load data (useful for very large datasets)
-        coarray : bool, default False
-            If true, will employ Coarrays on test particle structures to run in single program/multiple data parallel mode. 
-            In order to use this capability, Swiftest must be compiled for Coarray support. Only certain integrators can use 
-            Coarrays. RMVS, WHM, Helio are all compatible, but SyMBA is not, due to the way tp-pl close encounters are handeled.
-        verbose : bool, default False
-            If set to True, then more information is printed by Simulation methods as they are executed. Setting to
-            False suppresses most messages other than errors and some warnings.
+            If true, will use Dask to lazily load data (useful for very large datasets).
+        **kwargs : Any
+            Any valid keyword arguments accepted by :meth:`~swiftest.Simulation.set_parameter` (see below)
         """
 
         # Define some instance variables
@@ -449,7 +202,7 @@ class Simulation(object):
         dask : bool, default False
             If true, will use Dask to lazily load data (useful for very large datasets)
         **kwargs : Any
-            Any valid keyword arguments accepted by `set_parameter`
+            Any valid keyword arguments accepted by :meth:`~swiftest.Simulation.set_parameter`
 
         Returns
         -------
@@ -746,8 +499,267 @@ class Simulation(object):
         
         Parameters
         ----------
-        **kwargs : Any
-            Any argument listed listed in the Simulation class definition.
+        read_param : bool, default False
+            If true, read in a pre-existing parameter input file given by the argument `param_file` if it exists.
+            Otherwise, create a new parameter file using the arguments passed to Simulation or defaults
+        read_data : bool, default False
+            If True, read in a pre-existing binary input file given by the argument `output_file_name` if it exists.
+            Parameter input file equivalent is None
+        read_collisions : bool, default None
+            If True, read in a pre-existing collision file `collisions.nc`. If None, then it will take the value of `read_data`. 
+        read_encounters : bool, default None
+            If True, read in a pre-existing encounter file `encounters.nc`. If None, then it will take the value of `read_data`. 
+        simdir : PathLike, default `"simdir"`
+            Directory where simulation data will be stored, including the parameter file, initial conditions file, output file,
+            dump files, and log files.
+        **kwargs : dict
+            See list of valid parameters and their defaults below
+        codename : {"Swiftest", "Swifter", "Swift"}, default "Swiftest"
+            Name of the n-body code that will be used.
+            Parameter input file equivalent is None
+        integrator : {"symba","rmvs","whm","helio"}, default "symba"
+            Name of the n-body integrator that will be used when executing a run.
+            Parameter input file equivalent is None
+        read_param : bool, default False
+            Read the parameter file given by `param_file`.
+        param_file : str, path-like, or file-lke, default "param.in"
+            Name of the parameter input file that will be passed to the integrator.
+            Parameter input file equivalent is None
+        t0 : float, default 0.0
+            The reference time for the start of the simulation. Defaults is 0.0.
+            Parameter input file equivalent is `T0`
+        tstart : float, default 0.0
+            The start time for a restarted simulation. For a new simulation, tstart will be set to t0 automatically.
+            Parameter input file equivalent is `TSTART`
+        tstop : float, optional
+            The stopping time for a simulation. `tstop` must be greater than `tstart`.
+            Parameter input file equivalent is `TSTOP`
+        dt : float, optional
+            The step size of the simulation. `dt` must be less than or equal to `tstop-tstart`.
+            Parameter input file equivalent is `DT`
+        istep_out : int, optional
+            The number of time steps between output saves to file. Only `istep_out` or `tstep_out` can be set.
+            Parameter input file equivalent is `ISTEP_OUT`
+        tstep_out : float, optional
+            The approximate time between when outputs are written to file. 
+            Passing this computes::
+            
+                istep_out = floor(tstep_out/dt)
+                
+            Only `istep_out` or `tstep_out` can be set. `tstep_out` must be less than `tstop`.
+            Parameter input file equivalent is None 
+        nstep_out : int, optional
+            The total number of times that outputs are written to file. Passing this allows for a geometric progression of output 
+            steps::
+            
+                TSTART, f**0 * TSTEP_OUT, f**1 * TSTEP_OUT, f**2 * TSTEP_OUT, ..., f**(nstep_out-1) * TSTEP_OUT
+                
+            where `f` is a factor that can stretch (or shrink) the time between outputs.  Setting::
+            
+                nstep_out = int((tstart - tstop) / (tstep_out))
+                
+            is equivalent to the standard linear output (i.e. `f==1`) and is the same as not passing anything for this argument. 
+            Passing `nstep_out` requires passing either `istep_out` or `tstep_out` as well.     
+        dump_cadence : int, optional
+            The number of output steps (given by `istep_out`) between when the saved data is dumped to a file. Setting it to 0
+            is equivalent to only dumping data to file at the end of the simulation. Default value is 10.
+            Parameter input file equivalent is `DUMP_CADENCE`
+        init_cond_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"}, default "NETCDF_DOUBLE"
+            The file type containing initial conditions for the simulation.
+            
+            * "NETCDF_DOUBLE" A single initial conditions input file in NetCDF file format of type NETCDF_DOUBLE.
+            * "NETCDF_FLOAT" A single initial conditions input file in NetCDF file format of type NETCDF_FLOAT.
+            * "ASCII"  Three initial conditions files in ASCII format. The individual files define the central body,
+            
+            massive body, and test particle initial conditions.
+            Parameter input file equivalent is `IN_TYPE`
+        init_cond_file_name : str, path-like, or dict, optional
+            Name of the input initial condition file or files. Whether to pass a single file name or a dictionary
+            depends on the argument passed to `init_cond_file_type`. If `init_cond_file_type={"NETCDF_DOUBLE","NETCDF_FLOAT"}`,
+            then this will be a single file name. If `init_cond_file_type="ASCII"` then this must be a dictionary where::
+            
+                init_cond_file_name = {
+                    "CB" - [path to central body initial conditions file] (Swiftest only),
+                    "PL" - [path to massive body initial conditions file], 
+                    "TP" - [path to test particle initial conditions file] }
+                                      
+            If no file name is provided then the following default file names will be used.
+            
+            * "NETCDF_DOUBLE", "NETCDF_FLOAT" `init_cond_file_name = "init_cond.nc"`
+            * "ASCII" `init_cond_file_name = {"CB" : "cb.in", "PL" : "pl.in", "TP" : "tp.in"}`
+            
+            Parameter input file equivalent is `NC_IN`, `CB_IN`, `PL_IN`, `TP_IN`
+        init_cond_format : {"EL", "XV"}, default "XV"
+            Indicates whether the input initial conditions are given as orbital elements or cartesian position and
+            velocity vectors.
+            If `codename` is "Swift" or "Swifter", EL initial conditions are converted to XV.
+            Parameter input file equivalent is `IN_FORM`
+        output_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT","REAL4","REAL8","XDR4","XDR8"}, default "NETCDF_DOUBLE"
+            The file type for the outputs of the simulation. Compatible file types depend on the `codename` argument.
+            
+            * Swiftest - Only "NETCDF_DOUBLE" or "NETCDF_FLOAT" supported.
+            * Swifter - Only "REAL4","REAL8","XDR4" or "XDR8"  supported.
+            * Swift - Only "REAL4" supported.
+            
+            Parameter input file equivalent is `OUT_TYPE`
+        output_file_name : str or path-like, optional
+            Name of output file to generate. If not supplied, then one of the default file names are used, depending on
+            the value passed to `output_file_type`. The default is "data.nc".
+            Parameter input file equivalent is `BIN_OUT`
+        output_format : {"XV","XVEL"}, default "XVEL"
+            Specifies the format for the data saved to the output file. If "XV" then cartesian position and velocity
+            vectors for all bodies are stored. If "XVEL" then the orbital elements are also stored.
+            Parameter input file equivalent is `OUT_FORM`
+
+        MU : str, optional
+           The mass unit system to use. Case-insensitive valid options are
+           
+           * "Msun"   - Solar mass
+           * "Mearth" - Earth mass
+           * "kg"     - kilograms
+           * "g","gm" - grams
+           
+        DU : str, optional
+            The distance unit system to use. Case-insensitive valid options are
+            
+            * "AU"     - Astronomical Unit
+            * "Rearth" - Earth radius
+            * "km"     - kilometer
+            * "m"      - meter
+            * "cm"     - centimeter
+            
+        TU : str, optional
+            The time unit system to use. Case-insensitive valid options are
+            
+            * "y","YR","year","years"      - Year
+            * "d","day","days"             - Julian day
+            * "s","sec","seconds","second" - second
+            
+            Parameter input file equivalent is None
+        MU2KG : float, optional
+            The conversion factor to multiply by the mass unit that would convert it to kilogram.
+            Setting this overrides MU
+            Parameter input file equivalent is `MU2KG`
+        DU2M : float, optional
+            The conversion factor to multiply by the distance unit that would convert it to meter.
+            Setting this overrides DU
+            Parameter input file equivalent is `DU2M`
+        TU2S : float, optional
+            The conversion factor to multiply by the time unit that would convert it to seconds.
+            Setting this overrides TU
+            Parameter input file equivalent is `TU2S`
+        MU_name : str, optional
+            The name of the mass unit. When setting one of the standard units via `MU` a name will be
+            automatically set for the unit, so this argument will override the automatic name.
+            Parameter input file equivalent is None
+        DU_name : str, optional
+            The name of the distance unit. When setting one of the standard units via `DU` a name will be
+            automatically set for the unit, so this argument will override the automatic name.
+            Parameter input file equivalent is None
+        TU_name : str, optional
+            The name of the time unit. When setting one of the standard units via `TU` a name will be
+            automatically set for the unit, so this argument will override the automatic name.
+            Parameter input file equivalent is None
+        rmin : float, default value is the radius of the central body in the unit system defined by the unit input arguments.
+            Minimum distance of the simulation
+            Parameter input file equivalent are `CHK_QMIN`, `CHK_RMIN`, `CHK_QMIN_RANGE[0]`
+        rmax : float, default value is 10000 AU in the unit system defined by the unit input arguments.
+            Maximum distance of the simulation (CHK_RMAX, CHK_QMIN_RANGE[1])
+            Parameter input file equivalent are `CHK_RMAX`, `CHK_QMIN_RANGE[1]`
+        qmin_coord : str, {"HELIO", "BARY"}, default "HELIO"
+            coordinate frame to use for checking the minimum periapsis distance
+            Parameter input file equivalent is `QMIN_COORD`
+        mtiny : float, optional
+            The minimum mass of fully interacting bodies. Bodies below this mass interact with the larger bodies,
+            but not each other (SyMBA only). Only mtiny or gmtiny is accepted, not both.
+            Parameter input file equivalent is None
+        gmtiny : float, optional
+            The minimum G*mass of fully interacting bodies. Bodies below this mass interact with the larger bodies,
+            but not each other (SyMBA only). Only mtiny or gmtiny is accepted, not both.
+            Parameter input file equivalent is `GMTINY`
+        close_encounter_check : bool, default True
+            Check for close encounters between bodies. If set to True, then the radii of massive bodies must be included
+            in initial conditions.
+            Parameter input file equivalent is `CHK_CLOSE`
+        encounter_save : {"NONE","TRAJECTORY","CLOSEST", "BOTH"}, default "NONE"
+            Indicate if and how encounter data should be saved. If set to "TRAJECTORY", the position and velocity vectors
+            of all bodies undergoing close encounters are saved at each intermediate step to the encounter files.
+            If set to "CLOSEST", the position  and velocities at the point of closest approach between pairs of bodies are 
+            computed and stored to the encounter files. If set to "BOTH", then this stores the values that would be computed
+            in "TRAJECTORY" and "CLOSEST". If set to "NONE" no trajectory information is saved.
+            WARNING - Enabling this feature could lead to very large files.
+        general_relativity : bool, default True
+            Include the post-Newtonian correction in acceleration calculations. 
+            Parameter input file equivalent is "GR"
+        collision_model : {"MERGE","BOUNCE","FRAGGLE"}, default "MERGE"
+            This is used to set the collision/fragmentation model. 
+            This argument only applies to Swiftest-SyMBA simulations and will be ignored otherwise. 
+            Parameter input file equivalent is "COLLISION_MODEL"
+        minimum_fragment_gmass : float, optional
+            If fragmentation is turned on, this sets the mimimum G*mass of a collisional fragment that can be generated if a 
+            fragmentation model is enabled. Ignored otherwise.
+            Only set one of minimum_fragment_gmass or minimum_fragment_mass
+            Parameter input file equivalent is None
+        minimum_fragment_mass : float, optional
+            If fragmentation is turned on, this sets the mimimum mass of a collisional fragment that can be generated. if a 
+            fragmentation model is enabled. Ignored otherwise
+            Only set one of minimum_fragment_gmass or minimum_fragment_mass
+            Parameter input file equivalent is `MIN_GMFRAG`
+        nfrag_reduction : float, optional
+            If fragmentation is turne don, this is a reduction factor used to limit the number of fragments generated in a collision.
+            For instance, if the SFD of the collision would generated 300 fragments above the `minimum_fragment_mass`, then a value
+            of `nfrag_reduction = 30.0` would reduce it to 10.  
+            Currently only used by the Fraggle collision model.
+        rotation : bool, default True
+            If set to True, this turns on rotation tracking and radius, rotation vector, and moments of inertia values
+            must be included in the initial conditions.
+            This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
+            Parameter input file equivalent is `ROTATION`
+        compute_conservation_values : bool, default False
+            Turns on the computation of energy, angular momentum, and mass conservation and reports the values
+            every output step of a running simulation.
+            Parameter input file equivalent is `ENERGY`
+        extra_force : bool, default False
+            Turns on user-defined force function.
+            Parameter input file equivalent is `EXTRA_FORCE`
+        big_discard : bool, default False
+            Includes big bodies when performing a discard (Swifter only)
+            Parameter input file equivalent is `BIG_DISCARD`
+        rhill_present : bool, default False
+            Include the Hill's radius with the input files .
+            Parameter input file equivalent is `RHILL_PRESENT`
+        restart : bool, default False
+            If true, will restart an old run. The file given by `output_file_name` must exist before the run can
+            execute. If false, will start a new run. If the file given by `output_file_name` exists, it will be replaced
+            when the run is executed.
+            Parameter input file equivalent is `OUT_STAT`
+        interaction_loops : {"TRIANGULAR","FLAT"}, default "TRIANGULAR"
+            *Swiftest Experimental feature*
+            Specifies which algorithm to use for the computation of body-body gravitational forces.
+            
+            * "TRIANGULAR" - Upper-triangular double-loops.
+            * "FLAT" - Body-body interation pairs are flattened into a 1-D array.
+            
+            Parameter input file equivalent is `INTERACTION_LOOPS`
+        encounter_check_loops : {"TRIANGULAR","SORTSWEEP"}, default "TRIANGULAR"
+            *Swiftest Experimental feature*
+            Specifies which algorithm to use for checking whether bodies are in a close encounter state or not.
+            
+            * "TRIANGULAR" - Upper-triangular double-loops.
+            * "SORTSWEEP" - A Sort-Sweep algorithm is used to reduce the population of potential close encounter bodies.
+              This algorithm is still in development, and does not necessarily speed up the encounter checking.
+              Use with caution.
+              
+            Parameter input file equivalent is `ENCOUNTER_CHECK`
+        dask : bool, default False
+            Use Dask to lazily load data (useful for very large datasets)
+        coarray : bool, default False
+            If true, will employ Coarrays on test particle structures to run in single program/multiple data parallel mode. 
+            In order to use this capability, Swiftest must be compiled for Coarray support. Only certain integrators can use 
+            Coarrays. RMVS, WHM, Helio are all compatible, but SyMBA is not, due to the way tp-pl close encounters are handeled.
+        verbose : bool, default False
+            If set to True, then more information is printed by Simulation methods as they are executed. Setting to
+            False suppresses most messages other than errors and some warnings.
 
         Returns
         -------
@@ -1676,7 +1688,7 @@ class Simulation(object):
            * "Msun"   - Solar mass
            * "Mearth" - Earth mass
            * "kg"     - kilograms
-           * "g"      - grams
+           * "g","gm" - grams
            
         DU : str, optional
             The distance unit system to use. Case-insensitive valid options are
@@ -1690,11 +1702,9 @@ class Simulation(object):
         TU : str, optional
             The time unit system to use. Case-insensitive valid options are
             
-            * "YR"     - Year
-            * "DAY"    - Julian day
-            * "d"      - Julian day
-            * "JD"     - Julian day
-            * "s"      - second
+            * "y","YR","year","years"      - Year
+            * "d","day","days"             - Julian day
+            * "s","sec","seconds","second" - second
             
         MU2KG : float, optional
             The conversion factor to multiply by the mass unit that would convert it to kilogram.
@@ -1756,7 +1766,7 @@ class Simulation(object):
                 elif MU.upper() == "KG":
                     self.param['MU2KG'] = 1.0
                     self.MU_name = "kg"
-                elif MU.upper() == "G":
+                elif MU.upper() == "G" or MU.upper() == "GM":
                     self.param['MU2KG'] = 1e-3
                     self.MU_name = "g"
                 else:
@@ -1806,7 +1816,7 @@ class Simulation(object):
                 elif TU.upper() == "DAY" or TU.upper() == "D" or TU.upper() == "JD" or TU.upper() == "DAYS":
                     self.param['TU2S'] = constants.JD2S
                     self.TU_name = "d"
-                elif TU.upper() == "S" or TU.upper() == "SECONDS" or TU.upper() == "SEC":
+                elif TU.upper() == "S" or TU.upper() == "SECONDS" or TU.upper() == "SEC" or TU.upper() == "SECOND":
                     self.param['TU2S'] = 1.0
                     self.TU_name = "s"
                 else:

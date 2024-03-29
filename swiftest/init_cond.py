@@ -44,14 +44,14 @@ def get_solar_system_body_mass_rotation(id: str,
 
     Returns
     -------
-    dict :
-        A dictionary containing the following elements:
-        Gmass : float
-            G*Mass of the body in m^3/s^2
-        radius : float
-            The radius of the body in m
-        rot: (3) float vector
-            The rotation rate vector oriented toward the north pole in deg/s
+    A dictionary containing the following elements
+    
+    Gmass : float
+        G*Mass of the body in m^3/s^2
+    radius : float
+        The radius of the body in m
+    rot : (3) float vector
+        The rotation rate vector oriented toward the north pole in deg/s
     """
 
     def get_Gmass(raw_response):
@@ -222,9 +222,9 @@ def horizons_query(id: str | int,
 
     Returns
     -------
-    jpl: HorizonsClass | None
+    jpl : HorizonsClass | None
         An astroquery.jplhorizons HorizonsClass object. Or None if no match was found.
-    altid: string list | None
+    altid : string list | None
         A list of alternate ids if more than one object matches the list
     """
     
@@ -327,29 +327,30 @@ def get_solar_system_body(name: str,
 
     Returns
     -------
-    dict : Contains the following elements:
-        name : string
-            Name of the body
-        rh : (3,) array of np.float64
-            Position vector array relative to the central body in m.
-        vh : (3,) array of np.float64
-            Velocity vector array relative to the central body in m/s.
-        Gmass : np.float64
-            G*mass values if these are massive bodies in m^3/s^2
-        mass : np.float64
-            Mass values if these are massive bodies in kg
-        radius : np.float64
-            Radius values if these are massive bodies in m
-        rhill : np.float64 
-            The Hill's radius values if these are massive bodies in m
-        Ip : (3,) array of np.float64
-            Principal axes moments of inertia vectors if these are massive bodies.
-        rot : (3,) array of np.float
-            Rotation rate vectors if these are massive bodies in deg/s
-        j2rp2 : np.float64
-            J_2R^2 value for the body if known
-        j4rp4 : np.float64
-            J_4R^4 value for the body if known
+    A dictionary containing the following elements
+    
+    name : string
+        Name of the body
+    rh : (3,) array of np.float64
+        Position vector array relative to the central body in m.
+    vh : (3,) array of np.float64
+        Velocity vector array relative to the central body in m/s.
+    Gmass : np.float64
+        G*mass values if these are massive bodies in m^3/s^2
+    mass : np.float64
+        Mass values if these are massive bodies in kg
+    radius : np.float64
+        Radius values if these are massive bodies in m
+    rhill : np.float64 
+        The Hill's radius values if these are massive bodies in m
+    Ip : (3,) array of np.float64
+        Principal axes moments of inertia vectors if these are massive bodies.
+    rot : (3,) array of np.float
+        Rotation rate vectors if these are massive bodies in deg/s
+    j2rp2 : np.float64
+        J_2R^2 value for the body if known
+    j4rp4 : np.float64
+        J_4R^4 value for the body if known
          
     Notes
     --------
