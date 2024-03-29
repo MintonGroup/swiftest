@@ -112,16 +112,12 @@ REPAIR_LIBRARY_PATH="${LD_LIBRARY_PATH}"
 
 [tool.cibuildwheel.macos]
 before-all = [
-    "brew update;brew upgrade",
-    "brew install coreutils pkg-config fftw vecLibFort",
-    "buildscripts/build_dependencies.sh -d ${HOME}/Downloads"
+    "brew install coreutils pkg-config fftw vecLibFort;buildscripts/build_dependencies.sh -d ${HOME}/Downloads"
 ]
 repair-wheel-command = """\
 DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel \
 --require-archs {delocate_archs} -w {dest_dir} -v {wheel}
 """
-
-
 
 [tool.cibuildwheel.linux]
 skip = "pp* *-manylinux_i686* *-musllinux* cp312-*_aarch64*"
@@ -135,4 +131,3 @@ before-all = [
 path = "version.txt"
 location = "source"
 template = '''${version}'''
-
