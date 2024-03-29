@@ -75,7 +75,7 @@ build-verbosity = 1
 
 [tool.cibuildwheel.macos.environment]
 ROOT_DIR="$(pwd)"
-PREFIX="${PREFIX:-'${ROOT_DIR}/build/deps/usr/local'}"
+PREFIX="${PREFIX:-${ROOT_DIR}/build/deps/usr/local}"
 NETCDF_FORTRAN_HOME="${PREFIX}"
 NETCDF_FORTRAN_INCLUDE="${NETCDF_FORTRAN_HOME}/include"
 NETCDF_DIR="${NETCDF_FORTRAN_HOME}/lib/cmake/netCDF"
@@ -99,7 +99,7 @@ PATH="${PREFIX}/bin:${PATH}"
 
 [tool.cibuildwheel.linux.environment]
 ROOT_DIR="$(pwd)"
-PREFIX="${ROOT_DIR}/build/deps/usr/local"
+PREFIX="${PREFIX:-${ROOT_DIR}/build/deps/usr/local}"
 NETCDF_FORTRAN_HOME="${PREFIX}"
 NETCDF_FORTRAN_INCLUDE="${NETCDF_FORTRAN_HOME}/include"
 NETCDF_DIR="${NETCDF_FORTRAN_HOME}/lib/cmake/netCDF"
