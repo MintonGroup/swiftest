@@ -34,15 +34,14 @@ class TestUnits(unittest.TestCase):
 
         valid_particle_types = [swiftest.constants.PL_TINY_TYPE_NAME, swiftest.constants.PL_TYPE_NAME, swiftest.constants.TP_TYPE_NAME, swiftest.constants.CB_TYPE_NAME]
         sim = swiftest.Simulation()
-        sim.clean()
 
         sim.add_solar_system_body(['Sun'])
 
         # semi-interacting body
-        sim.add_body(name=['pl_massive', 'pl_semi_int'], a=[1.5, 2.0], e=[0.1, 0.1], inc=[0.0, 0.0], capom=[0.0, 0.0], omega=[0.0, 0.0], capm=[0.0, 0.0], mass=[1e-11, 1e-6], radius=[1e-5, 1e-6])
+        sim.add_body(name=['pl_massive', 'pl_semi_int'], a=[1.5, 2.0], e=[0.1, 0.1], mass=[1e-11, 1e-6], radius=[1e-5, 1e-6])
 
         # test particle
-        sim.add_body(name='tp', a=2.0, e=0.01, inc=0.0, capom=0.0, omega=0.0, capm=0.0)
+        sim.add_body(name='tp', a=2.0, e=0.01)
 
 
         for particle_type in sim.init_cond.particle_type.values:
