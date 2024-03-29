@@ -11,8 +11,8 @@ Start with importing Swiftest and other packages we will use in this tutorial.
 
 .. ipython:: python
 
-    import swiftest
-    import numpy as np 
+   import swiftest
+   import numpy as np 
 
 Initial Simulation Setup 
 ===========================
@@ -23,6 +23,14 @@ Outputs are stored in the ``./simdata`` directory by default.
 .. ipython:: python
 
    sim = swiftest.Simulation()
+
+.. ipython:: python
+   :suppress:
+
+   import tempfile
+   tmpdir=tempfile.TemporaryDirectory()
+   sim.set_parameter(simdir=tmpdir.name)
+
 
 An optional argument can be passed to specify the simulation directory 
 

@@ -9,14 +9,14 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
-SCRIPT_DIR=$(realpath $(dirname $0))
-set -a
-ARGS=$@
-. ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
+ZSTD_VER="1.5.5"
 
-NPROC=$(nproc)
-ZSTD_ROOT=${ZSTD_ROOT:-"${ZSTD_HOME}"}
-ZSTD_ROOT=${ZSTD_ROOT:-"${PREFIX}"}
+SCRIPT_DIR=$(realpath $(dirname $0))
+ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+
+set -e
+cd $ROOT_DIR
+. ${SCRIPT_DIR}/set_environment.sh
 
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
@@ -24,7 +24,6 @@ printf "*********************************************************\n"
 printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
 printf "Installing to ${ZSTD_ROOT}\n"
 printf "\n"
-ZSTD_VER="1.5.5"
 
 printf "*********************************************************\n"
 printf "*             FETCHING ZSTD SOURCE                      *\n"

@@ -37,7 +37,6 @@ from numpy.random import default_rng
 
 # Initialize the simulation object as a variable. Arguments may be defined here or through the sim.run() method.
 sim = swiftest.Simulation()
-sim.clean()
 rng = default_rng(seed=123)
 
 # Add the modern planets and the Sun using the JPL Horizons Database.

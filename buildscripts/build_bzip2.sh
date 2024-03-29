@@ -9,14 +9,14 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
-SCRIPT_DIR=$(realpath $(dirname $0))
-set -a
-ARGS=$@
-. ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
+BZ2_VER="1.0.8"
 
-NPROC=$(nproc)
-BZ2_ROOT=${BZ2_ROOT:-"${BZ2_HOME}"}
-BZ2_ROOT=${BZ2_ROOT:-"${PREFIX}"}
+SCRIPT_DIR=$(realpath $(dirname $0))
+ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+
+set -e
+cd $ROOT_DIR
+. ${SCRIPT_DIR}/set_environment.sh
 
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
@@ -24,7 +24,6 @@ printf "*********************************************************\n"
 printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
 printf "Installing to ${BZ2_ROOT}\n"
 printf "\n"
-BZ2_VER="1.0.8"
 
 printf "*********************************************************\n"
 printf "*             FETCHING BZ2 SOURCE                      *\n"
@@ -65,7 +64,7 @@ if [ -w "${BZ2_ROOT}" ]; then
 else
     sudo make install PREFIX=${BZ2_ROOT}
 fi
-
+set +a
 if [ $? -ne 0 ]; then
    printf "bz2 could not be compiled.\n"
    exit 1

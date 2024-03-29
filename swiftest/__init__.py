@@ -13,4 +13,5 @@ from .constants import *
 from .simulation import Simulation
 from .shgrav import clm_from_ellipsoid, clm_from_relief
 from .data import SwiftestDataArray, SwiftestDataset
+from .init_cond import get_solar_system_body, get_solar_system_body_mass_rotation
 from . import core

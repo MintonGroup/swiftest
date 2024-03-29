@@ -26,7 +26,6 @@ rng = np.random.default_rng(seed=seed)
 
 # set up swiftest simulation with relevant units (here they are km, days, and kg)
 sim = swiftest.Simulation(DU2M = 1e3, TU = 'd', MU = 'kg')
-sim.clean()
 
 # Central Body Parameters (Chariklo parameters from Leiva, et al (2017) (Jacobi Ellipsoid model))
 cb_mass = 6.1e18 # kg

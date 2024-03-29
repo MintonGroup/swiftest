@@ -71,7 +71,7 @@ sim_shgrav.run(tstart=0.0, tstop=10.0, dt=0.01, tstep_out=10.0, dump_cadence=0, 
 # Use the original "oblate" version where you pass J2 (and/or J4)
 sim_obl = swiftest.Simulation(simdir="obl", DU2M = 1e3, TU='d', MU='kg')
 sim_obl.clean()
-sim_obl.add_body(name = 'OblateBody', mass = cb_mass, rot = cb_rot, radius = cb_radius, J2 = j2rp2)
+sim_obl.add_body(name = 'OblateBody', mass = cb_mass, rot = cb_rot, radius = cb_radius, j2rp2 = j2rp2)
 sim_obl.add_body(name=name_tp, a=a_tp, e=e_tp, inc=inc_tp, capom=capom_tp, omega=omega_tp, capm=capm_tp)
 sim_obl.run(tstart=0.0, tstop=10.0, dt=0.01, tstep_out=10.0, dump_cadence=0, integrator='whm')
 
