@@ -46,7 +46,7 @@ class TestUnits(unittest.TestCase):
 
 
         for particle_type in sim.init_cond.particle_type.values:
-            unittest.TestCase.assertTrue(particle_type in valid_particle_types, msg = 'Invalid particle type set up')
+            self.assertTrue(particle_type in valid_particle_types, msg = f'Invalid particle type set up for {particle_type}')
 
         return 
          
