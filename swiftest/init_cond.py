@@ -13,13 +13,18 @@ from __future__ import annotations
 import swiftest
 from . import constants
 import numpy as np
-from astroquery.jplhorizons import Horizons
+from astroquery.jplhorizons import Horizons, HorizonsClass
 import astropy.units as u
 from astropy.coordinates import SkyCoord
 import datetime
-from typing import Any
+from typing import Any, Union
+import warnings
 
-def get_solar_system_body_mass_rotation(id,jpl=None,ephemerides_start_date=constants.MINTON_BCL,**kwargs):
+def get_solar_system_body_mass_rotation(id: str,
+                                        jpl: HorizonsClass=None,
+                                        ephemerides_start_date: str=constants.MINTON_BCL,
+                                        verbose: bool=False,
+                                        **kwargs: Any) -> dict:
     """
     Parses the raw output from JPL Horizons in order to extract physical properties of a body if they exist
     
@@ -32,6 +37,8 @@ def get_solar_system_body_mass_rotation(id,jpl=None,ephemerides_start_date=const
         An astroquery.jplhorizons HorizonsClass object. If None, a new query will be made.
     ephemerides_start_date : string
         Date to use when obtaining the ephemerides in the format YYYY-MM-DD. Default is constants.MINTON_BCL
+    verbose : bool
+        Indicates whether to print messages about the query or not. Default is False
     **kwargs: Any
         Additional keyword arguments to pass to the query method (see https://astroquery.readthedocs.io/en/latest/jplhorizons/jplhorizons.html)
 
@@ -177,7 +184,8 @@ def get_solar_system_body_mass_rotation(id,jpl=None,ephemerides_start_date=const
         rot = np.full(3,np.nan) 
         mass = None
     else:
-        print(f"Physical properties found for {namelist[0]}") 
+        if verbose:
+            print(f"Physical properties found for {namelist[0]}") 
         Gmass *= 1e9  # JPL returns GM in units of km**3 / s**2, so convert to SI
         mass = Gmass / swiftest.GC
         rotrate = get_rotrate(raw_response)
@@ -191,7 +199,11 @@ def get_solar_system_body_mass_rotation(id,jpl=None,ephemerides_start_date=const
     return {'Gmass':Gmass,'mass':mass,'radius':Rpl,'rot':rot}
 
 
-def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=False,**kwargs):
+def horizons_query(id: str | int, 
+                   ephemerides_start_date: str, 
+                   exclude_spacecraft: bool=True, 
+                   verbose: bool=False,
+                   **kwargs: Any) -> Union[HorizonsClass | None, list | None, list | None]:
     """
     Queries JPL/Horizons for a body matching the id. If one is found, a HorizonsClass object is returned for the first object that
     matches the passed id string. If more than one match is found, a list of alternate ids is also returned. If no object is found
@@ -205,7 +217,7 @@ def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=
         Date to use when obtaining the ephemerides in the format YYYY-MM-DD.
     exclude_spacecraft: bool (optional) - Default True
         Indicate whether spacecraft ids should be exluded from the alternate id list
-    verbose: bool (optional) - Default True
+    verbose: bool (optional) - Default False
         Indicate whether to print messages about the query or not
 
     Returns
@@ -275,7 +287,7 @@ def horizons_query(id, ephemerides_start_date, exclude_spacecraft=True, verbose=
                                 'step': ephemerides_step})
             _=jpl.ephemerides()
         else:
-            print(f"Could not find {id} in the JPL/Horizons system")
+            warnings.warn(f"Could not find {id} in the JPL/Horizons system",stacklevel=2)
             return None,None,None
     if verbose:
         print(f"Found matching body: {altname[0]} ({altid[0]})") 
@@ -293,7 +305,7 @@ def get_solar_system_body(name: str,
                           ephemerides_start_date : str = constants.MINTON_BCL,
                           central_body_name: str = "Sun",
                           verbose: bool = True,
-                          **kwargs: Any):
+                          **kwargs: Any) -> dict | None:
     """
     Initializes a Swiftest dataset containing the major planets of the Solar System at a particular data from JPL/Horizons
 

@@ -1049,8 +1049,8 @@ def swifter_xr2infile(ds: SwiftestDataset,
 
     cb = frame.where(frame.id == 0, drop=True)
     pl = frame.where(frame.id > 0, drop=True)
-    pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['j2rp2', 'j4rp4'])
-    tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'j2rp2', 'j4rp4'])
+    pl = pl.where(np.invert(np.isnan(pl['Gmass'])), drop=True).drop_vars(['j2rp2', 'j4rp4','c_lm','sign','l','m'],errors="ignore")
+    tp = frame.where(np.isnan(frame['Gmass']), drop=True).drop_vars(['Gmass', 'radius', 'j2rp2', 'j4rp4','c_lm','sign','l','m'],errors="ignore")
     
     GMSun = np.double(cb['Gmass'])
     if param['CHK_CLOSE']:

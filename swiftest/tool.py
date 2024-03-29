@@ -64,7 +64,7 @@ def follow_swift(ds, ifol=None, nskp=None):
         fol = fol.where(np.invert(np.isnan(fol['a'])), drop=True) # Remove times where this body doesn't exist (but this also gets rid of the central body)
         fol = fol.isel(id = -ifol - 2)  # Take 1 off for 0-indexed arrays in Python, and take 1 more off because the central body is gone
     elif ifol > 0: # Positive numbers are test particles
-        fol = ds.where(np.isnan(ds['Gmass']), drop=True).drop_vars(['Gmass', 'radius'])
+        fol = ds.where(np.isnan(ds['Gmass']), drop=True).drop_vars(['Gmass', 'radius'],errors="ignore")
         fol = fol.where(np.invert(np.isnan(fol['a'])), drop=True)
         fol = fol.isel(id = ifol - 1)  # Take 1 off for 0-indexed arrays in Python
 

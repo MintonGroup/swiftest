@@ -86,7 +86,7 @@ class TestSwiftestIO(unittest.TestCase):
         sim2 = swiftest.Simulation(simdir=self.simdir, read_param=True, read_data=False)
         # Add the modern planets and the Sun using the JPL Horizons Database.
         # Check if all names in Dataset read in from file match the expected list of names
-        self.assertTrue((major_bodies == sim2.init_cond['name']).all(), msg="Name mismatch in Dataset")
+        self.assertTrue((major_bodies == sim2.data['name']).all(), msg="Name mismatch in Dataset")
         
         # Check to see if all parameter values read in from file match the expected parameters saved when generating the file
         self.assertTrue(all([v == param[k] for k,v in sim2.param.items() if k in param]))
@@ -110,11 +110,11 @@ class TestSwiftestIO(unittest.TestCase):
       
         # Test that we can initialize a body with only the semimajor axis 
         sim.add_body(a=1.0) 
-        self.assertEqual(sim.init_cond.isel(name=-1).e.values[0], 0.0, msg="Failed to initialize body with only semimajor axis")
-        self.assertEqual(sim.init_cond.isel(name=-1).inc.values[0], 0.0, msg="Failed to initialize body with only semimajor axis")
-        self.assertEqual(sim.init_cond.isel(name=-1).capom.values[0], 0.0, msg="Failed to initialize body with only semimajor axis")
-        self.assertEqual(sim.init_cond.isel(name=-1).omega.values[0], 0.0, msg="Failed to initialize body with only semimajor axis")
-        self.assertEqual(sim.init_cond.isel(name=-1).capm.values[0], 0.0, msg="Failed to initialize body with only semimajor axis")
+        self.assertEqual(sim.data.isel(name=-1).e.values[0], 0.0, msg="Failed to initialize body with only semimajor axis")
+        self.assertEqual(sim.data.isel(name=-1).inc.values[0], 0.0, msg="Failed to initialize body with only semimajor axis")
+        self.assertEqual(sim.data.isel(name=-1).capom.values[0], 0.0, msg="Failed to initialize body with only semimajor axis")
+        self.assertEqual(sim.data.isel(name=-1).omega.values[0], 0.0, msg="Failed to initialize body with only semimajor axis")
+        self.assertEqual(sim.data.isel(name=-1).capm.values[0], 0.0, msg="Failed to initialize body with only semimajor axis")
         
         # Test that we can input cartesian coordinates
         sim.add_body(mass=1.0, radius=1.0, rh=[1.0,0.0,0.0], vh=[0.0,1.0,0.0])
@@ -287,9 +287,9 @@ class TestSwiftestIO(unittest.TestCase):
             return rh,vh,elem
                 
         for sat in satname:
-            sim_rh = sim.init_cond.sel(name=sat,time=0).rh.values
-            sim_vh = sim.init_cond.sel(name=sat,time=0).vh.values
-            sim_elem = np.array([sim.init_cond[var].sel(name=sat,time=0).values.item() for var in ['a','e','inc','capom','omega','capm']])
+            sim_rh = sim.data.sel(name=sat,time=0).rh.values
+            sim_vh = sim.data.sel(name=sat,time=0).vh.values
+            sim_elem = np.array([sim.data[var].sel(name=sat,time=0).values.item() for var in ['a','e','inc','capom','omega','capm']])
             
             jpl_rh,jpl_vh,jpl_elem = get_jpl_data(sat)
             self.assertTrue(np.allclose(sim_rh,jpl_rh),msg=f"Error in rh for {sat}: {sim_rh - jpl_rh}")
@@ -317,8 +317,8 @@ class TestSwiftestIO(unittest.TestCase):
                                                 
         # No rotation should keep it in the ecliptic frame 
         sim.add_solar_system_body(["Mars","Phobos","Deimos"]) # Default should be ecliptic
-        sim_inc = sim.init_cond.isel(time=0).inc.values
-        sim_rot = sim.init_cond.isel(time=0).rot.values
+        sim_inc = sim.data.isel(time=0).inc.values
+        sim_rot = sim.data.isel(time=0).rot.values
 
         inc_close = np.allclose(sim_inc,inc_vals["ecliptic"],equal_nan=True)
         rot_close = np.allclose(sim_rot,rot_vals["ecliptic"],rtol=1e-4)
@@ -331,8 +331,8 @@ class TestSwiftestIO(unittest.TestCase):
         sim.clean()
 
         sim.add_solar_system_body(["Mars","Phobos","Deimos"],align_to_central_body_rotation=True)
-        sim_inc = sim.init_cond.isel(time=0).inc.values
-        sim_rot = sim.init_cond.isel(time=0).rot.values
+        sim_inc = sim.data.isel(time=0).inc.values
+        sim_rot = sim.data.isel(time=0).rot.values
 
         inc_close = np.allclose(sim_inc,inc_vals["mars equator"],equal_nan=True)
         rot_close = np.allclose(sim_rot,rot_vals["mars equator"])        
@@ -346,8 +346,8 @@ class TestSwiftestIO(unittest.TestCase):
         # Mix and match
         sim.add_solar_system_body("Mars") # ecliptic
         sim.add_solar_system_body(["Phobos","Deimos"],align_to_central_body_rotation=True) # mars equator
-        sim_inc = sim.init_cond.isel(time=0).inc.values
-        sim_rot = sim.init_cond.isel(time=0).rot.values
+        sim_inc = sim.data.isel(time=0).inc.values
+        sim_rot = sim.data.isel(time=0).rot.values
 
         inc_close = np.allclose(sim_inc[1:],inc_vals["mars equator"][1:]) 
         rot_close = np.allclose(sim_rot[0:1],rot_vals["ecliptic"][0:1]) and np.allclose(sim_rot[1:],rot_vals["mars equator"][1:]) 
@@ -360,8 +360,8 @@ class TestSwiftestIO(unittest.TestCase):
 
         sim.add_solar_system_body("Mars",align_to_central_body_rotation=True)
         sim.add_solar_system_body(["Phobos","Deimos"]) # ecliptic 
-        sim_inc = sim.init_cond.isel(time=0).inc.values
-        sim_rot = sim.init_cond.isel(time=0).rot.values
+        sim_inc = sim.data.isel(time=0).inc.values
+        sim_rot = sim.data.isel(time=0).rot.values
 
         inc_close = np.allclose(sim_inc[1:],inc_vals["ecliptic"][1:]) 
         rot_close = np.allclose(sim_rot[0:1],rot_vals["mars equator"][0:1]) and np.allclose(sim_rot[1:],rot_vals["ecliptic"][1:]) 
@@ -376,8 +376,8 @@ class TestSwiftestIO(unittest.TestCase):
         sim.add_solar_system_body("Mars",align_to_central_body_rotation=True)
         sim.add_solar_system_body("Phobos") # ecliptic
         sim.add_solar_system_body("Deimos",align_to_central_body_rotation=True) # mars equator
-        sim_inc = sim.init_cond.isel(time=0).inc.values
-        sim_rot = sim.init_cond.isel(time=0).rot.values
+        sim_inc = sim.data.isel(time=0).inc.values
+        sim_rot = sim.data.isel(time=0).rot.values
 
         inc_close = np.allclose(sim_inc[1:2],inc_vals["ecliptic"][1:2]) and np.allclose(sim_inc[2:],inc_vals["mars equator"][2:])
         rot_close = np.allclose(sim_rot[0:1],rot_vals["mars equator"][0:1]) and np.allclose(sim_rot[1:2],rot_vals["ecliptic"][1:2]) and np.allclose(sim_rot[2:],rot_vals["mars equator"][2:])
@@ -391,8 +391,8 @@ class TestSwiftestIO(unittest.TestCase):
         sim.add_solar_system_body("Mars",align_to_central_body_rotation=True)
         sim.add_solar_system_body("Phobos",align_to_central_body_rotation=True) # mars equator
         sim.add_solar_system_body("Deimos") # ecliptic
-        sim_inc = sim.init_cond.isel(time=0).inc.values
-        sim_rot = sim.init_cond.isel(time=0).rot.values
+        sim_inc = sim.data.isel(time=0).inc.values
+        sim_rot = sim.data.isel(time=0).rot.values
 
         inc_close = np.allclose(sim_inc[1:2],inc_vals["mars equator"][1:2]) and np.allclose(sim_inc[2:],inc_vals["ecliptic"][2:])
         rot_close = np.allclose(sim_rot[0:2],rot_vals["mars equator"][0:2]) and np.allclose(sim_rot[2:2],rot_vals["ecliptic"][2:]) 
@@ -410,7 +410,7 @@ class TestSwiftestIO(unittest.TestCase):
         sim = swiftest.Simulation(simdir=self.simdir)
         sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars"])
         sim.remove_body("Mars")
-        self.assertTrue("Mars" not in sim.init_cond.name.values)
+        self.assertTrue("Mars" not in sim.data.name.values)
         
         with self.assertWarns(Warning) as cm:  # Using Warning as the base class, adjust if needed
             sim.remove_body("Arrakis")
@@ -422,7 +422,7 @@ class TestSwiftestIO(unittest.TestCase):
         
         sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars"])
         sim.remove_body(id=4)
-        self.assertTrue("Mars" not in sim.init_cond.name.values)
+        self.assertTrue("Mars" not in sim.data.name.values)
         with self.assertWarns(Warning) as cm:  # Using Warning as the base class, adjust if needed
             sim.remove_body(id=10)
         self.assertIn("10 not found in the Dataset", str(cm.warning))
@@ -439,12 +439,33 @@ class TestSwiftestIO(unittest.TestCase):
         self.assertGreater(sim.data.sel(name='Mercury')['a'].values.item(), 99.0)
         
         self.assertTrue('j2rp2' in sim.data)
+       
+        c_lm = np.ones([2, 3, 3]) 
+        sim.modify_body(name='Sun',c_lm = c_lm)
+       
+        is_close = np.allclose(sim.data.sel(name='Sun')['c_lm'].values,c_lm) 
+        self.assertTrue(is_close,msg=f"Error in c_lm: {sim.data.sel(name='Sun')['c_lm'].values - c_lm}")
         
-        sim.modify_body(name='Sun',c_lm = np.zeros([2, 3, 3]))
+        self.assertTrue('c_lm' in sim.init_cond, msg=f"c_lm not found in sim.init_cond") 
+        self.assertTrue('sign' in sim.init_cond.dims, msg=f"sign not found in sim.init_cond.dims")
+        self.assertTrue('l' in sim.init_cond.dims, msg=f"l not found in sim.init_cond.dims")
+        self.assertTrue('m' in sim.init_cond.dims, msg=f"m not found in sim.init_cond.dims")
+        self.assertFalse('j2rp2' in sim.init_cond, msg=f"j2rp2 found in sim.init_cond")
+        self.assertFalse('j4rp4' in sim.init_cond, msg=f"j4rp4 found in sim.init_cond")
+        self.assertFalse('sign' in sim.init_cond.rh.dims, msg=f"sign found in sim.init_cond.rh.dims")
+        self.assertFalse('l' in sim.init_cond.rh.dims, msg=f"l found in sim.init_cond.rh.dims")
+        self.assertFalse('m' in sim.init_cond.rh.dims, msg=f"m found in sim.init_cond.rh.dims")
+       
+        sim.modify_body(name='Sun',j2rp2=1.0e-6,j4rp4=1.0e-8)
+        self.assertEqual(sim.data.sel(name='Sun')['j2rp2'].values.item(),1.0e-6)
+        self.assertEqual(sim.data.sel(name='Sun')['j4rp4'].values.item(),1.0e-8)
         
-        self.assertTrue('c_lm' in sim.data) 
-        self.assertFalse('j2rp2' in sim.data)
-        self.assertFalse('sign' in sim.data.rh.dims)
+        self.assertFalse('c_lm' in sim.init_cond, msg=f"c_lm found in sim.init_cond")
+        self.assertFalse('sign' in sim.init_cond.dims, msg=f"sign found in sim.init_cond.dims")
+        self.assertFalse('l' in sim.init_cond.dims, msg=f"l found in sim.init_cond.dims")
+        self.assertFalse('m' in sim.init_cond.dims, msg=f"m found in sim.init_cond.dims")
+        self.assertTrue('j2rp2' in sim.init_cond, msg=f"j2rp2 not found in sim.init_cond")
+        self.assertTrue('j4rp4' in sim.init_cond, msg=f"j4rp4 not found in sim.init_cond") 
         
         return
     
