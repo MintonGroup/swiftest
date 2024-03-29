@@ -73,7 +73,6 @@ class TestSwiftestIO(unittest.TestCase):
         file_list = [self.simdir, os.path.join(self.simdir,"param.in"), os.path.join(self.simdir,"init_cond.nc")]
         
         sim = swiftest.Simulation(simdir=self.simdir)
-        sim.clean()
 
         # Add the modern planets and the Sun using the JPL Horizons Database.
         sim.add_solar_system_body(major_bodies)
@@ -304,7 +303,6 @@ class TestSwiftestIO(unittest.TestCase):
         """
         print("\ntest_central_body_rotation")
         sim = swiftest.Simulation(simdir=self.simdir)
-        sim.clean()
         # Precomputed values for [Mars, Phobos, and Deimos] in the ecliptic and Mars equatorial frames
         inc_vals = {"ecliptic": np.array([ np.nan, 26.55406151, 24.06273241]),
                     "mars equator": np.array([ np.nan, 1.0786523 , 2.69218629])}
@@ -328,7 +326,6 @@ class TestSwiftestIO(unittest.TestCase):
 
         # Rotating to match the Mars pole
         sim = swiftest.Simulation(simdir=self.simdir)
-        sim.clean()
 
         sim.add_solar_system_body(["Mars","Phobos","Deimos"],align_to_central_body_rotation=True)
         sim_inc = sim.data.isel(time=0).inc.values
@@ -341,7 +338,6 @@ class TestSwiftestIO(unittest.TestCase):
         self.assertTrue(rot_close,msg=f"Error in rotation 2")
         
         sim = swiftest.Simulation(simdir=self.simdir)
-        sim.clean()
 
         # Mix and match
         sim.add_solar_system_body("Mars") # ecliptic
@@ -356,7 +352,6 @@ class TestSwiftestIO(unittest.TestCase):
         self.assertTrue(rot_close,msg=f"Error in rotation 3")
 
         sim = swiftest.Simulation(simdir=self.simdir)
-        sim.clean()
 
         sim.add_solar_system_body("Mars",align_to_central_body_rotation=True)
         sim.add_solar_system_body(["Phobos","Deimos"]) # ecliptic 
@@ -370,8 +365,6 @@ class TestSwiftestIO(unittest.TestCase):
         self.assertTrue(rot_close,msg=f"Error in rotation 4")
 
         sim = swiftest.Simulation(simdir=self.simdir)
-        sim.clean()
-
 
         sim.add_solar_system_body("Mars",align_to_central_body_rotation=True)
         sim.add_solar_system_body("Phobos") # ecliptic
@@ -386,7 +379,6 @@ class TestSwiftestIO(unittest.TestCase):
         self.assertTrue(rot_close,msg=f"Error in rotation 5")
 
         sim = swiftest.Simulation(simdir=self.simdir)
-        sim.clean()
 
         sim.add_solar_system_body("Mars",align_to_central_body_rotation=True)
         sim.add_solar_system_body("Phobos",align_to_central_body_rotation=True) # mars equator

@@ -43,7 +43,6 @@ class TestSwiftestIntegration(unittest.TestCase):
 
         # Add the modern planets and the Sun using the JPL Horizons Database.
         sim.add_solar_system_body(major_bodies)
-        sim.clean()
         
         # Add 10 user-defined test particles.
         ntp = 10
@@ -79,7 +78,6 @@ class TestSwiftestIntegration(unittest.TestCase):
         GM_limit = 1e-14
  
         sim = swiftest.Simulation(simdir=self.simdir)
-        sim.clean()
         
         sim.add_solar_system_body(major_bodies)
         
