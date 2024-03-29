@@ -33,7 +33,7 @@ class TestUnits(unittest.TestCase):
         print('\ntest_correct_particle_types: Check that a variety of particles are set up with the valid particle types')
 
         valid_particle_types = [swiftest.constants.PL_TINY_TYPE_NAME, swiftest.constants.PL_TYPE_NAME, swiftest.constants.TP_TYPE_NAME, swiftest.constants.CB_TYPE_NAME]
-        sim = swiftest.Simulation()
+        sim = swiftest.Simulation(simdir=self.simdir)
 
         sim.add_solar_system_body(['Sun'])
 
