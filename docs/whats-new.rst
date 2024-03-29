@@ -3,6 +3,33 @@
 What's New
 ==========
 
+v2024.03.4
+~~~~~~~~~~
+
+New Features
+~~~~~~~~~~~~
+- Added a new :meth:`~swiftest.Simulation.modify_body` method that allows users to change the properties of a body that has already been added to the simulation. This is useful for changing the mass, radius, or other properties of a body after it has been added to the simulation. `GH27`_
+- Overhauled how the :attr:`~swiftest.Simulation.init_cond` Dataset is created. It now reduces the variables and dimensions relative to the original :attr:`~swiftest.Simulation.data` Dataset, such that only the variables that are needed for the initial conditions are included. For instance, if ``init_cond_format`` (or ``param['IN_FORM']``) is set to ``EL``, it removes the ``rh`` and ``vh`` variables when creating :attr:`~swiftest.Simulation.init_cond`, but if it is instead set to ``XV`` (the default), then it removes all the orbital element variables. It also reduces the dataset's variables to either the ``j2rp2`` and ``j4rp4`` or the ``c_lm`` variables if non-spherical central bodies are being used, and retains only the value that is associated with the current central body. These are all still in the original data (though this will get overridden once the simulation is run), allowing you to swap central bodies prior to starting a run. `GH27`_
+  
+Bug Fixes
+~~~~~~~~~
+- Fixed bug that was causing the ``particle_type`` values to be incorrect in some situations. `GH28`_
+- Fixed bad values for converting to ``cm`` units and other issues with unit conversions. `GH26`_
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Overhauled the build scripts used when calling cibuildwheel to make them more robust across the various platforms we build for. This includes a more robust and consistent way to obtain the paths to compilers that lets us select gfortran-13, gfortran-12, or gfortran as our compiler depending on the availability, which is useful for building in the GitHub runners. `GH25`_
+- Added a more comprehensive suite of unit tests, including tests to 
+
+Documentation
+~~~~~~~~~~~~~
+- Added IPython blocks to the the :doc:`user-guide/standalone-executable` page to demonstrate the usage of the standalone executable in a real-world scenario. 
+
+.. _GH25: https://github.com/MintonGroup/swiftest/issues/25
+.. _GH26: https://github.com/MintonGroup/swiftest/issues/26
+.. _GH27: https://github.com/MintonGroup/swiftest/issues/27
+.. _GH28: https://github.com/MintonGroup/swiftest/issues/27
+
 v2024.03.3
 ----------
 

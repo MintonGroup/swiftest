@@ -255,7 +255,7 @@ class SwiftestDataset(xr.Dataset):
         return self
     
         
-    def el2xv(self, GMcb: xr.DataArray | float | None = None):
+    def el2xv(self, GMcb: xr.DataArray | float | None = None) -> SwiftestDataset:
         """
         Converts a Dataset's orbital elements to Cartesian state vectors. The DataArray must have the appropriate dimensions for orbital elements.
         
@@ -312,7 +312,7 @@ class SwiftestDataset(xr.Dataset):
             GMcb = xr.DataArray(data = GMcb)
             
         for dim in self.dims:
-            if dim not in GMcb.dims and dim != 'space':
+            if dim not in GMcb.dims and dim not in ['space','l','m','sign']:
                 GMcb = GMcb.expand_dims(dim={dim: self[dim]}) 
                 
         if 'Gmass' in self:
@@ -343,13 +343,13 @@ class SwiftestDataset(xr.Dataset):
         new_vars = {'rh': rh, 'vh': vh}
         dataset = xr.Dataset(new_vars)
         if "name" in dataset.variables:
-            dataset = dataset.drop_vars("name")
+            dataset = dataset.drop_vars("name")        
         dsnew = xr.merge([dataset, self], compat="override")
-
-        return dsnew
+        
+        return SwiftestDataset(dsnew)
      
                 
-    def xv2el(self, GMcb: xr.DataArray | float | None = None):
+    def xv2el(self, GMcb: xr.DataArray | float | None = None) -> SwiftestDataset:
         """
         Converts A Dataset's Cartesian state vectors to orbital elements. The DataArray must have the "space" dimension. 
         
@@ -395,7 +395,7 @@ class SwiftestDataset(xr.Dataset):
             GMcb = xr.DataArray(data = GMcb)
             
         for dim in self.dims:
-            if dim not in GMcb.dims and dim != 'space':
+            if dim not in GMcb.dims and dim not in ['space','l','m','sign']:
                 GMcb = GMcb.expand_dims(dim={dim: self[dim]}) 
                 
         if 'Gmass' in self:
@@ -421,4 +421,5 @@ class SwiftestDataset(xr.Dataset):
             dataset = dataset.drop_vars("name")        
         dsnew = xr.merge([dataset, self], compat="override")
         
-        return dsnew
+        return SwiftestDataset(dsnew)
+

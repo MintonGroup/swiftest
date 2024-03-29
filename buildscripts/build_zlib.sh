@@ -11,10 +11,8 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 SCRIPT_DIR=$(realpath $(dirname $0))
-set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
-. ${SCRIPT_DIR}/set_compilers.sh
 
 NPROC=$(nproc)
 
@@ -56,7 +54,7 @@ cmake --build build -j${NPROC}
 if [ -w "${ZLIB_ROOT}" ]; then
     cmake --install build 
     # Remove shared libraries
-    if [ $OS = "MacOSX" ]; then
+    if [ $OS = "Darwin" ]; then
         rm -f ${ZLIB_ROOT}/lib/libz*.dylib
     else
         rm -f ${ZLIB_ROOT}/lib/libz*.so
@@ -64,7 +62,7 @@ if [ -w "${ZLIB_ROOT}" ]; then
 else
     sudo cmake --install build
     # Remove shared libraries
-    if [ $OS = "MacOSX" ]; then
+    if [ $OS = "Darwin" ]; then
         sudo rm -f ${ZLIB_ROOT}/lib/libz*.dylib
     else
         sudo rm -f ${ZLIB_ROOT}/lib/libz*.so

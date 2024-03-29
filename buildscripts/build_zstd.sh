@@ -10,10 +10,8 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 SCRIPT_DIR=$(realpath $(dirname $0))
-set -a
 ARGS=$@
 . ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
-. ${SCRIPT_DIR}/set_compilers.sh
 
 NPROC=$(nproc)
 ZSTD_ROOT=${ZSTD_ROOT:-"${ZSTD_HOME}"}
