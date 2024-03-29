@@ -461,6 +461,24 @@ class TestSwiftestIO(unittest.TestCase):
         
         return
     
+    def test_remove_and_modify(self):
+        sim = swiftest.Simulation(simdir=self.simdir)
+        sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune"])
+
+        # Add 10 user-defined test particles.
+        ntp = 10
+
+        name_tp     = ["TestParticle_01", "TestParticle_02", "TestParticle_03", "TestParticle_04", "TestParticle_05", "TestParticle_06", "TestParticle_07", "TestParticle_08", "TestParticle_09", "TestParticle_10"]
+        a_tp        = rng.uniform(0.3, 1.5, ntp)
+        e_tp        = rng.uniform(0.0, 0.2, ntp)
+        inc_tp      = rng.uniform(0.0, 10, ntp)
+        capom_tp    = rng.uniform(0.0, 360.0, ntp)
+        omega_tp    = rng.uniform(0.0, 360.0, ntp)
+        capm_tp     = rng.uniform(0.0, 360.0, ntp)
+
+        sim.add_body(name=name_tp, a=a_tp, e=e_tp, inc=inc_tp, capom=capom_tp, omega=omega_tp, capm=capm_tp)
+        sim.modify_body(name="TestParticle_01", a=1.0, e=0.1, inc=0.0, capom=0.0, omega=0.0, capm=0.0)
+    
 if __name__ == '__main__':
     os.environ["HDF5_USE_FILE_LOCKING"]="FALSE"
     unittest.main()

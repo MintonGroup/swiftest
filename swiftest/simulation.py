@@ -3283,7 +3283,10 @@ class Simulation(object):
                 print(msg)
         dsnew['status'] = xr.zeros_like(dsnew['id'])
 
-        self.data = xr.combine_by_coords([self.data, dsnew])
+        if "name" in self.data:
+            self.data = xr.concat([self.data, dsnew], dim="name")
+        else:
+            self.data = xr.combine_by_coords([self.data, dsnew])
         
         if not isinstance(self.data, SwiftestDataset):
             self.data = SwiftestDataset(self.data)
