@@ -1,6 +1,6 @@
 [project]
 name = "swiftest"
-version = "2024.3.4"
+version = "2024.3.5"
 authors=[
     {name = 'David A. Minton', email='daminton@purdue.edu'},
     {name = 'Carlisle Wishard'},
