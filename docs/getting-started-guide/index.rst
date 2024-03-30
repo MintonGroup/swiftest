@@ -31,7 +31,9 @@ Installation
 ------------
 
 For most users, installing swiftest can be done via pip using the
-command::
+command
+
+.. code-block:: bash
 
    pip install swiftest
 
@@ -96,19 +98,45 @@ The Swiftest project contains a set of build scripts that can be used to help bu
 These scripts are used to build the official Swiftest Python wheels using cibuildwheel. In addition, we have also included a pair of
 scripts that will set environment variables for Linux or MacOS.
 
-For Linux, ensure that at least ``libxml2-devel`` and ``libcurl-devel`` are installed. 
-Building the dependencies can be done by running the following command from the command line::
+For Linux, ensure that the following dependencies are installed 
 
-   $ . buildscripts/set_environment_linux.sh
-   $ buildscripts/build_dependencies.sh
+- doxygen
+- libxml2 (development version)
+- libcurl (development version)
+- fftw (static version)
+- openblas (development version)
+- lapack (development version)
+- cmake
+- ninja-build
+- gfortran
+- graphviz
 
-For Mac Builds, the dependencies are built in a similar way. Ensure that the Xcode command line tools are installed as well as the Homebrew package manager.
-Building the dependencies can be done by running the following command from the command line:: 
+These dependencies can be installed on a RedHat based system by running the following commands from the command line.
 
-   $ brew install coreutils
-   $ . buildscripts/set_environment_mac.sh
-   $ buildscripts/build_dependencies.sh -m ${MACOSX_DEPLOYMENT_TARGET}
+.. code-block:: bash
 
+   sudo yum install epel-release 
+   sudo yum install doxygen libxml2-devel libcurl-devel fftw-static openblas-devel lapack-devel cmake ninja-build gcc-gfortran graphviz
+
+On a Debian based system, the dependencies can be installed by running the following commands from the command line
+
+.. code-block:: bash
+
+   sudo apt-get install doxygen libxml2-dev libcurl4-openssl-dev libfftw3-dev libopenblas-dev liblapack-dev cmake ninja-build gfortran graphviz
+
+On a MacOS system, be sure homebrew is installed.
+
+.. code-block:: bash
+   
+   brew install coreutils
+
+We provide a script that can be used to set environment variables prior to building the dependencies called ``set_environment.sh``. 
+Building the dependencies can be done by running the following command from the command line
+
+.. code-block:: bash
+
+   . buildscripts/set_environment.sh
+   buildscripts/build_dependencies.sh
 
 Note that the above scripts will use gfortran to build the dependencies. If you wish to use the Intel Fortran Compiler, you will need to modify the build scripts to use the Intel Fortran Compiler.
 
@@ -116,13 +144,17 @@ Note that the above scripts will use gfortran to build the dependencies. If you 
 Building the Swiftest Python Package and Executable
 ---------------------------------------------------
 
-Once dependencies are installed, you can install the Swiftest Python package and the Swiftest executable by running the following command from the command line::
+Once dependencies are installed, you can install the Swiftest Python package and the Swiftest executable by running the following command from the command line
 
-   $ pip install .
+.. code-block:: bash
 
-Or, alternatively, if you wish to install an editable version::
+   pip install .
 
-   $ pip install --no-build-isolation -ve .
+Or, alternatively, if you wish to install an editable version
+
+.. code-block:: bash
+
+   pip install --no-build-isolation -ve .
 
 
 Building the exectuable using CMake
@@ -168,21 +200,21 @@ best practice to create a ``build`` directory in your topmost directory
 from which you will compile Swiftest. This way, temporary CMake files
 will not clutter up the ``swiftest/src/`` sub-directories. The commands
 to build the source code into a ``build`` directory and compile Swiftest
-are:
+are
 
-::
+.. code-block:: bash
 
-   $ cmake -B build -S . -G Ninja
-   $ cmake --build build -j8
+   cmake -B build -S . -G Ninja
+   cmake --build build -j8
 
 You may omit the ``-G Ninja`` flag if you do not have the Ninja build system installed. The ``-j8`` flag is used to specify the number of threads to use during compilation.
 
 The `CMake Fortran template <https://github.com/SethMMorton/cmake_fortran_template>`__
-comes with a script that can be used to clean out any build artifacts and start from scratch:
+comes with a script that can be used to clean out any build artifacts and start from scratch
 
-::
+.. code-block:: bash
 
-   $ cmake -P distclean.cmake
+   cmake -P distclean.cmake
 
 The Swiftest CMake configuration comes with several customization options:
 
@@ -211,14 +243,18 @@ The Swiftest CMake configuration comes with several customization options:
 +----------------------------------------------+-------------------------------------------------------+---------------+
 
 
-To see a list of all possible options available to CMake::
+To see a list of all possible options available to CMake
 
-   $ cmake -B build -S . -LA
+.. code-block:: bash
+
+   cmake -B build -S . -LA
 
 The Swiftest executable, called ``swiftest`` as well as the shared library, either ``libswiftest.so`` or ``libswiftest.dylib``, 
-depending on your platform, should now be created in the ``build/bin/`` directory. You can also install the it into your system by running::
+depending on your platform, should now be created in the ``build/bin/`` directory. You can also install the it into your system by running
 
-   $ cmake --install build
+.. code-block:: bash
+
+   cmake --install build
 
 You may need to run the above command as root or with sudo if you are installing into a system directory.
 
@@ -227,7 +263,6 @@ Building the exectuable using Docker
 ------------------------------------
 
 TBD
-
 
 
 .. toctree::

@@ -72,9 +72,7 @@ When adding bodies to a simulation, it is possible to mix central body frames. I
     :okwarning:
 
     sim.add_solar_system_body(['Phobos', 'Deimos'])
-
     sim.data.name.values
-
     sim.data.sel(time=0).inc.values
 
 This sets up a simulation with Phobos and Deimos, with Phobos as the central body. The inclination of Phobos is ``nan`` because it is the central body. Now let's add Mars to the simulation, with ``align_to_central_body_rotation`` set to ``True`` and see how the inclinations change.
@@ -90,9 +88,7 @@ This sets up a simulation with Phobos and Deimos, with Phobos as the central bod
     :okwarning:
 
     sim.add_solar_system_body('Mars',align_to_central_body_rotation=True)
-
     sim.data.name.values
-
     sim.data.sel(time=0).inc.values
 
 Because Mars is now the most massive body in the system, it has replaced Phobos as the central body. Because the central body has changed, the ``align_to_central_body_rotation=True`` argument rotates all bodies in the system to align with Mars's rotation vector. 
@@ -110,9 +106,7 @@ Now Let's see what happens when we add a new body to the simulation that is smal
     :okwarning:
 
     sim.add_solar_system_body(['Mars', 'Phobos'])
-
     sim.data.name.values
-
     sim.data.inc.values
 
 We have not aligned the pole of Mars when the simulation was initialized, so the inclination of Phobos is its value relative to the ecliptic. Now we will add Deimos and set ``align_to_central_body_rotation`` to ``True``:
@@ -120,10 +114,8 @@ We have not aligned the pole of Mars when the simulation was initialized, so the
 .. ipython:: python
     :okwarning:
 
-    sim.add_solar_system_body('Deimos',align_to_central_body_rotation=True)
-
-    sim.data.name.values
-
+    sim.add_solar_system_body('Deimos',align_to_central_body_rotation=True) 
+    sim.data.name.values 
     sim.data.sel(time=0).inc.values
 
 We can see that *only* the inclination of Deimos was rotated. Of course, this leads to an inconsistent set of initial conditions for this system. This is why it is important to be careful when using the ``align_to_central_body_rotation`` argument.
