@@ -74,7 +74,7 @@ skip = "pp* *i686 *-manylinux_i686 *_ppc64le *_s390x *-musllinux* *-win32"
 build-verbosity = 1
 
 [tool.cibuildwheel.macos.environment]
-PREFIX="${PREFIX:-$(pwd)/build/deps/usr/local}"
+PREFIX="$(pwd)/build/deps/usr/local"
 NETCDF_FORTRAN_HOME="${PREFIX}"
 NETCDF_FORTRAN_INCLUDE="${NETCDF_FORTRAN_HOME}/include"
 NETCDF_DIR="${NETCDF_FORTRAN_HOME}/lib/cmake/netCDF"
@@ -97,7 +97,7 @@ CXXFLAGS="${CFLAGS}"
 PATH="${PREFIX}/bin:${PATH}"
 
 [tool.cibuildwheel.linux.environment]
-PREFIX="${PREFIX:-$(pwd)/build/deps/usr/local}"
+PREFIX="$(pwd)/build/deps/usr/local"
 NETCDF_FORTRAN_HOME="${PREFIX}"
 NETCDF_FORTRAN_INCLUDE="${NETCDF_FORTRAN_HOME}/include"
 NETCDF_DIR="${NETCDF_FORTRAN_HOME}/lib/cmake/netCDF"
@@ -110,6 +110,8 @@ REPAIR_LIBRARY_PATH="${LD_LIBRARY_PATH}"
 
 [tool.cibuildwheel.macos]
 before-all = [
+    "echo ${PREFIX}",
+    "printenv",
     "brew install coreutils pkg-config fftw vecLibFort;buildscripts/build_dependencies.sh -d ${HOME}/Downloads"
 ]
 repair-wheel-command = """\
