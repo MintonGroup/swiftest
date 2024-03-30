@@ -9,6 +9,7 @@ Here we will walk you through the basic features of Swiftest and using them in P
 Start with importing Swiftest. 
 
 .. ipython:: python
+    :okwarning:
     
     import swiftest
 
@@ -24,6 +25,7 @@ Outputs are stored in the ``./simdata`` directory by default.
     sim = swiftest.Simulation()
   
 .. ipython:: python
+    :okwarning:
     :suppress:
 
     import tempfile
@@ -41,6 +43,7 @@ We can add solar system bodies to the simulation using the :meth:`~swiftest.Simu
 method.  This method uses JPL Horizons to extract the parameters. 
 
 .. ipython:: python
+    :okwarning:
    
    # Add the modern planets and the Sun using the JPL Horizons Database.
    sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune"])
@@ -114,12 +117,14 @@ Here we have a simulation that runs for 100,000 y a step size of 0.01 y. We will
 of the simulation to write the simulation data to file using the ``dump_cadence=0`` argument
 
 .. ipython:: python
+    :okwarning:
 
     sim.set_parameter(tstop=1.0e5, tstep_out=1e3, dt=0.01, dump_cadence=0)
 
 Once everything is set up, we call the :func:`run <swiftest.Simulation.run>` method to integrate the system forward in time
 
 .. ipython:: python
+    :okwarning:
 
     sim.run()
 
@@ -163,6 +168,7 @@ default name of ``data.nc``, which is a netCDF file. It is read in and stored as
 Here is an example of what the dataset looks like after the above simulation has been run
 
 .. ipython:: python
+    :okwarning:
     :suppress:
 
     # Import xarray and set its output to show more lines
@@ -170,6 +176,7 @@ Here is an example of what the dataset looks like after the above simulation has
     xr.set_options(display_max_rows=50)
 
 .. ipython:: python
+    :okwarning:
 
     sim.data
 
@@ -180,6 +187,7 @@ Datasets are very powerful and flexible, and can be used to analyze and visualiz
 Here is an example where we can generate a simple plot of the semimajor axis vs. time history of all the planets in the system
 
 .. ipython:: python
+    :okwarning:
 
   @savefig basic_simulation_a_vs_t_plot.png width=800px
   sim.data['a'].where(sim.data.particle_type != 'Central Body', drop=True).plot(x='time',hue='name');
@@ -188,6 +196,7 @@ This is just a simple example of what you can do with the simulation data. Xarra
 data processing functions. For more information, see the `Xarray documentation <https://docs.xarray.dev/en/stable/>`__.
 
 .. ipython:: python
+    :okwarning:
   :suppress:
 
   tmpdir.cleanup() 
