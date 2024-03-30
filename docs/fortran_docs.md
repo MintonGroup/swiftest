@@ -1,17 +1,20 @@
 ---
 project: Swiftest
 author: David A. Minton
+email: daminton@purdue.edu
 summary: High performance Fortran functions used by the swiftest project via ISO_C_BINDING interfaces and Cython.
 project_github: https://github.com/MintonGroup/swiftest
 project_download: https://github.com/MintonGroup/swiftest/releases
 project_website: https://swiftest.readthedocs.io
 github: https://github.com/MintonGroup/
-src_dir: src
-output_dir: ./docs/_static/fortran_docs
+src_dir: ../src
+output_dir: _static/fortran_docs
 source: true
-graph: true
+graph: false
 sort: alpha
-print_creation_date: true
+print_creation_date: false
+show_proc_parent: true
+max_frontpage_items: 50
 extra_mods: iso_c_binding:https://gcc.gnu.org/onlinedocs/gfortran/ISO_005fC_005fBINDING.html
             ieee_arithmetic:https://gcc.gnu.org/onlinedocs/gfortran/IEEE-modules.html
             ieee_exceptions:https://gcc.gnu.org/onlinedocs/gfortran/IEEE-modules.html
