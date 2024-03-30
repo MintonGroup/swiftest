@@ -28,8 +28,10 @@ Outputs are stored in the ``./simdata`` directory by default.
     :okwarning:
     :suppress:
 
+    import os
     import tempfile
     tmpdir=tempfile.TemporaryDirectory()
+    os.environ['OMP_NUM_THREADS'] = '1'
     sim = swiftest.Simulation(simdir=tmpdir.name)
 
 
