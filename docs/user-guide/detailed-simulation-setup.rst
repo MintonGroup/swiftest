@@ -10,6 +10,7 @@ This is based on ``swiftest/examples/Basic_Simulation``.
 Start with importing Swiftest and other packages we will use in this tutorial. 
 
 .. ipython:: python
+   :okwarning:
 
    import swiftest
    import numpy as np 
@@ -21,10 +22,12 @@ Create a Swiftest Simulation object and clean the simulation directory of any pr
 Outputs are stored in the ``./simdata`` directory by default. 
 
 .. ipython:: python
+   :okwarning:
 
    sim = swiftest.Simulation()
 
 .. ipython:: python
+   :okwarning:
    :suppress:
 
    import tempfile
@@ -47,6 +50,7 @@ We can add solar system bodies to the simulation using the :meth:`add_solar_syst
 This method uses JPL Horizons to extract the parameters of a particular body given a name.
 
 .. ipython:: python
+   :okwarning:
    
    # Add the modern planets and the Sun using the JPL Horizons Database.
    sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune"])
@@ -54,6 +58,7 @@ This method uses JPL Horizons to extract the parameters of a particular body giv
 We can add other small bodies too. 
 
 .. ipython:: python
+   :okwarning:
 
    # Add in some main belt asteroids
    sim.add_solar_system_body(name=["Ceres","Vesta","Pallas","Hygiea"],id_type="smallbody")
@@ -92,6 +97,7 @@ You can add a user-defined body with arbitrary initial conditions using using :m
 We will randomize the initial conditions and therefore import the `numpy.random <https://numpy.org/doc/stable/reference/random/index.html#module-numpy.random>`__ module.
 
 .. ipython:: python
+   :okwarning:
 
    from numpy.random import default_rng
    rng = default_rng(seed=123)
@@ -99,6 +105,7 @@ We will randomize the initial conditions and therefore import the `numpy.random 
 Starting with **massive bodies:** 
 
 .. ipython:: python
+   :okwarning:
 
    npl = 5 # number of massive bodies
    density_pl  = 3000.0 / (sim.param['MU2KG'] / sim.param['DU2M'] ** 3)
@@ -118,6 +125,7 @@ Orbital Elements
 Initialize orbital elements and then add the bodies.
 
 .. ipython:: python
+   :okwarning:
    
    a_pl        = rng.uniform(0.3, 1.5, npl) # semi-major axis
    e_pl        = rng.uniform(0.0, 0.2, npl) # eccentricity
@@ -162,6 +170,7 @@ The process is similar for **test particles**. They only need the orbital elemen
 Here is an example with orbital elements:
 
 .. ipython:: python
+   :okwarning:
 
    # Add 10 user-defined test particles.
    ntp = 10
@@ -193,6 +202,7 @@ This can be done in multiple ways:
 - :meth:`sim.set_parameter <swiftest.Simulation.set_parameter>`: Set individual parameters in the simulation. The user can set one or multiple at a time.
 
 .. ipython:: python
+   :okwarning:
 
     sim.set_parameter(tstart=0.0, tstop=1.0e3, dt=0.01, tstep_out=1.0, dump_cadence=0, compute_conservation_values=True, mtiny=mtiny)
     sim.set_parameter(rmin = 0.05)
@@ -209,6 +219,7 @@ Running the Simulation
 Once everything is set up, we can save the simulation object and then run it.
 
 .. ipython:: python
+   :okwarning:
 
     sim.run()
 
@@ -222,12 +233,14 @@ Once this is finished, you should be able to access the output data stored in th
   xr.set_options(display_max_rows=50)
 
 .. ipython:: python
+   :okwarning:
 
     sim.data
 
 Or, say, plot the eccentricity history of just the test particles:
 
 .. ipython:: python
+   :okwarning:
 
    @savefig detailed_simulation_e_vs_t_tp.png width=800px
    sim.data['e'].where(sim.data.particle_type == 'Test Particle',drop=True).plot(x='time',hue='name');
@@ -238,42 +251,29 @@ Modifying and Removing Bodies
 
 Modifying the properties of initial conditions bodies and removing them is easily done with :meth:`~swiftest.Simulation.modify_body` and :meth:`~swiftest.Simulation.remove_body`. Any property (other than ``name``, which is the unique identifier) can be modified.
 
-.. ipython:: python
 
-   print(sim.data.sel(name="TestParticle_01")[['a','e','inc','capom','omega','capm']])
+.. code-block:: python
+
    sim.modify_body(name="TestParticle_01", a=1.0, e=0.1, inc=0.0, capom=0.0, omega=0.0, capm=0.0)
-   print(sim.data.sel(name="TestParticle_01")[['a','e','inc','capom','omega','capm']])
-
 
 Removing bodies is also straightforward:
 
-.. ipython:: python
+.. code-block:: python
 
    sim.remove_body(name="TestParticle_02")
 
 You can also alter the central body. For instance, if you wanted to use a set of coefficients from the `SHTOOLS library <https://shtools.github.io/SHTOOLS/>`, you could do the following.
 
-.. ipython:: python
+.. code-block:: python
 
    import swiftest
    import pyshtools as pysh
 
    sim = swiftest.Simulation()
-
-.. ipython:: python
-   :suppress:
-
-   import tempfile
-   tmpdir=tempfile.TemporaryDirectory()
-   sim.set_parameter(simdir=tmpdir.name)
-
-.. ipython:: python
-
-   c_lm_data = pysh.datasets.Mars.GMM3(lmax = 6) # gravitational potential coefficients
-   c_lm = c_lm_data.coeffs # 4pi normalized
+   c_lm = pysh.datasets.Mars.GMM3(lmax = 6).coeffs
    sim.add_solar_system_body(["Mars","Phobos","Deimos"])
    sim.modify_body(name="Mars", c_lm=c_lm)
 
-.. .. toctree::
-..    :maxdepth: 2
-..    :hidden:
+.. toctree::
+   :maxdepth: 2
+   :hidden:

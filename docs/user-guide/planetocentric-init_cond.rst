@@ -22,6 +22,7 @@ By default, the initial state vectors of any bodies added via the Horizons ephem
 
 
 .. ipython:: python
+    :okwarning:
     :suppress:
 
     import tempfile
@@ -31,26 +32,25 @@ By default, the initial state vectors of any bodies added via the Horizons ephem
 
 
 .. ipython:: python
+    :okwarning:
 
     sim.add_solar_system_body(['Mars', 'Phobos', 'Deimos'])
-
     sim.data.sel(time=0,name=['Phobos','Deimos']).inc.values
-
     sim.data.sel(time=0).rot.values
 
 The inclinations of Phobos and Deimos are 26.55 and 24.06 degrees, respectively, which seems rather high. Now let's initialize the simulation with the ``align_to_central_body_rotation`` argument set to ``True`` and see how the inclinations and rotation vectors change.
   
 .. ipython:: python
+    :okwarning:
     :suppress:
 
     sim = swiftest.Simulation(simdir=tmpdir.name)
 
 .. ipython:: python
+    :okwarning:
 
     sim.add_solar_system_body(['Mars', 'Phobos', 'Deimos'],align_to_central_body_rotation=True)
-
     sim.data.sel(time=0,name=['Phobos','Deimos']).inc.values
-
     sim.data.sel(time=0).rot.values
 
 Now we can see that the inclinations of Phobos and Deimos are 1.08 and 2.69 degrees, respectively, which is much more reasonable. The rotation vectors have also changed, as expected, with the x and y components of the rotation vector of Mars being nearly zero (well within floating point precision). This is because the coordinate frame of the system has been rotated to align the z-axis with the central body's north pole.
@@ -63,11 +63,13 @@ When adding bodies to a simulation, it is possible to mix central body frames. I
 
 
 .. ipython:: python
+    :okwarning:
     :suppress:
 
     sim = swiftest.Simulation(simdir=tmpdir.name)
 
 .. ipython:: python
+    :okwarning:
 
     sim.add_solar_system_body(['Phobos', 'Deimos'])
 
@@ -79,11 +81,13 @@ This sets up a simulation with Phobos and Deimos, with Phobos as the central bod
 
   
 .. ipython:: python
+    :okwarning:
     :suppress:
 
     sim = swiftest.Simulation(simdir=tmpdir.name)
 
 .. ipython:: python
+    :okwarning:
 
     sim.add_solar_system_body('Mars',align_to_central_body_rotation=True)
 
@@ -97,11 +101,13 @@ Now Let's see what happens when we add a new body to the simulation that is smal
 
   
 .. ipython:: python
+    :okwarning:
     :suppress:
 
     sim = swiftest.Simulation(simdir=tmpdir.name)
 
 .. ipython:: python
+    :okwarning:
 
     sim.add_solar_system_body(['Mars', 'Phobos'])
 
@@ -112,6 +118,7 @@ Now Let's see what happens when we add a new body to the simulation that is smal
 We have not aligned the pole of Mars when the simulation was initialized, so the inclination of Phobos is its value relative to the ecliptic. Now we will add Deimos and set ``align_to_central_body_rotation`` to ``True``:
 
 .. ipython:: python
+    :okwarning:
 
     sim.add_solar_system_body('Deimos',align_to_central_body_rotation=True)
 

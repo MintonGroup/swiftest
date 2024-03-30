@@ -18,6 +18,7 @@ Create a basic solar system simulation
 First we will create a basic solar system simulation
 
 .. ipython:: python
+  :okwarning:
 
   import swiftest
   sim = swiftest.Simulation(tstop=1.0, dt=0.01, tstep_out=0.1)
@@ -26,6 +27,7 @@ First we will create a basic solar system simulation
 Instead of running it, we will simply save the current state of the system to a file.
 
 .. ipython:: python
+  :okwarning:
 
   sim.save()
 
@@ -34,7 +36,8 @@ These files contain the parameters for the simulation and the initial conditions
 from the terminal, simply navigated to the `simdata` directory and run the executable.
 
 .. ipython:: python
-
+  :okwarning:
+  
   %%bash
   cd simdata
   swiftest whm param.in 
@@ -49,6 +52,7 @@ For a more streamlined output that shows a progress bar and saves the standard t
 Once the simulation is done, the results can be read in from Python
 
 .. ipython:: python
+  :okwarning:
 
   import swiftest
   sim = swiftest.Simulation(read_data=True)
