@@ -26,7 +26,7 @@ build:
 
   jobs:
     pre_build:
-      - . buildscripts/set_environment.sh && buildscripts/build_dependencies.sh && pip install .
+      - . buildscripts/set_environment.sh && buildscripts/build_dependencies.sh && pip install pickleshare && pip install .
       - ford fortran_docs.md 
 
 python:
