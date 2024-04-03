@@ -3037,7 +3037,10 @@ class Simulation(object):
         if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
             ds['npl'] += ds[count_dim].where(ds['particle_type'] == constants.PL_TINY_TYPE_NAME).count(dim=count_dim)
             ds['nplm'] = ds[count_dim].where(ds['particle_type'] == constants.PL_TYPE_NAME).count(dim=count_dim)
+            ds['nplm'] = ds['nplm'].expand_dims(dim={"time":1}, axis=0) 
             
+        ds['ntp'] = ds['ntp'].expand_dims(dim={"time":1}, axis=0) 
+        ds['npl'] = ds['npl'].expand_dims(dim={"time":1}, axis=0) 
         return ds
 
     def _get_valid_body_list(self, 
@@ -3282,9 +3285,19 @@ class Simulation(object):
                 msg +="\nConsider using unique names instead."
                 print(msg)
         dsnew['status'] = xr.zeros_like(dsnew['id'])
+        
+        def filter_by_dimension(ds, dim_name):
+            """Filter variables in the dataset by whether they contain a specific dimension."""
+            with_dim = xr.Dataset({var: ds[var] for var in ds.variables if dim_name in ds[var].dims})
+            without_dim = xr.Dataset({var: ds[var] for var in ds.variables if dim_name not in ds[var].dims})
+            return with_dim, without_dim
 
         if "name" in self.data:
-            self.data = xr.concat([self.data, dsnew], dim="name")
+            # Split each dataset into variables with and without the 'name' dimension
+            data_with_name, data_without_name = filter_by_dimension(self.data, 'name')
+            dsnew_with_name, _ = filter_by_dimension(dsnew, 'name')
+            concatenated_with_name = xr.concat([data_with_name, dsnew_with_name], dim='name')
+            self.data = xr.merge([concatenated_with_name, data_without_name]) 
         else:
             self.data = xr.combine_by_coords([self.data, dsnew])
         

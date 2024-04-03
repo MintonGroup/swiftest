@@ -2,6 +2,14 @@
 
 What's New
 ==========
+v2024.04.0
+~~~~~~~~~~
+
+Bug Fixes
+~~~~~~~~~
+- Fixed the `Simulation._combine_and_fix_dsnew` method so that the `name` dimension is not added where not needed. `GH33`_
+
+.. _GH33: https://github.com/MintonGroup/swiftest/issues/33
 
 v2024.03.4
 ~~~~~~~~~~
