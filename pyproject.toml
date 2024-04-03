@@ -62,7 +62,7 @@ build-backend = "scikit_build_core.build"
 [tool.scikit-build]
 cmake.version = ">=3.23.1"
 ninja.version = ">=1.11.1"
-cmake.args = ["-DUSE_SIMD=OFF"]
+cmake.args = ["-DMACHINE_CODE_VALUE=generic"]
 sdist.include = ["src/globals/globals_module.f90.in","swiftest/*.py","swiftest/*.pyx","swiftest/*.h"]
 build-dir = "build/{wheel_tag}"
 cmake.verbose = true

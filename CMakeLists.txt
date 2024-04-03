@@ -176,7 +176,7 @@ ELSE ()
 ENDIF ()
 
 
-
+MESSAGE(STATUS "CMAKE_SYSTEM_PROCESSOR: " ${CMAKE_SYSTEM_PROCESSOR})
 #####################################
 # Tell how to install this executable
 #####################################
