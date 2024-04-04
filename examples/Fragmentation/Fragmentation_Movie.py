@@ -374,5 +374,5 @@ if __name__ == "__main__":
                           nfrag_reduction=nfrag_reduction[style])
         sim.run(dt=5e-4, tstop=tstop[style], istep_out=1, dump_cadence=0)
 
-        print("Generating animation")
+        print("\nGenerating animation")
         anim = AnimatedScatter(sim,movie_filename,movie_titles[style],style,nskip=1)

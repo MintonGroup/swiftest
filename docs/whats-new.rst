@@ -8,8 +8,15 @@ v2024.04.0
 Bug Fixes
 ~~~~~~~~~
 - Fixed the `Simulation._combine_and_fix_dsnew` method so that the `name` dimension is not added where not needed. `GH33`_
+- Fixed the :meth:`~Simulation.read_encounter_file` for reading encounter variables due to change in how the encounter data is indexed. `GH33`_
+- Fixed bug in the Fortran collision module that was causing `max_rot` to always be set to 0 in Fraggle, causing Fraggle to fail more often due to not being able to satisfy the angular momentum constrain through fragment spin. `GH34`_
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Updated headers of all build scripts and improved robustness of the `MACOX_DEPLOYMENT_TARGET` versioning determination with a dedicated script
 
 .. _GH33: https://github.com/MintonGroup/swiftest/issues/33
+.. _GH34: https://github.com/MintonGroup/swiftest/issues/34
 
 v2024.03.4
 ~~~~~~~~~~

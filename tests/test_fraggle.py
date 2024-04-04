@@ -14,6 +14,8 @@ import unittest
 import os
 import tempfile
 import numpy as np
+import warnings
+warnings.simplefilter('error', RuntimeWarning)
 
 
 # Colliion initial conditions taken from Fragmentation_Movie.py in the example directory
@@ -110,6 +112,45 @@ tstop = {"disruption_headon"         : 2.0e-3,
          "merge_spinner"             : 5.0e-3,
          }
 
+nfrag_minimum_expected = {"disruption_headon"         : 20,
+                          "disruption_off_axis"       : 20,
+                          "supercatastrophic_headon"  : 20,
+                          "supercatastrophic_off_axis"  : 20,
+                          "hitandrun_disrupt"         : 20,
+                          "hitandrun_pure"            : 0,
+                          "merge"                     : 0,
+                          "merge_spinner"             : 0,
+                          }
+
+nfrag_maximum_expected = {"disruption_headon"         : 100,
+                          "disruption_off_axis"       : 100,
+                          "supercatastrophic_headon"  : 100,
+                          "supercatastrophic_off_axis"  : 100,
+                          "hitandrun_disrupt"         : 100,
+                          "hitandrun_pure"            : 0,
+                          "merge"                     : 0,
+                          "merge_spinner"             : 0,
+                          }
+
+expected_regime = {"disruption_headon"         : "Disruption",
+                   "disruption_off_axis"       : "Disruption",
+                   "supercatastrophic_headon"  : "Supercatastrophic disruption",
+                   "supercatastrophic_off_axis" : "Supercatastrophic disruption",
+                   "hitandrun_disrupt"         : "Hit and run",
+                   "hitandrun_pure"            : "Hit and run",
+                   "merge"                   : "Merge",
+                   "merge_spinner"           : "Hit and run"
+                  }
+expected_outcome =    {"disruption_headon"         : "calculation converged",
+                   "disruption_off_axis"       : "calculation converged",
+                   "supercatastrophic_headon"  : "calculation converged",
+                   "supercatastrophic_off_axis" : "calculation converged",
+                   "hitandrun_disrupt"         : "calculation converged",
+                   "hitandrun_pure"            : "No new fragments generated",
+                   "merge"                   : "Merging",
+                   "merge_spinner"           : "No new fragments generated"
+                  }
+
 density = 3000 * swiftest.AU2M**3 / swiftest.MSun
 GU = swiftest.GMSun * swiftest.YR2S**2 / swiftest.AU2M**3
 body_radius = body_Gmass.copy()
@@ -130,33 +171,44 @@ class TestFraggle(unittest.TestCase):
         # Clean up temporary directory
         self.tmpdir.cleanup() 
         
-    def test_disruption_headon(self):
+    def test_collision_outcomes(self):
         '''
         Check that the head on disruption collision generates fragments and conserves quantities
         '''
-        
-        style = "disruption_headon"
-        sim = swiftest.Simulation(simdir=self.simdir, rotation=True, compute_conservation_values=True)
-        sim.add_solar_system_body("Sun")
-        sim.add_body(name=names, Gmass=body_Gmass[style], radius=body_radius[style], rh=pos_vectors[style], vh=vel_vectors[style], rot=rot_vectors[style])
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", RuntimeWarning) 
+            for style in collision_type:
+                sim = swiftest.Simulation(simdir=self.simdir, rotation=True, compute_conservation_values=True)
+                sim.add_solar_system_body("Sun")
+                sim.add_body(name=names, Gmass=body_Gmass[style], radius=body_radius[style], rh=pos_vectors[style], vh=vel_vectors[style], rot=rot_vectors[style])
 
-        # Set fragmentation parameters
-        minimum_fragment_gmass = 0.01 * body_Gmass[style][1] 
-        gmtiny = 0.50 * body_Gmass[style][1] 
-        sim.set_parameter(collision_model="fraggle", 
-                          encounter_save="both", 
-                          gmtiny=gmtiny, 
-                          minimum_fragment_gmass=minimum_fragment_gmass, 
-                          nfrag_reduction=nfrag_reduction[style])
-        sim.run(dt=5e-4, tstop=tstop[style], istep_out=1, dump_cadence=0)
-        
-        collision_logfile = os.path.join(self.simdir, "collisions.log")
-        with open(collision_logfile, "r") as f:
-            content = f.read()
-           
-        self.assertIn("calculation converged", content, "The output file does not contain 'calculation converged'")
-     
-
+                # Set fragmentation parameters
+                minimum_fragment_gmass = 0.01 * body_Gmass[style][1] 
+                gmtiny = 0.50 * body_Gmass[style][1] 
+                sim.set_parameter(collision_model="fraggle", 
+                                encounter_save="both", 
+                                gmtiny=gmtiny, 
+                                minimum_fragment_gmass=minimum_fragment_gmass, 
+                                nfrag_reduction=nfrag_reduction[style])
+                sim.run(dt=tstop[style]/4, tstop=tstop[style], istep_out=1, dump_cadence=0)
+                
+                collision_logfile = os.path.join(self.simdir, "collisions.log")
+                with open(collision_logfile, "r") as f:
+                    content = f.read()
+                    
+                self.assertIn(expected_outcome[style], content, f'{style}: The collision.log file does not contain "{expected_outcome[style]}"')
+            
+                regime_name = content.split("Regime:")[1].split('\n')[0].strip() 
+                self.assertIn(expected_regime[style], regime_name, f'{style}: The collision.log file does not contain the expected regime name.\nExpected: "{expected_regime[style]}"\nGot: "{regime_name}"')
+            
+                newbody_count = 0 
+                with open(collision_logfile, "r") as f:
+                    for line in f:
+                        if "Newbody" in line:
+                            newbody_count += 1
+                            
+                self.assertGreaterEqual(newbody_count, nfrag_minimum_expected[style], f"{style}: Expected more than {nfrag_minimum_expected[style]} new bodies, got {newbody_count}") 
+                self.assertLessEqual(newbody_count, nfrag_maximum_expected[style], f"{style}: Expected less than {nfrag_maximum_expected[style]} new bodies, got {newbody_count}")
         return 
          
 if __name__ == '__main__':

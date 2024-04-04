@@ -230,6 +230,7 @@ class Simulation(object):
             print(f"Running a {self.codename} {self.integrator} run from tstart={self.param['TSTART']} {self.TU_name} to tstop={self.param['TSTOP']} {self.TU_name}")
 
         self._run_swiftest_driver()
+        print("\nRun complete.")
 
         # Read in new data
         self.read_encounters = True
@@ -2190,7 +2191,7 @@ class Simulation(object):
         if len(body_list) == 0:
             if self.verbose:
                 print("No valid bodies found")
-                return 
+            return 
         else:
             vec2xr_kwargs = {}
             for d in body_list:
@@ -2712,7 +2713,7 @@ class Simulation(object):
         if mass is not None:
             Gmass = mass * self.GU 
 
-        if name is None:
+        if name is None or len(name) == 0:
             if len(self.data) == 0:
                 maxid = -1
             else:
@@ -2729,6 +2730,10 @@ class Simulation(object):
                 bad_names = ', '.join(bad_names) 
                 if self.verbose:
                     warnings.warn(f"The following names are already in use and will not be added: {bad_names}",stacklevel=2)
+        if len(name) == 0:
+            if self.verbose:
+                print("No valid names found")
+            return
         name_str = ', '.join(name)
         print(f"Adding bodies: {name_str}") 
         dsnew = self._vec2xr(name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm,
@@ -2843,7 +2848,7 @@ class Simulation(object):
         """
         
         # Validate the inputs
-        if name is None:
+        if name is None or len(name) == 0:
             raise ValueError("Name must be passed")
         
         if isinstance(name, str):
