@@ -152,21 +152,17 @@ IF (NOT BUILD_SHARED_LIBS AND NOT WINOPT)
             SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
                 Fortran  "-static-libgfortran" 
             )
-            SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
-                Fortran  "-static-libgcc" 
-            )
-            SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
-                Fortran  "-static-libstdc++" 
-            )
         ENDIF ()
         IF (USE_OPENMP)
-            SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
-                Fortran "-lomp"  
-                        
-            )
-            SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
-                Fortran "-lgomp"  
-            )
+            IF (APPLE)
+                SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
+                    Fortran "-lomp"  # GNU
+                )
+            ELSE ()
+                SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
+                    Fortran "-lgomp"  # GNU
+                )
+            ENDIF()
         ENDIF (USE_OPENMP)
     ENDIF ()
 ENDIF ()

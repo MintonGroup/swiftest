@@ -100,7 +100,7 @@ FIND_PACKAGE(Python COMPONENTS Interpreter Development.Module NumPy REQUIRED)
 OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
 OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
 OPTION(USE_SIMD "Use SIMD vectorization" ON)
-OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+OPTION(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
 
 # Define the paths to the source code and python files
 SET(SRC "${CMAKE_SOURCE_DIR}/src")
@@ -163,6 +163,11 @@ FIND_PACKAGE(LAPACK REQUIRED)
 FIND_PACKAGE(FFTW3 REQUIRED)
 FIND_PACKAGE(SHTOOLS REQUIRED)
 
+IF (BUILD_SHARED_LIBS)
+    SET(HDF5_USE_STATIC_LIBRARIES OFF CACHE BOOL "Use static libraries for HDF5")
+ELSE ()
+    SET(HDF5_USE_STATIC_LIBRARIES ON CACHE BOOL "Use static libraries for HDF5")
+ENDIF()
 
 FIND_PACKAGE(NETCDF_Fortran REQUIRED)
 IF (MSVC)
@@ -174,7 +179,6 @@ IF (MSVC)
 ELSE ()
     FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
 ENDIF ()
-
 
 MESSAGE(STATUS "CMAKE_SYSTEM_PROCESSOR: " ${CMAKE_SYSTEM_PROCESSOR})
 #####################################

@@ -110,12 +110,24 @@ ELSE ()
       ENDIF()
    ENDIF()
 
+   FIND_PATH(NETCDF_INCLUDE_DIR 
+      NAMES netcdf.h 
+      HINTS 
+         ${NCINCLUDE_DIR}
+         ENV NETCDF_HOME
+         ENV NETCDF_INCLUDE
+         ENV CPATH
+      PATH_SUFFIXES
+         include
+      REQUIRED
+   )
+
    FIND_PATH(NETCDF_FORTRAN_INCLUDE_DIR 
       NAMES netcdf.mod 
       HINTS 
          ${NFINCLUDE_DIR}
-         ENV NETCDF_INCLUDE
          ENV NETCDF_FORTRAN_HOME
+         ENV NETCDF_INCLUDE
          ENV CPATH
       PATH_SUFFIXES
          include
@@ -126,6 +138,7 @@ ELSE ()
 
    IF (BUILD_SHARED_LIBS) 
       SET(NETCDFF "netcdff")
+      SET(NETCDF "netcdf")
    ELSE ()
       IF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
          SET(NETCDFF "netcdff.lib")
@@ -142,6 +155,29 @@ ELSE ()
       ENDIF()
    ENDIF()
 
+   FIND_LIBRARY(NCLIB
+      NAMES ${NETCDF} 
+      PATHS
+         ${NCPREFIX_DIR}
+         ENV NETCDF_HOME
+         ENV LD_LIBRARY_PATH
+      PATH_SUFFIXES
+         lib
+         ${CMAKE_LIBRARY_ARCHITECTURE} 
+      REQUIRED
+   )
+
+   ADD_LIBRARY(netCDF::netcdf UNKNOWN IMPORTED PUBLIC)
+   IF (NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
+      SET_TARGET_PROPERTIES(netCDF::netcdf PROPERTIES 
+                           IMPORTED_LOCATION "${NCLIB}"
+                           INTERFACE_INCLUDE_DIRECTORIES "${NETCDF_INCLUDE_DIR}"
+                           )
+   ENDIF()
+
+   MESSAGE(STATUS "NetCDF-C library: ${NCLIB}")
+   MESSAGE(STATUS "NetCDF-C include directory: ${NETCDF_INCLUDE_DIR}")
+
    FIND_LIBRARY(NFLIB
       NAMES ${NETCDFF} 
       PATHS
@@ -157,6 +193,22 @@ ELSE ()
    ADD_LIBRARY(netCDF::netcdff UNKNOWN IMPORTED PUBLIC)
    IF (CMAKE_SYSTEM_NAME STREQUAL "Windows" AND BUILD_SHARED_LIBS)
       # Get the DLL added in
+      FIND_FILE(NCDLL
+         NAMES "netcdf.dll"
+         HINTS 
+            NCPREFIX_DIR
+            ENV NETCDF_HOME
+            ENV PATH
+         PATH_SUFFIXES
+            bin
+      )
+      SET_TARGET_PROPERTIES(netCDF::netcdf PROPERTIES 
+                           IMPORTED_IMPLIB "${NCLIB}"
+                           IMPORTED_LOCATION "${NCDLL}"
+                           INTERFACE_INCLUDE_DIRECTORIES "${NETCDF_INCLUDE_DIR}"
+                           )
+      MESSAGE(STATUS "NetCDF-C dll: ${NCDLL}")
+
       FIND_FILE(NFDLL
          NAMES "netcdff.dll"
          HINTS 
@@ -173,16 +225,22 @@ ELSE ()
                            )
       MESSAGE(STATUS "NetCDF-Fortran dll: ${NFDLL}")
    ELSE ()
+      SET_TARGET_PROPERTIES(netCDF::netcdf PROPERTIES 
+         IMPORTED_LOCATION "${NCLIB}"
+         INTERFACE_INCLUDE_DIRECTORIES "${NETCDF_INCLUDE_DIR}"
+      )
       SET_TARGET_PROPERTIES(netCDF::netcdff PROPERTIES 
                            IMPORTED_LOCATION "${NFLIB}"
                            INTERFACE_INCLUDE_DIRECTORIES "${NETCDF_FORTRAN_INCLUDE_DIR}"
                            )
    ENDIF()
    
+   MESSAGE(STATUS "NetCDF-C library: ${NCLIB}")
+   MESSAGE(STATUS "NetCDF-C include directory: ${NETCDF_INCLUDE_DIR}")
    MESSAGE(STATUS "NetCDF-Fortran library: ${NFLIB}")
    MESSAGE(STATUS "NetCDF-Fortran include directory: ${NETCDF_FORTRAN_INCLUDE_DIR}")
 ENDIF ()
 
-
 SET(NETCDF_FORTRAN_FOUND TRUE)
-MARK_AS_ADVANCED(NETCDF_FORTRAN_LIBRARY NETCDF_FORTRAN_INCLUDE_DIR)
+SET(NETCDF_C_FOUND TRUE)
+MARK_AS_ADVANCED(NFLIB NETCDF_FORTRAN_INCLUDE_DIR, NCLIB, NETCDF_INCLUDE_DIR)
