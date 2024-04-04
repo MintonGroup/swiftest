@@ -203,16 +203,6 @@ IF (NOT BUILD_SHARED_LIBS)
     SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 ENDIF()
 
-# Set deployment target for macOS
-IF (APPLE)
-    # Execute the shell command to get the macOS version and extract the major version
-    EXECUTE_PROCESS(
-        COMMAND bash -c "sw_vers -productVersion | cut -d. -f1"
-        OUTPUT_VARIABLE MACOSX_DEPLOYMENT_TARGET
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    SET(CMAKE_OSX_DEPLOYMENT_TARGET ${MACOSX_DEPLOYMENT_TARGET})
-ENDIF()
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${CMAKE_INSTALL_BINDIR})
 ADD_SUBDIRECTORY(${PY})
