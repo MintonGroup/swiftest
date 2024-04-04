@@ -3583,7 +3583,7 @@ class Simulation(object):
         tgood,tid = np.unique(self.encounters.time,return_index=True)
         self.encounters = self.encounters.isel(time=tid)
         # Remove any NaN values
-        tgood=self.encounters.time.where(~np.isnan(self.encounters.time),drop=True)
+        tgood=self.encounters.time.where(~np.isnan(self.encounters.time),drop=True).values
         self.encounters = self.encounters.sel(time=tgood)
 
         return

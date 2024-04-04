@@ -164,11 +164,12 @@ def encounter_combiner(sim):
 
     # Only keep a minimal subset of necessary data from the simulation and encounter datasets
     keep_vars = ['name','rh','vh','Gmass','radius','rot']
-    data = sim.data[keep_vars]
-    enc = sim.encounters[keep_vars].load()
+    keep_names = sim.data['name'].values[1:]
+    data = sim.data[keep_vars].sel(name=keep_names)
+    enc = sim.encounters[keep_vars].sel(name=keep_names).load()
 
     # Remove any encounter data at the same time steps that appear in the data to prevent duplicates
-    t_not_duplicate = ~data['time'].isin(enc['time'])
+    t_not_duplicate = ~data['time'].isin(enc['time']).values
     data = data.sel(time=t_not_duplicate)
     tgood=enc.time.where(~np.isnan(enc.time),drop=True)
     enc = enc.sel(time=tgood)
