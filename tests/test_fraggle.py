@@ -135,7 +135,7 @@ class TestFraggle(unittest.TestCase):
         Check that the head on disruption collision generates fragments and conserves quantities
         '''
         
-        style = "disruption_headon""
+        style = "disruption_headon"
         sim = swiftest.Simulation(simdir=self.simdir, rotation=True, compute_conservation_values=True)
         sim.add_solar_system_body("Sun")
         sim.add_body(name=names, Gmass=body_Gmass[style], radius=body_radius[style], rh=pos_vectors[style], vh=vel_vectors[style], rot=rot_vectors[style])
