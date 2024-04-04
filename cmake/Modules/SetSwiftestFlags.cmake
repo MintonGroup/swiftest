@@ -201,6 +201,9 @@ IF (USE_SIMD)
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                 Fortran "/Qvecabi:cmdtarget" # Intel Windows
             )
+            SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
+                Fortran "/Qsimd-honor-fp-model" # Intel
+            )
         ELSE ()
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                 Fortran "-x${MACHINE_CODE_VALUE}" # Intel
@@ -208,6 +211,9 @@ IF (USE_SIMD)
             # Generate an extended set of vector functions
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                 Fortran "-vecabi=cmdtarget" # Intel
+            )
+            SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
+                Fortran "-qsimd-honor-fp-model" # Intel
             )
         ENDIF ()
 

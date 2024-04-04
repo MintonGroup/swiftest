@@ -3750,7 +3750,6 @@ class Simulation(object):
         if not self.simdir.exists():
             self.simdir.mkdir(parents=True, exist_ok=True)
             
-            
         self.init_cond = self.data.isel(time=[framenum]).copy(deep=True)
         self._scrub_init_cond()
         
