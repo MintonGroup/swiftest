@@ -104,5 +104,9 @@ if [ $OS = "Darwin" ]; then
     PATH="${HOMEBREW_PREFIX}/bin:${PATH}"
     CC=${CC:-"/usr/bin/clang"}
     CXX=${CXX:-"/usr/bin/clang++"}
+else
+    CFLAGS="-Wa,--noexecstack"
+    CXXFLAGS="${CFLAGS}"
+    LDFLAGS="-L${PREFIX}/lib"
 fi
 set +a
