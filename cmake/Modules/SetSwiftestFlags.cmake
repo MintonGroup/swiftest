@@ -85,9 +85,9 @@ IF (COMPILER_OPTIONS STREQUAL "GNU")
     SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
         Fortran "-ffree-line-length-512" # GNU (gfortran)
         )
-    # Sets the dialect standard
+    # Sets the dialect standard but allow for all intrinsics
     SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
-        Fortran "-std=f2018" 
+        Fortran "-std=gnu"
         )
     SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
         Fortran "-fPIC"

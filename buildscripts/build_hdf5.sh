@@ -61,11 +61,6 @@ printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/hdfsrc
 
-if [ $OS = "Darwin" ]; then
-    rm -rf ${PREFIX}/lib/*.dylib
-else
-    rm -rf ${PREFIX}/lib/*.so
-fi
 ZLIB_LIBRARY="${ZLIB_ROOT}/lib/libz.a"
 SZIP_LIBRARY="${SZIP_ROOT}/lib/libsz.a"
 
@@ -85,7 +80,8 @@ ARGLIST="-DCMAKE_INSTALL_PREFIX:PATH=${HDF5_ROOT} \
     -DHDF5_BUILD_FORTRAN:BOOL=OFF \
     -DHDF5_BUILD_EXAMPLES:BOOL=OFF \
     -DBUILD_TESTING:BOOL=OFF \
-    -DBUILD_STATIC_LIBS:BOOL=OFF \
+    -DBUILD_STATIC_LIBS:BOOL=ON \
+    -DBUILD_SHARED_LIBS:BOOL=OFF \
     -DHDF5_BUILD_JAVA:BOOL=OFF \
     -DHDF5_ENABLE_ALL_WARNINGS:BOOL=OFF \
     -DHDF5_TEST_PARALLEL:BOOL=OFF \

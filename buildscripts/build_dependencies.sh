@@ -74,18 +74,20 @@ if ! command -v ninja &> /dev/null; then
 fi
 
 # Get the OpenMP Libraries
+OS=$(uname -s)
 if [ $OS = "Darwin" ]; then
-    ${SCRIPT_DIR}/get_lomp.sh ${ARGS}
+    echo "Fetching OpenMP libraries for MacOS"
+    ${SCRIPT_DIR}/get_lomp.sh 
 fi
 
-${SCRIPT_DIR}/build_zlib.sh ${ARGS}
-${SCRIPT_DIR}/build_libaec.sh ${ARGS}
-${SCRIPT_DIR}/build_bzip2.sh ${ARGS}
-${SCRIPT_DIR}/build_zstd.sh ${ARGS}
-${SCRIPT_DIR}/build_hdf5.sh ${ARGS}
-${SCRIPT_DIR}/build_netcdf-c.sh ${ARGS}
-${SCRIPT_DIR}/build_netcdf-fortran.sh ${ARGS}
-${SCRIPT_DIR}/build_shtools.sh ${ARGS}
+${SCRIPT_DIR}/build_zlib.sh 
+${SCRIPT_DIR}/build_libaec.sh
+${SCRIPT_DIR}/build_bzip2.sh 
+${SCRIPT_DIR}/build_zstd.sh 
+${SCRIPT_DIR}/build_hdf5.sh 
+${SCRIPT_DIR}/build_netcdf-c.sh
+${SCRIPT_DIR}/build_netcdf-fortran.sh
+${SCRIPT_DIR}/build_shtools.sh 
 
 printf "\n"
 printf "*********************************************************\n"

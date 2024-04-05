@@ -132,8 +132,8 @@ SET_PROPERTY(TARGET ${SWIFTEST_EXE} PROPERTY OUTPUT_NAME swiftest)
 # Create a library from the source files, except the driver
 ADD_LIBRARY(${SWIFTEST_LIBRARY} ${SWIFTEST_src})
 
-TARGET_LINK_LIBRARIES(${SWIFTEST_LIBRARY} PUBLIC netCDF::netcdff netCDF::netcdf HDF5::HDF5)
-TARGET_LINK_LIBRARIES(${SWIFTEST_EXE} PUBLIC netCDF::netcdff netCDF::netcdf HDF5::HDF5)
+TARGET_LINK_LIBRARIES(${SWIFTEST_LIBRARY} PUBLIC netCDF::netcdff netCDF::netcdf HDF5::HDF5 hdf5::hdf5_hl-static)
+TARGET_LINK_LIBRARIES(${SWIFTEST_EXE} PUBLIC netCDF::netcdff netCDF::netcdf HDF5::HDF5 hdf5::hdf5_hl-static)
 
 IF(USE_OPENMP OR USE_SIMD)
     TARGET_LINK_LIBRARIES(${SWIFTEST_LIBRARY} PUBLIC SHTOOLS::parallel)
@@ -191,7 +191,7 @@ FILE(WRITE "${TESTFILE}"
 module TestQuadPrecisionReal
   use, intrinsic :: iso_c_binding 
   integer, parameter :: DP = c_double  
-  integer, parameter :: QP = c_long_double 
+  integer, parameter :: QP = c_float128
   interface foo
     module procedure foo_DP
     module procedure foo_QP

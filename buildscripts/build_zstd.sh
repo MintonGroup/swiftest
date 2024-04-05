@@ -60,3 +60,4 @@ if [ $? -ne 0 ]; then
    printf "zstd could not be compiled.\n"
    exit 1
 fi
+

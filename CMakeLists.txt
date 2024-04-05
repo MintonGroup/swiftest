@@ -19,6 +19,11 @@ FILE(READ "version.txt" VERSION)
 # Check if DOC_BUILD environment variable is set and skip build if it is
 SET(SKBUILD_SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/bin" CACHE STRING "Install location of binary executable")
 
+IF (SKBUILD)
+    set(ENV_PREFIX "$ENV{PREFIX}")
+    string(REPLACE "<ENV_PREFIX>" "${ENV_PREFIX}" CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+ENDIF ()
+
 # Check for a Fortran compiler 
 IF(DEFINED ENV{FC})
     SET(CMAKE_Fortran_COMPILER $ENV{FC} CACHE STRING "Fortran compiler")
@@ -100,7 +105,7 @@ FIND_PACKAGE(Python COMPONENTS Interpreter Development.Module NumPy REQUIRED)
 OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
 OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
 OPTION(USE_SIMD "Use SIMD vectorization" ON)
-OPTION(BUILD_SHARED_LIBS "Build using shared libraries" OFF)
+OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
 
 # Define the paths to the source code and python files
 SET(SRC "${CMAKE_SOURCE_DIR}/src")
@@ -163,11 +168,7 @@ FIND_PACKAGE(LAPACK REQUIRED)
 FIND_PACKAGE(FFTW3 REQUIRED)
 FIND_PACKAGE(SHTOOLS REQUIRED)
 
-IF (BUILD_SHARED_LIBS)
-    SET(HDF5_USE_STATIC_LIBRARIES OFF CACHE BOOL "Use static libraries for HDF5")
-ELSE ()
-    SET(HDF5_USE_STATIC_LIBRARIES ON CACHE BOOL "Use static libraries for HDF5")
-ENDIF()
+SET(HDF5_USE_STATIC_LIBRARIES ON CACHE BOOL "Use static libraries for HDF5")
 
 FIND_PACKAGE(NETCDF_Fortran REQUIRED)
 IF (MSVC)
@@ -203,9 +204,7 @@ INCLUDE(SetParallelizationLibrary)
 
 INCLUDE(SetSwiftestFlags) 
 
-IF (NOT BUILD_SHARED_LIBS)
-    SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
-ENDIF()
+SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${CMAKE_INSTALL_BINDIR})

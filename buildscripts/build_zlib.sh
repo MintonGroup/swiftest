@@ -55,17 +55,17 @@ if [ -w "${ZLIB_ROOT}" ]; then
     cmake --install build 
     # Remove shared libraries
     if [ $OS = "Darwin" ]; then
-        rm -f ${ZLIB_ROOT}/lib/libz*.dylib
+        rm -f ${ZLIB_ROOT}/lib/libz*dylib
     else
-        rm -f ${ZLIB_ROOT}/lib/libz*.so
+        rm -f ${ZLIB_ROOT}/lib/libz*so
     fi
 else
     sudo cmake --install build
     # Remove shared libraries
     if [ $OS = "Darwin" ]; then
-        sudo rm -f ${ZLIB_ROOT}/lib/libz*.dylib
+        sudo rm -f ${ZLIB_ROOT}/lib/libz*dylib
     else
-        sudo rm -f ${ZLIB_ROOT}/lib/libz*.so
+        sudo rm -f ${ZLIB_ROOT}/lib/libz*so
     fi
 fi
 

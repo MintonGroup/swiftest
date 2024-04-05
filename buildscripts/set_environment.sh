@@ -81,13 +81,14 @@ CPATH="${PREFIX}/include"
 PATH="${PREFIX}/bin:${PATH}"
 CMAKE_INSTALL_LIBDIR="lib"
 NPROC=$(nproc)
+LIBS="-lgomp"
 
 FC=${FC:-"$(command -v gfortran-13 || command -v gfortran-12 || command -v gfortran)"}
 F77=${F77:-"${FC}"}
 F95=${F95:-"${FC}"}
 
 if [ $OS = "Darwin" ]; then
-    MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-"$(${SCRIPT_DIR}/get_macosx_deploymet_target.sh)"}
+    MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-"$(${SCRIPT_DIR}/get_macosx_deployment_target.sh)"}
     ARCH="$(uname -m)"
     HOMEBREW_PREFIX=${HOMEBREW_PREFIX:-"$(brew --prefix)"}
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${HOMEBREW_PREFIX}/lib"
