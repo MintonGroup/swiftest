@@ -111,6 +111,9 @@ SHTOOLS_HOME="${PREFIX}"
 CPATH="${PREFIX}/include:${CPATH}"
 PATH="${PREFIX}/bin:${PATH}"
 LD_LIBRARY_PATH="${PREFIX}/lib:${HOMEBREW_PREFIX}/lib"
+CFLAGS="-Wa,--noexecstack"
+CXXFLAGS="${CFLAGS}"
+LDFLAGS="-L${PREFIX}/lib"
 REPAIR_LIBRARY_PATH="${LD_LIBRARY_PATH}"
 
 [tool.cibuildwheel.macos]
