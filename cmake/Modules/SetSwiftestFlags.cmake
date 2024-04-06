@@ -131,7 +131,7 @@ IF (NOT WINOPT)
         )
 ENDIF()
 
-IF (NOT BUILD_SHARED_LIBS AND NOT WINOPT)
+IF (NOT WINOPT)
     IF (COMPILER_OPTIONS STREQUAL "Intel")
         # Use static Intel libraries
         SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
@@ -147,23 +147,10 @@ IF (NOT BUILD_SHARED_LIBS AND NOT WINOPT)
             )
         ENDIF (USE_OPENMP)
     ELSEIF (COMPILER_OPTIONS STREQUAL "GNU") 
-        IF (NOT BUILD_SHARED_LIBS) 
-            # Set GNU static libraries
-            SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
-                Fortran  "-static-libgfortran" 
-            )
-        ENDIF ()
-        IF (USE_OPENMP)
-            IF (APPLE)
-                SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
-                    Fortran "-lomp"  # GNU
-                )
-            ELSE ()
-                SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
-                    Fortran "-lgomp"  # GNU
-                )
-            ENDIF()
-        ENDIF (USE_OPENMP)
+        # Set GNU static libraries
+        SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
+            Fortran  "-static-libgfortran" 
+        )
     ENDIF ()
 ENDIF ()
 
@@ -177,18 +164,17 @@ IF (USE_SIMD)
 
         # Enables OpenMP SIMD compilation when OpenMP parallelization is disabled. 
         IF (NOT USE_OPENMP)
-                IF (WINOPT) 
-                SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
-                        Fortran "/Qopenmp- /Qopenmp-simd" # Intel
-                )
-                ELSE ()
-                SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
-                        Fortran "-qno-openmp -qopenmp-simd>" # Intel
-                )
-                ENDIF ()     
+            IF (WINOPT) 
+            SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
+                Fortran "/Qopenmp- /Qopenmp-simd" # Intel
+            )
+            ELSE ()
+            SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
+                Fortran "-qno-openmp -qopenmp-simd" # Intel
+            )
+            ENDIF ()     
         ENDIF (NOT USE_OPENMP)
 
-        # Optimize for an old enough processor that it should run on most computers
         IF (WINOPT)
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
                 Fortran "/Qx${MACHINE_CODE_VALUE}" # Intel
@@ -296,7 +282,6 @@ IF (CMAKE_BUILD_TYPE STREQUAL "DEBUG" OR CMAKE_BUILD_TYPE STREQUAL "TESTING" )
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                 Fortran "/nogen-interfaces" # Intel Windows
             )
-
             # Does not set denormal results from floating-point calculations to zero
             SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_DEBUG "${CMAKE_Fortran_FLAGS_DEBUG}"
                 Fortran "/Qftz-"  # Intel Windows
