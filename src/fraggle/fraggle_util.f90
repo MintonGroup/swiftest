@@ -95,18 +95,15 @@ contains
       class(collision_fraggle),   intent(inout) :: self  !! Fraggle collision system object
       class(swiftest_parameters), intent(in)    :: param !! Current Swiftest run configuration parameters
       ! Internals
-      integer(I4B)              :: i, j, jproj, jtarg, nfrag, istart, nfragmax
+      integer(I4B)              :: i, j, jproj, jtarg, istart, nfragmax
       real(DP), dimension(2)    :: volume
       real(DP), dimension(NDIM) :: Ip_avg
-      real(DP) ::  mremaining, mtot, mcumul, G, mass_noise, Mslr, Mrat
+      real(DP) ::  mremaining, mtot, mcumul, G, mass_noise
       real(DP), dimension(:), allocatable :: mass
       real(DP)  :: beta 
       integer(I4B), parameter :: MASS_NOISE_FACTOR = 5  !! The number of digits of random noise that get added to the minimum mass value to prevent identical masses from being generated in a single run 
       integer(I4B), parameter :: NFRAGMAX_UNSCALED = 100  !! Maximum number of fragments that can be generated
-      integer(I4B), parameter :: iMlr = 1
-      integer(I4B), parameter :: iMslr = 2
-      integer(I4B), parameter :: iMrem = 3
-      integer(I4B), parameter :: NFRAGMIN = iMrem + 2 !! Minimum number of fragments that can be generated 
+ !! Minimum number of fragments that can be generated 
       integer(I4B), dimension(:), allocatable :: ind
       logical :: flipper
       logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
@@ -180,7 +177,7 @@ contains
             ! Use Brent's method solver to get the logspace slope of the mass function
             Mrat = (mremaining + Mslr) / Mslr
             beta = 3.0_DP
-            call solve_roots(sfd_function,beta)
+            call solve_roots(fraggle_util_sfd_function,beta)
 
             do i = iMrem,nfrag
                mass(i) = Mslr * (i-1)**(-beta/3.0_DP)
@@ -243,30 +240,30 @@ contains
             else
                fragments%origin_body(3:nfrag) = 2
             end if
-
          end associate
-
-
       end associate
 
       call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)
       return
 
-      contains 
-
-      function sfd_function(x) result(y)
-         implicit none
-         real(DP), intent(in) :: x
-         real(DP)             :: y
-         integer(I4B) :: i
-
-         y = Mrat - 1.0_DP
-         do i = iMrem, nfrag
-            y = y - (i-1)**(-x/3.0_DP)
-         end do
-      end function sfd_function
-
    end subroutine fraggle_util_set_mass_dist
 
+   module function fraggle_util_sfd_function(x) result(y)
+      !! author: David A. Minton
+      !!
+      !! Function to be used in the Brent's method solver to find the slope of the mass distribution
+      implicit none
+      ! Arguments
+      real(DP), intent(in) :: x
+      ! Result
+      real(DP)             :: y
+      ! Internals
+      integer(I4B) :: i
+
+      y = Mrat - 1.0_DP
+      do i = iMrem, nfrag
+         y = y - (i-1)**(-x/3.0_DP)
+      end do
+   end function fraggle_util_sfd_function
 
 end submodule s_fraggle_util

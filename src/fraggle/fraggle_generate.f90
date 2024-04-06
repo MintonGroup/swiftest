@@ -25,7 +25,7 @@ contains
       class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       real(DP),                 intent(in)    :: t            !! Time of collision
       ! Internals
-      integer(I4B)          :: i, ibiggest, nfrag
+      integer(I4B)          :: i, ibiggest
       real(DP), dimension(NDIM) :: L_residual, vbcom_orig
       character(len=STRMAX) :: message 
       logical               :: lfailure
@@ -232,7 +232,7 @@ contains
       ! Result
       integer(I4B)                            :: status       !! Status flag assigned to this outcome
       ! Internals
-      integer(I4B)                            :: i, ibiggest, jtarg, jproj, nfrag
+      integer(I4B)                            :: i, ibiggest, jtarg, jproj
       logical                                 :: lpure 
       character(len=STRMAX) :: message
 
@@ -541,7 +541,7 @@ contains
       class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
       ! Internals
-      integer(I4B) :: i, nfrag
+      integer(I4B) :: i
       real(DP), parameter :: FRAG_ROT_FAC = 0.1_DP ! Fraction of projectile rotation magnitude to add as random noise to fragment 
                                                    ! rotation
       real(DP), parameter :: hitandrun_momentum_transfer = 0.01_DP ! Fraction of projectile momentum transfered to target in a hit  

@@ -146,11 +146,6 @@ IF (NOT WINOPT)
                 Fortran "-qopenmp-link=static"  # Intel
             )
         ENDIF (USE_OPENMP)
-    ELSEIF (COMPILER_OPTIONS STREQUAL "GNU") 
-        # Set GNU static libraries
-        SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
-            Fortran  "-static-libgfortran" 
-        )
     ENDIF ()
 ENDIF ()
 
