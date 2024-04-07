@@ -22,7 +22,7 @@ build:
     - build-essential
     - cmake
     - ninja-build
-    - gfortran-12
+    - gfortran-10
 
   jobs:
     pre_build:
