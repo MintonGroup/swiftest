@@ -50,6 +50,36 @@ printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/netcdf-fortran-*
 NCLIBDIR=$(${NCDIR}/bin/nc-config --libdir)
+
+
+# This will patch the CMakeLists.txt file to add in the proper szip library link
+#!/bin/bash
+
+CMAKE_LISTS_FILE="CMakeLists.txt"
+
+CODE_TO_INSERT=$(cat <<'EOF'
+find_library(SZIP_LIBRARY NAMES sz libsz PATHS "\${PACKAGE_PREFIX_DIR}/lib" NO_DEFAULT_PATH)
+if(SZIP_LIBRARY)
+  get_target_property(current_iface_libs netCDF::netcdf INTERFACE_LINK_LIBRARIES)
+  if(current_iface_libs)
+    list(APPEND current_iface_libs "\${SZIP_LIBRARY}")
+  else()
+    set(current_iface_libs "\${SZIP_LIBRARY}")
+  endif()
+  set_target_properties(netCDF::netcdf PROPERTIES
+    INTERFACE_LINK_LIBRARIES "\${current_iface_libs}"
+  )
+endif()
+EOF
+)
+
+LINE_NUMBER=636
+
+awk -v line_num="$LINE_NUMBER" -v code="$CODE_TO_INSERT" 'NR == line_num {print code} {print}' "$CMAKE_LISTS_FILE" > temp_file && mv temp_file "$CMAKE_LISTS_FILE"
+
+echo "Modified CMakeLists.txt and added the new code block before line $LINE_NUMBER."
+#############
+
 cmake -B build -S . -G Ninja \
     -DCMAKE_INSTALL_PREFIX:PATH=${NFDIR} \
     -DCMAKE_INSTALL_LIBDIR="lib" \
