@@ -8,8 +8,19 @@ v2024.04.0
 Bug Fixes
 ~~~~~~~~~
 - Fixed the `Simulation._combine_and_fix_dsnew` method so that the `name` dimension is not added where not needed. `GH33`_
+- Fixed the :meth:`~Simulation.read_encounter_file` for reading encounter variables due to change in how the encounter data is indexed. `GH33`_
+- Fixed bug in the Fortran collision module that was causing `max_rot` to always be set to 0 in Fraggle, causing Fraggle to fail more often due to not being able to satisfy the angular momentum constrain through fragment spin. `GH34`_
+- Changed the fortran standard from *2018* to *gnu* in order to access quad precision by means of the ``c_float128`` intrinsic in ``iso_c_binding``.
+- Fixed bug in Fraggle that was causing a segfault when computing the fragment SFD in Linux. The problem was due to passing a function pointer to a non-module procedure, which is a known issue in the GNU Fortran compiler. The solution was to move the function to a module procedure and pass the module procedure to the function. `_SO49965980`_ `GH34`_
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Updated headers of all build scripts and improved robustness of the `MACOX_DEPLOYMENT_TARGET` versioning determination with a dedicated script
+- Altered build scripts to build static libraries for all dependencies. These are now linked to the main library, which reduces the number of shared libraries to manage when installing. `GH34`_
 
 .. _GH33: https://github.com/MintonGroup/swiftest/issues/33
+.. _GH34: https://github.com/MintonGroup/swiftest/issues/34
+.. _SO49965980: https://stackoverflow.com/questions/49965980/segmentation-fault-when-passing-internal-function-as-argument
 
 v2024.03.4
 ~~~~~~~~~~

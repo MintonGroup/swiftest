@@ -328,7 +328,7 @@ contains
          case("FRAGGLE")
             allocate(collision_fraggle :: nbody_system%collider)
          end select
-         call nbody_system%collider%setup(nbody_system)
+         call nbody_system%collider%setup(nbody_system, param)
 
       end associate
 

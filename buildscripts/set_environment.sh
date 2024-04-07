@@ -81,13 +81,14 @@ CPATH="${PREFIX}/include"
 PATH="${PREFIX}/bin:${PATH}"
 CMAKE_INSTALL_LIBDIR="lib"
 NPROC=$(nproc)
+LIBS="-lgomp"
 
 FC=${FC:-"$(command -v gfortran-13 || command -v gfortran-12 || command -v gfortran)"}
 F77=${F77:-"${FC}"}
 F95=${F95:-"${FC}"}
 
 if [ $OS = "Darwin" ]; then
-    MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-"$(sw_vers -productVersion | cut -d. -f1).0"} # Gets only the major version number
+    MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-"$(${SCRIPT_DIR}/get_macosx_deployment_target.sh)"}
     ARCH="$(uname -m)"
     HOMEBREW_PREFIX=${HOMEBREW_PREFIX:-"$(brew --prefix)"}
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${HOMEBREW_PREFIX}/lib"
@@ -103,5 +104,9 @@ if [ $OS = "Darwin" ]; then
     PATH="${HOMEBREW_PREFIX}/bin:${PATH}"
     CC=${CC:-"/usr/bin/clang"}
     CXX=${CXX:-"/usr/bin/clang++"}
+else
+    CFLAGS="-Wa,--noexecstack"
+    CXXFLAGS="${CFLAGS}"
+    LDFLAGS="-L${PREFIX}/lib"
 fi
 set +a

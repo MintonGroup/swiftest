@@ -672,7 +672,7 @@ contains
    end subroutine collision_util_set_coordinate_impactors
 
 
-   module subroutine collision_util_setup_collider(self, nbody_system)
+   module subroutine collision_util_setup_collider(self, nbody_system, param)
       !! author: David A. Minton
       !!
       !! Initializer for the encounter collision system. Sets up impactors and the before/after snapshots,
@@ -681,6 +681,7 @@ contains
       ! Arguments
       class(collision_basic),   intent(inout) :: self         !! Encounter collision system object
       class(base_nbody_system), intent(in)    :: nbody_system !! Current nbody system. Used as a mold for the before/after snapshots
+      class(base_parameters),   intent(inout) :: param        !! Current Swiftest run configuration parameters
 
       call self%setup_impactors()
       if (allocated(self%before)) deallocate(self%before)
@@ -688,6 +689,8 @@ contains
 
       allocate(self%before, mold=nbody_system)
       allocate(self%after,  mold=nbody_system)
+
+      self%max_rot = MAX_ROT_SI * param%TU2S          
 
       return
    end subroutine collision_util_setup_collider

@@ -19,6 +19,11 @@ FILE(READ "version.txt" VERSION)
 # Check if DOC_BUILD environment variable is set and skip build if it is
 SET(SKBUILD_SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/bin" CACHE STRING "Install location of binary executable")
 
+IF (SKBUILD)
+    set(ENV_PREFIX "$ENV{PREFIX}")
+    string(REPLACE "<ENV_PREFIX>" "${ENV_PREFIX}" CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
+ENDIF ()
+
 # Check for a Fortran compiler 
 IF(DEFINED ENV{FC})
     SET(CMAKE_Fortran_COMPILER $ENV{FC} CACHE STRING "Fortran compiler")
@@ -163,6 +168,7 @@ FIND_PACKAGE(LAPACK REQUIRED)
 FIND_PACKAGE(FFTW3 REQUIRED)
 FIND_PACKAGE(SHTOOLS REQUIRED)
 
+SET(HDF5_USE_STATIC_LIBRARIES ON CACHE BOOL "Use static libraries for HDF5")
 
 FIND_PACKAGE(NETCDF_Fortran REQUIRED)
 IF (MSVC)
@@ -175,8 +181,7 @@ ELSE ()
     FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
 ENDIF ()
 
-
-
+MESSAGE(STATUS "CMAKE_SYSTEM_PROCESSOR: " ${CMAKE_SYSTEM_PROCESSOR})
 #####################################
 # Tell how to install this executable
 #####################################
@@ -199,20 +204,8 @@ INCLUDE(SetParallelizationLibrary)
 
 INCLUDE(SetSwiftestFlags) 
 
-IF (NOT BUILD_SHARED_LIBS)
-    SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
-ENDIF()
+SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Set deployment target for macOS
-IF (APPLE)
-    # Execute the shell command to get the macOS version and extract the major version
-    EXECUTE_PROCESS(
-        COMMAND bash -c "sw_vers -productVersion | cut -d. -f1"
-        OUTPUT_VARIABLE MACOSX_DEPLOYMENT_TARGET
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    SET(CMAKE_OSX_DEPLOYMENT_TARGET ${MACOSX_DEPLOYMENT_TARGET})
-ENDIF()
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${CMAKE_INSTALL_BINDIR})
 ADD_SUBDIRECTORY(${PY})

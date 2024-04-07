@@ -1,8 +1,7 @@
 #!/bin/bash
-# This script will build all of the dependency libraries needed by Swiftest. Builds the following from source:
-# Zlib, hdf5, netcdf-c, netcdf-fortran
+# This script will the NetCDF Fortran library from source
 # 
-# Copyright 2023 - David Minton
+# Copyright 2024 - The Minton Group at Purdue University
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -35,7 +34,8 @@ if [ ! -d ${DEPENDENCY_DIR}/netcdf-fortran-${NF_VER} ]; then
     curl -s -L https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v${NF_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
 fi 
 CFLAGS="$(${NCDIR}/bin/nc-config --cflags) $CFLAGS"
-LIBS="$(${NCDIR}/bin/nc-config --libs) $LIBS"
+LIBS="-lnetcdf -lhdf5_hl -lhdf5 -lm -lz -lzstd -lbz2 -lcurl -lsz ${LIBS}"
+LDFLAGS="${LDFLAGS} $LIBS"
 printf "\n"
 printf "*********************************************************\n"
 printf "*          BUILDING NETCDF-FORTRAN LIBRARY              *\n"
@@ -50,19 +50,13 @@ printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/netcdf-fortran-*
 NCLIBDIR=$(${NCDIR}/bin/nc-config --libdir)
-if [ $OS = "Darwin" ]; then
-    netCDF_LIBRARIES="${NCLIBDIR}/libnetcdf.dylib"
-else
-    netCDF_LIBRARIES="${NCLIBDIR}/libnetcdf.so"
-fi
 cmake -B build -S . -G Ninja \
-    -DnetCDF_INCLUDE_DIR:PATH="${NCDIR}/include" \
-    -DnetCDF_LIBRARIES:FILEPATH="${netCDF_LIBRARIES}"  \
     -DCMAKE_INSTALL_PREFIX:PATH=${NFDIR} \
     -DCMAKE_INSTALL_LIBDIR="lib" \
     -DBUILD_EXAMPLES:BOOL=OFF \
     -DBUILD_TESTING:BOOL=OFF \
     -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON \
+    -DBUILD_SHARED_LIBS:BOOL=OFF \
     -DENABLE_TESTS:BOOL=OFF     
 
 cmake --build build -j${NPROC} 
