@@ -49,24 +49,19 @@ printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/zlib-*
 cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${ZLIB_ROOT} -DCMAKE_INSTALL_LIBDIR="lib" -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON 
-    
+OS=$(uname -s)
+if [ "${OS}" == "Darwin" ]; then
+    LIBEXT="dylib"
+else
+    LIBEXT="so"
+fi 
 cmake --build build -j${NPROC}
 if [ -w "${ZLIB_ROOT}" ]; then
     cmake --install build 
-    # Remove shared libraries
-    if [ $OS = "Darwin" ]; then
-        rm -f ${ZLIB_ROOT}/lib/libz*dylib
-    else
-        rm -f ${ZLIB_ROOT}/lib/libz*so
-    fi
+    rm -f ${ZLIB_ROOT}/lib/libz*${LIBEXT}*
 else
     sudo cmake --install build
-    # Remove shared libraries
-    if [ $OS = "Darwin" ]; then
-        sudo rm -f ${ZLIB_ROOT}/lib/libz*dylib
-    else
-        sudo rm -f ${ZLIB_ROOT}/lib/libz*so
-    fi
+    sudo rm -f ${ZLIB_ROOT}/lib/libz*${LIBEXT}*
 fi
 
 if [ $? -ne 0 ]; then

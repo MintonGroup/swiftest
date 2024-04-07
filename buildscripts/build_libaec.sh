@@ -45,30 +45,26 @@ printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
 printf "LDFLAGS: ${LDFLAGS}\n"
 printf "INSTALL_PREFIX: ${SZIP_ROOT}\n"
 printf "*********************************************************\n"
-
-cd ${DEPENDENCY_DIR}/libaec-*
-cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${SZIP_ROOT} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON
-    
-cmake --build build -j${NPROC}
-if [ -w "${SZIP_ROOT}" ]; then
-    cmake --install build 
-else
-    sudo cmake --install build
-fi
-
 OS=$(uname -s)
 if [ "${OS}" == "Darwin" ]; then
     LIBEXT="dylib"
 else
     LIBEXT="so"
 fi
+cd ${DEPENDENCY_DIR}/libaec-*
+cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${SZIP_ROOT} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON
 
+cmake --build build -j${NPROC}
 if [ -w "${SZIP_ROOT}" ]; then
-    rm -f ${SZIP_ROOT}/lib/libaec*${LIBEXT}
-    rm -f ${SZIP_ROOT}/lib/libsz*${LIBEXT}
+    cmake --install build 
+    # Remove shared libraries
+    rm -f ${SZIP_ROOT}/lib/libaec*${LIBEXT}*
+    rm -f ${SZIP_ROOT}/lib/libsz*${LIBEXT}*
 else
-    sudo rm -f ${SZIP_ROOT}/lib/libaec*${LIBEXT}
-    sudo rm -f ${SZIP_ROOT}/lib/libsz*${LIBEXT}
+    sudo cmake --install build
+    # Remove shared libraries
+    sudo rm -f ${SZIP_ROOT}/lib/libaec*${LIBEXT}*
+    sudo rm -f ${SZIP_ROOT}/lib/libsz*${LIBEXT}*
 fi
 
 if [ $? -ne 0 ]; then
