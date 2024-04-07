@@ -56,6 +56,21 @@ else
     sudo cmake --install build
 fi
 
+OS=$(uname -s)
+if [ "${OS}" == "Darwin" ]; then
+    LIBEXT="dylib"
+else
+    LIBEXT="so"
+fi
+
+if [ -w "${SZIP_ROOT}" ]; then
+    rm -f ${SZIP_ROOT}/lib/libaec*${LIBEXT}
+    rm -f ${SZIP_ROOT}/lib/libsz*${LIBEXT}
+else
+    sudo rm -f ${SZIP_ROOT}/lib/libaec*${LIBEXT}
+    sudo rm -f ${SZIP_ROOT}/lib/libsz*${LIBEXT}
+fi
+
 if [ $? -ne 0 ]; then
    printf "libaec could not be compiled.\n"
    exit 1
