@@ -1,8 +1,7 @@
 #!/bin/bash
-# This script will build all of the dependency libraries needed by Swiftest. Builds the following from source:
-# Zlib, hdf5, netcdf-c, netcdf-fortran
+# This script will the z library needed by HDF5
 # 
-# Copyright 2023 - David Minton
+# Copyright 2024 - The Minton Group at Purdue University
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -50,24 +49,19 @@ printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/zlib-*
 cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${ZLIB_ROOT} -DCMAKE_INSTALL_LIBDIR="lib" -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON 
-    
+OS=$(uname -s)
+if [ "${OS}" == "Darwin" ]; then
+    LIBEXT="dylib"
+else
+    LIBEXT="so"
+fi 
 cmake --build build -j${NPROC}
 if [ -w "${ZLIB_ROOT}" ]; then
     cmake --install build 
-    # Remove shared libraries
-    if [ $OS = "Darwin" ]; then
-        rm -f ${ZLIB_ROOT}/lib/libz*.dylib
-    else
-        rm -f ${ZLIB_ROOT}/lib/libz*.so
-    fi
+    rm -f ${ZLIB_ROOT}/lib/libz*${LIBEXT}*
 else
     sudo cmake --install build
-    # Remove shared libraries
-    if [ $OS = "Darwin" ]; then
-        sudo rm -f ${ZLIB_ROOT}/lib/libz*.dylib
-    else
-        sudo rm -f ${ZLIB_ROOT}/lib/libz*.so
-    fi
+    sudo rm -f ${ZLIB_ROOT}/lib/libz*${LIBEXT}*
 fi
 
 if [ $? -ne 0 ]; then

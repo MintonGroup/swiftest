@@ -230,6 +230,7 @@ class Simulation(object):
             print(f"Running a {self.codename} {self.integrator} run from tstart={self.param['TSTART']} {self.TU_name} to tstop={self.param['TSTOP']} {self.TU_name}")
 
         self._run_swiftest_driver()
+        print("\nRun complete.")
 
         # Read in new data
         self.read_encounters = True
@@ -2190,7 +2191,7 @@ class Simulation(object):
         if len(body_list) == 0:
             if self.verbose:
                 print("No valid bodies found")
-                return 
+            return 
         else:
             vec2xr_kwargs = {}
             for d in body_list:
@@ -2712,7 +2713,7 @@ class Simulation(object):
         if mass is not None:
             Gmass = mass * self.GU 
 
-        if name is None:
+        if name is None or len(name) == 0:
             if len(self.data) == 0:
                 maxid = -1
             else:
@@ -2729,6 +2730,10 @@ class Simulation(object):
                 bad_names = ', '.join(bad_names) 
                 if self.verbose:
                     warnings.warn(f"The following names are already in use and will not be added: {bad_names}",stacklevel=2)
+        if len(name) == 0:
+            if self.verbose:
+                print("No valid names found")
+            return
         name_str = ', '.join(name)
         print(f"Adding bodies: {name_str}") 
         dsnew = self._vec2xr(name=name, a=a, e=e, inc=inc, capom=capom, omega=omega, capm=capm,
@@ -2843,7 +2848,7 @@ class Simulation(object):
         """
         
         # Validate the inputs
-        if name is None:
+        if name is None or len(name) == 0:
             raise ValueError("Name must be passed")
         
         if isinstance(name, str):
@@ -3037,7 +3042,10 @@ class Simulation(object):
         if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
             ds['npl'] += ds[count_dim].where(ds['particle_type'] == constants.PL_TINY_TYPE_NAME).count(dim=count_dim)
             ds['nplm'] = ds[count_dim].where(ds['particle_type'] == constants.PL_TYPE_NAME).count(dim=count_dim)
+            ds['nplm'] = ds['nplm'].expand_dims(dim={"time":1}, axis=0) 
             
+        ds['ntp'] = ds['ntp'].expand_dims(dim={"time":1}, axis=0) 
+        ds['npl'] = ds['npl'].expand_dims(dim={"time":1}, axis=0) 
         return ds
 
     def _get_valid_body_list(self, 
@@ -3282,9 +3290,19 @@ class Simulation(object):
                 msg +="\nConsider using unique names instead."
                 print(msg)
         dsnew['status'] = xr.zeros_like(dsnew['id'])
+        
+        def filter_by_dimension(ds, dim_name):
+            """Filter variables in the dataset by whether they contain a specific dimension."""
+            with_dim = xr.Dataset({var: ds[var] for var in ds.variables if dim_name in ds[var].dims})
+            without_dim = xr.Dataset({var: ds[var] for var in ds.variables if dim_name not in ds[var].dims})
+            return with_dim, without_dim
 
         if "name" in self.data:
-            self.data = xr.concat([self.data, dsnew], dim="name")
+            # Split each dataset into variables with and without the 'name' dimension
+            data_with_name, data_without_name = filter_by_dimension(self.data, 'name')
+            dsnew_with_name, _ = filter_by_dimension(dsnew, 'name')
+            concatenated_with_name = xr.concat([data_with_name, dsnew_with_name], dim='name')
+            self.data = xr.merge([concatenated_with_name, data_without_name]) 
         else:
             self.data = xr.combine_by_coords([self.data, dsnew])
         
@@ -3570,7 +3588,7 @@ class Simulation(object):
         tgood,tid = np.unique(self.encounters.time,return_index=True)
         self.encounters = self.encounters.isel(time=tid)
         # Remove any NaN values
-        tgood=self.encounters.time.where(~np.isnan(self.encounters.time),drop=True)
+        tgood=self.encounters.time.where(~np.isnan(self.encounters.time),drop=True).values
         self.encounters = self.encounters.sel(time=tgood)
 
         return
@@ -3736,7 +3754,6 @@ class Simulation(object):
 
         if not self.simdir.exists():
             self.simdir.mkdir(parents=True, exist_ok=True)
-            
             
         self.init_cond = self.data.isel(time=[framenum]).copy(deep=True)
         self._scrub_init_cond()

@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script will build the libaec library needed by HDF5
 # 
-# Copyright 2024 - David Minton
+# Copyright 2024 - The Minton Group at Purdue University
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -45,15 +45,26 @@ printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
 printf "LDFLAGS: ${LDFLAGS}\n"
 printf "INSTALL_PREFIX: ${SZIP_ROOT}\n"
 printf "*********************************************************\n"
-
+OS=$(uname -s)
+if [ "${OS}" == "Darwin" ]; then
+    LIBEXT="dylib"
+else
+    LIBEXT="so"
+fi
 cd ${DEPENDENCY_DIR}/libaec-*
-cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${SZIP_ROOT} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON  -DBUILD_SHARED_LIBS:BOOL=OFF
-    
+cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${SZIP_ROOT} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON
+
 cmake --build build -j${NPROC}
 if [ -w "${SZIP_ROOT}" ]; then
     cmake --install build 
+    # Remove shared libraries
+    rm -f ${SZIP_ROOT}/lib/libaec*${LIBEXT}*
+    rm -f ${SZIP_ROOT}/lib/libsz*${LIBEXT}*
 else
     sudo cmake --install build
+    # Remove shared libraries
+    sudo rm -f ${SZIP_ROOT}/lib/libaec*${LIBEXT}*
+    sudo rm -f ${SZIP_ROOT}/lib/libsz*${LIBEXT}*
 fi
 
 if [ $? -ne 0 ]; then

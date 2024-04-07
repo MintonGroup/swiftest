@@ -1,8 +1,8 @@
 #!/bin/bash
 # This script will build all of the dependency libraries needed by Swiftest. Builds the following from source:
-# Zlib, hdf5, netcdf-c, netcdf-fortran
+# Ninja, libaec, bzip2, zstd, hdf5, netcdf-c, netcdf-fortran
 # 
-# Copyright 2023 - David Minton
+# Copyright 2024 - The Minton Group at Purdue University
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -74,18 +74,20 @@ if ! command -v ninja &> /dev/null; then
 fi
 
 # Get the OpenMP Libraries
+OS=$(uname -s)
 if [ $OS = "Darwin" ]; then
-    ${SCRIPT_DIR}/get_lomp.sh ${ARGS}
+    echo "Fetching OpenMP libraries for MacOS"
+    ${SCRIPT_DIR}/get_lomp.sh 
 fi
 
-${SCRIPT_DIR}/build_zlib.sh ${ARGS}
-${SCRIPT_DIR}/build_libaec.sh ${ARGS}
-${SCRIPT_DIR}/build_bzip2.sh ${ARGS}
-${SCRIPT_DIR}/build_zstd.sh ${ARGS}
-${SCRIPT_DIR}/build_hdf5.sh ${ARGS}
-${SCRIPT_DIR}/build_netcdf-c.sh ${ARGS}
-${SCRIPT_DIR}/build_netcdf-fortran.sh ${ARGS}
-${SCRIPT_DIR}/build_shtools.sh ${ARGS}
+${SCRIPT_DIR}/build_zlib.sh 
+${SCRIPT_DIR}/build_libaec.sh
+${SCRIPT_DIR}/build_bzip2.sh 
+${SCRIPT_DIR}/build_zstd.sh 
+${SCRIPT_DIR}/build_hdf5.sh 
+${SCRIPT_DIR}/build_netcdf-c.sh
+${SCRIPT_DIR}/build_netcdf-fortran.sh
+${SCRIPT_DIR}/build_shtools.sh 
 
 printf "\n"
 printf "*********************************************************\n"
