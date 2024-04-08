@@ -1,6 +1,6 @@
 [project]
 name = "swiftest"
-version = "2024.3.5"
+version = "2024.4.0"
 authors=[
     {name = 'David A. Minton', email='daminton@purdue.edu'},
     {name = 'Carlisle Wishard'},
@@ -25,19 +25,19 @@ classifiers=[
 keywords=['astronomy','astrophysics', 'planetary', 'n-body',  'integrator', 'symplectic', 'wisdom-holman', 'symba']
 dependencies = [
     'numpy>=1.26.4',
+    'cython>=3.0.8',
     'scipy>=1.12.0',
-    'xarray>=2024.2.0',
+    'h5py>=3.10.0',
+    'netcdf4>=1.6.5',
+    'h5netcdf>=1.3.0',
     'dask>=2024.2.1',
     'distributed>=2024.2.1',
     'bottleneck>=1.3.8',
-    'h5netcdf>=1.3.0',
-    'h5py>=3.10.0',
-    'netcdf4>=1.6.5',
+    'xarray>=2024.2.0',
     'matplotlib>=3.8.3',
     'astropy>=6.0.0',
     'astroquery>=0.4.6',
     'tqdm>=4.66.2',
-    'cython>=3.0.8',
 ]
 
 [project.optional-dependencies]
@@ -53,6 +53,7 @@ swiftest = "swiftest.cli:main"
 
 [build-system]
 requires = [
+    "python_version>='3.9'",
     "scikit-build-core>=0.8.2",
     "cython>=3.0.8",
     "numpy>=1.26.4",
@@ -62,25 +63,29 @@ build-backend = "scikit_build_core.build"
 [tool.scikit-build]
 cmake.version = ">=3.23.1"
 ninja.version = ">=1.11.1"
-cmake.args = ["-DUSE_SIMD=OFF"]
 sdist.include = ["src/globals/globals_module.f90.in","swiftest/*.py","swiftest/*.pyx","swiftest/*.h"]
 build-dir = "build/{wheel_tag}"
 cmake.verbose = true
 
 [tool.cibuildwheel]
 test-command = "pytest -vv {package}/tests"
-test-requires = ['pytest']
+test-requires = [
+    "python_version>='3.9'",
+    "pytest>=8.0.0",
+    "numpy>=1.26.4"
+]
 skip = "pp* *i686 *-manylinux_i686 *_ppc64le *_s390x *-musllinux* *-win32"
 build-verbosity = 1
 
 [tool.cibuildwheel.macos.environment]
+SKBUILD_CMAKE_ARGS="-DMACHINE_CODE_VALUE=generic"
 PREFIX="$(pwd)/build/deps/usr/local"
 NETCDF_FORTRAN_HOME="${PREFIX}"
 NETCDF_FORTRAN_INCLUDE="${NETCDF_FORTRAN_HOME}/include"
 NETCDF_DIR="${NETCDF_FORTRAN_HOME}/lib/cmake/netCDF"
 NETCDF_FORTRAN_DIR="${NETCDF_FORTRAN_HOME}/lib/cmake/netCDF"
 SHTOOLS_HOME="${PREFIX}"
-MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion)"
+MACOSX_DEPLOYMENT_TARGET="$(buildscripts/get_macosx_deployment_target.sh)"
 HOMEBREW_PREFIX="$(brew --prefix)"
 ARCH="$(uname -m)"
 LD_LIBRARY_PATH="${PREFIX}/lib:${HOMEBREW_PREFIX}/lib"
@@ -89,7 +94,6 @@ REPAIR_LIBRARY_PATH="${LD_LIBRARY_PATH}"
 LDFLAGS="-Wl,-no_compact_unwind -L${PREFIX}/lib -L${HOMEBREW_PREFIX}/lib" 
 CPATH="${PREFIX}/include:${HOMEBREW_PREFIX}/include"
 CPPFLAGS="-isystem ${PREFIX}/include"
-LIBS="-lomp"
 FCFLAGS="-arch ${ARCH}"
 FFLAGS="${FCFLAGS}"
 CFLAGS="${FCFLAGS} -Wno-deprecated-non-prototype -arch ${ARCH}"
@@ -97,6 +101,7 @@ CXXFLAGS="${CFLAGS}"
 PATH="${PREFIX}/bin:${PATH}"
 
 [tool.cibuildwheel.linux.environment]
+SKBUILD_CMAKE_ARGS="-DMACHINE_CODE_VALUE=generic"
 PREFIX="$(pwd)/build/deps/usr/local"
 NETCDF_FORTRAN_HOME="${PREFIX}"
 NETCDF_FORTRAN_INCLUDE="${NETCDF_FORTRAN_HOME}/include"
@@ -106,13 +111,14 @@ SHTOOLS_HOME="${PREFIX}"
 CPATH="${PREFIX}/include:${CPATH}"
 PATH="${PREFIX}/bin:${PATH}"
 LD_LIBRARY_PATH="${PREFIX}/lib:${HOMEBREW_PREFIX}/lib"
+CFLAGS="-Wa,--noexecstack"
+CXXFLAGS="${CFLAGS}"
+LDFLAGS="-L${PREFIX}/lib"
 REPAIR_LIBRARY_PATH="${LD_LIBRARY_PATH}"
 
 [tool.cibuildwheel.macos]
 before-all = [
-    "echo ${PREFIX}",
-    "printenv",
-    "brew install coreutils pkg-config fftw vecLibFort;buildscripts/build_dependencies.sh -d ${HOME}/Downloads"
+    "brew install coreutils pkg-config fftw vecLibFort;buildscripts/build_dependencies.sh"
 ]
 repair-wheel-command = """\
 DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel \
@@ -123,7 +129,7 @@ DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel \
 skip = "pp* *-manylinux_i686* *-musllinux* cp312-*_aarch64*"
 before-all = [
     "yum install epel-release -y",
-    "yum install doxygen libxml2-devel libcurl-devel fftw-static openblas-devel lapack-devel -y",
+    "yum install doxygen libxml2-devel libcurl-devel fftw-static openblas-static -y",
     "buildscripts/build_dependencies.sh"
 ]
 

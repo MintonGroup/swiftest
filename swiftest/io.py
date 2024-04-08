@@ -12,12 +12,12 @@ If not, see: https://www.gnu.org/licenses.
 from.constants import MSun, AU2M, YR2S, JD2S, GC
 from .data import SwiftestDataArray, SwiftestDataset
 import numpy as np
-from scipy.io import FortranFile
 import xarray as xr
 import sys
 import tempfile
 import re
 import os
+import warnings
 
 # This defines features that are new in Swiftest and not in Swifter (for conversion between param.in files)
 newfeaturelist = ("RESTART",
@@ -937,7 +937,10 @@ def swiftest_xr2infile(ds: SwiftestDataset,
         if verbose:
             print(f"Writing initial conditions to file {infile_name}")
         frame = reorder_dims(frame)
-        frame.to_netcdf(path=infile_name)
+        # This suppresses this warning: RuntimeWarning: numpy.ndarray size changed, may indicate binary incompatibility. Expected 16 from C header, got 96 from PyObject
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            frame.to_netcdf(path=infile_name)
         frame.close()
         return frame
 

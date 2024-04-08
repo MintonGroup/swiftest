@@ -2616,7 +2616,7 @@ contains
          call nc%close()
 
          allocate(collision_basic :: nbody_system%collider)
-         call nbody_system%collider%setup(nbody_system)
+         call nbody_system%collider%setup(nbody_system, param)
 
          if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
             allocate(encounter_netcdf_parameters :: encounter_history%nc)
@@ -2645,8 +2645,6 @@ contains
          end select
 
          allocate(nbody_system%collision_history, source=collision_history)        
-         
-         nbody_system%collider%max_rot = MAX_ROT_SI * param%TU2S 
 
       end associate
 
@@ -2659,7 +2657,6 @@ contains
       !!
       !! Constructor for base Swiftest particle class. Allocates space for all particles and
       !! initializes all components with a value.
-      !! Note: Timing tests indicate that (NDIM, n) is more efficient than (NDIM, n) 
       implicit none
       ! Arguments
       class(swiftest_body),       intent(inout) :: self  !! Swiftest generic body object

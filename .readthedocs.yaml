@@ -26,8 +26,8 @@ build:
 
   jobs:
     pre_build:
-      - . buildscripts/set_environment.sh && buildscripts/build_dependencies.sh && pip install .
-      - ford docs/fortran_docs.md 
+      - pip install swiftest 
+      - ford fortran_docs.md 
 
 python:
   install: 

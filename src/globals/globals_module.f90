@@ -25,7 +25,11 @@ module globals
 
    integer, parameter :: SP = c_float  !! Symbolic name for kind types of single-precision reals
    integer, parameter :: DP = c_double  !! Symbolic name for kind types of double-precision reals
-   integer, parameter :: QP = c_long_double !! Symbolic name for kind types of quad-precision reals
+#ifdef QUADPREC
+   integer, parameter :: QP = c_float128 !! Symbolic name for kind types of quad-precision reals
+#else
+   integer, parameter :: QP = c_double !! No support for quad precision. Defining QP as the same as DP
+#endif
 
    real(DP), parameter :: PIBY2  = 1.570796326794896619231321691639751442099_DP !! Definition of /(\pi / 2\)
    real(DP), parameter :: PI     = 3.141592653589793238462643383279502884197_DP !! Definition of /(\pi\)
@@ -45,7 +49,7 @@ module globals
    integer(I4B), parameter :: UPPERCASE_OFFSET = iachar('A') - iachar('a') !! ASCII character set parameter for lower to upper 
                                                                            !! conversion - offset between upper and lower
 
-   character(*), parameter :: VERSION = "2024.3.5" !! Swiftest version
+   character(*), parameter :: VERSION = "2024.4.0" !! Swiftest version
 
    !> Symbolic name for integrator types
    character(*), parameter :: UNKNOWN_INTEGRATOR = "UKNOWN INTEGRATOR"
