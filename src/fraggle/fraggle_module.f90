@@ -15,6 +15,13 @@ module fraggle
    implicit none
    public
 
+   integer(I4B), parameter :: iMlr = 1
+   integer(I4B), parameter :: iMslr = 2
+   integer(I4B), parameter :: iMrem = 3
+   integer(I4B), parameter :: NFRAGMIN = iMrem + 2
+   integer(I4B) :: nfrag
+   real(DP) :: Mslr, Mrat
+
    type, extends(collision_basic) :: collision_fraggle
       real(DP) :: fail_scale !! Scale factor to apply to distance values in the position model when overlaps occur. 
    contains
@@ -82,6 +89,13 @@ module fraggle
          class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
          logical,                      intent(out)   :: lfailure     !! Did the velocity computation fail?
       end subroutine fraggle_generate_vel_vec
+
+      module function fraggle_util_sfd_function(x) result(y)
+         implicit none
+         real(DP), intent(in) :: x
+         real(DP)             :: y
+         integer(I4B) :: i
+      end function fraggle_util_sfd_function
 
       module subroutine fraggle_util_restructure(self, nbody_system, param, lfailure)
          implicit none

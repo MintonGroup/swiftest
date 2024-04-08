@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script will download the correct OpenMP library for a given MacOS deployment target
 # 
-# Copyright 2023 - David Minton
+# Copyright 2024 - The Minton Group at Purdue University
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -11,6 +11,13 @@
 # If not, see: https://www.gnu.org/licenses. 
 
 # Determine the platform and architecture
+OS=$(uname -s)
+# If it is not Darwin then exit
+if [ $OS != "Darwin" ]; then
+   echo "This script is only for MacOS"
+   exit 1
+fi
+
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 

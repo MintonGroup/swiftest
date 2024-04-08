@@ -1,8 +1,7 @@
 #!/bin/bash
-# This script will build all of the dependency libraries needed by Swiftest. Builds the following from source:
-# Zlib, hdf5, netcdf-c, netcdf-fortran
+# This script will hdf5 from source
 # 
-# Copyright 2024 - David Minton
+# Copyright 2024 - The Minton Group at Purdue University
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -62,11 +61,6 @@ printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/hdfsrc
 
-if [ $OS = "Darwin" ]; then
-    rm -rf ${PREFIX}/lib/*.dylib
-else
-    rm -rf ${PREFIX}/lib/*.so
-fi
 ZLIB_LIBRARY="${ZLIB_ROOT}/lib/libz.a"
 SZIP_LIBRARY="${SZIP_ROOT}/lib/libsz.a"
 
@@ -86,7 +80,8 @@ ARGLIST="-DCMAKE_INSTALL_PREFIX:PATH=${HDF5_ROOT} \
     -DHDF5_BUILD_FORTRAN:BOOL=OFF \
     -DHDF5_BUILD_EXAMPLES:BOOL=OFF \
     -DBUILD_TESTING:BOOL=OFF \
-    -DBUILD_STATIC_LIBS:BOOL=OFF \
+    -DBUILD_STATIC_LIBS:BOOL=ON \
+    -DBUILD_SHARED_LIBS:BOOL=OFF \
     -DHDF5_BUILD_JAVA:BOOL=OFF \
     -DHDF5_ENABLE_ALL_WARNINGS:BOOL=OFF \
     -DHDF5_TEST_PARALLEL:BOOL=OFF \

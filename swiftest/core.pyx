@@ -5,6 +5,9 @@ import numpy as np
 import warnings
 import traceback
 
+# Define this macro to use the NumPy C API version compatible with the build system's numpy version
+cnp.import_array()
+
 cdef extern from "core.h":
     void bindings_c_driver(char* integrator, char* param_file_name, char* display_style) nogil
     void bindings_orbel_el2xv(int nbody, double *mu, double *a, double *e, double *inc, double *capom, double *omega, double *capm, double *rx, double *ry, double *rz, double *vx, double *vy, double *vz) nogil

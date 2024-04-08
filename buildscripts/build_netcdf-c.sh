@@ -1,8 +1,7 @@
 #!/bin/bash
-# This script will build all of the dependency libraries needed by Swiftest. Builds the following from source:
-# Zlib, hdf5, netcdf-c, netcdf-fortran
+# This script will the NetCDF C library from source
 # 
-# Copyright 2023 - David Minton
+# Copyright 2024 - The Minton Group at Purdue University
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -36,7 +35,8 @@ if [ ! -d ${DEPENDENCY_DIR}/netcdf-c-${NC_VER} ]; then
     [ -d ${DEPENDENCY_DIR}/netcdf-c-* ] && rm -rf ${DEPENDENCY_DIR}/netcdf-c-*
     curl -s -L https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NC_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
 fi
-
+LIBS="-lhdf5_hl -lhdf5 -lm -lz -lzstd -lbz2 -lcurl -lsz ${LIBS}"
+LDFLAGS="${LDFLAGS} ${LIBS}"
 printf "\n"
 printf "*********************************************************\n"
 printf "*              BUILDING NETCDF-C LIBRARY                *\n"
@@ -73,6 +73,7 @@ cmake -B build -S . -G Ninja  \
     -DENABLE_EXAMPLES:BOOL=OFF \
     -DENABLE_NCZARR_FILTERS_TESTING:BOOL=OFF \
     -DENABLE_SHARED_LIBRARY_VERSION:BOOL=OFF \
+    -DBUILD_SHARED_LIBS:BOOL=OFF \
     -DENABLE_TESTS:BOOL=OFF \
     -DENABLE_EXTRA_TESTS:BOOL=OFF \
     -DENABLE_UNIT_TESTS:BOOL=OFF \
