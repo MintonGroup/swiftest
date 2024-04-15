@@ -14,6 +14,7 @@ import unittest
 import os
 import tempfile
 import astropy.constants as const
+import numpy as np
 
 class TestUnits(unittest.TestCase):
     def setUp(self):
@@ -25,34 +26,40 @@ class TestUnits(unittest.TestCase):
         # Clean up temporary directory
         self.tmpdir.cleanup() 
         
-    def test_xv2el2xv_collisions(self):
+    def test_xv2el2xv_dims(self):
         '''
-        Check that the xv2el and el2xv converts correctly for sim.collisions
+        Check that the xv2el and el2xv converts correctly with the right dimensions
         '''
 
-        print('\ntest_xv2el2xv_conversion_dims: Check that the xv2el and el2xv converts with the right dimensions for sim.collisions')
+        print('\ntest_xv2el2xv_dims: Check that the xv2el and el2xv converts with the right dimensions')
 
         sim = swiftest.Simulation(simdir=self.simdir, tstop = 0.5, dt = 0.1, init_cond_format = 'XV')
 
         sim.add_solar_system_body(['Sun', 'Mars'])
+        xv_dims = sim.data.rh.dims
+        el_dims = sim.data.a.dims
 
-        # add massive impactors that hit the planet
-        sim.add_body(name = ['pl1'], mass = 1e22 / sim.MU2KG, radius = 1e6 / sim.DU2M,
-                        rh = [sim.data.sel(name = 'Mars', time = 0)['rh'].values], vh = [sim.data.sel(name = 'Mars', time = 0)['vh'].values])
+        # make dummy changes to the bodies
+        sim.modify_body(name = 'Sun', c_lm = np.ones([2, 3, 3]))
+        sim.modify_body(name = 'Mars', e = 0.1)
+        sim.data.el2xv()
+        sim.data.xv2el()
 
-        sim.run()
-        GMcb = sim.data.sel(name = 'Mars', time = 0)['Gmass'].values
+        # check that rh and vh have the same dimensions
+        self.assertTrue(sim.data.rh.dims == xv_dims)
+        self.assertTrue(sim.data.vh.dims == xv_dims)
 
-        try:
-            sim.collisions.xv2el(GMcb)
-        except:
-            self.fail('xv2el failed with sim.collisions')
-        
-        try:
-            sim.collisions.el2xv(GMcb)
-        except:
-            self.fail('el2xv failed with sim.collisions after xv2el')
-        
+        # check that all orbital elements have the same dimensions
+        self.assertTrue(sim.data.a.dims == el_dims)
+        self.assertTrue(sim.data.e.dims == el_dims)
+        self.assertTrue(sim.data.inc.dims == el_dims)
+        self.assertTrue(sim.data.omega.dims == el_dims)
+        self.assertTrue(sim.data.capom.dims == el_dims)
+        self.assertTrue(sim.data.capm.dims == el_dims)
+        self.assertTrue(sim.data.capf.dims == el_dims)
+        self.assertTrue(sim.data.cape.dims == el_dims)
+        self.assertTrue(sim.data.varpi.dims == el_dims)
+        self.assertTrue(sim.data.lam.dims == el_dims)
 
         return 
          
