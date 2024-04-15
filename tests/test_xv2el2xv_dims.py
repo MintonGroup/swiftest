@@ -33,7 +33,7 @@ class TestUnits(unittest.TestCase):
 
         print('\ntest_xv2el2xv_dims: Check that the xv2el and el2xv converts with the right dimensions')
 
-        sim = swiftest.Simulation(simdir=self.simdir, tstop = 0.5, dt = 0.1, init_cond_format = 'XV')
+        sim = swiftest.Simulation(simdir=self.simdir, tstop = 0.5, dt = 0.1)
 
         sim.add_solar_system_body(['Sun', 'Mars'])
         xv_dims = sim.data.rh.dims
