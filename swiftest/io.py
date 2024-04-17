@@ -867,7 +867,7 @@ def select_active_from_frame(ds: SwiftestDataset,
 
     # Select the input time frame from the Dataset
     frame = ds.isel(time=[framenum])
-    iframe = frame.isel(time=0)
+    iframe = frame.isel(time=0).load()
 
     if "name" in ds.dims:
         count_dim = "name"

@@ -3618,7 +3618,7 @@ class Simulation(object):
                 print("Reading collisions history file as .collisions")
 
         if dask:
-            self.collisions = xr.open_mfdataset(col_file,engine='h5netcdf', mask_and_scale=False)
+            self.collisions = xr.open_mfdataset(col_file,engine='h5netcdf', mask_and_scale=False, combine = 'nested')
         else:
             self.collisions = xr.open_dataset(col_file, mask_and_scale=False)
             
