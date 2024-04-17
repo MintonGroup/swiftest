@@ -478,6 +478,47 @@ class TestSwiftestIO(unittest.TestCase):
 
         sim.add_body(name=name_tp, a=a_tp, e=e_tp, inc=inc_tp, capom=capom_tp, omega=omega_tp, capm=capm_tp)
         sim.modify_body(name="TestParticle_01", a=1.0, e=0.1, inc=0.0, capom=0.0, omega=0.0, capm=0.0)
+
+    def test_read_with_dask(self):
+        '''
+        Test that a swiftest Simulation data and collisions can be read in with dask
+        Adapted from test_fraggle.py
+
+        '''
+        # disruption_headon parameters
+        names = ["Target", "Projectile"]
+        pos_vectors = [np.array([1.0, -5.0e-05, 0.0]), np.array([1.0,  5.0e-05, 0.0])]
+        vel_vectors = [np.array([ 0.00,  6.280005, 0.0]), np.array([ 0.00,  3.90, 0.0])]
+        rot_vectors = [np.array([0.0, 0.0, 0.0]), np.array([0.0, 0.0, 0.0])]
+        body_Gmass =  [1e-7, 1e-9]
+        tstop = 2.0e-3
+        nfrag_reduction = 10.0
+        density = 3000 * swiftest.AU2M**3 / swiftest.MSun
+        GU = swiftest.GMSun * swiftest.YR2S**2 / swiftest.AU2M**3
+        body_radius = [((Gmass/GU)/(4./3.*np.pi*density))**(1.0/3.0) for Gmass in body_Gmass]
+
+        sim = swiftest.Simulation(simdir=self.simdir, rotation=True, compute_conservation_values=True)
+        sim.add_solar_system_body("Sun")
+        sim.add_body(name=names, Gmass=body_Gmass, radius=body_radius, rh=pos_vectors, vh=vel_vectors, rot=rot_vectors)
+
+        # Set fragmentation parameters
+        minimum_fragment_gmass = 0.01 * body_Gmass[1] 
+        gmtiny = 0.50 * body_Gmass[1] 
+        sim.set_parameter(collision_model="fraggle", 
+                        encounter_save="both", 
+                        gmtiny=gmtiny, 
+                        minimum_fragment_gmass=minimum_fragment_gmass, 
+                        nfrag_reduction=nfrag_reduction)
+        sim.run(dt=tstop/4, tstop=tstop, istep_out=1, dump_cadence=0)
+
+        # read in the data with dask
+        try:
+            sim_read = swiftest.Simulation(simdir=self.simdir, read_param=True, read_data=True, 
+                                            read_collisions=True, dask = True)
+        except Exception as e:
+            self.fail(f"Failed to read in data with dask: {e}")
+
+        return
     
 if __name__ == '__main__':
     os.environ["HDF5_USE_FILE_LOCKING"]="FALSE"
