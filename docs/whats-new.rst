@@ -9,7 +9,7 @@ Bug Fixes
 ~~~~~~~~~
 - Fixed problem that was causing the wrong dimensions to be added to certain variables when calling :meth:`~swiftest.SwiftestDataset.xv2el` and :meth:`~swiftest.SwiftestDataset.el2xv`. `GH31_
 - Fixed bug that was causing a failure to read in collision Datasets when ``dask=True`` was set. `GH36`_
-- Fixed other minor bugs that only appeard when reading in datasets using Dask.
+- Fixed other minor bugs that only appeared when reading in datasets using Dask.
 
 
 .. _GH31: https://github.com/MintonGroup/swiftest/issues/31
