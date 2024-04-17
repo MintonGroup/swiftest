@@ -15,6 +15,10 @@ Bug Fixes
 .. _GH31: https://github.com/MintonGroup/swiftest/issues/31
 .. _GH36: https://github.com/MintonGroup/swiftest/issues/36
 
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Pinned the h5py package to v3.10.0 because v3.11.0 does not support aarch64 Linux wheels and the build fails on that platform.
+
 v2024.04.0
 ~~~~~~~~~~
 
