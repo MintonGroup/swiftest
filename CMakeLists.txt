@@ -102,7 +102,7 @@ ENDIF()
 FIND_PACKAGE(Python COMPONENTS Interpreter Development.Module NumPy REQUIRED)
 
 # Set some options the user may choose
-OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
+OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" ON)
 OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
 OPTION(USE_SIMD "Use SIMD vectorization" ON)
 OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
@@ -138,9 +138,9 @@ MESSAGE(STATUS "CMAKE_INSTALL_RPATH: ${CMAKE_INSTALL_RPATH}")
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Have the .mod files placed in the include folder
-SET(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mod)
+SET(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod)
 
-# Add our local modules to the module ldpath
+# Add our local CMake modules to the module ldpath
 FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" LOCAL_MODULE_PATH)
 LIST(APPEND CMAKE_MODULE_PATH ${LOCAL_MODULE_PATH})
 
@@ -167,6 +167,10 @@ FIND_PACKAGE(BLAS REQUIRED)
 FIND_PACKAGE(LAPACK REQUIRED)
 FIND_PACKAGE(FFTW3 REQUIRED)
 FIND_PACKAGE(SHTOOLS REQUIRED)
+IF (USE_COARRAY)
+    MESSAGE(STATUS "Building with Coarray support")
+    FIND_PACKAGE(COARRAY_Fortran REQUIRED)
+ENDIF()
 
 SET(HDF5_USE_STATIC_LIBRARIES ON CACHE BOOL "Use static libraries for HDF5")
 
@@ -195,6 +199,9 @@ ENDIF()
 
 # Set the name of the swiftest library
 SET(SWIFTEST_LIBRARY ${SKBUILD_PROJECT_NAME})
+IF (USE_COARRAY)
+    SET(SWIFTEST_LIBRARY_CAF ${SWIFTEST_LIBRARY}_caf) 
+ENDIF()
 
 # Determine compiler options
 IF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
