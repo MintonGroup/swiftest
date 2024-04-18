@@ -87,49 +87,6 @@ SET_TARGET_PROPERTIES(COARRAY::COARRAY PROPERTIES
    INTERFACE_INCLUDE_DIRECTORIES "${COARRAY_INCLUDE_DIR}"
 )
 
-# FUNCTION (test_coarray_works)
-# "
-# program TestCoarray
-#  integer, codimension[*] :: i
-#  write(*,'(I2)',ADVANCE='NO') num_images()
-# end program TestCoarray
-# ")
-#     SET (MACRO_CHECK_FUNCTION_DEFINITIONS
-#          "-DCoarray_FLAG_DETECTED ${CMAKE_REQUIRED_FLAGS}")
-#     TRY_RUN (Coarray_RUN_FAILED Coarray_FLAG_DETECTED ${CMAKE_BINARY_DIR}
-#         ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/testFortranCoarray.f90
-#         COMPILE_DEFINITIONS ${CMAKE_REQUIRED_DEFINITIONS}
-#         CMAKE_FLAGS -DCOMPILE_DEFINITIONS:STRING=${MACRO_CHECK_FUNCTION_DEFINITIONS}
-#         COMPILE_OUTPUT_VARIABLE OUTPUT
-#         RUN_OUTPUT_VARIABLE OMP_NUM_PROCS_INTERNAL)
-#     IF (Coarray_FLAG_DETECTED)
-#         FILE (APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeOutput.log
-#              "Determining if the Fortran compiler supports Coarray passed with "
-#              "the following output:\n${OUTPUT}\n\n")
-#         SET (Coarray_FLAG_DETECTED 1)
-#         IF (Coarray_RUN_FAILED)
-#             MESSAGE (FATAL_ERROR "Coarray found, but test code did not run")
-#         ENDIF (Coarray_RUN_FAILED)
-#         SET (Coarray_Fortran_FLAGS_INTERNAL "${FLAG}")
-#         BREAK ()
-#     ELSE ()
-#         FILE (APPEND ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeError.log
-#              "Determining if the Fortran compiler supports Coarray failed with "
-#              "the following output:\n${OUTPUT}\n\n")
-#         SET (Coarray_FLAG_DETECTED 0)
-#     ENDIF (Coarray_FLAG_DETECTED)
-# ENDFOREACH (FLAG ${Coarray_Fortran_FLAG_CANDIDATES})
-
-# SET (Coarray_Fortran_FLAGS "${Coarray_Fortran_FLAGS_INTERNAL}"
-#      CACHE STRING "Fortran compiler flags for Coarray parallization")
-
-# # handle the standard arguments for FIND_PACKAGE
-# FIND_PACKAGE_HANDLE_STANDARD_ARGS (Coarray_Fortran DEFAULT_MSG 
-#     Coarray_Fortran_FLAGS)
-
-
-# )
-
 MARK_AS_ADVANCED(COARRAY_LIBRARY COARRAY_Fortran_FLAGS COARRAY_INCLUDE_DIR COARRAY_EXECUTABLE)
 MESSAGE(STATUS "Coarray library: ${COARRAY_LIBRARY}")
 MESSAGE(STATUS "Coarray include dir: ${COARRAY_INCLUDE_DIR}")
