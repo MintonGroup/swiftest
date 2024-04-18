@@ -9,10 +9,8 @@ You should have received a copy of the GNU General Public License along with Swi
 If not, see: https://www.gnu.org/licenses. 
 """
 
-import numpy as np
 import astropy.constants as const
-import astropy.units as u
-from astropy.coordinates import SkyCoord
+import datetime
 
 # Constants in SI units
 GC = const.G.value[()]
@@ -26,9 +24,12 @@ GMEarth = const.GM_earth.value
 JD2S = 86400
 YR2S = 365.25 * JD2S
 einsteinC = 299792458.0
-# Solar oblatenes values: From Mecheri et al. (2004), using Corbard (b) 2002 values (Table II)
-J2Sun = 2.198e-7
-J4Sun = -4.805e-9
-rotpoleSun = SkyCoord(ra=286.13 * u.degree, dec=63.87 * u.degree).cartesian
-rotSun = (360.0 / 25.05) / JD2S  * rotpoleSun 
+CB_TYPE_NAME = "Central Body"
+PL_TYPE_NAME = "Massive Body"
+TP_TYPE_NAME = "Test Particle"
+PL_TINY_TYPE_NAME = "Semi-Interacting Massive Body"
 
+# The default value is Prof. Minton's Brimley/Cocoon line crossing date (aka MBCL)
+_mbday = datetime.date.fromisoformat('1976-08-05')
+_bcl = datetime.timedelta(days=18530)
+MINTON_BCL = (_mbday + _bcl).isoformat()

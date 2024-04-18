@@ -587,7 +587,8 @@ contains
       class is (swiftest_parameters)
          associate(plpl_collision => nbody_system%plpl_collision, &
                    collision_history => nbody_system%collision_history, pl => nbody_system%pl, cb => nbody_system%cb, &
-                   collider => nbody_system%collider, fragments => nbody_system%collider%fragments, impactors => nbody_system%collider%impactors)
+                   collider => nbody_system%collider, fragments => nbody_system%collider%fragments, &
+                   impactors => nbody_system%collider%impactors)
             if (plpl_collision%nenc == 0) return ! No collisions to resolve
 
 
@@ -607,11 +608,13 @@ contains
                   ncollisions = plpl_collision%nenc
                   write(timestr,*) t
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, "")
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "***********************************************************" // &
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT,&
+                                                            "***********************************************************" // &
                                                             "***********************************************************")
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Collision between massive bodies detected at time t = " // &
                                                             trim(adjustl(timestr)))
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "***********************************************************" // &
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, &
+                                                            "***********************************************************" // &
                                                             "***********************************************************")
 
                   do k = 1_I8B, ncollisions

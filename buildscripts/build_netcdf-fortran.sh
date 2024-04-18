@@ -1,8 +1,7 @@
 #!/bin/bash
-# This script will build all of the dependency libraries needed by Swiftest. Builds the following from source:
-# Zlib, hdf5, netcdf-c, netcdf-fortran
+# This script will the NetCDF Fortran library from source
 # 
-# Copyright 2023 - David Minton
+# Copyright 2024 - The Minton Group at Purdue University
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -10,13 +9,14 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
-SCRIPT_DIR=$(realpath $(dirname $0))
-set -a
-ARGS=$@
-. ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
-. ${SCRIPT_DIR}/set_compilers.sh
+NF_VER="4.6.1"
 
-NPROC=$(nproc)
+SCRIPT_DIR=$(realpath $(dirname $0))
+ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+
+set -e
+cd $ROOT_DIR
+. ${SCRIPT_DIR}/set_environment.sh
 
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
@@ -25,7 +25,6 @@ printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
 printf "Installing to ${NFDIR}\n"
 printf "\n"
 
-NF_VER="4.6.1"
 printf "*********************************************************\n"
 printf "*          FETCHING NETCDF-FORTRAN SOURCE                  *\n"
 printf "*********************************************************\n"
@@ -34,8 +33,9 @@ if [ ! -d ${DEPENDENCY_DIR}/netcdf-fortran-${NF_VER} ]; then
     [ -d ${DEPENDENCY_DIR}/netcdf-fortran-* ] && rm -rf ${DEPENDENCY_DIR}/netcdf-fortran-*
     curl -s -L https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v${NF_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
 fi 
-CFLAGS="$(nc-config --cflags) $CFLAGS"
-LIBS="$(nc-config --libs) $LIBS"
+CFLAGS="$(${NCDIR}/bin/nc-config --cflags) $CFLAGS"
+LIBS="-lnetcdf -lhdf5_hl -lhdf5 -lm -lz -lzstd -lbz2 -lcurl -lsz ${LIBS}"
+LDFLAGS="${LDFLAGS} $LIBS"
 printf "\n"
 printf "*********************************************************\n"
 printf "*          BUILDING NETCDF-FORTRAN LIBRARY              *\n"
@@ -50,18 +50,47 @@ printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/netcdf-fortran-*
 NCLIBDIR=$(${NCDIR}/bin/nc-config --libdir)
-if [ $OS = "MacOSX" ]; then
-    netCDF_LIBRARIES="${NCLIBDIR}/libnetcdf.dylib"
-else
-    netCDF_LIBRARIES="${NCLIBDIR}/libnetcdf.so"
-fi
+
+
+# This will patch the CMakeLists.txt file to add in the proper szip library link
+#!/bin/bash
+
+CMAKE_LISTS_FILE="CMakeLists.txt"
+
+CODE_TO_INSERT=$(cat <<'EOF'
+find_library(SZIP_LIBRARY NAMES sz libsz PATHS "\${PACKAGE_PREFIX_DIR}/lib" NO_DEFAULT_PATH)
+if(SZIP_LIBRARY)
+  get_target_property(current_iface_libs netCDF::netcdf INTERFACE_LINK_LIBRARIES)
+  if(current_iface_libs)
+    list(APPEND current_iface_libs "\${SZIP_LIBRARY}")
+  else()
+    set(current_iface_libs "\${SZIP_LIBRARY}")
+  endif()
+  set_target_properties(netCDF::netcdf PROPERTIES
+    INTERFACE_LINK_LIBRARIES "\${current_iface_libs}"
+  )
+endif()
+EOF
+)
+
+LINE_NUMBER=636
+
+awk -v line_num="$LINE_NUMBER" -v code="$CODE_TO_INSERT" 'NR == line_num {print code} {print}' "$CMAKE_LISTS_FILE" > temp_file && mv temp_file "$CMAKE_LISTS_FILE"
+
+echo "Modified CMakeLists.txt and added the new code block before line $LINE_NUMBER."
+#############
+
 cmake -B build -S . -G Ninja \
-    -DnetCDF_INCLUDE_DIR:PATH="${NCDIR}/include" \
-    -DnetCDF_LIBRARIES:FILEPATH="${netCDF_LIBRARIES}"  \
     -DCMAKE_INSTALL_PREFIX:PATH=${NFDIR} \
-    -DCMAKE_INSTALL_LIBDIR="lib"
+    -DCMAKE_INSTALL_LIBDIR="lib" \
+    -DBUILD_EXAMPLES:BOOL=OFF \
+    -DBUILD_TESTING:BOOL=OFF \
+    -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON \
+    -DBUILD_SHARED_LIBS:BOOL=OFF \
+    -DENABLE_TESTS:BOOL=OFF     
+
 cmake --build build -j${NPROC} 
-if [ -w ${NFDIR} ]; then
+if [ -w "${NFDIR}" ]; then
     cmake --install build 
 else
     sudo cmake --install build 

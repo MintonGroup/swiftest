@@ -33,6 +33,7 @@ SET(STRICT_MATH_FILES
             ${SRC}/operator/operator_unit.f90
             ${SRC}/rmvs/rmvs_kick.f90
             ${SRC}/rmvs/rmvs_step.f90
+            ${SRC}/shgrav/shgrav_accel.f90
             ${SRC}/swiftest/swiftest_drift.f90    
             ${SRC}/swiftest/swiftest_gr.f90       
             ${SRC}/swiftest/swiftest_io.f90         
@@ -40,7 +41,6 @@ SET(STRICT_MATH_FILES
             ${SRC}/swiftest/swiftest_user.f90
             ${SRC}/swiftest/swiftest_obl.f90    
             ${SRC}/swiftest/swiftest_orbel.f90
-            ${SRC}/swiftest/swiftest_sph.f90
             ${SRC}/symba/symba_drift.f90
             ${SRC}/symba/symba_gr.f90
             ${SRC}/symba/symba_kick.f90
@@ -66,6 +66,7 @@ SET(FAST_MATH_FILES
             ${SRC}/rmvs/rmvs_module.f90
             ${SRC}/helio/helio_module.f90
             ${SRC}/symba/symba_module.f90
+            ${SRC}/shgrav/shgrav_module.f90
             ${SRC}/collision/collision_check.f90  
             ${SRC}/collision/collision_regime.f90   
             ${SRC}/collision/collision_resolve.f90  
@@ -121,8 +122,9 @@ ELSEIF(BT STREQUAL "PROFILE")
 ENDIF()
 
 # Define the executable name
-SET(SWIFTEST_DRIVER swiftest_driver)
-ADD_EXECUTABLE(${SWIFTEST_DRIVER} ${DRIVER_src})
+SET(SWIFTEST_EXE swiftest_exe)
+ADD_EXECUTABLE(${SWIFTEST_EXE} ${DRIVER_src})
+SET_PROPERTY(TARGET ${SWIFTEST_EXE} PROPERTY OUTPUT_NAME swiftest)
 
 #####################################################
 # Add the needed libraries 
@@ -130,33 +132,33 @@ ADD_EXECUTABLE(${SWIFTEST_DRIVER} ${DRIVER_src})
 # Create a library from the source files, except the driver
 ADD_LIBRARY(${SWIFTEST_LIBRARY} ${SWIFTEST_src})
 
-TARGET_LINK_LIBRARIES(${SWIFTEST_LIBRARY} PUBLIC netCDF::netcdff HDF5::HDF5)
-TARGET_LINK_LIBRARIES(${SWIFTEST_DRIVER} PUBLIC netCDF::netcdff HDF5::HDF5)
+TARGET_LINK_LIBRARIES(${SWIFTEST_LIBRARY} PUBLIC netCDF::netcdff netCDF::netcdf HDF5::HDF5 hdf5::hdf5_hl-static)
+TARGET_LINK_LIBRARIES(${SWIFTEST_EXE} PUBLIC netCDF::netcdff netCDF::netcdf HDF5::HDF5 hdf5::hdf5_hl-static)
 
 IF(USE_OPENMP OR USE_SIMD)
     TARGET_LINK_LIBRARIES(${SWIFTEST_LIBRARY} PUBLIC SHTOOLS::parallel)
-    TARGET_LINK_LIBRARIES(${SWIFTEST_DRIVER} PUBLIC SHTOOLS::parallel)
+    TARGET_LINK_LIBRARIES(${SWIFTEST_EXE} PUBLIC SHTOOLS::parallel)
 
-    SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY} ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY COMPILE_FLAGS  "${OpenMP_Fortran_FLAGS} ")
-    SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY} ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY LINK_FLAGS  "${OpenMP_Fortran_FLAGS} ")
+    SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY} ${SWIFTEST_EXE} APPEND_STRING PROPERTY COMPILE_FLAGS  "${OpenMP_Fortran_FLAGS} ")
+    SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY} ${SWIFTEST_EXE} APPEND_STRING PROPERTY LINK_FLAGS  "${OpenMP_Fortran_FLAGS} ")
 ELSE ()
     TARGET_LINK_LIBRARIES(${SWIFTEST_LIBRARY} PUBLIC SHTOOLS::serial)
-    TARGET_LINK_LIBRARIES(${SWIFTEST_DRIVER} PUBLIC SHTOOLS::serial)
+    TARGET_LINK_LIBRARIES(${SWIFTEST_EXE} PUBLIC SHTOOLS::serial)
 ENDIF()
 
 TARGET_LINK_LIBRARIES(${SWIFTEST_LIBRARY} PUBLIC BLAS::BLAS LAPACK::LAPACK FFTW3::FFTW3)
 
-TARGET_LINK_LIBRARIES(${SWIFTEST_DRIVER} PUBLIC ${SWIFTEST_LIBRARY})
+TARGET_LINK_LIBRARIES(${SWIFTEST_EXE} PUBLIC ${SWIFTEST_LIBRARY})
 
 IF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-   SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY} ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY LINK_FLAGS  "/NODEFAULTLIB")
+   SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY} ${SWIFTEST_EXE} APPEND_STRING PROPERTY LINK_FLAGS  "/NODEFAULTLIB")
 ENDIF()
 
 IF(USE_COARRAY)
     TARGET_COMPILE_DEFINITIONS(${SWIFTEST_LIBRARY} PUBLIC -DCOARRAY)
-    TARGET_COMPILE_DEFINITIONS(${SWIFTEST_DRIVER} PUBLIC -DCOARRAY)
-    SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY} ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY COMPILE_FLAGS  "${Coarray_Fortran_FLAGS} ")
-    SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY} ${SWIFTEST_DRIVER} APPEND_STRING PROPERTY LINK_FLAGS  "${Coarray_Fortran_FLAGS} ")
+    TARGET_COMPILE_DEFINITIONS(${SWIFTEST_EXE} PUBLIC -DCOARRAY)
+    SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY} ${SWIFTEST_EXE} APPEND_STRING PROPERTY COMPILE_FLAGS  "${Coarray_Fortran_FLAGS} ")
+    SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY} ${SWIFTEST_EXE} APPEND_STRING PROPERTY LINK_FLAGS  "${Coarray_Fortran_FLAGS} ")
 ENDIF(USE_COARRAY)
 
 # Check to see if the compiler allows for local-spec in do concurrent statements. Set a preprocessor variable if it does
@@ -176,7 +178,7 @@ TRY_COMPILE(DOCONLOC_WORKS ${CMAKE_BINARY_DIR} ${TESTFILE} COMPILE_DEFINITIONS "
 IF (DOCONLOC_WORKS)
     MESSAGE(STATUS "DO CONCURRENT supports locality-spec")
     TARGET_COMPILE_DEFINITIONS(${SWIFTEST_LIBRARY} PRIVATE -DDOCONLOC)
-    TARGET_COMPILE_DEFINITIONS(${SWIFTEST_DRIVER} PRIVATE -DDOCONLOC)
+    TARGET_COMPILE_DEFINITIONS(${SWIFTEST_EXE} PRIVATE -DDOCONLOC)
 ELSE ()
     MESSAGE(STATUS "DO CONCURRENT does not support locality-spec")
 ENDIF (DOCONLOC_WORKS)
@@ -186,22 +188,51 @@ SET(TESTFILE "${CMAKE_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}")
 SET(TESTFILE "${TESTFILE}/CMakeTmp/testFortranQuadPrecisionReal.f90")
 FILE(WRITE "${TESTFILE}"
 "
-program TestQuadPrecisionReal
-integer, parameter :: QP = selected_Real_kind(30) 
-real(QP) :: x
-end program TestQuadPrecisionReal
+module TestQuadPrecisionReal
+  use, intrinsic :: iso_c_binding 
+  integer, parameter :: DP = c_double  
+  integer, parameter :: QP = c_float128
+  interface foo
+    module procedure foo_DP
+    module procedure foo_QP
+  end interface foo
+  contains
+   subroutine foo_DP(x)
+    implicit none
+    real(DP), intent(in) :: x
+    write(*,*) 'double', x
+    return
+  end subroutine foo_DP
+  subroutine foo_QP(x)
+    implicit none
+    real(QP), intent(in) :: x
+    write(*,*) 'quad', x
+    return
+  end subroutine foo_QP
+end module TestQuadPrecisionReal
+
+program test
+   use TestQuadPrecisionReal
+   real(QP) :: x = 1.0_QP
+   call foo(x)
+end program test
+
 ")
 TRY_COMPILE(QUADPREC ${CMAKE_BINARY_DIR} ${TESTFILE} COMPILE_DEFINITIONS "${CMAKE_Fortran_FLAGS}" OUTPUT_VARIABLE OUTPUT)
 IF (QUADPREC)
     MESSAGE(STATUS "Quad precision real is supported")
     TARGET_COMPILE_DEFINITIONS(${SWIFTEST_LIBRARY} PRIVATE -DQUADPREC)
-    TARGET_COMPILE_DEFINITIONS(${SWIFTEST_DRIVER} PRIVATE -DQUADPREC)
+    TARGET_COMPILE_DEFINITIONS(${SWIFTEST_EXE} PRIVATE -DQUADPREC)
 ELSE ()
     MESSAGE(STATUS "Quad precision real is not supported")
 ENDIF ()
 
+IF (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY} APPEND_STRING PROPERTY LINK_FLAGS  "-Wl,-z,noexecstack")
+ENDIF()
+
 # Define the install locations
-INSTALL(TARGETS ${SWIFTEST_DRIVER} ${SWIFTEST_LIBRARY} 
+INSTALL(TARGETS ${SWIFTEST_EXE} ${SWIFTEST_LIBRARY} 
     RUNTIME DESTINATION ${INSTALL_BINDIR}
     LIBRARY DESTINATION ${INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${INSTALL_LIBDIR}

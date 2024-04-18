@@ -1,7 +1,7 @@
 {
     "description": "Official release for the Journal of Open Source Software.", 
     "license" : "GPLv3+", 
-    "title": "profminton/swiftest: v2023.10.2", 
+    "title": "MintonGroup/swiftest: v2023.10.2", 
     "version": "v2023.10.2", 
     "upload_type": "software", 
     "publication_date": "2023-10-07", 
@@ -46,7 +46,7 @@
     "related_identifiers": [
         {
             "scheme": "url", 
-            "identifier": "https://github.com/profminton/swiftest/tree/v2023.10.2", 
+            "identifier": "https://github.com/MintonGroup/swiftest/tree/v2023.10.2", 
             "relation": "isSupplementTo"
         }, 
         {

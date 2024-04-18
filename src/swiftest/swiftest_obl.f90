@@ -9,15 +9,15 @@
 
 submodule (swiftest) s_swiftest_obl
    use swiftest
-   use operators
+   use shgrav
 
 contains
 
    pure function matinv3(A) result(B)
-   !! Performs a direct calculation of the inverse of a 3×3 matrix.
-   !!
-   !! from https://fortranwiki.org/fortran/show/Matrix+inversion
-   !!
+      !! Performs a direct calculation of the inverse of a 3×3 matrix.
+      !!
+      !! from https://fortranwiki.org/fortran/show/Matrix+inversion
+      !!
 
       real(DP), intent(in) :: A(3,3)   !! Matrix
       real(DP)             :: B(3,3)   !! Inverse matrix
@@ -44,7 +44,8 @@ contains
    module subroutine swiftest_obl_rot_matrix(n, rot, rot_matrix, rot_matrix_inv)
       !! author: Kaustub P. Anand
       !! 
-      !! Generate a rotation matrix and its inverse to rotate the coordinate frame to align the rotation axis along the z axis for correct spin calculation
+      !! Generate a rotation matrix and its inverse to rotate the coordinate frame to align the rotation axis along the z axis for 
+      !! correct spin calculation
       !! 
 
       implicit none
@@ -95,7 +96,8 @@ contains
                continue
             end if
 
-            rot_matrix_inv(i, j) = rot_matrix_inv(i, j) + u(i) * u(j) * (1 - cos(theta)) + S_matrix(i, j) * sin(theta) ! Skew-symmetric matrix + Tensor product matrix
+            ! Skew-symmetric matrix + Tensor product matrix
+            rot_matrix_inv(i, j) = rot_matrix_inv(i, j) + u(i) * u(j) * (1 - cos(theta)) + S_matrix(i, j) * sin(theta) 
 
          end do
       end do
@@ -136,7 +138,8 @@ contains
       real(DP), dimension(:,:), intent(out)           :: aobl   !! Barycentric acceleration of bodies due to central body oblateness
       real(DP), dimension(NDIM), intent(in)           :: rot    !! Central body rotation matrix
       real(DP), dimension(:),   intent(in),  optional :: GMpl   !! Masses of input bodies if they are not test particles
-      real(DP), dimension(:),   intent(out), optional :: aoblcb !! Barycentric acceleration of central body (only needed if input bodies are massive)
+      real(DP), dimension(:),   intent(out), optional :: aoblcb 
+         !! Barycentric acceleration of central body (only needed if input bodies are massive)
    
       ! Internals
       integer(I4B) :: i
@@ -209,7 +212,7 @@ contains
    end subroutine swiftest_obl_acc
 
 
-   module subroutine swiftest_obl_acc_pl(self, nbody_system)
+   module subroutine swiftest_non_spherical_cb_acc_pl(self, nbody_system)
       !! author: David A. Minton
       !!
       !! Compute the barycentric accelerations of massive bodies due to the oblateness of the central body
@@ -227,7 +230,11 @@ contains
 
       associate(pl => self, cb => nbody_system%cb)
          npl = self%nbody
-         call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rh, pl%lmask, pl%aobl, cb%rot, pl%Gmass, cb%aobl)
+         if (allocated(cb%c_lm)) then
+            call shgrav_acc(self, nbody_system)
+         else
+            call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rh, pl%lmask, pl%aobl, cb%rot, pl%Gmass, cb%aobl)
+         end if
 
 #ifdef DOCONLOC
          do concurrent(i = 1:npl, pl%lmask(i)) shared(cb,pl)
@@ -239,11 +246,10 @@ contains
       end associate
 
       return
+   end subroutine swiftest_non_spherical_cb_acc_pl
 
-   end subroutine swiftest_obl_acc_pl
 
-
-   module subroutine swiftest_obl_acc_tp(self, nbody_system)
+   module subroutine swiftest_non_spherical_cb_acc_tp(self, nbody_system)
       !! author: David A. Minton
       !!
       !! Compute the barycentric accelerations of massive bodies due to the oblateness of the central body
@@ -262,7 +268,11 @@ contains
 
       associate(tp => self, cb => nbody_system%cb)
          ntp = self%nbody
-         call swiftest_obl_acc(ntp, cb%Gmass, cb%j2rp2, cb%j4rp4, tp%rh, tp%lmask, tp%aobl, cb%rot)
+         if (allocated(cb%c_lm)) then
+            call shgrav_acc(self, nbody_system)
+         else
+            call swiftest_obl_acc(ntp, cb%Gmass, cb%j2rp2, cb%j4rp4, tp%rh, tp%lmask, tp%aobl, cb%rot)
+         end if
          if (nbody_system%lbeg) then
             aoblcb = cb%aoblbeg
          else
@@ -278,9 +288,9 @@ contains
          end do
 
       end associate
-      return
 
-   end subroutine swiftest_obl_acc_tp
+      return
+   end subroutine swiftest_non_spherical_cb_acc_tp
 
 
    module subroutine swiftest_obl_pot_system(self) 
@@ -302,6 +312,7 @@ contains
 
       associate(nbody_system => self, pl => self%pl, cb => self%cb)
          npl = self%pl%nbody
+         if (npl == 0) return
          if (.not. any(pl%lmask(1:npl))) return
 #ifdef DOCONLOC
          do concurrent (i = 1:npl, pl%lmask(i)) shared(cb,pl,oblpot_arr)
@@ -320,7 +331,8 @@ contains
    elemental function swiftest_obl_pot_one(GMcb, GMpl, j2rp2, j4rp4, zh, irh) result(oblpot)
       !! author: David A. Minton
       !!
-      !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body from a single massive body
+      !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body from a 
+      !! single massive body
       !!    Returned value does not include monopole term or terms higher than J4
       !!
       !!    Reference: MacMillan, W. D. 1958. The Theory of the Potential, (Dover Publications), 363.

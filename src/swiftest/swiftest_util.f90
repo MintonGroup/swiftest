@@ -23,15 +23,14 @@ contains
       !! enough, this will allocate space for it.
       implicit none
       ! Arguments
-      type(swiftest_particle_info), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
-      type(swiftest_particle_info), dimension(:), allocatable, intent(in)           :: source       !! Array to append 
-      integer(I4B),                                            intent(in), optional :: nold         !! Extent of original array. 
-                                                                                                    !! If passed, the source array 
-                                                                                                    !! will begin at arr(nold+1). 
-                                                                                                    !! Otherwise, the size of arr 
-                                                                                                    !! will be used.
-      logical,                      dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which
-                                                                                                    !! elements to append to
+      type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: arr  
+         !! Destination array 
+      type(swiftest_particle_info), dimension(:), allocatable, intent(in) :: source 
+         !! Array to append 
+      integer(I4B), intent(in), optional :: nold 
+         !! Extent of original array. If passed the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
+      logical, dimension(:), intent(in), optional :: lsource_mask 
+         !! Logical mask indicating which elements to append to
       ! Internals
       integer(I4B) :: nnew, nsrc, nend_orig, i
       integer(I4B), dimension(:), allocatable :: idx
@@ -78,14 +77,14 @@ contains
       !! will allocate space for it.
       implicit none
       ! Arguments
-      type(swiftest_kinship), dimension(:), allocatable, intent(inout)        :: arr          !! Destination array 
-      type(swiftest_kinship), dimension(:), allocatable, intent(in)           :: source       !! Array to append 
-      integer(I4B),                                      intent(in), optional :: nold         !! Extent of original array. 
-                                                                                              !! If passed, the source array will 
-                                                                                              !! begin at arr(nold+1). Otherwise, 
-                                                                                              !! the size of arr will be used.
-      logical,                dimension(:),              intent(in), optional :: lsource_mask !! Logical mask indicating which 
-                                                                                              !! elements to append to
+      type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: arr 
+         !! Destination array 
+      type(swiftest_kinship), dimension(:), allocatable, intent(in) :: source 
+         !! Array to append 
+      integer(I4B), intent(in), optional :: nold 
+         !! Extent of original array. If passed the source array will begin at arr(nold+1). Otherwise, the size of arr will be used.
+      logical, dimension(:), intent(in), optional :: lsource_mask 
+         !! Logical mask indicating which elements to append to
       ! Internals
       integer(I4B) :: nnew, nsrc, nend_orig
 
@@ -128,11 +127,12 @@ contains
       !! This method will automatically resize the destination body if it is too small
       implicit none
       ! Arguments
-      class(swiftest_body),  intent(inout) :: self         !! Swiftest body object
-      class(swiftest_body),  intent(in)    :: source       !! Source object to append
-      logical, dimension(:), intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
-      ! Internals
-
+      class(swiftest_body),  intent(inout) :: self  
+         !! Swiftest body object
+      class(swiftest_body),  intent(in) :: source  
+         !! Source object to append
+      logical, dimension(:), intent(in) :: lsource_mask 
+         !! Logical mask indicating which elements to append to
 
       call util_append(self%id, source%id, lsource_mask=lsource_mask)
       call util_append(self%info, source%info, lsource_mask=lsource_mask)
@@ -174,9 +174,12 @@ contains
       !! This method will automatically resize the destination body if it is too small
       implicit none
       ! Arguments
-      class(swiftest_pl),              intent(inout) :: self         !! Swiftest massive body object
-      class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      class(swiftest_pl), intent(inout) :: self 
+         !! Swiftest massive body object
+      class(swiftest_body),  intent(in) :: source 
+         !! Source object to append
+      logical, dimension(:), intent(in) :: lsource_mask 
+         !! Logical mask indicating which elements to append to
 
       select type(source)
       class is (swiftest_pl)
@@ -218,9 +221,12 @@ contains
       !! This method will automatically resize the destination body if it is too small
       implicit none
       ! Arguments
-      class(swiftest_tp),              intent(inout) :: self         !! Swiftest test particle object
-      class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      class(swiftest_tp), intent(inout) :: self 
+         !! Swiftest test particle object
+      class(swiftest_body), intent(in) :: source  
+         !! Source object to append
+      logical, dimension(:), intent(in):: lsource_mask 
+         !! Logical mask indicating which elements to append to
 
       select type(source)
       class is (swiftest_tp)
@@ -932,7 +938,7 @@ contains
       logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
 
       ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
-      !> Fill all the common components
+      !! Fill all the common components
       associate(keeps => self)
          call util_fill(keeps%id,         inserts%id,         lfill_list)
          call util_fill(keeps%info,       inserts%info,       lfill_list)
@@ -984,7 +990,7 @@ contains
 
       select type (inserts) ! The standard requires us to select the type of both arguments in order to access all the components
          class is (swiftest_pl)
-            !> Fill components specific to the massive body class
+            !! Fill components specific to the massive body class
             call util_fill(keeps%mass,    inserts%mass,    lfill_list)
             call util_fill(keeps%Gmass,   inserts%Gmass,   lfill_list)
             call util_fill(keeps%rhill,   inserts%rhill,   lfill_list)
@@ -1029,7 +1035,7 @@ contains
       associate(keeps => self)
          select type(inserts)
          class is (swiftest_tp)
-            !> Spill components specific to the test particle class
+            !! Spill components specific to the test particle class
             call util_fill(keeps%nplenc,  inserts%nplenc,  lfill_list)
 
             call swiftest_util_fill_body(keeps, inserts, lfill_list)
@@ -1213,32 +1219,36 @@ contains
          nbody_system%ke_orbit = 0.0_DP
          nbody_system%ke_spin = 0.0_DP
 
-         kepl(:) = 0.0_DP
-         Lplorbit(:,:) = 0.0_DP
-         Lplspin(:,:) = 0.0_DP
-
-         pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE
-
-         nbody_system%GMtot = cb%Gmass + sum(pl%Gmass(1:npl), pl%lmask(1:npl)) 
+         nbody_system%GMtot = cb%Gmass
+         if (npl > 0) then
+            kepl(:) = 0.0_DP
+            Lplorbit(:,:) = 0.0_DP
+            Lplspin(:,:) = 0.0_DP
+            pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE
+            nbody_system%GMtot = nbody_system%GMtot + sum(pl%Gmass(1:npl), pl%lmask(1:npl)) 
+         end if
+            
          kecb = cb%mass * dot_product(cb%vb(:), cb%vb(:))
          nbody_system%be_cb = -3*cb%Gmass * cb%mass / (5 * cb%radius) 
          Lcborbit(:) = cb%mass * (cb%rb(:) .cross. cb%vb(:))
+         if (npl > 0) then
 
 #ifdef DOCONLOC
-         do concurrent (i = 1:npl, pl%lmask(i)) shared(pl,Lplorbit,kepl,npl) local(h) 
+            do concurrent (i = 1:npl, pl%lmask(i)) shared(pl,Lplorbit,kepl,npl) local(h) 
 #else
-         do concurrent (i = 1:npl, pl%lmask(i))
+            do concurrent (i = 1:npl, pl%lmask(i))
 #endif
-            h(1) = pl%rb(2,i) * pl%vb(3,i) - pl%rb(3,i) * pl%vb(2,i)
-            h(2) = pl%rb(3,i) * pl%vb(1,i) - pl%rb(1,i) * pl%vb(3,i)
-            h(3) = pl%rb(1,i) * pl%vb(2,i) - pl%rb(2,i) * pl%vb(1,i)
-
+               h(1) = pl%rb(2,i) * pl%vb(3,i) - pl%rb(3,i) * pl%vb(2,i)
+               h(2) = pl%rb(3,i) * pl%vb(1,i) - pl%rb(1,i) * pl%vb(3,i)
+               h(3) = pl%rb(1,i) * pl%vb(2,i) - pl%rb(2,i) * pl%vb(1,i)
+   
             ! Angular momentum from orbit 
-            Lplorbit(:,i) = pl%mass(i) * h(:)
+               Lplorbit(:,i) = pl%mass(i) * h(:)
 
-            ! Kinetic energy from orbit
-            kepl(i) = pl%mass(i) * dot_product(pl%vb(:,i), pl%vb(:,i)) 
-         end do
+               ! Kinetic energy from orbit
+               kepl(i) = pl%mass(i) * dot_product(pl%vb(:,i), pl%vb(:,i)) 
+            end do
+         end if
 
          if (param%lrotation) then
             kespincb = cb%mass * cb%Ip(3) * cb%radius**2 * dot_product(cb%rot(:), cb%rot(:))
@@ -1246,56 +1256,71 @@ contains
             ! For simplicity, we always assume that the rotation pole is the 3rd principal axis
             Lcbspin(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
 
+            if (npl > 0) then
 #ifdef DOCONLOC
-            do concurrent (i = 1:npl, pl%lmask(i)) shared(pl,Lplspin,kespinpl)
+               do concurrent (i = 1:npl, pl%lmask(i)) shared(pl,Lplspin,kespinpl)
 #else
-            do concurrent (i = 1:npl, pl%lmask(i))
+               do concurrent (i = 1:npl, pl%lmask(i))
 #endif
-               ! Currently we assume that the rotation pole is the 3rd principal axis
-               ! Angular momentum from spin
-               Lplspin(:,i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(:,i)
+                  ! Currently we assume that the rotation pole is the 3rd principal axis
+                  ! Angular momentum from spin
+                  Lplspin(:,i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(:,i)
 
-               ! Kinetic energy from spin
-               kespinpl(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * dot_product(pl%rot(:,i), pl%rot(:,i))
-            end do
+                  ! Kinetic energy from spin
+                  kespinpl(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * dot_product(pl%rot(:,i), pl%rot(:,i))
+               end do
 
-            nbody_system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), pl%lmask(1:npl)))
+               nbody_system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), pl%lmask(1:npl)))
+            else
+               nbody_system%ke_spin = 0.5_DP * kespincb
+            end if
 
+            if (npl > 0) then
 #ifdef DOCONLOC
-            do concurrent (j = 1:NDIM) shared(nbody_system,pl,Lplspin,Lcbspin)
+               do concurrent (j = 1:NDIM) shared(nbody_system,pl,Lplspin,Lcbspin)
 #else
-            do concurrent (j = 1:NDIM)
+               do concurrent (j = 1:NDIM)
 #endif
-               nbody_system%L_spin(j) = Lcbspin(j) + sum(Lplspin(j,1:npl), pl%lmask(1:npl))
-            end do
+                  nbody_system%L_spin(j) = Lcbspin(j) + sum(Lplspin(j,1:npl), pl%lmask(1:npl))
+               end do
+            else
+               nbody_system%L_spin(:) = Lcbspin(:)
+            end if
          else
             nbody_system%ke_spin = 0.0_DP
             nbody_system%L_spin(:) = 0.0_DP
          end if
-  
-         if (param%lflatten_interactions) then
-            call swiftest_util_get_potential_energy(npl, pl%nplpl, pl%k_plpl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, &
-                                                    nbody_system%pe)
-         else
-            call swiftest_util_get_potential_energy(npl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, nbody_system%pe)
+ 
+         if (npl > 0) then
+            if (param%lflatten_interactions) then
+               call swiftest_util_get_potential_energy(npl, pl%nplpl, pl%k_plpl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, &
+                                                      nbody_system%pe)
+            else
+               call swiftest_util_get_potential_energy(npl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, nbody_system%pe)
+            end if
          end if
 
          ! Potential energy from the oblateness term
-         if (param%loblatecb) then
+         if (param%lnon_spherical_cb) then
             call nbody_system%obl_pot()
             nbody_system%pe = nbody_system%pe + nbody_system%oblpot
          end if
 
-         nbody_system%ke_orbit = 0.5_DP * (kecb + sum(kepl(1:npl), pl%lmask(1:npl)))
+         if (npl > 0) then
+            nbody_system%ke_orbit = 0.5_DP * (kecb + sum(kepl(1:npl), pl%lmask(1:npl)))
 #ifdef DOCONLOC
-         do concurrent (j = 1:NDIM) shared(nbody_system,pl,Lcborbit,Lplorbit,npl)
+            do concurrent (j = 1:NDIM) shared(nbody_system,pl,Lcborbit,Lplorbit,npl)
 #else  
-         do concurrent (j = 1:NDIM)
+            do concurrent (j = 1:NDIM)
 #endif
-            nbody_system%L_orbit(j) = Lcborbit(j) + sum(Lplorbit(j,1:npl), pl%lmask(1:npl)) 
-         end do
+               nbody_system%L_orbit(j) = Lcborbit(j) + sum(Lplorbit(j,1:npl), pl%lmask(1:npl)) 
+            end do
+         else
+            nbody_system%ke_orbit = 0.5_DP * kecb
+            nbody_system%L_orbit(:) = Lcborbit(:)
+         end if
 
-         if ((param%lclose)) then
+         if ((param%lclose .and. (npl > 0))) then
             nbody_system%be = sum(-3*pl%Gmass(1:npl)*pl%mass(1:npl)/(5*pl%radius(1:npl)), pl%lmask(1:npl)) 
          else
             nbody_system%be = 0.0_DP
@@ -2395,7 +2420,7 @@ contains
       if (cb%Gmass <= tiny(1.0_DP)) return
 
       call self%xv2el(cb) 
-      where(self%a(1:self%nbody) > 0.0_DP)
+      where(self%e(1:self%nbody) < 1.0_DP)
          self%rhill(1:self%nbody) = self%a(1:self%nbody) * (self%Gmass(1:self%nbody) / cb%Gmass / 3)**THIRD 
       elsewhere
          self%rhill(1:self%nbody) = (.mag.self%rh(:,1:self%nbody)) * (self%Gmass(1:self%nbody) / cb%Gmass / 3)**THIRD 
@@ -2591,7 +2616,7 @@ contains
          call nc%close()
 
          allocate(collision_basic :: nbody_system%collider)
-         call nbody_system%collider%setup(nbody_system)
+         call nbody_system%collider%setup(nbody_system, param)
 
          if (param%lenc_save_trajectory .or. param%lenc_save_closest) then
             allocate(encounter_netcdf_parameters :: encounter_history%nc)
@@ -2620,8 +2645,6 @@ contains
          end select
 
          allocate(nbody_system%collision_history, source=collision_history)        
-         
-         nbody_system%collider%max_rot = MAX_ROT_SI * param%TU2S 
 
       end associate
 
@@ -2634,7 +2657,6 @@ contains
       !!
       !! Constructor for base Swiftest particle class. Allocates space for all particles and
       !! initializes all components with a value.
-      !! Note: Timing tests indicate that (NDIM, n) is more efficient than (NDIM, n) 
       implicit none
       ! Arguments
       class(swiftest_body),       intent(inout) :: self  !! Swiftest generic body object
@@ -2706,7 +2728,7 @@ contains
       self%peri(:)   = 0.0_DP
       self%atp(:)    = 0.0_DP
 
-      if (param%loblatecb .or. param%lshgrav) then
+      if (param%lnon_spherical_cb) then
          allocate(self%aobl(NDIM, n))
          self%aobl(:,:) = 0.0_DP
       end if
@@ -2736,8 +2758,8 @@ contains
       ! Internals
       integer(I4B) :: i
 
-      !> Call allocation method for parent class
-      !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
+      !! Call allocation method for parent class
+      !! The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
       call swiftest_util_setup_body(self, n, param)
       if (n == 0) return
 
@@ -2803,8 +2825,8 @@ contains
       integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
       class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
 
-      !> Call allocation method for parent class
-      !> The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
+      !! Call allocation method for parent class
+      !! The parent class here is the abstract swiftest_body class, so we can't use the type-bound procedure
       call swiftest_util_setup_body(self, n, param)
       if (n == 0) return
 
@@ -3338,7 +3360,7 @@ contains
       integer(I4B) :: nbody_old
 
       ! For each component, pack the discarded bodies into the discard object and do the inverse with the keeps
-      !> Spill all the common components
+      !! Spill all the common components
       associate(keeps => self)
          
          call util_spill(keeps%id,         discards%id,         lspill_list, ldestructive)
@@ -3396,7 +3418,7 @@ contains
       associate(keeps => self)
          select type (discards) !The standard requires us to select the type of both arguments in order to access all the components
          class is (swiftest_pl)
-            !> Spill components specific to the massive body class
+            !! Spill components specific to the massive body class
             call util_spill(keeps%mass,    discards%mass,    lspill_list, ldestructive)
             call util_spill(keeps%Gmass,   discards%Gmass,   lspill_list, ldestructive)
             call util_spill(keeps%rhill,   discards%rhill,   lspill_list, ldestructive)
@@ -3444,7 +3466,7 @@ contains
       associate(keeps => self, ntp => self%nbody)
          select type(discards)
          class is (swiftest_tp)
-            !> Spill components specific to the test particle class
+            !! Spill components specific to the test particle class
             call util_spill(keeps%nplenc,  discards%nplenc,  lspill_list, ldestructive)
             call swiftest_util_spill_body(keeps, discards, lspill_list, ldestructive)
          class default

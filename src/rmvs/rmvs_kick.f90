@@ -52,8 +52,7 @@ contains
 
                         ! Temporarily turn off the heliocentric-dependent acceleration terms during an inner encounter using a copy of the parameter list with all of the heliocentric-specific acceleration terms turned off
                         allocate(param_planetocen, source=param)
-                        param_planetocen%loblatecb = .false.
-                        param_planetocen%lshgrav = .false.
+                        param_planetocen%lnon_spherical_cb = .false.
                         param_planetocen%lextra_force = .false.
                         param_planetocen%lgr = .false.
 
@@ -91,7 +90,7 @@ contains
                         cb%Gmass = tp%cb_heliocentric%Gmass
 
                         ! If the heliocentric-specifc acceleration terms are requested, compute those now
-                        if (param%loblatecb) call tp%accel_obl(system_planetocen)
+                        if (param%lnon_spherical_cb) call tp%accel_non_spherical_cb(system_planetocen)
                         if (param%lextra_force) call tp%accel_user(system_planetocen, param, t, lbeg)
                         if (param%lgr) call tp%accel_gr(param)
 

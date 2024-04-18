@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script will download the correct OpenMP library for a given MacOS deployment target
 # 
-# Copyright 2023 - David Minton
+# Copyright 2024 - The Minton Group at Purdue University
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -11,11 +11,19 @@
 # If not, see: https://www.gnu.org/licenses. 
 
 # Determine the platform and architecture
+OS=$(uname -s)
+# If it is not Darwin then exit
+if [ $OS != "Darwin" ]; then
+   echo "This script is only for MacOS"
+   exit 1
+fi
+
 SCRIPT_DIR=$(realpath $(dirname $0))
-set -a
-ARGS=$@
-. ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
-printf "MACOSX_DEPLOYMENT_TARGET: ${MACOSX_DEPLOYMENT_TARGET}\n"
+ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+
+set -e
+cd $ROOT_DIR
+. ${SCRIPT_DIR}/set_environment.sh
 
 TARGET_MAJOR=`echo $MACOSX_DEPLOYMENT_TARGET | cut -d. -f1`
 TARGET_MINOR=`echo $MACOSX_DEPLOYMENT_TARGET | cut -d. -f2`
@@ -79,9 +87,18 @@ case $TARGET_MAJOR in
       ;;
 esac
 
+printf "*********************************************************\n"
+printf "*             FETCHING OPENMP LIBRARY                   *\n"
+printf "*********************************************************\n"
+LOMP_DIR="${PREFIX}/../.."
+printf "Copying files to ${LOMP_DIR}\n"
+mkdir -p ${DEPENDENCY_DIR}
+
 filename="openmp-${OMPVER}-darwin${DVER}-Release.tar.gz"
 #Download and install the libraries
 printf "Downloading ${filename}\n"
-curl -O https://mac.r-project.org/openmp/${filename} && \
-  sudo tar fvxz ${filename} -C / && \
-  rm ${filename}
+if [ -w "${LOMP_DIR}" ]; then
+   curl -L https://mac.r-project.org/openmp/${filename} | tar xvz -C ${LOMP_DIR}
+else
+   sudo curl -L https://mac.r-project.org/openmp/${filename} | tar xvz -C ${LOMP_DIR}
+fi

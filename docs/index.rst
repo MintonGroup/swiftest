@@ -1,15 +1,18 @@
 .. module:: swiftest
 
 Swiftest
-====================
-Swiftest is a software packaged designed to model the dynamical evolution of gravitational systems. Swiftest is an upgrade over the `Swifter <https://www.boulder.swri.edu/swifter/>`_ software package.
+========
+
+Swiftest is a software packaged designed to model the long-term dynamical dynamics of n-body systems with a dominant central body, 
+like the solar system. 
+
 
 **Useful links**:
 `Home <https://swiftest.readthedocs.io/en/latest/>`__ |
-`Code Repository <https://github.com/profminton/swiftest>`__ |
-`Issues <https://github.com/profminton/swiftest/issues>`__ |
-`Discussions <https://github.com/profminton/swiftest/discussions>`__ |
-`Releases <https://github.com/profminton/swiftest/releases>`__ |
+`Code Repository <https://github.com/MintonGroup/swiftest>`__ |
+`Issues <https://github.com/MintonGroup/swiftest/issues>`__ |
+`Discussions <https://github.com/MintonGroup/swiftest/discussions>`__ |
+`Releases <https://github.com/MintonGroup/swiftest/releases>`__ |
 
 
 .. grid:: 1 1 2 2
@@ -64,11 +67,12 @@ Swiftest is a software packaged designed to model the dynamical evolution of gra
    :caption: For developers/contributors
 
    Contributing Guide <contributing>
-   GitHub repository <https://github.com/profminton/swiftest>
+   What’s New <whats-new>
+   GitHub repository <https://github.com/MintonGroup/swiftest>
 
 .. toctree::
    :maxdepth: 1
    :hidden:
    :caption: Community
 
-   GitHub discussions <https://github.com/profminton/swiftest/discussions>
+   GitHub discussions <https://github.com/MintonGroup/swiftest/discussions>

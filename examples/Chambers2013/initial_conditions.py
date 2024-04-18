@@ -33,7 +33,6 @@ import matplotlib.pyplot as plt
 
 # Initialize simulation object
 sim = swiftest.Simulation(compute_conservation_values=True, rotation=True, init_cond_format="EL",collision_model="fraggle",encounter_save="none")
-sim.clean()
 
 # Add bodies described in Chambers (2013) Sec. 2.1, with the uniform spatial distribution and two bodies sizes (big and small)
 Nb = 14

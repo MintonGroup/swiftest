@@ -67,8 +67,10 @@ Adding Bodies to a Simulation
 .. autosummary::
     :toctree: generated/
 
-    Simulation.add_body
     Simulation.add_solar_system_body
+    Simulation.add_body
+    Simulation.modify_body
+    Simulation.remove_body
 
 
 File Input and Output
@@ -82,10 +84,74 @@ File Input and Output
     Simulation.read_encounter_file
     Simulation.read_collision_file
     Simulation.follow
+    Simulation.initial_conditions_from_data
     Simulation.save
-    Simulation.initial_conditions_from_bin
     Simulation.convert
     Simulation.clean
+
+Attributes
+----------
+
+.. autosummary::
+   :toctree: generated/
+
+    Simulation.param
+    Simulation.data
+    Simulation.init_cond
+    Simulation.encounters
+    Simulation.collisions
+    Simulation.MU_name
+    Simulation.DU_name
+    Simulation.TU_name
+    Simulation.MU2KG
+    Simulation.KG2MU
+    Simulation.TU2S
+    Simulation.S2TU
+    Simulation.DU2M
+    Simulation.M2DU
+    Simulation.GU
+    Simulation.integrator
+    Simulation.codename
+    Simulation.simdir
+    Simulation.verbose
+
+Data Representation
+===================
+
+DataArray
+----------
+
+.. autosummary::
+    :toctree: generated/
+
+    SwiftestDataArray
+
+DataArray Methods
+------------------
+
+.. autosummary::
+    :toctree: generated/
+
+    SwiftestDataArray.magnitude
+    SwiftestDataArray.rotate
+
+Dataset
+-------
+
+.. autosummary::
+    :toctree: generated/
+
+    SwiftestDataset
+
+Dataset Methods
+----------------
+
+.. autosummary::
+  :toctree: generated/
+
+  SwiftestDataset.rotate
+  SwiftestDataset.xv2el
+  SwiftestDataset.el2xv
 
 
 Initial Conditions Generation Functions
@@ -94,10 +160,18 @@ Initial Conditions Generation Functions
 .. autosummary::
     :toctree: generated/
 
-    swiftest.init_cond.solar_system_horizons
+    swiftest.init_cond.get_solar_system_body
     swiftest.init_cond.horizons_query
-    swiftest.init_cond.horizons_get_physical_properties
-    swiftest.init_cond.vec2xr
+    swiftest.init_cond.get_solar_system_body_mass_rotation
+
+Gravitional Harmonics Functions
+===============================
+
+.. autosummary::
+    :toctree: generated/
+
+    swiftest.shgrav.clm_from_ellipsoid
+    swiftest.shgrav.clm_from_relief
 
 
 Input/Output Processing Functions
@@ -131,19 +205,6 @@ Tools for fixing differences between NetCDF-Fortran and xarray data structures
     swiftest.io.fix_types
 
 
-Conversions between legacy integrator formats and Swiftest
-----------------------------------------------------------
-
-.. autosummary::
-    :toctree: generated/
-
-    swiftest.io.swifter2swiftest
-    swiftest.io.swifter2xr
-    swiftest.io.swifter_xr2infile
-    swiftest.io.swiftest2swifter_param
-    swiftest.io.swift2swifter
-    swiftest.io.swift2swiftest
-
 Tools
 =====
 
@@ -152,14 +213,21 @@ Miscellaneous helper functions
 .. autosummary::
     :toctree: generated/
 
-    swiftest.tool.magnitude
     swiftest.tool.wrap_angle
     swiftest.tool.follow_swift
-    swiftest.tool.danby
-    swiftest.tool.el2xv_one
-    swiftest.tool.el2xv_vec
-    swiftest.tool.xv2el_one
-    swiftest.tool.xv2el_vec
+
+
+Core
+----
+
+Compiled Fortran routines for the core of the Swiftest project.
+
+.. autosummary::
+   :toctree: generated/
+
+   swiftest.core.driver
+   swiftest.core.el2xv
+   swiftest.core.xv2el
 
 Constants
 =========

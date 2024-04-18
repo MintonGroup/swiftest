@@ -8,8 +8,7 @@ import sphinx_autosummary_accessors
 from sphinx.application import Sphinx
 from sphinx.util import logging
 
-# Disable import of swiftest._bindings so that we don't have to build the Fortran code when building the docs
-autodoc_mock_imports = ['swiftest._bindings']
+# Disable import of swiftest.core so that we don't have to build the Fortran code when building the docs
 import swiftest
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -25,6 +24,7 @@ release = version
 
 extensions = [
     "sphinx.ext.autodoc",
+    "sphinx.ext.doctest",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
     "sphinx.ext.mathjax",
@@ -40,6 +40,15 @@ extensions = [
     "sphinx_design",
     "sphinx_inline_tabs",
 ]
+
+# Sometimes the savefig directory doesn't exist and needs to be created
+# https://github.com/ipython/ipython/issues/8733
+# becomes obsolete when we can pin ipython>=5.2; see ci/requirements/doc.yml
+ipython_savefig_dir = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "_build", "html", "_static"
+)
+if not os.path.exists(ipython_savefig_dir):
+    os.makedirs(ipython_savefig_dir)
 
 
 templates_path = ['_templates']
@@ -75,7 +84,6 @@ templates_path = ["_templates"]
 
 html_theme = 'sphinx_book_theme'
 html_title =""
-html_static_path = ["_static"]
 
 html_context = {
     "github_user": "profminton",
@@ -90,8 +98,8 @@ html_context = {
 html_theme_options = dict(
     # analytics_id=''  this is configured in rtfd.io
     # canonical_url="",
-    repository_url="https://github.com/profminton/swiftest",
-    repository_branch="main",
+    repository_url="https://github.com/MintonGroup/swiftest",
+    repository_branch="master",
     navigation_with_keys=False,  # pydata/pydata-sphinx-theme#1492
     path_to_docs="docs",
     use_edit_page_button=True,
@@ -100,7 +108,7 @@ html_theme_options = dict(
     home_page_in_toc=False,
     extra_footer="""Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a></p>""",
     icon_links=[],  # workaround for pydata/pydata-sphinx-theme#1220
-    announcement="🍾 <a href='https://github.com/profminton/swiftest/discussions/1'>Swiftest is currently under development</a> 🎉",
+    announcement="🍾 <a href='https://github.com/MintonGroup/swiftest/discussions/1'>Swiftest is currently under development</a> 🎉",
 )
 
 
@@ -174,3 +182,6 @@ def html_page_context(app, pagename, templatename, context, doctree):
     # Disable edit button for docstring generated pages
     if "generated" in pagename:
         context["theme_use_edit_page_button"] = False
+        
+def setup(app: Sphinx):
+    app.connect("html-page-context", html_page_context)

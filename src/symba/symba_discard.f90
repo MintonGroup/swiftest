@@ -48,11 +48,13 @@ contains
                   write(message, *) trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstr)) // ")" // &
                                     " too far from the central body at t = " // trim(adjustl(timestr))
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, "")
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "***********************************************************" // &
-                                                           "***********************************************************")
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, &
+                                                   "***********************************************************" // &
+                                                   "***********************************************************")
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "***********************************************************" // &
-                                                           "***********************************************************")
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, & 
+                                                   "***********************************************************" // &
+                                                   "***********************************************************")
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, "")
                   call pl%info(i)%set_value(status="DISCARDED_RMAX", discard_time=nbody_system%t, discard_rh=pl%rh(:,i), &
                                             discard_vh=pl%vh(:,i))
@@ -65,11 +67,13 @@ contains
                   write(message, *) trim(adjustl(pl%info(i)%name)) // " ("  // trim(adjustl(idstr)) // ")" // &
                                     " too close to the central body at t = " // trim(adjustl(timestr))
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, "")
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "************************************************************" // &
-                                                           "************************************************************")
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, &
+                                                    "************************************************************" // &
+                                                    "************************************************************")
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "************************************************************" // &
-                                                           "************************************************************")
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, &
+                                                   "************************************************************" // &
+                                                   "************************************************************")
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, "")
                   call pl%info(i)%set_value(status="DISCARDED_RMIN", discard_time=nbody_system%t, discard_rh=pl%rh(:,i), &
                                             discard_vh=pl%vh(:,i), discard_body_id=cb%id)
@@ -86,11 +90,13 @@ contains
                      write(message, *) trim(adjustl(pl%info(i)%name)) // " (" // trim(adjustl(idstr)) // ")" // &
                                        " is unbound and too far from barycenter at t = " // trim(adjustl(timestr))
                      call swiftest_io_log_one_message(COLLISION_LOG_OUT, "")
-                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, "************************************************************" // &
-                                                              "************************************************************")
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, &
+                                                      "************************************************************" // &
+                                                      "************************************************************")
                      call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
-                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, "************************************************************" // &
-                                                              "************************************************************")
+                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, &
+                                                      "************************************************************" // &
+                                                      "************************************************************")
                      call swiftest_io_log_one_message(COLLISION_LOG_OUT, "")
                      call pl%info(i)%set_value(status="DISCARDED_RMAXU", discard_time=nbody_system%t, discard_rh=pl%rh(:,i), &
                                                discard_vh=pl%vh(:,i))
@@ -212,7 +218,7 @@ contains
       !! author: David A. Minton
       !!
       !! Check to see if planets should be discarded based on their positions or because they are unbound
-      !s
+      !!
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: symba_discard_pl.f90
       !! Adapted from Hal Levison's Swift routine discard_massive5.f 
@@ -233,16 +239,6 @@ contains
             call symba_discard_cb_pl(pl, nbody_system, param)
          end if
          if (param%qmin >= 0.0_DP) call symba_discard_peri_pl(pl, nbody_system, param)
-         ! if (any(pl%ldiscard(1:npl))) then
-         !    ldiscard(1:npl) = pl%ldiscard(1:npl)
-               
-         !    allocate(plsub, mold=pl)
-         !    call pl%spill(plsub, ldiscard, ldestructive=.false.)
-         !    nsub = plsub%nbody
-         !    nstart = pl_discards%nbody + 1
-         !    nend = pl_discards%nbody + nsub
-         !    call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nsub)])
-         ! end if
       end associate
 
       return
@@ -266,7 +262,8 @@ contains
       integer(I4B), dimension(:), allocatable :: discard_index_list
 
       associate(npl => pl%nbody)
-         discard_l_pl(1:npl) = pl%ldiscard(1:npl) .and. .not. pl%lcollision(1:npl) ! These are bodies that are discarded but not flagged as pl-pl collision
+         discard_l_pl(1:npl) = pl%ldiscard(1:npl) .and. .not. pl%lcollision(1:npl) ! These are bodies that are discarded but not 
+                                                                                   ! flagged as pl-pl collision
          ndiscard = count(discard_l_pl(:)) 
          allocate(discard_index_list(ndiscard))
          discard_index_list(:) = pack([(i, i = 1, npl)], discard_l_pl(1:npl))
@@ -341,7 +338,8 @@ contains
    module subroutine symba_discard_pl(self, nbody_system, param)
       !! author: David A. Minton
       !!
-      !! Call the various flavors of discards for massive bodies in SyMBA runs, including discards due to colliding with the central body or escaping the nbody_system
+      !! Call the various flavors of discards for massive bodies in SyMBA runs, including discards due to colliding with the central
+      !! body or escaping the nbody_system
       implicit none
       ! Arguments
       class(symba_pl),              intent(inout) :: self   !! SyMBA test particle object

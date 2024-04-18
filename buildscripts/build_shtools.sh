@@ -1,7 +1,7 @@
 #!/bin/bash
-# Builds the following from source: SHTOOLS
+# This script will the SHTOOLS libraries from source
 # 
-# Copyright 2023 - David Minton
+# Copyright 2024 - The Minton Group at Purdue University
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -9,13 +9,14 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
-SCRIPT_DIR=$(realpath $(dirname $0))
-set -a
-ARGS=$@
-. ${SCRIPT_DIR}/_build_getopts.sh ${ARGS}
-. ${SCRIPT_DIR}/set_compilers.sh
+SHTOOLS_VER="4.12.2"
 
-SHTOOLS_VER="4.11.10"
+SCRIPT_DIR=$(realpath $(dirname $0))
+ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+
+set -e
+cd $ROOT_DIR
+. ${SCRIPT_DIR}/set_environment.sh
 
 printf "*********************************************************\n"
 printf "*             FETCHING SHTOOLS SOURCE                      *\n"
@@ -44,17 +45,17 @@ cd ${DEPENDENCY_DIR}/SHTOOLS*
 case $FC in
     *"ifort"*|*"ifx"*)
         echo "Using Intel Fortran compiler"
-        make F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -m64 -fpp -free -O3 -Tf" fortran
-        make F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -m64 -fpp -free -O3 -Tf" fortran-mp
+        make -j${NPROC} F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -m64 -fpp -free -O3 ${FFLAGS} -Tf" fortran
+        make -j${NPROC} F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -m64 -fpp -free -O3 ${FFLAGS} -Tf" fortran-mp
         ;;
     *)
         echo "Everything else"
-        make F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -O3 -std=gnu -ffast-math" fortran
-        make F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -O3 -std=gnu -ffast-math" fortran-mp
+        make -j${NPROC} F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -O3 -std=gnu -ffast-math ${FFLAGS}" fortran
+        make -j${NPROC} F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -O3 -std=gnu -ffast-math ${FFLAGS}" fortran-mp
         ;;
 esac
 
-if [ -w ${PREFIX} ]; then
+if [ -w "${PREFIX}" ]; then
     make F95="${FC}" PREFIX="${PREFIX}" install
 else
     sudo make F95="${FC}" PREFIX="${PREFIX}" install

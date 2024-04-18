@@ -27,8 +27,8 @@ contains
       class(swiftest_pl), allocatable :: plsub
       class(swiftest_tp), allocatable :: tpsub
 
-      lpl_check = allocated(self%pl_discards)
-      ltp_check = allocated(self%tp_discards)
+      lpl_check = allocated(self%pl_discards) .and. self%pl%nbody > 0
+      ltp_check = allocated(self%tp_discards) .and. self%tp%nbody > 0
 
       associate(nbody_system => self,tp => self%tp,pl => self%pl,tp_discards => self%tp_discards,pl_discards => self%pl_discards, &
                npl => self%pl%nbody, ntp => self%tp%nbody, t => self%t, collision_history => self%collision_history, &
@@ -38,19 +38,29 @@ contains
          if (lpl_check .and. pl%nbody > 0) then
             pl%ldiscard = pl%status(:) /= ACTIVE
             call pl%discard(nbody_system, param)
-            lpl_discards = any(pl%ldiscard(1:npl))
+            if (npl > 0) lpl_discards = any(pl%ldiscard(1:npl))
          end if
             
          if (ltp_check .and. tp%nbody > 0) then
             tp%ldiscard = tp%status(:) /= ACTIVE
             call tp%discard(nbody_system, param)
-            ltp_discards = any(tp%ldiscard(1:ntp))
-            lpl_discards = any(pl%ldiscard(1:npl))
+            if (ntp > 0) ltp_discards = any(tp%ldiscard(1:ntp))
+            if (npl > 0) lpl_discards = any(pl%ldiscard(1:npl))
          end if
 
          if (ltp_discards.or.lpl_discards) then
+            ! Advance the collision id number and save it
+            collider%maxid_collision = collider%maxid_collision + 1
+            collider%collision_id = collider%maxid_collision
+            collider%impactors%regime = COLLRESOLVE_REGIME_MERGE
+            write(idstr,*) collider%collision_id
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "collision_id " // trim(adjustl(idstr)))
+
             if (ltp_discards) then
                allocate(ldiscard, source=tp%ldiscard(:))
+               do i = 1, ntp
+                  if (ldiscard(i)) call tp%info(i)%set_value(collision_id=collider%collision_id)
+               end do
                allocate(tpsub, mold=tp)
                call tp%spill(tpsub, ldiscard, ldestructive=.true.)
                nsub = tpsub%nbody
@@ -70,6 +80,9 @@ contains
                                               ! simply used to trigger a snapshot.
                if (param%lenergy) call self%conservation_report(param, lterminal=.false.)
                allocate(ldiscard, source=pl%ldiscard(:))
+               do i = 1, npl
+                  if (ldiscard(i)) call pl%info(i)%set_value(collision_id=collider%collision_id)
+               end do
                allocate(plsub, mold=pl)
                call pl%spill(plsub, ldiscard, ldestructive=.false.)
                nsub = plsub%nbody
@@ -86,13 +99,7 @@ contains
                end select
                call pl_discards%setup(0,param) 
             end if
-            ! Advance the collision id number and save it
-            collider%maxid_collision = max(collider%maxid_collision, maxval(nbody_system%pl%info(:)%collision_id))
-            collider%maxid_collision = collider%maxid_collision + 1
-            collider%collision_id = collider%maxid_collision
-            collider%impactors%regime = COLLRESOLVE_REGIME_MERGE
-            write(idstr,*) collider%collision_id
-            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "collision_id " // trim(adjustl(idstr)))
+
 
             call collision_history%take_snapshot(param,nbody_system, t, "particle") 
          end if
