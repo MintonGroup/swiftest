@@ -311,8 +311,8 @@ class SwiftestDataset(xr.Dataset):
         else:
             GMcb = xr.DataArray(data = GMcb)
             
-        for dim in self.dims:
-            if dim not in GMcb.dims and dim not in ['space','l','m','sign']:
+        for dim in self.a.dims:
+            if dim not in GMcb.dims:
                 GMcb = GMcb.expand_dims(dim={dim: self[dim]}) 
                 
         if 'Gmass' in self:
@@ -394,8 +394,8 @@ class SwiftestDataset(xr.Dataset):
         else:
             GMcb = xr.DataArray(data = GMcb)
             
-        for dim in self.dims:
-            if dim not in GMcb.dims and dim not in ['space','l','m','sign']:
+        for dim in self.rh.dims:
+            if dim not in GMcb.dims and dim not in ['space']:
                 GMcb = GMcb.expand_dims(dim={dim: self[dim]}) 
                 
         if 'Gmass' in self:
