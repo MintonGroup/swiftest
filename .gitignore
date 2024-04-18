@@ -36,9 +36,6 @@ swiftest-*
 __pycache__*
 _cmake*
 _dependencies
-!SHTOOLS
-!SHTOOLS/**
-
 
 #Documentation
 !.readthedocs.yaml
