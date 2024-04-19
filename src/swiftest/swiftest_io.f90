@@ -321,11 +321,12 @@ contains
             write(param%display_unit, *)" *************** Swiftest stop " // trim(adjustl(param%integrator)) // " *************** "
             if (param%display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // trim(adjustl(param%integrator))
             if (param%log_output) close(param%display_unit)
+         else
+            if (param%log_output) flush(param%display_unit)
          end if
 
 #ifdef COARRAY
       end if ! this_image() == num_images()
-      if (param%log_output) flush(param%display_unit)
 #endif
 
       return

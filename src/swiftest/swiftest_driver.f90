@@ -85,8 +85,12 @@ contains
             !$ write(param%display_unit,'(a)')   ' OpenMP parameters:'
             !$ write(param%display_unit,'(a)')   ' ------------------'
             !$ write(param%display_unit,'(a,i3,/)') ' Number of threads = ', nthreads 
-            !$ if (param%log_output) write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
 #ifdef COARRAY
+            if (this_image() ==1) then
+#endif
+               !$ if (param%log_output) write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
+#ifdef COARRAY
+            end if
             if (param%lcoarray) then
                write(param%display_unit,*)   ' Coarray parameters:'
                write(param%display_unit,*)   ' -------------------'

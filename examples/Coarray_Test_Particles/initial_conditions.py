@@ -41,7 +41,7 @@ capm_tp     = default_rng().uniform(0.0, 360.0, ntp)
 sim.add_body(a=a_tp, e=e_tp, inc=inc_tp, capom=capom_tp, omega=omega_tp, capm=capm_tp)
 
 # Run the simulation. Arguments may be defined here or thorugh the swiftest.Simulation() method.
-sim.set_parameter(tstart=0.0, tstop=1.0e3, dt=0.01, tstep_out=1.0, dump_cadence=0, integrator='rmvs', coarray=True)
+sim.set_parameter(tstart=0.0, tstop=1.0e2, dt=0.01, tstep_out=1.0, dump_cadence=0, integrator='rmvs', coarray=True)
 # Display the run configuration parameters.
 sim.get_parameter()
 sim.save()
