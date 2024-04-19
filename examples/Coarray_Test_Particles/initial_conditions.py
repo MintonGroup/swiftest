@@ -29,7 +29,7 @@ sim.clean()
 sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"])
 
 # Add 1000 user-defined test particles.
-ntp = 1000
+ntp = 100
 
 a_tp        = default_rng().uniform(2.0, 4.0, ntp)
 e_tp        = default_rng().uniform(0.0, 0.3, ntp)

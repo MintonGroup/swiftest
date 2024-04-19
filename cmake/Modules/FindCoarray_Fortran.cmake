@@ -29,38 +29,21 @@ ELSE ()
 ENDIF ()
 
 STRING(TOUPPER "${CMAKE_BUILD_TYPE}" BT)
-IF(BT STREQUAL "DEBUG")
-    IF (COMPILER_OPTIONS STREQUAL "Intel")
-        IF(WINOPT)
-            SET (COARRAY_Fortran_FLAGS
-                "/Qcoarray:single" 
-            )
-        ELSE()
-            SET (COARRAY_Fortran_FLAGS
-                "-coarray=single"
-            )
-        ENDIF()
-    ELSEIF (COMPILER_OPTIONS STREQUAL "GNU")
+
+IF (COMPILER_OPTIONS STREQUAL "Intel")
+    IF (WINOPT)
         SET (COARRAY_Fortran_FLAGS
-            "-fcoarray=single"
+            "/Qcoarray:distributed" 
+        )
+    ELSE()
+        SET (COARRAY_Fortran_FLAGS
+            "-coarray=distributed"
         )
     ENDIF()
-ELSE()
-    IF (COMPILER_OPTIONS STREQUAL "Intel")
-        IF (WINOPT)
-            SET (COARRAY_Fortran_FLAGS
-                "/Qcoarray:distributed" 
-            )
-        ELSE()
-            SET (COARRAY_Fortran_FLAGS
-                "-coarray=distributed"
-            )
-        ENDIF()
-    ELSEIF (COMPILER_OPTIONS STREQUAL "GNU") 
-        SET (COARRAY_Fortran_FLAGS
-            "-fcoarray=lib"
-        )
-    ENDIF()
+ELSEIF (COMPILER_OPTIONS STREQUAL "GNU") 
+    SET (COARRAY_Fortran_FLAGS
+        "-fcoarray=lib"
+    )
 ENDIF()
 
 IF(COMPILER_OPTIONS STREQUAL "GNU")

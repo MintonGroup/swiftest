@@ -2453,7 +2453,7 @@ contains
       type is (swiftest_parameters)
          allocate(param[*], source = self)
       end select
-     
+    
       if (this_image() == 1) then
 #else
       associate(param => self) 
@@ -2775,7 +2775,6 @@ contains
          ! Calculate the G for the nbody_system units
          param%GU = GC / (param%DU2M**3 / (param%MU2KG * param%TU2S**2))
 
-
          if ((param%encounter_save /= "NONE")       .and. &
                (param%encounter_save /= "TRAJECTORY") .and. &
                (param%encounter_save /= "CLOSEST")    .and. &
@@ -2880,7 +2879,6 @@ contains
             param%lencounter_sas_pltp = .false.
          end select
 
-
          if (param%lcoarray) then
 #ifdef COARRAY
             if (num_images() == 1) then
@@ -2904,7 +2902,6 @@ contains
          iostat = 0
 #ifdef COARRAY
       end if ! this_image() == 1
-
 #else
       end associate
 #endif
@@ -2924,7 +2921,7 @@ contains
                if (self%log_output) flush(self%display_unit) 
 #ifdef COARRAY
             end if !(this_image() == 1)
-            write(COLLISION_LOG_OUT,'("collision_coimage",I0.3,".log")') this_image()
+            write(COLLISION_LOG_OUT,'("collision_coimage",I0.4,".log")') this_image()
 #endif
             ! A minimal log of collision outcomes is stored in the following log file
             ! More complete data on collisions is stored in the NetCDF output files
@@ -3569,7 +3566,7 @@ contains
       case ('COMPACT', 'PROGRESS')
 #ifdef COARRAY
          if (self%lcoarray) then
-            write(SWIFTEST_LOG_FILE,'("swiftest_coimage",I0.3,".log")') this_image()
+            write(SWIFTEST_LOG_FILE,'("swiftest_coimage",I0.4,".log")') this_image()
          else
             write(SWIFTEST_LOG_FILE,'("swiftest.log")')
          end if 
