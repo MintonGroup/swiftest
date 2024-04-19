@@ -43,6 +43,7 @@ printf "*********************************************************\n"
 cd ${DEPENDENCY_DIR}/OpenCoarrays-*
 
 PREFIX_ROOT=$(realpath ${PREFIX}/../..)  
+export TERM=xterm
 ./install.sh --prefix-root=${PREFIX_ROOT} --yes-to-all --with-fortran ${FC} --with-cxx ${CXX} --with-c ${CC}
 cp ${PREFIX_ROOT}/opencoarrays/${OpenCoarrays_VER}/lib*/*.a ${PREFIX}/lib/
 cp ${PREFIX_ROOT}/opencoarrays/${OpenCoarrays_VER}/include/*.h ${PREFIX}/include/
