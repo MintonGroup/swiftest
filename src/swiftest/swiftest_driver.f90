@@ -39,16 +39,8 @@ contains
       !> Read in the user-defined parameters file and the initial conditions of the nbody_system
       param%integrator = trim(adjustl(integrator))
       param%display_style = trim(adjustl(display_style))
-#ifdef COARRAY  
-      ! The following line lets us read in the input files one image at a time. Letting each image read the input in is faster 
-      ! than broadcasting all of the data
-      if (param%lcoarray) then
-         if (image_num > 1) sync images(image_num - 1)
-      end if
-#endif 
       call param%read_in(param_file_name)
 #ifdef COARRAY  
-      if (param%lcoarray .and. (image_num < num_images())) sync images(image_num + 1)
       if (.not.param%lcoarray .and. (image_num /= 1)) stop ! Single image mode
 #endif
 

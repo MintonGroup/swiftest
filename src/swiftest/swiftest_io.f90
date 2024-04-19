@@ -2446,8 +2446,18 @@ contains
       integer(I4B)                   :: nseeds, nseeds_from_file
       logical                        :: seed_set = .false.      !! Is the random seed set in the input file?
       real(DP)                       :: tratio, y
+#ifdef COARRAY
+      type(swiftest_parameters), codimension[:], allocatable :: param
+
+      select type(self)
+      type is (swiftest_parameters)
+         allocate(param[*], source = self)
+      end select
      
+      if (this_image() == 1) then
+#else
       associate(param => self) 
+#endif
          ! Parse the file line by line, extracting tokens then matching them up with known parameters if possible
          call random_seed(size = nseeds)
          if (allocated(param%seed)) deallocate(param%seed)
@@ -2732,7 +2742,7 @@ contains
                return
             end if
             if ((param%out_stat /= "NEW") .and. (param%out_stat /= "REPLACE") .and. (param%out_stat /= "APPEND")  &
-          .and. (param%out_stat /= "UNKNOWN")) then
+            .and. (param%out_stat /= "UNKNOWN")) then
                write(iomsg,*) 'Invalid out_stat: ',trim(adjustl(param%out_stat))
                iostat = -1
                return
@@ -2765,10 +2775,11 @@ contains
          ! Calculate the G for the nbody_system units
          param%GU = GC / (param%DU2M**3 / (param%MU2KG * param%TU2S**2))
 
+
          if ((param%encounter_save /= "NONE")       .and. &
-             (param%encounter_save /= "TRAJECTORY") .and. &
-             (param%encounter_save /= "CLOSEST")    .and. &
-             (param%encounter_save /= "BOTH")) then
+               (param%encounter_save /= "TRAJECTORY") .and. &
+               (param%encounter_save /= "CLOSEST")    .and. &
+               (param%encounter_save /= "BOTH")) then
             write(iomsg,*) 'Invalid encounter_save parameter: ',trim(adjustl(param%out_type))
             write(iomsg,*) 'Valid options are NONE, TRAJECTORY, CLOSEST, or BOTH'
             iostat = -1
@@ -2795,8 +2806,8 @@ contains
          end if
 
          if ((param%collision_model /= "MERGE")       .and. &
-             (param%collision_model /= "BOUNCE")    .and. &
-             (param%collision_model /= "FRAGGLE")) then
+               (param%collision_model /= "BOUNCE")    .and. &
+               (param%collision_model /= "FRAGGLE")) then
             write(iomsg,*) 'Invalid collision_model parameter: ',trim(adjustl(param%out_type))
             write(iomsg,*) 'Valid options are MERGE, BOUNCE, or FRAGGLE'
             iostat = -1
@@ -2815,7 +2826,7 @@ contains
                param%nfrag_reduction = 1.0_DP
             end if
          end if
-   
+
          ! Determine if the GR flag is set correctly for this integrator
          select case(param%integrator)
          case(INT_WHM, INT_RMVS, INT_HELIO, INT_SYMBA)
@@ -2881,7 +2892,7 @@ contains
             case(INT_WHM, INT_RMVS, INT_HELIO)
             case default   
                write(iomsg, *) "Coarray-based parallelization of test particles are not compatible with this integrator. " &
-                            // "This parameter will be ignored."
+                              // "This parameter will be ignored."
                param%lcoarray = .false.
             end select
 #else
@@ -2891,19 +2902,33 @@ contains
          end if
 
          iostat = 0
+#ifdef COARRAY
+      end if ! this_image() == 1
 
+#else
       end associate
-
-      select type(param => self)
+#endif
+      select type(self)
       type is (swiftest_parameters)
-         call param%set_display(param%display_style)
+#ifdef COARRAY
+         call coclone(param)
+         self = param
+#endif
+         call self%set_display(self%display_style)
 
-         if (.not.param%lrestart) then
-            call param%writer(unit = param%display_unit, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg)
-            if (param%log_output) flush(param%display_unit) 
+         if (.not.self%lrestart) then
+#ifdef COARRAY
+            if (this_image() == 1 .or. self%log_output) then
+#endif
+               call self%writer(unit = self%display_unit, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg)
+               if (self%log_output) flush(self%display_unit) 
+#ifdef COARRAY
+            end if !(this_image() == 1)
+            write(COLLISION_LOG_OUT,'("collision_coimage",I0.3,".log")') this_image()
+#endif
             ! A minimal log of collision outcomes is stored in the following log file
             ! More complete data on collisions is stored in the NetCDF output files
-            call swiftest_io_log_start(param, COLLISION_LOG_OUT, "Collision logfile")
+            call swiftest_io_log_start(self, COLLISION_LOG_OUT, "Collision logfile")
          end if
          ! Print the contents of the parameter file to standard output
       end select
