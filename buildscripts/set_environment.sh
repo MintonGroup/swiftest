@@ -110,5 +110,7 @@ else
     CFLAGS="-Wa,--noexecstack"
     CXXFLAGS="${CFLAGS}"
     LDFLAGS="-L${PREFIX}/lib"
+    CC=${CC:-"$(command -v gcc)"}
+    CXX=${CXX:-"$(command -v g++)"}
 fi
 set +a
