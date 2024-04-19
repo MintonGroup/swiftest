@@ -11,6 +11,7 @@ submodule (coarray) s_coarray_clone
    use swiftest
 contains
 
+
    module subroutine coarray_component_clone_char(var,src_img)
       !! author: David A. Minton
       !!

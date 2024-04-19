@@ -69,7 +69,7 @@ IF(COMPILER_OPTIONS STREQUAL "GNU")
         HINTS ENV COARRAY_HOME 
         PATH_SUFFIXES include)
     FIND_LIBRARY(COARRAY_LIBRARY 
-        NAMES caf_mpi caf_openmpi
+        NAMES libcaf_mpi.a caf_mpi caf_openmpi
         HINTS ENV COARRAY_HOME 
         PATH_SUFFIXES lib lib64
     )

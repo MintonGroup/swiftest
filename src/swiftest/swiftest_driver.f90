@@ -31,13 +31,25 @@ contains
       type(swiftest_parameters)                 :: param             !! Run configuration parameters
       class(swiftest_storage),      allocatable :: system_history    !! Stores the system history between output dumps
       type(walltimer)                           :: integration_timer !! Object used for computing elapsed wall time
+#ifdef COARRAY
+      integer :: image_num
 
+      image_num = this_image()
+#endif
       !> Read in the user-defined parameters file and the initial conditions of the nbody_system
       param%integrator = trim(adjustl(integrator))
       param%display_style = trim(adjustl(display_style))
+#ifdef COARRAY  
+      ! The following line lets us read in the input files one image at a time. Letting each image read the input in is faster 
+      ! than broadcasting all of the data
+      if (param%lcoarray) then
+         if (image_num > 1) sync images(image_num - 1)
+      end if
+#endif 
       call param%read_in(param_file_name)
-#ifdef COARRAY
-      if (.not.param%lcoarray .and. (this_image() /= 1)) stop ! Single image mode
+#ifdef COARRAY  
+      if (param%lcoarray .and. (image_num < num_images())) sync images(image_num + 1)
+      if (.not.param%lcoarray .and. (image_num /= 1)) stop ! Single image mode
 #endif
 
       associate(t0       => param%t0, &
@@ -81,7 +93,7 @@ contains
          nthreads = 1            ! In the *serial* case
          !$ nthreads = omp_get_max_threads() ! In the *parallel* case
 #ifdef COARRAY
-         if (this_image() == 1 .or. param%log_output) then
+         if (image_num == 1 .or. param%log_output) then
 #endif 
             !$ write(param%display_unit,'(a)')   ' OpenMP parameters:'
             !$ write(param%display_unit,'(a)')   ' ------------------'
@@ -92,7 +104,7 @@ contains
                write(param%display_unit,*)   ' Coarray parameters:'
                write(param%display_unit,*)   ' -------------------'
                write(param%display_unit,*) ' Number of images = ', num_images()
-               if (param%log_output .and. this_image() == 1) write(*,'(a,i3)') ' Coarray: Number of images = ',num_images()
+               if (param%log_output .and. image_num == 1) write(*,'(a,i3)') ' Coarray: Number of images = ',num_images()
             else
                write(param%display_unit,*)   ' Coarrays disabled.'
                if (param%log_output) write(*,*)   ' Coarrays disabled.'
@@ -104,11 +116,13 @@ contains
 #ifdef COARRAY  
          ! The following line lets us read in the input files one image at a time. Letting each image read the input in is faster 
          ! than broadcasting all of the data
-         if (param%lcoarray .and. (this_image() /= 1)) sync images(this_image() - 1)
+         if (param%lcoarray) then
+            if (image_num > 1) sync images(image_num - 1)
+         end if
 #endif 
          call nbody_system%initialize(system_history, param)
 #ifdef COARRAY  
-         if (param%lcoarray .and. (this_image() < num_images())) sync images(this_image() + 1)
+         if (param%lcoarray .and. (image_num < num_images())) sync images(image_num + 1)
 
          ! Distribute test particles to the various images
          if (param%lcoarray) call nbody_system%coarray_distribute(param)
@@ -163,20 +177,20 @@ contains
 #endif
                   end if
 #ifdef COARRAY
-                  if (this_image() == 1 .or. param%log_output) then
+                  if (image_num == 1 .or. param%log_output) then
 #endif
                      call integration_timer%report(message="Integration steps:", unit=display_unit)
 #ifdef COARRAY  
-                  end if !(this_image() == 1)
+                  end if 
 #endif
                   call nbody_system%display_run_information(param, integration_timer)
                   call integration_timer%reset()
 #ifdef COARRAY
-                  if (this_image() == 1 .or. param%log_output) then
+                  if (image_num == 1 .or. param%log_output) then
 #endif
                      if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
 #ifdef COARRAY
-                  end if ! (this_image() == 1)
+                  end if 
 #endif
                end if
             end if

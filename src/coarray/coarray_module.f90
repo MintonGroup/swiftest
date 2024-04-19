@@ -78,6 +78,7 @@ module coarray
          integer(I4B), intent(in),optional :: src_img
       end subroutine coarray_component_clone_QP 
 #endif
+
    end interface
 
 
@@ -103,13 +104,11 @@ module coarray
          integer(I4B), intent(in),optional :: dest_img
       end subroutine coarray_component_collect_DP_arr1D
 
-
       module subroutine coarray_component_collect_DP_arr2D(var,dest_img)
          implicit none
          real(DP), dimension(:,:), allocatable, intent(inout) :: var
          integer(I4B), intent(in),optional :: dest_img
       end subroutine coarray_component_collect_DP_arr2D
-
 
       module subroutine coarray_component_collect_I4B(var,dest_img)
          implicit none
@@ -117,13 +116,11 @@ module coarray
          integer(I4B), intent(in),optional :: dest_img
       end subroutine coarray_component_collect_I4B
 
-
       module subroutine coarray_component_collect_I8B(var,dest_img)
          implicit none
          integer(I8B), intent(inout) :: var
          integer(I4B), intent(in),optional :: dest_img
       end subroutine coarray_component_collect_I8B
-
 
       module subroutine coarray_component_collect_I4B_arr1D(var,dest_img)
          implicit none
@@ -131,14 +128,12 @@ module coarray
          integer(I4B), intent(in),optional :: dest_img
       end subroutine coarray_component_collect_I4B_arr1D
 
-
       module subroutine coarray_component_collect_lgt_arr1D(var,dest_img)
          implicit none
          logical, dimension(:), allocatable, intent(inout) :: var
          integer(I4B), intent(in),optional :: dest_img
       end subroutine coarray_component_collect_lgt_arr1D
+
    end interface
-
-
 
 end module coarray

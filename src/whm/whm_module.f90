@@ -24,262 +24,382 @@ module whm
 
    !> WHM massive body particle class
    type, extends(swiftest_pl) :: whm_pl
-      real(DP), dimension(:),   allocatable :: eta    !! Jacobi mass
-      real(DP), dimension(:,:), allocatable :: xj     !! Jacobi position
-      real(DP), dimension(:,:), allocatable :: vj     !! Jacobi velocity
-      real(DP), dimension(:),   allocatable :: muj    !! Jacobi mu: GMcb * eta(i) / eta(i - 1) 
-      real(DP), dimension(:),   allocatable :: ir3j    !! Third term of heliocentric acceleration
-      !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
-      !!    component list, such as whm_util_setup_pl and whm_util_spill_pl
+      real(DP), dimension(:),   allocatable :: eta    
+         !! Jacobi mass
+      real(DP), dimension(:,:), allocatable :: xj     
+         !! Jacobi position
+      real(DP), dimension(:,:), allocatable :: vj     
+         !! Jacobi velocity
+      real(DP), dimension(:),   allocatable :: muj    
+         !! Jacobi mu: GMcb * eta(i) / eta(i - 1) 
+      real(DP), dimension(:),   allocatable :: ir3j    
+         !! Third term of heliocentric acceleration
+      ! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
+      !    component list, such as whm_util_setup_pl and whm_util_spill_pl
    contains
-      procedure :: h2j         => whm_coord_h2j_pl           !! Convert position and velcoity vectors from heliocentric to Jacobi coordinates 
-      procedure :: j2h         => whm_coord_j2h_pl           !! Convert position and velcoity vectors from Jacobi to helliocentric coordinates 
-      procedure :: vh2vj       => whm_coord_vh2vj_pl         !! Convert velocity vectors from heliocentric to Jacobi coordinates 
-      procedure :: drift       => whm_drift_pl               !! Loop through massive bodies and call Danby drift routine to jacobi coordinates
-      procedure :: accel_gr    => whm_gr_kick_getacch_pl     !! Acceleration term arising from the post-Newtonian correction
-      procedure :: gr_pos_kick => whm_gr_p4_pl               !! Position kick due to p**4 term in the post-Newtonian correction
-      procedure :: accel       => whm_kick_getacch_pl        !! Compute heliocentric accelerations of massive bodies
-      procedure :: kick        => whm_kick_vh_pl             !! Kick heliocentric velocities of massive bodies
-      procedure :: append      => whm_util_append_pl         !! Appends elements from one structure to another
-      procedure :: dealloc     => whm_util_dealloc_pl        !! Deallocates all allocatable arrays
-      procedure :: fill        => whm_util_fill_pl           !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
-      procedure :: resize      => whm_util_resize_pl         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
-      procedure :: set_ir3     => whm_util_set_ir3j          !! Sets both the heliocentric and jacobi inverse radius terms (1/rj**3 and 1/rh**3)
-      procedure :: set_mu      => whm_util_set_mu_eta_pl     !! Sets the Jacobi mass value for all massive bodies.
-      procedure :: sort        => whm_util_sort_pl           !! Sort a WHM massive body object in-place. 
-      procedure :: rearrange   => whm_util_sort_rearrange_pl !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
-      procedure :: spill       => whm_util_spill_pl          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      procedure :: setup       => whm_util_setup_pl          !! Constructor method - Allocates space for the input number of bodiess
-      procedure :: step        => whm_step_pl                !! Steps the body forward one stepsize
-      final     ::                whm_final_pl               !! Finalizes the WHM massive body object - deallocates all allocatables
-#ifdef COARRAY
-      procedure :: coclone      => whm_coarray_coclone_pl       !! Clones the image 1 body object to all other images in the coarray structure.
-#endif 
+      procedure :: h2j         => whm_coord_h2j_pl           
+         !! Convert position and velcoity vectors from heliocentric to Jacobi coordinates 
+      procedure :: j2h         => whm_coord_j2h_pl           
+         !! Convert position and velcoity vectors from Jacobi to helliocentric coordinates 
+      procedure :: vh2vj       => whm_coord_vh2vj_pl         
+         !! Convert velocity vectors from heliocentric to Jacobi coordinates 
+      procedure :: drift       => whm_drift_pl               
+         !! Loop through massive bodies and call Danby drift routine to jacobi coordinates
+      procedure :: accel_gr    => whm_gr_kick_getacch_pl     
+         !! Acceleration term arising from the post-Newtonian correction
+      procedure :: gr_pos_kick => whm_gr_p4_pl               
+         !! Position kick due to p**4 term in the post-Newtonian correction
+      procedure :: accel       => whm_kick_getacch_pl        
+         !! Compute heliocentric accelerations of massive bodies
+      procedure :: kick        => whm_kick_vh_pl             
+         !! Kick heliocentric velocities of massive bodies
+      procedure :: append      => whm_util_append_pl         
+         !! Appends elements from one structure to another
+      procedure :: dealloc     => whm_util_dealloc_pl        
+         !! Deallocates all allocatable arrays
+      procedure :: fill        => whm_util_fill_pl           
+         !! "Fills" bodies from one object into another depending on the results of a mask (uses the UNPACK intrinsic)
+      procedure :: resize      => whm_util_resize_pl         
+         !! Checks the current size of a Swiftest body against the requested size and resizes it if it is too small.
+      procedure :: set_ir3     => whm_util_set_ir3j          
+         !! Sets both the heliocentric and jacobi inverse radius terms (1/rj**3 and 1/rh**3)
+      procedure :: set_mu      => whm_util_set_mu_eta_pl     
+         !! Sets the Jacobi mass value for all massive bodies.
+      procedure :: sort        => whm_util_sort_pl           
+         !! Sort a WHM massive body object in-place. 
+      procedure :: rearrange   => whm_util_sort_rearrange_pl 
+         !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
+      procedure :: spill       => whm_util_spill_pl          
+         !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: setup       => whm_util_setup_pl          
+         !! Constructor method - Allocates space for the input number of bodiess
+      procedure :: step        => whm_step_pl                
+         !! Steps the body forward one stepsize
+      final     ::                whm_final_pl               
+         !! Finalizes the WHM massive body object - deallocates all allocatables
    end type whm_pl
 
 
-   !! WHM test particle class
+   !> WHM test particle class
    type, extends(swiftest_tp) :: whm_tp
-      !! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
-      !!    component list, such as whm_util_spill_tp
+      ! Note to developers: If you add componenets to this class, be sure to update methods and subroutines that traverse the
+      !    component list, such as whm_util_spill_tp
    contains
-      procedure :: accel_gr    => whm_gr_kick_getacch_tp !! Acceleration term arising from the post-Newtonian correction
-      procedure :: gr_pos_kick => whm_gr_p4_tp           !! Position kick due to p**4 term in the post-Newtonian correction
-      procedure :: accel       => whm_kick_getacch_tp    !! Compute heliocentric accelerations of test particles
-      procedure :: kick        => whm_kick_vh_tp         !! Kick heliocentric velocities of test particles
-      procedure :: step        => whm_step_tp            !! Steps the particle forward one stepsize
-      final     ::                whm_final_tp      !! Finalizes the WHM test particle object - deallocates all allocatables 
+      procedure :: accel_gr    => whm_gr_kick_getacch_tp 
+         !! Acceleration term arising from the post-Newtonian correction
+      procedure :: gr_pos_kick => whm_gr_p4_tp           
+         !! Position kick due to p**4 term in the post-Newtonian correction
+      procedure :: accel       => whm_kick_getacch_tp    
+         !! Compute heliocentric accelerations of test particles
+      procedure :: kick        => whm_kick_vh_tp         
+         !! Kick heliocentric velocities of test particles
+      procedure :: step        => whm_step_tp            
+         !! Steps the particle forward one stepsize
+      final     ::                whm_final_tp      
+         !! Finalizes the WHM test particle object - deallocates all allocatables 
    end type whm_tp
 
    !> An abstract class for the WHM integrator nbody system 
    type, extends(swiftest_nbody_system) :: whm_nbody_system
    contains
-      !> Replace the abstract procedures with concrete ones
-      procedure :: initialize   => whm_util_setup_initialize_system !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
-      procedure :: step         => whm_step_system             !! Advance the WHM nbody system forward in time by one step
-      final     ::                 whm_final_system       !! Finalizes the WHM nbody_system object - deallocates all allocatables 
+      ! Replace the abstract procedures with concrete ones
+      procedure :: initialize   => whm_util_setup_initialize_system 
+         !! Performs WHM-specific initilization steps, like calculating the Jacobi masses
+      procedure :: step         => whm_step_system             
+         !! Advance the WHM nbody system forward in time by one step
+      final     ::                 whm_final_system       
+         !! Finalizes the WHM nbody_system object - deallocates all allocatables 
    end type whm_nbody_system
 
    interface
       module subroutine whm_coord_h2j_pl(self, cb)
          implicit none
-         class(whm_pl),      intent(inout) :: self   !! WHM massive body particle data structure
-         class(swiftest_cb), intent(inout) :: cb     !! Swiftest central body particle data structuree
+         class(whm_pl),      intent(inout) :: self   
+            !! WHM massive body particle data structure
+         class(swiftest_cb), intent(inout) :: cb     
+            !! Swiftest central body particle data structuree
       end subroutine whm_coord_h2j_pl
 
       module subroutine whm_coord_j2h_pl(self, cb)
          implicit none
-         class(whm_pl),      intent(inout) :: self   !! WHM massive body particle data structure
-         class(swiftest_cb), intent(inout) :: cb     !! Swiftest central body particle data structuree
+         class(whm_pl),      intent(inout) :: self   
+            !! WHM massive body particle data structure
+         class(swiftest_cb), intent(inout) :: cb     
+            !! Swiftest central body particle data structuree
       end subroutine whm_coord_j2h_pl
 
       module subroutine whm_coord_vh2vj_pl(self, cb)
          implicit none
-         class(whm_pl),      intent(inout) :: self   !! WHM massive body particle data structure
-         class(swiftest_cb), intent(inout) :: cb     !! Swiftest central body particle data structuree
+         class(whm_pl),      intent(inout) :: self   
+            !! WHM massive body particle data structure
+         class(swiftest_cb), intent(inout) :: cb     
+            !! Swiftest central body particle data structuree
       end subroutine whm_coord_vh2vj_pl
 
       module subroutine whm_drift_pl(self, nbody_system, param, dt)
          implicit none
-         class(whm_pl),                intent(inout) :: self   !! WHM massive body particle data structure
-         class(swiftest_nbody_system), intent(inout) :: nbody_system !! WHM nbody system object
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
-         real(DP),                     intent(in)    :: dt     !! Stepsize
+         class(whm_pl),                intent(inout) :: self   
+            !! WHM massive body particle data structure
+         class(swiftest_nbody_system), intent(inout) :: nbody_system 
+            !! WHM nbody system object
+         class(swiftest_parameters),   intent(in)    :: param  
+            !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: dt     
+            !! Stepsize
       end subroutine whm_drift_pl
 
       !> Get heliocentric accelration of massive bodies
       module subroutine whm_kick_getacch_pl(self, nbody_system, param, t, lbeg)
          implicit none
-         class(whm_pl),                intent(inout) :: self   !! WHM massive body particle data structure
-         class(swiftest_nbody_system), intent(inout) :: nbody_system !! WHM nbody system object
-         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
-         real(DP),                     intent(in)    :: t      !! Current simulation time
-         logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
+         class(whm_pl),                intent(inout) :: self   
+            !! WHM massive body particle data structure
+         class(swiftest_nbody_system), intent(inout) :: nbody_system 
+            !! WHM nbody system object
+         class(swiftest_parameters),   intent(inout) :: param  
+            !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t      
+            !! Current simulation time
+         logical,                      intent(in)    :: lbeg   
+            !! Logical flag that determines whether or not this is the beginning or end of the step
       end subroutine whm_kick_getacch_pl
 
       !> Get heliocentric accelration of the test particle
       module subroutine whm_kick_getacch_tp(self, nbody_system, param, t, lbeg)
          implicit none
-         class(whm_tp),                intent(inout) :: self   !! WHM test particle data structure
-         class(swiftest_nbody_system), intent(inout) :: nbody_system !! WHM nbody system object
-         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
-         real(DP),                     intent(in)    :: t      !! Current time
-         logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
+         class(whm_tp),                intent(inout) :: self   
+            !! WHM test particle data structure
+         class(swiftest_nbody_system), intent(inout) :: nbody_system 
+            !! WHM nbody system object
+         class(swiftest_parameters),   intent(inout) :: param  
+            !! Current run configuration parameters
+         real(DP),                     intent(in)    :: t      
+            !! Current time
+         logical,                      intent(in)    :: lbeg   
+            !! Logical flag that determines whether or not this is the beginning or end of the step
       end subroutine whm_kick_getacch_tp
 
       module subroutine whm_kick_vh_pl(self, nbody_system, param, t, dt, lbeg)
          implicit none
-         class(whm_pl),                intent(inout) :: self   !! WHM massive body object
-         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
-         real(DP),                     intent(in)    :: t      !! Current time
-         real(DP),                     intent(in)    :: dt     !! Stepsize
-         logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
+         class(whm_pl),                intent(inout) :: self   
+            !! WHM massive body object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system 
+            !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param  
+            !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t      
+            !! Current time
+         real(DP),                     intent(in)    :: dt     
+            !! Stepsize
+         logical,                      intent(in)    :: lbeg   
+            !! Logical flag indicating whether this is the beginning of the half step or not. 
       end subroutine whm_kick_vh_pl
 
       module subroutine whm_kick_vh_tp(self, nbody_system, param, t, dt, lbeg)
          implicit none
-         class(whm_tp),                intent(inout) :: self   !! WHM test particle object
-         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
-         real(DP),                     intent(in)    :: t      !! Current time
-         real(DP),                     intent(in)    :: dt     !! Stepsize
-         logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
+         class(whm_tp),                intent(inout) :: self   
+            !! WHM test particle object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system 
+            !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param  
+            !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t      
+            !! Current time
+         real(DP),                     intent(in)    :: dt     
+            !! Stepsize
+         logical,                      intent(in)    :: lbeg   
+            !! Logical flag indicating whether this is the beginning of the half step or not. 
       end subroutine whm_kick_vh_tp
 
       pure module subroutine whm_gr_kick_getacch_pl(self, param)
          implicit none
-         class(whm_pl),              intent(inout) :: self  !! WHM massive body particle data structure
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+         class(whm_pl),              intent(inout) :: self  
+            !! WHM massive body particle data structure
+         class(swiftest_parameters), intent(in)    :: param 
+            !! Current run configuration parameters 
       end subroutine whm_gr_kick_getacch_pl
 
       pure module subroutine whm_gr_kick_getacch_tp(self, param)
          implicit none
-         class(whm_tp),              intent(inout) :: self  !! WHM test particle data structure
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
+         class(whm_tp),              intent(inout) :: self  
+            !! WHM test particle data structure
+         class(swiftest_parameters), intent(in)    :: param 
+            !! Current run configuration parameters
       end subroutine whm_gr_kick_getacch_tp
 
       pure module subroutine whm_gr_p4_pl(self, nbody_system, param, dt)
          implicit none
-         class(whm_pl),                intent(inout) :: self  !! WHM massive body object
-         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system
-         class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
-         real(DP),                     intent(in)    :: dt    !! Step size
+         class(whm_pl),                intent(inout) :: self  
+            !! WHM massive body object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system 
+            !! Swiftest nbody system
+         class(swiftest_parameters),   intent(in)    :: param 
+            !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: dt    
+            !! Step size
       end subroutine whm_gr_p4_pl
 
       pure module subroutine whm_gr_p4_tp(self, nbody_system, param, dt)
          implicit none
-         class(whm_tp),                intent(inout) :: self   !! WHM test particle object
-         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system
-         class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
-         real(DP),                     intent(in)    :: dt     !! Step size
+         class(whm_tp),                intent(inout) :: self   
+            !! WHM test particle object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system 
+            !! Swiftest nbody system
+         class(swiftest_parameters),   intent(in)    :: param  
+            !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: dt     
+            !! Step size
       end subroutine whm_gr_p4_tp
 
       !> Reads WHM massive body object in from file
       module subroutine whm_util_setup_pl(self, n, param)
          implicit none
-         class(whm_pl),             intent(inout) :: self  !! WHM massive body objectobject
-         integer(I4B),              intent(in)    :: n     !! Number of particles to allocate space for
-         class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
+         class(whm_pl),             intent(inout) :: self  
+            !! WHM massive body objectobject
+         integer(I4B),              intent(in)    :: n     
+            !! Number of particles to allocate space for
+         class(swiftest_parameters), intent(in)    :: param 
+            !! Current run configuration parameters
       end subroutine whm_util_setup_pl
 
       module subroutine whm_util_setup_initialize_system(self, system_history, param)
          implicit none
-         class(whm_nbody_system),                 intent(inout) :: self            !! WHM nbody system object
-         class(swiftest_storage),    allocatable, intent(inout) :: system_history  !! Stores the system history between output dumps
-         class(swiftest_parameters),              intent(inout) :: param           !! Current run configuration parameters 
+         class(whm_nbody_system),                 intent(inout) :: self            
+            !! WHM nbody system object
+         class(swiftest_storage),    allocatable, intent(inout) :: system_history  
+            !! Stores the system history between output dumps
+         class(swiftest_parameters),              intent(inout) :: param           
+            !! Current run configuration parameters 
       end subroutine whm_util_setup_initialize_system
 
       module subroutine whm_step_pl(self, nbody_system, param, t, dt)
          implicit none
-         class(whm_pl),                intent(inout) :: self   !! WHM massive body object
-         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody_system object
-         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
-         real(DP),                     intent(in)    :: t       !! Simulation time
-         real(DP),                     intent(in)    :: dt     !! Current stepsize
+         class(whm_pl),                intent(inout) :: self   
+            !! WHM massive body object
+         class(swiftest_nbody_system), intent(inout) :: nbody_system 
+            !! Swiftest nbody_system object
+         class(swiftest_parameters),   intent(inout) :: param  
+            !! Current run configuration parameters 
+         real(DP),                     intent(in)    :: t       
+            !! Simulation time
+         real(DP),                     intent(in)    :: dt     
+            !! Current stepsize
       end subroutine whm_step_pl
 
       module subroutine whm_step_system(self, param, t, dt)
          implicit none
-         class(whm_nbody_system),    intent(inout) :: self    !! WHM nbody_system object
-         class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
-         real(DP),                   intent(in)    :: t      !! Simulation time
-         real(DP),                   intent(in)    :: dt     !! Current stepsize
+         class(whm_nbody_system),    intent(inout) :: self    
+            !! WHM nbody_system object
+         class(swiftest_parameters), intent(inout) :: param  
+            !! Current run configuration parameters 
+         real(DP),                   intent(in)    :: t      
+            !! Simulation time
+         real(DP),                   intent(in)    :: dt     
+            !! Current stepsize
       end subroutine whm_step_system
 
       module subroutine whm_step_tp(self, nbody_system, param, t, dt)
          implicit none
-         class(whm_tp),                intent(inout) :: self   !! WHM test particle data structure
-         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-         class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters
-         real(DP),                     intent(in)    :: t      !! Current simulation time
-         real(DP),                     intent(in)    :: dt     !! Stepsize
+         class(whm_tp),                intent(inout) :: self   
+            !! WHM test particle data structure
+         class(swiftest_nbody_system), intent(inout) :: nbody_system 
+            !! Swiftest nbody system object
+         class(swiftest_parameters),   intent(inout) :: param  
+            !! Current run configuration parameters
+         real(DP),                     intent(in)    :: t      
+            !! Current simulation time
+         real(DP),                     intent(in)    :: dt     
+            !! Stepsize
       end subroutine whm_step_tp
 
       module subroutine whm_util_append_pl(self, source, lsource_mask)
          implicit none
-         class(whm_pl),                   intent(inout) :: self         !! WHM massive body object
-         class(swiftest_body),            intent(in)    :: source       !! Source object to append
-         logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+         class(whm_pl),                   intent(inout) :: self         
+            !! WHM massive body object
+         class(swiftest_body),            intent(in)    :: source       
+            !! Source object to append
+         logical, dimension(:),           intent(in)    :: lsource_mask 
+            !! Logical mask indicating which elements to append to
       end subroutine whm_util_append_pl
 
       module subroutine whm_util_dealloc_pl(self)
          implicit none
-         class(whm_pl),  intent(inout) :: self !! WHM massive body object
+         class(whm_pl),  intent(inout) :: self 
+            !! WHM massive body object
       end subroutine whm_util_dealloc_pl
 
       module subroutine whm_util_spill_pl(self, discards, lspill_list, ldestructive)
          implicit none
-         class(whm_pl),         intent(inout) :: self        !! WHM massive body object
-         class(swiftest_body),      intent(inout) :: discards    !! Discarded object 
-         logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
-         logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+         class(whm_pl),         intent(inout) :: self        
+            !! WHM massive body object
+         class(swiftest_body),      intent(inout) :: discards    
+            !! Discarded object 
+         logical, dimension(:), intent(in)    :: lspill_list 
+            !! Logical array of bodies to spill into the discards
+         logical,               intent(in)    :: ldestructive 
+            !! Logical flag indicating whether or not this operation should alter the keeps array or not
       end subroutine whm_util_spill_pl
 
       module subroutine whm_util_fill_pl(self, inserts, lfill_list)
          implicit none
-         class(whm_pl),         intent(inout) :: self       !! WHM massive body object
-         class(swiftest_body),  intent(in)    :: inserts    !! inserted object 
-         logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+         class(whm_pl),         intent(inout) :: self       
+            !! WHM massive body object
+         class(swiftest_body),  intent(in)    :: inserts    
+            !! inserted object 
+         logical, dimension(:), intent(in)    :: lfill_list 
+            !! Logical array of bodies to merge into the keeps
       end subroutine whm_util_fill_pl
 
       module subroutine whm_util_resize_pl(self, nnew)
          implicit none
-         class(whm_pl), intent(inout) :: self  !! WHM massive body object
-         integer(I4B),  intent(in)    :: nnew  !! New size neded
+         class(whm_pl), intent(inout) :: self  
+            !! WHM massive body object
+         integer(I4B),  intent(in)    :: nnew  
+            !! New size neded
       end subroutine whm_util_resize_pl
 
       module subroutine whm_util_set_ir3j(self)
          implicit none
-         class(whm_pl),                intent(inout) :: self    !! WHM massive body object
+         class(whm_pl),                intent(inout) :: self    
+            !! WHM massive body object
       end subroutine whm_util_set_ir3j
 
       module subroutine whm_util_set_mu_eta_pl(self, cb)
          implicit none
-         class(whm_pl),                intent(inout) :: self    !! WHM massive body object
-         class(swiftest_cb),           intent(inout) :: cb     !! Swiftest central body object
+         class(whm_pl),                intent(inout) :: self    
+            !! WHM massive body object
+         class(swiftest_cb),           intent(inout) :: cb     
+            !! Swiftest central body object
       end subroutine whm_util_set_mu_eta_pl
 
       module subroutine whm_util_sort_pl(self, sortby, ascending)
          implicit none
-         class(whm_pl), intent(inout) :: self        !! WHM massive body object
-         character(*),  intent(in)    :: sortby    !! Sorting attribute
-         logical,       intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
+         class(whm_pl), intent(inout) :: self       
+             !! WHM massive body object
+         character(*),  intent(in)    :: sortby    
+            !! Sorting attribute
+         logical,       intent(in)    :: ascending 
+            !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       end subroutine whm_util_sort_pl
 
       module subroutine whm_util_sort_rearrange_pl(self, ind)
          implicit none
-         class(whm_pl),               intent(inout) :: self !! WHM massive body object
-         integer(I4B),  dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
+         class(whm_pl),               intent(inout) :: self 
+            !! WHM massive body object
+         integer(I4B),  dimension(:), intent(in)    :: ind  
+            !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
       end subroutine whm_util_sort_rearrange_pl
    end interface
 
 #ifdef COARRAY
-   interface
-      module subroutine whm_coarray_coclone_pl(self)
-         implicit none
-         class(whm_pl),intent(inout),codimension[*]  :: self  !! WHM pl object
-      end subroutine whm_coarray_coclone_pl
+   interface coclone
+      module procedure whm_coarray_coclone_cb
+      module procedure whm_coarray_coclone_pl
+      module procedure whm_coarray_coclone_tp
+      module procedure whm_coarray_coclone_system
+   end interface
+
+   interface cocollect
+      module procedure whm_coarray_cocollect_tp
    end interface
 #endif
 
@@ -291,10 +411,9 @@ module whm
          !! Finalize the WHM massive body object - deallocates all allocatables
          implicit none
          ! Argument
-         type(whm_pl),  intent(inout) :: self !! WHM massive body object
-
+         type(whm_pl),  intent(inout) :: self 
+            !! WHM massive body object
          call self%dealloc()
-
          return
       end subroutine whm_final_pl
 
@@ -305,10 +424,9 @@ module whm
          !! Finalize the WHM nbody system object - deallocates all allocatables
          implicit none
          ! Arguments
-         type(whm_nbody_system),  intent(inout) :: self !! WHM nbody system object
-
+         type(whm_nbody_system),  intent(inout) :: self 
+            !! WHM nbody system object
          call self%dealloc()
-
          return
       end subroutine whm_final_system
 
@@ -319,11 +437,268 @@ module whm
          !! Finalize the WHM test particle object - deallocates all allocatables
          implicit none
          ! Arguments
-         type(whm_tp),  intent(inout) :: self !! WHM test particle object
-
+         type(whm_tp),  intent(inout) :: self 
+            !! WHM test particle object
          call self%dealloc()
-
          return
       end subroutine whm_final_tp
+
+#ifdef COARRAY
+   subroutine whm_coarray_coclone_cb(cb)
+      !! author: David A. Minton
+      !!
+      !! Broadcasts the image 1 object to all other images in a coarray 
+      implicit none
+      ! Arguments
+      type(whm_cb),intent(inout),codimension[*]  :: cb  !! WHM body object
+      ! Internals
+      integer(I4B) :: i
+
+      call coclone(cb%info)
+      call coclone(cb%id)
+      call coclone(cb%mass)
+      call coclone(cb%Gmass)
+      call coclone(cb%radius)
+      call coclone(cb%density)
+      call coclone(cb%j2rp2)
+      call coclone(cb%j4rp4)
+      call coclone(cb%k2)
+      call coclone(cb%Q)
+      call coclone(cb%tlag)
+      call coclone(cb%GM0)
+      call coclone(cb%dGM)
+      call coclone(cb%R0)
+      call coclone(cb%dR)
+
+      call coclonevec(cb%aobl)
+      call coclonevec(cb%atide)
+      call coclonevec(cb%aoblbeg)
+      call coclonevec(cb%aoblend)
+      call coclonevec(cb%atidebeg)
+      call coclonevec(cb%atideend)
+      call coclonevec(cb%rb)
+      call coclonevec(cb%vb)
+      call coclonevec(cb%agr)
+      call coclonevec(cb%Ip)
+      call coclonevec(cb%rot)
+      call coclonevec(cb%L0)
+      call coclonevec(cb%dL)
+
+      return
+   end subroutine whm_coarray_coclone_cb
+
+
+   subroutine whm_coarray_coclone_pl(pl)
+      !! author: David A. Minton
+      !!
+      !! Broadcasts the image 1 object to all other images in a coarray 
+      implicit none
+      ! Arguments
+      type(whm_pl),intent(inout),codimension[*]  :: pl  !! WHM pl object
+
+      call coclone(pl%lfirst)
+      call coclone(pl%nbody)
+      call coclone(pl%id)
+      call coclone(pl%info)
+      call coclone(pl%lmask)
+      call coclone(pl%status)
+      call coclone(pl%ldiscard)
+      call coclone(pl%lcollision)
+      call coclone(pl%lencounter)
+      call coclone(pl%mu)
+      call coclone(pl%rh)
+      call coclone(pl%vh)
+      call coclone(pl%rb)
+      call coclone(pl%vb)
+      call coclone(pl%ah)
+      call coclone(pl%aobl)
+      call coclone(pl%agr)
+      call coclone(pl%atide)
+      call coclone(pl%ir3h)
+      call coclone(pl%isperi)
+      call coclone(pl%peri)
+      call coclone(pl%atp)
+      call coclone(pl%a)
+      call coclone(pl%e)
+      call coclone(pl%inc)
+      call coclone(pl%capom)
+      call coclone(pl%omega)
+      call coclone(pl%capm)
+
+      call coclone(pl%mass)
+      call coclone(pl%Gmass)
+      call coclone(pl%rhill)
+      call coclone(pl%renc)
+      call coclone(pl%radius)
+      call coclone(pl%density)
+      call coclone(pl%rbeg)
+      call coclone(pl%rend)
+      call coclone(pl%vbeg)
+      call coclone(pl%Ip)
+      call coclone(pl%rot)
+      call coclone(pl%k2)
+      call coclone(pl%Q )
+      call coclone(pl%tlag)
+      call coclone(pl%kin)
+      call coclone(pl%lmtiny)
+      call coclone(pl%nplm)
+      call coclone(pl%nplplm)
+      call coclone(pl%nplenc)
+      call coclone(pl%ntpenc)
+
+      call coclone(pl%eta)
+      call coclone(pl%xj)
+      call coclone(pl%vj)
+      call coclone(pl%muj)
+      call coclone(pl%ir3j)
+
+      return
+   end subroutine whm_coarray_coclone_pl
+
+
+   subroutine whm_coarray_coclone_tp(tp)
+      !! author: David A. Minton
+      !!
+      !! Broadcasts the image 1 object to all other images in a coarray 
+      implicit none
+      ! Arguments
+      type(whm_tp),intent(inout),codimension[*]  :: tp  !! WHM tp object
+
+      call coclone(tp%lfirst)
+      call coclone(tp%nbody)
+      call coclone(tp%id)
+      call coclone(tp%info)
+      call coclone(tp%lmask)
+      call coclone(tp%status)
+      call coclone(tp%ldiscard)
+      call coclone(tp%lcollision)
+      call coclone(tp%lencounter)
+      call coclone(tp%mu)
+      call coclone(tp%rh)
+      call coclone(tp%vh)
+      call coclone(tp%rb)
+      call coclone(tp%vb)
+      call coclone(tp%ah)
+      call coclone(tp%aobl)
+      call coclone(tp%agr)
+      call coclone(tp%atide)
+      call coclone(tp%ir3h)
+      call coclone(tp%isperi)
+      call coclone(tp%peri)
+      call coclone(tp%atp)
+      call coclone(tp%a)
+      call coclone(tp%e)
+      call coclone(tp%inc)
+      call coclone(tp%capom)
+      call coclone(tp%omega)
+      call coclone(tp%capm) 
+      call coclone(tp%nplenc)
+
+      return
+   end subroutine whm_coarray_coclone_tp
+
+
+   subroutine whm_coarray_coclone_system(nbody_system)
+      !! author: David A. Minton
+      !!
+      !! Broadcasts the image 1 object to all other images in a coarray 
+      implicit none
+      ! Arguments
+      type(whm_nbody_system),intent(inout),codimension[*]  :: nbody_system  
+         !! WHM nbody system object
+      ! Internals
+      integer(I4B) :: i
+
+      call coclone(nbody_system%maxid)
+      call coclone(nbody_system%t)
+      call coclone(nbody_system%GMtot)
+      call coclone(nbody_system%ke_orbit)
+      call coclone(nbody_system%ke_spin)
+      call coclone(nbody_system%pe)
+      call coclone(nbody_system%be)
+      call coclone(nbody_system%te)
+      call coclone(nbody_system%oblpot)
+      do i = 1, NDIM
+         call coclone(nbody_system%L_orbit(i))
+         call coclone(nbody_system%L_spin(i))
+         call coclone(nbody_system%L_total(i))
+         call coclone(nbody_system%L_total_orig(i))
+         call coclone(nbody_system%L_orbit_orig(i))
+         call coclone(nbody_system%L_spin_orig(i))
+         call coclone(nbody_system%L_escape(i))
+      end do
+      call coclone(nbody_system%ke_orbit_orig)
+      call coclone(nbody_system%ke_spin_orig)
+      call coclone(nbody_system%pe_orig)
+      call coclone(nbody_system%be_orig)
+      call coclone(nbody_system%te_orig)
+      call coclone(nbody_system%be_cb)
+      call coclone(nbody_system%E_orbit_orig)
+      call coclone(nbody_system%GMtot_orig)
+      call coclone(nbody_system%GMescape)
+      call coclone(nbody_system%E_collisions)
+      call coclone(nbody_system%E_untracked)
+      call coclone(nbody_system%ke_orbit_error)
+      call coclone(nbody_system%ke_spin_error)
+      call coclone(nbody_system%pe_error)
+      call coclone(nbody_system%be_error)
+      call coclone(nbody_system%E_orbit_error)
+      call coclone(nbody_system%Ecoll_error)
+      call coclone(nbody_system%E_untracked_error)
+      call coclone(nbody_system%te_error)
+      call coclone(nbody_system%L_orbit_error)
+      call coclone(nbody_system%L_spin_error)
+      call coclone(nbody_system%L_escape_error)
+      call coclone(nbody_system%L_total_error)
+      call coclone(nbody_system%Mtot_error)
+      call coclone(nbody_system%Mescape_error)
+      call coclone(nbody_system%lbeg)
+
+      return
+   end subroutine whm_coarray_coclone_system
+
+
+   subroutine whm_coarray_cocollect_tp(tp)
+      !! author: David A. Minton
+      !!
+      !! Collects all object array components from all images and combines them into the image 1 object
+      implicit none
+      ! Arguments
+      type(whm_tp),intent(inout),codimension[*]  :: tp  !! Swiftest body object
+
+      call cocollect(tp%npltp)
+      call cocollect(tp%nplenc)
+      call cocollect(tp%nbody)
+      call cocollect(tp%id)
+      call cocollect(tp%info)
+      call cocollect(tp%lmask)
+      call cocollect(tp%status)
+      call cocollect(tp%ldiscard)
+      call cocollect(tp%lcollision)
+      call cocollect(tp%lencounter)
+      call cocollect(tp%mu)
+      call cocollect(tp%rh)
+      call cocollect(tp%vh)
+      call cocollect(tp%rb)
+      call cocollect(tp%vb)
+      call cocollect(tp%ah)
+      call cocollect(tp%aobl)
+      call cocollect(tp%agr)
+      call cocollect(tp%atide)
+      call cocollect(tp%ir3h)
+      call cocollect(tp%isperi)
+      call cocollect(tp%peri)
+      call cocollect(tp%atp)
+      call cocollect(tp%a)
+      call cocollect(tp%e)
+      call cocollect(tp%inc)
+      call cocollect(tp%capom)
+      call cocollect(tp%omega)
+      call cocollect(tp%capm)
+
+      return
+   end subroutine whm_coarray_cocollect_tp
+
+#endif
 
 end module whm

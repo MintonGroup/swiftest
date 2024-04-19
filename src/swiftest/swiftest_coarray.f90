@@ -1,4 +1,4 @@
-! Copyight 2023 - David Minton
+! Copyight 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -10,7 +10,6 @@
 submodule (swiftest) s_swiftest_coarray
     use coarray
 contains
-
 
     module subroutine swiftest_coarray_balance_system(nbody_system, param)
         !! author: David A. Minton
@@ -58,344 +57,243 @@ contains
     end subroutine swiftest_coarray_balance_system
 
 
-    module subroutine swiftest_coarray_coclone_body(self)
-        !! author: David A. Minton
-         !!
-         !! Broadcasts the image 1 object to all other images in a coarray 
-        implicit none
-        ! Arguments
-        class(swiftest_body),intent(inout),codimension[*]  :: self  !! Swiftest body object
-
-        call coclone(self%lfirst)
-        call coclone(self%nbody)
-        call coclone(self%id)
-        call coclone(self%info)
-        call coclone(self%lmask)
-        call coclone(self%status)
-        call coclone(self%ldiscard)
-        call coclone(self%lcollision)
-        call coclone(self%lencounter)
-        call coclone(self%mu)
-        call coclone(self%rh)
-        call coclone(self%vh)
-        call coclone(self%rb)
-        call coclone(self%vb)
-        call coclone(self%ah)
-        call coclone(self%aobl)
-        call coclone(self%agr)
-        call coclone(self%atide)
-        call coclone(self%ir3h)
-        call coclone(self%isperi)
-        call coclone(self%peri)
-        call coclone(self%atp)
-        call coclone(self%a)
-        call coclone(self%e)
-        call coclone(self%inc)
-        call coclone(self%capom)
-        call coclone(self%omega)
-        call coclone(self%capm)
-
-        return
-    end subroutine swiftest_coarray_coclone_body
-
-    module subroutine swiftest_coarray_coclone_kin(self)
+    module subroutine swiftest_coarray_coclone_kin(kin)
         !! author: David A. Minton
         !!
         !! Broadcasts the image 1 object to all other images in a coarray 
         implicit none
         ! Arguments
-        class(swiftest_kinship),intent(inout),codimension[*]  :: self  !! Swiftest kinship object
+        type(swiftest_kinship),intent(inout),codimension[*]  :: kin  !! Swiftest kinship object
 
-        call coclone(self%parent)
-        call coclone(self%nchild)
-        call coclone(self%child)
+        call coclone(kin%parent)
+        call coclone(kin%nchild)
+        call coclone(kin%child)
 
         return
-     end subroutine swiftest_coarray_coclone_kin
+    end subroutine swiftest_coarray_coclone_kin
 
-    module subroutine swiftest_coarray_coclone_nc(self)
+
+    module subroutine swiftest_coarray_coclone_nc(nc)
         !! author: David A. Minton
         !!
         !! Broadcasts the image 1 object to all other images in a coarray 
         implicit none
         ! Arguments
-        class(swiftest_netcdf_parameters),intent(inout),codimension[*]  :: self  !! Swiftest body object
+        type(swiftest_netcdf_parameters),intent(inout),codimension[*]  :: nc  !! Swiftest body object
 
-        call coclone(self%file_name)
-        call coclone(self%lfile_is_open)
-        call coclone(self%out_type)
-        call coclone(self%id)
-        call coclone(self%tslot)
-        call coclone(self%max_tslot)
-        call coclone(self%idvals)
-        call coclone(self%idslot)
-        call coclone(self%max_idslot)
-        call coclone(self%str_dimname)
-        call coclone(self%str_dimid)
-        call coclone(self%time_dimname)
-        call coclone(self%time_dimid)
-        call coclone(self%time_varid)
-        call coclone(self%name_dimname)
-        call coclone(self%name_dimid)
-        call coclone(self%name_varid)
-        call coclone(self%space_dimname)
-        call coclone(self%space_dimid)
-        call coclone(self%space_varid)
-        call coclone(self%id_varname)
-        call coclone(self%id_varid)
-        call coclone(self%status_varname)
-        call coclone(self%status_varid)
-        call coclone(self%ptype_varname)
-        call coclone(self%ptype_varid)
-        call coclone(self%npl_varname)
-        call coclone(self%npl_varid)
-        call coclone(self%ntp_varname)
-        call coclone(self%ntp_varid)
-        call coclone(self%nplm_varname)
-        call coclone(self%nplm_varid)
-        call coclone(self%a_varname)
-        call coclone(self%a_varid)
-        call coclone(self%e_varname)
-        call coclone(self%e_varid)
-        call coclone(self%inc_varname)
-        call coclone(self%inc_varid)
-        call coclone(self%capom_varname)
-        call coclone(self%capom_varid)
-        call coclone(self%omega_varname)
-        call coclone(self%omega_varid)
-        call coclone(self%capm_varname)
-        call coclone(self%capm_varid)
-        call coclone(self%varpi_varname)
-        call coclone(self%varpi_varid)
-        call coclone(self%lam_varname)
-        call coclone(self%lam_varid)
-        call coclone(self%f_varname)
-        call coclone(self%f_varid)
-        call coclone(self%cape_varname)
-        call coclone(self%cape_varid)
-        call coclone(self%rh_varname)
-        call coclone(self%rh_varid)
-        call coclone(self%vh_varname)
-        call coclone(self%vh_varid)
-        call coclone(self%gr_pseudo_vh_varname)
-        call coclone(self%gr_pseudo_vh_varid)
-        call coclone(self%Gmass_varname)
-        call coclone(self%Gmass_varid)
-        call coclone(self%mass_varname)
-        call coclone(self%mass_varid)
-        call coclone(self%rhill_varname)
-        call coclone(self%rhill_varid)
-        call coclone(self%radius_varname)
-        call coclone(self%radius_varid)
-        call coclone(self%Ip_varname)
-        call coclone(self%Ip_varid)
-        call coclone(self%rot_varname)
-        call coclone(self%rot_varid)
-        call coclone(self%j2rp2_varname)
-        call coclone(self%j2rp2_varid)
-        call coclone(self%j4rp4_varname)
-        call coclone(self%j4rp4_varid)
-        call coclone(self%k2_varname)
-        call coclone(self%k2_varid)
-        call coclone(self%q_varname)
-        call coclone(self%Q_varid)
-        call coclone(self%ke_orb_varname)
-        call coclone(self%KE_orb_varid)
-        call coclone(self%ke_spin_varname)
-        call coclone(self%KE_spin_varid)
-        call coclone(self%pe_varname)
-        call coclone(self%PE_varid)
-        call coclone(self%be_varname)
-        call coclone(self%BE_varid)
-        call coclone(self%te_varname)
-        call coclone(self%TE_varid)
-        call coclone(self%L_orbit_varname)
-        call coclone(self%L_orbit_varid)
-        call coclone(self%L_spin_varname)
-        call coclone(self%L_spin_varid)
-        call coclone(self%L_escape_varname)
-        call coclone(self%L_escape_varid)
-        call coclone(self%E_collisions_varname)
-        call coclone(self%E_collisions_varid)
-        call coclone(self%E_untracked_varname)
-        call coclone(self%E_untracked_varid)
-        call coclone(self%GMescape_varname)
-        call coclone(self%GMescape_varid)
-        call coclone(self%origin_type_varname)
-        call coclone(self%origin_type_varid)
-        call coclone(self%origin_time_varname)
-        call coclone(self%origin_time_varid)
-        call coclone(self%collision_id_varname)
-        call coclone(self%collision_id_varid)
-        call coclone(self%origin_rh_varname)
-        call coclone(self%origin_rh_varid)
-        call coclone(self%origin_vh_varname)
-        call coclone(self%origin_vh_varid)
-        call coclone(self%discard_time_varname)
-        call coclone(self%discard_time_varid)
-        call coclone(self%discard_rh_varname)
-        call coclone(self%discard_rh_varid)
-        call coclone(self%discard_vh_varname)
-        call coclone(self%discard_vh_varid)
-        call coclone(self%discard_body_id_varname)
-        call coclone(self%lpseudo_vel_exists)
-        call coclone(self%lc_lm_exists)
+        call coclone(nc%file_name)
+        call coclone(nc%lfile_is_open)
+        call coclone(nc%out_type)
+        call coclone(nc%id)
+        call coclone(nc%tslot)
+        call coclone(nc%max_tslot)
+        call coclone(nc%idvals)
+        call coclone(nc%idslot)
+        call coclone(nc%max_idslot)
+        call coclone(nc%str_dimname)
+        call coclone(nc%str_dimid)
+        call coclone(nc%time_dimname)
+        call coclone(nc%time_dimid)
+        call coclone(nc%time_varid)
+        call coclone(nc%name_dimname)
+        call coclone(nc%name_dimid)
+        call coclone(nc%name_varid)
+        call coclone(nc%space_dimname)
+        call coclone(nc%space_dimid)
+        call coclone(nc%space_varid)
+        call coclone(nc%id_varname)
+        call coclone(nc%id_varid)
+        call coclone(nc%status_varname)
+        call coclone(nc%status_varid)
+        call coclone(nc%ptype_varname)
+        call coclone(nc%ptype_varid)
+        call coclone(nc%npl_varname)
+        call coclone(nc%npl_varid)
+        call coclone(nc%ntp_varname)
+        call coclone(nc%ntp_varid)
+        call coclone(nc%nplm_varname)
+        call coclone(nc%nplm_varid)
+        call coclone(nc%a_varname)
+        call coclone(nc%a_varid)
+        call coclone(nc%e_varname)
+        call coclone(nc%e_varid)
+        call coclone(nc%inc_varname)
+        call coclone(nc%inc_varid)
+        call coclone(nc%capom_varname)
+        call coclone(nc%capom_varid)
+        call coclone(nc%omega_varname)
+        call coclone(nc%omega_varid)
+        call coclone(nc%capm_varname)
+        call coclone(nc%capm_varid)
+        call coclone(nc%varpi_varname)
+        call coclone(nc%varpi_varid)
+        call coclone(nc%lam_varname)
+        call coclone(nc%lam_varid)
+        call coclone(nc%f_varname)
+        call coclone(nc%f_varid)
+        call coclone(nc%cape_varname)
+        call coclone(nc%cape_varid)
+        call coclone(nc%rh_varname)
+        call coclone(nc%rh_varid)
+        call coclone(nc%vh_varname)
+        call coclone(nc%vh_varid)
+        call coclone(nc%gr_pseudo_vh_varname)
+        call coclone(nc%gr_pseudo_vh_varid)
+        call coclone(nc%Gmass_varname)
+        call coclone(nc%Gmass_varid)
+        call coclone(nc%mass_varname)
+        call coclone(nc%mass_varid)
+        call coclone(nc%rhill_varname)
+        call coclone(nc%rhill_varid)
+        call coclone(nc%radius_varname)
+        call coclone(nc%radius_varid)
+        call coclone(nc%Ip_varname)
+        call coclone(nc%Ip_varid)
+        call coclone(nc%rot_varname)
+        call coclone(nc%rot_varid)
+        call coclone(nc%j2rp2_varname)
+        call coclone(nc%j2rp2_varid)
+        call coclone(nc%j4rp4_varname)
+        call coclone(nc%j4rp4_varid)
+        call coclone(nc%k2_varname)
+        call coclone(nc%k2_varid)
+        call coclone(nc%q_varname)
+        call coclone(nc%Q_varid)
+        call coclone(nc%ke_orb_varname)
+        call coclone(nc%KE_orb_varid)
+        call coclone(nc%ke_spin_varname)
+        call coclone(nc%KE_spin_varid)
+        call coclone(nc%pe_varname)
+        call coclone(nc%PE_varid)
+        call coclone(nc%be_varname)
+        call coclone(nc%BE_varid)
+        call coclone(nc%te_varname)
+        call coclone(nc%TE_varid)
+        call coclone(nc%L_orbit_varname)
+        call coclone(nc%L_orbit_varid)
+        call coclone(nc%L_spin_varname)
+        call coclone(nc%L_spin_varid)
+        call coclone(nc%L_escape_varname)
+        call coclone(nc%L_escape_varid)
+        call coclone(nc%E_collisions_varname)
+        call coclone(nc%E_collisions_varid)
+        call coclone(nc%E_untracked_varname)
+        call coclone(nc%E_untracked_varid)
+        call coclone(nc%GMescape_varname)
+        call coclone(nc%GMescape_varid)
+        call coclone(nc%origin_type_varname)
+        call coclone(nc%origin_type_varid)
+        call coclone(nc%origin_time_varname)
+        call coclone(nc%origin_time_varid)
+        call coclone(nc%collision_id_varname)
+        call coclone(nc%collision_id_varid)
+        call coclone(nc%origin_rh_varname)
+        call coclone(nc%origin_rh_varid)
+        call coclone(nc%origin_vh_varname)
+        call coclone(nc%origin_vh_varid)
+        call coclone(nc%discard_time_varname)
+        call coclone(nc%discard_time_varid)
+        call coclone(nc%discard_rh_varname)
+        call coclone(nc%discard_rh_varid)
+        call coclone(nc%discard_vh_varname)
+        call coclone(nc%discard_vh_varid)
+        call coclone(nc%discard_body_id_varname)
+        call coclone(nc%lpseudo_vel_exists)
+        call coclone(nc%lc_lm_exists)
         return
     end subroutine swiftest_coarray_coclone_nc
 
-    module subroutine swiftest_coarray_coclone_cb(self)
-        !! author: David A. Minton
-         !!
-         !! Broadcasts the image 1 object to all other images in a coarray 
+
+    module subroutine swiftest_coarray_clone_param(param)
+        !! author: David A. Minton 
+        !! 
+        !! Broadcasts the image 1 parameter to all other images in a parameter coarray 
         implicit none
         ! Arguments
-        class(swiftest_cb),intent(inout),codimension[*]  :: self  !! Swiftest body object
+        type(swiftest_parameters),intent(inout),codimension[*]  :: param  
+        !! Collection of parameters 
         ! Internals
-        integer(I4B) :: i
-
-        call coclone(self%info)
-        call coclone(self%id)
-        call coclone(self%mass)
-        call coclone(self%Gmass)
-        call coclone(self%radius)
-        call coclone(self%density)
-        call coclone(self%j2rp2)
-        call coclone(self%j4rp4)
-        call coclone(self%k2)
-        call coclone(self%Q)
-        call coclone(self%tlag)
-        call coclone(self%GM0)
-        call coclone(self%dGM)
-        call coclone(self%R0)
-        call coclone(self%dR)
-
-        call coclonevec(self%aobl)
-        call coclonevec(self%atide)
-        call coclonevec(self%aoblbeg)
-        call coclonevec(self%aoblend)
-        call coclonevec(self%atidebeg)
-        call coclonevec(self%atideend)
-        call coclonevec(self%rb)
-        call coclonevec(self%vb)
-        call coclonevec(self%agr)
-        call coclonevec(self%Ip)
-        call coclonevec(self%rot)
-        call coclonevec(self%L0)
-        call coclonevec(self%dL)
-
-        return
-    end subroutine swiftest_coarray_coclone_cb
-
-
-    module subroutine swiftest_coarray_coclone_pl(self)
-        !! author: David A. Minton
-         !!
-         !! Broadcasts the image 1 object to all other images in a coarray 
-        implicit none
-        ! Arguments
-        class(swiftest_pl),intent(inout),codimension[*]  :: self  !! Swiftest body object
-
-        call coclone(self%mass)
-        call coclone(self%Gmass)
-        call coclone(self%rhill)
-        call coclone(self%renc)
-        call coclone(self%radius)
-        call coclone(self%density)
-        call coclone(self%rbeg)
-        call coclone(self%rend)
-        call coclone(self%vbeg)
-        call coclone(self%Ip)
-        call coclone(self%rot)
-        call coclone(self%k2)
-        call coclone(self%Q )
-        call coclone(self%tlag)
-        call coclone(self%kin)
-        call coclone(self%lmtiny)
-        call coclone(self%nplm)
-        call coclone(self%nplplm)
-        call coclone(self%nplenc)
-        call coclone(self%ntpenc)
-
-        call swiftest_coarray_coclone_body(self)
-
-        return
-    end subroutine swiftest_coarray_coclone_pl
-
-
-    module subroutine swiftest_coarray_coclone_tp(self)
-        !! author: David A. Minton
-         !!
-         !! Broadcasts the image 1 object to all other images in a coarray 
-        implicit none
-        ! Arguments
-        class(swiftest_tp),intent(inout),codimension[*]  :: self  !! Swiftest body object
-
-        call coclone(self%nplenc)
-        call swiftest_coarray_coclone_body(self)
+        call coclone(param%integrator)
+        call coclone(param%param_file_name)
+        call coclone(param%t0)
+        call coclone(param%tstart)
+        call coclone(param%tstop)
+        call coclone(param%dt)
+        call coclone(param%iloop)
+        call coclone(param%nloops)
+        call coclone(param%incbfile)
+        call coclone(param%inplfile)
+        call coclone(param%intpfile)
+        call coclone(param%nc_in)
+        call coclone(param%in_type)
+        call coclone(param%in_form)
+        call coclone(param%istep_out)
+        call coclone(param%nstep_out)
+        call coclone(param%fstep_out)
+        call coclone(param%ltstretch)
+        call coclone(param%outfile)
+        call coclone(param%out_type)
+        call coclone(param%out_form)
+        call coclone(param%out_stat)
+        call coclone(param%dump_cadence)
+        call coclone(param%rmin)
+        call coclone(param%rmax)
+        call coclone(param%rmaxu)
+        call coclone(param%qmin)
+        call coclone(param%qmin_coord)
+        call coclone(param%qmin_alo)
+        call coclone(param%qmin_ahi)
+        call coclone(param%MU2KG)
+        call coclone(param%TU2S)
+        call coclone(param%DU2M)
+        call coclone(param%GU)
+        call coclone(param%inv_c2)
+        call coclone(param%GMTINY)
+        call coclone(param%min_GMfrag)
+        call coclone(param%nfrag_reduction)
+        call coclone(param%lmtiny_pl)
+        call coclone(param%collision_model)
+        call coclone(param%encounter_save)
+        call coclone(param%lenc_save_trajectory)
+        call coclone(param%lenc_save_closest)
+        call coclone(param%interaction_loops)
+        call coclone(param%encounter_check_plpl)
+        call coclone(param%encounter_check_pltp)
+        call coclone(param%lflatten_interactions)
+        call coclone(param%lencounter_sas_plpl)
+        call coclone(param%lencounter_sas_pltp)
+        call coclone(param%lrhill_present)
+        call coclone(param%lextra_force)
+        call coclone(param%lbig_discard)
+        call coclone(param%lclose)
+        call coclone(param%lenergy)
+        call coclone(param%lnon_spherical_cb)
+        call coclone(param%lrotation)
+        call coclone(param%ltides)
+        call coclone(param%E_orbit_orig)
+        call coclone(param%GMtot_orig)
+        call coclonevec(param%L_total_orig)
+        call coclonevec(param%L_orbit_orig)
+        call coclonevec(param%L_spin_orig)
+        call coclonevec(param%L_escape)
+        call coclone(param%GMescape)
+        call coclone(param%E_collisions)
+        call coclone(param%E_untracked)
+        call coclone(param%lfirstenergy)
+        call coclone(param%lfirstkick)
+        call coclone(param%lrestart)
+        call coclone(param%display_style)
+        call coclone(param%display_unit)
+        call coclone(param%log_output )
+        call coclone(param%lgr)
+        call coclone(param%lyarkovsky)
+        call coclone(param%lyorp)
+        call coclone(param%seed)
+        call coclone(param%lcoarray)
 
         return
-    end subroutine swiftest_coarray_coclone_tp
+    end subroutine swiftest_coarray_clone_param 
 
-
-    module subroutine swiftest_coarray_coclone_system(self)
-        !! author: David A. Minton
-        !!
-        !! Broadcasts the image 1 object to all other images in a coarray 
-        implicit none
-        ! Arguments
-        class(swiftest_nbody_system),intent(inout),codimension[*]  :: self  !! Swiftest body object
-        ! Internals
-        integer(I4B) :: i
-
-        call coclone(self%maxid)
-        call coclone(self%t)
-        call coclone(self%GMtot)
-        call coclone(self%ke_orbit)
-        call coclone(self%ke_spin)
-        call coclone(self%pe)
-        call coclone(self%be)
-        call coclone(self%te)
-        call coclone(self%oblpot)
-        do i = 1, NDIM
-            call coclone(self%L_orbit(i))
-            call coclone(self%L_spin(i))
-            call coclone(self%L_total(i))
-            call coclone(self%L_total_orig(i))
-            call coclone(self%L_orbit_orig(i))
-            call coclone(self%L_spin_orig(i))
-            call coclone(self%L_escape(i))
-        end do
-        call coclone(self%ke_orbit_orig)
-        call coclone(self%ke_spin_orig)
-        call coclone(self%pe_orig)
-        call coclone(self%be_orig)
-        call coclone(self%te_orig)
-        call coclone(self%be_cb)
-        call coclone(self%E_orbit_orig)
-        call coclone(self%GMtot_orig)
-        call coclone(self%GMescape)
-        call coclone(self%E_collisions)
-        call coclone(self%E_untracked)
-        call coclone(self%ke_orbit_error)
-        call coclone(self%ke_spin_error)
-        call coclone(self%pe_error)
-        call coclone(self%be_error)
-        call coclone(self%E_orbit_error)
-        call coclone(self%Ecoll_error)
-        call coclone(self%E_untracked_error)
-        call coclone(self%te_error)
-        call coclone(self%L_orbit_error)
-        call coclone(self%L_spin_error)
-        call coclone(self%L_escape_error)
-        call coclone(self%L_total_error)
-        call coclone(self%Mtot_error)
-        call coclone(self%Mescape_error)
-        call coclone(self%lbeg)
-
-        return
-    end subroutine swiftest_coarray_coclone_system
-
-  
     module subroutine swiftest_coarray_component_clone_info(var,src_img)
         !! author: David A. Minton
         !!
@@ -430,7 +328,7 @@ contains
     
         return
     end subroutine swiftest_coarray_component_clone_info
-    
+
     
     module subroutine swiftest_coarray_component_clone_info_arr1D(var,src_img)
         !! author: David A. Minton
@@ -483,8 +381,8 @@ contains
         implicit none
         !! author: David A. Minton
         !!
-        !! Copies a component of a coarray derived type from the specified source image to the current local one. The default source image is 1
-        !! swiftest_kinship allocatable array version
+        !! Copies a component of a coarray derived type from the specified source image to the current local one. The default source
+        !! image is 1 swiftest_kinship allocatable array version
         ! Arguments
         type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: var
         integer(I4B), intent(in),optional :: src_img
@@ -508,7 +406,7 @@ contains
 
         allocate(tmp(n[si])[*])
         do i = 1, n[si]
-            call tmp(i)%coclone()
+            call coclone(tmp(i))
         end do
         if (this_image() /= si) then
             if (allocated(var)) deallocate(var)
@@ -580,75 +478,21 @@ contains
         return
     end subroutine swiftest_coarray_component_collect_info_arr1D
 
-    
-    module subroutine swiftest_coarray_cocollect_body(self)
-        !! author: David A. Minton
-        !!
-        !! Collects all body object array components from all images and combines them into the image 1 body object
-        implicit none
-        ! Arguments
-        class(swiftest_body),intent(inout), codimension[*] :: self !! Swiftest body object
-        integer(I4B) :: i
-
-        call cocollect(self%nbody)
-        call cocollect(self%id)
-        call cocollect(self%info)
-        call cocollect(self%lmask)
-        call cocollect(self%status)
-        call cocollect(self%ldiscard)
-        call cocollect(self%lcollision)
-        call cocollect(self%lencounter)
-        call cocollect(self%mu)
-        call cocollect(self%rh)
-        call cocollect(self%vh)
-        call cocollect(self%rb)
-        call cocollect(self%vb)
-        call cocollect(self%ah)
-        call cocollect(self%aobl)
-        call cocollect(self%agr)
-        call cocollect(self%atide)
-        call cocollect(self%ir3h)
-        call cocollect(self%isperi)
-        call cocollect(self%peri)
-        call cocollect(self%atp)
-        call cocollect(self%a)
-        call cocollect(self%e)
-        call cocollect(self%inc)
-        call cocollect(self%capom)
-        call cocollect(self%omega)
-        call cocollect(self%capm)
-
-        return
-    end subroutine swiftest_coarray_cocollect_body
-
-
-    module subroutine swiftest_coarray_cocollect_tp(self)
-        !! author: David A. Minton
-        !!
-        !! Collects all object array components from all images and combines them into the image 1 object
-        implicit none
-        ! Arguments
-        class(swiftest_tp),intent(inout),codimension[*]  :: self  !! Swiftest body object
-
-        call cocollect(self%npltp)
-        call cocollect(self%nplenc)
-        call swiftest_coarray_cocollect_body(self)
-
-        return
-    end subroutine swiftest_coarray_cocollect_tp
-
 
     module subroutine swiftest_coarray_collect_system(nbody_system, param)
         !! author: David A. Minton
         !!
         !! Collects all the test particles from other images into the image #1 test particle system
+        use whm
+        use rmvs
         implicit none
         ! Arguments
         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system 
         class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
         ! Internals
         integer(I4B) :: i,j
-        class(swiftest_tp), allocatable, codimension[:] :: cotp
+        type(whm_tp), allocatable, codimension[:] :: whm_cotp
+        type(rmvs_tp), allocatable, codimension[:] :: rmvs_cotp
         character(len=NAMELEN) :: image_num_char
 
         if (.not.param%lcoarray) return
@@ -659,12 +503,24 @@ contains
             if (param%log_output) flush(param%display_unit)
         end if
 
-        allocate(cotp[*], source=nbody_system%tp) 
-        call cotp%cocollect()
-        deallocate(nbody_system%tp)
-        allocate(nbody_system%tp, source=cotp)
-
-        deallocate(cotp)
+        select type(tp => nbody_system%tp)
+        class is (rmvs_tp)
+            allocate(rmvs_cotp[*], source=tp)
+            call rmvs_coarray_cocollect_tp(rmvs_cotp)
+            if (this_image() /= 1) then
+                deallocate(nbody_system%tp)
+                allocate(nbody_system%tp, source=rmvs_cotp)
+            end if
+            deallocate(rmvs_cotp)
+        class is (whm_tp)
+            allocate(whm_cotp[*], source=tp)
+            call whm_coarray_cocollect_tp(whm_cotp)
+            if (this_image() /= 1) then
+                deallocate(nbody_system%tp)
+                allocate(nbody_system%tp, source=whm_cotp)
+            end if
+            deallocate(whm_cotp)
+        end select
 
         return
     end subroutine swiftest_coarray_collect_system
@@ -674,6 +530,8 @@ contains
         !! author: David A. Minton
         !!
         !! Distributes test particles from image #1 out to all images.
+        use whm
+        use rmvs
         implicit none
         ! Arguments
         class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system 
@@ -683,7 +541,8 @@ contains
         logical, dimension(:), allocatable :: lspill_list
         integer(I4B), codimension[:], allocatable  :: ntp
         character(len=NAMELEN) :: image_num_char, ntp_num_char
-        class(swiftest_tp), allocatable, codimension[:] :: cotp
+        type(whm_tp), allocatable, codimension[:] :: whm_cotp
+        type(rmvs_tp), allocatable, codimension[:] :: rmvs_cotp
         class(swiftest_tp), allocatable :: tmp
 
         if (.not.param%lcoarray) return
@@ -698,7 +557,8 @@ contains
 
         if (this_image() == 1 .or. param%log_output) then
             write(ntp_num_char,*) ntot
-            write(param%display_unit,*) " Distributing " // trim(adjustl(ntp_num_char)) // " test particles across " // trim(adjustl(image_num_char)) // " images."
+            write(param%display_unit,*) " Distributing " // trim(adjustl(ntp_num_char)) // " test particles across " // &
+                                                            trim(adjustl(image_num_char)) // " images."
             if (param%log_output) flush(param%display_unit)
         end if
 
@@ -714,12 +574,25 @@ contains
         lspill_list(:) = .true.
         lspill_list(istart:iend) = .false.
 
-        allocate(cotp[*], source=nbody_system%tp)
-        call cotp%coclone()
-        if (this_image() /= 1) then
-            deallocate(nbody_system%tp)
-            allocate(nbody_system%tp, source=cotp)
-        end if
+        select type(tp => nbody_system%tp)
+        class is (rmvs_tp)
+            allocate(rmvs_cotp[*], source=tp)
+            call coclone(rmvs_cotp)
+            if (this_image() /= 1) then
+                deallocate(nbody_system%tp)
+                allocate(nbody_system%tp, source=rmvs_cotp)
+            end if
+            deallocate(rmvs_cotp)
+        class is (whm_tp) 
+            allocate(whm_cotp[*], source=tp)
+            call coclone(whm_cotp)
+            if (this_image() /= 1) then
+                deallocate(nbody_system%tp)
+                allocate(nbody_system%tp, source=whm_cotp)
+            end if
+            deallocate(whm_cotp)
+        end select
+
         allocate(tmp, mold=nbody_system%tp)
         call nbody_system%tp%spill(tmp, lspill_list(:), ldestructive=.true.)
 
@@ -728,7 +601,7 @@ contains
         write(param%display_unit,*) "Image " // trim(adjustl(image_num_char)) // " ntp: " // trim(adjustl(ntp_num_char))
         if (param%log_output) flush(param%display_unit)
 
-        deallocate(ntp, lspill_list, tmp, cotp)
+        deallocate(ntp, lspill_list, tmp)
 
         return
     end subroutine swiftest_coarray_distribute_system

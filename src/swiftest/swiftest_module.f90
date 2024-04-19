@@ -47,9 +47,6 @@ module swiftest
    use io_progress_bar
    use netcdf_io
    use solver
-#ifdef COARRAY
-   use coarray
-#endif
    !use advisor_annotate
    !$ use omp_lib
    implicit none
@@ -65,9 +62,6 @@ module swiftest
          !! Opens a NetCDF file and does the variable inquiries to activate variable ids
       procedure :: flush           => swiftest_io_netcdf_flush 
          !! Flushes a NetCDF file by closing it then opening it again
-#ifdef COARRAY
-      procedure :: coclone   => swiftest_coarray_coclone_nc
-#endif
    end type swiftest_netcdf_parameters
 
 
@@ -112,10 +106,6 @@ module swiftest
    contains
       procedure :: dealloc  => swiftest_util_dealloc_kin 
          !! Deallocates all allocatable arrays
-#ifdef COARRAY
-      procedure :: coclone => swiftest_coarray_coclone_kin 
-         !! Clones the image 1 body object to all other images in the coarray structure.
-#endif
       final :: swiftest_final_kin
          !! Finalizes the Swiftest kinship object - deallocates all allocatables
    end type swiftest_kinship
@@ -265,12 +255,6 @@ module swiftest
          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       generic   :: read_frame      => read_frame_bin                        
          !! Add the generic read frame for Fortran binary files
-#ifdef COARRAY
-      procedure :: coclone         => swiftest_coarray_coclone_body         
-         !! Clones the image 1 body object to all other images in the coarray structure.
-      procedure :: cocollect       => swiftest_coarray_cocollect_body       
-         !! Collects all body object array components from all images and combines them into the image 1 body object
-#endif
    end type swiftest_body
 
 
@@ -347,11 +331,6 @@ module swiftest
          !! I/O routine for writing out a single frame of time-series data for all bodies in the system in NetCDF format  
       procedure :: write_info   => swiftest_io_netcdf_write_info_cb  
          !! Dump contents of particle information metadata to file
-
-#ifdef COARRAY
-      procedure :: coclone      => swiftest_coarray_coclone_cb       
-         !! Clones the image 1 body object to all other images in the coarray structure.
-#endif
    end type swiftest_cb
 
 
@@ -460,10 +439,6 @@ module swiftest
       procedure :: spill          => swiftest_util_spill_pl          
          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
       generic   :: set_renc       => set_renc_I4B, set_renc_DP 
-#ifdef COARRAY
-      procedure :: coclone      => swiftest_coarray_coclone_pl       
-         !! Clones the image 1 body object to all other images in the coarray structure.
-#endif
    end type swiftest_pl
 
 
@@ -518,12 +493,6 @@ module swiftest
          !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill     => swiftest_util_spill_tp          
          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-#ifdef COARRAY
-      procedure :: coclone      => swiftest_coarray_coclone_tp    
-         !! Clones the image 1 object to all other images in the coarray structure.
-      procedure :: cocollect    => swiftest_coarray_cocollect_tp  
-         !! Collects all object array components from all images and combines them into the image 1 object
-#endif
    end type swiftest_tp
 
 
@@ -690,8 +659,6 @@ module swiftest
       procedure :: validate_ids            => swiftest_util_valid_id_system                        
          !! Validate the numerical ids passed to the nbody_system and save the maximum value
 #ifdef COARRAY
-      procedure :: coclone                 => swiftest_coarray_coclone_system                      
-         !! Clones the image 1 body object to all other images in the coarray structure.
       procedure :: coarray_collect         => swiftest_coarray_collect_system                      
          !! Collects all the test particles from other images into the image #1 test particle system
       procedure :: coarray_distribute      => swiftest_coarray_distribute_system                   
@@ -2579,12 +2546,7 @@ module swiftest
 #ifdef COARRAY
    interface
       module subroutine swiftest_coarray_balance_system(nbody_system, param)
-         !! author: David A. Minton
-         !!
-         !! Checks whether or not the system needs to be rebalance. Rebalancing occurs when the image with the smallest number of 
-         !! test particles has <90% of that of the image with the largest number of test particles.
          implicit none
-         ! Arguments
          class(swiftest_nbody_system), intent(inout) :: nbody_system 
             !! Swiftest nbody system 
          class(swiftest_parameters),   intent(inout) :: param        
@@ -2626,6 +2588,17 @@ module swiftest
          type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: var
          integer(I4B), intent(in),optional :: src_img
       end subroutine swiftest_coarray_component_clone_kin_arr1D
+
+      module subroutine swiftest_coarray_coclone_kin(kin)
+         implicit none
+         type(swiftest_kinship),intent(inout),codimension[*]  :: kin  
+            !! Swiftest kinship object
+      end subroutine swiftest_coarray_coclone_kin
+
+      module subroutine swiftest_coarray_clone_param(param)
+         implicit none
+         type(swiftest_parameters),intent(inout),codimension[*]  :: param  
+      end subroutine swiftest_coarray_clone_param
    end interface
 
    interface cocollect
@@ -2636,98 +2609,32 @@ module swiftest
       end subroutine
    end interface
 
-   interface 
-      module subroutine swiftest_coarray_coclone_body(self)
-         implicit none
-         class(swiftest_body),intent(inout),codimension[*]  :: self  
-            !! Swiftest body object
-      end subroutine swiftest_coarray_coclone_body
-
-      module subroutine swiftest_coarray_coclone_cb(self)
-         implicit none
-         class(swiftest_cb),intent(inout),codimension[*]  :: self  
-            !! Swiftest cb object
-      end subroutine swiftest_coarray_coclone_cb
-
-      module subroutine swiftest_coarray_coclone_kin(self)
-         implicit none
-         class(swiftest_kinship),intent(inout),codimension[*]  :: self  
-            !! Swiftest kinship object
-      end subroutine swiftest_coarray_coclone_kin
-
-      module subroutine swiftest_coarray_coclone_nc(self)
-         implicit none
-         class(swiftest_netcdf_parameters),intent(inout),codimension[*]  :: self  
-            !! Swiftest body object
-      end subroutine swiftest_coarray_coclone_nc
-
-      module subroutine swiftest_coarray_coclone_pl(self)
-         implicit none
-         class(swiftest_pl),intent(inout),codimension[*]  :: self  
-            !! Swiftest pl object
-      end subroutine swiftest_coarray_coclone_pl
-
-      module subroutine swiftest_coarray_coclone_tp(self)
-         implicit none
-         class(swiftest_tp),intent(inout),codimension[*]  :: self  
-            !! Swiftest tp object
-      end subroutine swiftest_coarray_coclone_tp
-
-      module subroutine swiftest_coarray_coclone_system(self)
-         implicit none
-         class(swiftest_nbody_system),intent(inout),codimension[*]  :: self  
-            !! Swiftest nbody system object
-      end subroutine swiftest_coarray_coclone_system
-
-      module subroutine swiftest_coarray_cocollect_body(self)
-         implicit none
-         class(swiftest_body),intent(inout), codimension[*] :: self 
-            !! Swiftest body object
-      end subroutine swiftest_coarray_cocollect_body
-
-      module subroutine swiftest_coarray_cocollect_tp(self)
-         implicit none
-         class(swiftest_tp),intent(inout), codimension[*] :: self 
-            !! Swiftest tp object
-      end subroutine swiftest_coarray_cocollect_tp
-   end interface
-
 #endif
 
    contains
       subroutine swiftest_final_kin(self)
-         
-            !! author: David A. Minton
-         
-            !!
-         
-            !! Finalize the swiftest kinship object - deallocates all allocatables
+         !! author: David A. Minton
+         !!
+         !! Finalize the swiftest kinship object - deallocates all allocatables
          implicit none
          ! Argument
          type(swiftest_kinship),  intent(inout) :: self 
             !! SyMBA kinship object
-   
          call self%dealloc()
-   
          return
       end subroutine swiftest_final_kin
 
 
       subroutine swiftest_final_storage(self)
-         
-            !! author: David A. Minton
-         
-            !!
-         
-            !! Finalizer for the storage data type
+         !! author: David A. Minton
+         !!
+         !! Finalizer for the storage data type
          implicit none
          ! Arguments
          type(swiftest_storage) :: self
-
+            !! Swiftest storage object
          call self%dealloc()
-   
          return
       end subroutine swiftest_final_storage
-   
 
 end module swiftest

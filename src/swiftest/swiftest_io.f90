@@ -2446,15 +2446,8 @@ contains
       integer(I4B)                   :: nseeds, nseeds_from_file
       logical                        :: seed_set = .false.      !! Is the random seed set in the input file?
       real(DP)                       :: tratio, y
-#ifdef COARRAY
-      type(swiftest_parameters), codimension[*], save :: coparam
      
-   if (this_image() == 1) then
-      coparam = self
-      associate(param => coparam) 
-#else
       associate(param => self) 
-#endif
          ! Parse the file line by line, extracting tokens then matching them up with known parameters if possible
          call random_seed(size = nseeds)
          if (allocated(param%seed)) deallocate(param%seed)
@@ -2772,7 +2765,6 @@ contains
          ! Calculate the G for the nbody_system units
          param%GU = GC / (param%DU2M**3 / (param%MU2KG * param%TU2S**2))
 
-
          if ((param%encounter_save /= "NONE")       .and. &
              (param%encounter_save /= "TRAJECTORY") .and. &
              (param%encounter_save /= "CLOSEST")    .and. &
@@ -2902,27 +2894,13 @@ contains
 
       end associate
 
-#ifdef COARRAY
-   end if ! this_image() == 1
-      call coparam%coclone()
-#endif
       select type(param => self)
       type is (swiftest_parameters)
-#ifdef COARRAY
-         param = coparam
-#endif
          call param%set_display(param%display_style)
 
          if (.not.param%lrestart) then
-#ifdef COARRAY
-            if (this_image() == 1 .or. param%log_output) then
-#endif
-               call param%writer(unit = param%display_unit, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg)
-               if (param%log_output) flush(param%display_unit) 
-#ifdef COARRAY
-            end if !(this_image() == 1)
-            write(COLLISION_LOG_OUT,'("collision_coimage",I0.3,".log")') this_image()
-#endif
+            call param%writer(unit = param%display_unit, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg)
+            if (param%log_output) flush(param%display_unit) 
             ! A minimal log of collision outcomes is stored in the following log file
             ! More complete data on collisions is stored in the NetCDF output files
             call swiftest_io_log_start(param, COLLISION_LOG_OUT, "Collision logfile")
