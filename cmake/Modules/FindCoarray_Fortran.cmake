@@ -27,43 +27,38 @@ IF (NOT OpenCoarrays_DIR)
       SET(OpenCoarrays_DIR "$ENV{OpenCoarrays_DIR}" CACHE PATH "Location of provided netCDF-FortranConfig.cmake file")
    ENDIF()
 ENDIF()
-FIND_PACKAGE(OpenCoarrays_DIR QUIET)
-IF (OpenCoarrays_FOUND) 
-   MESSAGE(STATUS "Found the OpenCoarrays library via cmake configuration files")
-ELSE()
-    FIND_PATH(COARRAY_INCLUDE_DIR 
-        NAMES opencoarrays.mod 
-        HINTS ENV OpenCoarrays_HOME 
-        PATH_SUFFIXES include)
-    FIND_LIBRARY(COARRAY_LIBRARY_STATIC
-        NAMES libcaf_mpi.a 
-        HINTS ENV OpenCoarrays_HOME
-        PATH_SUFFIXES lib lib64
-    )
-    FIND_LIBRARY(COARRAY_LIBRARY_SHARED
-        NAMES libcaf_mpi.so libcap_mpi.dylib libcaf_mpi
-        HINTS ENV OpenCoarrays_HOME
-        PATH_SUFFIXES lib lib64
-    )
-    FIND_PROGRAM(COARRAY_EXECUTABLE
-        NAMES cafrun
-        HINGS ENV OpenCoarrays_HOME
-        PATH_SUFFIXES bin
-        DOC "Coarray frontend executable"
-    )    
-    
-    ADD_LIBRARY(OpenCoarrays::caf_mpi UNKNOWN IMPORTED PUBLIC)
-        SET_TARGET_PROPERTIES(OpenCoarrays::caf_mpi PROPERTIES 
-        IMPORTED_LOCATION "${COARRAY_LIBRARY_SHARED}"
-        INTERFACE_INCLUDE_DIRECTORIES "${COARRAY_INCLUDE_DIR}"
-    )
-    
-    ADD_LIBRARY(OpenCoarrays::caf_mpi_static UNKNOWN IMPORTED PUBLIC)
-    SET_TARGET_PROPERTIES(OpenCoarrays::caf_mpi_static PROPERTIES 
-        IMPORTED_LOCATION "${COARRAY_LIBRARY_STATIC}"
-        INTERFACE_INCLUDE_DIRECTORIES "${COARRAY_INCLUDE_DIR}"
-    )
-ENDIF()
+FIND_PATH(COARRAY_INCLUDE_DIR 
+    NAMES opencoarrays.mod 
+    HINTS ENV OpenCoarrays_HOME 
+    PATH_SUFFIXES include)
+FIND_LIBRARY(COARRAY_LIBRARY_STATIC
+    NAMES libcaf_mpi.a 
+    HINTS ENV OpenCoarrays_HOME
+    PATH_SUFFIXES lib lib64
+)
+FIND_LIBRARY(COARRAY_LIBRARY_SHARED
+    NAMES libcaf_mpi.so libcap_mpi.dylib libcaf_mpi
+    HINTS ENV OpenCoarrays_HOME
+    PATH_SUFFIXES lib lib64
+)
+FIND_PROGRAM(COARRAY_EXECUTABLE
+    NAMES cafrun
+    HINGS ENV OpenCoarrays_HOME
+    PATH_SUFFIXES bin
+    DOC "Coarray frontend executable"
+)    
+
+ADD_LIBRARY(OpenCoarrays::caf_mpi UNKNOWN IMPORTED PUBLIC)
+    SET_TARGET_PROPERTIES(OpenCoarrays::caf_mpi PROPERTIES 
+    IMPORTED_LOCATION "${COARRAY_LIBRARY_SHARED}"
+    INTERFACE_INCLUDE_DIRECTORIES "${COARRAY_INCLUDE_DIR}"
+)
+
+ADD_LIBRARY(OpenCoarrays::caf_mpi_static UNKNOWN IMPORTED PUBLIC)
+SET_TARGET_PROPERTIES(OpenCoarrays::caf_mpi_static PROPERTIES 
+    IMPORTED_LOCATION "${COARRAY_LIBRARY_STATIC}"
+    INTERFACE_INCLUDE_DIRECTORIES "${COARRAY_INCLUDE_DIR}"
+)
 IF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     SET(WINOPT True)
 ELSE ()

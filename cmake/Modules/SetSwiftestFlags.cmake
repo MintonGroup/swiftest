@@ -92,7 +92,6 @@ IF (COMPILER_OPTIONS STREQUAL "GNU")
     SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS}"
         Fortran "-fPIC"
         )
-    
 ELSEIF (COMPILER_OPTIONS STREQUAL "Intel")
     # Disables right margin wrapping in list-directed output
     IF (WINOPT)
@@ -146,6 +145,13 @@ IF (NOT WINOPT)
                 Fortran "-qopenmp-link=static"  # Intel
             )
         ENDIF (USE_OPENMP)
+    ELSE ()
+        SET_COMPILE_FLAG(CMAKE_Fortran_LINK_FLAGS "${CMAKE_Fortran_LINK_FLAGS}"
+            Fortran "-lquadmath"  
+        SET_COMPILE_FLAG(CMAKE_C_LINK_FLAGS "${CMAKE_C_LINK_FLAGS}"
+            C "-lquadmath"  
+        )
+        )
     ENDIF ()
 ENDIF ()
 

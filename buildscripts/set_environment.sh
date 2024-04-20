@@ -83,11 +83,11 @@ CPATH="${PREFIX}/include"
 PATH="${PREFIX}/bin:${PATH}"
 CMAKE_INSTALL_LIBDIR="lib"
 NPROC=$(nproc)
-LIBS="-lgomp"
 
 FC=${FC:-"$(command -v gfortran-13 || command -v gfortran-12 || command -v gfortran)"}
 F77=${F77:-"${FC}"}
 F95=${F95:-"${FC}"}
+GFORTRAN_VERSION="$(${SCRIPT_DIR}/get_gfortran_version.sh)"
 
 if [ $OS = "Darwin" ]; then
     MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-"$(${SCRIPT_DIR}/get_macosx_deployment_target.sh)"}
@@ -95,12 +95,12 @@ if [ $OS = "Darwin" ]; then
     HOMEBREW_PREFIX=${HOMEBREW_PREFIX:-"$(brew --prefix)"}
     SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
     CMAKE_OSX_SYSROOT="${SDKROOT}"
-    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${HOMEBREW_PREFIX}/lib"
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${HOMEBREW_PREFIX}/lib:${HOMEBREW_PREFIX}/lib/gcc/${GFORTRAN_VERSION}"
     DYLD_LIBRARY_PATH="${LD_LIBRARY_PATH}"
     LDFLAGS="-Wl,-no_compact_unwind -L${PREFIX}/lib -L${HOMEBREW_PREFIX}/lib"
     CPATH="${CPATH}:${HOMEBREW_PREFIX}/include"
     CPPFLAGS="-isystem ${PREFIX}/include -Xclang -fopenmp"
-    LIBS="-lomp"
+    LIBS="-lomp -lquadmath"
     CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype -arch ${ARCH}"
     FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET}"
     FFLAGS="${FCFLAGS}"
@@ -109,10 +109,13 @@ if [ $OS = "Darwin" ]; then
     CC=${CC:-"/usr/bin/clang"}
     CXX=${CXX:-"/usr/bin/clang++"}
 else
+    LIBS="-lgomp -lquadmath"
     CFLAGS="-Wa,--noexecstack"
     CXXFLAGS="${CFLAGS}"
-    LDFLAGS="-L${PREFIX}/lib"
-    CC=${CC:-"$(command -v gcc)"}
-    CXX=${CXX:-"$(command -v g++)"}
+    MPI_HOME="/usr/lib64/openmpi"
+    PATH="${MPI_HOME}/bin:${PATH}"
+    CC="$(command -v mpicc)"
+    CXX="$(command -v mpic++)"
+    FC="$(command -v mpif90)"
 fi
 set +a
