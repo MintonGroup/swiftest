@@ -51,11 +51,11 @@ IF (COMPILER_OPTIONS STREQUAL "Intel")
 ELSEIF (COMPILER_OPTIONS STREQUAL "GNU")
     IF (USE_SIMD)
         SET (OpenMP_Fortran_FLAG_CANDIDATES
-            "-fopenmp" # GNU
+            "-fopenmp"
         )
     ELSE ()
         SET (OpenMP_Fortran_FLAG_CANDIDATES
-            "-fopenmp -fno-openmp-simd"                   # GNU
+            "-fopenmp -fno-openmp-simd"   
         )
     ENDIF (USE_SIMD)
 
