@@ -398,11 +398,6 @@ module rmvs
 
 #ifdef COARRAY
    interface coclone
-      module procedure rmvs_coarray_component_clone_interp_arr1D
-      module procedure rmvs_coarray_coclone_cb
-      module procedure rmvs_coarray_coclone_interp
-      module procedure rmvs_coarray_coclone_pl
-      module procedure rmvs_coarray_coclone_system
       module procedure rmvs_coarray_coclone_tp
    end interface
 
@@ -467,80 +462,6 @@ module rmvs
 
 
 #ifdef COARRAY
-   subroutine rmvs_coarray_coclone_cb(cb)
-      !! author: David A. Minton
-      !!
-      !! Broadcasts the image 1 object to all other images in a coarray 
-      implicit none
-      ! Arguments
-      type(rmvs_cb),intent(inout),codimension[*]  :: cb  !! RMVS pl object
-
-      call coclone(cb%outer)
-      call coclone(cb%inner)
-      call coclone(cb%lplanetocentric)
-
-      call coclone(cb%whm_cb)
-
-      return
-   end subroutine rmvs_coarray_coclone_cb
-
-
-   subroutine rmvs_coarray_coclone_interp(interp)
-      !! author: David A. Minton
-      !!
-      !! Broadcasts the image 1 object to all other images in a coarray 
-      implicit none
-      ! Arguments
-      type(rmvs_interp),intent(inout),codimension[*]  :: interp  !! RMVS pl object
-
-      call coclone(interp%x)
-      call coclone(interp%v) 
-      call coclone(interp%aobl)
-      call coclone(interp%atide)
-
-      return
-   end subroutine rmvs_coarray_coclone_interp
-
-
-   subroutine rmvs_coarray_coclone_pl(pl)
-      !! author: David A. Minton
-      !!
-      !! Broadcasts the image 1 object to all other images in a coarray 
-      implicit none
-      ! Arguments
-      type(rmvs_pl),intent(inout),codimension[*]  :: pl  !! RMVS pl object
-
-      call coclone(pl%nenc)
-      call coclone(pl%tpenc1P)
-      call coclone(pl%plind)
-      call coclone(pl%outer)
-      call coclone(pl%lplanetocentric)
-
-      call coclone(pl%whm_pl)
-
-      return
-   end subroutine rmvs_coarray_coclone_pl
-
-
-   subroutine rmvs_coarray_coclone_system(nbody_system)
-      !! author: David A. Minton
-      !!
-      !! Broadcasts the image 1 object to all other images in a coarray 
-      implicit none
-      ! Arguments
-      type(rmvs_nbody_system),intent(inout),codimension[*]  :: nbody_system  !! Swiftest body object
-      ! Internals
-      integer(I4B) :: i, img
-
-      call coclone(nbody_system%lplanetocentric)
-      call coclone(nbody_system%rts)
-      call coclone(nbody_system%vbeg)
-
-      call coclone(nbody_system%whm_nbody_system)
-
-      return
-   end subroutine rmvs_coarray_coclone_system
-
 
    subroutine rmvs_coarray_coclone_tp(tp)
       !! author: David A. Minton
@@ -553,54 +474,14 @@ module rmvs
       call coclone(tp%lperi)
       call coclone(tp%plperP) 
       call coclone(tp%plencP)
-      call coclone(tp%index)
-      call coclone(tp%ipleP)
-      call coclone(tp%lplanetocentric)
+      call co_broadcast(tp%index,1)
+      call co_broadcast(tp%ipleP,1)
+      call co_broadcast(tp%lplanetocentric,1)
 
       call coclone(tp%whm_tp)
 
       return
    end subroutine rmvs_coarray_coclone_tp
-
-
-   subroutine rmvs_coarray_component_clone_interp_arr1D(var,src_img)
-      implicit none
-      !! author: David A. Minton
-      !!
-      !! Copies a component of a coarray derived type from the specified source image to the current local one. The default source
-      !! image is 1  swiftest_particle_info scalar version
-      ! Arguments
-      type(rmvs_interp), dimension(:), allocatable, intent(inout) :: var
-      integer(I4B), intent(in),optional :: src_img
-      ! Internals
-      type(rmvs_interp), dimension(:), codimension[:], allocatable :: tmp
-      integer(I4B) :: i,img, si
-      integer(I4B), save :: n[*]
-      logical, save :: isalloc[*]
-
-      if (present(src_img)) then
-         si = src_img
-      else
-         si = 1
-      end if
-
-      sync all
-      isalloc = allocated(var)
-      if (isalloc) n = size(var)
-      sync all 
-      if (.not. isalloc[si]) return
-
-      allocate(tmp(n[si])[*])
-      do i = 1, n[si]
-         call rmvs_coarray_coclone_interp(tmp(i))
-      end do
-      if (this_image() /= si) then
-         if (allocated(var)) deallocate(var)
-         allocate(var, source=tmp)
-      end if
-
-      return
-   end subroutine rmvs_coarray_component_clone_interp_arr1D
 
 
    subroutine rmvs_coarray_cocollect_tp(tp)

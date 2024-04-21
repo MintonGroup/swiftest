@@ -2454,8 +2454,7 @@ contains
       type is (swiftest_parameters)
          allocate(param[*], source = self)
       end select
-    
-      if (this_image() == 1) then
+
 #else
       associate(param => self) 
 #endif
@@ -2463,6 +2462,9 @@ contains
          call random_seed(size = nseeds)
          if (allocated(param%seed)) deallocate(param%seed)
          allocate(param%seed(nseeds))
+#ifdef COARRAY
+      if (this_image() == 1) then
+#endif
          open(unit = unit, file = param%param_file_name, status = 'old', err = 667, iomsg = iomsg)
          do
             read(unit = unit, fmt = linefmt, end = 1, err = 667, iomsg = iomsg) line
@@ -2814,12 +2816,12 @@ contains
             return
          end if
 
+         if (seed_set) then
+            call random_seed(put = param%seed)
+         else
+            call random_seed(get = param%seed)
+         end if
          if (param%collision_model == "FRAGGLE" ) then
-            if (seed_set) then
-               call random_seed(put = param%seed)
-            else
-               call random_seed(get = param%seed)
-            end if
             if (param%min_GMfrag < 0.0_DP) param%min_GMfrag = param%GMTINY
             if (param%nfrag_reduction < 1.0_DP) then
                write(iomsg,*) "Warning: NFRAG_REDUCTION value invalid. Setting to 1.0" 

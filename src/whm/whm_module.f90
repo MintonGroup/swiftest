@@ -392,10 +392,7 @@ module whm
 
 #ifdef COARRAY
    interface coclone
-      module procedure whm_coarray_coclone_cb
-      module procedure whm_coarray_coclone_pl
       module procedure whm_coarray_coclone_tp
-      module procedure whm_coarray_coclone_system
    end interface
 
    interface cocollect
@@ -444,117 +441,6 @@ module whm
       end subroutine whm_final_tp
 
 #ifdef COARRAY
-   subroutine whm_coarray_coclone_cb(cb)
-      !! author: David A. Minton
-      !!
-      !! Broadcasts the image 1 object to all other images in a coarray 
-      implicit none
-      ! Arguments
-      type(whm_cb),intent(inout),codimension[*]  :: cb  !! WHM body object
-      ! Internals
-      integer(I4B) :: i
-
-      call coclone(cb%info)
-      call coclone(cb%id)
-      call coclone(cb%mass)
-      call coclone(cb%Gmass)
-      call coclone(cb%radius)
-      call coclone(cb%density)
-      call coclone(cb%j2rp2)
-      call coclone(cb%j4rp4)
-      call coclone(cb%k2)
-      call coclone(cb%Q)
-      call coclone(cb%tlag)
-      call coclone(cb%GM0)
-      call coclone(cb%dGM)
-      call coclone(cb%R0)
-      call coclone(cb%dR)
-
-      call coclonevec(cb%aobl)
-      call coclonevec(cb%atide)
-      call coclonevec(cb%aoblbeg)
-      call coclonevec(cb%aoblend)
-      call coclonevec(cb%atidebeg)
-      call coclonevec(cb%atideend)
-      call coclonevec(cb%rb)
-      call coclonevec(cb%vb)
-      call coclonevec(cb%agr)
-      call coclonevec(cb%Ip)
-      call coclonevec(cb%rot)
-      call coclonevec(cb%L0)
-      call coclonevec(cb%dL)
-
-      return
-   end subroutine whm_coarray_coclone_cb
-
-
-   subroutine whm_coarray_coclone_pl(pl)
-      !! author: David A. Minton
-      !!
-      !! Broadcasts the image 1 object to all other images in a coarray 
-      implicit none
-      ! Arguments
-      type(whm_pl),intent(inout),codimension[*]  :: pl  !! WHM pl object
-
-      call coclone(pl%lfirst)
-      call coclone(pl%nbody)
-      call coclone(pl%id)
-      call coclone(pl%info)
-      call coclone(pl%lmask)
-      call coclone(pl%status)
-      call coclone(pl%ldiscard)
-      call coclone(pl%lcollision)
-      call coclone(pl%lencounter)
-      call coclone(pl%mu)
-      call coclone(pl%rh)
-      call coclone(pl%vh)
-      call coclone(pl%rb)
-      call coclone(pl%vb)
-      call coclone(pl%ah)
-      call coclone(pl%aobl)
-      call coclone(pl%agr)
-      call coclone(pl%atide)
-      call coclone(pl%ir3h)
-      call coclone(pl%isperi)
-      call coclone(pl%peri)
-      call coclone(pl%atp)
-      call coclone(pl%a)
-      call coclone(pl%e)
-      call coclone(pl%inc)
-      call coclone(pl%capom)
-      call coclone(pl%omega)
-      call coclone(pl%capm)
-
-      call coclone(pl%mass)
-      call coclone(pl%Gmass)
-      call coclone(pl%rhill)
-      call coclone(pl%renc)
-      call coclone(pl%radius)
-      call coclone(pl%density)
-      call coclone(pl%rbeg)
-      call coclone(pl%rend)
-      call coclone(pl%vbeg)
-      call coclone(pl%Ip)
-      call coclone(pl%rot)
-      call coclone(pl%k2)
-      call coclone(pl%Q )
-      call coclone(pl%tlag)
-      call coclone(pl%kin)
-      call coclone(pl%lmtiny)
-      call coclone(pl%nplm)
-      call coclone(pl%nplplm)
-      call coclone(pl%nplenc)
-      call coclone(pl%ntpenc)
-
-      call coclone(pl%eta)
-      call coclone(pl%xj)
-      call coclone(pl%vj)
-      call coclone(pl%muj)
-      call coclone(pl%ir3j)
-
-      return
-   end subroutine whm_coarray_coclone_pl
-
 
    subroutine whm_coarray_coclone_tp(tp)
       !! author: David A. Minton
@@ -564,8 +450,8 @@ module whm
       ! Arguments
       type(whm_tp),intent(inout),codimension[*]  :: tp  !! WHM tp object
 
-      call coclone(tp%lfirst)
-      call coclone(tp%nbody)
+      call co_broadcast(tp%lfirst,1)
+      call co_broadcast(tp%nbody,1)
       call coclone(tp%id)
       call coclone(tp%info)
       call coclone(tp%lmask)
@@ -582,7 +468,6 @@ module whm
       call coclone(tp%aobl)
       call coclone(tp%agr)
       call coclone(tp%atide)
-      call coclone(tp%ir3h)
       call coclone(tp%isperi)
       call coclone(tp%peri)
       call coclone(tp%atp)
@@ -598,66 +483,6 @@ module whm
    end subroutine whm_coarray_coclone_tp
 
 
-   subroutine whm_coarray_coclone_system(nbody_system)
-      !! author: David A. Minton
-      !!
-      !! Broadcasts the image 1 object to all other images in a coarray 
-      implicit none
-      ! Arguments
-      type(whm_nbody_system),intent(inout),codimension[*]  :: nbody_system  
-         !! WHM nbody system object
-      ! Internals
-      integer(I4B) :: i
-
-      call coclone(nbody_system%maxid)
-      call coclone(nbody_system%t)
-      call coclone(nbody_system%GMtot)
-      call coclone(nbody_system%ke_orbit)
-      call coclone(nbody_system%ke_spin)
-      call coclone(nbody_system%pe)
-      call coclone(nbody_system%be)
-      call coclone(nbody_system%te)
-      call coclone(nbody_system%oblpot)
-      do i = 1, NDIM
-         call coclone(nbody_system%L_orbit(i))
-         call coclone(nbody_system%L_spin(i))
-         call coclone(nbody_system%L_total(i))
-         call coclone(nbody_system%L_total_orig(i))
-         call coclone(nbody_system%L_orbit_orig(i))
-         call coclone(nbody_system%L_spin_orig(i))
-         call coclone(nbody_system%L_escape(i))
-      end do
-      call coclone(nbody_system%ke_orbit_orig)
-      call coclone(nbody_system%ke_spin_orig)
-      call coclone(nbody_system%pe_orig)
-      call coclone(nbody_system%be_orig)
-      call coclone(nbody_system%te_orig)
-      call coclone(nbody_system%be_cb)
-      call coclone(nbody_system%E_orbit_orig)
-      call coclone(nbody_system%GMtot_orig)
-      call coclone(nbody_system%GMescape)
-      call coclone(nbody_system%E_collisions)
-      call coclone(nbody_system%E_untracked)
-      call coclone(nbody_system%ke_orbit_error)
-      call coclone(nbody_system%ke_spin_error)
-      call coclone(nbody_system%pe_error)
-      call coclone(nbody_system%be_error)
-      call coclone(nbody_system%E_orbit_error)
-      call coclone(nbody_system%Ecoll_error)
-      call coclone(nbody_system%E_untracked_error)
-      call coclone(nbody_system%te_error)
-      call coclone(nbody_system%L_orbit_error)
-      call coclone(nbody_system%L_spin_error)
-      call coclone(nbody_system%L_escape_error)
-      call coclone(nbody_system%L_total_error)
-      call coclone(nbody_system%Mtot_error)
-      call coclone(nbody_system%Mescape_error)
-      call coclone(nbody_system%lbeg)
-
-      return
-   end subroutine whm_coarray_coclone_system
-
-
    subroutine whm_coarray_cocollect_tp(tp)
       !! author: David A. Minton
       !!
@@ -666,9 +491,9 @@ module whm
       ! Arguments
       type(whm_tp),intent(inout),codimension[*]  :: tp  !! Swiftest body object
 
-      call cocollect(tp%npltp)
+      call co_sum(tp%npltp,1)
       call cocollect(tp%nplenc)
-      call cocollect(tp%nbody)
+      call co_sum(tp%nbody,1)
       call cocollect(tp%id)
       call cocollect(tp%info)
       call cocollect(tp%lmask)

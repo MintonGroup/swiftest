@@ -37,6 +37,7 @@ contains
       call param%read_in(param_file_name)
 #ifdef COARRAY  
       if (.not.param%lcoarray .and. (this_image() /= 1)) stop ! Single image mode
+      sync all
 #endif
 
       associate(t0       => param%t0, &

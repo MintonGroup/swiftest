@@ -2583,22 +2583,10 @@ module swiftest
          integer(I4B), intent(in),optional :: src_img
       end subroutine swiftest_coarray_component_clone_info_arr1D
 
-      module subroutine swiftest_coarray_component_clone_kin_arr1D(var,src_img)
-         implicit none
-         type(swiftest_kinship), dimension(:), allocatable, intent(inout) :: var
-         integer(I4B), intent(in),optional :: src_img
-      end subroutine swiftest_coarray_component_clone_kin_arr1D
-
-      module subroutine swiftest_coarray_coclone_kin(kin)
-         implicit none
-         type(swiftest_kinship),intent(inout),codimension[*]  :: kin  
-            !! Swiftest kinship object
-      end subroutine swiftest_coarray_coclone_kin
-
-      module subroutine swiftest_coarray_clone_param(param)
+      module subroutine swiftest_coarray_coclone_param(param)
          implicit none
          type(swiftest_parameters),intent(inout),codimension[*]  :: param  
-      end subroutine swiftest_coarray_clone_param
+      end subroutine swiftest_coarray_coclone_param
    end interface
 
    interface cocollect

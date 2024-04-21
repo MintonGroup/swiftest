@@ -736,30 +736,37 @@ module base
          character(*), parameter :: USAGE_MSG = '("Usage: swiftest <whm|helio|rmvs|symba> <paramfile> ' // &
                                                 '[{standard}|compact|progress]")'
          character(*), parameter :: HELP_MSG  = USAGE_MSG
+         character(STRMAX) :: errmsg
          integer(I4B) :: iu
 
-         if (present(unit)) then
-            iu = unit
-         else
-            iu = OUTPUT_UNIT
+#ifdef COARRAY
+         if (this_image() == 1) then
+#endif 
+            if (present(unit)) then
+               iu = unit
+            else
+               iu = OUTPUT_UNIT
+            end if
+      
+            select case(code)
+            case(SUCCESS)
+               write(iu, SUCCESS_MSG) VERSION
+               write(iu, BAR)
+            case(USAGE) 
+               write(iu, USAGE_MSG)
+            case(HELP)
+               write(iu, HELP_MSG)
+            case default
+               write(errmsg, FAIL_MSG) VERSION
+               write(iu, FAIL_MSG) trim(adjustl(errmsg))
+               write(iu, BAR)
+               error stop trim(adjustl(errmsg))
+            end select
+#ifdef COARRAY
          end if
+#endif 
    
-         select case(code)
-         case(SUCCESS)
-            write(iu, SUCCESS_MSG) VERSION
-            write(iu, BAR)
-         case(USAGE) 
-            write(iu, USAGE_MSG)
-         case(HELP)
-            write(iu, HELP_MSG)
-         case default
-            write(iu, FAIL_MSG) VERSION
-            write(iu, BAR)
-            stop 
-         end select
-   
-         stop
-   
+         return
       end subroutine base_util_exit
 
 
