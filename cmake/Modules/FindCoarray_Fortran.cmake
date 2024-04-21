@@ -37,7 +37,7 @@ FIND_LIBRARY(COARRAY_LIBRARY_STATIC
     PATH_SUFFIXES lib lib64
 )
 FIND_LIBRARY(COARRAY_LIBRARY_SHARED
-    NAMES libcaf_mpi.so libcap_mpi.dylib libcaf_mpi
+    NAMES libcaf_mpi.so libcaf_mpi.dylib libcaf_mpi
     HINTS ENV OpenCoarrays_HOME
     PATH_SUFFIXES lib lib64
 )

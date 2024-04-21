@@ -45,10 +45,6 @@ cd ${DEPENDENCY_DIR}/OpenCoarrays-*
 PREFIX_ROOT=$(realpath ${PREFIX}/../..)  
 export TERM=xterm
 ./install.sh --prefix-root=${PREFIX_ROOT} --yes-to-all --with-fortran ${FC} --with-cxx ${CXX} --with-c ${CC}
-# cp ${PREFIX_ROOT}/opencoarrays/${OpenCoarrays_VER}/lib*/*.a ${PREFIX}/lib/
-# cp ${PREFIX_ROOT}/opencoarrays/${OpenCoarrays_VER}/include/*.h ${PREFIX}/include/
-# cp ${PREFIX_ROOT}/opencoarrays/${OpenCoarrays_VER}/include/*.mod ${PREFIX}/include/
-# cp ${PREFIX_ROOT}/opencoarrays/${OpenCoarrays_VER}/bin/* ${PREFIX}/bin
 
 if [ $? -ne 0 ]; then
    printf "OpenCoarrays could not be compiled.\n"

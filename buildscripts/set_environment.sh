@@ -109,7 +109,7 @@ if [ $OS = "Darwin" ]; then
     CC=${CC:-"/usr/bin/clang"}
     CXX=${CXX:-"/usr/bin/clang++"}
 else
-    LIBS="-lgomp -lquadmath"
+    LIBS="-lgomp"
     CFLAGS="-Wa,--noexecstack"
     CXXFLAGS="${CFLAGS}"
     MPI_HOME="/usr/lib64/openmpi"
