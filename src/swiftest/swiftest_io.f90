@@ -28,10 +28,12 @@ contains
       end interface
 
       ! Arguments
-      class(swiftest_nbody_system), intent(in) :: self  !! Swiftest nbody system object   
-      class(swiftest_parameters),   intent(in) :: param !! Input colleciton of user-defined parameters
-      class(*),                     intent(in) :: timer !! Object used for computing elapsed wall time  (must be unlimited 
-                                                        !! polymorphic because the walltimer module requires base)
+      class(swiftest_nbody_system), intent(in) :: self  
+         !! Swiftest nbody system object   
+      class(swiftest_parameters),   intent(in) :: param 
+         !! Input colleciton of user-defined parameters
+      class(*),                     intent(in) :: timer 
+         !! Object used for computing elapsed wall time  (must be unlimited polymorphic because the walltimer module requires base)
       ! Internals
       character(len=:), allocatable :: formatted_output
 
@@ -940,7 +942,7 @@ contains
                                                nc%origin_vh_varid), &
                                   "netcdf_io_initialize_output nf90_def_var origin_vh_varid"  )
 
-            call netcdf_io_check( nf90_def_var(nc%id, nc%collision_id_varname, NF90_INT, nc%name_dimid, nc%collision_id_varid), &
+            call netcdf_io_check( nf90_def_var(nc%id, nc%collision_id_dimname, NF90_INT, nc%name_dimid, nc%collision_id_varid), &
                                   "netcdf_io_initialize_output nf90_def_var collision_id_varid"  )
             call netcdf_io_check( nf90_def_var(nc%id, nc%discard_time_varname, nc%out_type, nc%name_dimid, nc%discard_time_varid), &
                                   "netcdf_io_initialize_output nf90_def_var discard_time_varid"  )
@@ -1239,7 +1241,7 @@ contains
             status = nf90_inq_varid(nc%id, nc%origin_time_varname, nc%origin_time_varid)
             status = nf90_inq_varid(nc%id, nc%origin_rh_varname, nc%origin_rh_varid)
             status = nf90_inq_varid(nc%id, nc%origin_vh_varname, nc%origin_vh_varid)
-            status = nf90_inq_varid(nc%id, nc%collision_id_varname, nc%collision_id_varid)
+            status = nf90_inq_varid(nc%id, nc%collision_id_dimname, nc%collision_id_varid)
             status = nf90_inq_varid(nc%id, nc%discard_time_varname, nc%discard_time_varid)
             status = nf90_inq_varid(nc%id, nc%discard_rh_varname, nc%discard_rh_varid)
             status = nf90_inq_varid(nc%id, nc%discard_vh_varname, nc%discard_vh_varid)
@@ -1900,7 +1902,7 @@ contains
                call tp%info(i)%set_value(origin_vh=vectemp(:,tpind(i)))
             end do
 
-            status = nf90_inq_varid(nc%id, nc%collision_id_varname, nc%collision_id_varid)
+            status = nf90_inq_varid(nc%id, nc%collision_id_dimname, nc%collision_id_varid)
             if (status == NF90_NOERR) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%collision_id_varid, itemp), &
                                   "netcdf_io_read_particle_info_system nf90_getvar collision_id_varid"  )

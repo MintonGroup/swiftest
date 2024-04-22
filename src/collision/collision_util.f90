@@ -834,19 +834,32 @@ contains
                select type(before_snap => snapshot%collider%before )
                class is (swiftest_nbody_system)
                select type(before_orig => nbody_system%collider%before)
-                  class is (swiftest_nbody_system)
-                  select type(plsub => before_orig%pl)
-                  class is (swiftest_pl)
-                     ! Log the properties of the old and new bodies
-                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Removing bodies:")
-                     do i = 1, plsub%nbody
-                        write(message,*) trim(adjustl(plsub%info(i)%name)), " (", trim(adjustl(plsub%info(i)%particle_type)),")"
-                        call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
-                     end do
+               class is (swiftest_nbody_system)
+                  if (allocated(before_orig%pl)) then
+                     select type(plsub => before_orig%pl)
+                     class is (swiftest_pl)
+                        ! Log the properties of the old and new bodies
+                        call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Removing bodies:")
+                        do i = 1, plsub%nbody
+                           write(message,*) trim(adjustl(plsub%info(i)%name)), " (", trim(adjustl(plsub%info(i)%particle_type)),")"
+                           call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
+                        end do
 
-                     allocate(before_snap%pl, source=plsub)
-                  end select
-                  deallocate(before_orig%pl)
+                        allocate(before_snap%pl, source=plsub)
+                     end select
+                     deallocate(before_orig%pl)
+                  end if
+                  if (allocated(before_orig%cb)) then
+                     select type(cbsub => before_orig%cb)
+                     class is (swiftest_cb)
+                        call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Collision with the central body")
+                        call swiftest_io_log_one_message(COLLISION_LOG_OUT, & 
+                           "***********************************************************" // &
+                           "***********************************************************")
+                        allocate(before_snap%cb, source=cbsub)
+                     end select
+                     deallocate(before_orig%cb)
+                  end if
                end select
                end select
 
@@ -854,19 +867,28 @@ contains
                class is (swiftest_nbody_system)
                select type(after_orig => nbody_system%collider%after)
                class is (swiftest_nbody_system)
-                  select type(plnew => after_orig%pl)
-                  class is (swiftest_pl)
-                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Adding bodies:")
-                     do i = 1, plnew%nbody
-                        write(message,*) trim(adjustl(plnew%info(i)%name)), " (", trim(adjustl(plnew%info(i)%particle_type)),")"
-                        call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
-                     end do
-                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, & 
-                        "***********************************************************" // &
-                        "***********************************************************")
-                     allocate(after_snap%pl, source=plnew)
-                  end select
-                  deallocate(after_orig%pl)
+                  if (allocated(after_orig%pl)) then
+                     select type(plnew => after_orig%pl)
+                     class is (swiftest_pl)
+                        call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Adding bodies:")
+                        do i = 1, plnew%nbody
+                           write(message,*) trim(adjustl(plnew%info(i)%name)), " (", trim(adjustl(plnew%info(i)%particle_type)),")"
+                           call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
+                        end do
+                        call swiftest_io_log_one_message(COLLISION_LOG_OUT, & 
+                           "***********************************************************" // &
+                           "***********************************************************")
+                        allocate(after_snap%pl, source=plnew)
+                     end select
+                     deallocate(after_orig%pl)
+                  end if
+                  if (allocated(after_orig%cb)) then
+                     select type(cbnew => after_orig%cb)
+                     class is (swiftest_cb)
+                        allocate(after_snap%cb, source=cbnew)
+                     end select
+                     deallocate(after_orig%cb)
+                  end if
                end select
                end select
             end if

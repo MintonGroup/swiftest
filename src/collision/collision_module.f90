@@ -25,20 +25,24 @@ module collision
    character(len=*), parameter :: COLLISION_LOG_OUT = "collisions.log" !! Name of log file for collision diagnostic information
 #endif
 
-   !>Symbolic names for collisional outcomes from collresolve_resolve:
+   !>Symbolic names for collisional outcomes 
    integer(I4B), parameter :: COLLRESOLVE_REGIME_MERGE              =  1
    integer(I4B), parameter :: COLLRESOLVE_REGIME_DISRUPTION         =  2
    integer(I4B), parameter :: COLLRESOLVE_REGIME_SUPERCATASTROPHIC  =  3
    integer(I4B), parameter :: COLLRESOLVE_REGIME_GRAZE_AND_MERGE    =  4
    integer(I4B), parameter :: COLLRESOLVE_REGIME_HIT_AND_RUN        =  5
+   integer(I4B), parameter :: REGIME_CB_IMPACT                      = 6
+   integer(I4B), parameter :: REGIME_EJECTED                        = 7
    character(len=NAMELEN),parameter :: REGIME_NAME_MERGE = "Merge"
    character(len=NAMELEN),parameter :: REGIME_NAME_DISRUPTION = "Disruption"
    character(len=NAMELEN),parameter :: REGIME_NAME_SUPERCATASTROPHIC = "Supercatastrophic"
    character(len=NAMELEN),parameter :: REGIME_NAME_GRAZE_AND_MERGE = "Graze and Merge"
    character(len=NAMELEN),parameter :: REGIME_NAME_HIT_AND_RUN = "Hit and Run"
-   character(len=NAMELEN),dimension(5), parameter :: REGIME_NAMES = [REGIME_NAME_MERGE, REGIME_NAME_DISRUPTION, &
+   character(len=NAMELEN),parameter :: REGIME_NAME_CB_IMPACT = "Central Body Impact"
+   character(len=NAMELEN),parameter :: REGIME_NAME_EJECTED = "Ejected"
+   character(len=NAMELEN),dimension(7), parameter :: REGIME_NAMES = [REGIME_NAME_MERGE, REGIME_NAME_DISRUPTION, &
                                                      REGIME_NAME_SUPERCATASTROPHIC, REGIME_NAME_GRAZE_AND_MERGE, &
-                                                     REGIME_NAME_HIT_AND_RUN]
+                                                     REGIME_NAME_HIT_AND_RUN, REGIME_NAME_CB_IMPACT, REGIME_NAME_EJECTED]
    real(DP), parameter :: MAX_ROT_SI = 7.108e-4 !! Spin limit in rad/s of cohesionless body from Holsapple (2007)
 
    !> Swiftest class for tracking pl-pl close encounters in a step when collisions are possible
