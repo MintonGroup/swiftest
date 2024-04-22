@@ -358,9 +358,9 @@ contains
                       plpl_encounter => nbody_system%plpl_encounter, &
                       plpl_collision => nbody_system%plpl_collision, &
                       collider => nbody_system%collider, &
+                      impactors => nbody_system%collider%impactors, &
                       collision_history => nbody_system%collision_history, &
-                      pl_discards => nbody_system%pl_discards, &
-                      impactors => nbody_system%collider%impactors)
+                      pl_discards => nbody_system%pl_discards)
                call pl%vb2vh(nbody_system%cb) 
                call pl%rh2rb(nbody_system%cb)
 

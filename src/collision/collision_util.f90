@@ -881,6 +881,21 @@ contains
                      end select
                      deallocate(before_orig%pl)
                   end if
+
+                  if (allocated(before_orig%tp)) then   
+                     select type(tpsub => before_orig%tp)
+                     class is (swiftest_tp)
+                        ! Log the properties of the old and new bodies
+                        call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Removing bodies:")
+                        do i = 1, tpsub%nbody
+                           write(message,*) trim(adjustl(tpsub%info(i)%name)), " (", trim(adjustl(tpsub%info(i)%particle_type)),")"
+                           call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
+                        end do
+                        allocate(before_snap%tp, source=tpsub)
+                     end select
+                     deallocate(before_orig%tp)
+                  end if
+
                   if (allocated(before_orig%cb)) then
                      select type(cbsub => before_orig%cb)
                      class is (swiftest_cb)
@@ -892,6 +907,7 @@ contains
                      end select
                      deallocate(before_orig%cb)
                   end if
+
                end select
                end select
 

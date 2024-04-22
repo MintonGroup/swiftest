@@ -318,8 +318,6 @@ module collision
          !! Scales dimenional quantities to ~O(1) with respect to the collisional system.  
       procedure :: set_original_scale         => collision_util_set_original_scale_factors 
          !! Restores dimenional quantities back to the original system units
-      procedure :: save_state                 => collision_util_save_state                
-         !! Saves the state of the collisional system for the before and after snapshots
       final     ::                               collision_final_basic
    end type collision_basic
 

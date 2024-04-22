@@ -253,6 +253,8 @@ module swiftest
          !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill           => swiftest_util_spill_body              
          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
+      procedure :: save_discard => swiftest_util_save_discard_body
+         !! Saves a snapshot of the this body to the collision storage object
       generic   :: read_frame      => read_frame_bin                        
          !! Add the generic read frame for Fortran binary files
    end type swiftest_body
@@ -2256,6 +2258,18 @@ module swiftest
          integer(I4B),       intent(in)    :: nnew 
             !! New size neded
       end subroutine swiftest_util_resize_tp
+
+      module subroutine swiftest_util_save_discard_body(self, ldiscard_mask, nbody_system, snapshot)
+         implicit none
+         class(swiftest_body), intent(inout) :: self 
+            !! Swiftest body object
+         logical, dimension(:), intent(in) :: ldiscard_mask 
+            !! Logical mask indicating which elements to discard
+         class(swiftest_nbody_system), intent(inout) :: nbody_system 
+            !! Swiftest nbody system object
+         class(base_nbody_system), intent(inout) :: snapshot
+            !! Nbody system object to store the snapshot of the discard system
+      end subroutine swiftest_util_save_discard_body
 
       module subroutine swiftest_util_set_beg_end_pl(self, rbeg, rend, vbeg)
          implicit none
