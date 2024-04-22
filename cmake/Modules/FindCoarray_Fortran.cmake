@@ -11,64 +11,13 @@ INCLUDE (FindPackageHandleStandardArgs)
 IF(NOT DEFINED MPI_Fortran_FOUND)
   FIND_PACKAGE(MPI COMPONENTS Fortran)
 ENDIF()
-IF (NOT COMPILER_OPTIONS)
-    IF (CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
-        SET(COMPILER_OPTIONS "Intel" CACHE STRING "Compiler identified as Intel")
-    ELSEIF (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-        SET(COMPILER_OPTIONS "GNU" CACHE STRING "Compiler identified as gfortran")
-    ELSE ()
-        MESSAGE(FATAL_ERROR "Compiler ${CMAKE_Fortran_COMPILER_ID} not recognized!") 
-    ENDIF ()
-ENDIF()
 
-
-IF (NOT OpenCoarrays_DIR)
-   IF (DEFINED ENV{OpenCoarrays_DIR}) 
-      SET(OpenCoarrays_DIR "$ENV{OpenCoarrays_DIR}" CACHE PATH "Location of provided netCDF-FortranConfig.cmake file")
-   ENDIF()
-ENDIF()
-FIND_PATH(COARRAY_INCLUDE_DIR 
-    NAMES opencoarrays.mod 
-    HINTS ENV OpenCoarrays_HOME 
-    PATH_SUFFIXES include)
-FIND_LIBRARY(COARRAY_LIBRARY_STATIC
-    NAMES libcaf_mpi.a 
-    HINTS ENV OpenCoarrays_HOME
-    PATH_SUFFIXES lib lib64
-)
-FIND_LIBRARY(COARRAY_LIBRARY_SHARED
-    NAMES libcaf_mpi.so libcaf_mpi.dylib libcaf_mpi
-    HINTS ENV OpenCoarrays_HOME
-    PATH_SUFFIXES lib lib64
-)
-FIND_PROGRAM(COARRAY_EXECUTABLE
-    NAMES cafrun
-    HINGS ENV OpenCoarrays_HOME
-    PATH_SUFFIXES bin
-    DOC "Coarray frontend executable"
-)    
-
-ADD_LIBRARY(OpenCoarrays::caf_mpi UNKNOWN IMPORTED PUBLIC)
-    SET_TARGET_PROPERTIES(OpenCoarrays::caf_mpi PROPERTIES 
-    IMPORTED_LOCATION "${COARRAY_LIBRARY_SHARED}"
-    INTERFACE_INCLUDE_DIRECTORIES "${COARRAY_INCLUDE_DIR}"
-)
-
-ADD_LIBRARY(OpenCoarrays::caf_mpi_static UNKNOWN IMPORTED PUBLIC)
-SET_TARGET_PROPERTIES(OpenCoarrays::caf_mpi_static PROPERTIES 
-    IMPORTED_LOCATION "${COARRAY_LIBRARY_STATIC}"
-    INTERFACE_INCLUDE_DIRECTORIES "${COARRAY_INCLUDE_DIR}"
-)
-IF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    SET(WINOPT True)
-ELSE ()
-    SET(WINOPT False)
-ENDIF ()
-
-STRING(TOUPPER "${CMAKE_BUILD_TYPE}" BT)
-
-IF (COMPILER_OPTIONS STREQUAL "Intel")
-    IF (WINOPT)
+IF (CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
+    # Create a dummy target for Intel compiler
+    MESSAGE(STATUS "Using Intel compiler. No external libraries needed")
+    ADD_LIBRARY(OpenCoarrays::caf_mpi INTERFACE IMPORTED GLOBAL)
+    ADD_LIBRARY(OpenCoarrays::caf_mpi_static INTERFACE IMPORTED GLOBAL)
+    IF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
         SET (COARRAY_Fortran_FLAGS
             "/Qcoarray:distributed" 
         )
@@ -77,12 +26,53 @@ IF (COMPILER_OPTIONS STREQUAL "Intel")
             "-coarray=distributed"
         )
     ENDIF()
-ELSEIF (COMPILER_OPTIONS STREQUAL "GNU") 
+ELSEIF (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+    MESSAGE(STATUS "Using GNU compiler. Searching for OpenCoarrays library")
+    IF (NOT OpenCoarrays_DIR)
+        IF (DEFINED ENV{OpenCoarrays_DIR}) 
+            SET(OpenCoarrays_DIR "$ENV{OpenCoarrays_DIR}" CACHE PATH "Location of provided netCDF-FortranConfig.cmake file")
+        ENDIF()
+    ENDIF()
+    FIND_PATH(COARRAY_INCLUDE_DIR 
+        NAMES opencoarrays.mod 
+        HINTS ENV OpenCoarrays_HOME 
+        PATH_SUFFIXES include)
+    FIND_LIBRARY(COARRAY_LIBRARY_STATIC
+        NAMES libcaf_mpi.a 
+        HINTS ENV OpenCoarrays_HOME
+        PATH_SUFFIXES lib lib64
+    )
+    FIND_LIBRARY(COARRAY_LIBRARY_SHARED
+        NAMES libcaf_mpi.so libcaf_mpi.dylib libcaf_mpi
+        HINTS ENV OpenCoarrays_HOME
+        PATH_SUFFIXES lib lib64
+    )
+    FIND_PROGRAM(COARRAY_EXECUTABLE
+        NAMES cafrun
+        HINGS ENV OpenCoarrays_HOME
+        PATH_SUFFIXES bin
+        DOC "Coarray frontend executable"
+    )    
+
+    ADD_LIBRARY(OpenCoarrays::caf_mpi UNKNOWN IMPORTED PUBLIC)
+        SET_TARGET_PROPERTIES(OpenCoarrays::caf_mpi PROPERTIES 
+        IMPORTED_LOCATION "${COARRAY_LIBRARY_SHARED}"
+        INTERFACE_INCLUDE_DIRECTORIES "${COARRAY_INCLUDE_DIR}"
+    )
+
+    ADD_LIBRARY(OpenCoarrays::caf_mpi_static UNKNOWN IMPORTED PUBLIC)
+    SET_TARGET_PROPERTIES(OpenCoarrays::caf_mpi_static PROPERTIES 
+        IMPORTED_LOCATION "${COARRAY_LIBRARY_STATIC}"
+        INTERFACE_INCLUDE_DIRECTORIES "${COARRAY_INCLUDE_DIR}"
+    )
+
     SET (COARRAY_Fortran_FLAGS
         "-fcoarray=lib"
     )
+    MESSAGE(STATUS "Coarray library: ${COARRAY_LIBRARY}")
+    MESSAGE(STATUS "Coarray include dir: ${COARRAY_INCLUDE_DIR}")
+    MARK_AS_ADVANCED(COARRAY_LIBRARY COARRAY_Fortran_FLAGS COARRAY_INCLUDE_DIR COARRAY_EXECUTABLE)
+ELSE()
+    MESSAGE(FATAL_ERROR "Compiler ${CMAKE_Fortran_COMPILER_ID} not recognized!") 
 ENDIF()
 
-MARK_AS_ADVANCED(COARRAY_LIBRARY COARRAY_Fortran_FLAGS COARRAY_INCLUDE_DIR COARRAY_EXECUTABLE)
-MESSAGE(STATUS "Coarray library: ${COARRAY_LIBRARY}")
-MESSAGE(STATUS "Coarray include dir: ${COARRAY_INCLUDE_DIR}")

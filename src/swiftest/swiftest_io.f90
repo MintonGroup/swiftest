@@ -806,7 +806,6 @@ contains
       class(swiftest_parameters),        intent(in)    :: param !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: nvar, varid, vartype
-      integer(I4B) :: status
       real(DP) :: dfill
       real(SP) :: sfill
       integer(I4B), parameter :: NO_FILL = 0
@@ -2129,9 +2128,7 @@ contains
       class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       ! Internals
-      integer(I4B)                              :: idslot, old_mode, tmp, i
-      integer(I4B), dimension(:), allocatable   :: lm_coords
-      integer(I4B) :: status
+      integer(I4B)                              :: idslot, old_mode, tmp
 
       associate(tslot => nc%tslot)
          call self%write_info(nc, param)

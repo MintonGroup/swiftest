@@ -760,7 +760,7 @@ module base
                write(errmsg, FAIL_MSG) VERSION
                write(iu, FAIL_MSG) trim(adjustl(errmsg))
                write(iu, BAR)
-               error stop trim(adjustl(errmsg))
+               error stop "Error in Swiftest. Exiting..."
             end select
 #ifdef COARRAY
          end if

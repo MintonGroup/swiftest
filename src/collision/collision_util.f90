@@ -758,7 +758,7 @@ contains
    end subroutine collision_util_shift_vector_to_origin
 
 
-   module subroutine collision_util_snapshot(self, param, nbody_system, t, arg)
+   module subroutine collision_util_take_snapshot(self, param, nbody_system, t, arg)
       !! author: David A. Minton
       !!
       !! Takes a minimal snapshot of the state of the nbody_system during a collision to record the before and after states of the
@@ -775,7 +775,7 @@ contains
       class(collision_snapshot), allocatable, save :: snapshot
       character(len=:), allocatable :: stage
       integer(I4B) :: i,phase_val
-      character(len=STRMAX) :: message
+      character(len=STRMAX) :: message, idstr
 
       if (present(arg)) then
          stage = arg
@@ -788,12 +788,25 @@ contains
       select type(param)
       class is (swiftest_parameters)
 
+         if (stage /= "after") then
+            ! Advance the collision id number and save it
+            associate(collider => nbody_system%collider)
+               collider%maxid_collision = max(collider%maxid_collision, maxval(nbody_system%pl%info(:)%collision_id))
+               collider%maxid_collision = collider%maxid_collision + 1
+               collider%collision_id = collider%maxid_collision
+               write(idstr,*) collider%collision_id
+               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "collision_id " // trim(adjustl(idstr)))
+            end associate
+         end if
+
          select case (stage)
          case ("before")
             phase_val = 1
+
             allocate(collision_snapshot :: snapshot)
             allocate(snapshot%collider, source=nbody_system%collider) 
             snapshot%t = t
+
          case ("after")
             phase_val = 2
          case ("particle")
@@ -801,7 +814,7 @@ contains
             allocate(collision_snapshot :: snapshot)
             allocate(snapshot%collider, source=nbody_system%collider) 
          case default
-            write(*,*) "collision_util_snapshot requies either 'before', 'after', or 'particle' passed to 'arg'"
+            write(*,*) "collision_util_take_snapshot requies either 'before', 'after', or 'particle' passed to 'arg'"
             return
          end select
 
@@ -868,7 +881,7 @@ contains
       end select
 
       return
-   end subroutine collision_util_snapshot
+   end subroutine collision_util_take_snapshot
 
 
    module subroutine collision_util_set_natural_scale_factors(self)

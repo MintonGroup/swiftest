@@ -259,7 +259,7 @@ contains
       class(base_parameters),     intent(in)    :: param  !! Current run configuration parameters
       ! Internals
       logical,      dimension(:), allocatable :: lpltp_collision
-      integer(I8B)                            :: ncollisions, index_coll, k, npltpenc
+      integer(I8B)                            :: ncollisions, k, npltpenc
       integer(I8B), dimension(:), allocatable :: collision_idx
 
       select type(nbody_system)
@@ -532,8 +532,6 @@ contains
             allocate(plsub, mold=pl)
             call pl%spill(plsub, lmask, ldestructive=.false.)
 
-            ! call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nimpactors)])
-
             ! Save the before/after snapshots
             select type(before => collider%before)
             class is (swiftest_nbody_system)
@@ -571,7 +569,7 @@ contains
       real(DP) :: E_before, E_after, mnew
       real(DP), dimension(NDIM) ::L_before, L_after, dL
       logical :: lplpl_collision
-      character(len=STRMAX) :: timestr, idstr
+      character(len=STRMAX) :: timestr
       integer(I4B), dimension(2) :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
       logical  :: lgoodcollision
       integer(I4B) :: i, j, nnew, loop
@@ -622,13 +620,6 @@ contains
                      idx_parent(2) = pl%kin(idx2(k))%parent
                      call impactors%consolidate(nbody_system, param, idx_parent, lgoodcollision)
                      if ((.not. lgoodcollision) .or. any(pl%status(idx_parent(:)) /= COLLIDED)) cycle
-
-                     ! Advance the collision id number and save it
-                     collider%maxid_collision = max(collider%maxid_collision, maxval(nbody_system%pl%info(:)%collision_id))
-                     collider%maxid_collision = collider%maxid_collision + 1
-                     collider%collision_id = collider%maxid_collision
-                     write(idstr,*) collider%collision_id
-                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, "collision_id " // trim(adjustl(idstr)))
 
                      ! Get the collision regime
                      call collider%get_regime(nbody_system, param)
@@ -717,17 +708,14 @@ contains
       class(collision_list_pltp), intent(inout) :: self   !! Swiftest pl-pl encounter list
       class(base_nbody_system),   intent(inout) :: nbody_system !! Swiftest nbody system object
       class(base_parameters),     intent(inout) :: param  !! Current run configuration parameters with Swiftest additions
-      real(DP),                   intent(in)    :: t      !! Current simulation tim
+      real(DP),                   intent(in)    :: t      !! Current simulation time
       real(DP),                   intent(in)    :: dt     !! Current simulation step size
       integer(I4B),               intent(in)    :: irec   !! Current recursion level
       ! Internals
       class(swiftest_pl), allocatable :: plsub
       class(swiftest_tp), allocatable :: tpsub
-      logical :: lpltp_collision
-      character(len=STRMAX) :: timestr, idstr
-      integer(I4B) :: i, j, nnew, loop
+      character(len=STRMAX) :: timestr
       integer(I8B) :: k, ncollisions
-      integer(I4B), dimension(:), allocatable :: idnew      
       logical, dimension(:), allocatable :: lmask
      
       ! Make sure coordinate systems are all synced up due to being inside the recursion at this point
@@ -761,12 +749,6 @@ contains
                                                                   "***********************************************************")
 
                do k = 1_I8B, ncollisions
-                  ! Advance the collision id number and save it
-                  collider%maxid_collision = max(collider%maxid_collision, maxval(nbody_system%pl%info(:)%collision_id))
-                  collider%maxid_collision = collider%maxid_collision + 1
-                  collider%collision_id = collider%maxid_collision
-                  write(idstr,*) collider%collision_id
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "collision_id " // trim(adjustl(idstr)))
                   collider%impactors%regime = COLLRESOLVE_REGIME_MERGE
                   allocate(lmask, mold=pl%lmask)
                   lmask(:) = .false.

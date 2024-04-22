@@ -77,27 +77,28 @@ contains
             end if
 
             if (lpl_discards) then ! In the base integrators, massive bodies are not true discards. The discard is 
-                                              ! simply used to trigger a snapshot.
-               if (param%lenergy) call self%conservation_report(param, lterminal=.false.)
-               allocate(ldiscard, source=pl%ldiscard(:))
-               do i = 1, npl
-                  if (ldiscard(i)) call pl%info(i)%set_value(collision_id=collider%collision_id)
-               end do
-               allocate(plsub, mold=pl)
-               call pl%spill(plsub, ldiscard, ldestructive=.false.)
-               nsub = plsub%nbody
-               nstart = pl_discards%nbody + 1
-               nend = pl_discards%nbody + nsub
-               call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nsub)])
-               deallocate(ldiscard)
-               pl%ldiscard(1:npl) = .false.
-               ! Save the before snapshots
-               select type(before => collider%before)
-               class is (swiftest_nbody_system)
-                  if (allocated(before%pl)) deallocate(before%pl)
-                  allocate(before%pl, source=pl_discards)
-               end select
-               call pl_discards%setup(0,param) 
+                                   ! simply used to trigger a snapshot.
+               write(*,*) "This should not happen"
+               ! if (param%lenergy) call self%conservation_report(param, lterminal=.false.)
+               ! allocate(ldiscard, source=pl%ldiscard(:))
+               ! do i = 1, npl
+               !    if (ldiscard(i)) call pl%info(i)%set_value(collision_id=collider%collision_id)
+               ! end do
+               ! allocate(plsub, mold=pl)
+               ! call pl%spill(plsub, ldiscard, ldestructive=.false.)
+               ! nsub = plsub%nbody
+               ! nstart = pl_discards%nbody + 1
+               ! nend = pl_discards%nbody + nsub
+               ! call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nsub)])
+               ! deallocate(ldiscard)
+               ! pl%ldiscard(1:npl) = .false.
+               ! ! Save the before snapshots
+               ! select type(before => collider%before)
+               ! class is (swiftest_nbody_system)
+               !    if (allocated(before%pl)) deallocate(before%pl)
+               !    allocate(before%pl, source=pl_discards)
+               ! end select
+               ! call pl_discards%setup(0,param) 
             end if
 
 

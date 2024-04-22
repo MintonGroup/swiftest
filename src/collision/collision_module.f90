@@ -376,7 +376,7 @@ module collision
          !! Dumps contents of encounter history to file
       procedure :: dump           => collision_io_netcdf_dump 
          !! Take a minimal snapshot of the nbody_system through an encounter
-      procedure :: take_snapshot  => collision_util_snapshot  
+      procedure :: take_snapshot  => collision_util_take_snapshot  
          !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
       procedure :: make_index_map => collision_util_index_map 
    end type collision_storage
@@ -736,7 +736,7 @@ module collision
          class(collision_basic), intent(inout) :: self  
       end subroutine collision_util_dealloc_basic
 
-      module subroutine collision_util_snapshot(self, param, nbody_system, t, arg)
+      module subroutine collision_util_take_snapshot(self, param, nbody_system, t, arg)
          implicit none
             !! Swiftest storage object
          class(collision_storage), intent(inout)        :: self         
@@ -748,7 +748,7 @@ module collision
          real(DP),                    intent(in), optional :: t            
             !! "before": takes a snapshot just before the collision. "after" takes the snapshot just after the collision.
          character(*),                intent(in), optional :: arg          
-      end subroutine collision_util_snapshot
+      end subroutine collision_util_take_snapshot
 
       module subroutine collision_util_set_natural_scale_factors(self)
          implicit none

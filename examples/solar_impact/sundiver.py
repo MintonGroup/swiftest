@@ -43,7 +43,7 @@ sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Sat
 density  = 3000.0 * sim.KG2MU / sim.M2DU**3
 
 # Make a body with a periapsis inside the Sun's radius
-q = 0.9 * swiftest.RSun * sim.M2DU
+q = 0.01 * swiftest.RSun * sim.M2DU
 a = 0.1
 e = 1.0 - q / a
 M = 2e0 * swiftest.MEarth * sim.KG2MU
@@ -53,4 +53,4 @@ sim.add_body(name="Sundiver", a=a, e=e, inc=0.0, capom=0.0, omega=0.0, capm=180.
 sim.get_parameter()
 
 # Run the simulation. Arguments may be defined here or thorugh the swiftest.Simulation() method.
-sim.run(tstart=0.0, tstop=2e-2, dt=0.001, istep_out=1, dump_cadence=0)
+sim.run(tstart=0.0, tstop=5e-2, dt=0.0001, istep_out=1, dump_cadence=0)
