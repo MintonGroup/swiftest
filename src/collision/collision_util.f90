@@ -17,9 +17,12 @@ contains
       !! Adds fragments to the temporary system pl object
       implicit none
       ! Arguments
-      class(collision_basic),   intent(in)    :: self      !! Collision system system object
-      class(base_nbody_system), intent(inout) :: nbody_system    !! Swiftest nbody system object
-      class(base_parameters),   intent(in)    :: param     !! Current Swiftest run configuration parameters
+      class(collision_basic),   intent(in)    :: self      
+         !! Collision system system object
+      class(base_nbody_system), intent(inout) :: nbody_system    
+         !! Swiftest nbody system object
+      class(base_parameters),   intent(in)    :: param    
+          !! Current Swiftest run configuration parameters
       ! Internals
       integer(I4B) :: i, npl_before, npl_after, nfrag
       logical, dimension(:), allocatable :: lexclude
@@ -96,8 +99,10 @@ contains
       !! Returns an array of all id values saved in this snapshot
       implicit none
       ! Arguments
-      class(collision_snapshot),               intent(in)  :: self   !! Collision snapshot object
-      integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
+      class(collision_snapshot),               intent(in)  :: self   
+         !! Collision snapshot object
+      integer(I4B), dimension(:), allocatable, intent(out) :: idvals 
+         !! Array of all id values saved in this snapshot
       ! Internals
       integer(I4B) :: npl_before, ntp_before, npl_after, ntp_after, ntot, nlo, nhi
 
@@ -150,11 +155,14 @@ contains
       !! state (lbefore = .false.)
       implicit none
       ! Arguments
-      class(collision_basic),   intent(inout) :: self         !! Encounter collision system object
-      class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),   intent(inout) :: param        !! Current Swiftest run configuration parameters
-      character(len=*),         intent(in)    :: phase        !! One of "before" or "after", indicating which phase of the 
-                                                              !!    calculation this needs to be done
+      class(collision_basic),   intent(inout) :: self         
+         !! Collision system object
+      class(base_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters),   intent(inout) :: param        
+         !! Current Swiftest run configuration parameters
+      character(len=*),         intent(in)    :: phase        
+         !! One of "before" or "after", indicating which phase of the calculation this needs to be done
       ! Internals
       integer(I4B) :: i, phase_val, nfrag
 
@@ -249,7 +257,8 @@ contains
       !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
       implicit none
       ! Arguments
-      class(collision_storage), intent(inout) :: self  !! Swiftest storage object
+      class(collision_storage), intent(inout) :: self  
+         !! Collision storage object
       ! Internals
       integer(I4B), dimension(:), allocatable :: idvals
       real(DP), dimension(:), allocatable :: tvals
@@ -273,7 +282,8 @@ contains
       !! Finalizer will deallocate all allocatables
       implicit none
       ! Arguments
-      class(collision_snapshot),  intent(inout) :: self !! Collsion snapshot object
+      class(collision_snapshot),  intent(inout) :: self 
+         !! Collsion snapshot object
 
       if (allocated(self%collider)) then
          call self%collider%dealloc()
@@ -293,6 +303,7 @@ contains
       implicit none
       ! Arguments
       class(collision_impactors),  intent(inout) :: self
+         !! Collision impactors object
 
       if (allocated(self%id)) deallocate(self%id)
       if (allocated(self%mass_dist)) deallocate(self%mass_dist)
@@ -329,6 +340,7 @@ contains
       implicit none
       ! Arguments
       class(collision_fragments),  intent(inout) :: self
+         !! Collision fragments object
 
       self%nbody = 0
       if (allocated(self%id)) deallocate(self%id)
@@ -367,7 +379,8 @@ contains
       !! Resets the collider nbody_system and deallocates all allocatables
       implicit none
       ! Arguments
-      class(collision_basic), intent(inout) :: self  !! Collision system object
+      class(collision_basic), intent(inout) :: self  
+         !! Collision system object
 
       if (allocated(self%impactors)) then 
          call self%impactors%dealloc()
@@ -425,6 +438,7 @@ contains
       implicit none
       ! Arguments
       class(collision_fragments), intent(inout) :: self
+         !! Collision fragments object
 
       self%rc(:,:) = 0.0_DP
       self%vc(:,:) = 0.0_DP
@@ -462,8 +476,10 @@ contains
       !! Constructor for fragment class. Allocates space for all particles and
       implicit none
       ! Arguments
-      class(collision_fragments), intent(inout) :: self  !! Swiftest generic body object
-      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
+      class(collision_fragments), intent(inout) :: self  
+         !! Collision fragments
+      integer(I4B),               intent(in)    :: n     
+         !! Number of particles to allocate space for
       ! Internals
       integer(I4B) :: i
 
@@ -566,7 +582,8 @@ contains
       !! fragments.
       implicit none
       ! Arguments
-      class(collision_basic),    intent(inout) :: self      !! Collisional nbody_system
+      class(collision_basic),    intent(inout) :: self      
+         !! Collisional system
 
       associate(fragments => self%fragments, impactors => self%impactors)
          call impactors%set_coordinate_system() 
@@ -588,7 +605,8 @@ contains
       !! fragments.
       implicit none
       ! Arguments
-      class(collision_fragments), intent(inout) :: self      !! Collisional nbody_system
+      class(collision_fragments), intent(inout) :: self      
+         !! Collisional fragments object
 
       associate(fragments => self, nfrag => self%nbody)
          if ((nfrag == 0) .or. (.not.any(fragments%rc(:,:) > 0.0_DP))) return
@@ -615,7 +633,8 @@ contains
       !! fragments.
       implicit none
       ! Arguments
-      class(collision_impactors), intent(inout) :: self      !! Collisional nbody_system
+      class(collision_impactors), intent(inout) :: self      
+         !! Collisional impactors object
       ! Internals
       real(DP), dimension(NDIM) ::  delta_r, delta_v, L_total
       real(DP)   ::  L_mag, mtot
@@ -679,9 +698,12 @@ contains
       !! but not fragments. Those are setup later when the number of fragments is known.
       implicit none
       ! Arguments
-      class(collision_basic),   intent(inout) :: self         !! Encounter collision system object
-      class(base_nbody_system), intent(in)    :: nbody_system !! Current nbody system. Used as a mold for the before/after snapshots
-      class(base_parameters),   intent(inout) :: param        !! Current Swiftest run configuration parameters
+      class(collision_basic),   intent(inout) :: self         
+         !! Collision system object
+      class(base_nbody_system), intent(in)    :: nbody_system 
+         !! Current nbody system. Used as a mold for the before/after snapshots
+      class(base_parameters),   intent(inout) :: param        
+         !! Current Swiftest run configuration parameters
 
       call self%setup_impactors()
       if (allocated(self%before)) deallocate(self%before)
@@ -702,7 +724,8 @@ contains
       !! Initializer for the impactors for the encounter collision system. Deallocates old impactors before creating new ones
       implicit none
       ! Arguments
-      class(collision_basic), intent(inout) :: self   !! Encounter collision system object
+      class(collision_basic), intent(inout) :: self   
+         !! Collision system object
 
       if (allocated(self%impactors)) deallocate(self%impactors)
       allocate(collision_impactors :: self%impactors)
@@ -717,8 +740,10 @@ contains
       !! Initializer for the fragments of the collision system. 
       implicit none
       ! Arguments
-      class(collision_basic), intent(inout) :: self  !! Encounter collision system object
-      integer(I4B),            intent(in)    :: nfrag !! Number of fragments to create
+      class(collision_basic), intent(inout) :: self 
+          !! collision system object
+      integer(I4B),            intent(in)    :: nfrag 
+         !! Number of fragments to create
 
       if (allocated(self%fragments)) deallocate(self%fragments)
       allocate(collision_fragments :: self%fragments)
@@ -734,8 +759,10 @@ contains
       !! Adjusts the position or velocity of the fragments as needed to align them with the center of mass origin
       implicit none
       ! Arguments
-      real(DP), dimension(:),   intent(in)    :: m_frag    !! Fragment masses
-      real(DP), dimension(:,:), intent(inout) :: vec_frag  !! Fragment positions or velocities in the center of mass frame
+      real(DP), dimension(:),   intent(in)    :: m_frag    
+         !! Fragment masses
+      real(DP), dimension(:,:), intent(inout) :: vec_frag  
+         !! Fragment positions or velocities in the center of mass frame
 
       ! Internals
       real(DP), dimension(NDIM) :: mvec_frag, COM_offset
@@ -765,12 +792,17 @@ contains
       !! system through the collision.
       implicit none
       ! Internals
-      class(collision_storage), intent(inout)          :: self   !! Swiftest storage object
-      class(base_parameters),   intent(inout)          :: param  !! Current run configuration parameters
-      class(base_nbody_system), intent(inout)          :: nbody_system !! Swiftest nbody system object to store
-      real(DP),                 intent(in),   optional :: t      !! Time of snapshot if different from nbody_system time
-      character(*),             intent(in),   optional :: arg    !! "before": takes a snapshot just before the collision. "after" 
-                                                                 !!    takes the snapshot just after the collision.
+      class(collision_storage), intent(inout)          :: self   
+         !! Collision storage object
+      class(base_parameters),   intent(inout)          :: param  
+         !! Current run configuration parameters
+      class(base_nbody_system), intent(inout)          :: nbody_system 
+         !! Swiftest nbody system object to store
+      real(DP),                 intent(in),   optional :: t      
+         !! Time of snapshot if different from nbody_system time
+      character(*),             intent(in),   optional :: arg    
+         !! "before": takes a snapshot just before the collision. 
+         !! "after" : takes the snapshot just after the collision.
       ! Arguments
       class(collision_snapshot), allocatable, save :: snapshot
       character(len=:), allocatable :: stage
@@ -913,7 +945,8 @@ contains
       !! This scaling makes it it easier to converge on a solution without having floating point issues
       implicit none
       ! Arguments
-      class(collision_basic), intent(inout) :: self  !! Collision system object
+      class(collision_basic), intent(inout) :: self  
+         !! Collision system object
       ! Internals
       integer(I4B) :: i
       real(DP) :: vesc
@@ -973,7 +1006,8 @@ contains
       use, intrinsic :: ieee_exceptions
       implicit none
       ! Arguments
-      class(collision_basic),      intent(inout) :: self      !! Fragment system object
+      class(collision_basic),      intent(inout) :: self      
+         !! Collision system object
       ! Internals
       integer(I4B) :: i
       logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
@@ -1051,10 +1085,14 @@ contains
       !! Applies a torque to a body's center of mass velocity given a change in angular momentum
       implicit none
       ! Arguments
-      real(DP), dimension(:), intent(in)    :: dL   !! Change in angular momentum to apply
-      real(DP),               intent(in)    :: mass !! Mass of body
-      real(DP), dimension(:), intent(in)    :: r    !! Position of body wrt system center of mass
-      real(DP), dimension(:), intent(inout) :: v !! Velocity of body wrt system center of mass
+      real(DP), dimension(:), intent(in)    :: dL   
+         !! Change in angular momentum to apply
+      real(DP),               intent(in)    :: mass 
+         !! Mass of body
+      real(DP), dimension(:), intent(in)    :: r 
+         !! Position of body wrt system center of mass
+      real(DP), dimension(:), intent(inout) :: v 
+         !! Velocity of body wrt system center of mass
       ! Internals
       real(DP), dimension(NDIM) :: dL_unit, r_unit, vapply
       real(DP) :: rmag, vmag, vapply_mag
