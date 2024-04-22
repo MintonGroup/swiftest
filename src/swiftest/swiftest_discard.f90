@@ -49,13 +49,6 @@ contains
          end if
 
          if (ltp_discards.or.lpl_discards) then
-            ! Advance the collision id number and save it
-            collider%maxid_collision = collider%maxid_collision + 1
-            collider%collision_id = collider%maxid_collision
-            collider%impactors%regime = COLLRESOLVE_REGIME_MERGE
-            write(idstr,*) collider%collision_id
-            call swiftest_io_log_one_message(COLLISION_LOG_OUT, "collision_id " // trim(adjustl(idstr)))
-
             if (ltp_discards) then
                allocate(ldiscard, source=tp%ldiscard(:))
                do i = 1, ntp
@@ -79,28 +72,7 @@ contains
             if (lpl_discards) then ! In the base integrators, massive bodies are not true discards. The discard is 
                                    ! simply used to trigger a snapshot.
                write(*,*) "This should not happen"
-               ! if (param%lenergy) call self%conservation_report(param, lterminal=.false.)
-               ! allocate(ldiscard, source=pl%ldiscard(:))
-               ! do i = 1, npl
-               !    if (ldiscard(i)) call pl%info(i)%set_value(collision_id=collider%collision_id)
-               ! end do
-               ! allocate(plsub, mold=pl)
-               ! call pl%spill(plsub, ldiscard, ldestructive=.false.)
-               ! nsub = plsub%nbody
-               ! nstart = pl_discards%nbody + 1
-               ! nend = pl_discards%nbody + nsub
-               ! call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nsub)])
-               ! deallocate(ldiscard)
-               ! pl%ldiscard(1:npl) = .false.
-               ! ! Save the before snapshots
-               ! select type(before => collider%before)
-               ! class is (swiftest_nbody_system)
-               !    if (allocated(before%pl)) deallocate(before%pl)
-               !    allocate(before%pl, source=pl_discards)
-               ! end select
-               ! call pl_discards%setup(0,param) 
             end if
-
 
             call collision_history%take_snapshot(param,nbody_system, t, "particle") 
          end if
