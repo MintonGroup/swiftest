@@ -84,7 +84,7 @@ PATH="${PREFIX}/bin:${PATH}"
 CMAKE_INSTALL_LIBDIR="lib"
 NPROC=$(nproc)
 
-OMPI_FC="$(command -v gfortran-13 || command -v gfortran-12 || command -v gfortran)"
+OMPI_FC="$(${SCRIPT_DIR}/get_gfortran_path.sh)"
 CC="$(command -v mpicc)"
 CXX="$(command -v mpic++)"
 FC="$(command -v mpif90)"
