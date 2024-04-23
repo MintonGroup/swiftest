@@ -209,10 +209,6 @@ IF (USE_COARRAY)
     SET(SWIFTEST_LIBRARY_CAF ${SWIFTEST_LIBRARY}_caf) 
 ENDIF()
 
-# Determine compiler options
-IF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
-    MESSAGE(FATAL_ERROR "Fortran compiler does not support F90")
-ENDIF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
 INCLUDE(SetParallelizationLibrary)
 
 INCLUDE(SetSwiftestFlags) 
