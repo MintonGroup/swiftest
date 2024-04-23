@@ -298,7 +298,6 @@ contains
       integer(I4B)          :: i
       character(len=STRMAX) :: timestr, idstr, message
 
-
       lfirst_orig = pl%lfirst
       pl%lfirst = nbody_system%lfirst_peri
       if (nbody_system%lfirst_peri) then
@@ -374,39 +373,16 @@ contains
                   E_orbit_before = nbody_system%te
                   call nbody_system%conservation_report(param, lterminal=.false.)
                end if
-               cb_collide = .false.
+
                allocate(ldiscard, source=pl%ldiscard(:))
-               do i = 1, npl
-                  if (ldiscard(i)) then
-                     call pl%info(i)%set_value(collision_id=collider%collision_id)
-                     if ((pl%status(i) == DISCARDED_RMIN)  .or. &
-                         (pl%status(i) == DISCARDED_PERI)) then
-                        cb_collide = .true.
-                        impactors%regime = REGIME_CB_IMPACT
-                     else
-                        impactors%regime = REGIME_EJECTED
-                     end if
-                  end if
-               end do
-               allocate(plsub, mold=pl)
-               call pl%spill(plsub, ldiscard, ldestructive=.false.)
-               nsub = plsub%nbody
-               nstart = pl_discards%nbody + 1
-               nend = pl_discards%nbody + nsub
-               call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nsub)])
-               deallocate(ldiscard)
-
-               select type(before => collider%before)
-               class is (swiftest_nbody_system)
-                  if (allocated(before%pl)) deallocate(before%pl)
-                  allocate(before%pl, source=pl_discards)
-                  if (cb_collide) then
-                     if (allocated(before%cb)) deallocate(before%cb)
-                     allocate(before%cb, source=nbody_system%cb)
-                  end if
-               end select
-
+               if (any(pl%status(:) == DISCARDED_RMIN) .or. any(pl%status(:) == DISCARDED_PERI)) then
+                  impactors%regime = REGIME_CB_IMPACT
+               else
+                  impactors%regime = REGIME_Ejected
+               end if
+               call pl%save_discard(ldiscard,nbody_system,collider%before)
                call collision_history%take_snapshot(param,nbody_system, t, "before") 
+               deallocate(ldiscard)
 
                call symba_discard_nonplpl_conservation(self, nbody_system, param)
 
@@ -416,14 +392,6 @@ contains
                   call nbody_system%get_energy_and_momentum(param)
                   E_orbit_after = nbody_system%te
                   nbody_system%E_collisions = nbody_system%E_collisions + (E_orbit_after - E_orbit_before)
-               end if
-
-               if (cb_collide) then
-                  select type(after => collider%after)
-                  class is (swiftest_nbody_system)
-                     if (allocated(after%cb)) deallocate(after%cb)
-                     allocate(after%cb, source=nbody_system%cb)
-                  end select
                end if
 
                call collision_history%take_snapshot(param,nbody_system, t, "after") 

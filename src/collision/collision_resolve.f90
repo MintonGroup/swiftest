@@ -716,7 +716,7 @@ contains
       class(swiftest_tp), allocatable :: tpsub
       character(len=STRMAX) :: timestr
       integer(I8B) :: k, ncollisions
-      logical, dimension(:), allocatable :: lmask
+      logical, dimension(:), allocatable :: ldiscard_pl, ldiscard_tp
      
       ! Make sure coordinate systems are all synced up due to being inside the recursion at this point
       select type(nbody_system)
@@ -724,8 +724,13 @@ contains
       select type(param)
       class is (swiftest_parameters)
          associate(pltp_collision => nbody_system%pltp_collision, &
-            collision_history => nbody_system%collision_history, pl => nbody_system%pl, cb => nbody_system%cb, &
-            tp => nbody_system%tp, collider => nbody_system%collider, impactors => nbody_system%collider%impactors)
+            collision_history => nbody_system%collision_history, &
+            pl => nbody_system%pl, &
+            cb => nbody_system%cb, &
+            tp => nbody_system%tp, &
+            collider => nbody_system%collider, &
+            impactors => nbody_system%collider%impactors)
+
             call pl%vb2vh(nbody_system%cb)
             call tp%vb2vh(nbody_system%cb%vb)
             call pl%b2h(nbody_system%cb)
@@ -740,46 +745,30 @@ contains
             associate(idx1 => pltp_collision%index1, idx2 => pltp_collision%index2)
                ncollisions = pltp_collision%nenc
                write(timestr,*) t
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "")
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT,"***********************************************************" // &
-                                                                  "***********************************************************")
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Collision between test particle and massive body detected " // &
-                                                                   "at time t = " // trim(adjustl(timestr)))
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT,"***********************************************************" // &
-                                                                  "***********************************************************")
-
                do k = 1_I8B, ncollisions
-                  collider%impactors%regime = COLLRESOLVE_REGIME_MERGE
-                  allocate(lmask, mold=pl%lmask)
-                  lmask(:) = .false.
-                  lmask(idx1(k)) = .true.
-                  
-                  allocate(plsub, mold=pl)
-                  call pl%spill(plsub, lmask, ldestructive=.false.)
-      
-                  ! Save the before snapshots
-                  select type(before => collider%before)
-                  class is (swiftest_nbody_system)
-                     call move_alloc(plsub, before%pl)
-                  end select
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "")
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT,"***********************************************************" &
+                                                                  // "***********************************************************")
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Collision between test particle and massive body detected " &
+                                                                  //  "at time t = " // trim(adjustl(timestr)))
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT,"***********************************************************" &
+                                                                 //  "***********************************************************")
 
-                  deallocate(lmask)
-                  allocate(lmask, mold=tp%lmask)
-                  lmask(:) = .false.
-                  lmask(idx2(k)) = .true.
-                  
-                  allocate(tpsub, mold=tp)
-                  call tp%spill(tpsub, lmask, ldestructive=.false.)
-      
-                  ! Save the before snapshots
-                  select type(before => collider%before)
-                  class is (swiftest_nbody_system)
-                     call move_alloc(tpsub, before%tp)
-                  end select
+                  impactors%regime = COLLRESOLVE_REGIME_MERGE
+                  allocate(ldiscard_pl, mold=pl%ldiscard)
+                  ldiscard_pl(:) = .false.
+                  ldiscard_tp(idx1(k)) = .true.
 
-                  call collision_history%take_snapshot(param,nbody_system, t, "particle") 
-
-                  call impactors%dealloc()
+                  allocate(ldiscard_tp, mold=tp%ldiscard)
+                  ldiscard_tp(:) = .false.
+                  ldiscard_tp(idx2(k)) = .true.
+                 
+                  ! Save the system snapshot
+                  call tp%save_discard(ldiscard_pl,nbody_system,collider%before)
+                  call pl%save_discard(ldiscard_tp,nbody_system,collider%before)
+                  call collision_history%take_snapshot(param,nbody_system, t, "before") 
+                  call pl%save_discard(ldiscard_tp,nbody_system,collider%after)
+                  call collision_history%take_snapshot(param,nbody_system, t, "after") 
                end do
 
                ! Destroy the collision list now that the collisions are resolved

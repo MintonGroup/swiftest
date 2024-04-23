@@ -253,7 +253,6 @@ contains
                         call tp%info(i)%set_value(status="DISCARDED_PERI", discard_time=nbody_system%t, discard_rh=tp%rh(:,i), &
                                                   discard_vh=tp%vh(:,i), discard_body_id=cb%id)
 
-
                         ! Save the system snapshot
                         impactors%regime = REGIME_CB_IMPACT
                         allocate(ldiscard, mold=tp%ldiscard(:))
@@ -323,13 +322,13 @@ contains
                                                discard_vh=tp%vh(:,i), discard_body_id=pl%id(j))
 
                      ! Save the system snapshot
-                     impactors%regime = REGIME_CB_IMPACT
+                     impactors%regime = COLLRESOLVE_REGIME_MERGE
                      allocate(ldiscard_tp, mold=tp%ldiscard(:))
                      allocate(ldiscard_Pl, mold=Pl%ldiscard(:))
                      ldiscard_tp(:) = .false.
-                     ldiscard_Pl(:) = .false.
+                     ldiscard_pl(:) = .false.
                      ldiscard_tp(i) = .true.
-                     ldiscard_Pl(j) = .true.
+                     ldiscard_pl(j) = .true.
                      call tp%save_discard(ldiscard_pl,nbody_system,collider%before)
                      call pl%save_discard(ldiscard_tp,nbody_system,collider%before)
                      call collision_history%take_snapshot(param,nbody_system, t, "before") 
