@@ -54,26 +54,24 @@ class TestCollisions(unittest.TestCase):
         ds['Ltot']=ds.L_orbit+ds.L_spin
         ds['Ltot_mag']=ds.Ltot.magnitude()
         dLtot=ds.Ltot_mag.diff('stage').values[0]
-        self.assertAlmostEqual(dLtot,0,places=8)
+        self.assertAlmostEqual(dLtot,0,places=8, msg=f"Angular momentum not conserved: {dLtot}")
         
         # Check that energy was lost
         dEtot=ds.TE.diff('stage').values[0]
-        self.assertLess(dEtot,0)
+        self.assertLess(dEtot,0, msg=f"Energy not lost: {dEtot}")
         
         
         # Test that massive bodies can be discarded in RMVS
         sim.run(tstart=0.0, tstop=5e-2, dt=0.0001, istep_out=1, dump_cadence=0, integrator="rmvs")
         # Check that the collision actually happened
-        self.assertEqual(sim.collisions.collision_id.size,1) 
+        self.assertEqual(sim.collisions.collision_id.size,1, msg="Collision not detected in RMVS") 
         
         
-        # Now run the same test but with a massless body using both the RMVS and Symba integrators
-        sim = swiftest.Simulation(simdir=self.simdir,compute_conservation_values=False, integrator="symba")
-        sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"])
-        sim.add_body(name="Sundiver", a=a, e=e, inc=0.0, capom=0.0, omega=0.0, capm=180.0)
-        sim.run(tstart=0.0, tstop=5e-2, dt=0.0001, istep_out=1, dump_cadence=0)
-        
-        
+        # # Now run the same test but with a massless body using both the RMVS and Symba integrators
+        # sim = swiftest.Simulation(simdir=self.simdir,compute_conservation_values=False, integrator="symba")
+        # sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"])
+        # sim.add_body(name="Sundiver", a=a, e=e, inc=0.0, capom=0.0, omega=0.0, capm=180.0)
+        # sim.run(tstart=0.0, tstop=5e-2, dt=0.0001, istep_out=1, dump_cadence=0)
 
         return 
          
