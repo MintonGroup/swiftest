@@ -35,7 +35,7 @@ import swiftest
 import numpy as np
 
 # Initialize the simulation object as a variable. Arguments may be defined here or through the sim.run() method.
-sim = swiftest.Simulation(simdir='massive_sundiver',compute_conservation_values=True, rotation=True, integrator="symba")
+sim = swiftest.Simulation(simdir='massive_sundiver',compute_conservation_values=True, rotation=True)
 
 # Add the modern planets and the Sun using the JPL Horizons Database.
 sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"])
@@ -53,7 +53,9 @@ sim.add_body(name="Sundiver", a=a, e=e, inc=0.0, capom=0.0, omega=0.0, capm=180.
 sim.get_parameter()
 
 # Run the simulation. Arguments may be defined here or thorugh the swiftest.Simulation() method.
-sim.run(tstart=0.0, tstop=5e-2, dt=0.0001, istep_out=1, dump_cadence=0)
+sim.run(tstart=0.0, tstop=5e-2, dt=0.0001, istep_out=1, dump_cadence=0, integrator="rmvs")
+
+
 
 sim = swiftest.Simulation(simdir='massless_sundiver',compute_conservation_values=False, integrator="rmvs")
 

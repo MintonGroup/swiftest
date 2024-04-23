@@ -28,14 +28,14 @@ class TestCollisions(unittest.TestCase):
         '''
         Tests that impacts into the central body work correctly
         '''
-        sim = swiftest.Simulation(simdir=self.simdir,compute_conservation_values=True, rotation=True, integrator="symba")
+        sim = swiftest.Simulation(simdir=self.simdir,compute_conservation_values=True, rotation=True)
 
         # Add the modern planets and the Sun using the JPL Horizons Database.
         sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"])
 
         density  = 3000.0 * sim.KG2MU / sim.M2DU**3
 
-        # Make a body with a periapsis inside the Sun's radius
+        # Make a massive body with a periapsis inside the Sun's radius
         q = 0.01 * swiftest.RSun * sim.M2DU
         a = 0.1
         e = 1.0 - q / a
@@ -44,7 +44,10 @@ class TestCollisions(unittest.TestCase):
         rot = 4 * sim.init_cond.sel(name="Earth")['rot']
         sim.add_body(name="Sundiver", a=a, e=e, inc=0.0, capom=0.0, omega=0.0, capm=180.0, mass=M, radius=R, Ip=[0.4,0.4,0.4], rot=rot)
         
-        sim.run(tstart=0.0, tstop=5e-2, dt=0.0001, istep_out=1, dump_cadence=0)
+        sim.run(tstart=0.0, tstop=5e-2, dt=0.0001, istep_out=1, dump_cadence=0, integrator="symba")
+        
+        # Check that the collision actually happened
+        self.assertEqual(sim.collisions.collision_id.size,1) 
         
         # Check that angular momentum is conserved
         ds=sim.collisions.sel(collision_id=1)
@@ -56,6 +59,15 @@ class TestCollisions(unittest.TestCase):
         # Check that energy was lost
         dEtot=ds.TE.diff('stage').values[0]
         self.assertLess(dEtot,0)
+        
+        
+        # Now run the same test but with a massless body using both the RMVS and Symba integrators
+        sim = swiftest.Simulation(simdir=self.simdir,compute_conservation_values=False, integrator="symba")
+        sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"])
+        sim.add_body(name="Sundiver", a=a, e=e, inc=0.0, capom=0.0, omega=0.0, capm=180.0)
+        sim.run(tstart=0.0, tstop=5e-2, dt=0.0001, istep_out=1, dump_cadence=0)
+        
+        
 
         return 
          

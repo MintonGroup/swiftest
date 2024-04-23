@@ -284,7 +284,7 @@ contains
    subroutine symba_discard_peri_pl(pl, nbody_system, param)
       !! author: David A. Minton
       !!
-      !! Check to see if a test particle should be discarded because its perihelion distance becomes too small
+      !! Check to see if a massive body should be discarded because its perihelion distance becomes too small
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: symba_discard_peri_pl.f90
       !! Adapted from Hal Levison's Swift routine discard_mass_peri.f
