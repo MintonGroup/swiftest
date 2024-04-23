@@ -50,6 +50,7 @@ changelog = 'https://swiftest.readthedocs.io/en/latest/whats-new.html'
 
 [project.scripts]
 swiftest = "swiftest.cli:main"
+swiftest_caf = "swiftest.cli:main_caf"
 
 [build-system]
 requires = [
@@ -78,7 +79,7 @@ skip = "pp* *i686 *-manylinux_i686 *_ppc64le *_s390x *-musllinux* *-win32"
 build-verbosity = 1
 
 [tool.cibuildwheel.macos.environment]
-SKBUILD_CMAKE_ARGS="-DMACHINE_CODE_VALUE=generic"
+SKBUILD_CMAKE_ARGS=["-DMACHINE_CODE_VALUE=generic","-DUSE_COARRAY:BOOL=OFF"]
 PREFIX="$(pwd)/build/deps/usr/local"
 NETCDF_FORTRAN_HOME="${PREFIX}"
 NETCDF_FORTRAN_INCLUDE="${NETCDF_FORTRAN_HOME}/include"
@@ -86,12 +87,13 @@ NETCDF_DIR="${NETCDF_FORTRAN_HOME}/lib/cmake/netCDF"
 NETCDF_FORTRAN_DIR="${NETCDF_FORTRAN_HOME}/lib/cmake/netCDF"
 SHTOOLS_HOME="${PREFIX}"
 MACOSX_DEPLOYMENT_TARGET="$(buildscripts/get_macosx_deployment_target.sh)"
+GFORTRAN_VERSION="$(buildscripts/get_gfortran_version.sh)"
 HOMEBREW_PREFIX="$(brew --prefix)"
 ARCH="$(uname -m)"
-LD_LIBRARY_PATH="${PREFIX}/lib:${HOMEBREW_PREFIX}/lib"
+LD_LIBRARY_PATH="${PREFIX}/lib:${HOMEBREW_PREFIX}/lib:${HOMEBREW_PREFIX}/lib/gcc/${GFORTRAN_VERSION}"
 DYLD_LIBRARY_PATH="${LD_LIBRARY_PATH}"
 REPAIR_LIBRARY_PATH="${LD_LIBRARY_PATH}"
-LDFLAGS="-Wl,-no_compact_unwind -L${PREFIX}/lib -L${HOMEBREW_PREFIX}/lib" 
+LDFLAGS="-Wl,-no_compact_unwind -L${PREFIX}/lib -L${HOMEBREW_PREFIX}/lib -L${HOMEBREW_PREFIX}/lib/gcc/${GFORTRAN_VERSION}" 
 CPATH="${PREFIX}/include:${HOMEBREW_PREFIX}/include"
 CPPFLAGS="-isystem ${PREFIX}/include"
 FCFLAGS="-arch ${ARCH}"
@@ -101,24 +103,30 @@ CXXFLAGS="${CFLAGS}"
 PATH="${PREFIX}/bin:${PATH}"
 
 [tool.cibuildwheel.linux.environment]
-SKBUILD_CMAKE_ARGS="-DMACHINE_CODE_VALUE=generic"
+SKBUILD_CMAKE_ARGS=["-DMACHINE_CODE_VALUE=generic","-DUSE_COARRAY:BOOL=ON"]
 PREFIX="$(pwd)/build/deps/usr/local"
 NETCDF_FORTRAN_HOME="${PREFIX}"
 NETCDF_FORTRAN_INCLUDE="${NETCDF_FORTRAN_HOME}/include"
 NETCDF_DIR="${NETCDF_FORTRAN_HOME}/lib/cmake/netCDF"
 NETCDF_FORTRAN_DIR="${NETCDF_FORTRAN_HOME}/lib/cmake/netCDF"
 SHTOOLS_HOME="${PREFIX}"
+OpenCoarrays_DIR="${PREFIX}/../../opencoarrays/2.10.2/lib64/cmake/opencoarrays"
+OpenCoarrays_HOME="${PREFIX}/../../opencoarrays/2.10.2"
+MPI_HOME="/usr/lib64/openmpi"
 CPATH="${PREFIX}/include:${CPATH}"
-PATH="${PREFIX}/bin:${PATH}"
+PATH="${PREFIX}/bin:${MPI_HOME}/bin:${PATH}"
 LD_LIBRARY_PATH="${PREFIX}/lib:${HOMEBREW_PREFIX}/lib"
 CFLAGS="-Wa,--noexecstack"
 CXXFLAGS="${CFLAGS}"
 LDFLAGS="-L${PREFIX}/lib"
 REPAIR_LIBRARY_PATH="${LD_LIBRARY_PATH}"
+CC="${MPI_HOME}/bin/mpicc"
+CXX="${MPI_HOME}/bin/mpic++"
+FC="${MPI_HOME}/bin/mpif90"
 
 [tool.cibuildwheel.macos]
 before-all = [
-    "brew install coreutils pkg-config fftw vecLibFort;buildscripts/build_dependencies.sh"
+    "brew install coreutils pkg-config fftw vecLibFort opencoarrays open-mpi;buildscripts/build_dependencies.sh"
 ]
 repair-wheel-command = """\
 DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel \
@@ -129,7 +137,7 @@ DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel \
 skip = "pp* *-manylinux_i686* *-musllinux* cp312-*_aarch64*"
 before-all = [
     "yum install epel-release -y",
-    "yum install doxygen libxml2-devel libcurl-devel fftw-static openblas-static -y",
+    "yum install doxygen libxml2-devel libcurl-devel fftw-static openblas-static openmpi-devel -y",
     "buildscripts/build_dependencies.sh"
 ]
 

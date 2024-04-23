@@ -227,10 +227,6 @@ contains
       class(symba_pl),              intent(inout) :: pl     !! SyMBA test particle object
       class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
-      ! Internals
-      logical, dimension(pl%nbody) ::  ldiscard
-      integer(I4B) :: i, nstart, nend, nsub
-      class(symba_pl), allocatable            :: plsub
     
       ! First check for collisions with the central body
       associate(npl => pl%nbody, cb => nbody_system%cb, pl_discards => nbody_system%pl_discards)
@@ -302,7 +298,6 @@ contains
       integer(I4B)          :: i
       character(len=STRMAX) :: timestr, idstr, message
 
-
       lfirst_orig = pl%lfirst
       pl%lfirst = nbody_system%lfirst_peri
       if (nbody_system%lfirst_peri) then
@@ -347,24 +342,47 @@ contains
       class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
       ! Internals
       real(DP) :: E_orbit_before, E_orbit_after
+      logical, dimension(:), allocatable :: ldiscard
+      integer(I4B) :: i, nstart, nend, nsub
+      logical :: cb_collide
+      class(swiftest_pl), allocatable :: plsub
    
       select type(nbody_system)
       class is (symba_nbody_system)
          select type(param)
          class is (swiftest_parameters)
-            associate(pl => self, plpl_encounter => nbody_system%plpl_encounter, plpl_collision => nbody_system%plpl_collision)
+            associate(pl => self, &
+                      npl => self%nbody, &
+                      t => nbody_system%t, &
+                      plpl_encounter => nbody_system%plpl_encounter, &
+                      plpl_collision => nbody_system%plpl_collision, &
+                      collider => nbody_system%collider, &
+                      impactors => nbody_system%collider%impactors, &
+                      collision_history => nbody_system%collision_history, &
+                      pl_discards => nbody_system%pl_discards)
                call pl%vb2vh(nbody_system%cb) 
                call pl%rh2rb(nbody_system%cb)
-               !call plpl_encounter%write(pl, pl, param) TODO: write the encounter list writer for NetCDF
 
                call symba_discard_nonplpl(self, nbody_system, param)
 
                if (.not.any(pl%ldiscard(:))) return
 
+               ! Save the before snapshots
                if (param%lenergy) then
                   call nbody_system%get_energy_and_momentum(param)
                   E_orbit_before = nbody_system%te
+                  call nbody_system%conservation_report(param, lterminal=.false.)
                end if
+
+               allocate(ldiscard, source=pl%ldiscard(:))
+               if (any(pl%status(:) == DISCARDED_RMIN) .or. any(pl%status(:) == DISCARDED_PERI)) then
+                  impactors%regime = REGIME_CB_IMPACT
+               else
+                  impactors%regime = REGIME_Ejected
+               end if
+               call pl%save_discard(ldiscard,nbody_system,collider%before)
+               call collision_history%take_snapshot(param,nbody_system, t, "before") 
+               deallocate(ldiscard)
 
                call symba_discard_nonplpl_conservation(self, nbody_system, param)
 
@@ -376,6 +394,7 @@ contains
                   nbody_system%E_collisions = nbody_system%E_collisions + (E_orbit_after - E_orbit_before)
                end if
 
+               call collision_history%take_snapshot(param,nbody_system, t, "after") 
             end associate
          end select 
       end select

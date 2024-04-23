@@ -242,7 +242,7 @@ module netcdf_io
          !! name of the time of origin variable
       integer(I4B) :: origin_time_varid
          !! ID for the origin time
-      character(NAMELEN) :: collision_id_varname = "collision_id"
+      character(NAMELEN) :: collision_id_dimname = "collision_id"
          !! name of the collision id variable
       integer(I4B) :: collision_id_varid
          !! Netcdf ID for the origin collision ID

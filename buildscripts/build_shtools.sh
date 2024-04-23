@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script will the SHTOOLS libraries from source
+# This script will build the SHTOOLS libraries from source
 # 
 # Copyright 2024 - The Minton Group at Purdue University
 # This file is part of Swiftest.

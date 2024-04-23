@@ -28,10 +28,12 @@ contains
       end interface
 
       ! Arguments
-      class(swiftest_nbody_system), intent(in) :: self  !! Swiftest nbody system object   
-      class(swiftest_parameters),   intent(in) :: param !! Input colleciton of user-defined parameters
-      class(*),                     intent(in) :: timer !! Object used for computing elapsed wall time  (must be unlimited 
-                                                        !! polymorphic because the walltimer module requires base)
+      class(swiftest_nbody_system), intent(in) :: self  
+         !! Swiftest nbody system object   
+      class(swiftest_parameters),   intent(in) :: param 
+         !! Input colleciton of user-defined parameters
+      class(*),                     intent(in) :: timer 
+         !! Object used for computing elapsed wall time  (must be unlimited polymorphic because the walltimer module requires base)
       ! Internals
       character(len=:), allocatable :: formatted_output
 
@@ -321,11 +323,12 @@ contains
             write(param%display_unit, *)" *************** Swiftest stop " // trim(adjustl(param%integrator)) // " *************** "
             if (param%display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // trim(adjustl(param%integrator))
             if (param%log_output) close(param%display_unit)
+         else
+            if (param%log_output) flush(param%display_unit)
          end if
 
 #ifdef COARRAY
       end if ! this_image() == num_images()
-      if (param%log_output) flush(param%display_unit)
 #endif
 
       return
@@ -805,7 +808,6 @@ contains
       class(swiftest_parameters),        intent(in)    :: param !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: nvar, varid, vartype
-      integer(I4B) :: status
       real(DP) :: dfill
       real(SP) :: sfill
       integer(I4B), parameter :: NO_FILL = 0
@@ -940,7 +942,7 @@ contains
                                                nc%origin_vh_varid), &
                                   "netcdf_io_initialize_output nf90_def_var origin_vh_varid"  )
 
-            call netcdf_io_check( nf90_def_var(nc%id, nc%collision_id_varname, NF90_INT, nc%name_dimid, nc%collision_id_varid), &
+            call netcdf_io_check( nf90_def_var(nc%id, nc%collision_id_dimname, NF90_INT, nc%name_dimid, nc%collision_id_varid), &
                                   "netcdf_io_initialize_output nf90_def_var collision_id_varid"  )
             call netcdf_io_check( nf90_def_var(nc%id, nc%discard_time_varname, nc%out_type, nc%name_dimid, nc%discard_time_varid), &
                                   "netcdf_io_initialize_output nf90_def_var discard_time_varid"  )
@@ -1239,7 +1241,7 @@ contains
             status = nf90_inq_varid(nc%id, nc%origin_time_varname, nc%origin_time_varid)
             status = nf90_inq_varid(nc%id, nc%origin_rh_varname, nc%origin_rh_varid)
             status = nf90_inq_varid(nc%id, nc%origin_vh_varname, nc%origin_vh_varid)
-            status = nf90_inq_varid(nc%id, nc%collision_id_varname, nc%collision_id_varid)
+            status = nf90_inq_varid(nc%id, nc%collision_id_dimname, nc%collision_id_varid)
             status = nf90_inq_varid(nc%id, nc%discard_time_varname, nc%discard_time_varid)
             status = nf90_inq_varid(nc%id, nc%discard_rh_varname, nc%discard_rh_varid)
             status = nf90_inq_varid(nc%id, nc%discard_vh_varname, nc%discard_vh_varid)
@@ -1900,7 +1902,7 @@ contains
                call tp%info(i)%set_value(origin_vh=vectemp(:,tpind(i)))
             end do
 
-            status = nf90_inq_varid(nc%id, nc%collision_id_varname, nc%collision_id_varid)
+            status = nf90_inq_varid(nc%id, nc%collision_id_dimname, nc%collision_id_varid)
             if (status == NF90_NOERR) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%collision_id_varid, itemp), &
                                   "netcdf_io_read_particle_info_system nf90_getvar collision_id_varid"  )
@@ -2128,9 +2130,7 @@ contains
       class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       ! Internals
-      integer(I4B)                              :: idslot, old_mode, tmp, i
-      integer(I4B), dimension(:), allocatable   :: lm_coords
-      integer(I4B) :: status
+      integer(I4B)                              :: idslot, old_mode, tmp
 
       associate(tslot => nc%tslot)
          call self%write_info(nc, param)
@@ -2447,11 +2447,13 @@ contains
       logical                        :: seed_set = .false.      !! Is the random seed set in the input file?
       real(DP)                       :: tratio, y
 #ifdef COARRAY
-      type(swiftest_parameters), codimension[*], save :: coparam
-     
-   if (this_image() == 1) then
-      coparam = self
-      associate(param => coparam) 
+      type(swiftest_parameters), codimension[:], allocatable :: param
+
+      select type(self)
+      type is (swiftest_parameters)
+         allocate(param[*], source = self)
+      end select
+
 #else
       associate(param => self) 
 #endif
@@ -2459,6 +2461,9 @@ contains
          call random_seed(size = nseeds)
          if (allocated(param%seed)) deallocate(param%seed)
          allocate(param%seed(nseeds))
+#ifdef COARRAY
+      if (this_image() == 1) then
+#endif
          open(unit = unit, file = param%param_file_name, status = 'old', err = 667, iomsg = iomsg)
          do
             read(unit = unit, fmt = linefmt, end = 1, err = 667, iomsg = iomsg) line
@@ -2739,7 +2744,7 @@ contains
                return
             end if
             if ((param%out_stat /= "NEW") .and. (param%out_stat /= "REPLACE") .and. (param%out_stat /= "APPEND")  &
-          .and. (param%out_stat /= "UNKNOWN")) then
+            .and. (param%out_stat /= "UNKNOWN")) then
                write(iomsg,*) 'Invalid out_stat: ',trim(adjustl(param%out_stat))
                iostat = -1
                return
@@ -2772,11 +2777,10 @@ contains
          ! Calculate the G for the nbody_system units
          param%GU = GC / (param%DU2M**3 / (param%MU2KG * param%TU2S**2))
 
-
          if ((param%encounter_save /= "NONE")       .and. &
-             (param%encounter_save /= "TRAJECTORY") .and. &
-             (param%encounter_save /= "CLOSEST")    .and. &
-             (param%encounter_save /= "BOTH")) then
+               (param%encounter_save /= "TRAJECTORY") .and. &
+               (param%encounter_save /= "CLOSEST")    .and. &
+               (param%encounter_save /= "BOTH")) then
             write(iomsg,*) 'Invalid encounter_save parameter: ',trim(adjustl(param%out_type))
             write(iomsg,*) 'Valid options are NONE, TRAJECTORY, CLOSEST, or BOTH'
             iostat = -1
@@ -2803,27 +2807,27 @@ contains
          end if
 
          if ((param%collision_model /= "MERGE")       .and. &
-             (param%collision_model /= "BOUNCE")    .and. &
-             (param%collision_model /= "FRAGGLE")) then
+               (param%collision_model /= "BOUNCE")    .and. &
+               (param%collision_model /= "FRAGGLE")) then
             write(iomsg,*) 'Invalid collision_model parameter: ',trim(adjustl(param%out_type))
             write(iomsg,*) 'Valid options are MERGE, BOUNCE, or FRAGGLE'
             iostat = -1
             return
          end if
 
+         if (seed_set) then
+            call random_seed(put = param%seed)
+         else
+            call random_seed(get = param%seed)
+         end if
          if (param%collision_model == "FRAGGLE" ) then
-            if (seed_set) then
-               call random_seed(put = param%seed)
-            else
-               call random_seed(get = param%seed)
-            end if
             if (param%min_GMfrag < 0.0_DP) param%min_GMfrag = param%GMTINY
             if (param%nfrag_reduction < 1.0_DP) then
                write(iomsg,*) "Warning: NFRAG_REDUCTION value invalid. Setting to 1.0" 
                param%nfrag_reduction = 1.0_DP
             end if
          end if
-   
+
          ! Determine if the GR flag is set correctly for this integrator
          select case(param%integrator)
          case(INT_WHM, INT_RMVS, INT_HELIO, INT_SYMBA)
@@ -2877,7 +2881,6 @@ contains
             param%lencounter_sas_pltp = .false.
          end select
 
-
          if (param%lcoarray) then
 #ifdef COARRAY
             if (num_images() == 1) then
@@ -2889,7 +2892,7 @@ contains
             case(INT_WHM, INT_RMVS, INT_HELIO)
             case default   
                write(iomsg, *) "Coarray-based parallelization of test particles are not compatible with this integrator. " &
-                            // "This parameter will be ignored."
+                              // "This parameter will be ignored."
                param%lcoarray = .false.
             end select
 #else
@@ -2899,33 +2902,32 @@ contains
          end if
 
          iostat = 0
-
-      end associate
-
 #ifdef COARRAY
-   end if ! this_image() == 1
-      call coparam%coclone()
+      end if ! this_image() == 1
+#else
+      end associate
 #endif
-      select type(param => self)
+      select type(self)
       type is (swiftest_parameters)
 #ifdef COARRAY
-         param = coparam
+         call coclone(param)
+         self = param
 #endif
-         call param%set_display(param%display_style)
+         call self%set_display(self%display_style)
 
-         if (.not.param%lrestart) then
+         if (.not.self%lrestart) then
 #ifdef COARRAY
-            if (this_image() == 1 .or. param%log_output) then
+            if (this_image() == 1 .or. self%log_output) then
 #endif
-               call param%writer(unit = param%display_unit, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg)
-               if (param%log_output) flush(param%display_unit) 
+               call self%writer(unit = self%display_unit, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg)
+               if (self%log_output) flush(self%display_unit) 
 #ifdef COARRAY
             end if !(this_image() == 1)
-            write(COLLISION_LOG_OUT,'("collision_coimage",I0.3,".log")') this_image()
+            write(COLLISION_LOG_OUT,'("collision_coimage",I0.4,".log")') this_image()
 #endif
             ! A minimal log of collision outcomes is stored in the following log file
             ! More complete data on collisions is stored in the NetCDF output files
-            call swiftest_io_log_start(param, COLLISION_LOG_OUT, "Collision logfile")
+            call swiftest_io_log_start(self, COLLISION_LOG_OUT, "Collision logfile")
          end if
          ! Print the contents of the parameter file to standard output
       end select
@@ -3566,7 +3568,7 @@ contains
       case ('COMPACT', 'PROGRESS')
 #ifdef COARRAY
          if (self%lcoarray) then
-            write(SWIFTEST_LOG_FILE,'("swiftest_coimage",I0.3,".log")') this_image()
+            write(SWIFTEST_LOG_FILE,'("swiftest_coimage",I0.4,".log")') this_image()
          else
             write(SWIFTEST_LOG_FILE,'("swiftest.log")')
          end if 

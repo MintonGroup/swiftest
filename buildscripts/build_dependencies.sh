@@ -89,6 +89,10 @@ ${SCRIPT_DIR}/build_netcdf-c.sh
 ${SCRIPT_DIR}/build_netcdf-fortran.sh
 ${SCRIPT_DIR}/build_shtools.sh 
 
+if [ $OS = "Linux" ]; then
+    ${SCRIPT_DIR}/build_opencoarrays.sh
+fi
+
 printf "\n"
 printf "*********************************************************\n"
 printf "*             DEPENDENCIES ARE BUILT                    *\n"

@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script will the NetCDF C library from source
+# This script will build the NetCDF C library from source
 # 
 # Copyright 2024 - The Minton Group at Purdue University
 # This file is part of Swiftest.
@@ -35,8 +35,8 @@ if [ ! -d ${DEPENDENCY_DIR}/netcdf-c-${NC_VER} ]; then
     [ -d ${DEPENDENCY_DIR}/netcdf-c-* ] && rm -rf ${DEPENDENCY_DIR}/netcdf-c-*
     curl -s -L https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NC_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
 fi
-LIBS="-lhdf5_hl -lhdf5 -lm -lz -lzstd -lbz2 -lcurl -lsz ${LIBS}"
-LDFLAGS="${LDFLAGS} ${LIBS}"
+#LIBS="-lhdf5_hl -lhdf5 -lm -lz -lzstd -lbz2 -lcurl -lsz ${LIBS}"
+#LDFLAGS="${LDFLAGS} ${LIBS}"
 printf "\n"
 printf "*********************************************************\n"
 printf "*              BUILDING NETCDF-C LIBRARY                *\n"
@@ -68,16 +68,13 @@ cmake -B build -S . -G Ninja  \
     -DENABLE_PLUGINS:BOOL=OFF \
     -DBUILD_UTILITIES:BOOL=OFF \
     -DBUILD_TESTING:BOOL=OFF \
-    -DBUILD_TESTSETS:BOOL=OFF \
     -DENABLE_DAP_REMOTE_TESTS:BOOL=OFF \
-    -DENABLE_EXAMPLES:BOOL=OFF \
-    -DENABLE_NCZARR_FILTERS_TESTING:BOOL=OFF \
-    -DENABLE_SHARED_LIBRARY_VERSION:BOOL=OFF \
-    -DBUILD_SHARED_LIBS:BOOL=OFF \
+    -DENABLE_SHARED_LIBRARY_VERSION:BOOL=ON \
+    -DBUILD_SHARED_LIBS:BOOL=ON \
     -DENABLE_TESTS:BOOL=OFF \
     -DENABLE_EXTRA_TESTS:BOOL=OFF \
-    -DENABLE_UNIT_TESTS:BOOL=OFF \
-    -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON 
+    -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON \
+    -DENABLE_PARALLEL4:BOOL=ON
 
 cmake --build build -j${NPROC} 
 if [ -w "${NCDIR}" ]; then

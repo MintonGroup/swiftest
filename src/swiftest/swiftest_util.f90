@@ -2192,6 +2192,48 @@ contains
       return
    end subroutine swiftest_util_resize_tp
 
+   module subroutine swiftest_util_save_discard_body(self, ldiscard_mask, nbody_system, snapshot)
+      !! author: David A. Minton
+      !!
+      !! Saves the discarded bodies from a Swiftest body object to a snapshot object
+      implicit none
+      ! Arguments
+      class(swiftest_body), intent(inout) :: self 
+         !! Swiftest body object
+      logical, dimension(:), intent(in) :: ldiscard_mask 
+         !! Logical mask indicating which elements to discard
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_nbody_system), intent(inout) :: snapshot
+         !! Swiftest nbody system object to store the snapshot of the discard system. Typically this will be something like 
+         !! nbody_system%collider%before or nbody_system%collider%after
+      ! Internals
+      class(swiftest_tp), allocatable :: tp_discards
+      class(swiftest_pl), allocatable :: pl_discards
+
+      select type(snapshot)
+      class is (swiftest_nbody_system)
+         select type(self)
+         class is (swiftest_tp)
+            allocate(tp_discards, mold=self)
+            call self%spill(tp_discards, ldiscard_mask, ldestructive=.false.)
+            if (allocated(snapshot%tp)) deallocate(snapshot%tp)
+            allocate(snapshot%tp, source=tp_discards)
+         class is (swiftest_pl)
+            allocate(pl_discards, mold=self)
+            call self%spill(pl_discards, ldiscard_mask, ldestructive=.false.)
+            if (allocated(snapshot%pl)) deallocate(snapshot%pl)
+            allocate(snapshot%pl, source=pl_discards)
+         end select
+   
+         if (nbody_system%collider%impactors%regime == REGIME_CB_IMPACT) then
+            if (allocated(snapshot%cb)) deallocate(snapshot%cb)
+            allocate(snapshot%cb, source=nbody_system%cb)
+         end if
+      end select
+      return
+   end subroutine swiftest_util_save_discard_body
+
 
    module subroutine swiftest_util_set_beg_end_pl(self, rbeg, rend, vbeg)
       !! author: David A. Minton
