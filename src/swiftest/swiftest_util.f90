@@ -2192,6 +2192,7 @@ contains
       return
    end subroutine swiftest_util_resize_tp
 
+
    module subroutine swiftest_util_save_discard_body(self, ldiscard_mask, nbody_system, snapshot)
       !! author: David A. Minton
       !!
