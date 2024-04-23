@@ -103,11 +103,11 @@ MPI_HOME="${HOMEBREW_PREFIX}"
 PATH="${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin:${HOMEBREW_PREFIX}/bin:${PREFIX}/bin:${PATH}"
 GFORTRAN_VERSION="$(buildscripts/get_gfortran_version.sh)"
 OMPI_FC="$(buildscripts/get_gfortran_path.sh)"
-CC="$(command -v mpicc)"
-CXX="$(command -v mpic++)"
-FC="$(command -v mpifort)"
-F77="$(command -v mpifort)"
-F95="$(command -v mpifort)"
+CC="mpicc"
+CXX="mpic++"
+FC="mpifort"
+F77="mpifort"
+F95="mpifort"
 
 [tool.cibuildwheel.linux.environment]
 SKBUILD_CMAKE_ARGS=["-DMACHINE_CODE_VALUE=generic","-DUSE_COARRAY:BOOL=ON"]
@@ -129,11 +129,11 @@ LDFLAGS="-L${PREFIX}/lib"
 REPAIR_LIBRARY_PATH="${LD_LIBRARY_PATH}"
 GFORTRAN_VERSION="$(buildscripts/get_gfortran_version.sh)"
 OMPI_FC="$(buildscripts/get_gfortran_path.sh)"
-CC="$(command -v mpicc)"
-CXX="$(command -v mpic++)"
-FC="$(command -v mpifort)"
-F77="$(command -v mpifort)"
-F95="$(command -v mpifort)"
+CC="mpicc"
+CXX="mpic++"
+FC="mpifort"
+F77="mpifort"
+F95="mpifort"
 
 [tool.cibuildwheel.macos]
 before-all = [
