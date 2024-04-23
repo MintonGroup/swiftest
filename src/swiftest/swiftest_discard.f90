@@ -23,6 +23,9 @@ contains
          !! Current run configuration parameters
       ! Internals
       logical :: lpl_check, ltp_check
+      logical :: ldiscard_pl = .false. 
+      logical :: ldiscard_tp = .false.
+
       integer(I4B) :: i
 
       lpl_check = allocated(self%pl_discards) .and. self%pl%nbody > 0
@@ -34,15 +37,17 @@ contains
                 npl => self%pl%nbody, &
                 ntp => self%tp%nbody)
          if (lpl_check .and. npl > 0) then
-            pl%ldiscard = pl%status(:) /= ACTIVE
             call pl%discard(nbody_system, param)
+            ldiscard_pl = any(pl%ldiscard(:))
          end if
             
          if (ltp_check .and. ntp > 0) then
-            tp%ldiscard = tp%status(:) /= ACTIVE
             call tp%discard(nbody_system, param)
+            ldiscard_tp = any(tp%ldiscard(:)) 
          end if
-         
+
+         if (ldiscard_pl) call pl%rearray(nbody_system, param) 
+         if (ldiscard_tp) call tp%rearray(nbody_system, param)
       end associate
 
       return
@@ -56,12 +61,16 @@ contains
       !! to false. This method is intended to be overridden by more advanced integrators.
       implicit none
       ! Arguments
-      class(swiftest_pl),           intent(inout) :: self   !! Swiftest massive body object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameter
+      class(swiftest_pl),           intent(inout) :: self   
+         !! Swiftest massive body object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param  
+         !! Current run configuration parameter
 
       if (self%nbody == 0) return
       associate(pl => self, cb => nbody_system%cb)
+         pl%ldiscard = pl%status(:) /= ACTIVE
          if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or. &
              (param%rmaxu >= 0.0_DP) .or. ((param%qmin >= 0.0_DP) .and. (param%qmin_coord == "BARY"))) call pl%h2b(cb) 
 
@@ -84,13 +93,17 @@ contains
       !! Adapted from Hal Levison's Swift routine discard.
       implicit none
       ! Arguments
-      class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameter
+      class(swiftest_tp),           intent(inout) :: self   
+         !! Swiftest test particle object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param  
+         !! Current run configuration parameter
 
       if (self%nbody == 0) return
 
       associate(tp => self, cb => nbody_system%cb, pl => nbody_system%pl)
+         tp%ldiscard = tp%status(:) /= ACTIVE
          if ((param%rmin >= 0.0_DP) .or. (param%rmax >= 0.0_DP) .or. &
              (param%rmaxu >= 0.0_DP) .or. ((param%qmin >= 0.0_DP) .and. (param%qmin_coord == "BARY"))) then
             call pl%h2b(cb) 
