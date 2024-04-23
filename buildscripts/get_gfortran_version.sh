@@ -11,6 +11,7 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 
+OMPI_FC="$(command -v gfortran-13 || command -v gfortran-12 || command -v gfortran)"
 FC=${FC:-"$(command -v mpif90)"}
 echo "$(${FC} --version | head -n1 | awk '{print $NF}' | cut -d. -f1)"
 set +a

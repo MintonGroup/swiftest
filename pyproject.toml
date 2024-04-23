@@ -102,9 +102,11 @@ CFLAGS="${FCFLAGS} -Wno-deprecated-non-prototype -arch ${ARCH}"
 CXXFLAGS="${CFLAGS}"
 PATH="${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin:${HOMEBREW_PREFIX}/bin:${PREFIX}/bin:${PATH}"
 MPI_HOME="${HOMEBREW_PREFIX}"
+OMPI_FC="$(command -v gfortran)"
 CC="${MPI_HOME}/bin/mpicc"
 CXX="${MPI_HOME}/bin/mpic++"
 FC="${MPI_HOME}/bin/mpif90"
+
 
 [tool.cibuildwheel.linux.environment]
 SKBUILD_CMAKE_ARGS=["-DMACHINE_CODE_VALUE=generic","-DUSE_COARRAY:BOOL=ON"]
