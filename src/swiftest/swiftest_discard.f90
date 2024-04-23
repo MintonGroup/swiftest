@@ -207,6 +207,7 @@ contains
                   ldiscard(:) = .false.
                   ldiscard(i) = .true.
                   call body%save_discard(ldiscard,nbody_system,collider%before)
+                  ! The base class doesn't do a before/after comparison, so we just save the before snapshot
                   call collision_history%take_snapshot(param,nbody_system, t, "particle") 
                end if
             end if

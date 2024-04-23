@@ -736,7 +736,6 @@ module base
          character(*), parameter :: USAGE_MSG = '("Usage: swiftest <whm|helio|rmvs|symba> <paramfile> ' // &
                                                 '[{standard}|compact|progress]")'
          character(*), parameter :: HELP_MSG  = USAGE_MSG
-         character(STRMAX) :: errmsg
          integer(I4B) :: iu
 
 #ifdef COARRAY
@@ -757,10 +756,9 @@ module base
             case(HELP)
                write(iu, HELP_MSG)
             case default
-               write(errmsg, FAIL_MSG) VERSION
-               write(iu, FAIL_MSG) trim(adjustl(errmsg))
+               write(iu, FAIL_MSG) VERSION
                write(iu, BAR)
-               error stop "Error in Swiftest. Exiting..."
+               error stop -1
             end select
 #ifdef COARRAY
          end if
