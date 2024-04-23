@@ -1702,8 +1702,14 @@ contains
       associate(pl => self, tp => nbody_system%tp, cb => nbody_system%cb, pl_adds => nbody_system%pl_adds)
 
          npl = pl%nbody
-         nadd = pl_adds%nbody
          if (npl == 0) return
+
+         if (allocated(nbody_system%pl_adds)) then
+            nadd = pl_adds%nbody
+         else
+            nadd = 0
+         end if
+
          ! Deallocate any temporary variables
          if (allocated(pl%rbeg)) deallocate(pl%rbeg)
          if (allocated(pl%rend)) deallocate(pl%rend)

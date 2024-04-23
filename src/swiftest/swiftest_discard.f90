@@ -22,7 +22,9 @@ contains
       class(swiftest_parameters),   intent(inout) :: param  
          !! Current run configuration parameters
       ! Internals
-      logical :: lpl_check, ltp_check, ldiscard_pl, ldiscard_tp 
+      logical :: lpl_check, ltp_check
+      logical :: ldiscard_pl = .false. 
+      logical :: ldiscard_tp = .false.
 
       integer(I4B) :: i
 
@@ -43,6 +45,7 @@ contains
             call tp%discard(nbody_system, param)
             ldiscard_tp = any(tp%ldiscard(:)) 
          end if
+
          if (ldiscard_pl) call pl%rearray(nbody_system, param) 
          if (ldiscard_tp) call tp%rearray(nbody_system, param)
       end associate

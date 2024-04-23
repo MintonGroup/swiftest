@@ -55,8 +55,6 @@ sim.get_parameter()
 # Run the simulation. Arguments may be defined here or thorugh the swiftest.Simulation() method.
 sim.run(tstart=0.0, tstop=5e-2, dt=0.0001, istep_out=1, dump_cadence=0, integrator="rmvs")
 
-
-
 sim = swiftest.Simulation(simdir='massless_sundiver',compute_conservation_values=False, integrator="rmvs")
 
 sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"])

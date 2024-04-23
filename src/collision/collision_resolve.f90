@@ -19,11 +19,16 @@ contains
       !! collisional outcome.
       implicit none
       ! Arguments
-      class(collision_impactors),intent(out) :: self !! Collision impactors object
-      class(base_nbody_system),intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters), intent(in) :: param !! Current run configuration parameters with Swiftest additions
-      integer(I4B), dimension(:), intent(inout) :: idx_parent !! Index of the two bodies considered the "parents" of the collision
-      logical, intent(out) :: lflag !! Logical flag indicating whether a impactors%id was successfully created or not
+      class(collision_impactors),intent(out) :: self 
+         !! Collision impactors object
+      class(base_nbody_system),intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters), intent(in) :: param 
+         !! Current run configuration parameters with Swiftest additions
+      integer(I4B), dimension(:), intent(inout) :: idx_parent 
+         !! Index of the two bodies considered the "parents" of the collision
+      logical, intent(out) :: lflag 
+         !! Logical flag indicating whether a impactors%id was successfully created or not
       ! Internals
       type collidx_array
          integer(I4B), dimension(:), allocatable :: id
@@ -185,9 +190,12 @@ contains
       !!
       implicit none
       ! Arguments
-      class(collision_list_plpl), intent(inout) :: self         !! pl-pl encounter list
-      class(base_nbody_system),   intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),     intent(in)    :: param        !! Current run configuration parameters
+      class(collision_list_plpl), intent(inout) :: self         
+         !! pl-pl encounter list
+      class(base_nbody_system),   intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters),     intent(in)    :: param        
+         !! Current run configuration parameters
       ! Internals
       logical,      dimension(:), allocatable :: lplpl_collision
       logical,      dimension(:), allocatable :: lplpl_unique_parent
@@ -254,9 +262,12 @@ contains
 
    module subroutine collision_resolve_extract_pltp(self, nbody_system, param)
       implicit none
-      class(collision_list_pltp), intent(inout) :: self   !! pl-tp encounter list
-      class(base_nbody_system),   intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),     intent(in)    :: param  !! Current run configuration parameters
+      class(collision_list_pltp), intent(inout) :: self   
+         !! pl-tp encounter list
+      class(base_nbody_system),   intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters),     intent(in)    :: param  
+         !! Current run configuration parameters
       ! Internals
       logical,      dimension(:), allocatable :: lpltp_collision
       integer(I8B)                            :: ncollisions, k, npltpenc
@@ -307,8 +318,10 @@ contains
       !! Adapted from Hal Levison's Swift routine symba5_merge.f
       implicit none
       ! Arguments
-      class(base_object),           intent(inout) :: pl !! Swiftest massive body object
-      integer(I4B), dimension(:), intent(in)      :: idx  !! Array holding the indices of the two bodies involved in the collision
+      class(base_object),           intent(inout) :: pl 
+         !! Swiftest massive body object
+      integer(I4B), dimension(:), intent(in)      :: idx  
+         !! Array holding the indices of the two bodies involved in the collision
       ! Internals
       integer(I4B)                              :: i, j, index_parent, index_child, p1, p2
       integer(I4B)                              :: nchild_inherit, nchild_orig, nchild_new
@@ -366,10 +379,14 @@ contains
       use symba, only : symba_pl
       implicit none
       ! Arguments
-      class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters with Swiftest additions
-      real(DP),                 intent(in)    :: t            !! Time of collision
-      integer(I4B),             intent(in)    :: status       !! Status flag to assign to adds
+      class(base_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters),   intent(inout) :: param        
+         !! Current run configuration parameters with Swiftest additions
+      real(DP),                 intent(in)    :: t            
+         !! Time of collision
+      integer(I4B),             intent(in)    :: status       
+         !! Status flag to assign to adds
       ! Internals
       integer(I4B) :: i, ibiggest, ismallest, iother, nimpactors, nfrag, nameidx
       logical, dimension(:), allocatable  :: lmask
@@ -559,12 +576,18 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(collision_list_plpl), intent(inout) :: self   !! Swiftest pl-pl encounter list
-      class(base_nbody_system),   intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),     intent(inout) :: param  !! Current run configuration parameters with Swiftest additions
-      real(DP),                   intent(in)    :: t      !! Current simulation time
-      real(DP),                   intent(in)    :: dt     !! Current simulation step size
-      integer(I4B),               intent(in)    :: irec   !! Current recursion level
+      class(collision_list_plpl), intent(inout) :: self   
+         !! Swiftest pl-pl encounter list
+      class(base_nbody_system),   intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters),     intent(inout) :: param  
+         !! Current run configuration parameters with Swiftest additions
+      real(DP),                   intent(in)    :: t      
+         !! Current simulation time
+      real(DP),                   intent(in)    :: dt     
+         !! Current simulation step size
+      integer(I4B),               intent(in)    :: irec   
+         !! Current recursion level
       ! Internals
       real(DP) :: E_before, E_after, mnew
       real(DP), dimension(NDIM) ::L_before, L_after, dL
@@ -702,15 +725,20 @@ contains
       !! author: David A. Minton
       !! 
       !! Process the pl-tp collision list, then modifiy the massive bodies based on the outcome of the collision
-      !! 
       implicit none
       ! Arguments
-      class(collision_list_pltp), intent(inout) :: self   !! Swiftest pl-pl encounter list
-      class(base_nbody_system),   intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),     intent(inout) :: param  !! Current run configuration parameters with Swiftest additions
-      real(DP),                   intent(in)    :: t      !! Current simulation time
-      real(DP),                   intent(in)    :: dt     !! Current simulation step size
-      integer(I4B),               intent(in)    :: irec   !! Current recursion level
+      class(collision_list_pltp), intent(inout) :: self   
+         !! Swiftest pl-pl encounter list
+      class(base_nbody_system),   intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters),     intent(inout) :: param  
+         !! Current run configuration parameters with Swiftest additions
+      real(DP),                   intent(in)    :: t      
+         !! Current simulation time
+      real(DP),                   intent(in)    :: dt     
+         !! Current simulation step size
+      integer(I4B),               intent(in)    :: irec   
+         !! Current recursion level
       ! Internals
       class(swiftest_pl), allocatable :: plsub
       class(swiftest_tp), allocatable :: tpsub
