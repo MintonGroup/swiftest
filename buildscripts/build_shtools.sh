@@ -45,13 +45,13 @@ cd ${DEPENDENCY_DIR}/SHTOOLS*
 case $FC in
     *"gfortran"*|*"mpifort")
         echo "Everything else"
-        make -j${NPROC} F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -O3 -std=gnu -ffast-math ${FFLAGS}" fortran
-        make -j${NPROC} F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -O3 -std=gnu -ffast-math ${FFLAGS}" fortran-mp
+        make -j${NPROC} F95="${OMPI_FC}" CXX="${CXX}" F95FLAGS="-fPIC -O3 -std=gnu -ffast-math ${FFLAGS}" fortran
+        make -j${NPROC} F95="${OMPI_FC}" CXX="${CXX}" F95FLAGS="-fPIC -O3 -std=gnu -ffast-math ${FFLAGS}" fortran-mp
         ;;
     *"mpiifort"*|*"ifx"*)
         echo "Using Intel Fortran compiler"
-        make -j${NPROC} F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -m64 -fpp -free -O3 ${FFLAGS} -Tf" fortran
-        make -j${NPROC} F95="${FC}" CXX="${CXX}" F95FLAGS="-fPIC -m64 -fpp -free -O3 ${FFLAGS} -Tf" fortran-mp
+        make -j${NPROC} F95="${OMPI_FC}" CXX="${CXX}" F95FLAGS="-fPIC -m64 -fpp -free -O3 ${FFLAGS} -Tf" fortran
+        make -j${NPROC} F95="${OMPI_FC}" CXX="${CXX}" F95FLAGS="-fPIC -m64 -fpp -free -O3 ${FFLAGS} -Tf" fortran-mp
         ;;
 esac
 
