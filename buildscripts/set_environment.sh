@@ -85,12 +85,12 @@ CMAKE_INSTALL_LIBDIR="lib"
 NPROC=$(nproc)
 
 OMPI_FC="$(${SCRIPT_DIR}/get_gfortran_path.sh)"
+GFORTRAN_VERSION="$(buildscripts/get_gfortran_version.sh)"
 CC="$(command -v mpicc)"
 CXX="$(command -v mpic++)"
-FC="$(command -v mpif90)"
-F77="$(command -v mpif77)"
-F95=${FC}
-GFORTRAN_VERSION="$(${SCRIPT_DIR}/get_gfortran_version.sh)"
+FC="$(command -v mpifort)"
+F77="$(command -v mpifort)"
+F95="$(command -v mpifort)"
 
 if [ $OS = "Darwin" ]; then
     MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-"$(${SCRIPT_DIR}/get_macosx_deployment_target.sh)"}
