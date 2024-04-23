@@ -107,7 +107,7 @@ if [ $OS = "Darwin" ]; then
     FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET}"
     FFLAGS="${FCFLAGS}"
     CXXFLAGS="${CFLAGS}"
-    PATH="${HOMEBREW_PREFIX}/bin:${PATH}"
+    PATH="${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin:${HOMEBREW_PREFIX}/bin:${PATH}"
 else
     LIBS="-lgomp"
     CFLAGS="-Wa,--noexecstack"
