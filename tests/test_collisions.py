@@ -61,6 +61,12 @@ class TestCollisions(unittest.TestCase):
         self.assertLess(dEtot,0)
         
         
+        # Test that massive bodies can be discarded in RMVS
+        sim.run(tstart=0.0, tstop=5e-2, dt=0.0001, istep_out=1, dump_cadence=0, integrator="rmvs")
+        # Check that the collision actually happened
+        self.assertEqual(sim.collisions.collision_id.size,1) 
+        
+        
         # Now run the same test but with a massless body using both the RMVS and Symba integrators
         sim = swiftest.Simulation(simdir=self.simdir,compute_conservation_values=False, integrator="symba")
         sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"])
