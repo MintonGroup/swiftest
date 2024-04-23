@@ -25,35 +25,39 @@ class TestCollisions(unittest.TestCase):
         self.tmpdir.cleanup() 
         
     def test_solar_impact(self):
-       '''
-       Tests that impacts into the central body work correctly
-       '''
-       sim = swiftest.Simulation(simdir=self.simdir,compute_conservation_values=True, rotation=True, integrator="symba")
+        '''
+        Tests that impacts into the central body work correctly
+        '''
+        sim = swiftest.Simulation(simdir=self.simdir,compute_conservation_values=True, rotation=True, integrator="symba")
 
-       # Add the modern planets and the Sun using the JPL Horizons Database.
-       sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"])
+        # Add the modern planets and the Sun using the JPL Horizons Database.
+        sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"])
 
-       density  = 3000.0 * sim.KG2MU / sim.M2DU**3
+        density  = 3000.0 * sim.KG2MU / sim.M2DU**3
 
-       # Make a body with a periapsis inside the Sun's radius
-       q = 0.01 * swiftest.RSun * sim.M2DU
-       a = 0.1
-       e = 1.0 - q / a
-       M = 2e0 * swiftest.MEarth * sim.KG2MU
-       R = (3 * M  / (4 * np.pi * density)) ** (1.0 / 3.0)
-       rot = 4 * sim.init_cond.sel(name="Earth")['rot']
-       sim.add_body(name="Sundiver", a=a, e=e, inc=0.0, capom=0.0, omega=0.0, capm=180.0, mass=M, radius=R, Ip=[0.4,0.4,0.4], rot=rot)
-       
-       sim.run(tstart=0.0, tstop=5e-2, dt=0.0001, istep_out=1, dump_cadence=0)
-       
-       # Check that angular momentum is conserved
-       ds=sim.collisions.sel(collision_id=1)
-       ds['Ltot']=ds.L_orbit+ds.L_spin
-       ds['Ltot_mag']=ds.Ltot.magnitude()
-       dLtot=ds.Ltot_mag.diff('stage').values[0]
-       self.assertAlmostEqual(dLtot,0,places=8)
+        # Make a body with a periapsis inside the Sun's radius
+        q = 0.01 * swiftest.RSun * sim.M2DU
+        a = 0.1
+        e = 1.0 - q / a
+        M = 2e0 * swiftest.MEarth * sim.KG2MU
+        R = (3 * M  / (4 * np.pi * density)) ** (1.0 / 3.0)
+        rot = 4 * sim.init_cond.sel(name="Earth")['rot']
+        sim.add_body(name="Sundiver", a=a, e=e, inc=0.0, capom=0.0, omega=0.0, capm=180.0, mass=M, radius=R, Ip=[0.4,0.4,0.4], rot=rot)
+        
+        sim.run(tstart=0.0, tstop=5e-2, dt=0.0001, istep_out=1, dump_cadence=0)
+        
+        # Check that angular momentum is conserved
+        ds=sim.collisions.sel(collision_id=1)
+        ds['Ltot']=ds.L_orbit+ds.L_spin
+        ds['Ltot_mag']=ds.Ltot.magnitude()
+        dLtot=ds.Ltot_mag.diff('stage').values[0]
+        self.assertAlmostEqual(dLtot,0,places=8)
+        
+        # Check that energy was lost
+        dEtot=ds.TE.diff('stage').values[0]
+        self.assertLess(dEtot,0)
 
-       return 
+        return 
          
 if __name__ == '__main__':
     os.environ["HDF5_USE_FILE_LOCKING"]="FALSE"
