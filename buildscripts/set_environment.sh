@@ -85,7 +85,7 @@ CMAKE_INSTALL_LIBDIR="lib"
 NPROC=$(nproc)
 
 OMPI_FC="$(${SCRIPT_DIR}/get_gfortran_path.sh)"
-GFORTRAN_VERSION="$(buildscripts/get_gfortran_version.sh)"
+GFORTRAN_VERSION="$(${SCRIPT_DIR}/get_gfortran_version.sh)"
 CC="$(command -v mpicc)"
 CXX="$(command -v mpic++)"
 FC="$(command -v mpifort)"
