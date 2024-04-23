@@ -378,11 +378,10 @@ contains
                if (any(pl%status(:) == DISCARDED_RMIN) .or. any(pl%status(:) == DISCARDED_PERI)) then
                   impactors%regime = REGIME_CB_IMPACT
                else
-                  impactors%regime = REGIME_Ejected
+                  impactors%regime = REGIME_EJECTED
                end if
                call pl%save_discard(ldiscard,nbody_system,collider%before)
                call collision_history%take_snapshot(param,nbody_system, t, "before") 
-               deallocate(ldiscard)
 
                call symba_discard_nonplpl_conservation(self, nbody_system, param)
 
@@ -394,6 +393,8 @@ contains
                   nbody_system%E_collisions = nbody_system%E_collisions + (E_orbit_after - E_orbit_before)
                end if
 
+               ldiscard(:) = .false.
+               call pl%save_discard(ldiscard,nbody_system,collider%after)
                call collision_history%take_snapshot(param,nbody_system, t, "after") 
             end associate
          end select 
