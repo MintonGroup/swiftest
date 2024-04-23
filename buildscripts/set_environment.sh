@@ -84,9 +84,11 @@ PATH="${PREFIX}/bin:${PATH}"
 CMAKE_INSTALL_LIBDIR="lib"
 NPROC=$(nproc)
 
-FC=${FC:-"$(command -v gfortran-13 || command -v gfortran-12 || command -v gfortran)"}
-F77=${F77:-"${FC}"}
-F95=${F95:-"${FC}"}
+CC="$(command -v mpicc)"
+CXX="$(command -v mpic++)"
+FC="$(command -v mpif90)"
+F77="$(command -v mpif77)"
+F95=${FC}
 GFORTRAN_VERSION="$(${SCRIPT_DIR}/get_gfortran_version.sh)"
 
 if [ $OS = "Darwin" ]; then
@@ -106,16 +108,11 @@ if [ $OS = "Darwin" ]; then
     FFLAGS="${FCFLAGS}"
     CXXFLAGS="${CFLAGS}"
     PATH="${HOMEBREW_PREFIX}/bin:${PATH}"
-    CC=${CC:-"/usr/bin/clang"}
-    CXX=${CXX:-"/usr/bin/clang++"}
 else
     LIBS="-lgomp"
     CFLAGS="-Wa,--noexecstack"
     CXXFLAGS="${CFLAGS}"
     MPI_HOME="/usr/lib64/openmpi"
     PATH="${MPI_HOME}/bin:${PATH}"
-    CC="$(command -v mpicc)"
-    CXX="$(command -v mpic++)"
-    FC="$(command -v mpif90)"
 fi
 set +a

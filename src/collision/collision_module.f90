@@ -7,7 +7,6 @@
 ! You should have received a copy of the GNU General Public License along with Swiftest. 
 ! If not, see: https://www.gnu.org/licenses. 
 
-
 module collision
    !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
@@ -340,7 +339,13 @@ module collision
       character(len=6), dimension(2) :: stage_coords = ["before", "after "] 
          !! The stage coordinate labels
       integer(I4B)       :: collision_id_dimid                 
-         !! ID for the collision event dimension       
+         !! ID for the collision event dimension 
+      character(NAMELEN) :: collision_body_dimname = "collision_body"
+         !! name of the collision body dimension 
+      integer(I4B) :: collision_body_dimid
+         !! Netcdf ID for the collision body dimension
+      integer(I4B) :: collision_body_varid
+         !! Netcdf ID for the collision body variable
       character(NAMELEN) :: Qloss_varname  = "Qloss"   
          !! name of the energy loss variable
       integer(I4B)       :: Qloss_varid                
@@ -851,7 +856,6 @@ module collision
 
          return
       end subroutine collision_final_basic
-
 
 end module collision
 

@@ -1702,8 +1702,14 @@ contains
       associate(pl => self, tp => nbody_system%tp, cb => nbody_system%cb, pl_adds => nbody_system%pl_adds)
 
          npl = pl%nbody
-         nadd = pl_adds%nbody
          if (npl == 0) return
+
+         if (allocated(nbody_system%pl_adds)) then
+            nadd = pl_adds%nbody
+         else
+            nadd = 0
+         end if
+
          ! Deallocate any temporary variables
          if (allocated(pl%rbeg)) deallocate(pl%rbeg)
          if (allocated(pl%rend)) deallocate(pl%rend)
@@ -2192,6 +2198,7 @@ contains
       return
    end subroutine swiftest_util_resize_tp
 
+
    module subroutine swiftest_util_save_discard_body(self, ldiscard_mask, nbody_system, snapshot)
       !! author: David A. Minton
       !!
@@ -2492,15 +2499,16 @@ contains
    end subroutine swiftest_util_set_rhill_approximate
 
    module subroutine swiftest_util_setup_construct_system(nbody_system, param)
-
       !! author: David A. Minton
       !!
       !! Constructor for a Swiftest nbody system. Creates the nbody system object based on the user-input integrator
       !! 
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system !! Swiftest nbody_system object
-      class(swiftest_parameters),                intent(inout) :: param        !! Current run configuration parameters
+      class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system 
+         !! Swiftest nbody_system object
+      class(swiftest_parameters),                intent(inout) :: param        
+         !! Current run configuration parameters
       select case(param%integrator)
       case (INT_BS)
          write(*,*) 'Bulirsch-Stoer integrator not yet enabled'
@@ -2515,6 +2523,7 @@ contains
             allocate(helio_tp :: nbody_system%tp_discards)
          end select
          param%collision_model = "MERGE"
+         param%lenergy = .false.
       case (INT_RA15)
          write(*,*) 'Radau integrator not yet enabled'
       case (INT_TU4)
@@ -2530,6 +2539,7 @@ contains
             allocate(whm_tp :: nbody_system%tp_discards)
          end select
          param%collision_model = "MERGE"
+         param%lenergy = .false.
       case (INT_RMVS)
          allocate(rmvs_nbody_system :: nbody_system)
          select type(nbody_system)
@@ -2541,6 +2551,7 @@ contains
             allocate(rmvs_tp :: nbody_system%tp_discards)
          end select
          param%collision_model = "MERGE"
+         param%lenergy = .false.
       case (INT_SYMBA)
          allocate(symba_nbody_system :: nbody_system)
          select type(nbody_system)

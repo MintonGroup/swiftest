@@ -876,7 +876,7 @@ contains
                            write(message,*) trim(adjustl(plsub%info(i)%name)), " (", trim(adjustl(plsub%info(i)%particle_type)),")"
                            call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
                         end do
-
+                        if (allocated(before_snap%pl)) deallocate(before_snap%pl)
                         allocate(before_snap%pl, source=plsub)
                      end select
                      deallocate(before_orig%pl)
@@ -891,6 +891,7 @@ contains
                            write(message,*) trim(adjustl(tpsub%info(i)%name)), " (", trim(adjustl(tpsub%info(i)%particle_type)),")"
                            call swiftest_io_log_one_message(COLLISION_LOG_OUT, message)
                         end do
+                        if (allocated(before_snap%tp)) deallocate(before_snap%tp)
                         allocate(before_snap%tp, source=tpsub)
                      end select
                      deallocate(before_orig%tp)
@@ -903,6 +904,7 @@ contains
                         call swiftest_io_log_one_message(COLLISION_LOG_OUT, & 
                            "***********************************************************" // &
                            "***********************************************************")
+                        if (allocated(before_snap%cb)) deallocate(before_snap%cb)
                         allocate(before_snap%cb, source=cbsub)
                      end select
                      deallocate(before_orig%cb)
