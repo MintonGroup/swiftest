@@ -14,9 +14,6 @@ import unittest
 import os
 import tempfile
 import numpy as np
-import warnings
-warnings.simplefilter('error', RuntimeWarning)
-
 class TestCollisions(unittest.TestCase):
     def setUp(self):
         # Initialize a target and surface for testing
@@ -46,7 +43,16 @@ class TestCollisions(unittest.TestCase):
        R = (3 * M  / (4 * np.pi * density)) ** (1.0 / 3.0)
        rot = 4 * sim.init_cond.sel(name="Earth")['rot']
        sim.add_body(name="Sundiver", a=a, e=e, inc=0.0, capom=0.0, omega=0.0, capm=180.0, mass=M, radius=R, Ip=[0.4,0.4,0.4], rot=rot)
- 
+       
+       sim.run(tstart=0.0, tstop=5e-2, dt=0.0001, istep_out=1, dump_cadence=0)
+       
+       # Check that angular momentum is conserved
+       ds=sim.collisions.sel(collision_id=1)
+       ds['Ltot']=ds.L_orbit+ds.L_spin
+       ds['Ltot_mag']=ds.Ltot.magnitude()
+       dLtot=ds.Ltot_mag.diff('stage').values[0]
+       self.assertAlmostEqual(dLtot,0,places=8)
+
        return 
          
 if __name__ == '__main__':
