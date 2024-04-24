@@ -387,15 +387,19 @@ contains
 
                call pl%rearray(nbody_system, param)
 
-               if (param%lenergy) then
-                  call nbody_system%get_energy_and_momentum(param)
-                  E_orbit_after = nbody_system%te
-                  nbody_system%E_collisions = nbody_system%E_collisions + (E_orbit_after - E_orbit_before)
-               end if
-
                ldiscard(:) = .false.
                call pl%save_discard(ldiscard,nbody_system,collider%after) ! This ensures that the Sun gets saved in the "after" slot
                call collision_history%take_snapshot(param,nbody_system, t, "after") 
+
+               if (param%lenergy) then
+                  call collision_history%save_energy_snapshot("before", nbody_system, &
+                                                              collision_history%iframe,collision_history%iframe)
+                  call nbody_system%get_energy_and_momentum(param)
+                  E_orbit_after = nbody_system%te
+                  nbody_system%E_collisions = nbody_system%E_collisions + (E_orbit_after - E_orbit_before)
+                  call collision_history%save_energy_snapshot("after", nbody_system, &
+                                                               collision_history%iframe,collision_history%iframe)
+               end if
             end associate
          end select 
       end select

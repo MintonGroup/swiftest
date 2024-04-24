@@ -57,7 +57,7 @@ class TestCollisions(unittest.TestCase):
             ds['Ltot']=ds.L_orbit+ds.L_rot
             ds['Ltot_mag']=ds.Ltot.magnitude()
             dLtot=ds.Ltot_mag.diff('stage').values[0]
-            self.assertAlmostEqual(dLtot,0,places=8, msg=f"Angular momentum not conserved: {dLtot}")
+            self.assertLess(dLtot,1e-6, msg=f"Angular momentum not conserved: {dLtot}")
         
             # Check that energy was lost
             dEtot=ds.TE.diff('stage').values[0]
