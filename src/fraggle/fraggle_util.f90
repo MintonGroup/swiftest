@@ -17,10 +17,14 @@ contains
       !! Restructures the fragment distribution after a failure to converge on a solution.
       implicit none
       ! Arguments
-      class(collision_fraggle),     intent(inout) :: self         !! Fraggle collision system object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
-      logical,                      intent(out)   :: lfailure     !! Did the computation fail?
+      class(collision_fraggle),     intent(inout) :: self         
+         !! Fraggle collision system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param        
+         !! Current run configuration parameters 
+      logical,                      intent(out)   :: lfailure     
+         !! Did the computation fail?
       ! Internals
       class(collision_fragments), allocatable :: new_fragments
       integer(I4B) :: i,nnew, nold
@@ -88,12 +92,13 @@ contains
       !!
       !! Sets the mass of fragments based on the mass distribution returned by the regime calculation.
       !! This subroutine must be run after the the setup routine has been run on the fragments
-      !!
       use, intrinsic :: ieee_exceptions
       implicit none
       ! Arguments
-      class(collision_fraggle),   intent(inout) :: self  !! Fraggle collision system object
-      class(swiftest_parameters), intent(in)    :: param !! Current Swiftest run configuration parameters
+      class(collision_fraggle),   intent(inout) :: self  
+         !! Fraggle collision system object
+      class(swiftest_parameters), intent(in)    :: param 
+         !! Current Swiftest run configuration parameters
       ! Internals
       integer(I4B)              :: i, j, jproj, jtarg, istart, nfragmax
       real(DP), dimension(2)    :: volume
@@ -101,9 +106,9 @@ contains
       real(DP) ::  mremaining, mtot, mcumul, G, mass_noise
       real(DP), dimension(:), allocatable :: mass
       real(DP)  :: beta 
-      integer(I4B), parameter :: MASS_NOISE_FACTOR = 5  !! The number of digits of random noise that get added to the minimum mass value to prevent identical masses from being generated in a single run 
-      integer(I4B), parameter :: NFRAGMAX_UNSCALED = 100  !! Maximum number of fragments that can be generated
- !! Minimum number of fragments that can be generated 
+      integer(I4B), parameter :: MASS_NOISE_FACTOR = 5  ! The number of digits of random noise that get added to the minimum mass 
+                                                        ! value to prevent identical masses from being generated in a single run 
+      integer(I4B), parameter :: NFRAGMAX_UNSCALED = 100  ! Maximum number of fragments that can be generated
       integer(I4B), dimension(:), allocatable :: ind
       logical :: flipper
       logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
@@ -131,7 +136,8 @@ contains
             ! The first two bins of the mass_dist are the largest and second-largest fragments that came out of collision_regime.
             ! The remainder from the third bin will be distributed among nfrag-2 bodies. 
 
-            !Add a small amount of noise to the last digits of the minimum mass value so that multiple fragments don't get generated with identical mass values
+            ! Add a small amount of noise to the last digits of the minimum mass value so that multiple fragments don't get 
+            ! generated with identical mass values
             call random_number(mass_noise)
             mass_noise = 1.0_DP + mass_noise * epsilon(1.0_DP) * 10**(MASS_NOISE_FACTOR)
             min_mfrag = (param%min_GMfrag / param%GU) * mass_noise
@@ -183,7 +189,8 @@ contains
                mass(i) = Mslr * (i-1)**(-beta/3.0_DP)
             end do
 
-            ! There may still be some small residual due to round-off error. If so, simply add it to the last bin of the mass distribution.
+            ! There may still be some small residual due to round-off error. If so, simply add it to the last bin of the mass 
+            ! distribution.
             mremaining = fragments%mtot - sum(mass(1:nfrag))
             if (mremaining < 0.0_DP) then
                mass(iMlr) = mass(iMlr) + mremaining
@@ -200,7 +207,9 @@ contains
 
             ! Compute physical properties of the new fragments
             select case(impactors%regime)
-            case(COLLRESOLVE_REGIME_HIT_AND_RUN)  ! The hit and run case always preserves the largest body intact, so there is no need to recompute the physical properties of the first fragment
+            case(COLLRESOLVE_REGIME_HIT_AND_RUN)  
+               ! The hit and run case always preserves the largest body intact, so there is no need to recompute the physical 
+               ! properties of the first fragment
                fragments%radius(1) = impactors%radius(jtarg)
                fragments%density(1) = impactors%mass_dist(iMlr) / volume(jtarg)
                fragments%Ip(:, 1) = impactors%Ip(:,1)
@@ -210,7 +219,8 @@ contains
             end select
 
             fragments%density(istart:nfrag) = fragments%mtot / sum(volume(:))
-            fragments%radius(istart:nfrag) = (3 * fragments%mass(istart:nfrag) / (4 * PI * fragments%density(istart:nfrag)))**(1.0_DP / 3.0_DP)
+            fragments%radius(istart:nfrag) = (3 * fragments%mass(istart:nfrag) / &
+                                             (4 * PI * fragments%density(istart:nfrag)))**(1.0_DP / 3.0_DP)
 #ifdef DOCONLOC
             do concurrent(i = istart:nfrag) shared(fragments,Ip_avg)
 #else
@@ -219,8 +229,9 @@ contains
                fragments%Ip(:, i) = Ip_avg(:)
             end do
 
-            ! For catastrophic impacts, we will assign each of the n>2 fragments to one of the two original bodies so that the fragment cloud occupies 
-            ! roughly the same space as both original bodies. For all other disruption cases, we use body 2 as the center of the cloud.
+            ! For catastrophic impacts, we will assign each of the n>2 fragments to one of the two original bodies so that the 
+            ! fragment cloud occupies roughly the same space as both original bodies. For all other disruption cases, we use body 2
+            ! as the center of the cloud.
             fragments%origin_body(1) = 1_I1B
             fragments%origin_body(2) = 2_I1B
             if (impactors%regime == COLLRESOLVE_REGIME_SUPERCATASTROPHIC) then

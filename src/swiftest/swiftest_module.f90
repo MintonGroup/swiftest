@@ -538,8 +538,8 @@ module swiftest
          !! Total nbody_system mass - used for barycentric coordinate conversion
       real(DP)                        :: ke_orbit = 0.0_DP      
          !! nbody_system orbital kinetic energy
-      real(DP)                        :: ke_spin = 0.0_DP       
-         !! nbody_system spin kinetic energy
+      real(DP)                        :: ke_rot = 0.0_DP       
+         !! nbody_system rotational kinetic energy
       real(DP)                        :: pe = 0.0_DP            
          !! nbody_system potential energy
       real(DP)                        :: be = 0.0_DP            
@@ -550,14 +550,14 @@ module swiftest
          !! nbody_system potential energy due to oblateness of the central body
       real(DP), dimension(NDIM)       :: L_orbit = 0.0_DP       
          !! nbody_system orbital angular momentum vector
-      real(DP), dimension(NDIM)       :: L_spin = 0.0_DP        
-         !! nbody_system spin angular momentum vector
+      real(DP), dimension(NDIM)       :: L_rot = 0.0_DP        
+         !! nbody_system rotational angular momentum vector
       real(DP), dimension(NDIM)       :: L_total = 0.0_DP       
          !! nbody_system angular momentum vector
       real(DP)                        :: ke_orbit_orig = 0.0_DP 
          !! Initial orbital kinetic energy
-      real(DP)                        :: ke_spin_orig = 0.0_DP  
-         !! Initial spin kinetic energy
+      real(DP)                        :: ke_rot_orig = 0.0_DP  
+         !! Initial rotational kinetic energy
       real(DP)                        :: pe_orig = 0.0_DP       
          !! Initial potential energy
       real(DP)                        :: be_orig = 0.0_DP       
@@ -575,8 +575,8 @@ module swiftest
          !! Initial total angular momentum vector
       real(DP), dimension(NDIM)       :: L_orbit_orig = 0.0_DP  
          !! Initial orbital angular momentum
-      real(DP), dimension(NDIM)       :: L_spin_orig = 0.0_DP   
-         !! Initial spin angular momentum vector
+      real(DP), dimension(NDIM)       :: L_rot_orig = 0.0_DP   
+         !! Initial rotational angular momentum vector
       real(DP), dimension(NDIM)       :: L_escape = 0.0_DP      
          !! Angular momentum of bodies that escaped the nbody_system (used for bookeeping)
       real(DP)                        :: GMescape = 0.0_DP      
@@ -588,7 +588,7 @@ module swiftest
 
       ! Energy, momentum, and mass errors (used in error reporting)
       real(DP)                        :: ke_orbit_error    = 0.0_DP
-      real(DP)                        :: ke_spin_error     = 0.0_DP
+      real(DP)                        :: ke_rot_error     = 0.0_DP
       real(DP)                        :: pe_error          = 0.0_DP
       real(DP)                        :: be_error          = 0.0_DP
       real(DP)                        :: E_orbit_error     = 0.0_DP
@@ -596,7 +596,7 @@ module swiftest
       real(DP)                        :: E_untracked_error = 0.0_DP
       real(DP)                        :: te_error          = 0.0_DP
       real(DP)                        :: L_orbit_error     = 0.0_DP
-      real(DP)                        :: L_spin_error      = 0.0_DP
+      real(DP)                        :: L_rot_error      = 0.0_DP
       real(DP)                        :: L_escape_error    = 0.0_DP
       real(DP)                        :: L_total_error     = 0.0_DP
       real(DP)                        :: Mtot_error        = 0.0_DP
@@ -654,8 +654,8 @@ module swiftest
          !! Initialize the nbody_system from input files
       procedure :: init_particle_info      => swiftest_util_setup_initialize_particle_info_system  
          !! Initialize the nbody_system from input files
-    ! procedure :: step_spin               => tides_step_spin_system                               
-         !! Steps the spins of the massive & central bodies due to tides.
+    ! procedure :: step_rot               => tides_step_rot_system                               
+         !! Steps the rotations of the massive & central bodies due to tides.
       procedure :: set_msys                => swiftest_util_set_msys                               
          !! Sets the value of msys from the masses of nbody_system bodies.
       procedure :: validate_ids            => swiftest_util_valid_id_system                        

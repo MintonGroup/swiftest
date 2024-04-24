@@ -269,13 +269,13 @@ contains
             end if
 
             if (param%lenergy) then
-               call netcdf_io_check( nf90_def_var(nc%id, nc%ke_orb_varname,  nc%out_type, &
+               call netcdf_io_check( nf90_def_var(nc%id, nc%ke_orbit_varname,  nc%out_type, &
                   [nc%stage_dimid,  nc%collision_id_dimid], nc%KE_orb_varid), &
                   "collision_io_netcdf_initialize_output nf90_def_var KE_orb_varid")
 
-               call netcdf_io_check( nf90_def_var(nc%id, nc%ke_spin_varname, nc%out_type, &
-                  [nc%stage_dimid,  nc%collision_id_dimid], nc%KE_spin_varid), &
-                  "collision_io_netcdf_initialize_output nf90_def_var KE_spin_varid")
+               call netcdf_io_check( nf90_def_var(nc%id, nc%ke_rot_varname, nc%out_type, &
+                  [nc%stage_dimid,  nc%collision_id_dimid], nc%KE_rot_varid), &
+                  "collision_io_netcdf_initialize_output nf90_def_var KE_rot_varid")
 
                call netcdf_io_check( nf90_def_var(nc%id, nc%pe_varname, nc%out_type, &
                   [nc%stage_dimid,  nc%collision_id_dimid], nc%PE_varid), &
@@ -293,9 +293,9 @@ contains
                      [nc%space_dimid, nc%stage_dimid, nc%collision_id_dimid], nc%L_orbit_varid), &
                      "collision_io_netcdf_initialize_output nf90_def_var L_orbit_varid")
 
-                  call netcdf_io_check( nf90_def_var(nc%id, nc%L_spin_varname,nc%out_type, &
-                     [nc%space_dimid, nc%stage_dimid, nc%collision_id_dimid], nc%L_spin_varid), &
-                     "collision_io_netcdf_initialize_output nf90_def_var L_spin_varid")
+                  call netcdf_io_check( nf90_def_var(nc%id, nc%L_rot_varname,nc%out_type, &
+                     [nc%space_dimid, nc%stage_dimid, nc%collision_id_dimid], nc%L_rot_varid), &
+                     "collision_io_netcdf_initialize_output nf90_def_var L_rot_varid")
                end if
             end if 
 
@@ -430,7 +430,7 @@ contains
             end if
 
             if (param%lenergy) then
-               call netcdf_io_check( nf90_inq_varid(nc%id, nc%ke_orb_varname, nc%ke_orb_varid), &
+               call netcdf_io_check( nf90_inq_varid(nc%id, nc%ke_orbit_varname, nc%ke_orb_varid), &
                   "collision_io_netcdf_open nf90_inq_varid ke_orb_varid" )
                call netcdf_io_check( nf90_inq_varid(nc%id, nc%pe_varname, nc%pe_varid), &
                   "collision_io_netcdf_open nf90_inq_varid pe_varid" )
@@ -441,10 +441,10 @@ contains
                call netcdf_io_check( nf90_inq_varid(nc%id, nc%L_orbit_varname, nc%L_orbit_varid), &
                   "collision_io_netcdf_open nf90_inq_varid L_orbit_varid" )
                if (param%lrotation) then
-                  call netcdf_io_check( nf90_inq_varid(nc%id, nc%ke_spin_varname, nc%ke_spin_varid), &
-                     "collision_io_netcdf_open nf90_inq_varid ke_spin_varid" )
-                  call netcdf_io_check( nf90_inq_varid(nc%id, nc%L_spin_varname, nc%L_spin_varid), &
-                     "collision_io_netcdf_open nf90_inq_varid L_spin_varid" )
+                  call netcdf_io_check( nf90_inq_varid(nc%id, nc%ke_rot_varname, nc%ke_rot_varid), &
+                     "collision_io_netcdf_open nf90_inq_varid ke_rot_varid" )
+                  call netcdf_io_check( nf90_inq_varid(nc%id, nc%L_rot_varname, nc%L_rot_varid), &
+                     "collision_io_netcdf_open nf90_inq_varid L_rot_varid" )
                end if
             end if
 
@@ -540,6 +540,7 @@ contains
                   end if
 
                   if (allocated(pl)) then
+                     call pl%sort("mass", ascending=.false.)
                      do i = 1, pl%nbody
                         idslot = idslot + 1
                         call netcdf_io_check( nf90_put_var(nc%id, nc%collision_body_varid, idslot, start=[ idslot, stage, eslot]), &
@@ -571,6 +572,7 @@ contains
                   end if
 
                   if (allocated(tp)) then
+                     call tp%sort("id", ascending=.true.)
                      do i = 1, tp%nbody
                         idslot = idslot + 1
                         call netcdf_io_check( nf90_put_var(nc%id, nc%collision_body_varid, idslot, start=[ idslot, stage, eslot]), &
@@ -597,8 +599,8 @@ contains
             if (param%lenergy) then
                call netcdf_io_check( nf90_put_var(nc%id, nc%ke_orb_varid,  collider%ke_orbit(:), start=[   1, eslot], &
                   count=[      2, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var ke_orb_varid before" )
-               call netcdf_io_check( nf90_put_var(nc%id, nc%ke_spin_varid, collider%ke_spin(:),  start=[   1, eslot], &
-                  count=[      2, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var ke_spin_varid before" )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%ke_rot_varid, collider%ke_rot(:),  start=[   1, eslot], &
+                  count=[      2, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var ke_rot_varid before" )
                call netcdf_io_check( nf90_put_var(nc%id, nc%pe_varid,      collider%pe(:),       start=[   1, eslot], &
                   count=[      2, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var pe_varid before" )
                call netcdf_io_check( nf90_put_var(nc%id, nc%be_varid,      collider%be(:),       start=[   1, eslot], &
@@ -607,8 +609,8 @@ contains
                   count=[      2, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var pe_varid tefore" )
                call netcdf_io_check( nf90_put_var(nc%id, nc%L_orbit_varid,   collider%L_orbit(:,:), start=[1, 1, eslot], &
                   count=[NDIM, 2, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var L_orbit_varid before" )
-               call netcdf_io_check( nf90_put_var(nc%id, nc%L_spin_varid,   collider%L_spin(:,:),  start=[1, 1, eslot], &
-                  count=[NDIM, 2, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var L_spin_varid before" )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%L_rot_varid,   collider%L_rot(:,:),  start=[1, 1, eslot], &
+                  count=[NDIM, 2, 1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var L_rot_varid before" )
             end if
       
             call netcdf_io_check( nf90_set_fill(nc%id, old_mode, tmp) )

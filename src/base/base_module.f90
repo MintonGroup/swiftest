@@ -169,8 +169,8 @@ module base
          !! Initial total angular momentum vector 
       real(DP), dimension(NDIM) :: L_orbit_orig = 0.0_DP  
          !! Initial orbital angular momentum 
-      real(DP), dimension(NDIM) :: L_spin_orig  = 0.0_DP  
-         !! Initial spin angular momentum vector 
+      real(DP), dimension(NDIM) :: L_rot_orig  = 0.0_DP  
+         !! Initial rotational angular momentum vector 
       real(DP), dimension(NDIM) :: L_escape     = 0.0_DP  
          !! Angular momentum of escaped bodies (used for bookeeping) 
       real(DP)                  :: GMescape     = 0.0_DP  

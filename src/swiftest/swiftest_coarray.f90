@@ -129,7 +129,7 @@ contains
         call co_broadcast(param%GMtot_orig,1)
         call co_broadcast(param%L_total_orig,1)
         call co_broadcast(param%L_orbit_orig,1)
-        call co_broadcast(param%L_spin_orig,1)
+        call co_broadcast(param%L_rot_orig,1)
         call co_broadcast(param%L_escape,1)
         call co_broadcast(param%GMescape,1)
         call co_broadcast(param%E_collisions,1)

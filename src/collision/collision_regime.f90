@@ -9,9 +9,7 @@
 
 submodule(collision) s_collision_regime
    use swiftest
-
 contains
-
 
    module subroutine collision_regime_collider(self, nbody_system, param)
       !! Author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton 
@@ -21,9 +19,12 @@ contains
       !! It converts to SI units prior to calling
       implicit none 
       ! Arguments
-      class(collision_basic),   intent(inout) :: self         !! Collision system impactors object
-      class(base_nbody_system), intent(in)    :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),   intent(in)    :: param        !! Current Swiftest run configuration parameters
+      class(collision_basic),   intent(inout) :: self         
+         !! Collision system impactors object
+      class(base_nbody_system), intent(in)    :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters),   intent(in)    :: param        
+         !! Current Swiftest run configuration parameters
       ! Internals
       real (DP) :: mtot
         
@@ -59,9 +60,12 @@ contains
       !! This is a wrapper subroutine that converts quantities to SI units and calls the main LS12 subroutine
       implicit none
       ! Arguments
-      class(collision_basic),       intent(inout) :: collider     !! The impactors to determine the regime for
-      class(swiftest_nbody_system), intent(in)    :: nbody_system !! Swiftest n-body system object
-      class(swiftest_parameters),   intent(in)    :: param        !! The current parameters
+      class(collision_basic),       intent(inout) :: collider     
+         !! The impactors to determine the regime for
+      class(swiftest_nbody_system), intent(in)    :: nbody_system 
+         !! Swiftest n-body system object
+      class(swiftest_parameters),   intent(in)    :: param        
+         !! The current parameters
       ! Internals
       integer(I4B) :: i,jtarg, jproj
       real(DP), dimension(2) :: radius_si, mass_si, density_si
@@ -70,7 +74,7 @@ contains
       real(DP) :: mlr, mslr, mslr_hr, mtot, dentot, Qloss, Qmerge
       integer(I4B), parameter :: NMASS_DIST = 3   ! Number of mass bins returned by the regime calculation (largest fragment, second
                                                   ! largest, and remainder)  
-      real(DP), dimension(NDIM) :: Ip, rot, L_spin
+      real(DP), dimension(NDIM) :: Ip, rot, L_rot
       real(DP) :: radius, volume
       
       associate(impactors => collider%impactors)
@@ -128,25 +132,26 @@ contains
          Qmerge = Qmerge * (param%TU2S / param%DU2M)**2 / param%MU2KG
          mtot = mtot / param%MU2kg
 
-         ! If this is came back as a merger, check to make sure that the rotation of the merged body doesn't exceed the spin barrier
+         ! If this is came back as a merger, check to make sure that the rotation of the merged body doesn't exceed the rotation 
+         ! barrier
          if (impactors%regime == COLLRESOLVE_REGIME_MERGE) then
             volume = 4._DP / 3._DP * PI * sum(impactors%radius(:)**3)
             radius = (3._DP * volume / (4._DP * PI))**(THIRD)
 #ifdef DOCONLOC
-            do concurrent(i = 1:NDIM) shared(impactors,Ip,L_spin)
+            do concurrent(i = 1:NDIM) shared(impactors,Ip,L_rot)
 #else
             do concurrent(i = 1:NDIM)
 #endif
                Ip(i) = sum(impactors%mass(:) * impactors%Ip(i,:)) 
-               L_spin(i) = sum(impactors%L_orbit(i,:) + impactors%L_spin(i,:))
+               L_rot(i) = sum(impactors%L_orbit(i,:) + impactors%L_rot(i,:))
             end do
             Ip(:) = Ip(:) / mtot
-            rot(:) = L_spin(:) / (Ip(3) * mtot * radius**2)
-            if (.mag.rot(:) > collider%max_rot) then ! The merged body would spin too fast, so reclasify this as a hit and run
+            rot(:) = L_rot(:) / (Ip(3) * mtot * radius**2)
+            if (.mag.rot(:) > collider%max_rot) then ! The merged body would rotation too fast, so reclasify this as a hit and run
                mlr = impactors%mass(jtarg)
-               mslr = mslr_hr
+               mslr = impactors%mass(jproj)
                impactors%regime = COLLRESOLVE_REGIME_HIT_AND_RUN
-               impactors%Qloss = Qloss
+               impactors%Qloss = 0.0_DP
             else
                mlr =  mtot
                mslr = 0.0_DP
@@ -427,11 +432,11 @@ contains
             !! and distance vectors of the target and projectile bodies. See Fig. 2 of Leinhardt and Stewart (2012)
             !! 
             implicit none
-            !! Arguments
+            ! Arguments
             real(DP), dimension(:), intent(in) :: proj_pos, proj_vel, targ_pos, targ_vel
-            !! Result
+            ! Result
             real(DP)             :: sintheta
-            !! Internals
+            ! Internals
             real(DP), dimension(NDIM)     :: imp_vel, distance, x_cross_v      
 
             imp_vel(:) = proj_vel(:) - targ_vel(:)
@@ -449,11 +454,11 @@ contains
             !! 1.8 for ~10000 km sized bodies. See LS12 Fig. 4 for details.
             !! 
             implicit none
-            !! Arguments
+            ! Arguments
             real(DP), intent(in) :: Rc1
-            !! Result
+            ! Result
             real(DP)             :: c_star
-            !! Internals
+            ! Internals
             real(DP), parameter  :: loR   = 1.0e3_DP ! Lower bound of interpolation size (m)
             real(DP), parameter  :: hiR   = 1.0e7_DP ! Upper bound of interpolation size (m)
             real(DP), parameter  :: loval = 5.0_DP   ! Value of C* at lower bound
