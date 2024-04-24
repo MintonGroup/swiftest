@@ -45,7 +45,7 @@ contains
       !! author: Kaustub P. Anand
       !! 
       !! Generate a rotation matrix and its inverse to rotate the coordinate frame to align the rotation axis along the z axis for 
-      !! correct spin calculation
+      !! correct rotation calculation
       !! 
 
       implicit none

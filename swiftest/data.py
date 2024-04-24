@@ -57,8 +57,8 @@ class SwiftestDataArray(xr.DataArray):
         
         if dim not in self.dims:
             raise ValueError(f"Dimension {dim} not found in DataArray")
-        if name is None:
-            name = self.name + "_mag"
+        if name is None and isinstance(self.name, str):
+                name = self.name + "_mag"
         da = xr.apply_ufunc(
             np.linalg.norm, self.where(~np.isnan(self)), input_core_dims=[[dim]], kwargs={"ord": ord, "axis": -1}, dask="allowed"
         )

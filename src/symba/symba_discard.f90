@@ -123,7 +123,7 @@ contains
       logical,                   intent(in)         :: lescape_body
       ! Internals
       real(DP), dimension(NDIM) :: Lpl, L_total, Lcb, xcom, vcom, drot0, drot1
-      real(DP)                  :: pe, be, ke_orbit, ke_spin, becb0, becb1
+      real(DP)                  :: pe, be, ke_orbit, ke_rot, becb0, becb1
       integer(I4B)              :: i, oldstat
    
       select type(cb => nbody_system%cb)
@@ -134,9 +134,9 @@ contains
          be = -3*pl%Gmass(ipl) * pl%mass(ipl) / (5 * pl%radius(ipl))
          ke_orbit = 0.5_DP * pl%mass(ipl) * dot_product(pl%vb(:, ipl), pl%vb(:, ipl)) 
          if (param%lrotation) then
-            ke_spin  = 0.5_DP * pl%mass(ipl) * pl%radius(ipl)**2 * pl%Ip(3, ipl) * dot_product(pl%rot(:, ipl), pl%rot(:, ipl))
+            ke_rot  = 0.5_DP * pl%mass(ipl) * pl%radius(ipl)**2 * pl%Ip(3, ipl) * dot_product(pl%rot(:, ipl), pl%rot(:, ipl))
          else
-            ke_spin = 0.0_DP
+            ke_rot = 0.0_DP
          end if
    
          if (lescape_body) then
@@ -146,8 +146,8 @@ contains
                pe = pe - pl%Gmass(i) * pl%mass(ipl) / norm2(pl%rb(:, ipl) - pl%rb(:, i))
             end do
 
-            nbody_system%E_collisions  = nbody_system%E_collisions + ke_orbit + ke_spin + pe + be
-            nbody_system%E_untracked  = nbody_system%E_untracked - (ke_orbit + ke_spin + pe + be)
+            nbody_system%E_collisions  = nbody_system%E_collisions + ke_orbit + ke_rot + pe + be
+            nbody_system%E_untracked  = nbody_system%E_untracked - (ke_orbit + ke_rot + pe + be)
    
             L_total(:) = 0.0_DP
             do i = 1, pl%nbody
@@ -180,7 +180,7 @@ contains
             Lcb(:) = cb%mass * ((cb%rb(:) - xcom(:)) .cross. (cb%vb(:) - vcom(:)))
    
             ke_orbit = ke_orbit + 0.5_DP * cb%mass * dot_product(cb%vb(:), cb%vb(:)) 
-            if (param%lrotation) ke_spin = ke_spin + 0.5_DP * cb%mass * cb%radius**2 * cb%Ip(3) * dot_product(cb%rot(:), cb%rot(:))
+            if (param%lrotation) ke_rot = ke_rot + 0.5_DP * cb%mass * cb%radius**2 * cb%Ip(3) * dot_product(cb%rot(:), cb%rot(:))
             ! Update mass of central body to be consistent with its total mass
             becb0 = -(3 * cb%Gmass * cb%mass) / (5 * cb%radius)
             cb%dGM = cb%dGM + pl%Gmass(ipl)
@@ -198,7 +198,7 @@ contains
                drot0(:) = cb%L0(:)/ (cb%Ip(3) * cb%mass * cb%radius**2)  
                drot1(:) = cb%dL(:) / (cb%Ip(3) * cb%mass * cb%radius**2)
                cb%rot(:) = drot0(:) + drot1(:)
-               ke_spin  = ke_spin - 0.5_DP * cb%mass * cb%radius**2 * cb%Ip(3) * dot_product(cb%rot(:), cb%rot(:)) 
+               ke_rot  = ke_rot - 0.5_DP * cb%mass * cb%radius**2 * cb%Ip(3) * dot_product(cb%rot(:), cb%rot(:)) 
             end if
             cb%rb(:) = xcom(:)
             cb%vb(:) = vcom(:)
@@ -284,7 +284,7 @@ contains
    subroutine symba_discard_peri_pl(pl, nbody_system, param)
       !! author: David A. Minton
       !!
-      !! Check to see if a test particle should be discarded because its perihelion distance becomes too small
+      !! Check to see if a massive body should be discarded because its perihelion distance becomes too small
       !!
       !! Adapted from David E. Kaufmann's Swifter routine: symba_discard_peri_pl.f90
       !! Adapted from Hal Levison's Swift routine discard_mass_peri.f
@@ -378,23 +378,28 @@ contains
                if (any(pl%status(:) == DISCARDED_RMIN) .or. any(pl%status(:) == DISCARDED_PERI)) then
                   impactors%regime = REGIME_CB_IMPACT
                else
-                  impactors%regime = REGIME_Ejected
+                  impactors%regime = REGIME_EJECTED
                end if
                call pl%save_discard(ldiscard,nbody_system,collider%before)
                call collision_history%take_snapshot(param,nbody_system, t, "before") 
-               deallocate(ldiscard)
 
                call symba_discard_nonplpl_conservation(self, nbody_system, param)
 
                call pl%rearray(nbody_system, param)
 
+               ldiscard(:) = .false.
+               call pl%save_discard(ldiscard,nbody_system,collider%after) ! This ensures that the Sun gets saved in the "after" slot
+               call collision_history%take_snapshot(param,nbody_system, t, "after") 
+
                if (param%lenergy) then
+                  call collision_history%save_energy_snapshot("before", nbody_system, &
+                                                              collision_history%iframe,collision_history%iframe)
                   call nbody_system%get_energy_and_momentum(param)
                   E_orbit_after = nbody_system%te
                   nbody_system%E_collisions = nbody_system%E_collisions + (E_orbit_after - E_orbit_before)
+                  call collision_history%save_energy_snapshot("after", nbody_system, &
+                                                               collision_history%iframe,collision_history%iframe)
                end if
-
-               call collision_history%take_snapshot(param,nbody_system, t, "after") 
             end associate
          end select 
       end select

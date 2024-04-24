@@ -7,7 +7,6 @@
 ! You should have received a copy of the GNU General Public License along with Swiftest. 
 ! If not, see: https://www.gnu.org/licenses. 
 
-
 module collision
    !! author: The Purdue Swiftest Team - David A. Minton, Carlisle A. Wishard, Jennifer L.L. Pouplin, and Jacob R. Elliott
    !!
@@ -43,7 +42,7 @@ module collision
    character(len=NAMELEN),dimension(7), parameter :: REGIME_NAMES = [REGIME_NAME_MERGE, REGIME_NAME_DISRUPTION, &
                                                      REGIME_NAME_SUPERCATASTROPHIC, REGIME_NAME_GRAZE_AND_MERGE, &
                                                      REGIME_NAME_HIT_AND_RUN, REGIME_NAME_CB_IMPACT, REGIME_NAME_EJECTED]
-   real(DP), parameter :: MAX_ROT_SI = 7.108e-4 !! Spin limit in rad/s of cohesionless body from Holsapple (2007)
+   real(DP), parameter :: MAX_ROT_SI = 7.108e-4 !! Rotational limit in rad/s of cohesionless body from Holsapple (2007)
 
    !> Swiftest class for tracking pl-pl close encounters in a step when collisions are possible
    type, extends(encounter_list) :: collision_list_plpl
@@ -86,14 +85,14 @@ module collision
          !! Two-body equivalent velocity vectors of the collider bodies prior to collision in collision center of mass coordinates
       real(DP),     dimension(NDIM,2)              :: rot 
          !! Two-body equivalent principal axes moments of inertia the collider bodies prior to collision
-      real(DP),     dimension(NDIM,2)              :: L_spin    
-         !! Two-body equivalent spin angular momentum vectors of the collider bodies prior to collision
+      real(DP),     dimension(NDIM,2)              :: L_rot    
+         !! Two-body equivalent rotational angular momentum vectors of the collider bodies prior to collision
       real(DP),     dimension(NDIM,2)              :: L_orbit   
          !! Two-body equivalent orbital angular momentum vectors of the collider bodies prior to collision
       real(DP),     dimension(2)                   :: ke_orbit  
          !! Orbital kinetic energy of each individual impactor
-      real(DP),     dimension(2)                   :: ke_spin   
-         !! Spin kinetic energy of each individual impactor
+      real(DP),     dimension(2)                   :: ke_rot   
+         !! Rotational kinetic energy of each individual impactor
       real(DP),     dimension(2)                   :: be  
          !! Binding energy of each individual impactor
       real(DP),     dimension(NDIM,2)              :: Ip 
@@ -197,24 +196,24 @@ module collision
          !! Array of indices indicating which impactor body (1 or 2) the fragment originates from
       real(DP),                  dimension(NDIM)             :: L_orbit_tot  
          !! Orbital angular momentum vector of all fragments
-      real(DP),                  dimension(NDIM)             :: L_spin_tot   
-         !! Spin angular momentum vector of all fragments
+      real(DP),                  dimension(NDIM)             :: L_rot_tot   
+         !! Rotational angular momentum vector of all fragments
       real(DP),                  dimension(:,:), allocatable :: L_orbit      
          !! Orbital angular momentum vector of each individual fragment
-      real(DP),                  dimension(:,:), allocatable :: L_spin       
-         !! Spin angular momentum vector of each individual fragment
+      real(DP),                  dimension(:,:), allocatable :: L_rot       
+         !! Rotational angular momentum vector of each individual fragment
       real(DP)                                               :: ke_orbit_tot 
          !! Orbital kinetic energy of all fragments
-      real(DP)                                               :: ke_spin_tot  
-         !! Spin kinetic energy of all fragments
+      real(DP)                                               :: ke_rot_tot  
+         !! Rotational kinetic energy of all fragments
       real(DP)                                               :: pe           
          !! Potential energy of all fragments
       real(DP)                                               :: be           
          !! Binding energy of all fragments
       real(DP),                  dimension(:), allocatable   :: ke_orbit     
          !! Orbital kinetic energy of each individual fragment
-      real(DP),                  dimension(:), allocatable   :: ke_spin      
-         !! Spin kinetic energy of each individual fragment
+      real(DP),                  dimension(:), allocatable   :: ke_rot      
+         !! Rotational kinetic energy of each individual fragment
    contains
       procedure :: dealloc               => collision_util_dealloc_fragments        
          !! Deallocates all allocatable arrays and sets everything else to 0
@@ -275,14 +274,14 @@ module collision
          !! Before/after orbital angular momentum  fers to the *entire* n-body system in its pre-collisional state and index 2 
          !! refers to the system in its post-collisional state
       real(DP), dimension(NDIM,2) :: L_orbit  
-         !! Before/after spin angular momentum 
-      real(DP), dimension(NDIM,2) :: L_spin   
+         !! Before/after rotational angular momentum 
+      real(DP), dimension(NDIM,2) :: L_rot   
          !! Before/after total nbody_system angular momentum 
       real(DP), dimension(NDIM,2) :: L_total  
          !! Before/after orbital kinetic energy
       real(DP), dimension(2)      :: ke_orbit 
-         !! Before/after spin kinetic energy
-      real(DP), dimension(2)      :: ke_spin  
+         !! Before/after rotational kinetic energy
+      real(DP), dimension(2)      :: ke_rot  
          !! Before/after potential energy
       real(DP), dimension(2)      :: pe       
          !! Before/after binding energy
@@ -340,7 +339,13 @@ module collision
       character(len=6), dimension(2) :: stage_coords = ["before", "after "] 
          !! The stage coordinate labels
       integer(I4B)       :: collision_id_dimid                 
-         !! ID for the collision event dimension       
+         !! ID for the collision event dimension 
+      character(NAMELEN) :: collision_body_dimname = "collision_body"
+         !! name of the collision body dimension 
+      integer(I4B) :: collision_body_dimid
+         !! Netcdf ID for the collision body dimension
+      integer(I4B) :: collision_body_varid
+         !! Netcdf ID for the collision body variable
       character(NAMELEN) :: Qloss_varname  = "Qloss"   
          !! name of the energy loss variable
       integer(I4B)       :: Qloss_varid                
@@ -379,6 +384,8 @@ module collision
       procedure :: dump           => collision_io_netcdf_dump 
          !! Take a minimal snapshot of the nbody_system through an encounter
       procedure :: take_snapshot  => collision_util_take_snapshot  
+         !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
+      procedure :: save_energy_snapshot  => collision_util_save_energy_snapshot  
          !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
       procedure :: make_index_map => collision_util_index_map 
    end type collision_storage
@@ -738,6 +745,20 @@ module collision
             !! Collision system object
       end subroutine collision_util_dealloc_basic
 
+      module subroutine collision_util_save_energy_snapshot(self, stage, nbody_system, iframe_start, iframe_end)
+         implicit none
+         class(collision_storage), intent(inout) :: self  
+            !! Collision storage object with snapshots
+         character(len=*), intent(in) :: stage
+            !! Phase of the collision, either 'before' or 'after'
+         class(base_nbody_system), intent(inout) :: nbody_system
+            !! Swiftest nbody system object with energy information stored in it
+         integer(I4B), intent(in) :: iframe_start 
+            !! Starting frame index to save the snapshot
+         integer(I4B), intent(in) :: iframe_end   
+            !! Ending frame index to save the snapshot
+      end subroutine collision_util_save_energy_snapshot
+   
       module subroutine collision_util_take_snapshot(self, param, nbody_system, t, arg)
          implicit none
          class(collision_storage), intent(inout)        :: self         
@@ -851,7 +872,6 @@ module collision
 
          return
       end subroutine collision_final_basic
-
 
 end module collision
 

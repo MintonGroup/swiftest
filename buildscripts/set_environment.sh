@@ -84,10 +84,13 @@ PATH="${PREFIX}/bin:${PATH}"
 CMAKE_INSTALL_LIBDIR="lib"
 NPROC=$(nproc)
 
-FC=${FC:-"$(command -v gfortran-13 || command -v gfortran-12 || command -v gfortran)"}
-F77=${F77:-"${FC}"}
-F95=${F95:-"${FC}"}
+OMPI_FC="$(${SCRIPT_DIR}/get_gfortran_path.sh)"
 GFORTRAN_VERSION="$(${SCRIPT_DIR}/get_gfortran_version.sh)"
+CC="$(command -v mpicc)"
+CXX="$(command -v mpic++)"
+FC="$(command -v mpifort)"
+F77="$(command -v mpifort)"
+F95="$(command -v mpifort)"
 
 if [ $OS = "Darwin" ]; then
     MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-"$(${SCRIPT_DIR}/get_macosx_deployment_target.sh)"}
@@ -105,17 +108,12 @@ if [ $OS = "Darwin" ]; then
     FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET}"
     FFLAGS="${FCFLAGS}"
     CXXFLAGS="${CFLAGS}"
-    PATH="${HOMEBREW_PREFIX}/bin:${PATH}"
-    CC=${CC:-"/usr/bin/clang"}
-    CXX=${CXX:-"/usr/bin/clang++"}
+    PATH="${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin:${HOMEBREW_PREFIX}/bin:${PATH}"
 else
     LIBS="-lgomp"
     CFLAGS="-Wa,--noexecstack"
     CXXFLAGS="${CFLAGS}"
     MPI_HOME="/usr/lib64/openmpi"
     PATH="${MPI_HOME}/bin:${PATH}"
-    CC="$(command -v mpicc)"
-    CXX="$(command -v mpic++)"
-    FC="$(command -v mpif90)"
 fi
 set +a

@@ -60,7 +60,7 @@ contains
                         tp%lmask(1:ntp) = .true.
                         pl%lfirst = lfirstpl
                         tp%lfirst = .true.
-                        ! if (param%ltides) call nbody_system%step_spin(param, t, dt)
+                        ! if (param%ltides) call nbody_system%step_rot(param, t, dt)
                      else
                         call whm_step_system(nbody_system, param, t, dt)
                      end if

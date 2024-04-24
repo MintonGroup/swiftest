@@ -12,5 +12,5 @@
 # If not, see: https://www.gnu.org/licenses. 
 
 OMPI_FC="$(command -v gfortran-13 || command -v gfortran-12 || command -v gfortran)"
-echo "$(${OMPI_FC} --version | head -n1 | awk '{print $NF}' | cut -d. -f1)"
+echo "${OMPI_FC}"
 set +a
