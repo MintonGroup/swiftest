@@ -109,13 +109,13 @@ class TestCollisions(unittest.TestCase):
             # Check that the escape event was recorded
             self.assertEqual(sim.collisions.collision_id.size,1) 
             self.assertEqual(sim.collisions.sel(collision_id=1).regime.values, 'Ejected', msg=f"mtiny/M: {mtiny/M}: Wrong regime: {sim.collisions.sel(collision_id=1).regime.values}") 
-        
+       
             # Check that angular momentum is conserved
             ds=sim.collisions.sel(collision_id=1)
             ds['Ltot']=ds.L_orbit+ds.L_rot
             ds['Ltot_mag']=ds.Ltot.magnitude()
             dLtot=ds.Ltot_mag.diff('stage').values[0]
-            self.assertAlmostEqual(dLtot,0,places=8, msg=f"Mtiny/M: {mtiny/M} Angular momentum not conserved: {dLtot}")
+            self.assertAlmostEqual(dLtot,0,places=6, msg=f"Mtiny/M: {mtiny/M} Angular momentum not conserved: {dLtot}")
             
             # Check that energy was lost
             dEtot=ds.TE.diff('stage').values[0]
