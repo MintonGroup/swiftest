@@ -14,7 +14,8 @@ contains
    module subroutine rmvs_discard_tp(self, nbody_system, param)
       !! author: David A. Minton
       !!
-      !! Check to see if test particles should be discarded based on pericenter passage distances with respect to planets encountered
+      !! Check to see if test particles should be discarded based on pericenter passage distances with respect to planets 
+      !! encountered
       !!
       !! Adapted from Hal Levison's Swift routine discard_pl.f
       !! Adapted from Hal Levison's Swift routine rmvs_discard_pl.f90
@@ -66,12 +67,11 @@ contains
                      ldiscard_pl(:) = .false.
                      ldiscard_tp(i) = .true.
                      ldiscard_pl(iplperP) = .true.
-                     call tp%save_discard(ldiscard_pl,nbody_system,collider%before)
-                     call pl%save_discard(ldiscard_tp,nbody_system,collider%before)
+                     call tp%save_discard(ldiscard_tp,nbody_system,collider%before)
+                     call pl%save_discard(ldiscard_pl,nbody_system,collider%before)
                      call collision_history%take_snapshot(param,nbody_system, t, "before") 
-                     call pl%save_discard(ldiscard_tp,nbody_system,collider%after)
+                     call pl%save_discard(ldiscard_pl,nbody_system,collider%after)
                      call collision_history%take_snapshot(param,nbody_system, t, "after") 
-
                   end if
                end if
             end associate
