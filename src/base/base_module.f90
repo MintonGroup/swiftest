@@ -763,6 +763,7 @@ module base
 #ifdef COARRAY
          end if
 #endif 
+         stop
    
          return
       end subroutine base_util_exit
