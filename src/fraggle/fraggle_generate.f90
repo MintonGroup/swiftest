@@ -21,9 +21,13 @@ contains
       implicit none
       ! Arguments
       class(collision_fraggle), intent(inout) :: self
-      class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
-      real(DP),                 intent(in)    :: t            !! Time of collision
+         !! Fraggle collisional system object
+      class(base_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters),   intent(inout) :: param        
+         !! Current run configuration parameters 
+      real(DP),                 intent(in)    :: t            
+         !! Time of collision
       ! Internals
       integer(I4B)          :: i, ibiggest
       real(DP), dimension(NDIM) :: L_residual, vbcom_orig
@@ -60,7 +64,7 @@ contains
             call self%disrupt(nbody_system, param, t, lfailure)
             if (lfailure) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, & 
-                                           "Fraggle failed to find a solution to match energy contraint. Treating this as a merge.") 
+                                           "Fraggle failed to find a solution to match energy contraint. Treating this as a merge.")
                call self%merge(nbody_system, param, t) ! Use the default collision model, which is merge
                return
             end if
@@ -118,11 +122,16 @@ contains
       use, intrinsic :: ieee_exceptions
       implicit none
       ! Arguments
-      class(collision_fraggle), intent(inout) :: self         !! Fraggle system object the outputs will be the fragmentation 
-      class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
-      real(DP),                 intent(in)    :: t            !! Time of collision 
-      logical,                  intent(out)   :: lfailure     !! Answers the question: Should this have been a merger instead?
+      class(collision_fraggle), intent(inout) :: self         
+         !! Fraggle system object the outputs will be the fragmentation 
+      class(base_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters),   intent(inout) :: param        
+         !! Current run configuration parameters 
+      real(DP),                 intent(in)    :: t            
+         !! Time of collision 
+      logical,                  intent(out)   :: lfailure     
+         !! Answers the question: Should this have been a merger instead?
        ! Internals
       logical                              :: lk_plpl
       logical, dimension(size(IEEE_ALL))   :: fpe_halting_modes, fpe_quiet_modes
@@ -204,8 +213,8 @@ contains
 
          end if
          call self%set_original_scale()
-         self%max_rot = MAX_ROT_SI * param%TU2S ! Re-compute the rotation limit from scratch so it doesn't drift due to floating point 
-                                                ! errors every time we convert
+         self%max_rot = MAX_ROT_SI * param%TU2S ! Re-compute the rotation limit from scratch so it doesn't drift due to floating 
+                                                ! point errors every time we convert
 
          ! Restore the big array
          if (lk_plpl) call pl%flatten(param)
@@ -222,15 +231,19 @@ contains
       !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Create the fragments resulting from a non-catastrophic hit-and-run collision
-      !! 
       implicit none
       ! Arguments
-      class(collision_fraggle), intent(inout) :: self         !! Collision system object
-      class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
-      real(DP),                 intent(in)    :: t            !! Time of collision
+      class(collision_fraggle), intent(inout) :: self         
+         !! Collision system object
+      class(base_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters),   intent(inout) :: param        
+         !! Current run configuration parameters 
+      real(DP),                 intent(in)    :: t            
+         !! Time of collision
       ! Result
-      integer(I4B)                            :: status       !! Status flag assigned to this outcome
+      integer(I4B)                            :: status       
+         !! Status flag assigned to this outcome
       ! Internals
       integer(I4B)                            :: i, ibiggest, jtarg, jproj
       logical                                 :: lpure 
@@ -303,10 +316,14 @@ contains
       !!
       !! Adapted from Hal Levison's Swift routines symba5_merge.f and discard_mass_merge.f
       implicit none
-      class(collision_fraggle), intent(inout) :: self         !! Fraggle system object
-      class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
-      real(DP),                 intent(in)    :: t            !! The time of the collision
+      class(collision_fraggle), intent(inout) :: self         
+         !! Fraggle system object
+      class(base_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters),   intent(inout) :: param        
+         !! Current run configuration parameters 
+      real(DP),                 intent(in)    :: t            
+         !! The time of the collision
 
       ! Internals
       integer(I4B)                              :: i
@@ -354,10 +371,14 @@ contains
       !! checked for overlap and regenerated if they overlap.
       implicit none
       ! Arguments
-      class(collision_fraggle),     intent(inout) :: collider     !! Fraggle collision system object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
-      logical,                      intent(out)   :: lfailure     !! Did the velocity computation fail?
+      class(collision_fraggle),     intent(inout) :: collider     
+         !! Fraggle collision system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param        
+         !! Current run configuration parameters 
+      logical,                      intent(out)   :: lfailure     
+         !! Did the velocity computation fail?
       ! Internals
       real(DP)  :: dis, direction, rdistance
       real(DP), dimension(NDIM,2) :: fragment_cloud_center
@@ -537,9 +558,12 @@ contains
       !! These will be adjusted later when the final fragment velocities are computed in fraggle_generate_vel_vec
       implicit none
       ! Arguments
-      class(collision_fraggle),     intent(inout) :: collider     !! Fraggle collision system object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+      class(collision_fraggle),     intent(inout) :: collider     
+         !! Fraggle collision system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param        
+         !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: i
       real(DP), parameter :: FRAG_ROT_FAC = 0.1_DP ! Fraction of projectile rotation magnitude to add as random noise to fragment 
@@ -620,10 +644,14 @@ contains
       !! 2x the escape velocity of the smallest of the two bodies.
       implicit none
       ! Arguments
-      class(collision_fraggle),     intent(inout) :: collider     !! Fraggle collision system object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
-      logical,                      intent(out)   :: lfailure     !! Did the velocity computation fail?
+      class(collision_fraggle),     intent(inout) :: collider     
+         !! Fraggle collision system object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param        
+         !! Current run configuration parameters 
+      logical,                      intent(out)   :: lfailure     
+         !! Did the velocity computation fail?
       ! Internals
       real(DP), parameter :: ENERGY_SUCCESS_METRIC = 0.1_DP !! Relative energy error to accept as a success (success also must be 
                                                             !! energy-losing in addition to being within the metric amount)
@@ -751,8 +779,8 @@ contains
                   nsteps = nsteps + 1
                   mfrag = sum(fragments%mass(istart:fragments%nbody))
 
-                  ! Try to put residual angular momentum into the rotation, but if this would go past the rotation barrier, then put it into
-                  ! velocity shear instead 
+                  ! Try to put residual angular momentum into the rotation, but if this would go past the rotation barrier, then put
+                  ! it into velocity shear instead 
                   call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
                   L_mag_factor = .mag.(collider_local%L_total(:,1) + collider_local%L_total(:,2))
                   L_residual(:) = (collider_local%L_total(:,2) / L_mag_factor - collider_local%L_total(:,1) / L_mag_factor)
@@ -778,8 +806,8 @@ contains
                      if (.mag.rot_new(:) < collider_local%max_rot) then
                         fragments%rot(:,i) = rot_new(:)
                         fragments%rotmag(i) = .mag.fragments%rot(:,i)
-                     else ! We would break the rotation barrier here. Add a random component of rotation that is less than what would 
-                          ! break the limit. The rest will go in velocity shear
+                     else ! We would break the rotation barrier here. Add a random component of rotation that is less than what 
+                          ! would break the limit. The rest will go in velocity shear
                         call random_number(drot)
                         call random_number(rn)
                         drot(:) = (rn * collider_local%max_rot - fragments%rotmag(i)) * 2 * (drot(:) - 0.5_DP)
@@ -883,7 +911,8 @@ contains
             call collider%get_energy_and_momentum(nbody_system, param, phase="after")
             L_mag_factor = .mag.(collider%L_total(:,1) + collider%L_total(:,2))
             L_residual(:) = (collider%L_total(:,2) / L_mag_factor - collider%L_total(:,1)) / L_mag_factor
-            call collision_util_velocity_torque(-L_residual(:) * L_mag_factor, collider%fragments%mtot, impactors%rbcom, impactors%vbcom)
+            call collision_util_velocity_torque(-L_residual(:) * L_mag_factor, collider%fragments%mtot, &
+                                                impactors%rbcom, impactors%vbcom)
             nfrag = collider%fragments%nbody
 
 #ifdef DOCONLOC
