@@ -2,6 +2,32 @@
 
 What's New
 ==========
+
+v2024.04.2
+~~~~~~~~~~
+
+Bug Fixes
+~~~~~~~~~
+- Fixed problems that were preventing non pl-pl collision types to be stored in the ``collisions.nc`` file (the ``collisions`` Dataset). `GH38`_
+- Changed the way that mergers are handled when they would result in a merged body above the spin barrier. These are forced to always be pure hit-and-runs, rather than disruptive hit-and-run. 
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- In preparation for a planned release that will use `Coarray Fortran`_ to parallelize RMVS runs, we have incorporated the `OpenMPI`_ library into the build process. All of the build scipts were overhauled in order to compile with the MPI wrappers.
+- A slew of new tests were added to test that collisions were being recorded correctly.
+
+Breaking Changes
+~~~~~~~~~~~~~~~~
+- We have dropped support for MacOS-11 from the official PyPI wheels, as the addition of OpenMPI to the build process prevented the wheels from being built on the GitHub runners. 
+- The structure of the collisions Dataset has been altered to help improve performance in runs with large numbers of collisions and fragmentation. The ``name`` variable is no longer a dimension-coordinate, as this was causing the Dataset to become
+  unreasonably large when reading in runs with a long history of fragmentation events. Instead, the names of bodies in the before and after stages of a collision are stored as regular variables that are unique to each individual collision. This will
+  prevent the ``name`` variable from needing to be so large, as it only needs to be as long as the maximum number of bodies made in a single collision, rather than the total number of unique bodies every made in all collisions. This means that one cannot select bodies by name using the ``.sel`` method, but instead must use the ``.where`` method to select bodies by name. This change was made to address `GH39`_.
+
+.. _OpenMPI: https://www.open-mpi.org/
+.. _Coarray Fortran: https://gcc.gnu.org/wiki/Coarray
+.. _GH38: https://github.com/MintonGroup/swiftest/issues/38
+.. _GH39: https://github.com/MintonGroup/swiftest/issues/39
+
 v2024.04.1
 ~~~~~~~~~~
 
@@ -10,7 +36,6 @@ Bug Fixes
 - Fixed problem that was causing the wrong dimensions to be added to certain variables when calling :meth:`~swiftest.SwiftestDataset.xv2el` and :meth:`~swiftest.SwiftestDataset.el2xv`. `GH31`_
 - Fixed bug that was causing a failure to read in collision Datasets when ``dask=True`` was set. `GH36`_
 - Fixed other minor bugs that only appeared when reading in datasets using Dask.
-
 
 .. _GH31: https://github.com/MintonGroup/swiftest/issues/31
 .. _GH36: https://github.com/MintonGroup/swiftest/issues/36
