@@ -188,7 +188,7 @@ contains
       ! Internals
       integer(I4B)                              :: i, j, ibiggest
       integer(I8B)                              :: k
-      real(DP), dimension(NDIM)                 :: L_spin_new, L_residual
+      real(DP), dimension(NDIM)                 :: L_rot_new, L_residual
       real(DP)                                  :: volume
       character(len=STRMAX) :: message
 
@@ -226,17 +226,17 @@ contains
                   fragments%radius(1) = (3._DP * volume / (4._DP * PI))**(THIRD)
                   if (param%lrotation) then
 #ifdef DOCONLOC
-                     do concurrent(i = 1:NDIM) shared(impactors, fragments, L_spin_new)
+                     do concurrent(i = 1:NDIM) shared(impactors, fragments, L_rot_new)
 #else
                      do concurrent(i = 1:NDIM)
 #endif
                         fragments%Ip(i,1) = sum(impactors%mass(:) * impactors%Ip(i,:)) 
-                        L_spin_new(i) = sum(impactors%L_orbit(i,:) + impactors%L_spin(i,:))
+                        L_rot_new(i) = sum(impactors%L_orbit(i,:) + impactors%L_rot(i,:))
                      end do
                      fragments%Ip(:,1) = fragments%Ip(:,1) / fragments%mass(1)
-                     fragments%rot(:,1) = L_spin_new(:) / (fragments%Ip(3,1) * fragments%mass(1) * fragments%radius(1)**2)
-                  else ! If spin is not enabled, we will consider the lost pre-collision angular momentum as "escaped" and add it to
-                       ! our bookkeeping variable
+                     fragments%rot(:,1) = L_rot_new(:) / (fragments%Ip(3,1) * fragments%mass(1) * fragments%radius(1)**2)
+                  else ! If rotation is not enabled, we will consider the lost pre-collision angular momentum as "escaped" and add 
+                       ! it to our bookkeeping variable
                      nbody_system%L_escape(:) = nbody_system%L_escape(:) + impactors%L_orbit(:,1) + impactors%L_orbit(:,2) 
                   end if
 

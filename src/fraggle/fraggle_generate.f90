@@ -204,7 +204,7 @@ contains
 
          end if
          call self%set_original_scale()
-         self%max_rot = MAX_ROT_SI * param%TU2S ! Re-compute the spin limit from scratch so it doesn't drift due to floating point 
+         self%max_rot = MAX_ROT_SI * param%TU2S ! Re-compute the rotation limit from scratch so it doesn't drift due to floating point 
                                                 ! errors every time we convert
 
          ! Restore the big array
@@ -310,7 +310,7 @@ contains
 
       ! Internals
       integer(I4B)                              :: i
-      real(DP), dimension(NDIM)                 :: L_spin_new, Ip, rot
+      real(DP), dimension(NDIM)                 :: L_rot_new, Ip, rot
       real(DP)                                  :: rotmag, mass, volume, radius
 
       select type(nbody_system)
@@ -320,21 +320,21 @@ contains
             volume = 4._DP / 3._DP * PI * sum(impactors%radius(:)**3)
             radius = (3._DP * volume / (4._DP * PI))**(THIRD)
 #ifdef DOCONLOC
-            do concurrent(i = 1:NDIM) shared(impactors, Ip, L_spin_new)
+            do concurrent(i = 1:NDIM) shared(impactors, Ip, L_rot_new)
 #else
             do concurrent(i = 1:NDIM)
 #endif
                Ip(i) = sum(impactors%mass(:) * impactors%Ip(i,:)) 
-               L_spin_new(i) = sum(impactors%L_orbit(i,:) + impactors%L_spin(i,:))
+               L_rot_new(i) = sum(impactors%L_orbit(i,:) + impactors%L_rot(i,:))
             end do
             Ip(:) = Ip(:) / mass
-            rot(:) = L_spin_new(:) / (Ip(3) * mass * radius**2)
+            rot(:) = L_rot_new(:) / (Ip(3) * mass * radius**2)
             rotmag = .mag.rot(:)
             if (rotmag < self%max_rot) then
                call self%collision_basic%merge(nbody_system, param, t)
             else
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, &
-                                                "Merger would break the spin barrier. Converting to pure hit and run" )
+                                                "Merger would break the rotation barrier. Converting to pure hit and run" )
                impactors%mass_dist(1:2) = impactors%mass(1:2)
                call self%hitandrun(nbody_system, param, t)
             end if
@@ -560,12 +560,12 @@ contains
          mass_fac = fragments%mass(1) / impactors%mass(1)
          fragments%rot(:,1) = mass_fac**(5.0_DP/3.0_DP) * impactors%rot(:,1)
 
-         ! If mass was added, also add spin angular momentum
+         ! If mass was added, also add rotational angular momentum
          if (mass_fac > 1.0_DP) then
             dL(:) = (fragments%mass(1) - impactors%mass(1)) * (impactors%rc(:,2) - impactors%rc(:,1)) &
                                                       .cross. (impactors%vc(:,2) - impactors%vc(:,1))
             drot(:) = dL(:) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(3,1))
-            ! Check to make sure we haven't broken the spin barrier. Reduce the rotation change if so
+            ! Check to make sure we haven't broken the rotation barrier. Reduce the rotation change if so
             do i = 1, MAXLOOP
                if (.mag.(fragments%rot(:,1) + drot(:)) < collider%max_rot) exit
                if (i == MAXLOOP) drot(:) = 0.0_DP
@@ -751,7 +751,7 @@ contains
                   nsteps = nsteps + 1
                   mfrag = sum(fragments%mass(istart:fragments%nbody))
 
-                  ! Try to put residual angular momentum into the spin, but if this would go past the spin barrier, then put it into
+                  ! Try to put residual angular momentum into the rotation, but if this would go past the rotation barrier, then put it into
                   ! velocity shear instead 
                   call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
                   L_mag_factor = .mag.(collider_local%L_total(:,1) + collider_local%L_total(:,2))
@@ -759,7 +759,7 @@ contains
                   L_residual_unit(:) = .unit. L_residual(:)
                   if (nsteps == 1) L_residual_best(:) = L_residual(:) * L_mag_factor
 
-                  ! Use equipartition of spin kinetic energy to distribution spin angular momentum
+                  ! Use equipartition of rotational kinetic energy to distribution rotational angular momentum
 #ifdef DOCONLOC
                   do concurrent(i = istart:fragments%nbody) shared(DLi_mag, fragments)
 #else
@@ -778,7 +778,7 @@ contains
                      if (.mag.rot_new(:) < collider_local%max_rot) then
                         fragments%rot(:,i) = rot_new(:)
                         fragments%rotmag(i) = .mag.fragments%rot(:,i)
-                     else ! We would break the spin barrier here. Add a random component of rotation that is less than what would 
+                     else ! We would break the rotation barrier here. Add a random component of rotation that is less than what would 
                           ! break the limit. The rest will go in velocity shear
                         call random_number(drot)
                         call random_number(rn)

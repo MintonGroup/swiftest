@@ -30,7 +30,7 @@ contains
          call pl%step(nbody_system, param, t, dt)
          call tp%step(nbody_system, param, t, dt)
          call cb%rotphase_update(param, dt)
-         ! if (param%ltides) call nbody_system%step_spin(param, t, dt)
+         ! if (param%ltides) call nbody_system%step_rot(param, t, dt)
 
       end associate
       return

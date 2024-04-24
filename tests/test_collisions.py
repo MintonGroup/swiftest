@@ -54,7 +54,7 @@ class TestCollisions(unittest.TestCase):
         
             # Check that angular momentum is conserved
             ds=sim.collisions.sel(collision_id=1)
-            ds['Ltot']=ds.L_orbit+ds.L_spin
+            ds['Ltot']=ds.L_orbit+ds.L_rot
             ds['Ltot_mag']=ds.Ltot.magnitude()
             dLtot=ds.Ltot_mag.diff('stage').values[0]
             self.assertAlmostEqual(dLtot,0,places=8, msg=f"Angular momentum not conserved: {dLtot}")
@@ -112,7 +112,7 @@ class TestCollisions(unittest.TestCase):
         
             # Check that angular momentum is conserved
             ds=sim.collisions.sel(collision_id=1)
-            ds['Ltot']=ds.L_orbit+ds.L_spin
+            ds['Ltot']=ds.L_orbit+ds.L_rot
             ds['Ltot_mag']=ds.Ltot.magnitude()
             dLtot=ds.Ltot_mag.diff('stage').values[0]
             self.assertAlmostEqual(dLtot,0,places=8, msg=f"Mtiny/M: {mtiny/M} Angular momentum not conserved: {dLtot}")
@@ -176,7 +176,7 @@ class TestCollisions(unittest.TestCase):
         
             # Check that angular momentum is conserved
             ds=sim.collisions.sel(collision_id=1)
-            ds['Ltot']=ds.L_orbit+ds.L_spin
+            ds['Ltot']=ds.L_orbit+ds.L_rot
             ds['Ltot_mag']=ds.Ltot.magnitude()
             dLtot=ds.Ltot_mag.diff('stage').values[0]
             self.assertAlmostEqual(dLtot,0,places=8, msg=f"Angular momentum not conserved: {dLtot}")

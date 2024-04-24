@@ -70,7 +70,7 @@ contains
       real(DP) :: mlr, mslr, mslr_hr, mtot, dentot, Qloss, Qmerge
       integer(I4B), parameter :: NMASS_DIST = 3   ! Number of mass bins returned by the regime calculation (largest fragment, second
                                                   ! largest, and remainder)  
-      real(DP), dimension(NDIM) :: Ip, rot, L_spin
+      real(DP), dimension(NDIM) :: Ip, rot, L_rot
       real(DP) :: radius, volume
       
       associate(impactors => collider%impactors)
@@ -128,21 +128,21 @@ contains
          Qmerge = Qmerge * (param%TU2S / param%DU2M)**2 / param%MU2KG
          mtot = mtot / param%MU2kg
 
-         ! If this is came back as a merger, check to make sure that the rotation of the merged body doesn't exceed the spin barrier
+         ! If this is came back as a merger, check to make sure that the rotation of the merged body doesn't exceed the rotation barrier
          if (impactors%regime == COLLRESOLVE_REGIME_MERGE) then
             volume = 4._DP / 3._DP * PI * sum(impactors%radius(:)**3)
             radius = (3._DP * volume / (4._DP * PI))**(THIRD)
 #ifdef DOCONLOC
-            do concurrent(i = 1:NDIM) shared(impactors,Ip,L_spin)
+            do concurrent(i = 1:NDIM) shared(impactors,Ip,L_rot)
 #else
             do concurrent(i = 1:NDIM)
 #endif
                Ip(i) = sum(impactors%mass(:) * impactors%Ip(i,:)) 
-               L_spin(i) = sum(impactors%L_orbit(i,:) + impactors%L_spin(i,:))
+               L_rot(i) = sum(impactors%L_orbit(i,:) + impactors%L_rot(i,:))
             end do
             Ip(:) = Ip(:) / mtot
-            rot(:) = L_spin(:) / (Ip(3) * mtot * radius**2)
-            if (.mag.rot(:) > collider%max_rot) then ! The merged body would spin too fast, so reclasify this as a hit and run
+            rot(:) = L_rot(:) / (Ip(3) * mtot * radius**2)
+            if (.mag.rot(:) > collider%max_rot) then ! The merged body would rotation too fast, so reclasify this as a hit and run
                mlr = impactors%mass(jtarg)
                mslr = mslr_hr
                impactors%regime = COLLRESOLVE_REGIME_HIT_AND_RUN

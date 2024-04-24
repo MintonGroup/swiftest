@@ -15,7 +15,7 @@ contains
       !! author: David A. Minton
       !! 
       !! Loops through the pl-pl collision list and groups families together by index. Outputs the indices of all impactors%id 
-      !! members, and pairs of quantities (x and v vectors, mass, radius, L_spin, and Ip) that can be used to resolve the 
+      !! members, and pairs of quantities (x and v vectors, mass, radius, L_rot, and Ip) that can be used to resolve the 
       !! collisional outcome.
       implicit none
       ! Arguments
@@ -89,7 +89,7 @@ contains
 
             impactors%ncoll = count(pl%lcollision(impactors%id(:)))
             impactors%id = pack(impactors%id(:), pl%lcollision(impactors%id(:)))
-            impactors%L_spin(:,:) = 0.0_DP
+            impactors%L_rot(:,:) = 0.0_DP
             impactors%Ip(:,:) = 0.0_DP
 
             ! Find the barycenter of each body along with its children, if it has any
@@ -99,7 +99,7 @@ contains
                ! Assume principal axis rotation about axis corresponding to highest moment of inertia (3rd Ip)
                if (param%lrotation) then
                   impactors%Ip(:, j) = impactors%mass(j) * pl%Ip(:, idx_parent(j))
-                  impactors%L_spin(:, j) = impactors%Ip(3, j) * impactors%radius(j)**2 * pl%rot(:, idx_parent(j))
+                  impactors%L_rot(:, j) = impactors%Ip(3, j) * impactors%radius(j)**2 * pl%rot(:, idx_parent(j))
                end if
 
                if (nchild(j) > 0) then
@@ -111,22 +111,22 @@ contains
                      vchild(:) = pl%vb(:, idx_child)
                      volchild = (4.0_DP / 3.0_DP) * PI * pl%radius(idx_child)**3
                      volume(j) = volume(j) + volchild
-                     ! Get angular momentum of the child-parent pair and add that to the spin
-                     ! Add the child's spin
+                     ! Get angular momentum of the child-parent pair and add that to the rotation
+                     ! Add the child's rotation
                      if (param%lrotation) then
                         xcom(:) = (impactors%mass(j) * impactors%rb(:,j) + mchild * xchild(:)) / (impactors%mass(j) + mchild)
                         vcom(:) = (impactors%mass(j) * impactors%vb(:,j) + mchild * vchild(:)) / (impactors%mass(j) + mchild)
                         xc(:) = impactors%rb(:, j) - xcom(:)
                         vc(:) = impactors%vb(:, j) - vcom(:)
                         xcrossv(:) = xc(:) .cross. vc(:) 
-                        impactors%L_spin(:, j) = impactors%L_spin(:, j) + impactors%mass(j) * xcrossv(:)
+                        impactors%L_rot(:, j) = impactors%L_rot(:, j) + impactors%mass(j) * xcrossv(:)
          
                         xc(:) = xchild(:) - xcom(:)
                         vc(:) = vchild(:) - vcom(:)
                         xcrossv(:) = xc(:) .cross. vc(:) 
-                        impactors%L_spin(:, j) = impactors%L_spin(:, j) + mchild * xcrossv(:)
+                        impactors%L_rot(:, j) = impactors%L_rot(:, j) + mchild * xcrossv(:)
 
-                        impactors%L_spin(:, j) = impactors%L_spin(:, j) + mchild * pl%Ip(3, idx_child)  &
+                        impactors%L_rot(:, j) = impactors%L_rot(:, j) + mchild * pl%Ip(3, idx_child)  &
                                                                                  * pl%radius(idx_child)**2 &
                                                                                  * pl%rot(:, idx_child)
                         impactors%Ip(:, j) = impactors%Ip(:, j) + mchild * pl%Ip(:, idx_child)
@@ -142,7 +142,7 @@ contains
                impactors%radius(j) = (3 * volume(j) / (4 * PI))**(1.0_DP / 3.0_DP)
                if (param%lrotation) then
                   impactors%Ip(:, j) = impactors%Ip(:, j) / impactors%mass(j)
-                  impactors%rot(:,j) = impactors%L_spin(:, j) / (impactors%Ip(3,j) * impactors%mass(j) * impactors%radius(j)**2)
+                  impactors%rot(:,j) = impactors%L_rot(:, j) / (impactors%Ip(3,j) * impactors%mass(j) * impactors%radius(j)**2)
                end if
             end do
             lflag = .true.

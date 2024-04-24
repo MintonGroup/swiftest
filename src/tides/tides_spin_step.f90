@@ -1,12 +1,12 @@
-submodule(tides) s_tides_step_spin
+submodule(tides) s_tides_step_rot
    use swiftest
 
 contains
 
-   module subroutine tides_step_spin_system(self, param, t, dt)
+   module subroutine tides_step_rot_system(self, param, t, dt)
       !! author: Jennifer L.L. Pouplin and David A. Minton
       !!
-      !! Integrates the spin equations for central and massive bodies of the nbody_system subjected to tides.
+      !! Integrates the rotation equations for central and massive bodies of the nbody_system subjected to tides.
       implicit none
       ! Arguments
       class(base_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
@@ -24,9 +24,9 @@ contains
          associate(pl => self%pl, npl => self%pl%nbody, cb => self%cb)
             allocate(rot0(NDIM*(npl+1)))
             ! rot0 = [pack(pl%rot(:,1:npl),.true.), pack(cb%rot(:),.true.)]
-            ! Use this space call the ode_solver, passing tides_spin_derivs as the function:
+            ! Use this space call the ode_solver, passing tides_rot_derivs as the function:
             ! subdt = dt / 20._DP
-            ! rot1(:) = swiftest_util_solve_rkf45(lambda_obj(tides_spin_derivs, subdt, pl%rbeg, pl%rend), rot0, dt, subdt,tol)
+            ! rot1(:) = swiftest_util_solve_rkf45(lambda_obj(tides_rot_derivs, subdt, pl%rbeg, pl%rend), rot0, dt, subdt,tol)
             ! ! Recover with unpack
             ! pl%rot(:,1:npl) = unpack(rot1...
             ! cb%rot(:) = unpack(rot1...
@@ -34,10 +34,10 @@ contains
       end select
 
       return
-   end subroutine tides_step_spin_system
+   end subroutine tides_step_rot_system
 
 
-   module function tides_spin_derivs(rot_pl_cb, t, dt, rbeg, rend) result(drot) !! Need to add more arguments so we can pull in mass, radius, Ip, J2, etc...
+   module function tides_rot_derivs(rot_pl_cb, t, dt, rbeg, rend) result(drot) !! Need to add more arguments so we can pull in mass, radius, Ip, J2, etc...
       !! author: Jennifer L.L. Pouplin and David A. Minton
       !!
       !! function used to calculate the derivatives that are fed to the ODE solver
@@ -69,7 +69,7 @@ contains
       end do
 
       return
-   end function tides_spin_derivs
+   end function tides_rot_derivs
 
    module function tides_derivs_eval(self, x, t) result(y)
       implicit none
@@ -105,4 +105,4 @@ contains
       return
    end function tides_derivs_init
 
-end submodule s_tides_step_spin
+end submodule s_tides_step_rot

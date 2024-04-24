@@ -819,30 +819,30 @@ contains
       self%t = -1.0_DP            
       self%GMtot = 0.0_DP         
       self%ke_orbit = 0.0_DP      
-      self%ke_spin = 0.0_DP       
+      self%ke_rot = 0.0_DP       
       self%pe = 0.0_DP            
       self%be = 0.0_DP            
       self%te = 0.0_DP            
       self%oblpot = 0.0_DP        
       self%L_orbit = 0.0_DP        
-      self%L_spin = 0.0_DP         
+      self%L_rot = 0.0_DP         
       self%L_total = 0.0_DP          
       self%ke_orbit_orig = 0.0_DP 
-      self%ke_spin_orig = 0.0_DP  
+      self%ke_rot_orig = 0.0_DP  
       self%pe_orig = 0.0_DP       
       self%be_orig = 0.0_DP       
       self%E_orbit_orig = 0.0_DP   
       self%GMtot_orig = 0.0_DP    
       self%L_total_orig = 0.0_DP     
       self%L_orbit_orig = 0.0_DP   
-      self%L_spin_orig = 0.0_DP    
+      self%L_rot_orig = 0.0_DP    
       self%L_escape = 0.0_DP       
       self%GMescape = 0.0_DP      
       self%E_collisions = 0.0_DP   
       self%E_untracked = 0.0_DP    
 
       self%ke_orbit_error    = 0.0_DP
-      self%ke_spin_error     = 0.0_DP
+      self%ke_rot_error     = 0.0_DP
       self%pe_error          = 0.0_DP
       self%be_error          = 0.0_DP
       self%E_orbit_error     = 0.0_DP
@@ -850,7 +850,7 @@ contains
       self%E_untracked_error = 0.0_DP
       self%te_error          = 0.0_DP
       self%L_orbit_error     = 0.0_DP
-      self%L_spin_error      = 0.0_DP
+      self%L_rot_error      = 0.0_DP
       self%L_escape_error    = 0.0_DP
       self%L_total_error     = 0.0_DP
       self%Mtot_error        = 0.0_DP
@@ -1204,26 +1204,26 @@ contains
       class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters
       ! Internals
       integer(I4B) :: i,j, npl
-      real(DP) :: kecb, kespincb
-      real(DP), dimension(self%pl%nbody) :: kepl, kespinpl
+      real(DP) :: kecb, kerotcb
+      real(DP), dimension(self%pl%nbody) :: kepl, kerotpl
       real(DP), dimension(NDIM,self%pl%nbody) :: Lplorbit
-      real(DP), dimension(NDIM,self%pl%nbody) :: Lplspin
-      real(DP), dimension(NDIM) :: Lcborbit, Lcbspin
+      real(DP), dimension(NDIM,self%pl%nbody) :: Lplrot
+      real(DP), dimension(NDIM) :: Lcborbit, Lcbrot
       real(DP), dimension(NDIM) :: h
 
       associate(nbody_system => self, pl => self%pl, cb => self%cb)
          npl = self%pl%nbody
          nbody_system%L_orbit(:) = 0.0_DP
-         nbody_system%L_spin(:) = 0.0_DP
+         nbody_system%L_rot(:) = 0.0_DP
          nbody_system%L_total(:) = 0.0_DP
          nbody_system%ke_orbit = 0.0_DP
-         nbody_system%ke_spin = 0.0_DP
+         nbody_system%ke_rot = 0.0_DP
 
          nbody_system%GMtot = cb%Gmass
          if (npl > 0) then
             kepl(:) = 0.0_DP
             Lplorbit(:,:) = 0.0_DP
-            Lplspin(:,:) = 0.0_DP
+            Lplrot(:,:) = 0.0_DP
             pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE
             nbody_system%GMtot = nbody_system%GMtot + sum(pl%Gmass(1:npl), pl%lmask(1:npl)) 
          end if
@@ -1251,44 +1251,44 @@ contains
          end if
 
          if (param%lrotation) then
-            kespincb = cb%mass * cb%Ip(3) * cb%radius**2 * dot_product(cb%rot(:), cb%rot(:))
+            kerotcb = cb%mass * cb%Ip(3) * cb%radius**2 * dot_product(cb%rot(:), cb%rot(:))
 
             ! For simplicity, we always assume that the rotation pole is the 3rd principal axis
-            Lcbspin(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
+            Lcbrot(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
 
             if (npl > 0) then
 #ifdef DOCONLOC
-               do concurrent (i = 1:npl, pl%lmask(i)) shared(pl,Lplspin,kespinpl)
+               do concurrent (i = 1:npl, pl%lmask(i)) shared(pl,Lplrot,kerotpl)
 #else
                do concurrent (i = 1:npl, pl%lmask(i))
 #endif
                   ! Currently we assume that the rotation pole is the 3rd principal axis
-                  ! Angular momentum from spin
-                  Lplspin(:,i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(:,i)
+                  ! Angular momentum from rotation
+                  Lplrot(:,i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(:,i)
 
-                  ! Kinetic energy from spin
-                  kespinpl(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * dot_product(pl%rot(:,i), pl%rot(:,i))
+                  ! Kinetic energy from rotation
+                  kerotpl(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * dot_product(pl%rot(:,i), pl%rot(:,i))
                end do
 
-               nbody_system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), pl%lmask(1:npl)))
+               nbody_system%ke_rot = 0.5_DP * (kerotcb + sum(kerotpl(1:npl), pl%lmask(1:npl)))
             else
-               nbody_system%ke_spin = 0.5_DP * kespincb
+               nbody_system%ke_rot = 0.5_DP * kerotcb
             end if
 
             if (npl > 0) then
 #ifdef DOCONLOC
-               do concurrent (j = 1:NDIM) shared(nbody_system,pl,Lplspin,Lcbspin)
+               do concurrent (j = 1:NDIM) shared(nbody_system,pl,Lplrot,Lcbrot)
 #else
                do concurrent (j = 1:NDIM)
 #endif
-                  nbody_system%L_spin(j) = Lcbspin(j) + sum(Lplspin(j,1:npl), pl%lmask(1:npl))
+                  nbody_system%L_rot(j) = Lcbrot(j) + sum(Lplrot(j,1:npl), pl%lmask(1:npl))
                end do
             else
-               nbody_system%L_spin(:) = Lcbspin(:)
+               nbody_system%L_rot(:) = Lcbrot(:)
             end if
          else
-            nbody_system%ke_spin = 0.0_DP
-            nbody_system%L_spin(:) = 0.0_DP
+            nbody_system%ke_rot = 0.0_DP
+            nbody_system%L_rot(:) = 0.0_DP
          end if
  
          if (npl > 0) then
@@ -1325,8 +1325,8 @@ contains
          else
             nbody_system%be = 0.0_DP
          end if
-         nbody_system%te = nbody_system%ke_orbit + nbody_system%ke_spin + nbody_system%pe + nbody_system%be 
-         nbody_system%L_total(:) = nbody_system%L_orbit(:) + nbody_system%L_spin(:)
+         nbody_system%te = nbody_system%ke_orbit + nbody_system%ke_rot + nbody_system%pe + nbody_system%be 
+         nbody_system%L_total(:) = nbody_system%L_orbit(:) + nbody_system%L_rot(:)
       end associate
 
       return
@@ -2935,29 +2935,29 @@ contains
       snapshot%t                 = nbody_system%t
       snapshot%GMtot             = nbody_system%GMtot
       snapshot%ke_orbit          = nbody_system%ke_orbit
-      snapshot%ke_spin           = nbody_system%ke_spin
+      snapshot%ke_rot           = nbody_system%ke_rot
       snapshot%pe                = nbody_system%pe
       snapshot%be                = nbody_system%be
       snapshot%te                = nbody_system%te
       snapshot%oblpot            = nbody_system%oblpot
       snapshot%L_orbit           = nbody_system%L_orbit
-      snapshot%L_spin            = nbody_system%L_spin
+      snapshot%L_rot            = nbody_system%L_rot
       snapshot%L_total           = nbody_system%L_total
       snapshot%ke_orbit_orig     = nbody_system%ke_orbit_orig
-      snapshot%ke_spin_orig      = nbody_system%ke_spin_orig
+      snapshot%ke_rot_orig      = nbody_system%ke_rot_orig
       snapshot%pe_orig           = nbody_system%pe_orig
       snapshot%be_orig           = nbody_system%be_orig
       snapshot%E_orbit_orig      = nbody_system%E_orbit_orig
       snapshot%GMtot_orig        = nbody_system%GMtot_orig
       snapshot%L_total_orig      = nbody_system%L_total_orig
       snapshot%L_orbit_orig      = nbody_system%L_orbit_orig
-      snapshot%L_spin_orig       = nbody_system%L_spin_orig
+      snapshot%L_rot_orig       = nbody_system%L_rot_orig
       snapshot%L_escape          = nbody_system%L_escape
       snapshot%GMescape          = nbody_system%GMescape
       snapshot%E_collisions      = nbody_system%E_collisions
       snapshot%E_untracked       = nbody_system%E_untracked
       snapshot%ke_orbit_error    = nbody_system%ke_orbit_error   
-      snapshot%ke_spin_error     = nbody_system%ke_spin_error    
+      snapshot%ke_rot_error     = nbody_system%ke_rot_error    
       snapshot%pe_error          = nbody_system%pe_error         
       snapshot%be_error          = nbody_system%be_error         
       snapshot%E_orbit_error     = nbody_system%E_orbit_error    
@@ -2965,7 +2965,7 @@ contains
       snapshot%E_untracked_error = nbody_system%E_untracked_error
       snapshot%te_error          = nbody_system%te_error         
       snapshot%L_orbit_error     = nbody_system%L_orbit_error    
-      snapshot%L_spin_error      = nbody_system%L_spin_error     
+      snapshot%L_rot_error      = nbody_system%L_rot_error     
       snapshot%L_escape_error    = nbody_system%L_escape_error   
       snapshot%L_total_error     = nbody_system%L_total_error    
       snapshot%Mtot_error        = nbody_system%Mtot_error       

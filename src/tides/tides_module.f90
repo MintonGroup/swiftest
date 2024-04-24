@@ -69,22 +69,22 @@ module tides
          real(DP), dimension(:), allocatable  :: y
       end function tides_derivs_eval
 
-      module function tides_spin_derivs(rot_pl_cb, t, dt, rbeg, rend) result(drot) !! Need to add more arguments so we can pull in mass, radius, Ip, J2, etc...
+      module function tides_rot_derivs(rot_pl_cb, t, dt, rbeg, rend) result(drot) !! Need to add more arguments so we can pull in mass, radius, Ip, J2, etc...
          real(DP), dimension(:,:),     intent(in) :: rot_pl_cb !! Array of rotations. The last element is the central body, and all others are massive bodies
          real(DP),                     intent(in) :: t         !! Current time, which is used to interpolate the massive body positions
          real(DP),                     intent(in) :: dt        !! Total step size
          real(DP), dimension(:,:),     intent(in) :: rbeg
          real(DP), dimension(:,:),     intent(in) :: rend
          real(DP), dimension(:,:), allocatable    :: drot
-      end function tides_spin_derivs
+      end function tides_rot_derivs
 
-      module subroutine tides_step_spin_system(self, param, t, dt)
+      module subroutine tides_step_rot_system(self, param, t, dt)
          implicit none
          class(base_nbody_system), intent(inout) :: self   !! Swiftest nbody system object
          class(base_parameters),   intent(in)    :: param  !! Current run configuration parameters  
          real(DP),                     intent(in)    :: t     !! Simulation time
          real(DP),                     intent(in)    :: dt    !! Current stepsize
-      end subroutine tides_step_spin_system
+      end subroutine tides_step_rot_system
    
    end interface
 
