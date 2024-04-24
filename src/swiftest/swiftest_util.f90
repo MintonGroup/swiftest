@@ -189,9 +189,6 @@ contains
          call util_append(self%renc, source%renc, lsource_mask=lsource_mask)
          call util_append(self%radius, source%radius, lsource_mask=lsource_mask)
          call util_append(self%density, source%density, lsource_mask=lsource_mask)
-         call util_append(self%rbeg, source%rbeg, lsource_mask=lsource_mask)
-         call util_append(self%rend, source%rend, lsource_mask=lsource_mask)
-         call util_append(self%vbeg, source%vbeg, lsource_mask=lsource_mask)
          call util_append(self%Ip, source%Ip, lsource_mask=lsource_mask)
          call util_append(self%rot, source%rot, lsource_mask=lsource_mask)
          call util_append(self%k2, source%k2, lsource_mask=lsource_mask)
@@ -251,8 +248,10 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_h2b.f 
       implicit none
       ! Arguments
-      class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
-      class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+      class(swiftest_pl), intent(inout) :: self 
+         !! Swiftest massive body object
+      class(swiftest_cb), intent(inout) :: cb   
+         !! Swiftest central body object
       ! Internals
       integer(I4B)  :: i
       real(DP)      :: Gmtot
@@ -322,8 +321,10 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_b2h.f 
       implicit none
       ! Arguments
-      class(swiftest_pl),     intent(inout) :: self !! Swiftest massive body object
-      class(swiftest_cb),  intent(inout) :: cb   !! Swiftest central body object
+      class(swiftest_pl),  intent(inout) :: self 
+         !! Swiftest massive body object
+      class(swiftest_cb),  intent(inout) :: cb   
+         !! Swiftest central body object
       ! Internals
       integer(I4B)          :: i, npl
 
@@ -354,8 +355,10 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_b2h_tp.f 
       implicit none
       ! Arguments
-      class(swiftest_tp),     intent(inout) :: self !! Swiftest massive body object
-      class(swiftest_cb),  intent(in)    :: cb   !! Swiftest central body object
+      class(swiftest_tp),  intent(inout) :: self 
+         !! Swiftest massive body object
+      class(swiftest_cb),  intent(in)    :: cb   
+         !! Swiftest central body object
       ! Internals
       integer(I4B) :: i, ntp
 
@@ -386,8 +389,10 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_vb2vh.f 
       implicit none
       ! Arguments
-      class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
-      class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+      class(swiftest_pl), intent(inout) :: self 
+         !! Swiftest massive body object
+      class(swiftest_cb), intent(inout) :: cb   
+         !! Swiftest central body object
       ! Internals
       integer(I4B)              :: i, npl
 
@@ -421,8 +426,10 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_vb2h_tp.f 
       implicit none
       ! Arguments
-      class(swiftest_tp),     intent(inout) :: self !! Swiftest test particle object
-      real(DP), dimension(:), intent(in)    :: vbcb !! Barycentric velocity of the central body
+      class(swiftest_tp),     intent(inout) :: self 
+         !! Swiftest test particle object
+      real(DP), dimension(:), intent(in)    :: vbcb 
+         !! Barycentric velocity of the central body
 
       if (self%nbody == 0) return
 
@@ -447,8 +454,10 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_vh2b.f 
       implicit none
       ! Arguments
-      class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
-      class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+      class(swiftest_pl), intent(inout) :: self 
+         !! Swiftest massive body object
+      class(swiftest_cb), intent(inout) :: cb   
+         !! Swiftest central body object
       ! Internals
       integer(I4B)  :: i, npl
       real(DP)      :: Gmtot
@@ -485,8 +494,10 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_vh2b_tp.f 
       implicit none
       ! Arguments
-      class(swiftest_tp),     intent(inout) :: self !! Swiftest test particle object
-      real(DP), dimension(:), intent(in)    :: vbcb !! Barycentric velocity of the central body
+      class(swiftest_tp),     intent(inout) :: self 
+         !! Swiftest test particle object
+      real(DP), dimension(:), intent(in)    :: vbcb 
+         !! Barycentric velocity of the central body
 
       if (self%nbody == 0) return
 
@@ -511,8 +522,10 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_h2b.f 
       implicit none
       ! Arguments
-      class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
-      class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+      class(swiftest_pl), intent(inout) :: self 
+         !! Swiftest massive body object
+      class(swiftest_cb), intent(inout) :: cb   
+         !! Swiftest central body object
       ! Internals
       integer(I4B)  :: i
       real(DP)      :: Gmtot
@@ -547,8 +560,10 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_h2b_tp.f 
       implicit none
       ! Arguments
-      class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
-      class(swiftest_cb), intent(in) :: cb      !! Swiftest central body object
+      class(swiftest_tp), intent(inout) :: self 
+         !! Swiftest test particle object
+      class(swiftest_cb), intent(in) :: cb      
+         !! Swiftest central body object
       ! Internals
       integer(I4B) :: i, ntp
 
@@ -600,11 +615,12 @@ contains
       !!
       !! Copies contents from an array of one particle information objects to another.
       implicit none
-      class(swiftest_particle_info), dimension(:), intent(in)             :: source !! Source object to copy into
-      class(swiftest_particle_info), dimension(:), intent(inout)          :: dest   !! Swiftest body object with particle metadata 
-                                                                                    !! information object
-      integer(I4B),                  dimension(:), intent(in),   optional :: idx    !! Optional array of indices to draw the source 
-                                                                                    !! object
+      class(swiftest_particle_info), dimension(:), intent(in)             :: source 
+         !! Source object to copy into
+      class(swiftest_particle_info), dimension(:), intent(inout)          :: dest   
+         !! Swiftest body object with particle metadata information object
+      integer(I4B),                  dimension(:), intent(in),   optional :: idx    
+         !! Optional array of indices to draw the source object
       ! Internals
       integer(I4B) :: i, j, n, nsource, ndest
 
@@ -997,9 +1013,6 @@ contains
             call util_fill(keeps%renc,    inserts%renc,    lfill_list)
             call util_fill(keeps%radius,  inserts%radius,  lfill_list)
             call util_fill(keeps%density, inserts%density, lfill_list)
-            call util_fill(keeps%rbeg,    inserts%rbeg,    lfill_list)
-            call util_fill(keeps%rend,    inserts%rend,    lfill_list)
-            call util_fill(keeps%vbeg,    inserts%vbeg,    lfill_list)
             call util_fill(keeps%Ip,      inserts%Ip,      lfill_list)
             call util_fill(keeps%rot,     inserts%rot,     lfill_list)
             call util_fill(keeps%k2,      inserts%k2,      lfill_list)
@@ -3262,10 +3275,10 @@ contains
          call util_sort_rearrange(pl%k2,      ind, npl)
          call util_sort_rearrange(pl%Q,       ind, npl)
          call util_sort_rearrange(pl%tlag,    ind, npl)
-         call util_sort_rearrange(pl%kin,        ind, npl)
-         call util_sort_rearrange(pl%lmtiny,     ind, npl)
-         call util_sort_rearrange(pl%nplenc,     ind, npl)
-         call util_sort_rearrange(pl%ntpenc,     ind, npl)
+         call util_sort_rearrange(pl%kin,     ind, npl)
+         call util_sort_rearrange(pl%lmtiny,  ind, npl)
+         call util_sort_rearrange(pl%nplenc,  ind, npl)
+         call util_sort_rearrange(pl%ntpenc,  ind, npl)
 
          if (allocated(pl%k_plpl)) deallocate(pl%k_plpl)
 
@@ -3478,7 +3491,6 @@ contains
             call util_spill(keeps%renc,    discards%renc,    lspill_list, ldestructive)
             call util_spill(keeps%radius,  discards%radius,  lspill_list, ldestructive)
             call util_spill(keeps%density, discards%density, lspill_list, ldestructive)
-            call util_spill(keeps%rbeg,    discards%rbeg,    lspill_list, ldestructive)
             call util_spill(keeps%rend,    discards%rend,    lspill_list, ldestructive)
             call util_spill(keeps%vbeg,    discards%vbeg,    lspill_list, ldestructive)
             call util_spill(keeps%Ip,      discards%Ip,      lspill_list, ldestructive)
