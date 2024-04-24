@@ -491,22 +491,7 @@ contains
                                                             discard_body_id=iother)
                end do 
             case(MERGED)
-               write(origin_type,*) "Merger"
                call plnew%info(1)%copy(pl%info(ibiggest))
-               nbody_system%maxid = nbody_system%maxid + 1
-               plnew%id(1) = nbody_system%maxid
-
-               ! Appends an index number to the end of the original name to make it unique, but still identifiable as the original.
-               ! If there is already an index number appended, replace it
-               write(merge_text,MERGEFMT) MERGE_PREPEND_TEXT,plnew%id(1)
-               merge_text_length = len(trim(adjustl(merge_text)))
-               nameidx = index(plnew%info(1)%name, MERGE_PREPEND_TEXT) - 1
-               if (nameidx < 0) nameidx = min(len(trim(adjustl(plnew%info(1)%name))), NAMELEN - merge_text_length)
-               write(newname,*) trim(adjustl(plnew%info(1)%name(1:nameidx))) // trim(adjustl(merge_text))
-               plnew%status(1) = NEW_PARTICLE
-               call plnew%info(1)%set_value(origin_type=origin_type, origin_time=t, name=newname, &
-                                            origin_rh=plnew%rh(:,1), origin_vh=plnew%vh(:,1), &
-                                            collision_id=collider%maxid_collision)
                do i = 1, nimpactors
                   if (impactors%id(i) == ibiggest) cycle
 

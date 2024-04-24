@@ -59,12 +59,11 @@ class TestCollisions(unittest.TestCase):
             dLtot=ds.Ltot_mag.diff('stage').values[0]
             self.assertAlmostEqual(dLtot,0,places=8, msg=f"Angular momentum not conserved: {dLtot}")
         
-        # Check that energy was lost
-        dEtot=ds.TE.diff('stage').values[0]
-        self.assertLess(dEtot,0, msg=f"Energy not lost: {dEtot}")
+            # Check that energy was lost
+            dEtot=ds.TE.diff('stage').values[0]
+            self.assertLess(dEtot,0, msg=f"Energy not lost: {dEtot}")
         
         # Test that massive bodies can be discarded in RMVS
-        sim.clean()
         sim.run(**runargs,integrator="rmvs")
         # Check that the collision actually happened
         self.assertEqual(sim.collisions.collision_id.size,1, msg="Collision not detected in RMVS") 
@@ -142,6 +141,50 @@ class TestCollisions(unittest.TestCase):
             self.assertEqual(sim.collisions.sel(collision_id=1).regime.values, 'Ejected', msg=f"{integrator}: Wrong regime: {sim.collisions.sel(collision_id=1).regime.values}") 
         
         return 
+        
+    def test_merge(self):
+        """
+        Tests that merging bodies are handled correctly
+        """
+        sim = swiftest.Simulation(simdir=self.simdir,compute_conservation_values=True, rotation=True) 
+        sim.add_solar_system_body("Sun")
+        
+        name = ["Target","Projectile"]
+        rh = [np.array([1.0, -5.0e-05, 0.0]),
+               np.array([1.0,  5.0e-05 ,0.0])]
+        vh = [np.array([ 0.00,  6.280005, 0.0]),
+               np.array([ 0.00,  3.90,     0.0])]
+        rot = [np.array([0.0, 0.0, 1.0e5]),
+              np.array([0.0, 0.0, -5e5])]
+        Gmass = [1e-7, 1e-9]
+        density  = 3000.0 * sim.KG2MU / sim.M2DU**3
+        radius = [((GM/sim.GU)/(4./3.*np.pi*density))**(1./3.) for GM in Gmass]
+        runargs = {"tstart":0.0, "tstop":2e-3, "dt":5e-4, "istep_out":1, "dump_cadence":0}
+        
+        # Test that massive body merge works in SyMBA
+        sim.add_body(name=name, rh=rh, vh=vh, rot=rot, Gmass=Gmass, radius=radius)   
+        
+        for Gmtiny in [2*Gmass[1],0.5*Gmass[1]]: 
+            sim.clean()
+            sim.run(**runargs,Gmtiny=Gmtiny,integrator="symba")
+        
+            # Check that the collision actually happened
+            self.assertEqual(sim.collisions.collision_id.size,1) 
+       
+            # Check that the collision was a merge     
+            self.assertEqual(sim.collisions.sel(collision_id=1).regime.values, 'Merge', msg=f"Wrong regime: {sim.collisions.sel(collision_id=1).regime.values}") 
+        
+            # Check that angular momentum is conserved
+            ds=sim.collisions.sel(collision_id=1)
+            ds['Ltot']=ds.L_orbit+ds.L_spin
+            ds['Ltot_mag']=ds.Ltot.magnitude()
+            dLtot=ds.Ltot_mag.diff('stage').values[0]
+            self.assertAlmostEqual(dLtot,0,places=8, msg=f"Angular momentum not conserved: {dLtot}")
+        
+            # Check that energy was lost
+            dEtot=ds.TE.diff('stage').values[0]
+            self.assertLess(dEtot,0, msg=f"Energy not lost: {dEtot}")        
+        
              
 if __name__ == '__main__':
     os.environ["HDF5_USE_FILE_LOCKING"]="FALSE"

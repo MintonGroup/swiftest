@@ -22,10 +22,14 @@ contains
       !! Adapted from Hal Levison's Swift routines symba5_merge.f and discard_mass_merge.f
       implicit none
       ! Arguments
-      class(collision_basic),   intent(inout) :: self         !! Merge fragment system object 
-      class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
-      real(DP),                 intent(in)    :: t            !! The time of the collision
+      class(collision_basic),   intent(inout) :: self         
+         !! Merge fragment system object 
+      class(base_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters),   intent(inout) :: param        
+         !! Current run configuration parameters 
+      real(DP),                 intent(in)    :: t            
+         !! The time of the collision
 
       call self%merge(nbody_system, param, t)
 
@@ -40,10 +44,14 @@ contains
       !! of the center of mass. This is done as a reflection in the 2-body equivalent distance vector direction.
       implicit none
       ! Arguments
-      class(collision_bounce),  intent(inout) :: self         !! Bounce fragment system object 
-      class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
-      real(DP),                 intent(in)    :: t            !! The time of the collision
+      class(collision_bounce),  intent(inout) :: self         
+         !! Bounce fragment system object 
+      class(base_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters),   intent(inout) :: param        
+         !! Current run configuration parameters 
+      real(DP),                 intent(in)    :: t            
+         !! The time of the collision
       ! Internals
       integer(I4B) :: i,j,nimp
       logical, dimension(:), allocatable :: lmask
@@ -102,15 +110,19 @@ contains
       !! author: Jennifer L.L. Pouplin, Carlisle A. Wishard, and David A. Minton
       !!
       !! Create the fragments resulting from a non-catastrophic hit-and-run collision
-      !! 
       implicit none
       ! Arguments
-      class(collision_basic),   intent(inout) :: self         !! Collision system object
-      class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters with SyMBA additions
-      real(DP),                 intent(in)    :: t            !! Time of collision
+      class(collision_basic),   intent(inout) :: self         
+         !! Collision system object
+      class(base_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters),   intent(inout) :: param        
+         !! Current run configuration parameters with SyMBA additions
+      real(DP),                 intent(in)    :: t            
+         !! Time of collision
       ! Result
-      integer(I4B)                            :: status           !! Status flag assigned to this outcome
+      integer(I4B)                            :: status           
+         !! Status flag assigned to this outcome
       ! Internals
       character(len=STRMAX) :: message
       logical, dimension(:), allocatable :: lmask
@@ -165,10 +177,14 @@ contains
       !! Adapted from Hal Levison's Swift routines symba5_merge.f and discard_mass_merge.f
       implicit none
       ! Arguments
-      class(collision_basic),   intent(inout) :: self         !! Merge fragment system object 
-      class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters 
-      real(DP),                 intent(in)    :: t            !! The time of the collision
+      class(collision_basic),   intent(inout) :: self         
+         !! Merge fragment system object 
+      class(base_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters),   intent(inout) :: param        
+         !! Current run configuration parameters 
+      real(DP),                 intent(in)    :: t            
+         !! The time of the collision
       ! Internals
       integer(I4B)                              :: i, j, ibiggest
       integer(I8B)                              :: k
@@ -219,7 +235,8 @@ contains
                      end do
                      fragments%Ip(:,1) = fragments%Ip(:,1) / fragments%mass(1)
                      fragments%rot(:,1) = L_spin_new(:) / (fragments%Ip(3,1) * fragments%mass(1) * fragments%radius(1)**2)
-                  else ! If spin is not enabled, we will consider the lost pre-collision angular momentum as "escaped" and add it to our bookkeeping variable
+                  else ! If spin is not enabled, we will consider the lost pre-collision angular momentum as "escaped" and add it to
+                       ! our bookkeeping variable
                      nbody_system%L_escape(:) = nbody_system%L_escape(:) + impactors%L_orbit(:,1) + impactors%L_orbit(:,2) 
                   end if
 
@@ -248,7 +265,9 @@ contains
                            nbody_system%plpl_encounter%id2(k) = pl%id(ibiggest)
                            nbody_system%plpl_encounter%index2(k) = i
                         end if
-                        if (nbody_system%plpl_encounter%id1(k) == nbody_system%plpl_encounter%id2(k)) nbody_system%plpl_encounter%status(k) = INACTIVE
+                        if (nbody_system%plpl_encounter%id1(k) == nbody_system%plpl_encounter%id2(k)) then
+                           nbody_system%plpl_encounter%status(k) = INACTIVE
+                        end if
                      end do
                   end do
 

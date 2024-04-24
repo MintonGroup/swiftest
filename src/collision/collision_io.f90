@@ -540,6 +540,7 @@ contains
                   end if
 
                   if (allocated(pl)) then
+                     call pl%sort("mass", ascending=.false.)
                      do i = 1, pl%nbody
                         idslot = idslot + 1
                         call netcdf_io_check( nf90_put_var(nc%id, nc%collision_body_varid, idslot, start=[ idslot, stage, eslot]), &
@@ -571,6 +572,7 @@ contains
                   end if
 
                   if (allocated(tp)) then
+                     call tp%sort("id", ascending=.true.)
                      do i = 1, tp%nbody
                         idslot = idslot + 1
                         call netcdf_io_check( nf90_put_var(nc%id, nc%collision_body_varid, idslot, start=[ idslot, stage, eslot]), &
