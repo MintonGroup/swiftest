@@ -575,17 +575,14 @@ contains
          !! Current recursion level
       ! Internals
       real(DP) :: E_before, E_after, mnew
-      real(DP), dimension(NDIM) ::L_before, L_after, dL
       logical :: lplpl_collision
       character(len=STRMAX) :: timestr
       integer(I4B), dimension(2) :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
       logical  :: lgoodcollision
-      integer(I4B) :: i, j, nnew, loop, npl_orig, npl_new
+      integer(I4B) :: i, j, nnew, loop, npl_orig, npl_new, iframe_start, iframe_end
       integer(I8B) :: k, ncollisions
-      integer(I4B), dimension(:), allocatable :: idnew, status_orig
+      integer(I4B), dimension(:), allocatable :: idnew
       integer(I4B), parameter :: MAXCASCADE = 1000
-      logical, dimension(:), allocatable :: lmask, lmask_orig
-      class(swiftest_pl), allocatable :: tmp
   
       select type (nbody_system)
       class is (swiftest_nbody_system)
@@ -609,12 +606,12 @@ contains
             if (param%lenergy) then
                call nbody_system%get_energy_and_momentum(param)
                E_before = nbody_system%te
-               L_before(:) = nbody_system%L_total(:)
             end if
 
             do loop = 1, MAXCASCADE
                associate( idx1 => plpl_collision%index1, idx2 => plpl_collision%index2)
                   ncollisions = plpl_collision%nenc
+                  if (ncollisions == 0) exit
                   write(timestr,*) t
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, "")
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT,&
@@ -625,6 +622,7 @@ contains
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, &
                                                             "***********************************************************" // &
                                                             "***********************************************************")
+                  iframe_start = collision_history%iframe + 1
                   do k = 1_I8B, ncollisions
                      idx_parent(1) = pl%kin(idx1(k))%parent
                      idx_parent(2) = pl%kin(idx2(k))%parent
@@ -635,43 +633,18 @@ contains
                      call collider%get_regime(nbody_system, param)
 
                      ! Temporarily store the original status of the parent bodies so we can compute the energy change correctly
-                     if (allocated(status_orig)) deallocate(status_orig)
-                     allocate(status_orig, source=pl%status)
-                     pl%status(:) = ACTIVE
-                     pl%lmask(:) = .true.
-                     npl_orig = pl%nbody
-                     allocate(lmask_orig(npl_orig))
-                     lmask_orig(1:npl_orig) = pl%lmask(1:npl_orig)
                      call collision_history%take_snapshot(param,nbody_system, t, "before") 
-                     call move_alloc(status_orig, pl%status)
 
                      ! Generate the new bodies resulting from the collision
                      call collider%generate(nbody_system, param, t)
 
-                     ! Temporarily resolve the collision so that we can compute the energy change correctly
-                     select type(after => collider%after)
-                     class is (swiftest_nbody_system)
-                        call pl%append(after%pl, lsource_mask=[(.true., i=1, after%pl%nbody)])
-                     end select
-                     npl_new = pl%nbody
                      call collision_history%take_snapshot(param,nbody_system, t, "after") 
-
-                     ! Restore the original bodies now that the energy change has been computed
-                     allocate(lmask(npl_new))
-                     lmask(:) = .true.
-                     lmask(1:npl_orig) = .false.
-                     if (count(lmask(:)) > 0) then
-                        allocate(tmp, mold=pl)
-                        call pl%spill(tmp, lspill_list=lmask, ldestructive=.true.)
-                        call tmp%setup(0,param)
-                        deallocate(tmp)
-                        deallocate(lmask)
-                     end if
-                     call move_alloc(lmask_orig, pl%lmask)
 
                      plpl_collision%status(k) = collider%status
                      call impactors%dealloc()
                   end do
+                  iframe_end = collision_history%iframe
+                  if (param%lenergy) call collision_history%save_energy_snapshot("before", nbody_system, iframe_start, iframe_end)
 
                   ! Destroy the collision list now that the collisions are resolved
                   call plpl_collision%setup(0_I8B)
@@ -693,21 +666,10 @@ contains
 
                   if (param%lenergy) then
                      call nbody_system%get_energy_and_momentum(param)
-                     L_after(:) = nbody_system%L_total(:)
-                     dL = L_after(:) - L_before(:)
-
-                     ! Add some velocity torque to the new bodies to remove residual angular momentum difference
-                     do j = 1, nnew
-                        i = findloc(pl%id,idnew(j),dim=1)
-                        if (i == 0) cycle
-                        call collision_util_velocity_torque(-dL * pl%mass(i)/mnew, pl%mass(i), pl%rb(:,i), pl%vb(:,i)) 
-                     end do
-
-                     call nbody_system%get_energy_and_momentum(param)
+                     ! call nbody_system%get_energy_and_momentum(param)
                      E_after = nbody_system%te
                      nbody_system%E_collisions = nbody_system%E_collisions + (E_after - E_before)
-                     L_after(:) = nbody_system%L_total(:)
-                     dL = L_after(:) - L_before(:)
+                     call collision_history%save_energy_snapshot("after", nbody_system, iframe_start, iframe_end)
                   end if
 
                   ! Check whether or not any of the particles that were just added are themselves in a collision state. This will 

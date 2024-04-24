@@ -385,6 +385,8 @@ module collision
          !! Take a minimal snapshot of the nbody_system through an encounter
       procedure :: take_snapshot  => collision_util_take_snapshot  
          !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
+      procedure :: save_energy_snapshot  => collision_util_save_energy_snapshot  
+         !! Maps body id values to storage index values so we don't have to use unlimited dimensions for id
       procedure :: make_index_map => collision_util_index_map 
    end type collision_storage
 
@@ -743,6 +745,20 @@ module collision
             !! Collision system object
       end subroutine collision_util_dealloc_basic
 
+      module subroutine collision_util_save_energy_snapshot(self, stage, nbody_system, iframe_start, iframe_end)
+         implicit none
+         class(collision_storage), intent(inout) :: self  
+            !! Collision storage object with snapshots
+         character(len=*), intent(in) :: stage
+            !! Phase of the collision, either 'before' or 'after'
+         class(base_nbody_system), intent(inout) :: nbody_system
+            !! Swiftest nbody system object with energy information stored in it
+         integer(I4B), intent(in) :: iframe_start 
+            !! Starting frame index to save the snapshot
+         integer(I4B), intent(in) :: iframe_end   
+            !! Ending frame index to save the snapshot
+      end subroutine collision_util_save_energy_snapshot
+   
       module subroutine collision_util_take_snapshot(self, param, nbody_system, t, arg)
          implicit none
          class(collision_storage), intent(inout)        :: self         

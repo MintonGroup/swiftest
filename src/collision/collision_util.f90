@@ -819,7 +819,6 @@ contains
       class is (swiftest_nbody_system)
       select type(param)
       class is (swiftest_parameters)
-
          if (stage /= "after") then
             ! Advance the collision id number and save it
             associate(collider => nbody_system%collider)
@@ -851,17 +850,6 @@ contains
          end select
 
          if (stage /= "particle" ) then
-            ! Get and record the energy of the system before the collision
-            call nbody_system%get_energy_and_momentum(param)
-            snapshot%collider%L_orbit(:,phase_val) = nbody_system%L_orbit(:)
-            snapshot%collider%L_rot(:,phase_val) = nbody_system%L_rot(:)
-            snapshot%collider%L_total(:,phase_val) = nbody_system%L_total(:)
-            snapshot%collider%ke_orbit(phase_val) = nbody_system%ke_orbit
-            snapshot%collider%ke_rot(phase_val) = nbody_system%ke_rot
-            snapshot%collider%pe(phase_val) = nbody_system%pe
-            snapshot%collider%be(phase_val) = nbody_system%be
-            snapshot%collider%te(phase_val) = nbody_system%te
-
             if (stage == "after") then
                select type(before_snap => snapshot%collider%before )
                class is (swiftest_nbody_system)
@@ -954,6 +942,59 @@ contains
 
       return
    end subroutine collision_util_take_snapshot
+
+
+   module subroutine collision_util_save_energy_snapshot(self, stage, nbody_system, iframe_start, iframe_end)
+      !! author: David A. Minton
+      !!
+      !! Retroactively save the energy of the system before and after a collision to an existing snapshot 
+      implicit none
+      ! Arguments
+      class(collision_storage), intent(inout) :: self  
+         !! Collision storage object with snapshots
+      character(len=*), intent(in) :: stage
+         !! Phase of the collision, either 'before' or 'after'
+      class(base_nbody_system), intent(inout) :: nbody_system
+         !! Swiftest nbody system object with energy information stored in it
+      integer(I4B), intent(in) :: iframe_start 
+         !! Starting frame index to save the snapshot
+      integer(I4B), intent(in) :: iframe_end   
+         !! Ending frame index to save the snapshot
+      ! Internals
+      integer(I4B) :: i, phase_val
+
+      ! Save the energy in the before snapshots
+      select case (stage)
+      case ("before")
+         phase_val = 1
+      case ("after")
+         phase_val = 2
+      case default
+         write(*,*) "collision_util_take_snapshot requies either 'before' or 'after'"
+         return
+      end select
+
+      select type(nbody_system)
+      class is (swiftest_nbody_system)
+
+         do i = iframe_start, iframe_end
+            if (allocated(self%frame(i)%item)) then
+               select type(snapshot => self%frame(i)%item)
+               class is (collision_snapshot)
+                  snapshot%collider%L_orbit(:,phase_val) = nbody_system%L_orbit(:)
+                  snapshot%collider%L_rot(:,phase_val) = nbody_system%L_rot(:)
+                  snapshot%collider%L_total(:,phase_val) = nbody_system%L_total(:)
+                  snapshot%collider%ke_orbit(phase_val) = nbody_system%ke_orbit
+                  snapshot%collider%ke_rot(phase_val) = nbody_system%ke_rot
+                  snapshot%collider%pe(phase_val) = nbody_system%pe
+                  snapshot%collider%be(phase_val) = nbody_system%be
+                  snapshot%collider%te(phase_val) = nbody_system%te
+               end select
+            end if
+         end do
+      end select
+
+   end subroutine collision_util_save_energy_snapshot
 
 
    module subroutine collision_util_set_natural_scale_factors(self)
