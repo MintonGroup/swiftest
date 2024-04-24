@@ -3,8 +3,11 @@
 What's New
 ==========
 
-v2024.04.2
-----------
+.. _whats-new.2024.04.2:
+
+`v2024.04.2`_
+-------------
+.. _v2024.04.2: https://github.com/MintonGroup/swiftest/releases/tag/v2024.04.2
 
 Bug Fixes
 ~~~~~~~~~
@@ -28,8 +31,11 @@ Breaking Changes
 .. _GH38: https://github.com/MintonGroup/swiftest/issues/38
 .. _GH39: https://github.com/MintonGroup/swiftest/issues/39
 
-v2024.04.1
-----------
+.. _whats-new.2024.04.1:
+
+`v2024.04.1`_
+-------------
+.. _v2024.04.1: https://github.com/MintonGroup/swiftest/releases/tag/v2024.04.1
 
 Bug Fixes
 ~~~~~~~~~
@@ -44,8 +50,11 @@ Internal Changes
 ~~~~~~~~~~~~~~~~
 - Pinned the h5py package to v3.10.0 because v3.11.0 does not support aarch64 Linux wheels and the build fails on that platform.
 
-v2024.04.0
-----------
+.. _whats-new.2024.04.0:
+
+`v2024.04.0`_
+-------------
+.. _v2024.04.0: https://github.com/MintonGroup/swiftest/releases/tag/v2024.04.0
 
 Bug Fixes
 ~~~~~~~~~
@@ -53,7 +62,7 @@ Bug Fixes
 - Fixed the :meth:`~Simulation.read_encounter_file` for reading encounter variables due to change in how the encounter data is indexed. `GH33`_
 - Fixed bug in the Fortran collision module that was causing `max_rot` to always be set to 0 in Fraggle, causing Fraggle to fail more often due to not being able to satisfy the angular momentum constrain through fragment spin. `GH34`_
 - Changed the fortran standard from *2018* to *gnu* in order to access quad precision by means of the ``c_float128`` intrinsic in ``iso_c_binding``.
-- Fixed bug in Fraggle that was causing a segfault when computing the fragment SFD in Linux. The problem was due to passing a function pointer to a non-module procedure, which is a known issue in the GNU Fortran compiler. The solution was to move the function to a module procedure and pass the module procedure to the function. `_SO49965980`_ `GH34`_
+- Fixed bug in Fraggle that was causing a segfault when computing the fragment SFD in Linux. The problem was due to passing a function pointer to a non-module procedure, which is a known issue in the GNU Fortran compiler. The solution was to move the function to a module procedure and pass the module procedure to the function. `SO49965980`_ `GH34`_
 
 Internal Changes
 ~~~~~~~~~~~~~~~~
@@ -64,8 +73,11 @@ Internal Changes
 .. _GH34: https://github.com/MintonGroup/swiftest/issues/34
 .. _SO49965980: https://stackoverflow.com/questions/49965980/segmentation-fault-when-passing-internal-function-as-argument
 
-v2024.03.4
-----------
+.. _whats-new.2024.03.4:
+
+`v2024.03.4`_
+-------------
+.. _v2024.03.4: https://github.com/MintonGroup/swiftest/releases/tag/v2024.03.4
 
 New Features
 ~~~~~~~~~~~~
@@ -93,8 +105,11 @@ Documentation
 .. _GH27: https://github.com/MintonGroup/swiftest/issues/27
 .. _GH28: https://github.com/MintonGroup/swiftest/issues/27
 
-v2024.03.3
-----------
+.. _whats-new.2024.03.3:
+
+`v2024.03.3`_
+-------------
+.. _v2024.03.3: https://github.com/MintonGroup/swiftest/releases/tag/v2024.03.3
 
 New Features
 ~~~~~~~~~~~~
@@ -123,8 +138,11 @@ Documentation
 - Added a new documentation page to demonstrate the use of the :doc:`standalone executable <user-guide/standalone-executable>`.
 - Added a new documentation page for setting :doc:`planetocentric initial conditions <user-guide/planetocentric-init_cond>`
 
-v2024.03.2
-----------
+.. _whats-new.2024.03.2:
+
+`v2024.03.2`_
+-------------
+.. _v2024.03.2: https://github.com/MintonGroup/swiftest/releases/tag/v2024.03.2
 
 Bug Fixes
 ~~~~~~~~~
@@ -132,9 +150,11 @@ Bug Fixes
 
 .. _GH19: https://github.com/MintonGroup/swiftest/issues/19
 
+.. _whats-new.2024.03.1:
 
-v2024.03.1
-----------
+`v2024.03.1`_
+-------------
+.. _v2024.03.1: https://github.com/MintonGroup/swiftest/releases/tag/v2024.03.1
 
 Bug Fixes
 ~~~~~~~~~
@@ -158,9 +178,11 @@ Documentation
 ~~~~~~~~~~~~~
 - Updated development status and primary repository location to keep the community informed. 
 
+.. _whats-new.2024.03.0:
 
-v2024.03.0 
-----------
+`v2024.03.0`_
+-------------
+.. _v2024.03.0: https://github.com/MintonGroup/swiftest/releases/tag/v2024.03.0
 
 New Features
 ~~~~~~~~~~~~
@@ -203,9 +225,11 @@ Breaking changes
    tqdm                      4.65    4.66.2
   ===================== ========= =========
 
+.. _whats-new.2023.12.1:
 
-v2023.12.1
-----------
+`v2023.12.1`_
+-------------
+.. _v2023.12.1: https://github.com/MintonGroup/swiftest/releases/tag/v2023.12.1
 
 Improvements to the documentation and documentation build process.
 
@@ -215,9 +239,11 @@ Improvements to the documentation and documentation build process.
 - Added a more comprehensive list of sections to the API page.
 
 
+.. _whats-new.2023.12.0:
 
-v2023.12.0
-----------
+`v2023.12.0`_
+-------------
+.. _v2023.12.0: https://github.com/MintonGroup/swiftest/releases/tag/v2023.12.0
 
 Minor changes aimed at building a better set of documentation pages.
 
@@ -225,21 +251,27 @@ Minor changes aimed at building a better set of documentation pages.
 - Added sphinx-based documentation for the Python side and FORD-based documentation for the Fortran side
 - Improved docstrings in simulation_class.py in order to conform to sphinx guidelines.
 
+.. _whats-new.2023.11.0:
 
-v2023.11.0
-----------
+`v2023.11.0`_
+-------------
+.. _v2023.11.0: https://github.com/MintonGroup/swiftest/releases/tag/v2023.11.0
 
 - Fixed a bug that was causing some runs to fail when there were no massive bodies in the system.
 
+.. _whats-new.2023.10.2:
 
-v2023.10.2
-----------
+`v2023.10.2`_
+-------------
+.. _v2023.10.2: https://github.com/MintonGroup/swiftest/releases/tag/v2023.10.2
 
 Official release for the Journal of Open Source Software.
 
+.. _whats-new.2023.10.1:
 
-v2023.10.1
-----------
+`v2023.10.1`_
+-------------
+.. _v2023.10.1: https://github.com/MintonGroup/swiftest/releases/tag/v2023.10.1
 
 Bug fixes to Fraggle and improvements to the fragmentation test movie scripts.
 
@@ -247,17 +279,21 @@ Bug fixes to Fraggle and improvements to the fragmentation test movie scripts.
 - Tweaked the fraggle convergence loop limits to get a higher success rate in fitting angular momentum and energy constraints.
 - Fixed a typo in an OpenMP reduction declaration in the subroutine swiftest_kick_getacch_int_all_tri_rad_pl
 
+.. _whats-new.2023.10.0:
 
-v2023.10.0
-----------
+`v2023.10.0`_
+-------------
+.. _v2023.10.0: https://github.com/MintonGroup/swiftest/releases/tag/v2023.10.0
 
 Minor changes and one bugfix.
 
 - Changed the dependency build scripts from using Automake to CMake for performance and robustness.
 - Fixed bug that was preventing initial conditions file from being saved when new bodys are added in multiple add_solar_system_body calls
 
+.. _whats-new.2023.09.3:
 
-v2023.09.3 Pre-release
-----------------------
+`v2023.09.3`_ Pre-release
+-------------------------
+.. _v2023.09.3: https://github.com/MintonGroup/swiftest/releases/tag/v2023.09.3
 
 This release will become the first full release of Swiftest. Any previous releases contained a major bug that resulted in incorrect G*Mass values being used for bodies pulled from JPL Horizons. As the code is still undergoing review and testing, this will be set as a pre-release.
