@@ -476,7 +476,6 @@ contains
                   write(origin_type,*) "Hit and run fragmentation"
                end if
                call plnew%info(1)%copy(pl%info(ibiggest))
-               plnew%status(1) = OLD_PARTICLE
                do i = 2, nfrag
                   write(newname, FRAGFMT) fragments%id(i)
                   call plnew%info(i)%set_value(origin_type=origin_type, origin_time=t, name=newname, &
