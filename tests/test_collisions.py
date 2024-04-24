@@ -32,6 +32,7 @@ class TestCollisions(unittest.TestCase):
 
         # Add the modern planets and the Sun using the JPL Horizons Database.
         sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"])
+        runargs = {"tstart":0.0, "tstop":5e-2, "dt":0.0001, "istep_out":1, "dump_cadence":0}
 
         density  = 3000.0 * sim.KG2MU / sim.M2DU**3
 
@@ -39,42 +40,109 @@ class TestCollisions(unittest.TestCase):
         q = 0.01 * swiftest.RSun * sim.M2DU
         a = 0.1
         e = 1.0 - q / a
-        M = 2e0 * swiftest.MEarth * sim.KG2MU
+        M = 0.1 * sim.init_cond.sel(name="Earth",time=0)['mass'].values.item()
         R = (3 * M  / (4 * np.pi * density)) ** (1.0 / 3.0)
-        rot = 4 * sim.init_cond.sel(name="Earth")['rot']
+        rot = 4 * sim.init_cond.sel(name="Earth",time=0)['rot'].values
         sim.add_body(name="Sundiver", a=a, e=e, inc=0.0, capom=0.0, omega=0.0, capm=180.0, mass=M, radius=R, Ip=[0.4,0.4,0.4], rot=rot)
         
-        sim.run(tstart=0.0, tstop=5e-2, dt=0.0001, istep_out=1, dump_cadence=0, integrator="symba")
+        for mtiny in [2*M,0.5*M]: 
+            sim.clean()
+            sim.run(**runargs,mtiny=mtiny,integrator="symba")
         
-        # Check that the collision actually happened
-        self.assertEqual(sim.collisions.collision_id.size,1) 
+            # Check that the collision actually happened
+            self.assertEqual(sim.collisions.collision_id.size,1) 
         
-        # Check that angular momentum is conserved
-        ds=sim.collisions.sel(collision_id=1)
-        ds['Ltot']=ds.L_orbit+ds.L_spin
-        ds['Ltot_mag']=ds.Ltot.magnitude()
-        dLtot=ds.Ltot_mag.diff('stage').values[0]
-        self.assertAlmostEqual(dLtot,0,places=8, msg=f"Angular momentum not conserved: {dLtot}")
+            # Check that angular momentum is conserved
+            ds=sim.collisions.sel(collision_id=1)
+            ds['Ltot']=ds.L_orbit+ds.L_spin
+            ds['Ltot_mag']=ds.Ltot.magnitude()
+            dLtot=ds.Ltot_mag.diff('stage').values[0]
+            self.assertAlmostEqual(dLtot,0,places=8, msg=f"Angular momentum not conserved: {dLtot}")
         
         # Check that energy was lost
         dEtot=ds.TE.diff('stage').values[0]
         self.assertLess(dEtot,0, msg=f"Energy not lost: {dEtot}")
         
-        
         # Test that massive bodies can be discarded in RMVS
-        sim.run(tstart=0.0, tstop=5e-2, dt=0.0001, istep_out=1, dump_cadence=0, integrator="rmvs")
+        sim.clean()
+        sim.run(**runargs,integrator="rmvs")
         # Check that the collision actually happened
         self.assertEqual(sim.collisions.collision_id.size,1, msg="Collision not detected in RMVS") 
+       
+        # Test that test particles are discarded in RMVS and SyMBA 
+        sim = swiftest.Simulation(simdir=self.simdir)
+        sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"])
+        sim.add_body(name="Sundiver", a=a, e=e, inc=0.0, capom=0.0, omega=0.0, capm=180.0)
+        for integrator in ['rmvs','symba','whm','helio']:
+            sim.clean()
+            sim.run(**runargs,integrator=integrator)
+            self.assertEqual(sim.collisions.collision_id.size,1, msg=f"Collision not detected in {integrator}") 
+            self.assertEqual(sim.collisions.sel(collision_id=1).regime.values, 'Central Body Impact', msg=f"{integrator}: Wrong regime: {sim.collisions.sel(collision_id=1).regime.values}") 
         
-        
-        # # Now run the same test but with a massless body using both the RMVS and Symba integrators
-        # sim = swiftest.Simulation(simdir=self.simdir,compute_conservation_values=False, integrator="symba")
-        # sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"])
-        # sim.add_body(name="Sundiver", a=a, e=e, inc=0.0, capom=0.0, omega=0.0, capm=180.0)
-        # sim.run(tstart=0.0, tstop=5e-2, dt=0.0001, istep_out=1, dump_cadence=0)
-
         return 
-         
+    
+    def test_escape(self):
+        '''
+        Tests that escaping bodies are handled correctly
+        '''
+        sim = swiftest.Simulation(simdir=self.simdir,compute_conservation_values=True, rotation=True)
+
+        # Add the modern planets and the Sun using the JPL Horizons Database.
+        sim.add_solar_system_body(["Sun","Jupiter","Saturn","Uranus","Neptune","Pluto"])
+
+        density  = 3000.0 * sim.KG2MU / sim.M2DU**3
+
+        # Make a hyperbolic body
+        a = 0.1
+        e = 1.1
+        M = 1e-4 * swiftest.MEarth * sim.KG2MU
+        R = (3 * M  / (4 * np.pi * density)) ** (1.0 / 3.0)
+        rot = 2 * sim.init_cond.sel(name="Saturn")['rot']
+        sim.add_body(name="Escapee", a=a, e=e, inc=0.0, capom=0.0, omega=45.0, capm=180.0, mass=M, radius=R, Ip=[0.4,0.4,0.4], rot=rot)
+        
+        runargs = {"tstart":0.0, "tstop":1000.0, "dt":0.05, "istep_out":200, "dump_cadence":0}
+       
+        for mtiny in [2*M,0.5*M]: 
+            # Try with semi-interacting body
+            sim.clean()
+            sim.run(**runargs, mtiny=mtiny, integrator="symba")
+            
+            # Check that the escape event was recorded
+            self.assertEqual(sim.collisions.collision_id.size,1) 
+            self.assertEqual(sim.collisions.sel(collision_id=1).regime.values, 'Ejected', msg=f"mtiny/M: {mtiny/M}: Wrong regime: {sim.collisions.sel(collision_id=1).regime.values}") 
+        
+            # Check that angular momentum is conserved
+            ds=sim.collisions.sel(collision_id=1)
+            ds['Ltot']=ds.L_orbit+ds.L_spin
+            ds['Ltot_mag']=ds.Ltot.magnitude()
+            dLtot=ds.Ltot_mag.diff('stage').values[0]
+            self.assertAlmostEqual(dLtot,0,places=8, msg=f"Mtiny/M: {mtiny/M} Angular momentum not conserved: {dLtot}")
+            
+            # Check that energy was lost
+            dEtot=ds.TE.diff('stage').values[0]
+            self.assertLessEqual(dEtot,0, msg=f"Energy not lost: {dEtot}")
+        
+        # Test that massive bodies can be discarded in all integrators
+        for integrator in ['rmvs','symba','whm','helio']:
+            sim.clean()
+            sim.run(**runargs, integrator=integrator)
+            # Check that the collision actually happened
+            self.assertEqual(sim.collisions.collision_id.size,1, msg=f"Collision not detected in {integrator}") 
+            
+        # Test that test particles are discarded in all integrators
+        sim = swiftest.Simulation(simdir=self.simdir)
+        sim.add_solar_system_body(["Sun","Jupiter","Saturn","Uranus","Neptune","Pluto"])
+        sim.add_body(name="Escapee", a=a, e=e, inc=0.0, capom=0.0, omega=45.0, capm=180.0)
+        # Test that massive bodies can be discarded in all integrators
+        for integrator in ['rmvs','symba','whm','helio']:
+            sim.clean()
+            sim.run(**runargs, integrator=integrator)
+            # Check that the collision actually happened
+            self.assertEqual(sim.collisions.collision_id.size,1, msg=f"Collision not detected in {integrator}")         
+            self.assertEqual(sim.collisions.sel(collision_id=1).regime.values, 'Ejected', msg=f"{integrator}: Wrong regime: {sim.collisions.sel(collision_id=1).regime.values}") 
+        
+        return 
+             
 if __name__ == '__main__':
     os.environ["HDF5_USE_FILE_LOCKING"]="FALSE"
     unittest.main()
