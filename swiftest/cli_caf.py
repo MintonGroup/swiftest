@@ -3,17 +3,12 @@ import pty
 import subprocess
 import sys
 
-
-def main_caf():
-    main("swiftest_caf")
-    return
-
-def main(binary_name="swiftest"):
+def main():
     """Executes the 'swiftest' binary located in the package root, passing along any command-line arguments, and streams the output to the terminal in real-time, handling progress bars correctly by using a pseudo-terminal."""
 
     # Determine the path to the binary relative to this script
     package_root = os.path.dirname(os.path.abspath(__file__))
-    binary_path = os.path.join(package_root, binary_name)
+    binary_path = os.path.join(package_root, 'swiftest_caf')
 
     # sys.argv[1:] contains all the arguments passed to the script, excluding the script name itself
     args = [binary_path] + sys.argv[1:]

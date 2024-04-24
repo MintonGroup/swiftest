@@ -190,14 +190,14 @@ module netcdf_io
          !! name of the energy dissipation variable
       integer(I4B) :: Q_varid 
          !! ID for the energy dissipation variable
-      character(NAMELEN) :: ke_orb_varname = "KE_orb"
+      character(NAMELEN) :: ke_orbit_varname = "KE_orbit"
          !! name of the system orbital kinetic energy variable
       integer(I4B) :: KE_orb_varid
          !! ID for the system orbital kinetic energy variable
-      character(NAMELEN) :: ke_spin_varname = "KE_spin"
-         !! name of the system spin kinetic energy variable
-      integer(I4B) :: KE_spin_varid
-         !! ID for the system spin kinetic energy variable
+      character(NAMELEN) :: ke_rot_varname = "KE_rot"
+         !! name of the system rotational kinetic energy variable
+      integer(I4B) :: KE_rot_varid
+         !! ID for the system rotational kinetic energy variable
       character(NAMELEN) :: pe_varname = "PE"
          !! name of the system potential energy variable
       integer(I4B) :: PE_varid 
@@ -214,10 +214,10 @@ module netcdf_io
          !! name of the orbital angular momentum vector variable
       integer(I4B) :: L_orbit_varid 
          !! ID for the system orbital angular momentum vector variable
-      character(NAMELEN) :: L_spin_varname = "L_spin"
-         !! name of the spin angular momentum vector variable
-      integer(I4B) :: L_spin_varid 
-         !! ID for the system spin angular momentum vector variable
+      character(NAMELEN) :: L_rot_varname = "L_rot"
+         !! name of the rotational angular momentum vector variable
+      integer(I4B) :: L_rot_varid 
+         !! ID for the system rotational angular momentum vector variable
       character(NAMELEN) :: L_escape_varname = "L_escape"
          !! name of the escaped angular momentum vector variable
       integer(I4B) :: L_escape_varid
@@ -242,7 +242,7 @@ module netcdf_io
          !! name of the time of origin variable
       integer(I4B) :: origin_time_varid
          !! ID for the origin time
-      character(NAMELEN) :: collision_id_varname = "collision_id"
+      character(NAMELEN) :: collision_id_dimname = "collision_id"
          !! name of the collision id variable
       integer(I4B) :: collision_id_varid
          !! Netcdf ID for the origin collision ID

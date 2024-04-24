@@ -76,16 +76,21 @@ HDF5_INCLUDE_DIR="${HDF5_ROOT}/include"
 HDF5_PLUGIN_PATH="${HDF5_LIBDIR}/plugin"
 HDF5_DIR="${HDF5_ROOT}/cmake"
 SHTOOLS_HOME="${PREFIX}"
+OpenCoarrays_DIR="${PREFIX}/../../opencoarrays/2.10.2/lib64/cmake/opencoarrays"
+OpenCoarrays_HOME="${PREFIX}/../../opencoarrays/2.10.2"
 LD_LIBRARY_PATH="${PREFIX}/lib"
 CPATH="${PREFIX}/include"
 PATH="${PREFIX}/bin:${PATH}"
 CMAKE_INSTALL_LIBDIR="lib"
 NPROC=$(nproc)
-LIBS="-lgomp"
 
-FC=${FC:-"$(command -v gfortran-13 || command -v gfortran-12 || command -v gfortran)"}
-F77=${F77:-"${FC}"}
-F95=${F95:-"${FC}"}
+OMPI_FC="$(${SCRIPT_DIR}/get_gfortran_path.sh)"
+GFORTRAN_VERSION="$(${SCRIPT_DIR}/get_gfortran_version.sh)"
+CC="$(command -v mpicc)"
+CXX="$(command -v mpic++)"
+FC="$(command -v mpifort)"
+F77="$(command -v mpifort)"
+F95="$(command -v mpifort)"
 
 if [ $OS = "Darwin" ]; then
     MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-"$(${SCRIPT_DIR}/get_macosx_deployment_target.sh)"}
@@ -93,22 +98,22 @@ if [ $OS = "Darwin" ]; then
     HOMEBREW_PREFIX=${HOMEBREW_PREFIX:-"$(brew --prefix)"}
     SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
     CMAKE_OSX_SYSROOT="${SDKROOT}"
-    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${HOMEBREW_PREFIX}/lib"
+    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${HOMEBREW_PREFIX}/lib:${HOMEBREW_PREFIX}/lib/gcc/${GFORTRAN_VERSION}"
     DYLD_LIBRARY_PATH="${LD_LIBRARY_PATH}"
     LDFLAGS="-Wl,-no_compact_unwind -L${PREFIX}/lib -L${HOMEBREW_PREFIX}/lib"
     CPATH="${CPATH}:${HOMEBREW_PREFIX}/include"
     CPPFLAGS="-isystem ${PREFIX}/include -Xclang -fopenmp"
-    LIBS="-lomp"
+    LIBS="-lomp -lquadmath"
     CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype -arch ${ARCH}"
     FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET}"
     FFLAGS="${FCFLAGS}"
     CXXFLAGS="${CFLAGS}"
-    PATH="${HOMEBREW_PREFIX}/bin:${PATH}"
-    CC=${CC:-"/usr/bin/clang"}
-    CXX=${CXX:-"/usr/bin/clang++"}
+    PATH="${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin:${HOMEBREW_PREFIX}/bin:${PATH}"
 else
+    LIBS="-lgomp"
     CFLAGS="-Wa,--noexecstack"
     CXXFLAGS="${CFLAGS}"
-    LDFLAGS="-L${PREFIX}/lib"
+    MPI_HOME="/usr/lib64/openmpi"
+    PATH="${MPI_HOME}/bin:${PATH}"
 fi
 set +a

@@ -9,7 +9,7 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
-LIBAEC_VER="1.1.2"
+LIBAEC_VER="1.1.3"
 
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)

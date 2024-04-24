@@ -31,13 +31,13 @@ contains
       type(swiftest_parameters)                 :: param             !! Run configuration parameters
       class(swiftest_storage),      allocatable :: system_history    !! Stores the system history between output dumps
       type(walltimer)                           :: integration_timer !! Object used for computing elapsed wall time
-
       !> Read in the user-defined parameters file and the initial conditions of the nbody_system
       param%integrator = trim(adjustl(integrator))
       param%display_style = trim(adjustl(display_style))
       call param%read_in(param_file_name)
-#ifdef COARRAY
+#ifdef COARRAY  
       if (.not.param%lcoarray .and. (this_image() /= 1)) stop ! Single image mode
+      sync all
 #endif
 
       associate(t0       => param%t0, &
@@ -86,8 +86,12 @@ contains
             !$ write(param%display_unit,'(a)')   ' OpenMP parameters:'
             !$ write(param%display_unit,'(a)')   ' ------------------'
             !$ write(param%display_unit,'(a,i3,/)') ' Number of threads = ', nthreads 
-            !$ if (param%log_output) write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
 #ifdef COARRAY
+            if (this_image() ==1) then
+#endif
+               !$ if (param%log_output) write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
+#ifdef COARRAY
+            end if
             if (param%lcoarray) then
                write(param%display_unit,*)   ' Coarray parameters:'
                write(param%display_unit,*)   ' -------------------'
@@ -104,7 +108,9 @@ contains
 #ifdef COARRAY  
          ! The following line lets us read in the input files one image at a time. Letting each image read the input in is faster 
          ! than broadcasting all of the data
-         if (param%lcoarray .and. (this_image() /= 1)) sync images(this_image() - 1)
+         if (param%lcoarray) then
+            if (this_image() > 1) sync images(this_image() - 1)
+         end if
 #endif 
          call nbody_system%initialize(system_history, param)
 #ifdef COARRAY  
@@ -167,7 +173,7 @@ contains
 #endif
                      call integration_timer%report(message="Integration steps:", unit=display_unit)
 #ifdef COARRAY  
-                  end if !(this_image() == 1)
+                  end if 
 #endif
                   call nbody_system%display_run_information(param, integration_timer)
                   call integration_timer%reset()
@@ -176,7 +182,7 @@ contains
 #endif
                      if (param%lenergy) call nbody_system%conservation_report(param, lterminal=.true.)
 #ifdef COARRAY
-                  end if ! (this_image() == 1)
+                  end if 
 #endif
                end if
             end if
