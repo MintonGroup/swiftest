@@ -4,7 +4,7 @@ What's New
 ==========
 
 v2024.04.2
-~~~~~~~~~~
+----------
 
 Bug Fixes
 ~~~~~~~~~
@@ -29,7 +29,7 @@ Breaking Changes
 .. _GH39: https://github.com/MintonGroup/swiftest/issues/39
 
 v2024.04.1
-~~~~~~~~~~
+----------
 
 Bug Fixes
 ~~~~~~~~~
@@ -45,7 +45,7 @@ Internal Changes
 - Pinned the h5py package to v3.10.0 because v3.11.0 does not support aarch64 Linux wheels and the build fails on that platform.
 
 v2024.04.0
-~~~~~~~~~~
+----------
 
 Bug Fixes
 ~~~~~~~~~
@@ -65,7 +65,7 @@ Internal Changes
 .. _SO49965980: https://stackoverflow.com/questions/49965980/segmentation-fault-when-passing-internal-function-as-argument
 
 v2024.03.4
-~~~~~~~~~~
+----------
 
 New Features
 ~~~~~~~~~~~~
@@ -160,7 +160,7 @@ Documentation
 
 
 v2024.03.0 
-------------
+----------
 
 New Features
 ~~~~~~~~~~~~
@@ -258,6 +258,6 @@ Minor changes and one bugfix.
 
 
 v2023.09.3 Pre-release
----------------------- 
+----------------------
 
 This release will become the first full release of Swiftest. Any previous releases contained a major bug that resulted in incorrect G*Mass values being used for bodies pulled from JPL Horizons. As the code is still undergoing review and testing, this will be set as a pre-release.
