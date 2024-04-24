@@ -164,9 +164,9 @@ class TestCollisions(unittest.TestCase):
         # Test that massive body merge works in SyMBA
         sim.add_body(name=name, rh=rh, vh=vh, rot=rot, Gmass=Gmass, radius=radius)   
         
-        for Gmtiny in [2*Gmass[1],0.5*Gmass[1]]: 
+        for gmtiny in [2*Gmass[1],0.5*Gmass[1]]: 
             sim.clean()
-            sim.run(**runargs,Gmtiny=Gmtiny,integrator="symba")
+            sim.run(**runargs,gmtiny=gmtiny,integrator="symba")
         
             # Check that the collision actually happened
             self.assertEqual(sim.collisions.collision_id.size,1) 
