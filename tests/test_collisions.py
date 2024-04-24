@@ -40,9 +40,9 @@ class TestCollisions(unittest.TestCase):
         q = 0.01 * swiftest.RSun * sim.M2DU
         a = 0.1
         e = 1.0 - q / a
-        M = 0.1 * sim.init_cond.sel(name="Earth",time=0)['mass'].values.item()
+        M = 0.1 * sim.init_cond.sel(name="Earth")['mass'].values[0]
         R = (3 * M  / (4 * np.pi * density)) ** (1.0 / 3.0)
-        rot = 4 * sim.init_cond.sel(name="Earth",time=0)['rot'].values
+        rot = 4 * sim.init_cond.sel(name="Earth")['rot']
         sim.add_body(name="Sundiver", a=a, e=e, inc=0.0, capom=0.0, omega=0.0, capm=180.0, mass=M, radius=R, Ip=[0.4,0.4,0.4], rot=rot)
         
         for mtiny in [2*M,0.5*M]: 
