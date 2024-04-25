@@ -38,13 +38,13 @@ printf "CPPFLAGS: ${CPPFLAGS}\n"
 printf "CPATH: ${CPATH}\n"
 printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
 printf "LDFLAGS: ${LDFLAGS}\n"
+printf "OpenCoarrays_HOME: ${OpenCoarrays_HOME}\n"
 printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/OpenCoarrays-*
 
-PREFIX_ROOT=$(realpath ${PREFIX}/../..)  
 export TERM=xterm
-./install.sh --prefix-root=${PREFIX_ROOT} --yes-to-all --with-fortran ${FC} --with-cxx ${CXX} --with-c ${CC}
+./install.sh --prefix-root=${OpenCoarrays_HOME} --yes-to-all --with-fortran ${FC} --with-cxx ${CXX} --with-c ${CC}
 
 if [ $? -ne 0 ]; then
    printf "OpenCoarrays could not be compiled.\n"
