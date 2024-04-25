@@ -111,9 +111,11 @@ if [ $OS = "Darwin" ]; then
     PATH="${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin:${HOMEBREW_PREFIX}/bin:${PATH}"
 else
     LIBS="-lgomp"
-    CFLAGS="-Wa,--noexecstack -fpic"
+    CFLAGS="-Wa,--noexecstack -fPIC"
+    FCFLAGS="${CFLAGS}"
+    FFLAGS="${FCFLAGS}"
     CXXFLAGS="${CFLAGS}"
-    MPI_HOME="/usr/lib64/openmpi"
+    MPI_HOME="${MPI_HOME:-/usr/lib64/openmpi}"
     PATH="${MPI_HOME}/bin:${PATH}"
 fi
 set +a

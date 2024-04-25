@@ -44,7 +44,7 @@ printf "*********************************************************\n"
 cd ${DEPENDENCY_DIR}/OpenCoarrays-*
 
 export TERM=xterm
-./install.sh --prefix-root=${OpenCoarrays_HOME} --yes-to-all --with-fortran ${FC} --with-cxx ${CXX} --with-c ${CC}
+./install.sh --prefix-root=${OpenCoarrays_HOME}/../.. --yes-to-all --with-fortran ${FC} --with-cxx ${CXX} --with-c ${CC} --with-mpi ${OPENMPI_HOME} --verbose
 
 if [ $? -ne 0 ]; then
    printf "OpenCoarrays could not be compiled.\n"

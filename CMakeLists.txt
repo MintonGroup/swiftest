@@ -106,6 +106,7 @@ OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" O
 OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
 OPTION(USE_SIMD "Use SIMD vectorization" ON)
 OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Define the paths to the source code and python files
 SET(SRC "${CMAKE_SOURCE_DIR}/src")
@@ -213,7 +214,6 @@ INCLUDE(SetParallelizationLibrary)
 
 INCLUDE(SetSwiftestFlags) 
 
-SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${CMAKE_INSTALL_BINDIR})
