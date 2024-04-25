@@ -204,7 +204,7 @@ contains
       integer(I4B), intent(in),optional :: dest_img
       ! Internals
       logical, dimension(:), codimension[:], allocatable :: tmp
-      integer(I4B) :: i,img, ti, di, ntot, istart, iend, nmax
+      integer(I4B) :: i,img, ti, di, ntot, istart, iend
       integer(I4B), allocatable :: n[:], nmax[:]
       logical, allocatable :: isalloc[:]
       logical, dimension(:), allocatable :: vari1
