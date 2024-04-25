@@ -11,7 +11,7 @@ submodule (swiftest) s_swiftest_coarray
     use coarray
 contains
 
-    module subroutine swiftest_coarray_balance_system(nbody_system, param)
+    module subroutine swiftest_coarray_balance_system(self, param)
         !! author: David A. Minton
         !!
         !! Checks whether or not the system needs to be rebalance. Rebalancing occurs when the sum of the absolte difference between
@@ -19,41 +19,47 @@ contains
         !! of images. 
         implicit none
         ! Arguments
-        class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system 
-        class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+        class(swiftest_nbody_system), intent(inout) :: self
+            !! Swiftest nbody system 
+        class(swiftest_parameters),   intent(inout) :: param       
+             !! Current run configuration parameters 
         ! Internals
         integer(I4B), codimension[*], save :: ntp, nsum, ndiff
         integer(I4B) :: img, nimg, navg
         character(len=NAMELEN) :: ntp_str, nsum_str, ndiff_str, navg_str, nimg_str
 
-        img = this_image()
-        nimg = num_images()
-        ntp = nbody_system%tp%nbody
-        sync all
-        write(param%display_unit,*) "Checking whether test particles need to be reblanced."
-        nsum = ntp
-        ndiff = ntp
-        call co_sum(nsum)
-        navg = floor(real(nsum) / nimg)
-        ndiff = abs(ntp - navg)
-        call co_sum(ndiff)
+        if (.not.param%lcoarray) return
+        associate(nbody_system => self)
+            img = this_image()
+            nimg = num_images()
+            ntp = nbody_system%tp%nbody
+            sync all
+            write(param%display_unit,*) "Checking whether test particles need to be reblanced."
+            nsum = ntp
+            ndiff = ntp
+            call co_sum(nsum)
+            navg = floor(real(nsum) / nimg)
+            ndiff = abs(ntp - navg)
+            call co_sum(ndiff)
 
-        write(ntp_str,*) ntp
-        write(nsum_str,*) nsum
-        write(ndiff_str,*) ndiff
-        write(navg_str,*) navg
-        write(nimg_str,*) nimg
+            write(ntp_str,*) ntp
+            write(nsum_str,*) nsum
+            write(ndiff_str,*) ndiff
+            write(navg_str,*) navg
+            write(nimg_str,*) nimg
 
-        if (ndiff >= nimg) then
-            write(param%display_unit,*) trim(adjustl(ndiff_str)) // ">=" // trim(adjustl(nimg_str)) // ": Rebalancing"
+            if (ndiff >= nimg) then
+                write(param%display_unit,*) trim(adjustl(ndiff_str)) // ">=" // trim(adjustl(nimg_str)) // ": Rebalancing"
+                flush(param%display_unit)
+                call nbody_system%coarray_collect(param)
+                call nbody_system%coarray_distribute(param)
+                write(param%display_unit,*) "Rebalancing complete"
+            else
+                write(param%display_unit,*) trim(adjustl(ndiff_str)) // "<" // trim(adjustl(nimg_str)) // ": No rebalancing needed"
+            end if
             flush(param%display_unit)
-            call nbody_system%coarray_collect(param)
-            call nbody_system%coarray_distribute(param)
-            write(param%display_unit,*) "Rebalancing complete"
-        else
-            write(param%display_unit,*) trim(adjustl(ndiff_str)) // "<" // trim(adjustl(nimg_str)) // ": No rebalancing needed"
-        end if
-        flush(param%display_unit)
+            
+        end associate
         return
     end subroutine swiftest_coarray_balance_system
 
@@ -66,7 +72,6 @@ contains
         ! Arguments
         type(swiftest_parameters),intent(inout),codimension[*]  :: param  
             !! Collection of parameters 
-
 
         call co_broadcast(param%integrator,1)
         call co_broadcast(param%param_file_name,1)
@@ -159,7 +164,9 @@ contains
         implicit none
         ! Arguments
         type(swiftest_particle_info), intent(inout) :: var
+            !! Variable to be cloned
         integer(I4B), intent(in),optional :: src_img
+            !! Source image to clone from
         ! Internals
         type(swiftest_particle_info),allocatable :: tmp[:]
         integer(I4B) :: img, si
@@ -196,7 +203,9 @@ contains
         implicit none
         ! Arguments
         type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: var
+            !! Variable to be cloned
         integer(I4B), intent(in),optional :: src_img
+            !! Source image to clone from
         ! Internals
         type(swiftest_particle_info), dimension(:), codimension[:], allocatable :: tmp
         integer(I4B) :: img, si
@@ -244,7 +253,9 @@ contains
         implicit none
         ! Arguments
         type(swiftest_particle_info), dimension(:), allocatable, intent(inout) :: var
+            !! Variable to be collected
         integer(I4B), intent(in),optional :: dest_img
+            !! Destination image to collect to
         ! Internals
         type(swiftest_particle_info), dimension(:), codimension[:], allocatable :: tmp
         integer(I4B) :: i,img, ti, di, ntot, istart, iend, nmax
@@ -297,16 +308,18 @@ contains
     end subroutine swiftest_coarray_component_collect_info_arr1D
 
 
-    module subroutine swiftest_coarray_collect_system(nbody_system, param)
+    module subroutine swiftest_coarray_collect_system(self, param)
         !! author: David A. Minton
         !!
         !! Collects all the test particles from other images into the image #1 test particle system
-        use whm
-        use rmvs
+        use whm, only: whm_tp, cocollect
+        use rmvs, only: rmvs_tp, cocollect
         implicit none
         ! Arguments
-        class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system 
-        class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+        class(swiftest_nbody_system), intent(inout) :: self
+            !! Swiftest nbody system 
+        class(swiftest_parameters),   intent(inout) :: param        
+            !! Current run configuration parameters 
         ! Internals
         integer(I4B) :: i,j
         type(whm_tp), allocatable, codimension[:] :: whm_cotp
@@ -321,21 +334,21 @@ contains
             if (param%log_output) flush(param%display_unit)
         end if
 
-        select type(tp => nbody_system%tp)
+        select type(tp => self%tp)
         class is (rmvs_tp)
             allocate(rmvs_cotp[*], source=tp)
-            call rmvs_coarray_cocollect_tp(rmvs_cotp)
+            call cocollect(rmvs_cotp)
             if (this_image() == 1) then
-                deallocate(nbody_system%tp)
-                allocate(nbody_system%tp, source=rmvs_cotp)
+                deallocate(self%tp)
+                allocate(self%tp, source=rmvs_cotp)
             end if
             deallocate(rmvs_cotp)
         class is (whm_tp)
             allocate(whm_cotp[*], source=tp)
-            call whm_coarray_cocollect_tp(whm_cotp)
+            call cocollect(whm_cotp)
             if (this_image() == 1) then
-                deallocate(nbody_system%tp)
-                allocate(nbody_system%tp, source=whm_cotp)
+                deallocate(self%tp)
+                allocate(self%tp, source=whm_cotp)
             end if
             deallocate(whm_cotp)
         end select
@@ -344,16 +357,18 @@ contains
     end subroutine swiftest_coarray_collect_system
  
  
-    module subroutine swiftest_coarray_distribute_system(nbody_system, param)
+    module subroutine swiftest_coarray_distribute_system(self, param)
         !! author: David A. Minton
         !!
         !! Distributes test particles from image #1 out to all images.
-        use whm
-        use rmvs
+        use whm, only: whm_tp, coclone
+        use rmvs, only: rmvs_tp, coclone
         implicit none
         ! Arguments
-        class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system 
-        class(swiftest_parameters),   intent(inout) :: param        !! Current run configuration parameters 
+        class(swiftest_nbody_system), intent(inout) :: self
+            !! Swiftest nbody system 
+        class(swiftest_parameters),   intent(inout) :: param        
+            !! Current run configuration parameters 
         ! Internals
         integer(I4B) :: istart, iend, ntot, num_per_image, ncopy
         logical, dimension(:), allocatable :: lspill_list
@@ -364,62 +379,64 @@ contains
         class(swiftest_tp), allocatable :: tmp
 
         if (.not.param%lcoarray) return
+        associate(nbody_system => self)
 
-        allocate(ntp[*])
-        ntp = nbody_system%tp%nbody
-        sync all
-        ntot = ntp[1]
-        if (ntot == 0) return
+            allocate(ntp[*])
+            ntp = nbody_system%tp%nbody
+            sync all
+            ntot = ntp[1]
+            if (ntot == 0) return
 
-        write(image_num_char,*) num_images()
+            write(image_num_char,*) num_images()
 
-        if (this_image() == 1 .or. param%log_output) then
-            write(ntp_num_char,*) ntot
-            write(param%display_unit,*) " Distributing " // trim(adjustl(ntp_num_char)) // " test particles across " // &
-                                                            trim(adjustl(image_num_char)) // " images."
+            if (this_image() == 1 .or. param%log_output) then
+                write(ntp_num_char,*) ntot
+                write(param%display_unit,*) " Distributing " // trim(adjustl(ntp_num_char)) // " test particles across " // &
+                                                                trim(adjustl(image_num_char)) // " images."
+                if (param%log_output) flush(param%display_unit)
+            end if
+
+            allocate(lspill_list(ntot))
+            num_per_image = ceiling(1.0_DP * ntot / num_images())
+            istart = (this_image() - 1) * num_per_image + 1
+            if (this_image() == num_images()) then
+                iend = ntot
+            else
+                iend = this_image() * num_per_image
+            end if
+
+            lspill_list(:) = .true.
+            lspill_list(istart:iend) = .false.
+
+            select type(tp => nbody_system%tp)
+            class is (rmvs_tp)
+                allocate(rmvs_cotp[*], source=tp)
+                call coclone(rmvs_cotp)
+                if (this_image() /= 1) then
+                    deallocate(nbody_system%tp)
+                    allocate(nbody_system%tp, source=rmvs_cotp)
+                end if
+                deallocate(rmvs_cotp)
+            class is (whm_tp) 
+                allocate(whm_cotp[*], source=tp)
+                call coclone(whm_cotp)
+                if (this_image() /= 1) then
+                    deallocate(nbody_system%tp)
+                    allocate(nbody_system%tp, source=whm_cotp)
+                end if
+                deallocate(whm_cotp)
+            end select
+
+            allocate(tmp, mold=nbody_system%tp)
+            call nbody_system%tp%spill(tmp, lspill_list(:), ldestructive=.true.)
+
+            write(image_num_char,*) this_image()
+            write(ntp_num_char,*) nbody_system%tp%nbody
+            write(param%display_unit,*) "Image " // trim(adjustl(image_num_char)) // " ntp: " // trim(adjustl(ntp_num_char))
             if (param%log_output) flush(param%display_unit)
-        end if
 
-        allocate(lspill_list(ntot))
-        num_per_image = ceiling(1.0_DP * ntot / num_images())
-        istart = (this_image() - 1) * num_per_image + 1
-        if (this_image() == num_images()) then
-            iend = ntot
-        else
-            iend = this_image() * num_per_image
-        end if
-
-        lspill_list(:) = .true.
-        lspill_list(istart:iend) = .false.
-
-        select type(tp => nbody_system%tp)
-        class is (rmvs_tp)
-            allocate(rmvs_cotp[*], source=tp)
-            call coclone(rmvs_cotp)
-            if (this_image() /= 1) then
-                deallocate(nbody_system%tp)
-                allocate(nbody_system%tp, source=rmvs_cotp)
-            end if
-            deallocate(rmvs_cotp)
-        class is (whm_tp) 
-            allocate(whm_cotp[*], source=tp)
-            call coclone(whm_cotp)
-            if (this_image() /= 1) then
-                deallocate(nbody_system%tp)
-                allocate(nbody_system%tp, source=whm_cotp)
-            end if
-            deallocate(whm_cotp)
-        end select
-
-        allocate(tmp, mold=nbody_system%tp)
-        call nbody_system%tp%spill(tmp, lspill_list(:), ldestructive=.true.)
-
-        write(image_num_char,*) this_image()
-        write(ntp_num_char,*) nbody_system%tp%nbody
-        write(param%display_unit,*) "Image " // trim(adjustl(image_num_char)) // " ntp: " // trim(adjustl(ntp_num_char))
-        if (param%log_output) flush(param%display_unit)
-
-        deallocate(ntp, lspill_list, tmp)
+            deallocate(ntp, lspill_list, tmp)
+        end associate
 
         return
     end subroutine swiftest_coarray_distribute_system
