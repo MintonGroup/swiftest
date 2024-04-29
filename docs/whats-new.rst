@@ -3,6 +3,19 @@
 What's New
 ==========
 
+.. _whats-new.2024.04.3:
+
+`v2024.04.3`_
+-------------
+.. _v2024.04.3: https:///github.com/MintonGroup/swiftest/releases/tag/v2024.04.3
+
+
+Bug Fixes
+~~~~~~~~~
+- Fixed bug that was causing discards to fail when there were more than one discard in a single step. This was due to not deallocating the `ldiscard` or ``ldiscard_tp`` / ``ldiscard_pl`` arrays after they were used. `GH40`_
+
+.. _GH40: https://github.com/MintonGroup/swiftest/issues/40
+
 .. _whats-new.2024.04.2:
 
 `v2024.04.2`_

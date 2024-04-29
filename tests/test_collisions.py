@@ -185,7 +185,28 @@ class TestCollisions(unittest.TestCase):
             dEtot=ds.TE.diff('stage').values[0]
             self.assertLess(dEtot,0, msg=f"Energy not lost: {dEtot}")        
         
-             
+    def test_multi_collision(self):
+        """
+        Tests that multiple collisions are handled correctly
+        """              
+        
+        sim = swiftest.Simulation(simdir=self.simdir)
+        
+
+        sim.add_solar_system_body(['Sun', 'Earth'])
+
+        # add bodies that both impact the CB at the same time
+        sim.add_body(name = ['close'], rh = [0, 0, sim.param['CHK_RMIN'] * 1.1], vh = [0, 0, 0.0001])
+        sim.add_body(name = ['close2'], rh = [0, 0, sim.param['CHK_RMIN'] * 1.11], vh = [0, 0, 0.0001])
+
+        try:
+            sim.run(tstop = 10, dt = 0.01, tstep_out = 1)
+        except Exception as e:
+            self.fail(f"Multiple collisions not handled correctly: {e}")
+            
+        self.assertEqual(sim.collisions.collision_id.size,2)
+
+
 if __name__ == '__main__':
     os.environ["HDF5_USE_FILE_LOCKING"]="FALSE"
     unittest.main()

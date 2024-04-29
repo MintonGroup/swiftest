@@ -209,6 +209,7 @@ contains
                   call body%save_discard(ldiscard,nbody_system,collider%before)
                   ! The base class doesn't do a before/after comparison, so we just save the before snapshot
                   call collision_history%take_snapshot(param,nbody_system, t, "particle") 
+                  deallocate(ldiscard)
                end if
             end if
          end do
@@ -280,6 +281,7 @@ contains
                         ldiscard(:) = .false.
                         ldiscard(i) = .true.
                         call body%save_discard(ldiscard,nbody_system,collider%before)
+                        deallocate(ldiscard)
                         call collision_history%take_snapshot(param,nbody_system, t, "particle") 
                      end if
                   end if
@@ -348,7 +350,7 @@ contains
                      ! Save the system snapshot
                      impactors%regime = COLLRESOLVE_REGIME_MERGE
                      allocate(ldiscard_tp, mold=tp%ldiscard(:))
-                     allocate(ldiscard_Pl, mold=Pl%ldiscard(:))
+                     allocate(ldiscard_pl, mold=Pl%ldiscard(:))
                      ldiscard_tp(:) = .false.
                      ldiscard_pl(:) = .false.
                      ldiscard_tp(i) = .true.
@@ -358,7 +360,7 @@ contains
                      call collision_history%take_snapshot(param,nbody_system, t, "before") 
                      call pl%save_discard(ldiscard_tp,nbody_system,collider%after)
                      call collision_history%take_snapshot(param,nbody_system, t, "after") 
-
+                     deallocate(ldiscard_tp, ldiscard_pl)
                      exit
                   end if
                end do
