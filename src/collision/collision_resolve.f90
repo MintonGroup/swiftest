@@ -772,6 +772,8 @@ contains
                   call collision_history%take_snapshot(param,nbody_system, t, "before") 
                   call pl%save_discard(ldiscard_tp,nbody_system,collider%after)
                   call collision_history%take_snapshot(param,nbody_system, t, "after") 
+
+                  deallocate(ldiscard_pl,ldiscard_tp)
                end do
 
                ! Destroy the collision list now that the collisions are resolved

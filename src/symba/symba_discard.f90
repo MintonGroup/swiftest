@@ -390,6 +390,8 @@ contains
                ldiscard(:) = .false.
                call pl%save_discard(ldiscard,nbody_system,collider%after) ! This ensures that the Sun gets saved in the "after" slot
                call collision_history%take_snapshot(param,nbody_system, t, "after") 
+               
+               deallocate(ldiscard)
 
                if (param%lenergy) then
                   call collision_history%save_energy_snapshot("before", nbody_system, &
