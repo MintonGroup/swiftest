@@ -29,37 +29,34 @@ contains
         character(len=NAMELEN) :: ntp_str, nsum_str, ndiff_str, navg_str, nimg_str
 
         if (.not.param%lcoarray) return
-        associate(nbody_system => self)
-            img = this_image()
-            nimg = num_images()
-            ntp = nbody_system%tp%nbody
-            sync all
-            write(param%display_unit,*) "Checking whether test particles need to be reblanced."
-            nsum = ntp
-            ndiff = ntp
-            call co_sum(nsum)
-            navg = floor(real(nsum) / nimg)
-            ndiff = abs(ntp - navg)
-            call co_sum(ndiff)
+        img = this_image()
+        nimg = num_images()
+        ntp = self%tp%nbody
+        sync all
+        write(param%display_unit,*) "Checking whether test particles need to be reblanced."
+        nsum = ntp
+        ndiff = ntp
+        call co_sum(nsum)
+        navg = floor(real(nsum) / nimg)
+        ndiff = abs(ntp - navg)
+        call co_sum(ndiff)
 
-            write(ntp_str,*) ntp
-            write(nsum_str,*) nsum
-            write(ndiff_str,*) ndiff
-            write(navg_str,*) navg
-            write(nimg_str,*) nimg
+        write(ntp_str,*) ntp
+        write(nsum_str,*) nsum
+        write(ndiff_str,*) ndiff
+        write(navg_str,*) navg
+        write(nimg_str,*) nimg
 
-            if (ndiff >= nimg) then
-                write(param%display_unit,*) trim(adjustl(ndiff_str)) // ">=" // trim(adjustl(nimg_str)) // ": Rebalancing"
-                flush(param%display_unit)
-                call nbody_system%coarray_collect(param)
-                call nbody_system%coarray_distribute(param)
-                write(param%display_unit,*) "Rebalancing complete"
-            else
-                write(param%display_unit,*) trim(adjustl(ndiff_str)) // "<" // trim(adjustl(nimg_str)) // ": No rebalancing needed"
-            end if
+        if (ndiff >= nimg) then
+            write(param%display_unit,*) trim(adjustl(ndiff_str)) // ">=" // trim(adjustl(nimg_str)) // ": Rebalancing"
             flush(param%display_unit)
-            
-        end associate
+            call self%coarray_collect(param)
+            call self%coarray_distribute(param)
+            write(param%display_unit,*) "Rebalancing complete"
+        else
+            write(param%display_unit,*) trim(adjustl(ndiff_str)) // "<" // trim(adjustl(nimg_str)) // ": No rebalancing needed"
+        end if
+        flush(param%display_unit)
         return
     end subroutine swiftest_coarray_balance_system
 
@@ -72,6 +69,7 @@ contains
         ! Arguments
         type(swiftest_parameters),intent(inout),codimension[*]  :: param  
             !! Collection of parameters 
+
 
         call co_broadcast(param%integrator,1)
         call co_broadcast(param%param_file_name,1)
@@ -361,8 +359,8 @@ contains
         !! author: David A. Minton
         !!
         !! Distributes test particles from image #1 out to all images.
-        use whm, only: whm_tp, coclone
-        use rmvs, only: rmvs_tp, coclone
+        use whm
+        use rmvs
         implicit none
         ! Arguments
         class(swiftest_nbody_system), intent(inout) :: self
