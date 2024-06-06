@@ -72,6 +72,7 @@ contains
                      call collision_history%take_snapshot(param,nbody_system, t, "before") 
                      call pl%save_discard(ldiscard_pl,nbody_system,collider%after)
                      call collision_history%take_snapshot(param,nbody_system, t, "after") 
+                     deallocate(ldiscard_tp, ldiscard_pl)
                   end if
                end if
             end associate

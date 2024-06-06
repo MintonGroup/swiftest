@@ -1909,7 +1909,6 @@ contains
       integer(I4B) :: i, ntp, npl
       integer(I8B) :: k, nenc
       logical, dimension(:), allocatable :: lmask
-      logical :: lencounter
 
       associate(tp => self, pl => nbody_system%pl, cb => nbody_system%cb, pl_adds => nbody_system%pl_adds)
 

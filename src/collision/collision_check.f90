@@ -189,7 +189,6 @@ contains
       integer(I8B)                              :: k, nenc
       logical                                   :: lany_closest
       character(len=STRMAX)                     :: timestr, idstri, idstrj, message
-      class(collision_list_pltp), allocatable       :: tmp       
 
       lany_collision = .false.
       if (self%nenc == 0) return
