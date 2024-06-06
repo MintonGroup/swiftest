@@ -388,14 +388,10 @@ contains
       integer(I4B),             intent(in)    :: status       
          !! Status flag to assign to adds
       ! Internals
-      integer(I4B) :: i, ibiggest, ismallest, iother, nimpactors, nfrag, nameidx
+      integer(I4B) :: i, ibiggest, ismallest, iother, nimpactors, nfrag
       logical, dimension(:), allocatable  :: lmask
       class(swiftest_pl), allocatable :: plnew, plsub
       character(*), parameter :: FRAGFMT = '("Newbody",I0.7)'
-      character(*), parameter :: MERGEFMT = '(A,I0.7)'
-      character(*), parameter :: MERGE_PREPEND_TEXT = "_MERGE"
-      integer(I4B) :: merge_text_length 
-      character(len=NAMELEN) :: merge_text
       character(len=NAMELEN) :: newname, origin_type
       real(DP) :: volume
   
@@ -578,7 +574,7 @@ contains
       character(len=STRMAX) :: timestr
       integer(I4B), dimension(2) :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
       logical  :: lgoodcollision
-      integer(I4B) :: i, j, nnew, loop, npl_orig, npl_new, iframe_start, iframe_end
+      integer(I4B) :: nnew, loop, iframe_start, iframe_end
       integer(I8B) :: k, ncollisions
       integer(I4B), dimension(:), allocatable :: idnew
       integer(I4B), parameter :: MAXCASCADE = 1000
@@ -715,8 +711,6 @@ contains
       integer(I4B),               intent(in)    :: irec   
          !! Current recursion level
       ! Internals
-      class(swiftest_pl), allocatable :: plsub
-      class(swiftest_tp), allocatable :: tpsub
       character(len=STRMAX) :: timestr
       integer(I8B) :: k, ncollisions
       logical, dimension(:), allocatable :: ldiscard_pl, ldiscard_tp

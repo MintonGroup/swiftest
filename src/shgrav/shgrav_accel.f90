@@ -149,8 +149,6 @@ contains
             !! Swiftest nbody system object
         ! Internals
         integer(I4B)    :: i 
-        real(DP), dimension(NDIM)  :: g_sph 
-            !! Gravitational terms from Spherical Harmonics
 
         associate(cb => nbody_system%cb)
             cb%aobl(:) = 0.0_DP
