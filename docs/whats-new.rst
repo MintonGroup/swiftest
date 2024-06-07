@@ -3,6 +3,23 @@
 What's New
 ==========
 
+.. _whats-new.2024.06.0:
+
+`v2024.06.0`_
+-------------
+.. _v2024.06.0: https:///github.com/MintonGroup/swiftest/releases/tag/v2024.06.0
+
+
+Bug Fixes
+~~~~~~~~~
+- Fixed bug that was causing some pl-tp discards to fail due to typos in the snapshot saver argument lists (pl and tp arrays were reversed in some places). `GH42`_
+
+.. _GH42: https://github.com/MintonGroup/swiftest/issues/42
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Updated the gfortran version to 14 for Mac builds so that the homebrew libraries match the compiled libraries. Otherwise, library delocation fails due to identical fortran library names in two different locations. 
+
 .. _whats-new.2024.04.3:
 
 `v2024.04.3`_
@@ -15,6 +32,7 @@ Bug Fixes
 - Fixed bug that was causing discards to fail when there were more than one discard in a single step. This was due to not deallocating the `ldiscard` or ``ldiscard_tp`` / ``ldiscard_pl`` arrays after they were used. `GH40`_
 
 .. _GH40: https://github.com/MintonGroup/swiftest/issues/40
+
 
 .. _whats-new.2024.04.2:
 
