@@ -32,7 +32,7 @@ printf "Copying files to ${DEPENDENCY_DIR}\n"
 mkdir -p ${DEPENDENCY_DIR}
 if [ ! -d ${DEPENDENCY_DIR}/bzip2-${BZ2_VER} ]; then
     [ -d ${DEPENDENCY_DIR}/bzip2-* ] && rm -rf ${DEPENDENCY_DIR}/bzip2-*
-    curl -L https://sourceware.org/pub/bzip2/bzip2-${BZ2_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+    curl -L https://gitlab.com/bzip2/bzip2/-/archive/bzip2-${BZ2_VER}/bzip2-bzip2-${BZ2_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
 fi
 printf "*********************************************************\n"
 printf "*               BUILDING BZ2 LIBRARY                  *\n"

@@ -11,6 +11,6 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 
-OMPI_FC="$(command -v gfortran-13 || command -v gfortran-12 || command -v gfortran)"
+OMPI_FC="$(command -v gfortran-14 || command -v gfortran-13 || command -v gfortran-12 || command -v gfortran)"
 echo "${OMPI_FC}"
 set +a

@@ -51,12 +51,14 @@ module solver
          real(QP), dimension(:), allocatable :: qx
          type(ieee_status_type) :: original_fpe_status
          logical, dimension(:), allocatable :: fpe_flag 
+         real(QP), dimension(:,:), allocatable :: u
 
          call ieee_get_status(original_fpe_status) ! Save the original floating point exception status
          call ieee_set_flag(ieee_all, .false.) ! Set all flags to quiet
          allocate(fpe_flag(size(ieee_usual)))
 
-         qx = solve_wbs(ge_wpp(real(A, kind=QP), real(b, kind=QP)))
+         u = ge_wpp(real(A, kind=QP), real(b, kind=QP))
+         qx = solve_wbs(u)
 
          call ieee_get_flag(ieee_usual, fpe_flag)
          lerr = any(fpe_flag) 
@@ -90,12 +92,14 @@ module solver
          ! Internals
          type(ieee_status_type) :: original_fpe_status
          logical, dimension(:), allocatable :: fpe_flag 
+         real(QP), dimension(:,:), allocatable :: u
 
          call ieee_get_status(original_fpe_status) ! Save the original floating point exception status
          call ieee_set_flag(ieee_all, .false.) ! Set all flags to quiet
          allocate(fpe_flag(size(ieee_usual)))
 
-         x = solve_wbs(ge_wpp(A, b))
+         u = ge_wpp(A, b)
+         x = solve_wbs(u)
 
          call ieee_get_flag(ieee_usual, fpe_flag)
          lerr = any(fpe_flag) 
