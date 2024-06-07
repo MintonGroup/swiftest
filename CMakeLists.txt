@@ -102,7 +102,8 @@ ENDIF()
 FIND_PACKAGE(Python COMPONENTS Interpreter Development.Module NumPy REQUIRED)
 
 # Set some options the user may choose
-OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" ON)
+OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
+SET(USE_COARRAY OFF CACHE BOOL "Override Coarray" FORCE)
 OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
 OPTION(USE_SIMD "Use SIMD vectorization" ON)
 OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
