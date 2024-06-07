@@ -3460,7 +3460,7 @@ contains
          ! This is the base class, so will be the last to be called in the cascade. 
          ! Therefore we need to set the nbody values for both the keeps and discareds
          discards%nbody = count(lspill_list(1:nbody_old))
-         if (ldestructive) keeps%nbody = nbody_old- discards%nbody
+         if (ldestructive) keeps%nbody = nbody_old - discards%nbody
       end associate
      
       return
