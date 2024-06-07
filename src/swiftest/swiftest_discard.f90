@@ -347,15 +347,15 @@ contains
                      ! Save the system snapshot
                      impactors%regime = COLLRESOLVE_REGIME_MERGE
                      allocate(ldiscard_tp, mold=tp%ldiscard(:))
-                     allocate(ldiscard_pl, mold=Pl%ldiscard(:))
+                     allocate(ldiscard_pl, mold=pl%ldiscard(:))
                      ldiscard_tp(:) = .false.
                      ldiscard_pl(:) = .false.
                      ldiscard_tp(i) = .true.
                      ldiscard_pl(j) = .true.
-                     call tp%save_discard(ldiscard_pl,nbody_system,collider%before)
-                     call pl%save_discard(ldiscard_tp,nbody_system,collider%before)
+                     call tp%save_discard(ldiscard_tp,nbody_system,collider%before)
+                     call pl%save_discard(ldiscard_pl,nbody_system,collider%before)
                      call collision_history%take_snapshot(param,nbody_system, t, "before") 
-                     call pl%save_discard(ldiscard_tp,nbody_system,collider%after)
+                     call pl%save_discard(ldiscard_pl,nbody_system,collider%after)
                      call collision_history%take_snapshot(param,nbody_system, t, "after") 
                      deallocate(ldiscard_tp, ldiscard_pl)
                      exit
