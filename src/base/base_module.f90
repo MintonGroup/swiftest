@@ -474,9 +474,8 @@ module base
          real(DP), dimension(:), allocatable, intent(in) :: source 
             !! Array to append  
          integer(I4B), intent(in), optional :: nold 
-            !! Extent of original array. If passed, the source array will begin at  
-                                                    
-            !!   arr(nold+1). Otherwise, the size of arr will be used. 
+            !! Extent of original array. If passed, the source array will begin at arr(nold+1). 
+            !! Otherwise, the size of arr will be used. 
          logical,  dimension(:), intent(in), optional :: lsource_mask 
             !! Logical mask indicating which elements to append to 
          ! Internals
@@ -781,9 +780,7 @@ module base
          character(len=STRMAX), dimension(:), allocatable, intent(in)    :: inserts    
          !! Array of values to insert into keep 
          logical,               dimension(:),              intent(in)    :: lfill_list 
-         !! Logical array of bodies to merge into the  
-                                                                                       
-         !!    keeps 
+         !! Logical array of bodies to merge into the keeps 
    
          if (.not.allocated(keeps) .or. .not.allocated(inserts)) return
    
@@ -1315,9 +1312,7 @@ module base
          logical,  dimension(:),              intent(in)    :: lspill_list  
             !! Logical array of bodies to spill into the discardss 
          logical,                             intent(in)    :: ldestructive 
-            !! Logical flag indicating whether or not this operation  
-                                                                            
-            !!    should alter the keeps array or not 
+            !! Logical flag indicating whether or not this operation should alter the keeps array or not 
          ! Internals
          integer(I4B) :: nspill, nkeep, nlist
          real(DP), dimension(:), allocatable                :: tmp          
@@ -1417,7 +1412,7 @@ module base
          logical,      dimension(:),              intent(in)    :: lspill_list 
             !! Logical array of bodies to spill into the discards 
          logical,                                 intent(in)    :: ldestructive
-            !! Logical flag indicating whether or not this  operation should alter the keeps array or not 
+            !! Logical flag indicating whether or not this operation should alter the keeps array or not 
          ! Internals
          integer(I4B) :: nspill, nkeep, nlist
          integer(I4B), dimension(:), allocatable                :: tmp         
@@ -1465,9 +1460,7 @@ module base
          logical,      dimension(:),              intent(in)    :: lspill_list 
             !! Logical array of bodies to spill into the discards 
          logical,                                 intent(in)    :: ldestructive
-            !! Logical flag indicating whether or not this  
-                                                                               
-            !!   operation should alter the keeps array or not 
+            !! Logical flag indicating whether or not this operation should alter the keeps array or not 
          ! Internals
          integer(I4B) :: nspill, nkeep, nlist
          integer(I8B), dimension(:), allocatable                :: tmp          
@@ -1602,7 +1595,7 @@ module base
          real(DP), dimension(:), intent(inout)           :: arr
          integer(I4B),dimension(:),intent(out), optional :: ind
          
-            !! Internals 
+         ! Internals 
          integer :: iq
 
          if (size(arr) > 1) then
