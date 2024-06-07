@@ -14,9 +14,9 @@ contains
     module subroutine swiftest_coarray_balance_system(self, param)
         !! author: David A. Minton
         !!
-        !! Checks whether or not the system needs to be rebalance. Rebalancing occurs when the sum of the absolte difference between
-        !! the number of test particles on each image and the average number distributed across all images is larger than the number
-        !! of images. 
+        !! Checks whether or not the system needs to be rebalance. Rebalancing occurs when the sum of the absolute difference 
+        !! between !! the number of test particles on each image and the average number distributed across all images is larger than
+        !! the number of images. 
         implicit none
         ! Arguments
         class(swiftest_nbody_system), intent(inout) :: self
@@ -52,6 +52,7 @@ contains
             flush(param%display_unit)
             call self%coarray_collect(param)
             call self%coarray_distribute(param)
+            sync all
             write(param%display_unit,*) "Rebalancing complete"
         else
             write(param%display_unit,*) trim(adjustl(ndiff_str)) // "<" // trim(adjustl(nimg_str)) // ": No rebalancing needed"
@@ -368,7 +369,7 @@ contains
         class(swiftest_parameters),   intent(inout) :: param        
             !! Current run configuration parameters 
         ! Internals
-        integer(I4B) :: istart, iend, ntot, num_per_image, ncopy
+        integer(I4B) :: istart, iend, ntot, num_per_image, ncopy,i
         logical, dimension(:), allocatable :: lspill_list
         integer(I4B), codimension[:], allocatable  :: ntp
         character(len=NAMELEN) :: image_num_char, ntp_num_char
@@ -400,11 +401,11 @@ contains
             if (this_image() == num_images()) then
                 iend = ntot
             else
-                iend = this_image() * num_per_image
+                iend = min(this_image() * num_per_image,ntot)
             end if
 
             lspill_list(:) = .true.
-            lspill_list(istart:iend) = .false.
+            if (istart <= iend) lspill_list(istart:iend) = .false.
 
             select type(tp => nbody_system%tp)
             class is (rmvs_tp)
@@ -415,6 +416,7 @@ contains
                     allocate(nbody_system%tp, source=rmvs_cotp)
                 end if
                 deallocate(rmvs_cotp)
+                allocate(tmp, mold=tp)
             class is (whm_tp) 
                 allocate(whm_cotp[*], source=tp)
                 call coclone(whm_cotp)
@@ -423,9 +425,9 @@ contains
                     allocate(nbody_system%tp, source=whm_cotp)
                 end if
                 deallocate(whm_cotp)
+                allocate(tmp, mold=tp)
             end select
 
-            allocate(tmp, mold=nbody_system%tp)
             call nbody_system%tp%spill(tmp, lspill_list(:), ldestructive=.true.)
 
             write(image_num_char,*) this_image()
@@ -434,6 +436,8 @@ contains
             if (param%log_output) flush(param%display_unit)
 
             deallocate(ntp, lspill_list, tmp)
+            if (param%log_output) flush(param%display_unit)
+            sync all
         end associate
 
         return
