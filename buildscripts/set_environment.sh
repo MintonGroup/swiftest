@@ -117,3 +117,35 @@ else
     PATH="${MPI_HOME}/bin:${PATH}"
 fi
 set +a
+
+
+# Check if the PREFIX directory exists
+if [ ! -d "${PREFIX}" ]; then
+    CURRENT_DIR="${PREFIX}"
+
+    # Iterate up the directory hierarchy until an existing directory is found
+    while [ ! -d "$CURRENT_DIR" ] && [ "$CURRENT_DIR" != "/" ]; do
+        CURRENT_DIR=$(dirname "$CURRENT_DIR")
+    done
+
+    # Now, CURRENT_DIR holds the first existing directory in the hierarchy
+    # Check if you have write permission in this directory
+    if [ -w "$CURRENT_DIR" ]; then
+        mkdir -p "${PREFIX}"
+        echo "${PREFIX} created."
+    else
+        # If you don't have write permission, try to create the directory with sudo
+        echo "Attempting to create ${PREFIX} with elevated privileges..."
+        sudo mkdir -p "${PREFIX}"
+
+        # Check if creation was successful
+        if [ $? -eq 0 ]; then
+            echo "${PREFIX} created with elevated privileges."
+        else
+            echo "Failed to create ${PREFIX}. Please check your permissions."
+            exit 1
+        fi
+    fi
+else
+    echo "${PREFIX} already exists."
+fi
