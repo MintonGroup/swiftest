@@ -1909,7 +1909,6 @@ contains
       integer(I4B) :: i, ntp, npl
       integer(I8B) :: k, nenc
       logical, dimension(:), allocatable :: lmask
-      logical :: lencounter
 
       associate(tp => self, pl => nbody_system%pl, cb => nbody_system%cb, pl_adds => nbody_system%pl_adds)
 
@@ -3461,7 +3460,7 @@ contains
          ! This is the base class, so will be the last to be called in the cascade. 
          ! Therefore we need to set the nbody values for both the keeps and discareds
          discards%nbody = count(lspill_list(1:nbody_old))
-         if (ldestructive) keeps%nbody = nbody_old- discards%nbody
+         if (ldestructive) keeps%nbody = nbody_old - discards%nbody
       end associate
      
       return

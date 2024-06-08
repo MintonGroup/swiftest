@@ -205,6 +205,42 @@ class TestCollisions(unittest.TestCase):
             self.fail(f"Multiple collisions not handled correctly: {e}")
             
         self.assertEqual(sim.collisions.collision_id.size,2)
+        
+    def test_multi_pltp_collision(self):
+        """
+        Tests that multiple pl-tp collisions are handled correctly
+        """
+        
+        sim = swiftest.Simulation(simder=self.simdir) #
+
+        sim.add_solar_system_body(['Sun', 'Earth'])
+        ncoll = 10
+        nnotcoll = 10
+
+        # Create bodies that will collide
+        rh_E = sim.init_cond.sel(time=0, name='Earth')['rh'].values
+        vh_E = sim.init_cond.sel(time=0, name='Earth')['vh'].values
+        rad_E = sim.init_cond.sel(time=0, name='Earth')['radius'].values.item()
+
+        rh_tp = []
+        vh_tp = []
+        for i in range(ncoll): 
+            rh_tp.append(rh_E + [0,-25*(i+1)*rad_E, 0])
+            vh_tp.append(vh_E + [0.0, 1e-2, 0])
+
+        sim.add_body(rh=rh_tp, vh=vh_tp)
+
+        # Create bodies that will not collide
+        a_tp = []
+        a_tp = [10.0+0.1*i for i in range(nnotcoll)]
+        sim.add_body(a=a_tp)
+        
+        try:
+            sim.run(tstop = 100, dt = 0.001, tstep_out = 10, integrator='rmvs')
+        except Exception as e:
+            self.fail(f"Multiple pl-tp collisions not handled correctly: {e}")
+
+        self.assertEqual(sim.collisions.collision_id.size,ncoll)
 
 
 if __name__ == '__main__':

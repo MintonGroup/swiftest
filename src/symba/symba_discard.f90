@@ -343,9 +343,6 @@ contains
       ! Internals
       real(DP) :: E_orbit_before, E_orbit_after
       logical, dimension(:), allocatable :: ldiscard
-      integer(I4B) :: i, nstart, nend, nsub
-      logical :: cb_collide
-      class(swiftest_pl), allocatable :: plsub
    
       select type(nbody_system)
       class is (symba_nbody_system)

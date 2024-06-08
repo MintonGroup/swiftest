@@ -160,7 +160,7 @@ contains
       integer(I4B) :: nper
       real(DP)   :: x
 
-      nper = angle / TWOPI
+      nper = int(angle / TWOPI, kind=I4B)
       x = angle - nper * TWOPI
       if (x < 0.0_DP) x = x + TWOPI
       sx = sin(x)
@@ -504,7 +504,7 @@ contains
       ! in this section, bring m into the range (0,TWOPI) and if
       ! the result is greater than pi, solve for (TWOPI - m).
       iflag = 0
-      nper = im / TWOPI
+      nper = int(im / TWOPI,kind=I4B)
       m = im - nper * TWOPI
       if (m < 0._DP) m = m + TWOPI
 

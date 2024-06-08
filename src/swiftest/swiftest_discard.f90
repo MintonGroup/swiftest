@@ -26,8 +26,6 @@ contains
       logical :: ldiscard_pl = .false. 
       logical :: ldiscard_tp = .false.
 
-      integer(I4B) :: i
-
       lpl_check = allocated(self%pl_discards) .and. self%pl%nbody > 0
       ltp_check = allocated(self%tp_discards) .and. self%tp%nbody > 0
 
@@ -138,10 +136,9 @@ contains
       class(swiftest_parameters),   intent(inout) :: param  
          !! Current run configuration parameters
       ! Internals
-      integer(I4B)        :: i, nsub, nstart, nend
+      integer(I4B)        :: i
       real(DP)            :: energy, vb2, rb2, rh2, rmin2, rmax2, rmaxu2
       character(len=STRMAX) :: idstr, timestr, message
-      class(swiftest_tp), allocatable :: tpsub
       logical, allocatable, dimension(:) :: ldiscard
 
       associate(nbody => body%nbody, &
@@ -350,15 +347,15 @@ contains
                      ! Save the system snapshot
                      impactors%regime = COLLRESOLVE_REGIME_MERGE
                      allocate(ldiscard_tp, mold=tp%ldiscard(:))
-                     allocate(ldiscard_pl, mold=Pl%ldiscard(:))
+                     allocate(ldiscard_pl, mold=pl%ldiscard(:))
                      ldiscard_tp(:) = .false.
                      ldiscard_pl(:) = .false.
                      ldiscard_tp(i) = .true.
                      ldiscard_pl(j) = .true.
-                     call tp%save_discard(ldiscard_pl,nbody_system,collider%before)
-                     call pl%save_discard(ldiscard_tp,nbody_system,collider%before)
+                     call tp%save_discard(ldiscard_tp,nbody_system,collider%before)
+                     call pl%save_discard(ldiscard_pl,nbody_system,collider%before)
                      call collision_history%take_snapshot(param,nbody_system, t, "before") 
-                     call pl%save_discard(ldiscard_tp,nbody_system,collider%after)
+                     call pl%save_discard(ldiscard_pl,nbody_system,collider%after)
                      call collision_history%take_snapshot(param,nbody_system, t, "after") 
                      deallocate(ldiscard_tp, ldiscard_pl)
                      exit
