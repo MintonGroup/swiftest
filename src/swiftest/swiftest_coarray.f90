@@ -360,8 +360,8 @@ contains
         !! author: David A. Minton
         !!
         !! Distributes test particles from image #1 out to all images.
-        use whm
-        use rmvs
+        use whm, only: whm_tp, coclone
+        use rmvs, only: rmvs_tp, coclone
         implicit none
         ! Arguments
         class(swiftest_nbody_system), intent(inout) :: self

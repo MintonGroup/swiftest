@@ -722,8 +722,8 @@ module base
          !! 
          !! Print termination message and exit program 
          !! 
-         !! Adapted from David E. Kaufmann's Swifter routine: base_util_exit.f90 
-         !! Adapted from Hal Levison's Swift routine base_util_exit.f 
+         !! Adapted from David E. Kaufmann's Swifter routine: util_exit.f90 
+         !! Adapted from Hal Levison's Swift routine util_exit.f 
          implicit none
          ! Arguments
          integer(I4B), intent(in) :: code
@@ -737,33 +737,31 @@ module base
          character(*), parameter :: HELP_MSG  = USAGE_MSG
          integer(I4B) :: iu
 
+         if (present(unit)) then
+            iu = unit
+         else
+            iu = OUTPUT_UNIT
+         end if
 #ifdef COARRAY
-         if (this_image() == 1) then
+         if ((code /= SUCCESS .and. code /= USAGE .and. code /= HELP) .or. (this_image() == 1)) then
 #endif 
-            if (present(unit)) then
-               iu = unit
-            else
-               iu = OUTPUT_UNIT
-            end if
-      
-            select case(code)
-            case(SUCCESS)
-               write(iu, SUCCESS_MSG) VERSION
-               write(iu, BAR)
-            case(USAGE) 
-               write(iu, USAGE_MSG)
-            case(HELP)
-               write(iu, HELP_MSG)
-            case default
-               write(iu, FAIL_MSG) VERSION
-               write(iu, BAR)
-               error stop -1
-            end select
+         select case(code)
+         case(SUCCESS)
+            write(iu, SUCCESS_MSG) VERSION
+            write(iu, BAR)
+         case(USAGE) 
+            write(iu, USAGE_MSG)
+         case(HELP)
+            write(iu, HELP_MSG)
+         case default
+            write(iu, FAIL_MSG) VERSION
+            write(iu, BAR)
+            error stop -1
+         end select
 #ifdef COARRAY
+         stop 
          end if
 #endif 
-         stop
-   
          return
       end subroutine base_util_exit
 
