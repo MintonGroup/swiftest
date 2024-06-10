@@ -369,7 +369,7 @@ contains
         class(swiftest_parameters),   intent(inout) :: param        
             !! Current run configuration parameters 
         ! Internals
-        integer(I4B) :: istart, iend, ntot, num_per_image, ncopy,i
+        integer(I4B) :: istart, iend, ntot, num_per_image, nremaining, i
         logical, dimension(:), allocatable :: lspill_list
         integer(I4B), codimension[:], allocatable  :: ntp
         character(len=NAMELEN) :: image_num_char, ntp_num_char
@@ -396,16 +396,23 @@ contains
             end if
 
             allocate(lspill_list(ntot))
-            num_per_image = ceiling(1.0_DP * ntot / num_images())
-            istart = (this_image() - 1) * num_per_image + 1
-            if (this_image() == num_images()) then
-                iend = ntot
-            else
-                iend = min(this_image() * num_per_image,ntot)
-            end if
-
+            num_per_image = ntot / num_images()
+            nremaining = mod(ntot, num_images())
+            istart = 1
+    
+            ! Distribute the particles as evenly as possible
             lspill_list(:) = .true.
-            if (istart <= iend) lspill_list(istart:iend) = .false.
+            if (this_image() <= nremaining) then
+                istart = (this_image() - 1) * (num_per_image + 1) + 1
+                iend = istart + num_per_image
+            else
+                istart = nremaining * (num_per_image + 1) + (this_image() - nremaining - 1) * num_per_image + 1
+                iend = istart + num_per_image - 1
+            end if
+    
+            if (istart <= iend) then
+                lspill_list(istart:iend) = .false.
+            end if
 
             select type(tp => nbody_system%tp)
             class is (rmvs_tp)
