@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script will the z library needed by HDF5
+# This script will build the z library needed by HDF5
 # 
 # Copyright 2024 - The Minton Group at Purdue University
 # This file is part of Swiftest.

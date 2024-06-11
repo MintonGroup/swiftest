@@ -95,7 +95,7 @@ class TestSwiftestIntegration(unittest.TestCase):
             return slope * x + b
         
         # Calculate the angular momentum error
-        sim.data['L_tot'] = sim.data['L_orbit'] + sim.data['L_spin'] + sim.data['L_escape']
+        sim.data['L_tot'] = sim.data['L_orbit'] + sim.data['L_rot'] + sim.data['L_escape']
         sim.data['DL'] = sim.data['L_tot'] - sim.data['L_tot'].isel(time=0)
         L_error = sim.data['DL'].magnitude() / sim.data['L_tot'].isel(time=0).magnitude()
 

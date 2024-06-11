@@ -28,10 +28,12 @@ contains
       end interface
 
       ! Arguments
-      class(swiftest_nbody_system), intent(in) :: self  !! Swiftest nbody system object   
-      class(swiftest_parameters),   intent(in) :: param !! Input colleciton of user-defined parameters
-      class(*),                     intent(in) :: timer !! Object used for computing elapsed wall time  (must be unlimited 
-                                                        !! polymorphic because the walltimer module requires base)
+      class(swiftest_nbody_system), intent(in) :: self  
+         !! Swiftest nbody system object   
+      class(swiftest_parameters),   intent(in) :: param 
+         !! Input colleciton of user-defined parameters
+      class(*),                     intent(in) :: timer 
+         !! Object used for computing elapsed wall time  (must be unlimited polymorphic because the walltimer module requires base)
       ! Internals
       character(len=:), allocatable :: formatted_output
 
@@ -48,8 +50,8 @@ contains
                              // fmt("EORBERR",self%E_orbit_error) // fmt("EUNTRERR",self%E_untracked_error) &
                              // fmt("LESCERR",self%L_escape_error) // fmt("MESCERR",self%Mescape_error)
             if (param%lclose) formatted_output = formatted_output // fmt("ECOLLERR",self%Ecoll_error)
-            if (param%lrotation) formatted_output = formatted_output // fmt("KESPINERR",self%ke_spin_error) &
-                             // fmt("LSPINERR",self%L_spin_error) 
+            if (param%lrotation) formatted_output = formatted_output // fmt("KEROTERR",self%ke_rot_error) &
+                             // fmt("LROTERR",self%L_rot_error) 
          end if
 
          if (.not. timer%main_is_started) then ! This is the start of a new run
@@ -125,8 +127,8 @@ contains
       class(swiftest_parameters),   intent(inout) :: param     !! Input colleciton of user-defined parameters
       logical,                      intent(in)    :: lterminal !! Indicates whether to output information to the terminal screen
       ! Internals
-      real(DP), dimension(NDIM)       :: L_total_now,  L_orbit_now,  L_spin_now
-      real(DP)                        :: ke_orbit_now,  ke_spin_now,  pe_now,  E_orbit_now, be_now, be_cb_now, be_cb_orig, te_now
+      real(DP), dimension(NDIM)       :: L_total_now,  L_orbit_now,  L_rot_now
+      real(DP)                        :: ke_orbit_now,  ke_rot_now,  pe_now,  E_orbit_now, be_now, be_cb_now, be_cb_orig, te_now
       real(DP)                        :: GMtot_now
       character(len=*), parameter     :: EGYTERMFMT = '(" DL/L0 = ", ES12.5, "; DE_orbit/|E0| = ", ES12.5,' &
                                                      //'"; DE_total/|E0| = ", ES12.5, "; DM/M0 = ", ES12.5)'
@@ -142,34 +144,34 @@ contains
 
          call nbody_system%get_energy_and_momentum(param) 
          ke_orbit_now = nbody_system%ke_orbit
-         ke_spin_now = nbody_system%ke_spin
+         ke_rot_now = nbody_system%ke_rot
          pe_now = nbody_system%pe
          be_now = nbody_system%be
          be_cb_now = nbody_system%be_cb
          te_now = nbody_system%te
          L_orbit_now(:) = nbody_system%L_orbit(:)
-         L_spin_now(:) = nbody_system%L_spin(:)
+         L_rot_now(:) = nbody_system%L_rot(:)
          E_orbit_now = ke_orbit_now + pe_now
          L_total_now(:) = nbody_system%L_total(:) + nbody_system%L_escape(:)
          GMtot_now = nbody_system%GMtot + nbody_system%GMescape 
 
          if (param%lfirstenergy) then
             nbody_system%ke_orbit_orig = ke_orbit_now
-            nbody_system%ke_spin_orig = ke_spin_now
+            nbody_system%ke_rot_orig = ke_rot_now
             nbody_system%pe_orig = pe_now
             nbody_system%be_orig = be_now
             nbody_system%te_orig = te_now
             nbody_system%E_orbit_orig = E_orbit_now
             nbody_system%GMtot_orig = GMtot_now
             nbody_system%L_orbit_orig(:) = L_orbit_now(:)
-            nbody_system%L_spin_orig(:) = L_spin_now(:)
+            nbody_system%L_rot_orig(:) = L_rot_now(:)
             nbody_system%L_total_orig(:) = L_total_now(:)
             param%lfirstenergy = .false.
          end if
 
          if (.not.param%lfirstenergy) then 
             nbody_system%ke_orbit_error = (ke_orbit_now - nbody_system%ke_orbit_orig) / abs(nbody_system%te_orig)
-            nbody_system%ke_spin_error = (ke_spin_now - nbody_system%ke_spin_orig) / abs(nbody_system%te_orig)
+            nbody_system%ke_rot_error = (ke_rot_now - nbody_system%ke_rot_orig) / abs(nbody_system%te_orig)
             nbody_system%pe_error = (pe_now - nbody_system%pe_orig) / abs(nbody_system%te_orig)
 
             be_cb_orig = -(3 * cb%GM0**2 / param%GU) / (5 * cb%R0)
@@ -187,7 +189,7 @@ contains
                                    / abs(nbody_system%te_orig) + (be_cb_now - be_cb_orig) / abs(nbody_system%te_orig)
 
             nbody_system%L_orbit_error = norm2(L_orbit_now(:) - nbody_system%L_orbit_orig(:)) / norm2(nbody_system%L_total_orig(:))
-            nbody_system%L_spin_error = norm2(L_spin_now(:) - nbody_system%L_spin_orig(:)) / norm2(nbody_system%L_total_orig(:))
+            nbody_system%L_rot_error = norm2(L_rot_now(:) - nbody_system%L_rot_orig(:)) / norm2(nbody_system%L_total_orig(:))
             nbody_system%L_escape_error = norm2(nbody_system%L_escape(:)) / norm2(nbody_system%L_total_orig(:))
             nbody_system%L_total_error = norm2(L_total_now(:) - nbody_system%L_total_orig(:)) / norm2(nbody_system%L_total_orig(:))
 
@@ -321,11 +323,12 @@ contains
             write(param%display_unit, *)" *************** Swiftest stop " // trim(adjustl(param%integrator)) // " *************** "
             if (param%display_style == "COMPACT") write(*,*) "SWIFTEST STOP" // trim(adjustl(param%integrator))
             if (param%log_output) close(param%display_unit)
+         else
+            if (param%log_output) flush(param%display_unit)
          end if
 
 #ifdef COARRAY
       end if ! this_image() == num_images()
-      if (param%log_output) flush(param%display_unit)
 #endif
 
       return
@@ -707,9 +710,9 @@ contains
                                   "netcdf_io_get_t0_values_system KE_orb_varid" )
             self%ke_orbit_orig = rtemp(1)
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%KE_spin_varid, rtemp, start=[tslot], count=[1]), &
-                                 "netcdf_io_get_t0_values_system KE_spin_varid" )
-            self%ke_spin_orig = rtemp(1)
+            call netcdf_io_check( nf90_get_var(nc%id, nc%KE_rot_varid, rtemp, start=[tslot], count=[1]), &
+                                 "netcdf_io_get_t0_values_system KE_rot_varid" )
+            self%ke_rot_orig = rtemp(1)
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%PE_varid, rtemp, start=[tslot], count=[1]), &
                                   "netcdf_io_get_t0_values_system PE_varid" )
@@ -727,10 +730,10 @@ contains
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%L_orbit_varid, self%L_orbit_orig(:), start=[1,tslot], count=[NDIM,1]), &
                                   "netcdf_io_get_t0_values_system L_orbit_varid" )
-            call netcdf_io_check( nf90_get_var(nc%id, nc%L_spin_varid, self%L_spin_orig(:), start=[1,tslot], count=[NDIM,1]), &
-                                  "netcdf_io_get_t0_values_system L_spin_varid" )
+            call netcdf_io_check( nf90_get_var(nc%id, nc%L_rot_varid, self%L_rot_orig(:), start=[1,tslot], count=[NDIM,1]), &
+                                  "netcdf_io_get_t0_values_system L_rot_varid" )
 
-            self%L_total_orig(:) = self%L_orbit_orig(:) + self%L_spin_orig(:) 
+            self%L_total_orig(:) = self%L_orbit_orig(:) + self%L_rot_orig(:) 
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%Gmass_varid, vals, start=[1,tslot], count=[idmax,1]), &
                                   "netcdf_io_get_t0_values_system Gmass_varid" )
@@ -805,7 +808,6 @@ contains
       class(swiftest_parameters),        intent(in)    :: param !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: nvar, varid, vartype
-      integer(I4B) :: status
       real(DP) :: dfill
       real(SP) :: sfill
       integer(I4B), parameter :: NO_FILL = 0
@@ -940,7 +942,7 @@ contains
                                                nc%origin_vh_varid), &
                                   "netcdf_io_initialize_output nf90_def_var origin_vh_varid"  )
 
-            call netcdf_io_check( nf90_def_var(nc%id, nc%collision_id_varname, NF90_INT, nc%name_dimid, nc%collision_id_varid), &
+            call netcdf_io_check( nf90_def_var(nc%id, nc%collision_id_dimname, NF90_INT, nc%name_dimid, nc%collision_id_varid), &
                                   "netcdf_io_initialize_output nf90_def_var collision_id_varid"  )
             call netcdf_io_check( nf90_def_var(nc%id, nc%discard_time_varname, nc%out_type, nc%name_dimid, nc%discard_time_varid), &
                                   "netcdf_io_initialize_output nf90_def_var discard_time_varid"  )
@@ -998,10 +1000,10 @@ contains
          ! end if
 
          if (param%lenergy) then
-            call netcdf_io_check( nf90_def_var(nc%id, nc%ke_orb_varname, nc%out_type, nc%time_dimid, nc%KE_orb_varid), &
+            call netcdf_io_check( nf90_def_var(nc%id, nc%ke_orbit_varname, nc%out_type, nc%time_dimid, nc%KE_orb_varid), &
                                   "netcdf_io_initialize_output nf90_def_var KE_orb_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%ke_spin_varname, nc%out_type, nc%time_dimid, nc%KE_spin_varid), &
-                                  "netcdf_io_initialize_output nf90_def_var KE_spin_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%ke_rot_varname, nc%out_type, nc%time_dimid, nc%KE_rot_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var KE_rot_varid"  )
             call netcdf_io_check( nf90_def_var(nc%id, nc%pe_varname, nc%out_type, nc%time_dimid, nc%PE_varid), &
                                   "netcdf_io_initialize_output nf90_def_var PE_varid"  )
             call netcdf_io_check( nf90_def_var(nc%id, nc%be_varname, nc%out_type, nc%time_dimid, nc%BE_varid), &
@@ -1011,9 +1013,9 @@ contains
             call netcdf_io_check( nf90_def_var(nc%id, nc%L_orbit_varname, nc%out_type, [nc%space_dimid, nc%time_dimid], &
                                                nc%L_orbit_varid), &
                                   "netcdf_io_initialize_output nf90_def_var L_orbit_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%L_spin_varname, nc%out_type, [nc%space_dimid, nc%time_dimid], &
-                                               nc%L_spin_varid), &
-                                  "netcdf_io_initialize_output nf90_def_var L_spin_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%L_rot_varname, nc%out_type, [nc%space_dimid, nc%time_dimid], &
+                                               nc%L_rot_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var L_rot_varid"  )
             call netcdf_io_check( nf90_def_var(nc%id, nc%L_escape_varname, nc%out_type, [nc%space_dimid, nc%time_dimid], &
                                                nc%L_escape_varid), &
                                   "netcdf_io_initialize_output nf90_def_var L_escape_varid"  )
@@ -1239,7 +1241,7 @@ contains
             status = nf90_inq_varid(nc%id, nc%origin_time_varname, nc%origin_time_varid)
             status = nf90_inq_varid(nc%id, nc%origin_rh_varname, nc%origin_rh_varid)
             status = nf90_inq_varid(nc%id, nc%origin_vh_varname, nc%origin_vh_varid)
-            status = nf90_inq_varid(nc%id, nc%collision_id_varname, nc%collision_id_varid)
+            status = nf90_inq_varid(nc%id, nc%collision_id_dimname, nc%collision_id_varid)
             status = nf90_inq_varid(nc%id, nc%discard_time_varname, nc%discard_time_varid)
             status = nf90_inq_varid(nc%id, nc%discard_rh_varname, nc%discard_rh_varid)
             status = nf90_inq_varid(nc%id, nc%discard_vh_varname, nc%discard_vh_varid)
@@ -1247,13 +1249,13 @@ contains
          end if
 
          if (param%lenergy) then
-            status = nf90_inq_varid(nc%id, nc%ke_orb_varname, nc%KE_orb_varid)
-            status = nf90_inq_varid(nc%id, nc%ke_spin_varname, nc%KE_spin_varid)
+            status = nf90_inq_varid(nc%id, nc%ke_orbit_varname, nc%KE_orb_varid)
+            status = nf90_inq_varid(nc%id, nc%ke_rot_varname, nc%KE_rot_varid)
             status = nf90_inq_varid(nc%id, nc%pe_varname, nc%PE_varid)
             status = nf90_inq_varid(nc%id, nc%be_varname, nc%BE_varid)
             status = nf90_inq_varid(nc%id, nc%te_varname, nc%TE_varid)
             status = nf90_inq_varid(nc%id, nc%L_orbit_varname, nc%L_orbit_varid)
-            status = nf90_inq_varid(nc%id, nc%L_spin_varname, nc%L_spin_varid)
+            status = nf90_inq_varid(nc%id, nc%L_rot_varname, nc%L_rot_varid)
             status = nf90_inq_varid(nc%id, nc%L_escape_varname, nc%L_escape_varid)
             status = nf90_inq_varid(nc%id, nc%E_collisions_varname, nc%E_collisions_varid)
             status = nf90_inq_varid(nc%id, nc%E_untracked_varname, nc%E_untracked_varid)
@@ -1690,12 +1692,12 @@ contains
          end if
 
          if (param%lenergy) then
-            status = nf90_inq_varid(nc%id, nc%ke_orb_varname, nc%KE_orb_varid)
+            status = nf90_inq_varid(nc%id, nc%ke_orbit_varname, nc%KE_orb_varid)
             if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%KE_orb_varid, self%ke_orbit, start=[tslot]), &
                                   "netcdf_io_read_hdr_system nf90_getvar KE_orb_varid"  )
-            status = nf90_inq_varid(nc%id, nc%ke_spin_varname, nc%KE_spin_varid)
-            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%KE_spin_varid, self%ke_spin, start=[tslot]), &
-                                  "netcdf_io_read_hdr_system nf90_getvar KE_spin_varid"  )
+            status = nf90_inq_varid(nc%id, nc%ke_rot_varname, nc%KE_rot_varid)
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%KE_rot_varid, self%ke_rot, start=[tslot]), &
+                                  "netcdf_io_read_hdr_system nf90_getvar KE_rot_varid"  )
             status = nf90_inq_varid(nc%id, nc%pe_varname, nc%PE_varid)
             if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%PE_varid, self%pe, start=[tslot]), &
                                   "netcdf_io_read_hdr_system nf90_getvar PE_varid"  )
@@ -1709,10 +1711,10 @@ contains
             if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%L_orbit_varid, self%L_orbit(:), & 
                                                                          start=[1,tslot], count=[NDIM,1]), &
                                   "netcdf_io_read_hdr_system nf90_getvar L_orbit_varid"  )
-            status = nf90_inq_varid(nc%id, nc%L_spin_varname, nc%L_spin_varid)
-            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%L_spin_varid, self%L_spin(:), start=[1,tslot], &
+            status = nf90_inq_varid(nc%id, nc%L_rot_varname, nc%L_rot_varid)
+            if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%L_rot_varid, self%L_rot(:), start=[1,tslot], &
                                                             count=[NDIM,1]), &
-                                  "netcdf_io_read_hdr_system nf90_getvar L_spin_varid"  )
+                                  "netcdf_io_read_hdr_system nf90_getvar L_rot_varid"  )
             status = nf90_inq_varid(nc%id, nc%L_escape_varname, nc%L_escape_varid)
             if (status == NF90_NOERR) call netcdf_io_check( nf90_get_var(nc%id, nc%L_escape_varid, self%L_escape(:), &
                                                                          start=[1, tslot], count=[NDIM,1]), &
@@ -1900,7 +1902,7 @@ contains
                call tp%info(i)%set_value(origin_vh=vectemp(:,tpind(i)))
             end do
 
-            status = nf90_inq_varid(nc%id, nc%collision_id_varname, nc%collision_id_varid)
+            status = nf90_inq_varid(nc%id, nc%collision_id_dimname, nc%collision_id_varid)
             if (status == NF90_NOERR) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%collision_id_varid, itemp), &
                                   "netcdf_io_read_particle_info_system nf90_getvar collision_id_varid"  )
@@ -2128,9 +2130,7 @@ contains
       class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       ! Internals
-      integer(I4B)                              :: idslot, old_mode, tmp, i
-      integer(I4B), dimension(:), allocatable   :: lm_coords
-      integer(I4B) :: status
+      integer(I4B)                              :: idslot, old_mode, tmp
 
       associate(tslot => nc%tslot)
          call self%write_info(nc, param)
@@ -2234,8 +2234,8 @@ contains
       if (param%lenergy) then
          call netcdf_io_check( nf90_put_var(nc%id, nc%KE_orb_varid, self%ke_orbit, start=[tslot]), &
                                   "netcdf_io_write_hdr_system nf90_put_var KE_orb_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%KE_spin_varid, self%ke_spin, start=[tslot]), &
-                                  "netcdf_io_write_hdr_system nf90_put_var KE_spin_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%KE_rot_varid, self%ke_rot, start=[tslot]), &
+                                  "netcdf_io_write_hdr_system nf90_put_var KE_rot_varid"  )
          call netcdf_io_check( nf90_put_var(nc%id, nc%PE_varid, self%pe, start=[tslot]), &
                                   "netcdf_io_write_hdr_system nf90_put_var PE_varid"  )
          call netcdf_io_check( nf90_put_var(nc%id, nc%BE_varid, self%be, start=[tslot]), &
@@ -2244,8 +2244,8 @@ contains
                                   "netcdf_io_write_hdr_system nf90_put_var TE_varid"  )
          call netcdf_io_check( nf90_put_var(nc%id, nc%L_orbit_varid, self%L_orbit(:), start=[1,tslot], count=[NDIM,1]), &
                                   "netcdf_io_write_hdr_system nf90_put_var L_orbit_varid"  )
-         call netcdf_io_check( nf90_put_var(nc%id, nc%L_spin_varid, self%L_spin(:), start=[1,tslot], count=[NDIM,1]), &
-                                  "netcdf_io_write_hdr_system nf90_put_var L_spin_varid"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%L_rot_varid, self%L_rot(:), start=[1,tslot], count=[NDIM,1]), &
+                                  "netcdf_io_write_hdr_system nf90_put_var L_rot_varid"  )
          call netcdf_io_check( nf90_put_var(nc%id, nc%L_escape_varid, self%L_escape(:), start=[1,tslot], count=[NDIM,1]), &
                                   "netcdf_io_write_hdr_system nf90_put_var L_escape_varid"  )
          call netcdf_io_check( nf90_put_var(nc%id, nc%E_collisions_varid, self%E_collisions, start=[tslot]), &
@@ -2447,11 +2447,13 @@ contains
       logical                        :: seed_set = .false.      !! Is the random seed set in the input file?
       real(DP)                       :: tratio, y
 #ifdef COARRAY
-      type(swiftest_parameters), codimension[*], save :: coparam
-     
-   if (this_image() == 1) then
-      coparam = self
-      associate(param => coparam) 
+      type(swiftest_parameters), codimension[:], allocatable :: param
+
+      select type(self)
+      type is (swiftest_parameters)
+         allocate(param[*], source = self)
+      end select
+
 #else
       associate(param => self) 
 #endif
@@ -2459,6 +2461,9 @@ contains
          call random_seed(size = nseeds)
          if (allocated(param%seed)) deallocate(param%seed)
          allocate(param%seed(nseeds))
+#ifdef COARRAY
+      if (this_image() == 1) then
+#endif
          open(unit = unit, file = param%param_file_name, status = 'old', err = 667, iomsg = iomsg)
          do
             read(unit = unit, fmt = linefmt, end = 1, err = 667, iomsg = iomsg) line
@@ -2598,12 +2603,12 @@ contains
                      param_value = swiftest_io_get_token(line, ifirst, ilast, iostat) 
                      read(param_value, *, err = 667, iomsg = iomsg) param%L_orbit_orig(i)
                   end do
-               case("LSPIN_ORIG")
-                  read(param_value, *, err = 667, iomsg = iomsg) param%L_spin_orig(1)
+               case("LROT_ORIG")
+                  read(param_value, *, err = 667, iomsg = iomsg) param%L_rot_orig(1)
                   do i = 2, NDIM
                      ifirst = ilast + 2
                      param_value = swiftest_io_get_token(line, ifirst, ilast, iostat) 
-                     read(param_value, *, err = 667, iomsg = iomsg) param%L_spin_orig(i)
+                     read(param_value, *, err = 667, iomsg = iomsg) param%L_rot_orig(i)
                   end do
                case("LESCAPE")
                   read(param_value, *, err = 667, iomsg = iomsg) param%L_escape(1)
@@ -2739,7 +2744,7 @@ contains
                return
             end if
             if ((param%out_stat /= "NEW") .and. (param%out_stat /= "REPLACE") .and. (param%out_stat /= "APPEND")  &
-          .and. (param%out_stat /= "UNKNOWN")) then
+            .and. (param%out_stat /= "UNKNOWN")) then
                write(iomsg,*) 'Invalid out_stat: ',trim(adjustl(param%out_stat))
                iostat = -1
                return
@@ -2772,11 +2777,10 @@ contains
          ! Calculate the G for the nbody_system units
          param%GU = GC / (param%DU2M**3 / (param%MU2KG * param%TU2S**2))
 
-
          if ((param%encounter_save /= "NONE")       .and. &
-             (param%encounter_save /= "TRAJECTORY") .and. &
-             (param%encounter_save /= "CLOSEST")    .and. &
-             (param%encounter_save /= "BOTH")) then
+               (param%encounter_save /= "TRAJECTORY") .and. &
+               (param%encounter_save /= "CLOSEST")    .and. &
+               (param%encounter_save /= "BOTH")) then
             write(iomsg,*) 'Invalid encounter_save parameter: ',trim(adjustl(param%out_type))
             write(iomsg,*) 'Valid options are NONE, TRAJECTORY, CLOSEST, or BOTH'
             iostat = -1
@@ -2803,27 +2807,27 @@ contains
          end if
 
          if ((param%collision_model /= "MERGE")       .and. &
-             (param%collision_model /= "BOUNCE")    .and. &
-             (param%collision_model /= "FRAGGLE")) then
+               (param%collision_model /= "BOUNCE")    .and. &
+               (param%collision_model /= "FRAGGLE")) then
             write(iomsg,*) 'Invalid collision_model parameter: ',trim(adjustl(param%out_type))
             write(iomsg,*) 'Valid options are MERGE, BOUNCE, or FRAGGLE'
             iostat = -1
             return
          end if
 
+         if (seed_set) then
+            call random_seed(put = param%seed)
+         else
+            call random_seed(get = param%seed)
+         end if
          if (param%collision_model == "FRAGGLE" ) then
-            if (seed_set) then
-               call random_seed(put = param%seed)
-            else
-               call random_seed(get = param%seed)
-            end if
             if (param%min_GMfrag < 0.0_DP) param%min_GMfrag = param%GMTINY
             if (param%nfrag_reduction < 1.0_DP) then
                write(iomsg,*) "Warning: NFRAG_REDUCTION value invalid. Setting to 1.0" 
                param%nfrag_reduction = 1.0_DP
             end if
          end if
-   
+
          ! Determine if the GR flag is set correctly for this integrator
          select case(param%integrator)
          case(INT_WHM, INT_RMVS, INT_HELIO, INT_SYMBA)
@@ -2877,7 +2881,6 @@ contains
             param%lencounter_sas_pltp = .false.
          end select
 
-
          if (param%lcoarray) then
 #ifdef COARRAY
             if (num_images() == 1) then
@@ -2889,7 +2892,7 @@ contains
             case(INT_WHM, INT_RMVS, INT_HELIO)
             case default   
                write(iomsg, *) "Coarray-based parallelization of test particles are not compatible with this integrator. " &
-                            // "This parameter will be ignored."
+                              // "This parameter will be ignored."
                param%lcoarray = .false.
             end select
 #else
@@ -2899,33 +2902,32 @@ contains
          end if
 
          iostat = 0
-
-      end associate
-
 #ifdef COARRAY
-   end if ! this_image() == 1
-      call coparam%coclone()
+      end if ! this_image() == 1
+#else
+      end associate
 #endif
-      select type(param => self)
+      select type(self)
       type is (swiftest_parameters)
 #ifdef COARRAY
-         param = coparam
+         call coclone(param)
+         self = param
 #endif
-         call param%set_display(param%display_style)
+         call self%set_display(self%display_style)
 
-         if (.not.param%lrestart) then
+         if (.not.self%lrestart) then
 #ifdef COARRAY
-            if (this_image() == 1 .or. param%log_output) then
+            if (this_image() == 1 .or. self%log_output) then
 #endif
-               call param%writer(unit = param%display_unit, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg)
-               if (param%log_output) flush(param%display_unit) 
+               call self%writer(unit = self%display_unit, iotype = "none", v_list = [0], iostat = iostat, iomsg = iomsg)
+               if (self%log_output) flush(self%display_unit) 
 #ifdef COARRAY
             end if !(this_image() == 1)
-            write(COLLISION_LOG_OUT,'("collision_coimage",I0.3,".log")') this_image()
+            write(COLLISION_LOG_OUT,'("collision_coimage",I0.4,".log")') this_image()
 #endif
             ! A minimal log of collision outcomes is stored in the following log file
             ! More complete data on collisions is stored in the NetCDF output files
-            call swiftest_io_log_start(param, COLLISION_LOG_OUT, "Collision logfile")
+            call swiftest_io_log_start(self, COLLISION_LOG_OUT, "Collision logfile")
          end if
          ! Print the contents of the parameter file to standard output
       end select
@@ -3374,7 +3376,7 @@ contains
          self%GMtot_orig = param%GMtot_orig
          self%L_total_orig(:) = param%L_total_orig(:)
          self%L_orbit_orig(:) = param%L_orbit_orig(:)
-         self%L_spin_orig(:) = param%L_spin_orig(:)
+         self%L_rot_orig(:) = param%L_rot_orig(:)
          self%L_escape(:) = param%L_escape(:)
          self%E_collisions = param%E_collisions
          self%E_untracked = param%E_untracked
@@ -3566,7 +3568,7 @@ contains
       case ('COMPACT', 'PROGRESS')
 #ifdef COARRAY
          if (self%lcoarray) then
-            write(SWIFTEST_LOG_FILE,'("swiftest_coimage",I0.3,".log")') this_image()
+            write(SWIFTEST_LOG_FILE,'("swiftest_coimage",I0.4,".log")') this_image()
          else
             write(SWIFTEST_LOG_FILE,'("swiftest.log")')
          end if 

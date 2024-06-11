@@ -13,7 +13,6 @@ import swiftest
 import unittest
 import os
 import tempfile
-import astropy.constants as const
 import numpy as np
 
 class TestUnits(unittest.TestCase):

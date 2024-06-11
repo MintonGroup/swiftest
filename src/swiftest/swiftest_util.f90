@@ -189,9 +189,6 @@ contains
          call util_append(self%renc, source%renc, lsource_mask=lsource_mask)
          call util_append(self%radius, source%radius, lsource_mask=lsource_mask)
          call util_append(self%density, source%density, lsource_mask=lsource_mask)
-         call util_append(self%rbeg, source%rbeg, lsource_mask=lsource_mask)
-         call util_append(self%rend, source%rend, lsource_mask=lsource_mask)
-         call util_append(self%vbeg, source%vbeg, lsource_mask=lsource_mask)
          call util_append(self%Ip, source%Ip, lsource_mask=lsource_mask)
          call util_append(self%rot, source%rot, lsource_mask=lsource_mask)
          call util_append(self%k2, source%k2, lsource_mask=lsource_mask)
@@ -251,8 +248,10 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_h2b.f 
       implicit none
       ! Arguments
-      class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
-      class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+      class(swiftest_pl), intent(inout) :: self 
+         !! Swiftest massive body object
+      class(swiftest_cb), intent(inout) :: cb   
+         !! Swiftest central body object
       ! Internals
       integer(I4B)  :: i
       real(DP)      :: Gmtot
@@ -322,8 +321,10 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_b2h.f 
       implicit none
       ! Arguments
-      class(swiftest_pl),     intent(inout) :: self !! Swiftest massive body object
-      class(swiftest_cb),  intent(inout) :: cb   !! Swiftest central body object
+      class(swiftest_pl),  intent(inout) :: self 
+         !! Swiftest massive body object
+      class(swiftest_cb),  intent(inout) :: cb   
+         !! Swiftest central body object
       ! Internals
       integer(I4B)          :: i, npl
 
@@ -354,8 +355,10 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_b2h_tp.f 
       implicit none
       ! Arguments
-      class(swiftest_tp),     intent(inout) :: self !! Swiftest massive body object
-      class(swiftest_cb),  intent(in)    :: cb   !! Swiftest central body object
+      class(swiftest_tp),  intent(inout) :: self 
+         !! Swiftest massive body object
+      class(swiftest_cb),  intent(in)    :: cb   
+         !! Swiftest central body object
       ! Internals
       integer(I4B) :: i, ntp
 
@@ -386,8 +389,10 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_vb2vh.f 
       implicit none
       ! Arguments
-      class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
-      class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+      class(swiftest_pl), intent(inout) :: self 
+         !! Swiftest massive body object
+      class(swiftest_cb), intent(inout) :: cb   
+         !! Swiftest central body object
       ! Internals
       integer(I4B)              :: i, npl
 
@@ -421,8 +426,10 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_vb2h_tp.f 
       implicit none
       ! Arguments
-      class(swiftest_tp),     intent(inout) :: self !! Swiftest test particle object
-      real(DP), dimension(:), intent(in)    :: vbcb !! Barycentric velocity of the central body
+      class(swiftest_tp),     intent(inout) :: self 
+         !! Swiftest test particle object
+      real(DP), dimension(:), intent(in)    :: vbcb 
+         !! Barycentric velocity of the central body
 
       if (self%nbody == 0) return
 
@@ -447,8 +454,10 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_vh2b.f 
       implicit none
       ! Arguments
-      class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
-      class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+      class(swiftest_pl), intent(inout) :: self 
+         !! Swiftest massive body object
+      class(swiftest_cb), intent(inout) :: cb   
+         !! Swiftest central body object
       ! Internals
       integer(I4B)  :: i, npl
       real(DP)      :: Gmtot
@@ -485,8 +494,10 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_vh2b_tp.f 
       implicit none
       ! Arguments
-      class(swiftest_tp),     intent(inout) :: self !! Swiftest test particle object
-      real(DP), dimension(:), intent(in)    :: vbcb !! Barycentric velocity of the central body
+      class(swiftest_tp),     intent(inout) :: self 
+         !! Swiftest test particle object
+      real(DP), dimension(:), intent(in)    :: vbcb 
+         !! Barycentric velocity of the central body
 
       if (self%nbody == 0) return
 
@@ -511,8 +522,10 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_h2b.f 
       implicit none
       ! Arguments
-      class(swiftest_pl), intent(inout) :: self !! Swiftest massive body object
-      class(swiftest_cb), intent(inout) :: cb   !! Swiftest central body object
+      class(swiftest_pl), intent(inout) :: self 
+         !! Swiftest massive body object
+      class(swiftest_cb), intent(inout) :: cb   
+         !! Swiftest central body object
       ! Internals
       integer(I4B)  :: i
       real(DP)      :: Gmtot
@@ -547,8 +560,10 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_h2b_tp.f 
       implicit none
       ! Arguments
-      class(swiftest_tp), intent(inout) :: self !! Swiftest test particle object
-      class(swiftest_cb), intent(in) :: cb      !! Swiftest central body object
+      class(swiftest_tp), intent(inout) :: self 
+         !! Swiftest test particle object
+      class(swiftest_cb), intent(in) :: cb      
+         !! Swiftest central body object
       ! Internals
       integer(I4B) :: i, ntp
 
@@ -600,11 +615,12 @@ contains
       !!
       !! Copies contents from an array of one particle information objects to another.
       implicit none
-      class(swiftest_particle_info), dimension(:), intent(in)             :: source !! Source object to copy into
-      class(swiftest_particle_info), dimension(:), intent(inout)          :: dest   !! Swiftest body object with particle metadata 
-                                                                                    !! information object
-      integer(I4B),                  dimension(:), intent(in),   optional :: idx    !! Optional array of indices to draw the source 
-                                                                                    !! object
+      class(swiftest_particle_info), dimension(:), intent(in)             :: source 
+         !! Source object to copy into
+      class(swiftest_particle_info), dimension(:), intent(inout)          :: dest   
+         !! Swiftest body object with particle metadata information object
+      integer(I4B),                  dimension(:), intent(in),   optional :: idx    
+         !! Optional array of indices to draw the source object
       ! Internals
       integer(I4B) :: i, j, n, nsource, ndest
 
@@ -819,30 +835,30 @@ contains
       self%t = -1.0_DP            
       self%GMtot = 0.0_DP         
       self%ke_orbit = 0.0_DP      
-      self%ke_spin = 0.0_DP       
+      self%ke_rot = 0.0_DP       
       self%pe = 0.0_DP            
       self%be = 0.0_DP            
       self%te = 0.0_DP            
       self%oblpot = 0.0_DP        
       self%L_orbit = 0.0_DP        
-      self%L_spin = 0.0_DP         
+      self%L_rot = 0.0_DP         
       self%L_total = 0.0_DP          
       self%ke_orbit_orig = 0.0_DP 
-      self%ke_spin_orig = 0.0_DP  
+      self%ke_rot_orig = 0.0_DP  
       self%pe_orig = 0.0_DP       
       self%be_orig = 0.0_DP       
       self%E_orbit_orig = 0.0_DP   
       self%GMtot_orig = 0.0_DP    
       self%L_total_orig = 0.0_DP     
       self%L_orbit_orig = 0.0_DP   
-      self%L_spin_orig = 0.0_DP    
+      self%L_rot_orig = 0.0_DP    
       self%L_escape = 0.0_DP       
       self%GMescape = 0.0_DP      
       self%E_collisions = 0.0_DP   
       self%E_untracked = 0.0_DP    
 
       self%ke_orbit_error    = 0.0_DP
-      self%ke_spin_error     = 0.0_DP
+      self%ke_rot_error     = 0.0_DP
       self%pe_error          = 0.0_DP
       self%be_error          = 0.0_DP
       self%E_orbit_error     = 0.0_DP
@@ -850,7 +866,7 @@ contains
       self%E_untracked_error = 0.0_DP
       self%te_error          = 0.0_DP
       self%L_orbit_error     = 0.0_DP
-      self%L_spin_error      = 0.0_DP
+      self%L_rot_error      = 0.0_DP
       self%L_escape_error    = 0.0_DP
       self%L_total_error     = 0.0_DP
       self%Mtot_error        = 0.0_DP
@@ -997,9 +1013,6 @@ contains
             call util_fill(keeps%renc,    inserts%renc,    lfill_list)
             call util_fill(keeps%radius,  inserts%radius,  lfill_list)
             call util_fill(keeps%density, inserts%density, lfill_list)
-            call util_fill(keeps%rbeg,    inserts%rbeg,    lfill_list)
-            call util_fill(keeps%rend,    inserts%rend,    lfill_list)
-            call util_fill(keeps%vbeg,    inserts%vbeg,    lfill_list)
             call util_fill(keeps%Ip,      inserts%Ip,      lfill_list)
             call util_fill(keeps%rot,     inserts%rot,     lfill_list)
             call util_fill(keeps%k2,      inserts%k2,      lfill_list)
@@ -1204,26 +1217,26 @@ contains
       class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters
       ! Internals
       integer(I4B) :: i,j, npl
-      real(DP) :: kecb, kespincb
-      real(DP), dimension(self%pl%nbody) :: kepl, kespinpl
+      real(DP) :: kecb, kerotcb
+      real(DP), dimension(self%pl%nbody) :: kepl, kerotpl
       real(DP), dimension(NDIM,self%pl%nbody) :: Lplorbit
-      real(DP), dimension(NDIM,self%pl%nbody) :: Lplspin
-      real(DP), dimension(NDIM) :: Lcborbit, Lcbspin
+      real(DP), dimension(NDIM,self%pl%nbody) :: Lplrot
+      real(DP), dimension(NDIM) :: Lcborbit, Lcbrot
       real(DP), dimension(NDIM) :: h
 
       associate(nbody_system => self, pl => self%pl, cb => self%cb)
          npl = self%pl%nbody
          nbody_system%L_orbit(:) = 0.0_DP
-         nbody_system%L_spin(:) = 0.0_DP
+         nbody_system%L_rot(:) = 0.0_DP
          nbody_system%L_total(:) = 0.0_DP
          nbody_system%ke_orbit = 0.0_DP
-         nbody_system%ke_spin = 0.0_DP
+         nbody_system%ke_rot = 0.0_DP
 
          nbody_system%GMtot = cb%Gmass
          if (npl > 0) then
             kepl(:) = 0.0_DP
             Lplorbit(:,:) = 0.0_DP
-            Lplspin(:,:) = 0.0_DP
+            Lplrot(:,:) = 0.0_DP
             pl%lmask(1:npl) = pl%status(1:npl) /= INACTIVE
             nbody_system%GMtot = nbody_system%GMtot + sum(pl%Gmass(1:npl), pl%lmask(1:npl)) 
          end if
@@ -1251,44 +1264,44 @@ contains
          end if
 
          if (param%lrotation) then
-            kespincb = cb%mass * cb%Ip(3) * cb%radius**2 * dot_product(cb%rot(:), cb%rot(:))
+            kerotcb = cb%mass * cb%Ip(3) * cb%radius**2 * dot_product(cb%rot(:), cb%rot(:))
 
             ! For simplicity, we always assume that the rotation pole is the 3rd principal axis
-            Lcbspin(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
+            Lcbrot(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
 
             if (npl > 0) then
 #ifdef DOCONLOC
-               do concurrent (i = 1:npl, pl%lmask(i)) shared(pl,Lplspin,kespinpl)
+               do concurrent (i = 1:npl, pl%lmask(i)) shared(pl,Lplrot,kerotpl)
 #else
                do concurrent (i = 1:npl, pl%lmask(i))
 #endif
                   ! Currently we assume that the rotation pole is the 3rd principal axis
-                  ! Angular momentum from spin
-                  Lplspin(:,i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(:,i)
+                  ! Angular momentum from rotation
+                  Lplrot(:,i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(:,i)
 
-                  ! Kinetic energy from spin
-                  kespinpl(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * dot_product(pl%rot(:,i), pl%rot(:,i))
+                  ! Kinetic energy from rotation
+                  kerotpl(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * dot_product(pl%rot(:,i), pl%rot(:,i))
                end do
 
-               nbody_system%ke_spin = 0.5_DP * (kespincb + sum(kespinpl(1:npl), pl%lmask(1:npl)))
+               nbody_system%ke_rot = 0.5_DP * (kerotcb + sum(kerotpl(1:npl), pl%lmask(1:npl)))
             else
-               nbody_system%ke_spin = 0.5_DP * kespincb
+               nbody_system%ke_rot = 0.5_DP * kerotcb
             end if
 
             if (npl > 0) then
 #ifdef DOCONLOC
-               do concurrent (j = 1:NDIM) shared(nbody_system,pl,Lplspin,Lcbspin)
+               do concurrent (j = 1:NDIM) shared(nbody_system,pl,Lplrot,Lcbrot)
 #else
                do concurrent (j = 1:NDIM)
 #endif
-                  nbody_system%L_spin(j) = Lcbspin(j) + sum(Lplspin(j,1:npl), pl%lmask(1:npl))
+                  nbody_system%L_rot(j) = Lcbrot(j) + sum(Lplrot(j,1:npl), pl%lmask(1:npl))
                end do
             else
-               nbody_system%L_spin(:) = Lcbspin(:)
+               nbody_system%L_rot(:) = Lcbrot(:)
             end if
          else
-            nbody_system%ke_spin = 0.0_DP
-            nbody_system%L_spin(:) = 0.0_DP
+            nbody_system%ke_rot = 0.0_DP
+            nbody_system%L_rot(:) = 0.0_DP
          end if
  
          if (npl > 0) then
@@ -1325,8 +1338,8 @@ contains
          else
             nbody_system%be = 0.0_DP
          end if
-         nbody_system%te = nbody_system%ke_orbit + nbody_system%ke_spin + nbody_system%pe + nbody_system%be 
-         nbody_system%L_total(:) = nbody_system%L_orbit(:) + nbody_system%L_spin(:)
+         nbody_system%te = nbody_system%ke_orbit + nbody_system%ke_rot + nbody_system%pe + nbody_system%be 
+         nbody_system%L_total(:) = nbody_system%L_orbit(:) + nbody_system%L_rot(:)
       end associate
 
       return
@@ -1702,8 +1715,14 @@ contains
       associate(pl => self, tp => nbody_system%tp, cb => nbody_system%cb, pl_adds => nbody_system%pl_adds)
 
          npl = pl%nbody
-         nadd = pl_adds%nbody
          if (npl == 0) return
+
+         if (allocated(nbody_system%pl_adds)) then
+            nadd = pl_adds%nbody
+         else
+            nadd = 0
+         end if
+
          ! Deallocate any temporary variables
          if (allocated(pl%rbeg)) deallocate(pl%rbeg)
          if (allocated(pl%rend)) deallocate(pl%rend)
@@ -1890,7 +1909,6 @@ contains
       integer(I4B) :: i, ntp, npl
       integer(I8B) :: k, nenc
       logical, dimension(:), allocatable :: lmask
-      logical :: lencounter
 
       associate(tp => self, pl => nbody_system%pl, cb => nbody_system%cb, pl_adds => nbody_system%pl_adds)
 
@@ -2193,6 +2211,49 @@ contains
    end subroutine swiftest_util_resize_tp
 
 
+   module subroutine swiftest_util_save_discard_body(self, ldiscard_mask, nbody_system, snapshot)
+      !! author: David A. Minton
+      !!
+      !! Saves the discarded bodies from a Swiftest body object to a snapshot object
+      implicit none
+      ! Arguments
+      class(swiftest_body), intent(inout) :: self 
+         !! Swiftest body object
+      logical, dimension(:), intent(in) :: ldiscard_mask 
+         !! Logical mask indicating which elements to discard
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_nbody_system), intent(inout) :: snapshot
+         !! Swiftest nbody system object to store the snapshot of the discard system. Typically this will be something like 
+         !! nbody_system%collider%before or nbody_system%collider%after
+      ! Internals
+      class(swiftest_tp), allocatable :: tp_discards
+      class(swiftest_pl), allocatable :: pl_discards
+
+      select type(snapshot)
+      class is (swiftest_nbody_system)
+         select type(self)
+         class is (swiftest_tp)
+            allocate(tp_discards, mold=self)
+            call self%spill(tp_discards, ldiscard_mask, ldestructive=.false.)
+            if (allocated(snapshot%tp)) deallocate(snapshot%tp)
+            allocate(snapshot%tp, source=tp_discards)
+         class is (swiftest_pl)
+            allocate(pl_discards, mold=self)
+            call self%spill(pl_discards, ldiscard_mask, ldestructive=.false.)
+            if (allocated(snapshot%pl)) deallocate(snapshot%pl)
+            allocate(snapshot%pl, source=pl_discards)
+         end select
+   
+         if (nbody_system%collider%impactors%regime == REGIME_CB_IMPACT) then
+            if (allocated(snapshot%cb)) deallocate(snapshot%cb)
+            allocate(snapshot%cb, source=nbody_system%cb)
+         end if
+      end select
+      return
+   end subroutine swiftest_util_save_discard_body
+
+
    module subroutine swiftest_util_set_beg_end_pl(self, rbeg, rend, vbeg)
       !! author: David A. Minton
       !! 
@@ -2450,15 +2511,16 @@ contains
    end subroutine swiftest_util_set_rhill_approximate
 
    module subroutine swiftest_util_setup_construct_system(nbody_system, param)
-
       !! author: David A. Minton
       !!
       !! Constructor for a Swiftest nbody system. Creates the nbody system object based on the user-input integrator
       !! 
       implicit none
       ! Arguments
-      class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system !! Swiftest nbody_system object
-      class(swiftest_parameters),                intent(inout) :: param        !! Current run configuration parameters
+      class(swiftest_nbody_system), allocatable, intent(inout) :: nbody_system 
+         !! Swiftest nbody_system object
+      class(swiftest_parameters),                intent(inout) :: param        
+         !! Current run configuration parameters
       select case(param%integrator)
       case (INT_BS)
          write(*,*) 'Bulirsch-Stoer integrator not yet enabled'
@@ -2473,6 +2535,7 @@ contains
             allocate(helio_tp :: nbody_system%tp_discards)
          end select
          param%collision_model = "MERGE"
+         param%lenergy = .false.
       case (INT_RA15)
          write(*,*) 'Radau integrator not yet enabled'
       case (INT_TU4)
@@ -2488,6 +2551,7 @@ contains
             allocate(whm_tp :: nbody_system%tp_discards)
          end select
          param%collision_model = "MERGE"
+         param%lenergy = .false.
       case (INT_RMVS)
          allocate(rmvs_nbody_system :: nbody_system)
          select type(nbody_system)
@@ -2499,6 +2563,7 @@ contains
             allocate(rmvs_tp :: nbody_system%tp_discards)
          end select
          param%collision_model = "MERGE"
+         param%lenergy = .false.
       case (INT_SYMBA)
          allocate(symba_nbody_system :: nbody_system)
          select type(nbody_system)
@@ -2882,29 +2947,29 @@ contains
       snapshot%t                 = nbody_system%t
       snapshot%GMtot             = nbody_system%GMtot
       snapshot%ke_orbit          = nbody_system%ke_orbit
-      snapshot%ke_spin           = nbody_system%ke_spin
+      snapshot%ke_rot           = nbody_system%ke_rot
       snapshot%pe                = nbody_system%pe
       snapshot%be                = nbody_system%be
       snapshot%te                = nbody_system%te
       snapshot%oblpot            = nbody_system%oblpot
       snapshot%L_orbit           = nbody_system%L_orbit
-      snapshot%L_spin            = nbody_system%L_spin
+      snapshot%L_rot            = nbody_system%L_rot
       snapshot%L_total           = nbody_system%L_total
       snapshot%ke_orbit_orig     = nbody_system%ke_orbit_orig
-      snapshot%ke_spin_orig      = nbody_system%ke_spin_orig
+      snapshot%ke_rot_orig      = nbody_system%ke_rot_orig
       snapshot%pe_orig           = nbody_system%pe_orig
       snapshot%be_orig           = nbody_system%be_orig
       snapshot%E_orbit_orig      = nbody_system%E_orbit_orig
       snapshot%GMtot_orig        = nbody_system%GMtot_orig
       snapshot%L_total_orig      = nbody_system%L_total_orig
       snapshot%L_orbit_orig      = nbody_system%L_orbit_orig
-      snapshot%L_spin_orig       = nbody_system%L_spin_orig
+      snapshot%L_rot_orig       = nbody_system%L_rot_orig
       snapshot%L_escape          = nbody_system%L_escape
       snapshot%GMescape          = nbody_system%GMescape
       snapshot%E_collisions      = nbody_system%E_collisions
       snapshot%E_untracked       = nbody_system%E_untracked
       snapshot%ke_orbit_error    = nbody_system%ke_orbit_error   
-      snapshot%ke_spin_error     = nbody_system%ke_spin_error    
+      snapshot%ke_rot_error     = nbody_system%ke_rot_error    
       snapshot%pe_error          = nbody_system%pe_error         
       snapshot%be_error          = nbody_system%be_error         
       snapshot%E_orbit_error     = nbody_system%E_orbit_error    
@@ -2912,7 +2977,7 @@ contains
       snapshot%E_untracked_error = nbody_system%E_untracked_error
       snapshot%te_error          = nbody_system%te_error         
       snapshot%L_orbit_error     = nbody_system%L_orbit_error    
-      snapshot%L_spin_error      = nbody_system%L_spin_error     
+      snapshot%L_rot_error      = nbody_system%L_rot_error     
       snapshot%L_escape_error    = nbody_system%L_escape_error   
       snapshot%L_total_error     = nbody_system%L_total_error    
       snapshot%Mtot_error        = nbody_system%Mtot_error       
@@ -3209,10 +3274,10 @@ contains
          call util_sort_rearrange(pl%k2,      ind, npl)
          call util_sort_rearrange(pl%Q,       ind, npl)
          call util_sort_rearrange(pl%tlag,    ind, npl)
-         call util_sort_rearrange(pl%kin,        ind, npl)
-         call util_sort_rearrange(pl%lmtiny,     ind, npl)
-         call util_sort_rearrange(pl%nplenc,     ind, npl)
-         call util_sort_rearrange(pl%ntpenc,     ind, npl)
+         call util_sort_rearrange(pl%kin,     ind, npl)
+         call util_sort_rearrange(pl%lmtiny,  ind, npl)
+         call util_sort_rearrange(pl%nplenc,  ind, npl)
+         call util_sort_rearrange(pl%ntpenc,  ind, npl)
 
          if (allocated(pl%k_plpl)) deallocate(pl%k_plpl)
 
@@ -3395,7 +3460,7 @@ contains
          ! This is the base class, so will be the last to be called in the cascade. 
          ! Therefore we need to set the nbody values for both the keeps and discareds
          discards%nbody = count(lspill_list(1:nbody_old))
-         if (ldestructive) keeps%nbody = nbody_old- discards%nbody
+         if (ldestructive) keeps%nbody = nbody_old - discards%nbody
       end associate
      
       return
@@ -3425,7 +3490,6 @@ contains
             call util_spill(keeps%renc,    discards%renc,    lspill_list, ldestructive)
             call util_spill(keeps%radius,  discards%radius,  lspill_list, ldestructive)
             call util_spill(keeps%density, discards%density, lspill_list, ldestructive)
-            call util_spill(keeps%rbeg,    discards%rbeg,    lspill_list, ldestructive)
             call util_spill(keeps%rend,    discards%rend,    lspill_list, ldestructive)
             call util_spill(keeps%vbeg,    discards%vbeg,    lspill_list, ldestructive)
             call util_spill(keeps%Ip,      discards%Ip,      lspill_list, ldestructive)

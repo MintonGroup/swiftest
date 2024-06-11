@@ -19,38 +19,6 @@ set -e
 cd $ROOT_DIR
 . ${SCRIPT_DIR}/set_environment.sh
 
-# Check if the PREFIX directory exists
-if [ ! -d "${PREFIX}" ]; then
-    CURRENT_DIR="${PREFIX}"
-
-    # Iterate up the directory hierarchy until an existing directory is found
-    while [ ! -d "$CURRENT_DIR" ] && [ "$CURRENT_DIR" != "/" ]; do
-        CURRENT_DIR=$(dirname "$CURRENT_DIR")
-    done
-
-    # Now, CURRENT_DIR holds the first existing directory in the hierarchy
-    # Check if you have write permission in this directory
-    if [ -w "$CURRENT_DIR" ]; then
-        mkdir -p "${PREFIX}"
-        echo "${PREFIX} created."
-    else
-        # If you don't have write permission, try to create the directory with sudo
-        echo "Attempting to create ${PREFIX} with elevated privileges..."
-        sudo mkdir -p "${PREFIX}"
-
-        # Check if creation was successful
-        if [ $? -eq 0 ]; then
-            echo "${PREFIX} created with elevated privileges."
-        else
-            echo "Failed to create ${PREFIX}. Please check your permissions."
-            exit 1
-        fi
-    fi
-else
-    echo "${PREFIX} already exists."
-fi
-
-
 if ! command -v ninja &> /dev/null; then
     NINJA_VER="1.11.1"
 
@@ -88,6 +56,10 @@ ${SCRIPT_DIR}/build_hdf5.sh
 ${SCRIPT_DIR}/build_netcdf-c.sh
 ${SCRIPT_DIR}/build_netcdf-fortran.sh
 ${SCRIPT_DIR}/build_shtools.sh 
+
+if [ $OS = "Linux" ]; then
+    ${SCRIPT_DIR}/build_opencoarrays.sh
+fi
 
 printf "\n"
 printf "*********************************************************\n"

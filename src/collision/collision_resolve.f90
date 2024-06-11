@@ -15,15 +15,20 @@ contains
       !! author: David A. Minton
       !! 
       !! Loops through the pl-pl collision list and groups families together by index. Outputs the indices of all impactors%id 
-      !! members, and pairs of quantities (x and v vectors, mass, radius, L_spin, and Ip) that can be used to resolve the 
+      !! members, and pairs of quantities (x and v vectors, mass, radius, L_rot, and Ip) that can be used to resolve the 
       !! collisional outcome.
       implicit none
       ! Arguments
-      class(collision_impactors),intent(out) :: self !! Collision impactors object
-      class(base_nbody_system),intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters), intent(in) :: param !! Current run configuration parameters with Swiftest additions
-      integer(I4B), dimension(:), intent(inout) :: idx_parent !! Index of the two bodies considered the "parents" of the collision
-      logical, intent(out) :: lflag !! Logical flag indicating whether a impactors%id was successfully created or not
+      class(collision_impactors),intent(out) :: self 
+         !! Collision impactors object
+      class(base_nbody_system),intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters), intent(in) :: param 
+         !! Current run configuration parameters with Swiftest additions
+      integer(I4B), dimension(:), intent(inout) :: idx_parent 
+         !! Index of the two bodies considered the "parents" of the collision
+      logical, intent(out) :: lflag 
+         !! Logical flag indicating whether a impactors%id was successfully created or not
       ! Internals
       type collidx_array
          integer(I4B), dimension(:), allocatable :: id
@@ -84,7 +89,7 @@ contains
 
             impactors%ncoll = count(pl%lcollision(impactors%id(:)))
             impactors%id = pack(impactors%id(:), pl%lcollision(impactors%id(:)))
-            impactors%L_spin(:,:) = 0.0_DP
+            impactors%L_rot(:,:) = 0.0_DP
             impactors%Ip(:,:) = 0.0_DP
 
             ! Find the barycenter of each body along with its children, if it has any
@@ -94,7 +99,7 @@ contains
                ! Assume principal axis rotation about axis corresponding to highest moment of inertia (3rd Ip)
                if (param%lrotation) then
                   impactors%Ip(:, j) = impactors%mass(j) * pl%Ip(:, idx_parent(j))
-                  impactors%L_spin(:, j) = impactors%Ip(3, j) * impactors%radius(j)**2 * pl%rot(:, idx_parent(j))
+                  impactors%L_rot(:, j) = impactors%Ip(3, j) * impactors%radius(j)**2 * pl%rot(:, idx_parent(j))
                end if
 
                if (nchild(j) > 0) then
@@ -106,22 +111,22 @@ contains
                      vchild(:) = pl%vb(:, idx_child)
                      volchild = (4.0_DP / 3.0_DP) * PI * pl%radius(idx_child)**3
                      volume(j) = volume(j) + volchild
-                     ! Get angular momentum of the child-parent pair and add that to the spin
-                     ! Add the child's spin
+                     ! Get angular momentum of the child-parent pair and add that to the rotation
+                     ! Add the child's rotation
                      if (param%lrotation) then
                         xcom(:) = (impactors%mass(j) * impactors%rb(:,j) + mchild * xchild(:)) / (impactors%mass(j) + mchild)
                         vcom(:) = (impactors%mass(j) * impactors%vb(:,j) + mchild * vchild(:)) / (impactors%mass(j) + mchild)
                         xc(:) = impactors%rb(:, j) - xcom(:)
                         vc(:) = impactors%vb(:, j) - vcom(:)
                         xcrossv(:) = xc(:) .cross. vc(:) 
-                        impactors%L_spin(:, j) = impactors%L_spin(:, j) + impactors%mass(j) * xcrossv(:)
+                        impactors%L_rot(:, j) = impactors%L_rot(:, j) + impactors%mass(j) * xcrossv(:)
          
                         xc(:) = xchild(:) - xcom(:)
                         vc(:) = vchild(:) - vcom(:)
                         xcrossv(:) = xc(:) .cross. vc(:) 
-                        impactors%L_spin(:, j) = impactors%L_spin(:, j) + mchild * xcrossv(:)
+                        impactors%L_rot(:, j) = impactors%L_rot(:, j) + mchild * xcrossv(:)
 
-                        impactors%L_spin(:, j) = impactors%L_spin(:, j) + mchild * pl%Ip(3, idx_child)  &
+                        impactors%L_rot(:, j) = impactors%L_rot(:, j) + mchild * pl%Ip(3, idx_child)  &
                                                                                  * pl%radius(idx_child)**2 &
                                                                                  * pl%rot(:, idx_child)
                         impactors%Ip(:, j) = impactors%Ip(:, j) + mchild * pl%Ip(:, idx_child)
@@ -137,7 +142,7 @@ contains
                impactors%radius(j) = (3 * volume(j) / (4 * PI))**(1.0_DP / 3.0_DP)
                if (param%lrotation) then
                   impactors%Ip(:, j) = impactors%Ip(:, j) / impactors%mass(j)
-                  impactors%rot(:,j) = impactors%L_spin(:, j) / (impactors%Ip(3,j) * impactors%mass(j) * impactors%radius(j)**2)
+                  impactors%rot(:,j) = impactors%L_rot(:, j) / (impactors%Ip(3,j) * impactors%mass(j) * impactors%radius(j)**2)
                end if
             end do
             lflag = .true.
@@ -185,9 +190,12 @@ contains
       !!
       implicit none
       ! Arguments
-      class(collision_list_plpl), intent(inout) :: self         !! pl-pl encounter list
-      class(base_nbody_system),   intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),     intent(in)    :: param        !! Current run configuration parameters
+      class(collision_list_plpl), intent(inout) :: self         
+         !! pl-pl encounter list
+      class(base_nbody_system),   intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters),     intent(in)    :: param        
+         !! Current run configuration parameters
       ! Internals
       logical,      dimension(:), allocatable :: lplpl_collision
       logical,      dimension(:), allocatable :: lplpl_unique_parent
@@ -254,12 +262,15 @@ contains
 
    module subroutine collision_resolve_extract_pltp(self, nbody_system, param)
       implicit none
-      class(collision_list_pltp), intent(inout) :: self   !! pl-tp encounter list
-      class(base_nbody_system),   intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),     intent(in)    :: param  !! Current run configuration parameters
+      class(collision_list_pltp), intent(inout) :: self   
+         !! pl-tp encounter list
+      class(base_nbody_system),   intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters),     intent(in)    :: param  
+         !! Current run configuration parameters
       ! Internals
       logical,      dimension(:), allocatable :: lpltp_collision
-      integer(I8B)                            :: ncollisions, index_coll, k, npltpenc
+      integer(I8B)                            :: ncollisions, k, npltpenc
       integer(I8B), dimension(:), allocatable :: collision_idx
 
       select type(nbody_system)
@@ -307,8 +318,10 @@ contains
       !! Adapted from Hal Levison's Swift routine symba5_merge.f
       implicit none
       ! Arguments
-      class(base_object),           intent(inout) :: pl !! Swiftest massive body object
-      integer(I4B), dimension(:), intent(in)      :: idx  !! Array holding the indices of the two bodies involved in the collision
+      class(base_object),           intent(inout) :: pl 
+         !! Swiftest massive body object
+      integer(I4B), dimension(:), intent(in)      :: idx  
+         !! Array holding the indices of the two bodies involved in the collision
       ! Internals
       integer(I4B)                              :: i, j, index_parent, index_child, p1, p2
       integer(I4B)                              :: nchild_inherit, nchild_orig, nchild_new
@@ -366,19 +379,19 @@ contains
       use symba, only : symba_pl
       implicit none
       ! Arguments
-      class(base_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),   intent(inout) :: param        !! Current run configuration parameters with Swiftest additions
-      real(DP),                 intent(in)    :: t            !! Time of collision
-      integer(I4B),             intent(in)    :: status       !! Status flag to assign to adds
+      class(base_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters),   intent(inout) :: param        
+         !! Current run configuration parameters with Swiftest additions
+      real(DP),                 intent(in)    :: t            
+         !! Time of collision
+      integer(I4B),             intent(in)    :: status       
+         !! Status flag to assign to adds
       ! Internals
-      integer(I4B) :: i, ibiggest, ismallest, iother, nimpactors, nfrag, nameidx
+      integer(I4B) :: i, ibiggest, ismallest, iother, nimpactors, nfrag
       logical, dimension(:), allocatable  :: lmask
       class(swiftest_pl), allocatable :: plnew, plsub
       character(*), parameter :: FRAGFMT = '("Newbody",I0.7)'
-      character(*), parameter :: MERGEFMT = '(A,I0.7)'
-      character(*), parameter :: MERGE_PREPEND_TEXT = "_MERGE"
-      integer(I4B) :: merge_text_length 
-      character(len=NAMELEN) :: merge_text
       character(len=NAMELEN) :: newname, origin_type
       real(DP) :: volume
   
@@ -459,7 +472,6 @@ contains
                   write(origin_type,*) "Hit and run fragmentation"
                end if
                call plnew%info(1)%copy(pl%info(ibiggest))
-               plnew%status(1) = OLD_PARTICLE
                do i = 2, nfrag
                   write(newname, FRAGFMT) fragments%id(i)
                   call plnew%info(i)%set_value(origin_type=origin_type, origin_time=t, name=newname, &
@@ -474,22 +486,7 @@ contains
                                                             discard_body_id=iother)
                end do 
             case(MERGED)
-               write(origin_type,*) "Merger"
                call plnew%info(1)%copy(pl%info(ibiggest))
-               nbody_system%maxid = nbody_system%maxid + 1
-               plnew%id(1) = nbody_system%maxid
-
-               ! Appends an index number to the end of the original name to make it unique, but still identifiable as the original.
-               ! If there is already an index number appended, replace it
-               write(merge_text,MERGEFMT) MERGE_PREPEND_TEXT,plnew%id(1)
-               merge_text_length = len(trim(adjustl(merge_text)))
-               nameidx = index(plnew%info(1)%name, MERGE_PREPEND_TEXT) - 1
-               if (nameidx < 0) nameidx = min(len(trim(adjustl(plnew%info(1)%name))), NAMELEN - merge_text_length)
-               write(newname,*) trim(adjustl(plnew%info(1)%name(1:nameidx))) // trim(adjustl(merge_text))
-               plnew%status(1) = NEW_PARTICLE
-               call plnew%info(1)%set_value(origin_type=origin_type, origin_time=t, name=newname, &
-                                            origin_rh=plnew%rh(:,1), origin_vh=plnew%vh(:,1), &
-                                            collision_id=collider%maxid_collision)
                do i = 1, nimpactors
                   if (impactors%id(i) == ibiggest) cycle
 
@@ -532,8 +529,6 @@ contains
             allocate(plsub, mold=pl)
             call pl%spill(plsub, lmask, ldestructive=.false.)
 
-            ! call pl_discards%append(plsub, lsource_mask=[(.true., i = 1, nimpactors)])
-
             ! Save the before/after snapshots
             select type(before => collider%before)
             class is (swiftest_nbody_system)
@@ -561,20 +556,25 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(collision_list_plpl), intent(inout) :: self   !! Swiftest pl-pl encounter list
-      class(base_nbody_system),   intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),     intent(inout) :: param  !! Current run configuration parameters with Swiftest additions
-      real(DP),                   intent(in)    :: t      !! Current simulation time
-      real(DP),                   intent(in)    :: dt     !! Current simulation step size
-      integer(I4B),               intent(in)    :: irec   !! Current recursion level
+      class(collision_list_plpl), intent(inout) :: self   
+         !! Swiftest pl-pl encounter list
+      class(base_nbody_system),   intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters),     intent(inout) :: param  
+         !! Current run configuration parameters with Swiftest additions
+      real(DP),                   intent(in)    :: t      
+         !! Current simulation time
+      real(DP),                   intent(in)    :: dt     
+         !! Current simulation step size
+      integer(I4B),               intent(in)    :: irec   
+         !! Current recursion level
       ! Internals
       real(DP) :: E_before, E_after, mnew
-      real(DP), dimension(NDIM) ::L_before, L_after, dL
       logical :: lplpl_collision
-      character(len=STRMAX) :: timestr, idstr
+      character(len=STRMAX) :: timestr
       integer(I4B), dimension(2) :: idx_parent       !! Index of the two bodies considered the "parents" of the collision
       logical  :: lgoodcollision
-      integer(I4B) :: i, j, nnew, loop
+      integer(I4B) :: nnew, loop, iframe_start, iframe_end
       integer(I8B) :: k, ncollisions
       integer(I4B), dimension(:), allocatable :: idnew
       integer(I4B), parameter :: MAXCASCADE = 1000
@@ -586,11 +586,12 @@ contains
       select type(param)
       class is (swiftest_parameters)
          associate(plpl_collision => nbody_system%plpl_collision, &
-                   collision_history => nbody_system%collision_history, pl => nbody_system%pl, cb => nbody_system%cb, &
-                   collider => nbody_system%collider, fragments => nbody_system%collider%fragments, &
+                   collision_history => nbody_system%collision_history, &
+                   pl => nbody_system%pl, cb => nbody_system%cb, &
+                   collider => nbody_system%collider, &
+                   fragments => nbody_system%collider%fragments, &
                    impactors => nbody_system%collider%impactors)
             if (plpl_collision%nenc == 0) return ! No collisions to resolve
-
 
             ! Make sure that the heliocentric and barycentric coordinates are consistent with each other
             call pl%vb2vh(nbody_system%cb) 
@@ -600,12 +601,12 @@ contains
             if (param%lenergy) then
                call nbody_system%get_energy_and_momentum(param)
                E_before = nbody_system%te
-               L_before(:) = nbody_system%L_total(:)
             end if
 
             do loop = 1, MAXCASCADE
                associate( idx1 => plpl_collision%index1, idx2 => plpl_collision%index2)
                   ncollisions = plpl_collision%nenc
+                  if (ncollisions == 0) exit
                   write(timestr,*) t
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, "")
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT,&
@@ -616,23 +617,17 @@ contains
                   call swiftest_io_log_one_message(COLLISION_LOG_OUT, &
                                                             "***********************************************************" // &
                                                             "***********************************************************")
-
+                  iframe_start = collision_history%iframe + 1
                   do k = 1_I8B, ncollisions
                      idx_parent(1) = pl%kin(idx1(k))%parent
                      idx_parent(2) = pl%kin(idx2(k))%parent
                      call impactors%consolidate(nbody_system, param, idx_parent, lgoodcollision)
                      if ((.not. lgoodcollision) .or. any(pl%status(idx_parent(:)) /= COLLIDED)) cycle
 
-                     ! Advance the collision id number and save it
-                     collider%maxid_collision = max(collider%maxid_collision, maxval(nbody_system%pl%info(:)%collision_id))
-                     collider%maxid_collision = collider%maxid_collision + 1
-                     collider%collision_id = collider%maxid_collision
-                     write(idstr,*) collider%collision_id
-                     call swiftest_io_log_one_message(COLLISION_LOG_OUT, "collision_id " // trim(adjustl(idstr)))
-
                      ! Get the collision regime
                      call collider%get_regime(nbody_system, param)
 
+                     ! Temporarily store the original status of the parent bodies so we can compute the energy change correctly
                      call collision_history%take_snapshot(param,nbody_system, t, "before") 
 
                      ! Generate the new bodies resulting from the collision
@@ -643,6 +638,8 @@ contains
                      plpl_collision%status(k) = collider%status
                      call impactors%dealloc()
                   end do
+                  iframe_end = collision_history%iframe
+                  if (param%lenergy) call collision_history%save_energy_snapshot("before", nbody_system, iframe_start, iframe_end)
 
                   ! Destroy the collision list now that the collisions are resolved
                   call plpl_collision%setup(0_I8B)
@@ -664,23 +661,11 @@ contains
 
                   if (param%lenergy) then
                      call nbody_system%get_energy_and_momentum(param)
-                     L_after(:) = nbody_system%L_total(:)
-                     dL = L_after(:) - L_before(:)
-
-                     ! Add some velocity torque to the new bodies to remove residual angular momentum difference
-                     do j = 1, nnew
-                        i = findloc(pl%id,idnew(j),dim=1)
-                        if (i == 0) cycle
-                        call collision_util_velocity_torque(-dL * pl%mass(i)/mnew, pl%mass(i), pl%rb(:,i), pl%vb(:,i)) 
-                     end do
-
-                     call nbody_system%get_energy_and_momentum(param)
+                     ! call nbody_system%get_energy_and_momentum(param)
                      E_after = nbody_system%te
                      nbody_system%E_collisions = nbody_system%E_collisions + (E_after - E_before)
-                     L_after(:) = nbody_system%L_total(:)
-                     dL = L_after(:) - L_before(:)
+                     call collision_history%save_energy_snapshot("after", nbody_system, iframe_start, iframe_end)
                   end if
-
 
                   ! Check whether or not any of the particles that were just added are themselves in a collision state. This will 
                   ! generate a new plpl_collision 
@@ -711,24 +696,24 @@ contains
       !! author: David A. Minton
       !! 
       !! Process the pl-tp collision list, then modifiy the massive bodies based on the outcome of the collision
-      !! 
       implicit none
       ! Arguments
-      class(collision_list_pltp), intent(inout) :: self   !! Swiftest pl-pl encounter list
-      class(base_nbody_system),   intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(base_parameters),     intent(inout) :: param  !! Current run configuration parameters with Swiftest additions
-      real(DP),                   intent(in)    :: t      !! Current simulation tim
-      real(DP),                   intent(in)    :: dt     !! Current simulation step size
-      integer(I4B),               intent(in)    :: irec   !! Current recursion level
+      class(collision_list_pltp), intent(inout) :: self   
+         !! Swiftest pl-pl encounter list
+      class(base_nbody_system),   intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(base_parameters),     intent(inout) :: param  
+         !! Current run configuration parameters with Swiftest additions
+      real(DP),                   intent(in)    :: t      
+         !! Current simulation time
+      real(DP),                   intent(in)    :: dt     
+         !! Current simulation step size
+      integer(I4B),               intent(in)    :: irec   
+         !! Current recursion level
       ! Internals
-      class(swiftest_pl), allocatable :: plsub
-      class(swiftest_tp), allocatable :: tpsub
-      logical :: lpltp_collision
-      character(len=STRMAX) :: timestr, idstr
-      integer(I4B) :: i, j, nnew, loop
+      character(len=STRMAX) :: timestr
       integer(I8B) :: k, ncollisions
-      integer(I4B), dimension(:), allocatable :: idnew      
-      logical, dimension(:), allocatable :: lmask
+      logical, dimension(:), allocatable :: ldiscard_pl, ldiscard_tp
      
       ! Make sure coordinate systems are all synced up due to being inside the recursion at this point
       select type(nbody_system)
@@ -736,8 +721,13 @@ contains
       select type(param)
       class is (swiftest_parameters)
          associate(pltp_collision => nbody_system%pltp_collision, &
-            collision_history => nbody_system%collision_history, pl => nbody_system%pl, cb => nbody_system%cb, &
-            tp => nbody_system%tp, collider => nbody_system%collider, impactors => nbody_system%collider%impactors)
+            collision_history => nbody_system%collision_history, &
+            pl => nbody_system%pl, &
+            cb => nbody_system%cb, &
+            tp => nbody_system%tp, &
+            collider => nbody_system%collider, &
+            impactors => nbody_system%collider%impactors)
+
             call pl%vb2vh(nbody_system%cb)
             call tp%vb2vh(nbody_system%cb%vb)
             call pl%b2h(nbody_system%cb)
@@ -752,59 +742,38 @@ contains
             associate(idx1 => pltp_collision%index1, idx2 => pltp_collision%index2)
                ncollisions = pltp_collision%nenc
                write(timestr,*) t
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "")
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT,"***********************************************************" // &
-                                                                  "***********************************************************")
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Collision between test particle and massive body detected " // &
-                                                                   "at time t = " // trim(adjustl(timestr)))
-               call swiftest_io_log_one_message(COLLISION_LOG_OUT,"***********************************************************" // &
-                                                                  "***********************************************************")
-
                do k = 1_I8B, ncollisions
-                  ! Advance the collision id number and save it
-                  collider%maxid_collision = max(collider%maxid_collision, maxval(nbody_system%pl%info(:)%collision_id))
-                  collider%maxid_collision = collider%maxid_collision + 1
-                  collider%collision_id = collider%maxid_collision
-                  write(idstr,*) collider%collision_id
-                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "collision_id " // trim(adjustl(idstr)))
-                  collider%impactors%regime = COLLRESOLVE_REGIME_MERGE
-                  allocate(lmask, mold=pl%lmask)
-                  lmask(:) = .false.
-                  lmask(idx1(k)) = .true.
-                  
-                  allocate(plsub, mold=pl)
-                  call pl%spill(plsub, lmask, ldestructive=.false.)
-      
-                  ! Save the before snapshots
-                  select type(before => collider%before)
-                  class is (swiftest_nbody_system)
-                     call move_alloc(plsub, before%pl)
-                  end select
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "")
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT,"***********************************************************" &
+                                                                  // "***********************************************************")
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT, "Collision between test particle and massive body detected " &
+                                                                  //  "at time t = " // trim(adjustl(timestr)))
+                  call swiftest_io_log_one_message(COLLISION_LOG_OUT,"***********************************************************" &
+                                                                 //  "***********************************************************")
 
-                  deallocate(lmask)
-                  allocate(lmask, mold=tp%lmask)
-                  lmask(:) = .false.
-                  lmask(idx2(k)) = .true.
-                  
-                  allocate(tpsub, mold=tp)
-                  call tp%spill(tpsub, lmask, ldestructive=.false.)
-      
-                  ! Save the before snapshots
-                  select type(before => collider%before)
-                  class is (swiftest_nbody_system)
-                     call move_alloc(tpsub, before%tp)
-                  end select
+                  impactors%regime = COLLRESOLVE_REGIME_MERGE
+                  allocate(ldiscard_pl, mold=pl%ldiscard)
+                  ldiscard_pl(:) = .false.
+                  ldiscard_pl(idx1(k)) = .true.
 
-                  call collision_history%take_snapshot(param,nbody_system, t, "particle") 
+                  allocate(ldiscard_tp, mold=tp%ldiscard)
+                  ldiscard_tp(:) = .false.
+                  ldiscard_tp(idx2(k)) = .true.
+                 
+                  ! Save the system snapshot
+                  call tp%save_discard(ldiscard_tp,nbody_system,collider%before)
+                  call pl%save_discard(ldiscard_pl,nbody_system,collider%before)
+                  call collision_history%take_snapshot(param,nbody_system, t, "before") 
+                  call pl%save_discard(ldiscard_pl,nbody_system,collider%after)
+                  call collision_history%take_snapshot(param,nbody_system, t, "after") 
 
-                  call impactors%dealloc()
+                  deallocate(ldiscard_pl,ldiscard_tp)
                end do
 
                ! Destroy the collision list now that the collisions are resolved
                call pltp_collision%setup(0_I8B)
 
             end associate
-
          end associate
       end select
       end select

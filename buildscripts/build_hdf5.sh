@@ -9,8 +9,8 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
-HDF5_VER="1_14_3"
-ZLIB_VER="1.3.1"
+HDF5_VER="1.14.4"
+HDF5_SUBVER="2"
 
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
@@ -31,20 +31,14 @@ printf "*             FETCHING HDF5 SOURCE                      *\n"
 printf "*********************************************************\n"
 printf "Copying files to ${DEPENDENCY_DIR}\n"
 
-printf "Checking if HDF5 source exists\n"
-if [[ (-d ${DEPENDENCY_DIR}/hdfsrc) && (-f ${DEPENDENCY_DIR}/hdfsrc/README.md) ]]; then
-    OLDVER=$(grep version ${DEPENDENCY_DIR}/hdfsrc/README.md | awk '{print $3}' | sed 's/\./_/g')
-    printf "Existing copy of HDF5 source detected\n"
-    printf "Existing version : ${OLDVER}\n"
-    printf "Requested version: ${HDF5_VER}\n"
-    if [ "$OLDVER" != "${HDF5_VER}" ]; then
-        printf "Existing version of HDF5 source doesn't match requested. Deleting\n"
-        rm -rf ${DEPENDENCY_DIR}/hdfsrc
-    fi
-fi
+HDF5_SRC_DIR=${DEPENDENCY_DIR}/hdf5-${HDF5_VER}-${HDF5_SUBVER}
 
-if [ ! -d ${DEPENDENCY_DIR}/hdfsrc ]; then
-    curl -s -L https://github.com/HDFGroup/hdf5/releases/download/hdf5-${HDF5_VER}/hdf5-${HDF5_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+printf "Checking if HDF5 source directory exists\n"
+if [[ (-d ${HDF5_SRC_DIR}) && (-f ${HDF5_SRC_DIR}/README.md) ]]; then
+    OLDVER=$(grep version ${HDF5_SRC_DIR}/README.md | awk '{print $3}' | sed 's/\./_/g')
+    printf "Existing copy of HDF5 source detected\n"
+else 
+    curl -s -L https://github.com/HDFGroup/hdf5/releases/download/hdf5_${HDF5_VER}.${HDF5_SUBVER}/hdf5-${HDF5_VER}-${HDF5_SUBVER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
 fi
 printf "\n"
 printf "*********************************************************\n"
@@ -59,7 +53,7 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "INSTALL_PREFIX: ${HDF5_ROOT}\n"
 printf "*********************************************************\n"
 
-cd ${DEPENDENCY_DIR}/hdfsrc
+cd ${HDF5_SRC_DIR}
 
 ZLIB_LIBRARY="${ZLIB_ROOT}/lib/libz.a"
 SZIP_LIBRARY="${SZIP_ROOT}/lib/libsz.a"
@@ -78,16 +72,19 @@ ARGLIST="-DCMAKE_INSTALL_PREFIX:PATH=${HDF5_ROOT} \
     -DHDF5_ENABLE_PLUGIN_SUPPORT:BOOL=OFF \
     -DHDF5_BUILD_CPP_LIB:BOOL=OFF \
     -DHDF5_BUILD_FORTRAN:BOOL=OFF \
+    -DHDF5_BUILD_JAVA:BOOL=OFF \
     -DHDF5_BUILD_EXAMPLES:BOOL=OFF \
     -DBUILD_TESTING:BOOL=OFF \
-    -DBUILD_STATIC_LIBS:BOOL=ON \
-    -DBUILD_SHARED_LIBS:BOOL=OFF \
-    -DHDF5_BUILD_JAVA:BOOL=OFF \
+    -DBUILD_STATIC_LIBS:BOOL=OFF \
+    -DBUILD_SHARED_LIBS:BOOL=ON \
     -DHDF5_ENABLE_ALL_WARNINGS:BOOL=OFF \
     -DHDF5_TEST_PARALLEL:BOOL=OFF \
     -DHDF5_TEST_SERIAL:BOOL=OFF \
     -DHDF5_TEST_SWMR:BOOL=OFF \
-    -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON"
+    -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON \
+    -DHDF5_ENABLE_PARALLEL:BOOL:BOOL=ON \
+    -DHDF5_BUILD_PARALLEL_TOOLS:BOOL=OFF \
+    -DHDF5_ENABLE_THREADSAFE:BOOL=OFF" 
 
 if [ $OS = "Darwin" ]; then
     ARGLIST="${ARGLIST} -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=OFF"

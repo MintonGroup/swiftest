@@ -169,8 +169,8 @@ module base
          !! Initial total angular momentum vector 
       real(DP), dimension(NDIM) :: L_orbit_orig = 0.0_DP  
          !! Initial orbital angular momentum 
-      real(DP), dimension(NDIM) :: L_spin_orig  = 0.0_DP  
-         !! Initial spin angular momentum vector 
+      real(DP), dimension(NDIM) :: L_rot_orig  = 0.0_DP  
+         !! Initial rotational angular momentum vector 
       real(DP), dimension(NDIM) :: L_escape     = 0.0_DP  
          !! Angular momentum of escaped bodies (used for bookeeping) 
       real(DP)                  :: GMescape     = 0.0_DP  
@@ -206,9 +206,6 @@ module base
       procedure(abstract_io_param_reader),    deferred :: reader
       procedure(abstract_io_param_writer),    deferred :: writer    
       procedure(abstract_io_read_in_param),   deferred :: read_in 
-#ifdef COARRAY
-      procedure :: coclone => base_coclone_param
-#endif
    end type base_parameters
 
    abstract interface
@@ -741,28 +738,34 @@ module base
          character(*), parameter :: HELP_MSG  = USAGE_MSG
          integer(I4B) :: iu
 
-         if (present(unit)) then
-            iu = unit
-         else
-            iu = OUTPUT_UNIT
+#ifdef COARRAY
+         if (this_image() == 1) then
+#endif 
+            if (present(unit)) then
+               iu = unit
+            else
+               iu = OUTPUT_UNIT
+            end if
+      
+            select case(code)
+            case(SUCCESS)
+               write(iu, SUCCESS_MSG) VERSION
+               write(iu, BAR)
+            case(USAGE) 
+               write(iu, USAGE_MSG)
+            case(HELP)
+               write(iu, HELP_MSG)
+            case default
+               write(iu, FAIL_MSG) VERSION
+               write(iu, BAR)
+               error stop -1
+            end select
+#ifdef COARRAY
          end if
-   
-         select case(code)
-         case(SUCCESS)
-            write(iu, SUCCESS_MSG) VERSION
-            write(iu, BAR)
-         case(USAGE) 
-            write(iu, USAGE_MSG)
-         case(HELP)
-            write(iu, HELP_MSG)
-         case default
-            write(iu, FAIL_MSG) VERSION
-            write(iu, BAR)
-            stop 
-         end select
-   
+#endif 
          stop
    
+         return
       end subroutine base_util_exit
 
 
@@ -2424,98 +2427,5 @@ module base
          return
       end subroutine base_final_storage_frame
 
-#ifdef COARRAY
-      subroutine base_coclone_param(self)
-         !! author: David A. Minton 
-         !! 
-         !! Broadcasts the image 1 parameter to all other images in a parameter coarray 
-         implicit none
-         ! Arguments
-         class(base_parameters),intent(inout),codimension[*]  :: self  
-            !! Collection of parameters 
-         ! Internals
-
-         call coclone(self%integrator)
-         call coclone(self%param_file_name)
-         call coclone(self%t0)
-         call coclone(self%tstart)
-         call coclone(self%tstop)
-         call coclone(self%dt)
-         call coclone(self%iloop)
-         call coclone(self%nloops)
-         call coclone(self%incbfile)
-         call coclone(self%inplfile)
-         call coclone(self%intpfile)
-         call coclone(self%nc_in)
-         call coclone(self%in_type)
-         call coclone(self%in_form)
-         call coclone(self%istep_out)
-         call coclone(self%nstep_out)
-         call coclone(self%fstep_out)
-         call coclone(self%ltstretch)
-         call coclone(self%outfile)
-         call coclone(self%out_type)
-         call coclone(self%out_form)
-         call coclone(self%out_stat)
-         call coclone(self%dump_cadence)
-         call coclone(self%rmin)
-         call coclone(self%rmax)
-         call coclone(self%rmaxu)
-         call coclone(self%qmin)
-         call coclone(self%qmin_coord)
-         call coclone(self%qmin_alo)
-         call coclone(self%qmin_ahi)
-         call coclone(self%MU2KG)
-         call coclone(self%TU2S)
-         call coclone(self%DU2M)
-         call coclone(self%GU)
-         call coclone(self%inv_c2)
-         call coclone(self%GMTINY)
-         call coclone(self%min_GMfrag)
-         call coclone(self%nfrag_reduction)
-         call coclone(self%lmtiny_pl)
-         call coclone(self%collision_model)
-         call coclone(self%encounter_save)
-         call coclone(self%lenc_save_trajectory)
-         call coclone(self%lenc_save_closest)
-         call coclone(self%interaction_loops)
-         call coclone(self%encounter_check_plpl)
-         call coclone(self%encounter_check_pltp)
-         call coclone(self%lflatten_interactions)
-         call coclone(self%lencounter_sas_plpl)
-         call coclone(self%lencounter_sas_pltp)
-         call coclone(self%lrhill_present)
-         call coclone(self%lextra_force)
-         call coclone(self%lbig_discard)
-         call coclone(self%lclose)
-         call coclone(self%lenergy)
-         call coclone(self%lnon_spherical_cb)
-         call coclone(self%lrotation)
-         call coclone(self%ltides)
-         call coclone(self%E_orbit_orig)
-         call coclone(self%GMtot_orig)
-         call coclonevec(self%L_total_orig)
-         call coclonevec(self%L_orbit_orig)
-         call coclonevec(self%L_spin_orig)
-         call coclonevec(self%L_escape)
-         call coclone(self%GMescape)
-         call coclone(self%E_collisions)
-         call coclone(self%E_untracked)
-         call coclone(self%lfirstenergy)
-         call coclone(self%lfirstkick)
-         call coclone(self%lrestart)
-         call coclone(self%display_style)
-         call coclone(self%display_unit)
-         call coclone(self%log_output )
-         call coclone(self%lgr)
-         call coclone(self%lyarkovsky)
-         call coclone(self%lyorp)
-         call coclone(self%seed)
-         call coclone(self%lcoarray)
-
-         return
-      end subroutine base_coclone_param 
-#endif
-    
 
 end module base

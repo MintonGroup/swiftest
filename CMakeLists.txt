@@ -103,6 +103,7 @@ FIND_PACKAGE(Python COMPONENTS Interpreter Development.Module NumPy REQUIRED)
 
 # Set some options the user may choose
 OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
+SET(USE_COARRAY OFF CACHE BOOL "Override Coarray" FORCE)
 OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
 OPTION(USE_SIMD "Use SIMD vectorization" ON)
 OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
@@ -138,9 +139,9 @@ MESSAGE(STATUS "CMAKE_INSTALL_RPATH: ${CMAKE_INSTALL_RPATH}")
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Have the .mod files placed in the include folder
-SET(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mod)
+SET(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod)
 
-# Add our local modules to the module ldpath
+# Add our local CMake modules to the module ldpath
 FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" LOCAL_MODULE_PATH)
 LIST(APPEND CMAKE_MODULE_PATH ${LOCAL_MODULE_PATH})
 
@@ -167,10 +168,19 @@ FIND_PACKAGE(BLAS REQUIRED)
 FIND_PACKAGE(LAPACK REQUIRED)
 FIND_PACKAGE(FFTW3 REQUIRED)
 FIND_PACKAGE(SHTOOLS REQUIRED)
+IF (USE_COARRAY)
+    MESSAGE(STATUS "Building with Coarray support")
+    FIND_PACKAGE(Coarray_Fortran REQUIRED)
+ENDIF()
 
-SET(HDF5_USE_STATIC_LIBRARIES ON CACHE BOOL "Use static libraries for HDF5")
+SET(HDF5_USE_STATIC_LIBRARIES OFF CACHE BOOL "Use static libraries for HDF5")
 
-FIND_PACKAGE(NETCDF_Fortran REQUIRED)
+IF (USE_COARRAY)
+    SET(HDF5_PREFER_PARALLEL ON CACHE BOOL "Prefer parallel HDF5")
+ELSE ()
+    SET(HDF5_PREFER_PARALLEL OFF CACHE BOOL "Prefer parallel HDF5")
+ENDIF()
+
 IF (MSVC)
     FIND_PACKAGE(HDF5 NAMES hdf5 COMPONENTS C HL REQUIRED CONFIG)
     MESSAGE(STATUS "HDF5_FOUND: ${HDF5_FOUND}")
@@ -180,6 +190,7 @@ IF (MSVC)
 ELSE ()
     FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
 ENDIF ()
+FIND_PACKAGE(NETCDF_Fortran REQUIRED)
 
 MESSAGE(STATUS "CMAKE_SYSTEM_PROCESSOR: " ${CMAKE_SYSTEM_PROCESSOR})
 #####################################
@@ -195,11 +206,10 @@ ENDIF()
 
 # Set the name of the swiftest library
 SET(SWIFTEST_LIBRARY ${SKBUILD_PROJECT_NAME})
+IF (USE_COARRAY)
+    SET(SWIFTEST_LIBRARY_CAF ${SWIFTEST_LIBRARY}_caf) 
+ENDIF()
 
-# Determine compiler options
-IF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
-    MESSAGE(FATAL_ERROR "Fortran compiler does not support F90")
-ENDIF(NOT CMAKE_Fortran_COMPILER_SUPPORTS_F90)
 INCLUDE(SetParallelizationLibrary)
 
 INCLUDE(SetSwiftestFlags) 
