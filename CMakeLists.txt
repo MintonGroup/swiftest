@@ -1,4 +1,4 @@
-# Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+# Copyright 2024 - The Minton Group at Purdue University
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -23,6 +23,10 @@ IF (SKBUILD)
     set(ENV_PREFIX "$ENV{PREFIX}")
     string(REPLACE "<ENV_PREFIX>" "${ENV_PREFIX}" CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 ENDIF ()
+
+IF(DEFINED ENV{CIBUILDWHEEL})
+    SET(CIBUILDWHEEL ON)
+ENDIF()
 
 # Check for a Fortran compiler 
 IF(DEFINED ENV{FC})
@@ -120,10 +124,22 @@ INCLUDE(GNUInstallDirs)
 IF (SKBUILD)
     SET(INSTALL_PYPROJ ${SKBUILD_PLATLIB_DIR}/${SKBUILD_PROJECT_NAME}) 
     SET(INSTALL_BINDIR ${INSTALL_PYPROJ})
-    SET(INSTALL_LIBDIR ${SKBUILD_DATA_DIR}/lib)
+    # The following is needed so that the shared libraries get installed into the correct place. cibuildwheel behaves differently 
+    # than just running pip install directly. When running pip install directly, the libraries will be installed to the environment's
+    # lib directory by specifing ${SKBUILD_DATA_DIR}/lib as the library directory. 
+    # However, when running cibuildwheel, the libraries are repaired and placed in a special directory of all libraries
+    # that are packed up into the wheel. Currently, cibuildwheel cannot find the compiled libraries if they are installed to there,
+    # so we need to make sure the rpath is set to the original build directory so that the library repair step can reset the rpaths
+    # when running cibuildwheel.
+    IF (CIBUILDWHEEL)
+        SET(INSTALL_LIBDIR ${CMAKE_BINARY_DIR}/bin)
+    ELSE()
+        SET(INSTALL_LIBDIR ${SKBUILD_DATA_DIR}/lib)
+    ENDIF()
+    SET(CMAKE_INSTALL_RPATH "${INSTALL_LIBDIR}")
     SET(INSTALL_INCLUDEDIR ${SKBUILD_HEADERS_DIR}) 
-    SET(CMAKE_INSTALL_RPATH "${CMAKE_BINARY_DIR}/bin")
     SET(CMAKE_LIBRARY_PATH "${CMAKE_CURRENT_BINARY_DIR}/deps/usr/lib")
+    SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 ELSE ()
     SET(INSTALL_PYPROJ ${PY})
     SET(INSTALL_BINDIR ${CMAKE_INSTALL_BINDIR})
@@ -136,8 +152,6 @@ MESSAGE(STATUS "INSTALL_LIBDIR: ${INSTALL_LIBDIR}")
 MESSAGE(STATUS "INSTALL_INCLUDEDIR: ${INSTALL_INCLUDEDIR}")
 MESSAGE(STATUS "INSTALL_PYPROJ: ${INSTALL_PYPROJ}")
 MESSAGE(STATUS "CMAKE_INSTALL_RPATH: ${CMAKE_INSTALL_RPATH}")
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-SET(CMAKE_INSTALL_RPATH "${INSTALL_LIBDIR}")
 
 # Have the .mod files placed in the include folder
 SET(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod)
