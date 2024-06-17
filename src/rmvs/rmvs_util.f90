@@ -18,9 +18,12 @@ contains
       !! This method will automatically resize the destination body if it is too small
       implicit none
       !! Arguments
-      class(rmvs_pl),                  intent(inout) :: self         !! RMVS massive body object
-      class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      class(rmvs_pl),                  intent(inout) :: self         
+         !! RMVS massive body object
+      class(swiftest_body),            intent(in)    :: source       
+         !! Source object to append
+      logical, dimension(:),           intent(in)    :: lsource_mask 
+         !! Logical mask indicating which elements to append to
 
       select type(source)
       class is (rmvs_pl)
@@ -51,9 +54,12 @@ contains
       !! This method will automatically resize the destination body if it is too small
       implicit none
       !! Arguments
-      class(rmvs_tp),                  intent(inout) :: self         !! RMVS test particle object
-      class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      class(rmvs_tp),                  intent(inout) :: self         
+         !! RMVS test particle object
+      class(swiftest_body),            intent(in)    :: source       
+         !! Source object to append
+      logical, dimension(:),           intent(in)    :: lsource_mask 
+         !! Logical mask indicating which elements to append to
 
       select type(source)
       class is (rmvs_tp)
@@ -61,7 +67,8 @@ contains
          call util_append(self%plperP, source%plperP, lsource_mask=lsource_mask)
          call util_append(self%plencP, source%plencP, lsource_mask=lsource_mask)
 
-         call swiftest_util_append_tp(self, source, lsource_mask)  ! Note: whm_tp does not have its own append method, so we skip back to the base class
+         call swiftest_util_append_tp(self, source, lsource_mask)  ! Note: whm_tp does not have its own append method, so we skip 
+                                                                   ! back to the base class
       class default
          write(*,*) "Invalid object passed to the append method. Source must be of class rmvs_tp or its descendents!"
          call base_util_exit(FAILURE)
@@ -77,7 +84,8 @@ contains
       !! Deallocates all allocatabale arrays
       implicit none
       ! Argument
-      class(rmvs_cb),  intent(inout) :: self !! RMVS central body object
+      class(rmvs_cb),  intent(inout) :: self 
+         !! RMVS central body object
 
       if (allocated(self%outer)) deallocate(self%outer)
       if (allocated(self%inner)) deallocate(self%inner)
@@ -92,7 +100,8 @@ contains
       !! Deallocates all allocatabale arrays
       implicit none
       ! Argument
-      class(rmvs_interp),  intent(inout) :: self !! RMVS interpolated nbody_system variables object
+      class(rmvs_interp),  intent(inout) :: self 
+         !! RMVS interpolated nbody_system variables object
       
       if (allocated(self%x)) deallocate(self%x)
       if (allocated(self%v)) deallocate(self%v)
@@ -109,7 +118,8 @@ contains
       !! Deallocates all allocatabale arrays
       implicit none
       ! Argumente
-      class(rmvs_pl),  intent(inout) :: self !! RMVS massive body object
+      class(rmvs_pl),  intent(inout) :: self 
+         !! RMVS massive body object
 
       if (allocated(self%outer)) deallocate(self%outer)
       if (allocated(self%inner)) deallocate(self%inner)
@@ -129,6 +139,7 @@ contains
       implicit none
       ! Arguments
       class(rmvs_nbody_system), intent(inout) :: self
+         !! RMVS nbody system object
 
       self%lplanetocentric = .false.
       if (allocated(self%vbeg)) deallocate(self%vbeg)
@@ -166,9 +177,12 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(rmvs_pl),        intent(inout) :: self       !! RMVS massive body object
-      class(swiftest_body),  intent(in)    :: inserts    !! Inserted object 
-      logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      class(rmvs_pl),        intent(inout) :: self       
+         !! RMVS massive body object
+      class(swiftest_body),  intent(in)    :: inserts    
+         !! Inserted object 
+      logical, dimension(:), intent(in)    :: lfill_list 
+         !! Logical array of bodies to merge into the keeps
 
       associate(keeps => self)
          select type(inserts)
@@ -202,9 +216,12 @@ contains
       !! 
       implicit none
       ! Arguments
-      class(rmvs_tp),        intent(inout) :: self       !! RMVS test particle object
-      class(swiftest_body),  intent(in)    :: inserts    !! Inserted object 
-      logical, dimension(:), intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      class(rmvs_tp),        intent(inout) :: self       
+         !! RMVS test particle object
+      class(swiftest_body),  intent(in)    :: inserts    
+         !! Inserted object 
+      logical, dimension(:), intent(in)    :: lfill_list 
+         !! Logical array of bodies to merge into the keeps
 
       associate(keeps => self)
          select type(inserts)
@@ -213,7 +230,8 @@ contains
             call util_fill(keeps%plperP, inserts%plperP, lfill_list)
             call util_fill(keeps%plencP, inserts%plencP, lfill_list)
             
-            call swiftest_util_fill_tp(keeps, inserts, lfill_list) ! Note: whm_tp does not have its own fill method, so we skip back to the base class
+            call swiftest_util_fill_tp(keeps, inserts, lfill_list) ! Note: whm_tp does not have its own fill method, so we skip back
+                                                                   ! to the base class
          class default
             write(*,*) "Invalid object passed to the fill method. Source must be of class rmvs_tp or its descendents!"
             call base_util_exit(FAILURE)
@@ -230,8 +248,10 @@ contains
       !! Checks the current size of a massive body object against the requested size and resizes it if it is too small.
       implicit none
       ! Arguments
-      class(rmvs_pl), intent(inout) :: self  !! RMVS massive body object
-      integer(I4B),   intent(in)    :: nnew  !! New size neded
+      class(rmvs_pl), intent(inout) :: self  
+         !! RMVS massive body object
+      integer(I4B),   intent(in)    :: nnew  
+         !! New size neded
 
       call util_resize(self%nenc, nnew)
       call util_resize(self%tpenc1P, nnew)
@@ -254,8 +274,10 @@ contains
       !! Checks the current size of a test particle object against the requested size and resizes it if it is too small.
       implicit none
       ! Arguments
-      class(rmvs_tp), intent(inout) :: self  !! RMVS test particle object
-      integer(I4B),   intent(in)    :: nnew  !! New size neded
+      class(rmvs_tp), intent(inout) :: self  
+         !! RMVS test particle object
+      integer(I4B),   intent(in)    :: nnew  
+         !! New size neded
 
       call util_resize(self%lperi, nnew)
       call util_resize(self%plperP, nnew)
@@ -276,9 +298,12 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine rmvs_util_setup.f90
       implicit none
       ! Arguments
-      class(rmvs_pl),            intent(inout) :: self  !! RMVS test particle object
-      integer(I4B),              intent(in)    :: n     !! Number of particles to allocate space for
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
+      class(rmvs_pl),            intent(inout) :: self  
+         !! RMVS test particle object
+      integer(I4B),              intent(in)    :: n     
+         !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)   :: param 
+         !! Current run configuration parameter
       ! Internals
       integer(I4B) :: i
 
@@ -333,9 +358,12 @@ contains
       !! to use during close encounters. 
       implicit none
       ! Arguments
-      class(rmvs_nbody_system),                intent(inout) :: self           !! RMVS system object
-      class(swiftest_storage),    allocatable, intent(inout) :: system_history !! Stores the system history between output dumps
-      class(swiftest_parameters),              intent(inout) :: param          !! Current run configuration parameters 
+      class(rmvs_nbody_system),                intent(inout) :: self           
+         !! RMVS system object
+      class(swiftest_storage),    allocatable, intent(inout) :: system_history 
+         !! Stores the system history between output dumps
+      class(swiftest_parameters),              intent(inout) :: param          
+         !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: i, j
 
@@ -404,9 +432,12 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_util_setup.f90
       implicit none
       ! Arguments
-      class(rmvs_tp),             intent(inout) :: self  !! RMVS test particle object
-      integer(I4B),               intent(in)    :: n     !! Number of particles to allocate space for
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
+      class(rmvs_tp),             intent(inout) :: self  
+         !! RMVS test particle object
+      integer(I4B),               intent(in)    :: n     
+         !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in)    :: param 
+         !! Current run configuration parameter
 
       !> Call allocation method for parent class. 
       call self%whm_tp%setup(n, param) 
@@ -433,9 +464,12 @@ contains
       !! sortby is a string indicating which array component to sort.
       implicit none
       ! Arguments
-      class(rmvs_pl), intent(inout) :: self       !! RMVS massive body object
-      character(*),   intent(in)     :: sortby    !! Sorting attribute
-      logical,        intent(in)     :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
+      class(rmvs_pl), intent(inout) :: self       
+         !! RMVS massive body object
+      character(*),   intent(in)     :: sortby    
+         !! Sorting attribute
+      logical,        intent(in)     :: ascending 
+         !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
       integer(I4B), dimension(:), allocatable :: ind
       integer(I4B) :: direction
@@ -477,9 +511,12 @@ contains
       !! sortby is a string indicating which array component to sort.
       implicit none
       ! Arguments
-      class(rmvs_tp), intent(inout) :: self      !! RMVS test particle object
-      character(*),   intent(in)    :: sortby    !! Sorting attribute
-      logical,        intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
+      class(rmvs_tp), intent(inout) :: self      
+         !! RMVS test particle object
+      character(*),   intent(in)    :: sortby    
+         !! Sorting attribute
+      logical,        intent(in)    :: ascending 
+         !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
       integer(I4B), dimension(:), allocatable :: ind
       integer(I4B)                            :: direction
@@ -500,7 +537,8 @@ contains
             call util_sort(direction * tp%plencP(1:ntp), ind)
          case("lperi", "cb_heliocentric", "rheliocentric", "index", "ipleP", "lplanetocentric")
             write(*,*) 'Cannot sort by ' // trim(adjustl(sortby)) // '. Component not sortable!'
-         case default ! Look for components in the parent class (*NOTE whm_tp does not need its own sort method, so we go straight to the swiftest_tp method)
+         case default ! Look for components in the parent class (*NOTE whm_tp does not need its own sort method, so we go straight 
+                      ! to the swiftest_tp method)
             call swiftest_util_sort_tp(tp, sortby, ascending)
             return
          end select
@@ -518,8 +556,10 @@ contains
       !! This is a helper utility used to make polymorphic sorting work on Swiftest structures.
       implicit none
       ! Arguments
-      class(rmvs_pl),               intent(inout) :: self !! RMVS massive body object
-      integer(I4B),   dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
+      class(rmvs_pl),               intent(inout) :: self 
+         !! RMVS massive body object
+      integer(I4B),   dimension(:), intent(in)    :: ind  
+         !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
 
       if (self%nbody == 0) return
 
@@ -541,8 +581,10 @@ contains
       !! This is a helper utility used to make polymorphic sorting work on Swiftest structures.
       implicit none
       ! Arguments
-      class(rmvs_tp),                intent(inout) :: self !! RMVS test particle object
-      integer(I4B),    dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
+      class(rmvs_tp),                intent(inout) :: self 
+         !! RMVS test particle object
+      integer(I4B),    dimension(:), intent(in)    :: ind  
+         !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
 
       if (self%nbody == 0) return
 
@@ -566,10 +608,14 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine discard_discard_spill.f90
       implicit none
       ! Arguments
-      class(rmvs_pl),        intent(inout) :: self         !! RMVS massive body body object
-      class(swiftest_body),  intent(inout) :: discards     !! Discarded object 
-      logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-      logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      class(rmvs_pl),        intent(inout) :: self         
+         !! RMVS massive body body object
+      class(swiftest_body),  intent(inout) :: discards     
+         !! Discarded object 
+      logical, dimension(:), intent(in)    :: lspill_list  
+         !! Logical array of bodies to spill into the discards
+      logical,               intent(in)    :: ldestructive 
+         !! Logical flag indicating whether or not this operation should alter the keeps array or not
 
       associate(keeps => self)
          select type(discards)
@@ -597,10 +643,14 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
       implicit none
       ! Arguments
-      class(rmvs_tp),        intent(inout) :: self        !! RMVS test particle object
-      class(swiftest_body),  intent(inout) :: discards    !! Discarded object 
-      logical, dimension(:), intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
-      logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      class(rmvs_tp),        intent(inout) :: self        
+         !! RMVS test particle object
+      class(swiftest_body),  intent(inout) :: discards    
+         !! Discarded object 
+      logical, dimension(:), intent(in)    :: lspill_list 
+         !! Logical array of bodies to spill into the discards
+      logical,               intent(in)    :: ldestructive 
+         !! Logical flag indicating whether or not this operation should alter the keeps array or not
 
       associate(keeps => self)
          select type(discards)

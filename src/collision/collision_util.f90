@@ -808,6 +808,9 @@ contains
       character(len=:), allocatable :: stage
       integer(I4B) :: i,phase_val
       character(len=STRMAX) :: message, idstr
+#ifdef COARRAY
+      integer(I4B), save :: maxid_collision[*] = 0
+#endif
 
       if (present(arg)) then
          stage = arg
@@ -823,10 +826,21 @@ contains
             ! Advance the collision id number and save it
             associate(collider => nbody_system%collider)
                collider%maxid_collision = max(collider%maxid_collision, maxval(nbody_system%pl%info(:)%collision_id))
+#ifdef COARRAY
+               ! Make sure all images get updated so that we don't get repeat collision_id numbers
+               critical
+               do i = 1, num_images()
+                  collider%maxid_collision = max(maxid_collision[i], collider%maxid_collision)
+               end do
+#endif
                collider%maxid_collision = collider%maxid_collision + 1
                collider%collision_id = collider%maxid_collision
                write(idstr,*) collider%collision_id
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, "collision_id " // trim(adjustl(idstr)))
+#ifdef COARRAY
+               maxid_collision = collider%maxid_collision
+               end critical
+#endif
             end associate
          end if
 

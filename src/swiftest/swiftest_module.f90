@@ -2559,25 +2559,25 @@ module swiftest
 
 #ifdef COARRAY
    interface
-      module subroutine swiftest_coarray_balance_system(nbody_system, param)
+      module subroutine swiftest_coarray_balance_system(self, param)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         class(swiftest_nbody_system), intent(inout) :: self
             !! Swiftest nbody system 
          class(swiftest_parameters),   intent(inout) :: param        
             !! Current run configuration parameters 
       end subroutine swiftest_coarray_balance_system
 
-      module subroutine swiftest_coarray_collect_system(nbody_system, param)
+      module subroutine swiftest_coarray_collect_system(self, param)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         class(swiftest_nbody_system), intent(inout) :: self
             !! Swiftest nbody system 
          class(swiftest_parameters),   intent(inout) :: param        
             !! Current run configuration parameters 
       end subroutine swiftest_coarray_collect_system
 
-      module subroutine swiftest_coarray_distribute_system(nbody_system, param)
+      module subroutine swiftest_coarray_distribute_system(self, param)
          implicit none
-         class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         class(swiftest_nbody_system), intent(inout) :: self
             !! Swiftest nbody system 
          class(swiftest_parameters),   intent(inout) :: param        
             !! Current run configuration parameters 

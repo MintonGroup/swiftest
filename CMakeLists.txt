@@ -105,11 +105,11 @@ ENDIF()
 FIND_PACKAGE(Python COMPONENTS Interpreter Development.Module NumPy REQUIRED)
 
 # Set some options the user may choose
-OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
-SET(USE_COARRAY OFF CACHE BOOL "Override Coarray" FORCE)
+OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" ON)
 OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
 OPTION(USE_SIMD "Use SIMD vectorization" ON)
 OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Define the paths to the source code and python files
 SET(SRC "${CMAKE_SOURCE_DIR}/src")
@@ -182,7 +182,7 @@ IF (COMPILER_OPTIONS STREQUAL "GNU")
 ELSEIF (COMPILER_OPTIONS STREQUAL "INTEL")
     SET(BLA_VENDOR "Intel10_64lp" CACHE STRING "BLAS vendor")
 ENDIF()
-SET(BLA_STATIC ON)
+SET(BLA_STATIC OFF)
 FIND_PACKAGE(BLAS REQUIRED)
 FIND_PACKAGE(LAPACK REQUIRED)
 FIND_PACKAGE(FFTW3 REQUIRED)
@@ -233,7 +233,6 @@ INCLUDE(SetParallelizationLibrary)
 
 INCLUDE(SetSwiftestFlags) 
 
-SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${CMAKE_INSTALL_BINDIR})
