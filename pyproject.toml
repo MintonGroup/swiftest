@@ -27,9 +27,10 @@ dependencies = [
     'numpy>=1.26.4',
     'cython>=3.0.8',
     'scipy>=1.12.0',
+    'mpi4py>=3.1.6',
     'h5py==3.10.0',
-    'netcdf4>=1.6.5',
-    'h5netcdf>=1.3.0',
+    'netcdf4==1.6.5',
+    'h5netcdf==1.3.0',
     'dask>=2024.2.1',
     'distributed>=2024.2.1',
     'bottleneck>=1.3.8',
@@ -127,6 +128,7 @@ CFLAGS="-Wa,--noexecstack"
 CXXFLAGS="${CFLAGS}"
 LDFLAGS="-L${PREFIX}/lib"
 REPAIR_LIBRARY_PATH="${LD_LIBRARY_PATH}"
+PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH}"
 GFORTRAN_VERSION="$(buildscripts/get_gfortran_version.sh)"
 OMPI_FC="$(buildscripts/get_gfortran_path.sh)"
 CC="mpicc"
