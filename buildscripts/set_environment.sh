@@ -110,7 +110,6 @@ if [ $OS = "Darwin" ]; then
     CXXFLAGS="${CFLAGS}"
     PATH="${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin:${HOMEBREW_PREFIX}/bin:${PATH}"
 else
-    LIBS="-lgomp"
     CFLAGS="-Wa,--noexecstack -fPIC"
     FCFLAGS="${CFLAGS}"
     FFLAGS="${FCFLAGS}"
