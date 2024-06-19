@@ -103,7 +103,7 @@ if [ $OS = "Darwin" ]; then
     LDFLAGS="-Wl,-no_compact_unwind -L${PREFIX}/lib -L${HOMEBREW_PREFIX}/lib"
     CPATH="${CPATH}:${HOMEBREW_PREFIX}/include"
     CPPFLAGS="-isystem ${PREFIX}/include -Xclang -fopenmp"
-    LIBS="-lomp -lquadmath"
+    LIBS="-lomp"
     CFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET} -Wno-deprecated-non-prototype -arch ${ARCH}"
     FCFLAGS="-mmacosx-version-min=${MACOSX_DEPLOYMENT_TARGET}"
     FFLAGS="${FCFLAGS}"
