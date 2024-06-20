@@ -24,7 +24,7 @@ classifiers=[
 ]
 keywords=['astronomy','astrophysics', 'planetary', 'n-body',  'integrator', 'symplectic', 'wisdom-holman', 'symba']
 dependencies = [
-    'numpy>=1.26.4',
+    'numpy==1.26.4',
     'cython>=3.0.8',
     'scipy>=1.12.0',
     'mpi4py>=3.1.6',
@@ -58,7 +58,7 @@ requires = [
     "python_version>='3.9'",
     "scikit-build-core>=0.8.2",
     "cython>=3.0.8",
-    "numpy>=1.26.4",
+    "numpy==1.26.4",
 ]
 build-backend = "scikit_build_core.build"
 
