@@ -115,6 +115,10 @@ else
     FFLAGS="${FCFLAGS}"
     CXXFLAGS="${CFLAGS}"
     MPI_HOME="${MPI_HOME:-/usr/lib64/openmpi}"
+    LDFLAGS="-L${PREFIX}/lib" 
+    CPATH="${CPATH}:${HOMEBREW_PREFIX}/include"
+    CPPFLAGS="-I${PREFIX}/include"
+    LIBS="-ldl" 
     PATH="${MPI_HOME}/bin:${PATH}"
 fi
 set +a
