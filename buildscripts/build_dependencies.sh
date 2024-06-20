@@ -56,10 +56,7 @@ ${SCRIPT_DIR}/build_hdf5.sh
 ${SCRIPT_DIR}/build_netcdf-c.sh
 ${SCRIPT_DIR}/build_netcdf-fortran.sh
 ${SCRIPT_DIR}/build_shtools.sh 
-
-if [ $OS = "Linux" ]; then
-    ${SCRIPT_DIR}/build_opencoarrays.sh
-fi
+${SCRIPT_DIR}/build_opencoarrays.sh
 
 printf "\n"
 printf "*********************************************************\n"

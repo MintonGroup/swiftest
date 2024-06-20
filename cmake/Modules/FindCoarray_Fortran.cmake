@@ -41,7 +41,7 @@ ELSEIF (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
         MESSAGE(FATAL_ERROR "OpenCoarrays include directory not found")
     ENDIF()
     FIND_LIBRARY(COARRAY_LIBRARY
-        NAMES libcaf_mpi.so libcaf_mpi.dylib libcaf_mpi.a libbcaf_mpi
+        NAMES libcaf_mpi.a libcaf_mpi.so libcaf_mpi.dylib libbcaf_mpi
         HINTS ENV OpenCoarrays_HOME
         PATH_SUFFIXES lib lib64
     )
