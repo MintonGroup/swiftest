@@ -8,9 +8,7 @@
 # If not, see: https://www.gnu.org/licenses. 
 INCLUDE (FindPackageHandleStandardArgs)
 
-IF(NOT DEFINED MPI_Fortran_FOUND)
-  FIND_PACKAGE(MPI COMPONENTS Fortran)
-ENDIF()
+FIND_PACKAGE(MPI)
 
 IF (CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
     # Create a dummy target for Intel compiler
@@ -27,6 +25,7 @@ IF (CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
         )
     ENDIF()
 ELSEIF (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
+
     MESSAGE(STATUS "Using GNU compiler. Searching for OpenCoarrays library")
     IF (NOT OpenCoarrays_DIR)
         IF (DEFINED ENV{OpenCoarrays_DIR}) 
@@ -37,32 +36,30 @@ ELSEIF (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
         NAMES opencoarrays.mod 
         HINTS ENV OpenCoarrays_HOME 
         PATH_SUFFIXES include)
-    FIND_LIBRARY(COARRAY_LIBRARY_STATIC
-        NAMES libcaf_mpi.a 
+
+    IF (NOT COARRAY_INCLUDE_DIR)
+        MESSAGE(FATAL_ERROR "OpenCoarrays include directory not found")
+    ENDIF()
+    FIND_LIBRARY(COARRAY_LIBRARY
+        NAMES libcaf_mpi.so libcaf_mpi.dylib libcaf_mpi.a libbcaf_mpi
         HINTS ENV OpenCoarrays_HOME
         PATH_SUFFIXES lib lib64
     )
-    FIND_LIBRARY(COARRAY_LIBRARY_SHARED
-        NAMES libcaf_mpi.so libcaf_mpi.dylib libcaf_mpi
-        HINTS ENV OpenCoarrays_HOME
-        PATH_SUFFIXES lib lib64
-    )
+
+    IF (NOT COARRAY_LIBRARY)
+        MESSAGE(FATAL_ERROR "OpenCoarrays library not found")
+    ENDIF()
+
     FIND_PROGRAM(COARRAY_EXECUTABLE
         NAMES cafrun
         HINGS ENV OpenCoarrays_HOME
         PATH_SUFFIXES bin
         DOC "Coarray frontend executable"
-    )    
+    )   
 
     ADD_LIBRARY(OpenCoarrays::caf_mpi UNKNOWN IMPORTED PUBLIC)
         SET_TARGET_PROPERTIES(OpenCoarrays::caf_mpi PROPERTIES 
-        IMPORTED_LOCATION "${COARRAY_LIBRARY_SHARED}"
-        INTERFACE_INCLUDE_DIRECTORIES "${COARRAY_INCLUDE_DIR}"
-    )
-
-    ADD_LIBRARY(OpenCoarrays::caf_mpi_static UNKNOWN IMPORTED PUBLIC)
-    SET_TARGET_PROPERTIES(OpenCoarrays::caf_mpi_static PROPERTIES 
-        IMPORTED_LOCATION "${COARRAY_LIBRARY_STATIC}"
+        IMPORTED_LOCATION "${COARRAY_LIBRARY}"
         INTERFACE_INCLUDE_DIRECTORIES "${COARRAY_INCLUDE_DIR}"
     )
 

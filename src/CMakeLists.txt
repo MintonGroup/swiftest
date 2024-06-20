@@ -1,4 +1,4 @@
-# Copyright 2023 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+# Copyright 2024 - The Minton Group at Purdue University
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -173,7 +173,12 @@ TARGET_LINK_LIBRARIES(${SWIFTEST_LIBRARY} PUBLIC BLAS::BLAS LAPACK::LAPACK FFTW3
 IF(USE_COARRAY)
     SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY_CAF} ${SWIFTEST_EXE_CAF} APPEND_STRING PROPERTY COMPILE_FLAGS "${COARRAY_Fortran_FLAGS} ")
     SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY_CAF} ${SWIFTEST_EXE_CAF} APPEND_STRING PROPERTY LINK_FLAGS "${COARRAY_Fortran_FLAGS} ")
-    TARGET_LINK_LIBRARIES(${SWIFTEST_LIBRARY_CAF} PUBLIC BLAS::BLAS LAPACK::LAPACK FFTW3::FFTW3 OpenCoarrays::caf_mpi MPI::MPI_Fortran)
+    TARGET_LINK_LIBRARIES(${SWIFTEST_LIBRARY_CAF} PUBLIC 
+        BLAS::BLAS 
+        LAPACK::LAPACK 
+        FFTW3::FFTW3 
+        OpenCoarrays::caf_mpi 
+        MPI::MPI_Fortran)
 ENDIF(USE_COARRAY)
 
 TARGET_LINK_LIBRARIES(${SWIFTEST_EXE} PUBLIC ${SWIFTEST_LIBRARY})
@@ -256,8 +261,14 @@ ELSE ()
 ENDIF ()
 
 IF (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY} APPEND_STRING PROPERTY LINK_FLAGS  "-Wl,-z,noexecstack")
+    IF (USE_COARRAY)
+        SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY} ${SWIFTEST_LIBRARY_CAF} APPEND_STRING PROPERTY LINK_FLAGS  "-Wl,-z,noexecstack")
+        SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY_CAF} PROPERTY POSITION_INDEPENDENT_CODE TRUE)
+    ELSE()
+        SET_PROPERTY(TARGET ${SWIFTEST_LIBRARY} APPEND_STRING PROPERTY LINK_FLAGS  "-Wl,-z,noexecstack")
+    ENDIF()
 ENDIF()
+
 
 # Define the install locations
 IF (USE_COARRAY)

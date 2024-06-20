@@ -24,12 +24,13 @@ classifiers=[
 ]
 keywords=['astronomy','astrophysics', 'planetary', 'n-body',  'integrator', 'symplectic', 'wisdom-holman', 'symba']
 dependencies = [
-    'numpy>=1.26.4',
+    'numpy==1.26.4',
     'cython>=3.0.8',
     'scipy>=1.12.0',
+    'mpi4py>=3.1.6',
     'h5py==3.10.0',
-    'netcdf4>=1.6.5',
-    'h5netcdf>=1.3.0',
+    'netcdf4==1.6.5',
+    'h5netcdf==1.3.0',
     'dask>=2024.2.1',
     'distributed>=2024.2.1',
     'bottleneck>=1.3.8',
@@ -57,7 +58,7 @@ requires = [
     "python_version>='3.9'",
     "scikit-build-core>=0.8.2",
     "cython>=3.0.8",
-    "numpy>=1.26.4",
+    "numpy==1.26.4",
 ]
 build-backend = "scikit_build_core.build"
 
@@ -73,7 +74,7 @@ test-command = "pytest -vv {package}/tests"
 test-requires = [
     "python_version>='3.9'",
     "pytest>=8.0.0",
-    "numpy>=1.26.4"
+    "numpy==1.26.4"
 ]
 skip = "pp* *i686 *-manylinux_i686 *_ppc64le *_s390x *-musllinux* *-win32"
 build-verbosity = 1
@@ -110,7 +111,7 @@ F77="mpifort"
 F95="mpifort"
 
 [tool.cibuildwheel.linux.environment]
-SKBUILD_CMAKE_ARGS=["-DMACHINE_CODE_VALUE=generic","-DUSE_COARRAY:BOOL=ON"]
+SKBUILD_CMAKE_ARGS=["-DMACHINE_CODE_VALUE=generic","-DUSE_COARRAY:BOOL=OFF"]
 PREFIX="$(pwd)/build/deps/usr/local"
 NETCDF_FORTRAN_HOME="${PREFIX}"
 NETCDF_FORTRAN_INCLUDE="${NETCDF_FORTRAN_HOME}/include"
@@ -123,10 +124,12 @@ MPI_HOME="/usr/lib64/openmpi"
 CPATH="${PREFIX}/include:${CPATH}"
 PATH="${PREFIX}/bin:${MPI_HOME}/bin:${PATH}"
 LD_LIBRARY_PATH="${PREFIX}/lib:${HOMEBREW_PREFIX}/lib"
+LIBS="-ldl"
 CFLAGS="-Wa,--noexecstack"
 CXXFLAGS="${CFLAGS}"
 LDFLAGS="-L${PREFIX}/lib"
 REPAIR_LIBRARY_PATH="${LD_LIBRARY_PATH}"
+PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH}"
 GFORTRAN_VERSION="$(buildscripts/get_gfortran_version.sh)"
 OMPI_FC="$(buildscripts/get_gfortran_path.sh)"
 CC="mpicc"

@@ -1,4 +1,4 @@
-# Copyright 2023 - David Minton
+# Copyright 2024 - The Minton Group at Purdue University
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -10,7 +10,7 @@
 # - Finds the FFTW3 library
 MESSAGE(STATUS "Looking for FFTW3")
 FIND_PATH(FFTW3_INCLUDE_DIR NAMES fftw3.h HINTS ENV FFTW3_HOME FFTW_HOME PATH_SUFFIXES include)
-FIND_LIBRARY(FFTW3_LIBRARY NAMES libfftw3.a HINTS ENV FFTW3_HOME FFTW_HOME PATH_SUFFIXES lib)
+FIND_LIBRARY(FFTW3_LIBRARY NAMES libfftw3_omp.so libfftw3.so libfftw3.a HINTS ENV FFTW3_HOME FFTW_HOME PATH_SUFFIXES lib)
 
 IF(NOT FFTW3_INCLUDE_DIR OR NOT FFTW3_LIBRARY)
    MESSAGE(STATUS "FFTW3 not found")
