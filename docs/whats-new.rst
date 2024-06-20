@@ -3,6 +3,19 @@
 What's New
 ==========
 
+.. _whats-new.2024.06.1:
+
+`v2024.06.1`_
+-------------
+.. _v2024.06.1: https:///github.com/MintonGroup/swiftest/releases/tag/v2024.06.1
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Retooled build to use OpenMPI to support upcoming Coarray Test Particle feature. `GH7`_
+
+.. _GH7: https://github.com/MintonGroup/swiftest/issues/7
+
+
 .. _whats-new.2024.06.0:
 
 `v2024.06.0`_

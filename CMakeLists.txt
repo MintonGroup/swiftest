@@ -16,7 +16,6 @@ SET(SKBUILD_PROJECT_NAME "swiftest" CACHE STRING "Name of project set by scikit-
 
 # Get version stored in text file
 FILE(READ "version.txt" VERSION)
-# Check if DOC_BUILD environment variable is set and skip build if it is
 SET(SKBUILD_SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/bin" CACHE STRING "Install location of binary executable")
 
 IF (SKBUILD)
@@ -34,7 +33,7 @@ IF(DEFINED ENV{FC})
 ELSE()
     # If FC is not set, search for the Fortran compilers in the specified order.
     FIND_PROGRAM(Fortran_COMPILER
-               NAMES gfortran-13 gfortran-12 gfortran ifort mpiifort
+               NAMES gfortran-14 gfortran-13 gfortran-12 gfortran ifort mpiifort
                DOC "Fortran compiler")
 
     # If a compiler is found, set it as the Fortran compiler.
@@ -106,7 +105,7 @@ ENDIF()
 FIND_PACKAGE(Python COMPONENTS Interpreter Development.Module NumPy REQUIRED)
 
 # Set some options the user may choose
-OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" ON)
+OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
 OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
 OPTION(USE_SIMD "Use SIMD vectorization" ON)
 OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
@@ -122,6 +121,8 @@ FILE(TO_CMAKE_PATH ${PY} PY)
 
 INCLUDE(GNUInstallDirs)
 IF (SKBUILD)
+    SET(CMAKE_LIBRARY_PATH "${CMAKE_CURRENT_BINARY_DIR}/deps/usr/lib")
+    SET(INSTALL_INCLUDEDIR ${SKBUILD_HEADERS_DIR}) 
     SET(INSTALL_PYPROJ ${SKBUILD_PLATLIB_DIR}/${SKBUILD_PROJECT_NAME}) 
     SET(INSTALL_BINDIR ${INSTALL_PYPROJ})
     # The following is needed so that the shared libraries get installed into the correct place. cibuildwheel behaves differently 
@@ -135,16 +136,18 @@ IF (SKBUILD)
         SET(INSTALL_LIBDIR ${CMAKE_BINARY_DIR}/lib)
         SET(CMAKE_INSTALL_RPATH "${CMAKE_BINARY_DIR}/bin")
     ELSE()
-        SET(INSTALL_LIBDIR ${SKBUILD_DATA_DIR}/lib)
-        SET(CMAKE_INSTALL_RPATH "${INSTALL_LIBDIR}")
+        SET(INSTALL_LIBDIR ${INSTALL_BINDIR})
+        IF (APPLE)
+            SET(CMAKE_INSTALL_RPATH "@loader_path;${INSTALL_LIBDIR}")
+        ELSEIF (LINUX)
+            SET(CMAKE_INSTALL_RPATH "$ORIGIN;${INSTALL_LIBDIR}")
+        ENDIF ()
     ENDIF()
-    SET(INSTALL_INCLUDEDIR ${SKBUILD_HEADERS_DIR}) 
-    SET(CMAKE_LIBRARY_PATH "${CMAKE_CURRENT_BINARY_DIR}/deps/usr/lib")
 ELSE ()
+    SET(INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR})
     SET(INSTALL_PYPROJ ${PY})
     SET(INSTALL_BINDIR ${CMAKE_INSTALL_BINDIR})
     SET(INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR})
-    SET(INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR})
 ENDIF ()
 
 MESSAGE(STATUS "INSTALL_BINDIR: ${INSTALL_BINDIR}")
@@ -179,7 +182,7 @@ IF (COMPILER_OPTIONS STREQUAL "GNU")
 ELSEIF (COMPILER_OPTIONS STREQUAL "INTEL")
     SET(BLA_VENDOR "Intel10_64lp" CACHE STRING "BLAS vendor")
 ENDIF()
-SET(BLA_STATIC OFF)
+SET(BLA_STATIC ON)
 FIND_PACKAGE(BLAS REQUIRED)
 FIND_PACKAGE(LAPACK REQUIRED)
 FIND_PACKAGE(FFTW3 REQUIRED)
@@ -189,13 +192,8 @@ IF (USE_COARRAY)
     FIND_PACKAGE(Coarray_Fortran REQUIRED)
 ENDIF()
 
-SET(HDF5_USE_STATIC_LIBRARIES OFF CACHE BOOL "Use static libraries for HDF5")
-
-IF (USE_COARRAY)
-    SET(HDF5_PREFER_PARALLEL ON CACHE BOOL "Prefer parallel HDF5")
-ELSE ()
-    SET(HDF5_PREFER_PARALLEL OFF CACHE BOOL "Prefer parallel HDF5")
-ENDIF()
+SET(HDF5_USE_STATIC_LIBRARIES ON CACHE BOOL "Use static libraries for HDF5")
+SET(HDF5_PREFER_PARALLEL ON CACHE BOOL "Prefer parallel HDF5")
 
 IF (MSVC)
     FIND_PACKAGE(HDF5 NAMES hdf5 COMPONENTS C HL REQUIRED CONFIG)
