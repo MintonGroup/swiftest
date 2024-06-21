@@ -3,7 +3,6 @@ import pty
 import subprocess
 import sys
 
-
 def main_caf():
     main("swiftest_caf")
     return
@@ -14,6 +13,13 @@ def main(binary_name="swiftest"):
     # Determine the path to the binary relative to this script
     package_root = os.path.dirname(os.path.abspath(__file__))
     binary_path = os.path.join(package_root, binary_name)
+    
+    # Check if the binary exists
+    if not os.path.exists(binary_path):
+        print(f"The binary '{binary_name}' does not exist at the expected location: {package_root}")
+        if binary_name == "swiftest_caf":
+            print(f"The Coarray version of Swiftest must be built locally from source.")    
+        sys.exit(1)    
 
     # sys.argv[1:] contains all the arguments passed to the script, excluding the script name itself
     args = [binary_path] + sys.argv[1:]

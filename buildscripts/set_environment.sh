@@ -151,6 +151,4 @@ if [ ! -d "${PREFIX}" ]; then
             exit 1
         fi
     fi
-else
-    echo "${PREFIX} already exists."
 fi

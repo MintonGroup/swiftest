@@ -46,8 +46,10 @@ printf "*********************************************************\n"
 
 cd ${DEPENDENCY_DIR}/OpenCoarrays-*
 
+CAF_INSTALL_DIR=$(realpath ${OpenCoarrays_HOME}/../..)
+
 export TERM=xterm
-./install.sh --prefix-root=${OpenCoarrays_HOME}/../.. --yes-to-all --with-fortran ${FC} --with-cxx ${CXX} --with-c ${CC} --verbose
+./install.sh --prefix-root=${CAF_INSTALL_DIR} --yes-to-all --with-fortran ${FC} --with-cxx ${CXX} --with-c ${CC} --verbose
 
 if [ $? -ne 0 ]; then
    printf "OpenCoarrays could not be compiled.\n"

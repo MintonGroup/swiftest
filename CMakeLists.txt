@@ -190,6 +190,8 @@ FIND_PACKAGE(SHTOOLS REQUIRED)
 IF (USE_COARRAY)
     MESSAGE(STATUS "Building with Coarray support")
     FIND_PACKAGE(Coarray_Fortran REQUIRED)
+ELSE()
+    MESSAGE(STATUS "Coarray support disabled")
 ENDIF()
 
 SET(HDF5_USE_STATIC_LIBRARIES ON CACHE BOOL "Use static libraries for HDF5")
