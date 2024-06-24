@@ -152,3 +152,5 @@ if [ ! -d "${PREFIX}" ]; then
         fi
     fi
 fi
+
+env > ${PREFIX}/env.sh

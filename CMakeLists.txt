@@ -164,49 +164,52 @@ SET(CMAKE_Fortran_MODULE_DIRECTORY ${CMAKE_BINARY_DIR}/mod)
 FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules" LOCAL_MODULE_PATH)
 LIST(APPEND CMAKE_MODULE_PATH ${LOCAL_MODULE_PATH})
 
-# Add in the external dependency libraries 
-IF (CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
-    SET(COMPILER_OPTIONS "Intel" CACHE STRING "Compiler identified as Intel")
-ELSEIF (CMAKE_Fortran_COMPILER_ID STREQUAL "GNU")
-    SET(COMPILER_OPTIONS "GNU" CACHE STRING "Compiler identified as gfortran")
-ELSE ()
-    MESSAGE(FATAL_ERROR "Compiler ${CMAKE_Fortran_COMPILER_ID} not recognized!") 
-ENDIF ()
+# Find the required packages after dependencies are built
+ADD_CUSTOM_TARGET(find_packages
+    COMMAND ${CMAKE_COMMAND} -P ${LOCAL_MODULE_PATH}/FindSwiftestDeps.cmake
+    COMMENT "Finding required packages..."
+)
 
-IF (COMPILER_OPTIONS STREQUAL "GNU")
-    IF (APPLE)
-        SET(BLA_VENDOR "Apple" CACHE STRING "BLAS vendor")
-    ELSE ()
-        SET(BLA_VENDOR "OpenBLAS" CACHE STRING "BLAS vendor")
-    ENDIF ()
-ELSEIF (COMPILER_OPTIONS STREQUAL "INTEL")
-    SET(BLA_VENDOR "Intel10_64lp" CACHE STRING "BLAS vendor")
+# Ensure that dependencies and packages are set up before proceeding
+ADD_CUSTOM_TARGET(build_dependencies_and_find_packages
+    DEPENDS find_packages
+)
+
+
+IF (NOT MSVC)
+    INCLUDE(ExternalProject)
+    # Define prefix for dependencies
+    SET(DEPENDENCY_DIR "${CMAKE_BINARY_DIR}/deps/usr/local")
+    SET(ENV{PREFIX} ${DEPENDENCY_DIR})
+
+    # Create a custom target for setting up environment variables
+    add_custom_target(setup_environment
+        COMMAND bash -c "source ${CMAKE_SOURCE_DIR}/bin/set_environment.sh"
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+        COMMENT "Setting up environment variables..."
+    )
+
+    # Run the dependency build script
+    ExternalProject_Add(
+        dependencies
+        PREFIX ${DEPENDENCY_DIR}
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND bash ${CMAKE_SOURCE_DIR}/buildscripts/build_dependencies.sh
+        INSTALL_COMMAND ""
+        BUILD_IN_SOURCE 1
+        DEPENDS setup_environment
+    )
+
+    # Include the directories and link the libraries
+    INCLUDE_DIRECTORIES(${DEPENDENCY_DIR}/usr/local/include)
+    LINK_DIRECTORIES(${DEPENDENCY_DIR}/usr/local/lib)
+
+    # Only add subdirectories and targets after dependencies are set up
+    ADD_DEPENDENCIES(build_dependencies_and_find_packages setup_environment)
+    ADD_DEPENDENCIES(build_dependencies_and_find_packages dependencies)
 ENDIF()
-SET(BLA_STATIC ON)
-FIND_PACKAGE(BLAS REQUIRED)
-FIND_PACKAGE(LAPACK REQUIRED)
-FIND_PACKAGE(FFTW3 REQUIRED)
-FIND_PACKAGE(SHTOOLS REQUIRED)
-IF (USE_COARRAY)
-    MESSAGE(STATUS "Building with Coarray support")
-    FIND_PACKAGE(Coarray_Fortran REQUIRED)
-ELSE()
-    MESSAGE(STATUS "Coarray support disabled")
-ENDIF()
-
-SET(HDF5_USE_STATIC_LIBRARIES ON CACHE BOOL "Use static libraries for HDF5")
-SET(HDF5_PREFER_PARALLEL ON CACHE BOOL "Prefer parallel HDF5")
-
-IF (MSVC)
-    FIND_PACKAGE(HDF5 NAMES hdf5 COMPONENTS C HL REQUIRED CONFIG)
-    MESSAGE(STATUS "HDF5_FOUND: ${HDF5_FOUND}")
-    MESSAGE(STATUS "HDF5_VERSION: ${HDF5_VERSION}")
-    MESSAGE(STATUS "HDF5_LIBRARIES: ${HDF5_LIBRARIES}")
-    MESSAGE(STATUS "HDF5_INCLUDE_DIRS: ${HDF5_INCLUDE_DIRS}")
-ELSE ()
-    FIND_PACKAGE(HDF5 COMPONENTS C HL REQUIRED)
-ENDIF ()
-FIND_PACKAGE(NETCDF_Fortran REQUIRED)
+ADD_DEPENDENCIES(build_dependencies_and_find_packages find_packages)
 
 MESSAGE(STATUS "CMAKE_SYSTEM_PROCESSOR: " ${CMAKE_SYSTEM_PROCESSOR})
 #####################################
@@ -226,14 +229,13 @@ IF (USE_COARRAY)
     SET(SWIFTEST_LIBRARY_CAF ${SWIFTEST_LIBRARY}_caf) 
 ENDIF()
 
-INCLUDE(SetParallelizationLibrary)
-
 INCLUDE(SetSwiftestFlags) 
-
 
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${CMAKE_INSTALL_BINDIR})
 ADD_SUBDIRECTORY(${PY})
+ADD_DEPENDENCIES(${SKBUILD_PROJECT_NAME} build_dependencies_and_find_packages)
+
 
 # Add a distclean target to the Makefile
 ADD_CUSTOM_TARGET(distclean 
