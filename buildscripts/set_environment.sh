@@ -78,12 +78,10 @@ HDF5_DIR="${HDF5_ROOT}/cmake"
 SHTOOLS_HOME="${PREFIX}"
 OpenCoarrays_HOME="${OpenCoarrays_HOME:-${PREFIX}/../../opencoarrays/2.10.2}"
 OpenCoarrays_DIR="${OpenCoarrays_HOME}/lib64/cmake/opencoarrays"
-LD_LIBRARY_PATH="${PREFIX}/lib"
 CPATH="${PREFIX}/include"
 PATH="${PREFIX}/bin:${PATH}"
 CMAKE_INSTALL_LIBDIR="lib"
 NPROC=$(nproc)
-
 OMPI_FC="$(${SCRIPT_DIR}/get_gfortran_path.sh)"
 GFORTRAN_VERSION="$(${SCRIPT_DIR}/get_gfortran_version.sh)"
 CC="$(command -v mpicc)"
@@ -98,7 +96,7 @@ if [ $OS = "Darwin" ]; then
     HOMEBREW_PREFIX=${HOMEBREW_PREFIX:-"$(brew --prefix)"}
     SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
     CMAKE_OSX_SYSROOT="${SDKROOT}"
-    LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${HOMEBREW_PREFIX}/lib:${HOMEBREW_PREFIX}/lib/gcc/${GFORTRAN_VERSION}"
+    LD_LIBRARY_PATH="${PREFIX}/lib:${HOMEBREW_PREFIX}/lib:${HOMEBREW_PREFIX}/lib/gcc/${GFORTRAN_VERSION}:${LD_LIBRARY_PATH}"
     DYLD_LIBRARY_PATH="${LD_LIBRARY_PATH}"
     LDFLAGS="-Wl,-no_compact_unwind -L${PREFIX}/lib -L${HOMEBREW_PREFIX}/lib"
     CPATH="${CPATH}:${HOMEBREW_PREFIX}/include"
@@ -119,6 +117,7 @@ else
     CPATH="${CPATH}:${HOMEBREW_PREFIX}/include"
     CPPFLAGS="-I${PREFIX}/include"
     LIBS="-ldl" 
+    LD_LIBRARY_PATH="${PREFIX}/lib:${LD_LIBRARY_PATH}"
     PATH="${MPI_HOME}/bin:${PATH}"
 fi
 set +a
