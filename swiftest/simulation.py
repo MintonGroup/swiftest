@@ -819,12 +819,12 @@ class Simulation(object):
             "coarray" : False,
             "simdir" : self.simdir,
             "verbose" : False,
-            "param_file" : "param.in"
+            "param_file" : Path("param.in")
         }
         param_file = kwargs.pop("param_file",None)
 
         if param_file is not None:
-            self.param_file = param_file
+            self.param_file = Path(param_file)
             kwargs['param_file'] = self.param_file
 
         # If no arguments  are requested, use defaults
@@ -1150,7 +1150,6 @@ class Simulation(object):
                 
         if simdir is not None:
             self.simdir = simdir
-            self.param_file = Path(kwargs.pop("param_file","param.in"))
 
         if self.codename == "Swiftest": 
             if general_relativity is not None:
