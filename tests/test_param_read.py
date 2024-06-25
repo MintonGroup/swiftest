@@ -24,9 +24,18 @@ class TestSwiftestUnits(unittest.TestCase):
         # Clean up temporary directory
         self.tmpdir.cleanup() 
 
+    def test_param_read_default(self):
+        """
+        Test that the default param_file name is read correctly
+        """
+
+        sim = swiftest.Simulation(simdir = self.simdir)
+
+        self.assertEqual(str(sim.param_file), 'param.in')
+
     def test_param_read(self):
         """
-        Test that a user defined param_file name is read correctly
+        Test that a user defined param_file name is read and set correctly
         """
 
         user_param_file = 'user_param.in'
@@ -47,9 +56,7 @@ class TestSwiftestUnits(unittest.TestCase):
         Test that a param.restart.in file is read correctly
         """
 
-        user_param_file = 'param.in'
         sim = swiftest.Simulation(simdir = self.simdir, integrator = 'symba', 
-                                read_param = True, param_file = user_param_file,
                                 dump_cadence = 1, tstep_out = 0.5, 
                                 tstop = 1, dt = 0.01)
         sim.clean()
@@ -58,13 +65,20 @@ class TestSwiftestUnits(unittest.TestCase):
 
         sim.run()
 
-        # restart run as a second check
+        # read in param file from a simulation
+        sim_restart1 = swiftest.Simulation(simdir = self.simdir, 
+                                        read_param = True, read_collisions=True, read_data = True)
+        
+        self.assertEqual(str(sim_restart1.param_file), 'param.in')
+
+        # read in user-defined param file
+
         restarted_param_file = 'param.restart.in'
-        sim_restart = swiftest.Simulation(simdir = self.simdir, 
+        sim_restart2 = swiftest.Simulation(simdir = self.simdir, 
                                         read_param = True, read_collisions=True, read_data = True,
                                         param_file = restarted_param_file)
 
-        self.assertEqual(str(sim_restart.param_file), restarted_param_file)
+        self.assertEqual(str(sim_restart2.param_file), restarted_param_file)
 
 if __name__ == '__main__':
     os.environ["HDF5_USE_FILE_LOCKING"]="FALSE"
