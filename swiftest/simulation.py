@@ -129,7 +129,7 @@ class Simulation(object):
         # Lowest Priority: Defaults:
         #--------------------------
         # Set all parameters to their defaults.
-        self.set_parameter(param_file=param_file)
+        self.set_parameter() # param_file=param_file)
 
         #-----------------------------------------------------------------
         # Higher Priority: Values from a file (if requested and it exists)
@@ -818,16 +818,19 @@ class Simulation(object):
             "encounter_save" : "NONE",
             "coarray" : False,
             "simdir" : self.simdir,
-            "verbose" : False
+            "verbose" : False,
+            "param_file" : "param.in"
         }
         param_file = kwargs.pop("param_file",None)
 
         if param_file is not None:
             self.param_file = param_file
+            kwargs['param_file'] = self.param_file
 
         # If no arguments  are requested, use defaults
         if len(kwargs) == 0:
             kwargs = default_arguments
+            self.param_file = default_arguments["param_file"]
 
         unrecognized = [k for k,v in kwargs.items() if k not in default_arguments]
         if len(unrecognized) > 0:
