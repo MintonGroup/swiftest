@@ -52,6 +52,7 @@ ${SCRIPT_DIR}/build_zlib.sh
 ${SCRIPT_DIR}/build_libaec.sh
 ${SCRIPT_DIR}/build_bzip2.sh 
 ${SCRIPT_DIR}/build_zstd.sh 
+${SCRIPT_DIR}/build_blosc.sh
 ${SCRIPT_DIR}/build_hdf5.sh 
 ${SCRIPT_DIR}/build_netcdf-c.sh
 ${SCRIPT_DIR}/build_netcdf-fortran.sh
