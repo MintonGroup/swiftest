@@ -160,7 +160,7 @@ class Simulation(object):
         # -----------------------------------------------------------------
         # Highest Priority: Values from arguments passed to Simulation()
         # -----------------------------------------------------------------
-        if len(kwargs) > 0: # and "param_file" not in kwargs or len(kwargs) > 1 and "param_file" in kwargs:
+        if len(kwargs) > 0: 
             self.set_parameter(**kwargs)
 
         # Let the user know that there was a problem reading an old parameter file and we're going to create a new one
