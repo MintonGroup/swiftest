@@ -15,9 +15,10 @@ program main
    use swiftest
    implicit none
 
-   character(len=:), allocatable             :: integrator        !! Integrator type code (see globals for symbolic names)
-   character(len=:), allocatable             :: param_file_name   !! Name of the file containing user-defined parameters
-   character(len=:), allocatable             :: display_style     !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
+   character(len=:), allocatable :: integrator !! Integrator type code (see globals for symbolic names)
+   character(len=:), allocatable :: param_file_name !! Name of the file containing user-defined parameters
+   character(len=:), allocatable :: display_style !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). 
+                                                  !! Default is "STANDARD"
 
    call swiftest_io_get_args(integrator, param_file_name, display_style, from_cli=.true.)
    call swiftest_driver(integrator, param_file_name, display_style)

@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script will build the OpenCoarrays libraries from source
+# This script will build the c-blosc library needed by HDF5
 # 
 # Copyright 2024 - The Minton Group at Purdue University
 # This file is part of Swiftest.
@@ -9,7 +9,7 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
-OpenCoarrays_VER="2.10.2"
+BLOSC_VER="1.21.5"
 
 SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
@@ -19,37 +19,44 @@ cd $ROOT_DIR
 . ${SCRIPT_DIR}/set_environment.sh
 
 printf "*********************************************************\n"
-printf "*             FETCHING OpenCoarrays SOURCE               *\n"
+printf "*          STARTING DEPENDENCY BUILD                    *\n"
+printf "*********************************************************\n"
+printf "Using ${OS} compilers:\nFC: ${FC}\nCC: ${CC}\nCXX: ${CXX}\n"
+printf "Installing to ${BLOSC_ROOT}\n"
+printf "\n"
+
+printf "*********************************************************\n"
+printf "*             FETCHING BLOSC SOURCE                      *\n"
 printf "*********************************************************\n"
 printf "Copying files to ${DEPENDENCY_DIR}\n"
 mkdir -p ${DEPENDENCY_DIR}
-if [ ! -d ${DEPENDENCY_DIR}/OpenCoarrays-${OpenCoarrays_VER} ]; then
-    [ -d ${DEPENDENCY_DIR}/OpenCoarrays-* ] && rm -rf ${DEPENDENCY_DIR}/OpenCoarrays-*
-    curl -L https://github.com/sourceryinstitute/OpenCoarrays/releases/download/${OpenCoarrays_VER}/OpenCoarrays-${OpenCoarrays_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+if [ ! -d ${DEPENDENCY_DIR}/c-blosc-${BLOSC_VER} ]; then
+    [ -d ${DEPENDENCY_DIR}/c-blosc-* ] && rm -rf ${DEPENDENCY_DIR}/c-blosc-*
+    curl -L https://github.com/Blosc/c-blosc/archive/refs/tags/v${BLOSC_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
 fi
-
 printf "*********************************************************\n"
-printf "*               BUILDING OpenCoarrays LIBRARY           *\n"
+printf "*               BUILDING BLOSC LIBRARY                  *\n"
 printf "*********************************************************\n"
 printf "LIBS: ${LIBS}\n"
-printf "FFLAGS: ${FFLAGS}\n"
 printf "CFLAGS: ${CFLAGS}\n"
 printf "CPPFLAGS: ${CPPFLAGS}\n"
 printf "CPATH: ${CPATH}\n"
 printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
 printf "LDFLAGS: ${LDFLAGS}\n"
-printf "OpenCoarrays_HOME: ${OpenCoarrays_HOME}\n"
-printf "FC : ${FC}\n"
-printf "CC : ${CC}\n"
-printf "CXX: ${CXX}\n"
+printf "INSTALL_PREFIX: ${BLOSC_ROOT}\n"
 printf "*********************************************************\n"
 
-cd ${DEPENDENCY_DIR}/OpenCoarrays-*
-
-export TERM=xterm
-./install.sh --prefix-root=${OpenCoarrays_HOME}/../.. --yes-to-all --with-fortran ${FC} --with-cxx ${CXX} --with-c ${CC} --verbose
+cd ${DEPENDENCY_DIR}/c-blosc-*
+cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${BLOSC_ROOT} -DCMAKE_INSTALL_LIBDIR="lib" -DBUILD_SHARED:BOOL=OFF -DBUILD_STATIC:BOOL=ON -DBUILD_TESTS:BOOL=OFF -DBUILD_FUZZERS:BOOL=OFF -DBUILD_BENCHMARKS:BOOL=OFF -DBUILD_EXAMPLES:BOOL=OFF -DPREFER_EXTERNAL_ZLIB:BOOL=ON -DPREFER_EXTERNAL_ZSTD:BOOL=ON -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON 
+cmake --build build -j${NPROC}    
+if [ -w "${BLOSC_ROOT}" ]; then
+    cmake --install build 
+else
+    sudo cmake --install build 
+fi
 
 if [ $? -ne 0 ]; then
-   printf "OpenCoarrays could not be compiled.\n"
+   printf "c-blosc could not be compiled.\n"
    exit 1
 fi
+
