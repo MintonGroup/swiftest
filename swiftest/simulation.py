@@ -121,7 +121,6 @@ class Simulation(object):
         
         self.simdir = simdir 
         self.verbose = kwargs.pop("verbose",False)
-        param_file = Path(kwargs.pop("param_file", "param.in"))
 
         # Parameters are set in reverse priority order. First the defaults, then values from a pre-existing input file,
         # then using the arguments passed via **kwargs.
@@ -129,7 +128,7 @@ class Simulation(object):
         # Lowest Priority: Defaults:
         #--------------------------
         # Set all parameters to their defaults.
-        self.set_parameter(param_file=param_file)
+        self.set_parameter()
 
         #-----------------------------------------------------------------
         # Higher Priority: Values from a file (if requested and it exists)
@@ -150,10 +149,10 @@ class Simulation(object):
             self.read_encounters = read_encounters
             
         if read_param or read_data:
+            if "param_file" in kwargs:
+                self.set_parameter(param_file = Path(kwargs.pop("param_file")))
+
             if self.read_param(read_init_cond = True, dask=dask, **kwargs):
-                # We will add the parameter file to the kwarg list. This will keep the set_parameter method from
-                # overriding everything with defaults when there are no arguments passed to Simulation()
-                kwargs['param_file'] = self.param_file
                 param_file_found = True
             else:
                 param_file_found = False
@@ -161,7 +160,7 @@ class Simulation(object):
         # -----------------------------------------------------------------
         # Highest Priority: Values from arguments passed to Simulation()
         # -----------------------------------------------------------------
-        if len(kwargs) > 0 and "param_file" not in kwargs or len(kwargs) > 1 and "param_file" in kwargs:
+        if len(kwargs) > 0: 
             self.set_parameter(**kwargs)
 
         # Let the user know that there was a problem reading an old parameter file and we're going to create a new one
@@ -818,16 +817,19 @@ class Simulation(object):
             "encounter_save" : "NONE",
             "coarray" : False,
             "simdir" : self.simdir,
-            "verbose" : False
+            "verbose" : False,
+            "param_file" : Path("param.in")
         }
         param_file = kwargs.pop("param_file",None)
 
         if param_file is not None:
-            self.param_file = param_file
+            self.param_file = Path(param_file)
+            kwargs['param_file'] = self.param_file
 
         # If no arguments  are requested, use defaults
         if len(kwargs) == 0:
             kwargs = default_arguments
+            self.param_file = default_arguments["param_file"]
 
         unrecognized = [k for k,v in kwargs.items() if k not in default_arguments]
         if len(unrecognized) > 0:
@@ -1147,7 +1149,6 @@ class Simulation(object):
                 
         if simdir is not None:
             self.simdir = simdir
-            self.param_file = Path(kwargs.pop("param_file","param.in"))
 
         if self.codename == "Swiftest": 
             if general_relativity is not None:

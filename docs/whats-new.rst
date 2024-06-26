@@ -12,8 +12,11 @@ What's New
 Internal Changes
 ~~~~~~~~~~~~~~~~
 - Retooled build to use OpenMPI to support upcoming Coarray Test Particle feature. `GH7`_
+- Pinned Numpy version to 1.26.4 because version 2.0.0 breaks Xarray (via Pandas). `SO78634235`_
+- Build dependencies as static library for better portability.
 
 .. _GH7: https://github.com/MintonGroup/swiftest/issues/7
+.. _SO78634235: https://stackoverflow.com/questions/78634235/numpy-dtype-size-changed-may-indicate-binary-incompatibility-expected-96-from
 
 
 .. _whats-new.2024.06.0:
