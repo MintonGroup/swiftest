@@ -9,6 +9,11 @@ What's New
 -------------
 .. _v2024.06.1: https:///github.com/MintonGroup/swiftest/releases/tag/v2024.06.1
 
+Bug Fixes
+~~~~~~~~~
+- Fixed bug where a user-defined parameter file name was not read correctly and overwritten.
+- `set_parameter()` now handles changes to the parameter file name correctly.
+
 Internal Changes
 ~~~~~~~~~~~~~~~~
 - Retooled build to use OpenMPI to support upcoming Coarray Test Particle feature. `GH7`_
