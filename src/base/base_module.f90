@@ -756,16 +756,11 @@ module base
          case default
             write(iu, FAIL_MSG) VERSION
             write(iu, BAR)
-#ifdef COARRAY
-            error stop
-#else
-            stop 
-#endif
          end select
 #ifdef COARRAY
-         stop 
          end if
 #endif 
+         stop 
          return
       end subroutine base_util_exit
 
