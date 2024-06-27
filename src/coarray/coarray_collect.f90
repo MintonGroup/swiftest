@@ -54,6 +54,7 @@ contains
       if (this_image() == di) then
          do img = 1, num_images()
             if (img /= di) then
+               if (allocated(vari1)) deallocate(vari1)
                allocate(vari1, source=tmp(1:n[img])[img])
                call util_append(var, vari1)
                n = n + n[img]
@@ -112,6 +113,7 @@ contains
       if (this_image() == di) then
          do img = 1, num_images()
             if ((img /= di).and.(isalloc[img])) then
+               if (allocated(vari1)) deallocate(vari1)
                allocate(vari1,source=tmp(:,1:n[img])[img])
                call util_append(var, vari1)
                n = n + n[img]
@@ -172,6 +174,7 @@ contains
       if (this_image() == di) then
          do img = 1, num_images()
             if (img /= di) then
+               if (allocated(vari1)) deallocate(vari1)
                allocate(vari1, source=tmp(1:n[img])[img])
                call util_append(var, vari1)
                n = n + n[img]
@@ -201,7 +204,7 @@ contains
       integer(I4B), intent(in),optional :: dest_img
       ! Internals
       logical, dimension(:), codimension[:], allocatable :: tmp
-      integer(I4B) :: i,img, ti, di, ntot, istart, iend, nmax
+      integer(I4B) :: i,img, ti, di, ntot, istart, iend
       integer(I4B), allocatable :: n[:], nmax[:]
       logical, allocatable :: isalloc[:]
       logical, dimension(:), allocatable :: vari1
@@ -230,6 +233,7 @@ contains
       if (this_image() == di) then
          do img = 1, num_images()
             if (img /= di) then
+               if (allocated(vari1)) deallocate(vari1)
                allocate(vari1, source=tmp(1:n[img])[img])
                call util_append(var, vari1)
                n = n + n[img]

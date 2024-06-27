@@ -211,7 +211,7 @@ class TestCollisions(unittest.TestCase):
         Tests that multiple pl-tp collisions are handled correctly
         """
         
-        sim = swiftest.Simulation(simder=self.simdir) #
+        sim = swiftest.Simulation(simdir=self.simdir) #
 
         sim.add_solar_system_body(['Sun', 'Earth'])
         ncoll = 10

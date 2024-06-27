@@ -1,4 +1,4 @@
-# Copyright 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+# Copyright 2024 - The Minton Group at Purdue University
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -16,7 +16,6 @@ SET(SKBUILD_PROJECT_NAME "swiftest" CACHE STRING "Name of project set by scikit-
 
 # Get version stored in text file
 FILE(READ "version.txt" VERSION)
-# Check if DOC_BUILD environment variable is set and skip build if it is
 SET(SKBUILD_SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/bin" CACHE STRING "Install location of binary executable")
 
 IF (SKBUILD)
@@ -24,13 +23,17 @@ IF (SKBUILD)
     string(REPLACE "<ENV_PREFIX>" "${ENV_PREFIX}" CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 ENDIF ()
 
+IF(DEFINED ENV{CIBUILDWHEEL})
+    SET(CIBUILDWHEEL ON)
+ENDIF()
+
 # Check for a Fortran compiler 
 IF(DEFINED ENV{FC})
     SET(CMAKE_Fortran_COMPILER $ENV{FC} CACHE STRING "Fortran compiler")
 ELSE()
     # If FC is not set, search for the Fortran compilers in the specified order.
     FIND_PROGRAM(Fortran_COMPILER
-               NAMES gfortran-13 gfortran-12 gfortran ifort mpiifort
+               NAMES gfortran-14 gfortran-13 gfortran-12 gfortran ifort mpiifort
                DOC "Fortran compiler")
 
     # If a compiler is found, set it as the Fortran compiler.
@@ -103,10 +106,10 @@ FIND_PACKAGE(Python COMPONENTS Interpreter Development.Module NumPy REQUIRED)
 
 # Set some options the user may choose
 OPTION(USE_COARRAY "Use Coarray Fortran for parallelization of test particles" OFF)
-SET(USE_COARRAY OFF CACHE BOOL "Override Coarray" FORCE)
 OPTION(USE_OPENMP "Use OpenMP for parallelization" ON)
 OPTION(USE_SIMD "Use SIMD vectorization" ON)
 OPTION(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Define the paths to the source code and python files
 SET(SRC "${CMAKE_SOURCE_DIR}/src")
@@ -118,17 +121,33 @@ FILE(TO_CMAKE_PATH ${PY} PY)
 
 INCLUDE(GNUInstallDirs)
 IF (SKBUILD)
+    SET(CMAKE_LIBRARY_PATH "${CMAKE_CURRENT_BINARY_DIR}/deps/usr/lib")
+    SET(INSTALL_INCLUDEDIR ${SKBUILD_HEADERS_DIR}) 
     SET(INSTALL_PYPROJ ${SKBUILD_PLATLIB_DIR}/${SKBUILD_PROJECT_NAME}) 
     SET(INSTALL_BINDIR ${INSTALL_PYPROJ})
-    SET(INSTALL_LIBDIR ${CMAKE_BINARY_DIR}/lib) 
-    SET(INSTALL_INCLUDEDIR ${SKBUILD_HEADERS_DIR}) 
-    SET(CMAKE_INSTALL_RPATH "${CMAKE_BINARY_DIR}/bin")
-    SET(CMAKE_LIBRARY_PATH "${CMAKE_CURRENT_BINARY_DIR}/deps/usr/lib")
+    # The following is needed so that the shared libraries get installed into the correct place. cibuildwheel behaves differently 
+    # than just running pip install directly. When running pip install directly, the libraries will be installed to the environment's
+    # lib directory by specifing ${SKBUILD_DATA_DIR}/lib as the library directory. 
+    # However, when running cibuildwheel, the libraries are repaired and placed in a special directory of all libraries
+    # that are packed up into the wheel. Currently, cibuildwheel cannot find the compiled libraries if they are installed to there,
+    # so we need to make sure the rpath is set to the original build directory so that the library repair step can reset the rpaths
+    # when running cibuildwheel.
+    IF (CIBUILDWHEEL)
+        SET(INSTALL_LIBDIR ${CMAKE_BINARY_DIR}/lib)
+        SET(CMAKE_INSTALL_RPATH "${CMAKE_BINARY_DIR}/bin")
+    ELSE()
+        SET(INSTALL_LIBDIR ${INSTALL_BINDIR})
+        IF (APPLE)
+            SET(CMAKE_INSTALL_RPATH "@loader_path;${INSTALL_LIBDIR}")
+        ELSEIF (LINUX)
+            SET(CMAKE_INSTALL_RPATH "$ORIGIN;${INSTALL_LIBDIR}")
+        ENDIF ()
+    ENDIF()
 ELSE ()
+    SET(INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR})
     SET(INSTALL_PYPROJ ${PY})
     SET(INSTALL_BINDIR ${CMAKE_INSTALL_BINDIR})
     SET(INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR})
-    SET(INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR})
 ENDIF ()
 
 MESSAGE(STATUS "INSTALL_BINDIR: ${INSTALL_BINDIR}")
@@ -173,13 +192,8 @@ IF (USE_COARRAY)
     FIND_PACKAGE(Coarray_Fortran REQUIRED)
 ENDIF()
 
-SET(HDF5_USE_STATIC_LIBRARIES OFF CACHE BOOL "Use static libraries for HDF5")
-
-IF (USE_COARRAY)
-    SET(HDF5_PREFER_PARALLEL ON CACHE BOOL "Prefer parallel HDF5")
-ELSE ()
-    SET(HDF5_PREFER_PARALLEL OFF CACHE BOOL "Prefer parallel HDF5")
-ENDIF()
+SET(HDF5_USE_STATIC_LIBRARIES ON CACHE BOOL "Use static libraries for HDF5")
+SET(HDF5_PREFER_PARALLEL ON CACHE BOOL "Prefer parallel HDF5")
 
 IF (MSVC)
     FIND_PACKAGE(HDF5 NAMES hdf5 COMPONENTS C HL REQUIRED CONFIG)
@@ -214,7 +228,6 @@ INCLUDE(SetParallelizationLibrary)
 
 INCLUDE(SetSwiftestFlags) 
 
-SET(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${CMAKE_INSTALL_BINDIR})
