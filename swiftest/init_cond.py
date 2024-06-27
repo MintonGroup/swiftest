@@ -96,12 +96,11 @@ def get_solar_system_body_mass_rotation(id: str,
         if len(radius) == 0:
             return None
         radius = radius[0]
-        if "Radius (km)" in radius:
-            radius = radius.split("Radius (km)")[1].strip(' =').split('+')[0].split()[0].strip()
-        elif "R_eff" in radius: # Some small bodies list an effective radius 
-            radius = radius.split('R_eff')[1].strip(' =').split('+')[0].split()[0].strip()
-        elif "RAD" in radius: # Some small bodies list the radius like this
-            radius = radius.split('RAD')[1].strip(' =').split('+')[0].split()[0].strip()
+        if "Radius (km)" in radius or "RAD" in radius:
+            if "Radius (km)" in radius: 
+                radius = radius.split("Radius (km)")[1].strip().strip('=').split('+')[0].strip()
+            elif "RAD" in radius:
+                radius = radius.split('RAD')[1].strip().strip('=').split('+')[0].strip()
             if 'x' in radius: # Triaxial ellipsoid bodies like Haumea may have multiple dimensions which need to be averaged
                 radius = radius.split('x')
                 try:
@@ -110,6 +109,10 @@ def get_solar_system_body_mass_rotation(id: str,
                     radius = np.average(radius)
                 except:
                     radius = None
+            else:
+                radius = radius.split()[0].strip()
+        elif "R_eff" in radius: # Some small bodies list an effective radius 
+            radius = radius.split('R_eff')[1].strip(' =').split('+')[0].split()[0].strip()
         else: # Handles most major bodies
             radius = radius.split('=')[1].strip().split('+')[0].split()[0].strip() 
         try:
