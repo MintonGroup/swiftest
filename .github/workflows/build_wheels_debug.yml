@@ -5,6 +5,10 @@ on:
   push:
     branches:
       - debug
+  pull_request:
+    branches:
+      - master
+      - debug
 
 jobs:
   build_wheels:
