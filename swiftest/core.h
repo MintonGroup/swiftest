@@ -1,0 +1,3 @@
+extern void bindings_c_driver(char* integrator, char* param_file_name, char* display_style);
+extern void bindings_orbel_el2xv(int nbody, double *mu, double *a, double *e, double *inc, double *capom, double *omega, double *capm, double *rx, double *ry, double *rz, double *vx, double *vy, double *vz);
+extern void bindings_orbel_xv2el(int nbody, double *mu, double *rx, double *ry, double *rz, double *vx, double *vy, double *vz, double *a, double *e, double *inc, double *capom, double *omega, double *capm, double *varpi, double *lam, double *f, double *cape, double *capf); 

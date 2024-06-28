@@ -1,0 +1,12 @@
+*
+!.gitignore
+!cb.swiftest.in
+!init_cond.py
+!param.swifter.in
+!param.swiftest.in
+!pl.swifter.in
+!pl.swiftest.in
+!README.txt
+!tp.swifter.in
+!tp.swiftest.in
+!swiftest_symba_vs_swifter_symba.ipynb

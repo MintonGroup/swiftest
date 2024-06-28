@@ -1,0 +1,6 @@
+SET(netCDF_DIR "C:/Program Files/netCDF/lib/cmake/netCDF" CACHE PATH "Location of NetCDF-C cmake config files" FORCE)
+SET(HDF5_DIR "C:/Program Files/HDF5_Group/HDF5/1.14.2/cmake" CACHE PATH "Location of HDF5 cmake config files" FORCE)
+SET(HDF5_ROOT "C:/Program Files/HDF5_Group/HDF5/1.14.2" CACHE PATH "Location of HDF5" FORCE)
+SET(BUILD_SHARED_LIBS OFF CACHE BOOL "Use shared libraries" FORCE)
+SET(CMAKE_INSTALL_PREFIX "C:/Program Files/NC4F" CACHE PATH "Installation location" FORCE)
+SET(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Compile build type" FORCE)

@@ -1,0 +1,42 @@
+name: swiftest-env
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python==3.9
+  - numpy>=1.26.4
+  - scipy>=1.12.0
+  - xarray>=2024.2.0
+  - distributed>=2024.2.1
+  - dask>=2024.2.1
+  - bottleneck>=1.3.8
+  - h5netcdf>=1.3.0
+  - netcdf4>=1.6.5
+  - matplotlib>=3.8.3
+  - astropy>=6.0.0
+  - astroquery>=0.4.6
+  - tqdm>=4.66.2
+  - x264>=1!157.20191217
+  - ffmpeg>=4.3.2
+  - cython>=3.0.8
+  - pkg-config
+  - meson-python>=0.14
+  - setuptools_scm>=8
+  - fftw>=3.3.8
+  - blas-devel>=3.8
+  - matplotlib-base>=3.7
+  - requests
+  - pooch>=1.1
+  - cartopy>=0.18.0
+  - gmt>=6.1.1
+  - pygmt>=0.3.0
+  - ducc0>=0.15
+  - palettable>=3.3
+  - jupyter
+  - pip
+  - flake8
+  - pyshtools
+  - scikit-build-core
+  - ipykernel

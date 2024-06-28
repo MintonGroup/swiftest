@@ -1,0 +1,5 @@
+*
+!.gitignore
+!init_cond.py
+!swiftest_vs_swifter.py
+!swiftest_vs_swifter.ipynb

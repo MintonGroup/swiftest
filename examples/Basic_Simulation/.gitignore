@@ -1,0 +1,6 @@
+*
+!.gitignore
+!basic_simulation.py
+!output_reader.py
+!errors.py
+!README.txt
