@@ -54,7 +54,6 @@ swiftest_caf = "swiftest.cli:main_caf"
 
 [build-system]
 requires = [
-    "python_version>='3.9'",
     "scikit-build-core>=0.8.2",
     "cython>=3.0.8",
     "numpy==1.26.4",
@@ -71,7 +70,6 @@ cmake.verbose = true
 [tool.cibuildwheel]
 test-command = "pytest -vv {package}/tests"
 test-requires = [
-    "python_version>='3.9'",
     "pytest>=8.0.0",
     "numpy==1.26.4"
 ]
