@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -23,10 +23,14 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine helio_step.f90
       implicit none
       ! Arguments
-      class(helio_nbody_system),  intent(inout) :: self   !! Helio nbody system object
-      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters
-      real(DP),                   intent(in)    :: t      !! Simulation time
-      real(DP),                   intent(in)    :: dt     !! Current stepsize
+      class(helio_nbody_system),  intent(inout) :: self   
+         !! Helio nbody system object
+      class(swiftest_parameters), intent(inout) :: param  
+         !! Current run configuration parameters
+      real(DP),                   intent(in)    :: t      
+         !! Simulation time
+      real(DP),                   intent(in)    :: dt     
+         !! Current stepsize
 
       call whm_step_system(self, param, t, dt)
 
@@ -43,11 +47,16 @@ contains
       !! Adapted from Hal Levison's Swift routine helio_step_pl.f
       implicit none
       ! Arguments
-      class(helio_pl),              intent(inout) :: self   !! Helio massive body particle data structure
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: t      !! Current simulation time
-      real(DP),                     intent(in)    :: dt     !! Stepsize
+      class(helio_pl),              intent(inout) :: self   
+         !! Helio massive body particle data structure
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system
+      class(swiftest_parameters),   intent(inout) :: param  
+         !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: t      
+         !! Current simulation time
+      real(DP),                     intent(in)    :: dt     
+         !! Stepsize
       ! Internals 
       real(DP) :: dth   !! Half step size 
 
@@ -77,7 +86,6 @@ contains
 
 
    module subroutine helio_step_tp(self, nbody_system, param, t, dt)
-
       !! author: David A. Minton
       !!
       !! Step active test particles ahead using Democratic Heliocentric method
@@ -86,11 +94,16 @@ contains
       !! Adapted from Hal Levison's Swift routine helio_step_tp.f
       implicit none
       ! Arguments
-      class(helio_tp),              intent(inout) :: self    !! Helio test particle data structure
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: t      !! Current simulation time
-      real(DP),                     intent(in)    :: dt     !! Stepsize
+      class(helio_tp),              intent(inout) :: self    
+         !! Helio test particle data structure
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system
+      class(swiftest_parameters),   intent(inout) :: param  
+         !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: t      
+         !! Current simulation time
+      real(DP),                     intent(in)    :: dt     
+         !! Stepsize
       ! Internals
       real(DP) :: dth   !! Half step size 
    

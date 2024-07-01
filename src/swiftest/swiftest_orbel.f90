@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -19,8 +19,10 @@ contains
       !! Swiftest body object. This method deallocates all of the orbital elements after it is finished.
       implicit none
       ! Arguments
-      class(swiftest_body), intent(inout) :: self !! Swiftest body object
-      class(swiftest_cb),  intent(inout) :: cb !! Swiftest central body objec
+      class(swiftest_body), intent(inout) :: self 
+         !! Swiftest body object
+      class(swiftest_cb),  intent(inout) :: cb 
+         !! Swiftest central body objec
       ! Internals
       integer(I4B) :: i, n
    

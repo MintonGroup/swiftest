@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -20,10 +20,14 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine rmvs_step.f90
       implicit none
       ! Arguments
-      class(rmvs_nbody_system),   intent(inout)  :: self   !! RMVS nbody system object
-      class(swiftest_parameters), intent(inout)  :: param  !! Current run configuration parameters 
-      real(DP),                   intent(in)    :: t     !! Current simulation time
-      real(DP),                   intent(in)    :: dt    !! Current stepsiz
+      class(rmvs_nbody_system),   intent(inout)  :: self   
+         !! RMVS nbody system object
+      class(swiftest_parameters), intent(inout)  :: param  
+         !! Current run configuration parameters 
+      real(DP),                   intent(in)    :: t     
+         !! Current simulation time
+      real(DP),                   intent(in)    :: dt    
+         !! Current stepsiz
       ! Internals
       logical :: lencounter, lfirstpl
       real(DP), dimension(:,:), allocatable :: rbeg, rend, vbeg
@@ -84,9 +88,12 @@ contains
       !! Adapted from Hal Levison's Swift routine rmvs3_interp.f
       implicit none
       ! Arguments
-      class(rmvs_cb),             intent(inout) :: cb      !! RMVS central body object
-      class(rmvs_pl),             intent(inout) :: pl      !! RMVS massive body object
-      real(DP),                   intent(in)    :: dt   !! Step size
+      class(rmvs_cb),             intent(inout) :: cb      
+         !! RMVS central body object
+      class(rmvs_pl),             intent(inout) :: pl      
+         !! RMVS massive body object
+      real(DP),                   intent(in)    :: dt   
+         !! Step size
       ! Internals
       integer(I4B)                              :: i, outer_index
       real(DP)                                  :: frac, dntenc
@@ -166,13 +173,20 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routines rmvs_step_out.f90 and rmvs_step_out2.f90
       implicit none
       ! Arguments
-      class(rmvs_cb),             intent(inout) :: cb     !! RMVS central body object
-      class(rmvs_pl),             intent(inout) :: pl     !! RMVS massive body object
-      class(rmvs_tp),             intent(inout) :: tp     !! RMVS test particle object
-      class(rmvs_nbody_system),   intent(inout) :: nbody_system !! RMVS nbody system object
-      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
-      real(DP),                   intent(in)    :: t      !! Current simulation time
-      real(DP),                   intent(in)    :: dt     !! Current stepsiz
+      class(rmvs_cb),             intent(inout) :: cb     
+         !! RMVS central body object
+      class(rmvs_pl),             intent(inout) :: pl     
+         !! RMVS massive body object
+      class(rmvs_tp),             intent(inout) :: tp     
+         !! RMVS test particle object
+      class(rmvs_nbody_system),   intent(inout) :: nbody_system 
+         !! RMVS nbody system object
+      class(swiftest_parameters), intent(inout) :: param  
+         !! Current run configuration parameters 
+      real(DP),                   intent(in)    :: t      
+         !! Current simulation time
+      real(DP),                   intent(in)    :: dt     
+         !! Current stepsiz
       ! Internals
       integer(I4B)                              :: outer_index, j
       real(DP)                                  :: dto, outer_time
@@ -234,12 +248,18 @@ contains
       !! Adapted from Hal Levison's Swift routine rmvs3_interp.f
       implicit none
       ! Arguments
-      class(rmvs_cb),             intent(inout) :: cb          !! RMVS cenral body object
-      class(rmvs_pl),             intent(inout) :: pl          !! RMVS massive body object
-      class(rmvs_nbody_system),   intent(inout) :: nbody_system      !! RMVS nbody system object
-      class(swiftest_parameters), intent(in)    :: param       !! Swiftest parameters file
-      real(DP),                   intent(in)    :: dt          !! Step size
-      integer(I4B),               intent(in)    :: outer_index !! Outer substep number within current set
+      class(rmvs_cb),             intent(inout) :: cb          
+         !! RMVS cenral body object
+      class(rmvs_pl),             intent(inout) :: pl          
+         !! RMVS massive body object
+      class(rmvs_nbody_system),   intent(inout) :: nbody_system      
+         !! RMVS nbody system object
+      class(swiftest_parameters), intent(in)    :: param       
+         !! Swiftest parameters file
+      real(DP),                   intent(in)    :: dt          
+         !! Step size
+      integer(I4B),               intent(in)    :: outer_index 
+         !! Outer substep number within current set
       ! Internals
       integer(I4B)                              :: i, inner_index
       real(DP)                                  :: frac, dntphenc
@@ -443,10 +463,14 @@ contains
       !!
       implicit none
       ! Arguments
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration paramete
-      class(rmvs_cb),             intent(inout) :: cb     !! RMVS central body object
-      class(rmvs_pl),             intent(inout) :: pl     !! RMVS massive body object
-      class(rmvs_tp),             intent(inout) :: tp     !! RMVS test particle object
+      class(swiftest_parameters), intent(in)    :: param 
+         !! Current run configuration paramete
+      class(rmvs_cb),             intent(inout) :: cb     
+         !! RMVS central body object
+      class(rmvs_pl),             intent(inout) :: pl     
+         !! RMVS massive body object
+      class(rmvs_tp),             intent(inout) :: tp     
+         !! RMVS test particle object
 
       ! Internals
       integer(I4B)                        :: i, j, inner_index, ipc2hc
@@ -536,14 +560,22 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine rmvs_peri.f90
       implicit none
       ! Arguments
-      class(rmvs_tp),             intent(inout) :: tp        !! RMVS test particle object (planetocentric) 
-      class(rmvs_pl),             intent(inout) :: pl        !! RMVS massive body object (heliocentric)
-      real(DP),                   intent(in)    :: t         !! current time
-      real(DP),                   intent(in)    :: dt        !! step size
-      logical,                    intent(in)    :: lfirst    !! Logical flag indicating whether current invocation is the first
-      integer(I4B),               intent(in)    :: inner_index !! Outer substep number within current set
-      integer(I4B),               intent(in)    :: ipleP     !!  index of RMVS planet being closely encountered
-      class(swiftest_parameters), intent(in)    :: param    !! Current run configuration parameters
+      class(rmvs_tp),             intent(inout) :: tp        
+         !! RMVS test particle object (planetocentric) 
+      class(rmvs_pl),             intent(inout) :: pl        
+         !! RMVS massive body object (heliocentric)
+      real(DP),                   intent(in)    :: t         
+         !! current time
+      real(DP),                   intent(in)    :: dt        
+         !! step size
+      logical,                    intent(in)    :: lfirst    
+         !! Logical flag indicating whether current invocation is the first
+      integer(I4B),               intent(in)    :: inner_index 
+         !! Outer substep number within current set
+      integer(I4B),               intent(in)    :: ipleP     
+         !!  index of RMVS planet being closely encountered
+      class(swiftest_parameters), intent(in)    :: param    
+         !! Current run configuration parameters
       ! Internals
       integer(I4B)              :: i
       real(DP)                  :: r2, mu, rhill2, vdotr, a, peri, capm, tperi

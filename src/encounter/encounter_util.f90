@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -53,8 +53,10 @@ contains
       !! Copies elements from the source encounter list into self.
       implicit none
       ! Arguments
-      class(encounter_list), intent(inout) :: self   !! Encounter list 
-      class(encounter_list), intent(in)    :: source !! Source object to copy into
+      class(encounter_list), intent(inout) :: self   
+         !! Encounter list 
+      class(encounter_list), intent(in)    :: source 
+         !! Source object to copy into
 
       associate(n => source%nenc)
          self%nenc = n
@@ -313,8 +315,10 @@ contains
       !! but no more. 
       implicit none
       ! Arguments
-      class(encounter_list), intent(inout) :: self !! Swiftest encounter list 
-      integer(I8B),          intent(in)    :: nnew !! New size of list needed
+      class(encounter_list), intent(inout) :: self 
+         !! Swiftest encounter list 
+      integer(I8B),          intent(in)    :: nnew 
+         !! New size of list needed
       ! Internals
       class(encounter_list), allocatable :: enc_temp
       integer(I8B)                       :: nold

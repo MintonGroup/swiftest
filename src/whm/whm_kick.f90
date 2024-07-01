@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -20,11 +20,16 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch.f90
       implicit none
       ! Arguments
-      class(whm_pl),                intent(inout) :: self   !! WHM massive body particle data structure
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest central body particle data structure
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: t       !! Current time
-      logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
+      class(whm_pl),                intent(inout) :: self   
+         !! WHM massive body particle data structure
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest central body particle data structure
+      class(swiftest_parameters),   intent(inout) :: param  
+         !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: t       
+         !! Current time
+      logical,                      intent(in)    :: lbeg   
+         !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
       integer(I4B)                                :: i
       real(DP), dimension(NDIM)                   :: ah0
@@ -75,11 +80,16 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_tp.f90
       implicit none
       ! Arguments
-      class(whm_tp),                intent(inout) :: self   !! WHM test particle data structure
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest central body particle data structure
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: t      !! Current time
-      logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
+      class(whm_tp),                intent(inout) :: self   
+         !! WHM test particle data structure
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest central body particle data structure
+      class(swiftest_parameters),   intent(inout) :: param  
+         !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: t      
+         !! Current time
+      logical,                      intent(in)    :: lbeg   
+         !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
       integer(I4B)                                :: i, npl, ntp
       real(DP), dimension(NDIM)                   :: ah0
@@ -159,8 +169,10 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah1.f90
       implicit none
       ! Arguments
-      class(swiftest_cb), intent(in)    :: cb !! WHM central body object
-      class(whm_pl),      intent(inout) :: pl !! WHM massive body object
+      class(swiftest_cb), intent(in)    :: cb 
+         !! WHM central body object
+      class(whm_pl),      intent(inout) :: pl 
+         !! WHM massive body object
       ! Internals
       integer(I4B)                 :: i, npl
       real(DP), dimension(NDIM)    :: ah1h, ah1j
@@ -189,8 +201,10 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah2.f90
       implicit none
       ! Arguments
-      class(swiftest_cb), intent(in)    :: cb !! Swiftest central body object
-      class(whm_pl),      intent(inout) :: pl !! WHM massive body object
+      class(swiftest_cb), intent(in)    :: cb 
+         !! Swiftest central body object
+      class(whm_pl),      intent(inout) :: pl 
+         !! WHM massive body object
       ! Internals
       integer(I4B)                 :: i, npl
       real(DP)                     :: etaj, fac
@@ -225,12 +239,18 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_kickvh.f90 
       implicit none
       ! Arguments
-      class(whm_pl),                intent(inout) :: self  !! WHM massive body object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: t      !! Current time
-      real(DP),                     intent(in)    :: dt     !! Stepsize
-      logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
+      class(whm_pl),                intent(inout) :: self  
+         !! WHM massive body object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param  
+         !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: t      
+         !! Current time
+      real(DP),                     intent(in)    :: dt     
+         !! Stepsize
+      logical,                      intent(in)    :: lbeg   
+         !! Logical flag indicating whether this is the beginning of the half step or not. 
       ! Internals
       integer(I4B) :: i, npl
 
@@ -272,12 +292,18 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_kickvh_tp.f90
       implicit none
       ! Arguments
-      class(whm_tp),                intent(inout) :: self   !! WHM massive body object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: t      !! Current time
-      real(DP),                     intent(in)    :: dt     !! Stepsize
-      logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
+      class(whm_tp),                intent(inout) :: self   
+         !! WHM massive body object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param  
+         !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: t      
+         !! Current time
+      real(DP),                     intent(in)    :: dt     
+         !! Stepsize
+      logical,                      intent(in)    :: lbeg   
+         !! Logical flag indicating whether this is the beginning of the half step or not. 
       ! Internals
       integer(I4B) :: i, ntp
 

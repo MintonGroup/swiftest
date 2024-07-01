@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -18,13 +18,19 @@ contains
       !!
       implicit none
       ! Arguments
-      class(symba_pl),            intent(inout)  :: self   !! SyMBA test particle object  
-      class(swiftest_parameters), intent(inout)  :: param  !! Current Swiftest run configuration parameters
-      class(symba_nbody_system),  intent(inout)  :: nbody_system !! SyMBA nbody system object
-      real(DP),                   intent(in)     :: dt     !! step size
-      integer(I4B),               intent(in)     :: irec   !! Current recursion level
+      class(symba_pl),            intent(inout)  :: self   
+         !! SyMBA test particle object  
+      class(swiftest_parameters), intent(inout)  :: param  
+         !! Current Swiftest run configuration parameters
+      class(symba_nbody_system),  intent(inout)  :: nbody_system 
+         !! SyMBA nbody system object
+      real(DP),                   intent(in)     :: dt     
+         !! step size
+      integer(I4B),               intent(in)     :: irec   
+         !! Current recursion level
       ! Result
-      logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
+      logical                                   :: lany_encounter 
+         !! Returns true if there is at least one close encounter      
       ! Internals
       integer(I8B) :: k, nenc
       integer(I4B) :: i, j, npl, nplm, nplt
@@ -89,12 +95,18 @@ contains
 
    module function symba_encounter_check_list_plpl(self, param, nbody_system, dt, irec) result(lany_encounter)
       implicit none
-      class(symba_list_plpl),     intent(inout) :: self           !! SyMBA pl-pl encounter list object
-      class(swiftest_parameters), intent(inout) :: param          !! Current Swiftest run configuration parameters
-      class(symba_nbody_system),  intent(inout) :: nbody_system         !! SyMBA nbody system object
-      real(DP),                   intent(in)    :: dt             !! step size
-      integer(I4B),               intent(in)    :: irec           !! Current recursion level 
-      logical                                   :: lany_encounter !! Returns true if there is at least one close encounter  
+      class(symba_list_plpl),     intent(inout) :: self           
+         !! SyMBA pl-pl encounter list object
+      class(swiftest_parameters), intent(inout) :: param          
+         !! Current Swiftest run configuration parameters
+      class(symba_nbody_system),  intent(inout) :: nbody_system         
+         !! SyMBA nbody system object
+      real(DP),                   intent(in)    :: dt             
+         !! step size
+      integer(I4B),               intent(in)    :: irec           
+         !! Current recursion level 
+      logical                                   :: lany_encounter 
+         !! Returns true if there is at least one close encounter  
       ! Internals
       integer(I4B)              :: i, j, nenc_enc
       integer(I8B)              :: k, lidx
@@ -134,7 +146,8 @@ contains
             call encounter_check_one(xr(1), xr(2), xr(3), vr(1), vr(2), vr(3), rcrit12, dt, lencounter(lidx), self%lvdotr(k))
             if (lencounter(lidx)) then
                rlim2 = (pl%radius(i) + pl%radius(j))**2
-               rji2 = dot_product(xr(:), xr(:))! Check to see if these are physically overlapping bodies first, which we should ignore
+               rji2 = dot_product(xr(:), xr(:)) ! Check to see if these are physically overlapping bodies first, 
+                                                ! which we should ignore
                lencounter(lidx) = rji2 > rlim2
             end if
          end do
@@ -162,12 +175,18 @@ contains
 
    module function symba_encounter_check_list_pltp(self, param, nbody_system, dt, irec) result(lany_encounter)
       implicit none
-      class(symba_list_pltp),     intent(inout) :: self           !! SyMBA pl-tp encounter list object
-      class(swiftest_parameters), intent(inout) :: param          !! Current Swiftest run configuration parameters
-      class(symba_nbody_system),  intent(inout) :: nbody_system         !! SyMBA nbody system object
-      real(DP),                   intent(in)    :: dt             !! step size
-      integer(I4B),               intent(in)    :: irec           !! Current recursion level 
-      logical                                   :: lany_encounter !! Returns true if there is at least one close encounter     
+      class(symba_list_pltp),     intent(inout) :: self           
+         !! SyMBA pl-tp encounter list object
+      class(swiftest_parameters), intent(inout) :: param          
+         !! Current Swiftest run configuration parameters
+      class(symba_nbody_system),  intent(inout) :: nbody_system         
+         !! SyMBA nbody system object
+      real(DP),                   intent(in)    :: dt             
+         !! step size
+      integer(I4B),               intent(in)    :: irec           
+         !! Current recursion level 
+      logical                                   :: lany_encounter 
+         !! Returns true if there is at least one close encounter     
       ! Internals
       integer(I4B)              :: i, j, nenc_enc
       integer(I8B)              :: k, lidx
@@ -208,7 +227,8 @@ contains
                                        lencounter(lidx), self%lvdotr(k))
             if (lencounter(lidx)) then
                rlim2 = (pl%radius(i))**2
-               rji2 = dot_product(xr(:), xr(:))! Check to see if these are physically overlapping bodies first, which we should ignore
+               rji2 = dot_product(xr(:), xr(:)) ! Check to see if these are physically overlapping bodies first, 
+                                                ! which we should ignore
                lencounter(lidx) = rji2 > rlim2
             end if
          end do
@@ -242,13 +262,19 @@ contains
       !!
       implicit none
       ! Arguments
-      class(symba_tp),            intent(inout) :: self   !! SyMBA test particle object  
-      class(swiftest_parameters), intent(inout) :: param  !! Current Swiftest run configuration parameters
-      class(symba_nbody_system),  intent(inout) :: nbody_system !! SyMBA nbody system object
-      real(DP),                   intent(in)    :: dt     !! step size
-      integer(I4B),               intent(in)    :: irec   !! Current recursion level
+      class(symba_tp),            intent(inout) :: self   
+         !! SyMBA test particle object  
+      class(swiftest_parameters), intent(inout) :: param  
+         !! Current Swiftest run configuration parameters
+      class(symba_nbody_system),  intent(inout) :: nbody_system 
+         !! SyMBA nbody system object
+      real(DP),                   intent(in)    :: dt     
+         !! step size
+      integer(I4B),               intent(in)    :: irec   
+         !! Current recursion level
       ! Result
-      logical                                   :: lany_encounter !! Returns true if there is at least one close encounter      
+      logical                                   :: lany_encounter 
+         !! Returns true if there is at least one close encounter      
       ! Internals
       integer(I4B)                              :: plind, tpind
       integer(I8B)                              :: k, nenc

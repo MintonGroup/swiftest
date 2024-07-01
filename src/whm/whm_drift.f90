@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -20,10 +20,14 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_drift.f90
       implicit none
       ! Arguments
-      class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
-      class(swiftest_nbody_system),  intent(inout) :: nbody_system !! WHM nbody system object
-      class(swiftest_parameters),    intent(in)    :: param  !! Current run configuration parameters 
-      real(DP),                      intent(in)    :: dt     !! Stepsize
+      class(whm_pl),                 intent(inout) :: self   
+         !! WHM massive body particle data structure
+      class(swiftest_nbody_system),  intent(inout) :: nbody_system 
+         !! WHM nbody system object
+      class(swiftest_parameters),    intent(in)    :: param  
+         !! Current run configuration parameters 
+      real(DP),                      intent(in)    :: dt     
+         !! Stepsize
       ! Internals
       integer(I4B)                              :: i
       integer(I4B), dimension(:), allocatable   :: iflag

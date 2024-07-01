@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -14,14 +14,17 @@ contains
    module subroutine symba_kick_getacch_int_pl(self, param)
       !! author: David A. Minton
       !!
-      !! Compute direct cross (third) term heliocentric accelerations of massive bodies, with no mutual interactions between bodies below GMTINY
+      !! Compute direct cross (third) term heliocentric accelerations of massive bodies, with no mutual interactions between bodies
+      !! below GMTINY
       !!
       !! Adapted from Hal Levison's Swift routine symba5_helio_getacch.f
       !! Adapted from David E. Kaufmann's Swifter routine helio_kick_getacch_int.f90
       implicit none
       ! Arguments
-      class(symba_pl),            intent(inout) :: self  !! SyMBA massive body object
-      class(swiftest_parameters), intent(inout) :: param !! Current Swiftest run configuration parameter
+      class(symba_pl),            intent(inout) :: self  
+         !! SyMBA massive body object
+      class(swiftest_parameters), intent(inout) :: param 
+         !! Current Swiftest run configuration parameter
 
       if (param%lflatten_interactions) then
          call swiftest_kick_getacch_int_all(self%nbody, self%nplplm, self%k_plpl, self%rh, self%Gmass, self%radius, self%ah)
@@ -42,11 +45,16 @@ contains
       !! Adapted from Hal Levison's Swift routine symba5_kick_getacch.f
       implicit none
       ! Arguments
-      class(symba_pl),              intent(inout) :: self   !! SyMBA massive body particle data structure
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: t      !! Current simulation time
-      logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
+      class(symba_pl),              intent(inout) :: self   
+         !! SyMBA massive body particle data structure
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param  
+         !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: t      
+         !! Current simulation time
+      logical,                      intent(in)    :: lbeg   
+         !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
       integer(I8B)              :: nplplenc
       real(DP), dimension(NDIM,self%nbody) :: ah_enc
@@ -55,7 +63,8 @@ contains
       if (self%nbody == 0) return
       select type(nbody_system)
       class is (symba_nbody_system)
-         associate(pl => self, npl => self%nbody, nplm => self%nplm, plpl_encounter => nbody_system%plpl_encounter, radius => self%radius)
+         associate(pl => self, npl => self%nbody, nplm => self%nplm, plpl_encounter => nbody_system%plpl_encounter, &
+                   radius => self%radius)
             ! Apply kicks to all bodies (including those in the encounter list)
             call helio_kick_getacch_pl(pl, nbody_system, param, t, lbeg)
             if (plpl_encounter%nenc > 0) then 
@@ -85,11 +94,16 @@ contains
       !! Adapted from Hal Levison's Swift routine symba5_kick_getacch.f
       implicit none
       ! Arguments
-      class(symba_tp),              intent(inout) :: self   !! SyMBA test particle data structure
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: t      !! Current time
-      logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
+      class(symba_tp),              intent(inout) :: self   
+         !! SyMBA test particle data structure
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param  
+         !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: t      
+         !! Current time
+      logical,                      intent(in)    :: lbeg   
+         !! Logical flag that determines whether or not this is the beginning or end of the step
       ! Internals
       integer(I4B)              :: i, j
       integer(I8B)              :: k
@@ -132,11 +146,16 @@ contains
       !! Adapted from Hal Levison's Swift routine symba5_kick.f
       implicit none
       ! Arguments
-      class(symba_list_plpl),    intent(in)    :: self   !! SyMBA pl-tp encounter list object
-      class(symba_nbody_system), intent(inout) :: nbody_system !! SyMBA nbody system object
-      real(DP),                  intent(in)    :: dt     !! step size
-      integer(I4B),              intent(in)    :: irec   !! Current recursion level
-      integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
+      class(symba_list_plpl),    intent(in)    :: self   
+         !! SyMBA pl-tp encounter list object
+      class(symba_nbody_system), intent(inout) :: nbody_system 
+         !! SyMBA nbody system object
+      real(DP),                  intent(in)    :: dt     
+         !! step size
+      integer(I4B),              intent(in)    :: irec   
+         !! Current recursion level
+      integer(I4B),              intent(in)    :: sgn    
+         !! sign to be applied to acceleration
       ! Internals
       integer(I4B)              :: i, j, irm1, irecl, ngood
       integer(I8B)              :: k
@@ -241,11 +260,16 @@ contains
       !! Adapted from Hal Levison's Swift routine symba5_kick.f
       implicit none
       ! Arguments
-      class(symba_list_pltp),    intent(in)    :: self   !! SyMBA pl-tp encounter list object
-      class(symba_nbody_system), intent(inout) :: nbody_system !! SyMBA nbody system object
-      real(DP),                  intent(in)    :: dt     !! step size
-      integer(I4B),              intent(in)    :: irec   !! Current recursion level
-      integer(I4B),              intent(in)    :: sgn    !! sign to be applied to acceleration
+      class(symba_list_pltp),    intent(in)    :: self   
+         !! SyMBA pl-tp encounter list object
+      class(symba_nbody_system), intent(inout) :: nbody_system 
+         !! SyMBA nbody system object
+      real(DP),                  intent(in)    :: dt     
+         !! step size
+      integer(I4B),              intent(in)    :: irec   
+         !! Current recursion level
+      integer(I4B),              intent(in)    :: sgn    
+         !! sign to be applied to acceleration
       ! Internals
       integer(I4B)              :: i, j, irm1, irecl, ngood
       integer(I8B)              :: k

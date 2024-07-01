@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -18,9 +18,12 @@ contains
       !! This method will automatically resize the destination body if it is too small
       implicit none
       !! Arguments
-      class(whm_pl),                   intent(inout) :: self         !! WHM massive body object
-      class(swiftest_body),            intent(in)    :: source       !! Source object to append
-      logical, dimension(:),           intent(in)    :: lsource_mask !! Logical mask indicating which elements to append to
+      class(whm_pl),                   intent(inout) :: self         
+         !! WHM massive body object
+      class(swiftest_body),            intent(in)    :: source       
+         !! Source object to append
+      logical, dimension(:),           intent(in)    :: lsource_mask 
+         !! Logical mask indicating which elements to append to
 
       select type(source)
       class is (whm_pl)
@@ -46,7 +49,8 @@ contains
       !! Deallocates all allocatabale arrays
       implicit none
       ! Arguments
-      class(whm_pl),  intent(inout) :: self !! WHM massive body object
+      class(whm_pl),  intent(inout) :: self 
+         !! WHM massive body object
 
       if (allocated(self%eta)) deallocate(self%eta)
       if (allocated(self%muj)) deallocate(self%muj)
@@ -69,9 +73,12 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
       implicit none
       ! Arguments
-      class(whm_pl),                      intent(inout) :: self       !! WHM massive body object
-      class(swiftest_body),               intent(in)    :: inserts    !! inserted object 
-      logical, dimension(:),              intent(in)    :: lfill_list !! Logical array of bodies to merge into the keeps
+      class(whm_pl),                      intent(inout) :: self       
+         !! WHM massive body object
+      class(swiftest_body),               intent(in)    :: inserts    
+         !! inserted object 
+      logical, dimension(:),              intent(in)    :: lfill_list 
+         !! Logical array of bodies to merge into the keeps
    
       associate(keeps => self)
          select type(inserts)
@@ -99,8 +106,10 @@ contains
       !! Checks the current size of a massive body against the requested size and resizes it if it is too small.
       implicit none
       ! Arguments
-      class(whm_pl), intent(inout) :: self  !! WHM massive body object
-      integer(I4B),  intent(in)    :: nnew  !! New size neded
+      class(whm_pl), intent(inout) :: self  
+         !! WHM massive body object
+      integer(I4B),  intent(in)    :: nnew  
+         !! New size neded
 
       call util_resize(self%eta, nnew)
       call util_resize(self%xj, nnew)
@@ -120,7 +129,8 @@ contains
       !! Sets the inverse Jacobi and heliocentric radii cubed (1/rj**3 and 1/rh**3)
       implicit none
       ! Arguments
-      class(whm_pl),                 intent(inout) :: self    !! WHM massive body object
+      class(whm_pl),  intent(inout) :: self    
+         !! WHM massive body object
       ! Internals
       integer(I4B)                                 :: i
       real(DP)                                     :: r2, ir
@@ -148,9 +158,12 @@ contains
       !! Equivalent in functionality to David E. Kaufmann's Swifter routine whm_util_setup.f90
       implicit none
       ! Arguments
-      class(whm_pl),             intent(inout) :: self  !! Swiftest test particle object
-      integer(I4B),              intent(in)    :: n     !! Number of particles to allocate space for
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameter
+      class(whm_pl), intent(inout) :: self  
+         !! Swiftest test particle object
+      integer(I4B), intent(in) :: n     
+         !! Number of particles to allocate space for
+      class(swiftest_parameters), intent(in) :: param 
+         !! Current run configuration parameter
 
       !> Call allocation method for parent class
       call swiftest_util_setup_pl(self, n, param) 
@@ -178,8 +191,10 @@ contains
       !! Sets the Jacobi mass value eta for all massive bodies
       implicit none
       ! Arguments
-      class(whm_pl),      intent(inout) :: self   !! WHM nbody_system object
-      class(swiftest_cb), intent(inout) :: cb     !! Swiftest central body object
+      class(whm_pl),      intent(inout) :: self   
+         !! WHM nbody_system object
+      class(swiftest_cb), intent(inout) :: cb     
+         !! Swiftest central body object
       ! Internals
       integer(I4B)                                 :: i
 
@@ -205,9 +220,12 @@ contains
       !!
       implicit none
       ! Arguments
-      class(whm_nbody_system),                 intent(inout) :: self            !! WHM nbody system object
-      class(swiftest_storage),    allocatable, intent(inout) :: system_history  !! Stores the system history between output dumps
-      class(swiftest_parameters),              intent(inout) :: param           !! Current run configuration parameters 
+      class(whm_nbody_system),                 intent(inout) :: self            
+         !! WHM nbody system object
+      class(swiftest_storage),    allocatable, intent(inout) :: system_history  
+         !! Stores the system history between output dumps
+      class(swiftest_parameters),              intent(inout) :: param           
+         !! Current run configuration parameters 
 
       call swiftest_util_setup_initialize_system(self, system_history, param)
       ! First we need to make sure that the massive bodies are sorted by heliocentric distance before computing jacobies
@@ -220,7 +238,8 @@ contains
       call self%tp_discards%setup(0, param)
       call self%pl%set_mu(self%cb)
       call self%tp%set_mu(self%cb)
-      if (param%lgr .and. param%in_type == "ASCII") then !! pseudovelocity conversion for NetCDF input files is handled by NetCDF routines
+      if (param%lgr .and. param%in_type == "ASCII") then 
+         ! pseudovelocity conversion for NetCDF input files is handled by NetCDF routines
          call self%pl%v2pv(param)
          call self%tp%v2pv(param)
       end if
@@ -236,9 +255,12 @@ contains
       !! sortby is a string indicating which array component to sort.
       implicit none
       ! Arguments
-      class(whm_pl), intent(inout) :: self      !! WHM massive body object
-      character(*),  intent(in)    :: sortby    !! Sorting attribute
-      logical,       intent(in)    :: ascending !! Logical flag indicating whether or not the sorting should be in ascending or descending order
+      class(whm_pl), intent(inout) :: self      
+         !! WHM massive body object
+      character(*),  intent(in)    :: sortby    
+         !! Sorting attribute
+      logical,       intent(in)    :: ascending 
+         !! Logical flag indicating whether or not the sorting should be in ascending or descending order
       ! Internals
       integer(I4B), dimension(:), allocatable :: ind
       integer(I4B) :: direction
@@ -280,8 +302,10 @@ contains
       !! This is a helper utility used to make polymorphic sorting work on Swiftest structures.
       implicit none
       ! Arguments
-      class(whm_pl),               intent(inout) :: self !! WHM massive body object
-      integer(I4B),  dimension(:), intent(in)    :: ind  !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
+      class(whm_pl),               intent(inout) :: self 
+         !! WHM massive body object
+      integer(I4B),  dimension(:), intent(in)    :: ind  
+         !! Index array used to restructure the body (should contain all 1:n index values in the desired order)
 
       if (self%nbody == 0) return
 
@@ -307,10 +331,14 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_discard_spill.f90
       implicit none
       ! Arguments
-      class(whm_pl),                         intent(inout) :: self        !! WHM massive body object
-      class(swiftest_body),                  intent(inout) :: discards    !! Discarded object 
-      logical, dimension(:),                 intent(in)    :: lspill_list !! Logical array of bodies to spill into the discards
-      logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter the keeps array or not
+      class(whm_pl),                         intent(inout) :: self        
+         !! WHM massive body object
+      class(swiftest_body),                  intent(inout) :: discards    
+         !! Discarded object 
+      logical, dimension(:),                 intent(in)    :: lspill_list 
+         !! Logical array of bodies to spill into the discards
+      logical,               intent(in)    :: ldestructive 
+         !! Logical flag indicating whether or not this operation should alter the keeps array or not
 
       associate(keeps => self)
          select type(discards)

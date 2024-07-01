@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -17,7 +17,8 @@ contains
       !! Pauses the step timer (but not the main timer). 
       implicit none
       ! Arguments
-      class(walltimer),           intent(inout) :: self  !! Walltimer object
+      class(walltimer),           intent(inout) :: self  
+         !! Walltimer object
       ! Internals
       integer(I8B) :: count_delta
 
@@ -44,9 +45,12 @@ contains
       !! Prints the elapsed time information to the terminal
       implicit none
       ! Arguments
-      class(walltimer),           intent(inout) :: self      !! Walltimer object
-      character(len=*),           intent(in)    :: message   !! Message to prepend to the wall time terminal output
-      integer(I4B),               intent(in)    :: unit      !! Output file unit for report text to be directed
+      class(walltimer),           intent(inout) :: self      
+         !! Walltimer object
+      character(len=*),           intent(in)    :: message   
+         !! Message to prepend to the wall time terminal output
+      integer(I4B),               intent(in)    :: unit      
+         !! Output file unit for report text to be directed
       ! Internals
       character(len=*), parameter     :: substepfmt   = '" Total wall time: ", es12.5, "; Interval wall time: ", es12.5, ";' //&
                                                         ' Interval wall time/step:  ", es12.5'
@@ -79,7 +83,8 @@ contains
       !! Resets the step timer
       implicit none
       ! Arguments
-      class(walltimer),           intent(inout) :: self  !! Walltimer object
+      class(walltimer),  intent(inout) :: self  
+         !! Walltimer object
       ! Internals
 
       self%is_paused = .false.
@@ -97,7 +102,8 @@ contains
       !! Resets the clock ticker, settting main_start to the current ticker value
       implicit none
       ! Arguments
-      class(walltimer),           intent(inout) :: self  !! Walltimer object
+      class(walltimer),           intent(inout) :: self  
+         !! Walltimer object
       
       call system_clock(self%count_start_main, self%count_rate, self%count_max)
       self%main_is_started = .true.
@@ -114,7 +120,8 @@ contains
       !!
       implicit none
       ! Arguments
-      class(walltimer),           intent(inout) :: self  !! Walltimer object
+      class(walltimer),           intent(inout) :: self  
+         !! Walltimer object
       ! Internals
       integer(I8B) :: count_resume, count_delta
 

@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -20,20 +20,26 @@ contains
       !! Adapted from Hal Levison's Swift routine rmvs3_chk.f
       implicit none
       ! Arguments
-      class(rmvs_tp),             intent(inout) :: self   !! RMVS test particle object  
-      class(swiftest_parameters), intent(inout) :: param  !! Current swiftest run configuration parameters
-      class(rmvs_nbody_system),   intent(inout) :: nbody_system !! RMVS nbody system object
-      real(DP),                   intent(in)    :: dt     !! step size
+      class(rmvs_tp),             intent(inout) :: self   
+         !! RMVS test particle object  
+      class(swiftest_parameters), intent(inout) :: param  
+         !! Current swiftest run configuration parameters
+      class(rmvs_nbody_system),   intent(inout) :: nbody_system 
+         !! RMVS nbody system object
+      real(DP),                   intent(in)    :: dt     
+         !! step size
       ! Result
-      logical                                 :: lencounter  !! Returns true if there is at least one close encounter
+      logical                                 :: lencounter  
+         !! Returns true if there is at least one close encounter
       ! Internals
       integer(I4B)                            :: i
       integer(I8B)                            :: nenc
       logical, dimension(:),      allocatable :: lvdotr
       integer(I4B), dimension(:), allocatable :: index1, index2
 
-      ! The minimization and linear solvers can sometimes lead to floating point exceptions. Rather than halting the code entirely if this occurs, we
-      ! can simply fail the attempt and try again. So we need to turn off any floating point exception halting modes temporarily 
+      ! The minimization and linear solvers can sometimes lead to floating point exceptions. Rather than halting the code entirely 
+      ! if this occurs, we can simply fail the attempt and try again. So we need to turn off any floating point exception halting 
+      ! modes temporarily 
 
       lencounter = .false.
       if (self%nbody == 0) return
