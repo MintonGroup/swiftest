@@ -270,6 +270,7 @@ contains
       self%nid = size(self%idvals)
 
       ! Don't consolidate time values (multiple collisions can happen in a single time step)
+      if (.not.allocated(self%tvals)) call util_unique(tvals,self%tvals,self%tmap)
       self%nt = size(self%tvals)
 
       return
