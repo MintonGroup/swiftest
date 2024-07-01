@@ -54,7 +54,8 @@ contains
    module subroutine encounter_io_netcdf_initialize_output(self, param)
       !! author: David A. Minton
       !!
-      !! Initialize a NetCDF encounter file system. This is a simplified version of the main simulation output NetCDF file, but with fewer variables.
+      !! Initialize a NetCDF encounter file system. This is a simplified version of the main simulation output NetCDF file, but with
+      !! fewer variables.
       use, intrinsic :: ieee_arithmetic
       use netcdf
       implicit none
@@ -94,42 +95,71 @@ contains
          nc%lfile_is_open = .true.
 
          ! Dimensions
-         call netcdf_io_check( nf90_def_dim(nc%id, nc%time_dimname, NF90_UNLIMITED, nc%time_dimid), "encounter_io_netcdf_initialize_output nf90_def_dim time_dimid" ) ! Simulation time dimension
-         call netcdf_io_check( nf90_def_dim(nc%id, nc%space_dimname, NDIM, nc%space_dimid), "encounter_io_netcdf_initialize_output nf90_def_dim space_dimid" )           ! 3D space dimension
-         call netcdf_io_check( nf90_def_dim(nc%id, nc%name_dimname, NF90_UNLIMITED, nc%name_dimid), "encounter_io_netcdf_initialize_output nf90_def_dim name_dimid" )       ! dimension to store particle id numbers
-         call netcdf_io_check( nf90_def_dim(nc%id, nc%str_dimname, NAMELEN, nc%str_dimid), "encounter_io_netcdf_initialize_output nf90_def_dim str_dimid"  )          ! Dimension for string variables (aka character arrays)
+
+         ! Simulation time dimension
+         call netcdf_io_check( nf90_def_dim(nc%id, nc%time_dimname, NF90_UNLIMITED, nc%time_dimid), &
+                                    "encounter_io_netcdf_initialize_output nf90_def_dim time_dimid" ) 
+
+         ! 3D space dimension
+         call netcdf_io_check( nf90_def_dim(nc%id, nc%space_dimname, NDIM, nc%space_dimid), &
+                                    "encounter_io_netcdf_initialize_output nf90_def_dim space_dimid" )
+
+         ! dimension to store particle id numbers
+         call netcdf_io_check( nf90_def_dim(nc%id, nc%name_dimname, NF90_UNLIMITED, nc%name_dimid), &
+                                    "encounter_io_netcdf_initialize_output nf90_def_dim name_dimid" ) 
+         
+                                    ! Dimension for string variables (aka character arrays)
+         call netcdf_io_check( nf90_def_dim(nc%id, nc%str_dimname, NAMELEN, nc%str_dimid), &
+                                    "encounter_io_netcdf_initialize_output nf90_def_dim str_dimid"  )
 
          ! Dimension coordinates
-         call netcdf_io_check( nf90_def_var(nc%id, nc%time_dimname, nc%out_type, nc%time_dimid, nc%time_varid), "encounter_io_netcdf_initialize_output nf90_def_var time_varid"  )
-         call netcdf_io_check( nf90_def_var(nc%id, nc%space_dimname, NF90_CHAR, nc%space_dimid, nc%space_varid), "encounter_io_netcdf_initialize_output nf90_def_var space_varid"  )
-         call netcdf_io_check( nf90_def_var(nc%id, nc%name_dimname, NF90_CHAR, [nc%str_dimid, nc%name_dimid], nc%name_varid), "encounter_io_netcdf_initialize_output nf90_def_var id_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%time_dimname, nc%out_type, nc%time_dimid, nc%time_varid), &
+                                    "encounter_io_netcdf_initialize_output nf90_def_var time_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%space_dimname, NF90_CHAR, nc%space_dimid, nc%space_varid), &
+                                    "encounter_io_netcdf_initialize_output nf90_def_var space_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%name_dimname, NF90_CHAR, [nc%str_dimid, nc%name_dimid], nc%name_varid), &
+                                    "encounter_io_netcdf_initialize_output nf90_def_var id_varid"  )
       
          ! Variables
-         call netcdf_io_check( nf90_def_var(nc%id, nc%id_varname, NF90_INT, nc%name_dimid, nc%id_varid), "encounter_io_netcdf_initialize_output nf90_def_var id_varid"  )
-         call netcdf_io_check( nf90_def_var(nc%id, nc%ptype_varname, NF90_CHAR, [nc%str_dimid, nc%name_dimid], nc%ptype_varid), "encounter_io_netcdf_initialize_output nf90_def_var ptype_varid"  )
-         call netcdf_io_check( nf90_def_var(nc%id, nc%rh_varname,  nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%rh_varid), "encounter_io_netcdf_initialize_output nf90_def_var rh_varid"  )
-         call netcdf_io_check( nf90_def_var(nc%id, nc%vh_varname,  nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%vh_varid), "encounter_io_netcdf_initialize_output nf90_def_var vh_varid"  )
-         call netcdf_io_check( nf90_def_var(nc%id, nc%Gmass_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%Gmass_varid), "encounter_io_netcdf_initialize_output nf90_def_var Gmass_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%id_varname, NF90_INT, nc%name_dimid, nc%id_varid), &
+                                    "encounter_io_netcdf_initialize_output nf90_def_var id_varid" )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%ptype_varname, NF90_CHAR, [nc%str_dimid, nc%name_dimid], nc%ptype_varid), &
+                                       "encounter_io_netcdf_initialize_output nf90_def_var ptype_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%rh_varname,  nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], &
+                           nc%rh_varid), "encounter_io_netcdf_initialize_output nf90_def_var rh_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%vh_varname,  nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], &
+                           nc%vh_varid), "encounter_io_netcdf_initialize_output nf90_def_var vh_varid"  )
+         call netcdf_io_check( nf90_def_var(nc%id, nc%Gmass_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%Gmass_varid), &
+                           "encounter_io_netcdf_initialize_output nf90_def_var Gmass_varid"  )
          if (param%lclose) then
-            call netcdf_io_check( nf90_def_var(nc%id, nc%radius_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%radius_varid), "encounter_io_netcdf_initialize_output nf90_def_var radius_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%radius_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], &
+                           nc%radius_varid), "encounter_io_netcdf_initialize_output nf90_def_var radius_varid"  )
          end if
          if (param%lrotation) then
-            call netcdf_io_check( nf90_def_var(nc%id, nc%Ip_varname, nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%Ip_varid), "encounter_io_netcdf_initialize_output nf90_def_var Ip_varid"  )
-            call netcdf_io_check( nf90_def_var(nc%id, nc%rot_varname, nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%rot_varid), "encounter_io_netcdf_initialize_output nf90_def_var rot_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%Ip_varname, nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], &
+                              nc%Ip_varid), "encounter_io_netcdf_initialize_output nf90_def_var Ip_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%rot_varname, nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], &
+                              nc%rot_varid), "encounter_io_netcdf_initialize_output nf90_def_var rot_varid"  )
          end if
 
-         call netcdf_io_check( nf90_inquire(nc%id, nVariables=nvar), "encounter_io_netcdf_initialize_output nf90_inquire nVariables"  )
+         call netcdf_io_check( nf90_inquire(nc%id, nVariables=nvar), &
+                              "encounter_io_netcdf_initialize_output nf90_inquire nVariables" )
          do varid = 1, nvar
-            call netcdf_io_check( nf90_inquire_variable(nc%id, varid, xtype=vartype, ndims=ndims), "encounter_io_netcdf_initialize_output nf90_inquire_variable"  )
+            call netcdf_io_check( nf90_inquire_variable(nc%id, varid, xtype=vartype, ndims=ndims), &
+                                 "encounter_io_netcdf_initialize_output nf90_inquire_variable"  )
             select case(vartype)
             case(NF90_INT)
-               call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, NF90_FILL_INT), "encounter_io_netcdf_initialize_output nf90_def_var_fill NF90_INT"  )
+               call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, NF90_FILL_INT), &
+                                 "encounter_io_netcdf_initialize_output nf90_def_var_fill NF90_INT"  )
             case(NF90_FLOAT)
-               call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, sfill), "encounter_io_netcdf_initialize_output nf90_def_var_fill NF90_FLOAT"  )
+               call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, sfill), &
+                                 "encounter_io_netcdf_initialize_output nf90_def_var_fill NF90_FLOAT"  )
             case(NF90_DOUBLE)
-               call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, dfill), "encounter_io_netcdf_initialize_output nf90_def_var_fill NF90_DOUBLE"  )
+               call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, dfill), &
+                                 "encounter_io_netcdf_initialize_output nf90_def_var_fill NF90_DOUBLE"  )
             case(NF90_CHAR)
-               call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, 0), "encounter_io_netcdf_initialize_output nf90_def_var_fill NF90_CHAR"  )
+               call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, 0), &
+                                 "encounter_io_netcdf_initialize_output nf90_def_var_fill NF90_CHAR"  )
             end select
          end do
 
@@ -137,7 +167,8 @@ contains
          call netcdf_io_check( nf90_enddef(nc%id), "encounter_io_netcdf_initialize_output nf90_enddef"  )
 
          ! Add in the space dimension coordinates
-         call netcdf_io_check( nf90_put_var(nc%id, nc%space_varid, nc%space_coords, start=[1], count=[NDIM]), "encounter_io_netcdf_initialize_output nf90_put_var space"  )
+         call netcdf_io_check( nf90_put_var(nc%id, nc%space_varid, nc%space_coords, start=[1], count=[NDIM]), &
+                           "encounter_io_netcdf_initialize_output nf90_put_var space"  )
 
       end associate
 
@@ -184,32 +215,49 @@ contains
             self%lfile_is_open = .true.
 
             ! Dimensions
-            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%time_dimname, nc%time_dimid), "encounter_io_netcdf_open nf90_inq_dimid time_dimid"  )
-            call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%time_dimid, nc%time_dimname, len=nc%max_tslot), "encounter_io_netcdf_open nf90_inquire_dimension max_tslot"  )
+            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%time_dimname, nc%time_dimid), &
+                                    "encounter_io_netcdf_open nf90_inq_dimid time_dimid"  )
+            call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%time_dimid, nc%time_dimname, len=nc%max_tslot), &
+                                    "encounter_io_netcdf_open nf90_inquire_dimension max_tslot"  )
 
-            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%space_dimname, nc%space_dimid), "encounter_io_netcdf_open nf90_inq_dimid space_dimid"  )
-            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%name_dimname, nc%name_dimid), "encounter_io_netcdf_open nf90_inq_dimid name_dimid"  )
-            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%str_dimname, nc%str_dimid), "encounter_io_netcdf_open nf90_inq_dimid str_dimid"  )
+            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%space_dimname, nc%space_dimid), &
+                                    "encounter_io_netcdf_open nf90_inq_dimid space_dimid"  )
+            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%name_dimname, nc%name_dimid), &
+                                    "encounter_io_netcdf_open nf90_inq_dimid name_dimid"  )
+            call netcdf_io_check( nf90_inq_dimid(nc%id, nc%str_dimname, nc%str_dimid), &
+                                    "encounter_io_netcdf_open nf90_inq_dimid str_dimid"  )
 
             ! Dimension coordinates
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%time_dimname, nc%time_varid), "encounter_io_netcdf_open nf90_inq_varid time_varid" )
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%space_dimname, nc%space_varid), "encounter_io_netcdf_open nf90_inq_varid space_varid" )
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%name_dimname, nc%name_varid), "encounter_io_netcdf_open nf90_inq_varid name_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%time_dimname, nc%time_varid), &
+                                    "encounter_io_netcdf_open nf90_inq_varid time_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%space_dimname, nc%space_varid), &
+                                    "encounter_io_netcdf_open nf90_inq_varid space_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%name_dimname, nc%name_varid), &
+                                    "encounter_io_netcdf_open nf90_inq_varid name_varid" )
 
             ! Required Variables
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%id_varname, nc%id_varid), "encounter_io_netcdf_open nf90_inq_varid name_varid" )
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%ptype_varname, nc%ptype_varid), "encounter_io_netcdf_open nf90_inq_varid ptype_varid" )
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%time_dimname, nc%time_varid), "encounter_io_netcdf_open nf90_inq_varid time_varid" )
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%rh_varname, nc%rh_varid), "encounter_io_netcdf_open nf90_inq_varid rh_varid" )
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%vh_varname, nc%vh_varid), "encounter_io_netcdf_open nf90_inq_varid vh_varid" )
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%Gmass_varname, nc%Gmass_varid), "encounter_io_netcdf_open nf90_inq_varid Gmass_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%id_varname, nc%id_varid), &
+                                    "encounter_io_netcdf_open nf90_inq_varid name_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%ptype_varname, nc%ptype_varid), &
+                                    "encounter_io_netcdf_open nf90_inq_varid ptype_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%time_dimname, nc%time_varid), &
+                                    "encounter_io_netcdf_open nf90_inq_varid time_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%rh_varname, nc%rh_varid), &
+                                    "encounter_io_netcdf_open nf90_inq_varid rh_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%vh_varname, nc%vh_varid), &
+                                    "encounter_io_netcdf_open nf90_inq_varid vh_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%Gmass_varname, nc%Gmass_varid), &
+                                    "encounter_io_netcdf_open nf90_inq_varid Gmass_varid" )
             if (param%lclose) then
-               call netcdf_io_check( nf90_inq_varid(nc%id, nc%radius_varname, nc%radius_varid), "encounter_io_netcdf_open nf90_inq_varid radius_varid" )
+               call netcdf_io_check( nf90_inq_varid(nc%id, nc%radius_varname, nc%radius_varid), &
+                                    "encounter_io_netcdf_open nf90_inq_varid radius_varid" )
             end if
             
             if (param%lrotation) then
-               call netcdf_io_check( nf90_inq_varid(nc%id, nc%Ip_varname, nc%Ip_varid), "encounter_io_netcdf_open nf90_inq_varid Ip_varid" )
-               call netcdf_io_check( nf90_inq_varid(nc%id, nc%rot_varname, nc%rot_varid), "encounter_io_netcdf_open nf90_inq_varid rot_varid" )
+               call netcdf_io_check( nf90_inq_varid(nc%id, nc%Ip_varname, nc%Ip_varid), &
+                                    "encounter_io_netcdf_open nf90_inq_varid Ip_varid" )
+               call netcdf_io_check( nf90_inq_varid(nc%id, nc%rot_varname, nc%rot_varid), &
+                                    "encounter_io_netcdf_open nf90_inq_varid rot_varid" )
             end if
 
          end associate
@@ -243,45 +291,63 @@ contains
       select type (nc => history%nc)
       class is (encounter_netcdf_parameters)
          associate(tslot => nc%tslot)
-            call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "encounter_io_netcdf_write_frame_snapshot nf90_set_fill"  )
+            call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), &
+                                    "encounter_io_netcdf_write_frame_snapshot nf90_set_fill"  )
       
-            call netcdf_io_check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var time_varid"  )
+            call netcdf_io_check( nf90_put_var(nc%id, nc%time_varid, self%t, start=[tslot]), &
+                                    "encounter_io_netcdf_write_frame_snapshot nf90_put_var time_varid"  )
 
             npl = pl%nbody
-            ! This ensures that there first idslot will have the first body in it, not id 0 which is the default for a new idvals array
+            ! This ensures that there first idslot will have the first body in it, not id 0 which is &
+            ! the default for a new idvals array
             if (.not.allocated(nc%idvals)) allocate(nc%idvals, source=pl%id)
             do i = 1, npl
                call nc%find_idslot(pl%id(i), idslot) 
-               call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, pl%id(i),   start=[idslot]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl id_varid"  )
-               call netcdf_io_check( nf90_put_var(nc%id, nc%rh_varid, pl%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl rh_varid"  )
-               call netcdf_io_check( nf90_put_var(nc%id, nc%vh_varid, pl%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl vh_varid"  )
-               call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid, pl%Gmass(i), start=[idslot, tslot]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl Gmass_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, pl%id(i),   start=[idslot]), &
+                                       "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl id_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%rh_varid, pl%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), &
+                                       "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl rh_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%vh_varid, pl%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), &
+                                       "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl vh_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid, pl%Gmass(i), start=[idslot, tslot]), &
+                                       "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl Gmass_varid"  )
 
-               if (param%lclose) call netcdf_io_check( nf90_put_var(nc%id, nc%radius_varid, pl%radius(i), start=[idslot, tslot]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl radius_varid"  )
+               if (param%lclose) call netcdf_io_check( nf90_put_var(nc%id, nc%radius_varid, pl%radius(i), start=[idslot, tslot]), &
+                                       "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl radius_varid"  )
 
                if (param%lrotation) then
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid, pl%Ip(:,i), start=[1, idslot, tslot], count=[NDIM,1,1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl Ip_varid"  )
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, pl%rot(:,i)*RAD2DEG, start=[1,idslot, tslot], count=[NDIM,1,1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl rotx_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid, pl%Ip(:,i), start=[1, idslot, tslot], count=[NDIM,1,1]), &
+                                       "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl Ip_varid"  )
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, pl%rot(:,i)*RAD2DEG, start=[1,idslot, tslot], &
+                                       count=[NDIM,1,1]), &
+                                       "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl rotx_varid"  )
                end if
 
                charstring = trim(adjustl(pl%info(i)%name))
-               call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl name_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), &
+                                       "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl name_varid"  )
                charstring = trim(adjustl(pl%info(i)%particle_type))
-               call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl particle_type_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), &
+                                       "encounter_io_netcdf_write_frame_snapshot nf90_put_var pl particle_type_varid"  )
             end do
 
             ntp = tp%nbody
             if (.not.allocated(nc%idvals)) allocate(nc%idvals, source=tp%id)
             do i = 1, ntp
                call nc%find_idslot(tp%id(i), idslot) 
-               call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, tp%id(i), start=[idslot]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp id_varid"  )
-               call netcdf_io_check( nf90_put_var(nc%id, nc%rh_varid, tp%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp rh_varid"  )
-               call netcdf_io_check( nf90_put_var(nc%id, nc%vh_varid, tp%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp vh_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, tp%id(i), start=[idslot]), &
+                                       "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp id_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%rh_varid, tp%rh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), &
+                                       "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp rh_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%vh_varid, tp%vh(:,i), start=[1,idslot,tslot], count=[NDIM,1,1]), &
+                                       "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp vh_varid"  )
 
                charstring = trim(adjustl(tp%info(i)%name))
-               call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp name_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), &
+                                       "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp name_varid"  )
                charstring = trim(adjustl(tp%info(i)%particle_type))
-               call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp particle_type_varid"  )
+               call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), &
+                                       "encounter_io_netcdf_write_frame_snapshot nf90_put_var tp particle_type_varid"  )
             end do
 
             call netcdf_io_check( nf90_set_fill(nc%id, old_mode, tmp) )
