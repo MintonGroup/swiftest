@@ -2982,6 +2982,7 @@ contains
       integer(I4B)                   :: nseeds
 
       associate(param => self)
+         call io_param_writer_one("RESTART", param%lrestart, unit)
          call io_param_writer_one("T0", param%t0, unit)
          call io_param_writer_one("TSTART", param%tstart, unit)
          call io_param_writer_one("TSTOP", param%tstop, unit)

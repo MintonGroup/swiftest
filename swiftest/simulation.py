@@ -1202,6 +1202,8 @@ class Simulation(object):
             if restart is not None:
                 self.param["RESTART"] = restart
                 update_list.append("restart")
+            else:
+                self.restart = self.param["RESTART"]
 
             if interaction_loops is not None:
                 valid_vals = ["TRIANGULAR", "FLAT"]
