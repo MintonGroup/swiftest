@@ -967,7 +967,7 @@ contains
 
 
             if (nc%lc_lm_exists) then
-               call netcdf_io_check( nf90_def_dim(nc%id, nc%sign_dimname, NF90_UNLIMITED, nc%sign_dimid), &
+               call netcdf_io_check( nf90_def_dim(nc%id, nc%sign_dimname, 2, nc%sign_dimid), &
                                     "swiftest_io_netcdf_open nf90_def_dim sign_dimid")
                call netcdf_io_check( nf90_def_dim(nc%id, nc%l_dimname, NF90_UNLIMITED, nc%l_dimid), &
                                     "swiftest_io_netcdf_open nf90_def_dim l_dimid")
