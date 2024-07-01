@@ -401,7 +401,7 @@ contains
                "collision_io_netcdf_open nf90_inq_varid stage_varid" )
 
             ! Required Variables
-            call netcdf_io_check( nf90_inq_varid(nc%id, nc%name_dimname, nc%id_varid), &
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%name_dimname, nc%name_varid), &
                "collision_io_netcdf_open nf90_inq_varid name_varid" )
             call netcdf_io_check( nf90_inq_varid(nc%id, nc%id_varname, nc%id_varid), &
                "collision_io_netcdf_open nf90_inq_varid id_varid" )
