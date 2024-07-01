@@ -296,9 +296,9 @@ module netcdf_io
          !! ID for the m dimension for c_lm
       integer(I4B) :: m_varid
          !! ID for the m variable
-      integer(I4B) :: m_dim_max
+      integer(I4B) :: m_dim_max = 6
          !! Maximum value of the m dimension
-      integer(I4B) :: l_dim_max
+      integer(I4B) :: l_dim_max = 6
          !! Maximum value of the l dimension
 
    contains
