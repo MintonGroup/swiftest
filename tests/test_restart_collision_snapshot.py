@@ -94,10 +94,11 @@ class TestSwiftestRestart(unittest.TestCase):
               sim_restart.set_parameter(tstop = 365.25 * 10)
 
               try:
-                     sim_restart.run()
+                  sim_restart.run()
               except Exception as e:
-                     self.fail(f'Failed restart with Exception: {e}')
-                     
+                  self.fail(f'Failed restart with Exception: {e}')
+              
+              self.assertTrue(os.path.exists(os.path.join(self.simdir,"param.00000000000000365250.in")))
               return
 
 if __name__ == '__main__':
