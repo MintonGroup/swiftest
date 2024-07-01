@@ -81,9 +81,9 @@ class TestSwiftestRestart(unittest.TestCase):
               sim.add_body(name = names, radius = radius, mass = mass, rh = rh, vh = vh)
 
               try:
-                     sim.run() 
+                 sim.run() 
               except Exception as e:
-                     self.fail(f'Failed initial run with Exception: {e}')
+                 self.fail(f'Failed initial run with Exception: {e}')
 
               # restart run
 
