@@ -18,9 +18,12 @@ contains
       !! This method will automatically resize the destination body if it is too small
       implicit none
       ! Arguments
-      class(encounter_list), intent(inout)        :: self         !! Swiftest encounter list object
-      class(encounter_list), intent(in)           :: source       !! Source object to append
-      logical, dimension(:), intent(in)           :: lsource_mask !! Logical mask indicating which elements to append to
+      class(encounter_list), intent(inout) :: self 
+         !! Swiftest encounter list object
+      class(encounter_list), intent(in) :: source 
+         !! Source object to append
+      logical, dimension(:), intent(in) :: lsource_mask 
+         !! Logical mask indicating which elements to append to
       ! Internals
       integer(I4B) :: nold
 
@@ -99,7 +102,8 @@ contains
       !! Deallocates all allocatables
       implicit none
       ! Arguments
-      class(encounter_bounding_box), intent(inout) :: self !! Bounding box structure
+      class(encounter_bounding_box), intent(inout) :: self 
+         !! Bounding box structure
 
       call self%aabb%dealloc()
 
@@ -141,7 +145,8 @@ contains
       !! Deallocates all allocatables
       implicit none
       ! Arguments
-      class(encounter_snapshot), intent(inout) :: self !! Encounter shapshot object
+      class(encounter_snapshot), intent(inout) :: self 
+         !! Encounter shapshot object
 
       if (allocated(self%pl)) deallocate(self%pl)
       if (allocated(self%tp)) deallocate(self%tp)
@@ -157,7 +162,8 @@ contains
       use base, only : base_util_dealloc_storage
       implicit none
       ! Arguments
-      class(encounter_storage), intent(inout) :: self !! Swiftest storage object
+      class(encounter_storage), intent(inout) :: self 
+         !! Swiftest storage object
 
       if (allocated(self%nc)) deallocate(self%nc)
 
@@ -173,8 +179,10 @@ contains
       !! Returns an array of all id values saved in this snapshot
       implicit none
       ! Arguments
-      class(encounter_snapshot),               intent(in)  :: self   !! Encounter snapshot object
-      integer(I4B), dimension(:), allocatable, intent(out) :: idvals !! Array of all id values saved in this snapshot
+      class(encounter_snapshot),               intent(in)  :: self   
+         !! Encounter snapshot object
+      integer(I4B), dimension(:), allocatable, intent(out) :: idvals 
+         !! Array of all id values saved in this snapshot
       ! Internals
       integer(I4B) :: npl, ntp
 
@@ -212,9 +220,12 @@ contains
       !!
       !! Gets the id values in a self object, regardless of whether it is encounter of collision
       ! Argument
-      class(encounter_storage), intent(in)               :: self   !! Encounter storages object
-      integer(I4B), dimension(:),  allocatable, intent(out) :: idvals !! Array of all id values in all snapshots
-      real(DP),     dimension(:),  allocatable, intent(out) :: tvals  !! Array of all time values in all snapshots
+      class(encounter_storage), intent(in)  :: self   
+         !! Encounter storages object
+      integer(I4B), dimension(:),  allocatable, intent(out) :: idvals 
+         !! Array of all id values in all snapshots
+      real(DP),     dimension(:),  allocatable, intent(out) :: tvals  
+         !! Array of all time values in all snapshots
       ! Internals
       integer(I4B) :: i, n, nlo, nhi, ntotal
       integer(I4B), dimension(:), allocatable :: itmp
@@ -294,10 +305,12 @@ contains
    module subroutine encounter_util_resize_list(self, nnew)
       !! author: David A. Minton
       !!
-      !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested if it is too small.
-      !! Note: The reason to extend it by a factor of 2 is for performance. When there are many enounters per step, resizing every time you want to add an 
-      !! encounter takes significant computational effort. Resizing by a factor of 2 is a tradeoff between performance (fewer resize calls) and memory managment
-      !! Memory usage grows by a factor of 2 each time it fills up, but no more. 
+      !! Checks the current size of the encounter list against the required size and extends it by a factor of 2 more than requested
+      !! if it is too small. 
+      !! Note: The reason to extend it by a factor of 2 is for performance. When there are many enounters per step, resizing every 
+      !! time you want to add an !! encounter takes significant computational effort. Resizing by a factor of 2 is a tradeoff 
+      !! between performance (fewer resize calls) and memory managment Memory usage grows by a factor of 2 each time it fills up, 
+      !! but no more. 
       implicit none
       ! Arguments
       class(encounter_list), intent(inout) :: self !! Swiftest encounter list 
@@ -335,9 +348,12 @@ contains
       !! Sets up or modifies an axis-aligned bounding box structure.
       implicit none
       ! Arguments
-      class(encounter_bounding_box), intent(inout) :: self   !! Swiftest encounter structure
-      integer(I4B),                  intent(in)    :: n      !! Number of objects with bounding box extents
-      integer(I4B),                  intent(in)    :: n_last !! Number of objects with bounding box extents the previous time this was called
+      class(encounter_bounding_box), intent(inout) :: self   
+         !! Swiftest encounter structure
+      integer(I4B),                  intent(in)    :: n      
+         !! Number of objects with bounding box extents
+      integer(I4B), intent(in)    :: n_last 
+         !! Number of objects with bounding box extents the previous time this was called
       ! Internals
       integer(I4B) :: next, next_last, k
       integer(I4B), dimension(:), allocatable :: itmp
@@ -420,10 +436,14 @@ contains
       !! Move spilled (discarded) Swiftest encounter structure from active list to discard list
       implicit none
       ! Arguments
-      class(encounter_list), intent(inout) :: self         !! Swiftest encounter list 
-      class(encounter_list), intent(inout) :: discards     !! Discarded object 
-      logical, dimension(:), intent(in)    :: lspill_list  !! Logical array of bodies to spill into the discards
-      logical,               intent(in)    :: ldestructive !! Logical flag indicating whether or not this operation should alter body by removing the discard list
+      class(encounter_list), intent(inout) :: self         
+         !! Swiftest encounter list 
+      class(encounter_list), intent(inout) :: discards     
+         !! Discarded object 
+      logical, dimension(:), intent(in)    :: lspill_list  
+         !! Logical array of bodies to spill into the discards
+      logical,               intent(in)    :: ldestructive 
+         !! Logical flag indicating whether or not this operation should alter body by removing the discard list
       ! Internals
       integer(I8B) :: nenc_old
   
@@ -462,11 +482,16 @@ contains
       use symba, only : symba_pl, symba_tp, symba_nbody_system
       implicit none
       ! Internals
-      class(encounter_storage),  intent(inout)        :: self         !! Swiftest storage object
-      class(base_parameters),    intent(inout)        :: param        !! Current run configuration parameters
-      class(base_nbody_system),  intent(inout)        :: nbody_system !! Swiftest nbody system object to store
-      real(DP),                  intent(in), optional :: t            !! Time of snapshot if different from system time
-      character(*),              intent(in), optional :: arg          !! Optional argument (needed for extended storage type used in collision snapshots)
+      class(encounter_storage),  intent(inout)        :: self         
+         !! Swiftest storage object
+      class(base_parameters),    intent(inout)        :: param        
+         !! Current run configuration parameters
+      class(base_nbody_system),  intent(inout)        :: nbody_system 
+         !! Swiftest nbody system object to store
+      real(DP),                  intent(in), optional :: t            
+         !! Time of snapshot if different from system time
+      character(*),              intent(in), optional :: arg          
+         !! Optional argument (needed for extended storage type used in collision snapshots)
       ! Arguments
       class(encounter_snapshot), allocatable :: snapshot
       integer(I4B) :: i, pii, pjj, npl_snap, ntp_snap, iflag
@@ -616,22 +641,28 @@ contains
                                     ! Compute pericenter passage time to get the closest approach parameters
                                     rrel(:) = plpl_encounter%r2(:,k) - plpl_encounter%r1(:,k)
                                     vrel(:) = plpl_encounter%v2(:,k) - plpl_encounter%v1(:,k)
-                                    call swiftest_orbel_xv2aqt(Gmtot, rrel(1), rrel(2), rrel(3), vrel(1), vrel(2), vrel(3), a, q, capm, tperi)
+                                    call swiftest_orbel_xv2aqt(Gmtot, rrel(1), rrel(2), rrel(3), &
+                                                                      vrel(1), vrel(2), vrel(3), &
+                                                               a, q, capm, tperi)
                                     snapshot%t = t + tperi
                                     if ((snapshot%t < maxval(pl_snap%info(:)%origin_time)) .or. &
                                           (snapshot%t > minval(pl_snap%info(:)%discard_time))) cycle
 
                                     ! Computer the center mass of the pair
-                                    rcom(:) = (plpl_encounter%r1(:,k) * pl_snap%Gmass(1) + plpl_encounter%r2(:,k) * pl_snap%Gmass(2)) / Gmtot
-                                    vcom(:) = (plpl_encounter%v1(:,k) * pl_snap%Gmass(1) + plpl_encounter%v2(:,k) * pl_snap%Gmass(2)) / Gmtot
+                                    rcom(:) = (plpl_encounter%r1(:,k) * pl_snap%Gmass(1) + plpl_encounter%r2(:,k) &
+                                                                                            * pl_snap%Gmass(2)) / Gmtot
+                                    vcom(:) = (plpl_encounter%v1(:,k) * pl_snap%Gmass(1) + plpl_encounter%v2(:,k) &
+                                                                                           * pl_snap%Gmass(2)) / Gmtot
                                     rb(:,1) = plpl_encounter%r1(:,k) - rcom(:)
                                     rb(:,2) = plpl_encounter%r2(:,k) - rcom(:)
                                     vb(:,1) = plpl_encounter%v1(:,k) - vcom(:)
                                     vb(:,2) = plpl_encounter%v2(:,k) - vcom(:)
 
                                     ! Drift the relative orbit to get the new relative position and velocity
-                                    call swiftest_drift_one(Gmtot, rrel(1), rrel(2), rrel(3), vrel(1), vrel(2), vrel(3), tperi, iflag)
-                                    if (iflag /= 0) write(*,*) "Danby error in encounter_util_snapshot_encounter. Closest approach positions and vectors may not be accurate."
+                                    call swiftest_drift_one(Gmtot, rrel(1), rrel(2), rrel(3), &
+                                                                   vrel(1), vrel(2), vrel(3), tperi, iflag)
+                                    if (iflag /= 0) write(*,*) "Danby error in encounter_util_snapshot_encounter. " &
+                                                               // "Closest approach positions and vectors may not be accurate."
 
                                     ! Get the new position and velocity vectors
                                     rb(:,1) = -(pl_snap%Gmass(2) / Gmtot) * rrel(:)
