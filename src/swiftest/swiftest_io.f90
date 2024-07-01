@@ -1592,11 +1592,13 @@ contains
                if(.not. allocated(cb%c_lm)) allocate(cb%c_lm(nc%m_dim_max, nc%l_dim_max, 2)) 
                call netcdf_io_check( nf90_get_var(nc%id, nc%c_lm_varid, cb%c_lm, count = [nc%m_dim_max, nc%l_dim_max, 2]), &
                                      "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
-               
-               if (abs(cb%j2rp2) > tiny(1.0_DP) .or. (abs(cb%j4rp4) > tiny(1.0_DP))) then
-                  write(*,*) "Error reading in NetCDF file: cannot use both c_lm and j2rp2/j4rp4"
-                  call base_util_exit(FAILURE,param%display_unit) 
-               end if
+              
+               if ((cb%j2rp2 == cb%j2rp2) .or. (cb%j4rp4 == cb%j4rp4)) then
+                  if (abs(cb%j2rp2) > tiny(1.0_DP) .or. (abs(cb%j4rp4) > tiny(1.0_DP))) then
+                     write(*,*) "Error reading in NetCDF file: cannot use both c_lm and j2rp2/j4rp4"
+                     call base_util_exit(FAILURE,param%display_unit) 
+                  end if
+               endif
    
                nc%lc_lm_exists = .true.
             else
