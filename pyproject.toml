@@ -38,10 +38,8 @@ dependencies = [
     'astropy>=6.0.0',
     'astroquery>=0.4.6',
     'tqdm>=4.66.2',
+    'pyshtools==4.12.2'
 ]
-
-[project.optional-dependencies]
-pyshtools = ["pyshtools>=4.12.2"] 
 
 [project.urls]
 repository = 'https://github.com/MintonGroup/swiftest'
