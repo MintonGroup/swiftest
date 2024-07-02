@@ -4,11 +4,10 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - debug
+      - main
   pull_request:
     branches:
-      - master
-      - debug
+      - main
 
 jobs:
   build_wheels:
