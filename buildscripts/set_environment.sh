@@ -78,12 +78,12 @@ CPATH="${PREFIX}/include"
 PATH="${PREFIX}/bin:${PATH}"
 CMAKE_INSTALL_LIBDIR="lib"
 NPROC=$(nproc)
-OMPI_FC="$(${SCRIPT_DIR}/get_fortran_path.sh)"
 CC="${CC:-$(command -v mpicc)}"
 CXX="${CXX:-$(command -v mpic++)}"
 FC="${FC:-$(command -v mpifort)}"
 F77="${F77:-$(command -v mpifort)}"
 F95="${FC}"
+OMPI_FC="$(${SCRIPT_DIR}/get_fortran_path.sh)"
 
 if [ $OS = "Darwin" ]; then
     MACOSX_DEPLOYMENT_TARGET=${MACOSX_DEPLOYMENT_TARGET:-"$(${SCRIPT_DIR}/get_macosx_deployment_target.sh)"}
