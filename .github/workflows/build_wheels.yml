@@ -1,18 +1,13 @@
 name: build_swiftest
 
 on:
-  workflow_call:
-    inputs:
-      run_id:
-        required: true
-        type: string
+  workflow_dispatch:
   push:
     branches:
       - main
   pull_request:
     branches:
       - main
-  workflow_dispatch:
 
 jobs:
   build_wheels:
@@ -32,7 +27,7 @@ jobs:
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
-          retention-days: 7
+          retention-days: 1
 
   build_sdist:
     name: Build source distribution
@@ -46,5 +41,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: cibw-sdist
-          path: wheelhouse/*.tar.gz              
+          path: dist/*.tar.gz              
+          retention-days: 1
 

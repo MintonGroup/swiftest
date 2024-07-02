@@ -2,37 +2,45 @@ name: deploy_swiftest
 
 on:
   workflow_dispatch:
-    inputs:
-      run_id: 
-        required: true
-        type: string
   release:
     types:
       - published
-    inputs:
-      run_id: 
-        required: true
-        type: string
 
 jobs:
-  call-build_wheels:
-    uses: ./.github/workflows/build_wheels.yml
-    secrets: inherit
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-12, macos-13, macos-14]  
 
-  download_artifacts:
-    needs: [call-build_wheels]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.19.2
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
+
+  build_sdist:
+    name: Build source distribution
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v4
+
+      - name: Build sdist
+        run: pipx run build --sdist
+
+      - uses: actions/upload-artifact@v4
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }} 
-          run_id: ${{ inputs.run_id }}
-          pattern: cibw-*
-          path: wheelhouse
-          merge-multiple: true
+          name: cibw-sdist
+          path: dist/*.tar.gz              
 
   upload_pypi:
-    needs: [download_artifacts]
+    needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
     environment: 
       name: pypi
@@ -41,6 +49,12 @@ jobs:
       id-token: write
     if: github.event_name == 'release' && github.event.action == 'published'
     steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cibw-*
+          path: dist
+          merge-multiple: true
+
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
