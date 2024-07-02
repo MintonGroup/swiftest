@@ -10,8 +10,9 @@ on:
     types:
       - published
     inputs:
-      build_id: true
-      type: string
+      run_id: 
+        required: true
+        type: string
 
 jobs:
   call-build_wheels:
