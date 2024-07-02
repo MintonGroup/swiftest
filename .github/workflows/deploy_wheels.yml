@@ -7,15 +7,21 @@ on:
       - published
 
 jobs:
+  call-build_wheels:
+    uses: ./.github/workflows/build_wheels.yml@main
+    secrets: inherit
+
   download_artifacts:
+    needs: [call-build_wheels]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
       - uses: actions/download-artifact@v4
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }} 
+          run_id: ${{ github.run_id}}
           pattern: cibw-*
           path: wheelhouse
+          merge-multiple: true
 
   upload_pypi:
     needs: [download_artifacts]
@@ -27,12 +33,6 @@ jobs:
       id-token: write
     if: github.event_name == 'release' && github.event.action == 'published'
     steps:
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: cibw-*
-          path: dist
-          merge-multiple: true
-
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
