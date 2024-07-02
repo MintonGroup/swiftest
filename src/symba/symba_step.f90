@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -21,10 +21,14 @@ contains
       !! Adapted from Hal Levison's Swift routine symba5_step_pl.f
       implicit none
       ! Arguments
-      class(symba_nbody_system),  intent(inout) :: self   !! SyMBA nbody system object
-      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters
-      real(DP),                   intent(in)    :: t      !! Simulation time
-      real(DP),                   intent(in)    :: dt     !! Current stepsize
+      class(symba_nbody_system),  intent(inout) :: self   
+         !! SyMBA nbody system object
+      class(swiftest_parameters), intent(inout) :: param  
+         !! Current run configuration parameters
+      real(DP),                   intent(in)    :: t      
+         !! Simulation time
+      real(DP),                   intent(in)    :: dt     
+         !! Current stepsize
       ! Internals
       logical :: lencounter
      
@@ -62,12 +66,17 @@ contains
       !! Adapted from Hal Levison's Swift routine symba5_step_interp.f
       implicit none
       ! Arguments
-      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
-      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
-      real(DP),                   intent(in)    :: t     !! Simulation time
-      real(DP),                   intent(in)    :: dt    !! Current stepsize
+      class(symba_nbody_system),  intent(inout) :: self  
+         !! SyMBA nbody system object
+      class(swiftest_parameters), intent(inout) :: param 
+         !! Current run configuration parameters 
+      real(DP),                   intent(in)    :: t     
+         !! Simulation time
+      real(DP),                   intent(in)    :: dt    
+         !! Current stepsize
       ! Internals
-      real(DP)                                  :: dth   !! Half step size
+      real(DP)                                  :: dth   
+         !! Half step size
 
       select type(pl => self%pl)
       class is (symba_pl)
@@ -124,8 +133,10 @@ contains
       !! Adapted from Hal Levison's Swift routine symba5_step_recur.f
       implicit none
       ! Arguments
-      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
-      integer(I4B),               intent(in)    :: ireci !! Input recursion level 
+      class(symba_nbody_system),  intent(inout) :: self  
+         !! SyMBA nbody system object
+      integer(I4B),               intent(in)    :: ireci 
+         !! Input recursion level 
       ! Internals
       integer(I4B) :: irecp
 
@@ -133,7 +144,8 @@ contains
       class is (symba_pl)
       select type(tp => self%tp)
       class is (symba_tp)
-         associate(nbody_system => self, plpl_encounter => self%plpl_encounter, pltp_encounter => self%pltp_encounter, npl => self%pl%nbody, ntp => self%tp%nbody)
+         associate(nbody_system => self, plpl_encounter => self%plpl_encounter, pltp_encounter => self%pltp_encounter, &
+                   npl => self%pl%nbody, ntp => self%tp%nbody)
 
             irecp = ireci + 1
 
@@ -170,10 +182,14 @@ contains
       !! Adapted from Hal Levison's Swift routine symba5_step_recur.f
       implicit none
       ! Arguments
-      class(symba_nbody_system),  intent(inout) :: self  !! SyMBA nbody system object
-      class(swiftest_parameters), intent(inout) :: param !! Current run configuration parameters 
+      class(symba_nbody_system),  intent(inout) :: self  
+         !! SyMBA nbody system object
+      class(swiftest_parameters), intent(inout) :: param 
+         !! Current run configuration parameters 
       real(DP),                   intent(in)    :: t
-      integer(I4B),               intent(in)    :: ireci !! input recursion level
+         !! Current simulation time
+      integer(I4B),               intent(in)    :: ireci 
+         !! input recursion level
       ! Internals
       integer(I4B) :: j, irecp, nloops
       real(DP) :: dtl, dth
@@ -271,8 +287,10 @@ contains
       !! Adapted from Hal Levison's Swift routine symba5_step.f
       implicit none
       ! Arguments
-      class(symba_nbody_system), intent(inout) :: self  !! SyMBA nbody system object
-      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters with SyMBA additions
+      class(symba_nbody_system), intent(inout) :: self  
+         !! SyMBA nbody system object
+      class(swiftest_parameters),   intent(in)    :: param 
+         !! Current run configuration parameters with SyMBA additions
       ! Internals
       integer(I4B) :: i
       integer(I8B) :: nenc_old
@@ -298,7 +316,10 @@ contains
                pl%ldiscard(1:npl) = .false.
                pl%lmask(1:npl) = .true.
                call pl%set_renc(0)
-               call nbody_system%plpl_encounter%setup(nenc_old) ! This resizes the pl-pl encounter list to be the same size as it was the last step, to decrease the number of potential resize operations that have to be one inside the step
+               
+               ! This resizes the pl-pl encounter list to be the same size as it was the last step, to decrease the number of 
+               ! potential resize operations that have to be one inside the step
+               call nbody_system%plpl_encounter%setup(nenc_old) 
                nbody_system%plpl_encounter%nenc = 0 ! Sets the true number of encounters back to 0 after resizing
                nbody_system%plpl_encounter%lcollision = .false.
             end if
@@ -313,7 +334,10 @@ contains
                tp%levelm(1:ntp) = -1
                tp%lmask(1:ntp) = .true.
                tp%ldiscard(1:ntp) = .false.
-               call nbody_system%pltp_encounter%setup(nenc_old)! This resizes the pl-tp encounter list to be the same size as it was the last step, to decrease the number of potential resize operations that have to be one inside the step
+
+               ! This resizes the pl-tp encounter list to be the same size as it was the last step, to decrease the number of 
+               ! potential resize operations that have to be one inside the step
+               call nbody_system%pltp_encounter%setup(nenc_old)
                nbody_system%pltp_encounter%nenc = 0 ! Sets the true number of encounters back to 0 after resizing
                nbody_system%pltp_encounter%lcollision = .false.
             end if

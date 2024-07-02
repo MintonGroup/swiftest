@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -23,8 +23,10 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_h2j.f 
       implicit none
       ! Arguments
-      class(whm_pl),         intent(inout) :: self   !! WHM massive body particle data structure
-      class(swiftest_cb),    intent(inout) :: cb     !! Swiftest central body particle data structuree
+      class(whm_pl),         intent(inout) :: self   
+         !! WHM massive body particle data structure
+      class(swiftest_cb),    intent(inout) :: cb     
+         !! Swiftest central body particle data structuree
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(NDIM)                    :: sumx, sumv, cap, capv
@@ -64,11 +66,13 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_j2h.f 
       implicit none
       ! Arguments
-      class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
-      class(swiftest_cb),                 intent(inout) :: cb     !! Swiftest central body particle data structuree
+      class(whm_pl),                 intent(inout) :: self  
+          !! WHM massive body particle data structure
+      class(swiftest_cb),                 intent(inout) :: cb     
+         !! Swiftest central body particle data structuree
       ! Internals
-      integer(I4B)                                 :: i
-      real(DP), dimension(NDIM)                    :: sumx, sumv
+      integer(I4B) :: i
+      real(DP), dimension(NDIM) :: sumx, sumv
 
       if (self%nbody == 0) return
 
@@ -102,8 +106,8 @@ contains
       !! Adapted from Hal Levison's Swift routine coord_vh2vj.f 
       implicit none
       ! Arguments
-      class(whm_pl),                 intent(inout) :: self   !! WHM massive body particle data structure
-      class(swiftest_cb),                 intent(inout) :: cb     !! Swiftest central body particle data structuree
+      class(whm_pl), intent(inout) :: self   !! WHM massive body particle data structure
+      class(swiftest_cb), intent(inout) :: cb     !! Swiftest central body particle data structuree
       ! Internals
       integer(I4B)                                 :: i
       real(DP), dimension(NDIM)                    :: sumv, capv

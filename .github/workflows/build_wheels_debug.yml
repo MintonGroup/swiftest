@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - debug
+      - main
   pull_request:
     branches:
-      - master        
+      - main
 
 jobs:
   build_wheels:
@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.17.0
+        uses: pypa/cibuildwheel@v2.19.2
 
       - uses: actions/upload-artifact@v4
         with:

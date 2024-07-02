@@ -3,7 +3,31 @@
 What's New
 ==========
 
+.. _whats-new.2024.07.0:
+
+`v2024.07.0`_
+-------------
+.. _v2024.07.0: https:///github.com/MintonGroup/swiftest/releases/tag/v2024.07.0
+
+Bug Fixes
+~~~~~~~~~
+- Fixed bugs that were causing multiple failures when restarting runs with collisions. `GH48`_
+- Refactored Fortran code to conform to standard line lengths, which cuts down on the number of warnings issued when compiling in debug mode. `PR52`_
+
+.. _GH48: https://github.com/MintonGroup/swiftest/issues/48
+.. _PR52: https://github.com/MintonGroup/swiftest/pull/52
+
+
+Contributors
+~~~~~~~~~~~~
+- `David Minton`_
+- `Kaustub Anand`_
+
+.. _David Minton: https://github.com/profminton
+.. _Kaustub Anand: https://github.com/kaustubanand
+
 .. _whats-new.2024.06.1:
+
 
 `v2024.06.1`_
 -------------
@@ -53,6 +77,8 @@ Bug Fixes
 - Fixed bug that was causing discards to fail when there were more than one discard in a single step. This was due to not deallocating the `ldiscard` or ``ldiscard_tp`` / ``ldiscard_pl`` arrays after they were used. `GH40`_
 
 .. _GH40: https://github.com/MintonGroup/swiftest/issues/40
+
+
 
 
 .. _whats-new.2024.04.2:

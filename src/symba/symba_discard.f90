@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -23,9 +23,12 @@ contains
       !! Adapted from Hal Levison's Swift routine discard_massive5.f
       implicit none
       ! Arguments
-      class(symba_pl),              intent(inout) :: pl     !! SyMBA massive body object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+      class(symba_pl),              intent(inout) :: pl     
+         !! SyMBA massive body object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  
+         !! Current run configuration parameters
       ! Internals
       integer(I4B) :: i
       real(DP)     :: energy, vb2, rb2, rh2, rmin2, rmax2, rmaxu2
@@ -224,9 +227,12 @@ contains
       !! Adapted from Hal Levison's Swift routine discard_massive5.f 
       implicit none
       ! Arguments
-      class(symba_pl),              intent(inout) :: pl     !! SyMBA test particle object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
+      class(symba_pl),              intent(inout) :: pl     
+         !! SyMBA test particle object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  
+         !! Current run configuration parameters 
     
       ! First check for collisions with the central body
       associate(npl => pl%nbody, cb => nbody_system%cb, pl_discards => nbody_system%pl_discards)
@@ -248,9 +254,12 @@ contains
       !! we need to track the conserved quantities with the nbody_system bookkeeping terms.
       implicit none
       ! Arguments
-      class(symba_pl),           intent(inout) :: pl     !! SyMBA test particle object
-      class(symba_nbody_system), intent(inout) :: nbody_system !! SyMBA nbody system object
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
+      class(symba_pl),           intent(inout) :: pl     
+         !! SyMBA test particle object
+      class(symba_nbody_system), intent(inout) :: nbody_system 
+         !! SyMBA nbody system object
+      class(swiftest_parameters),   intent(inout) :: param  
+         !! Current run configuration parameters 
       ! Internals
       integer(I4B)                            :: i, ndiscard, dstat
       logical                                 :: lescape
@@ -290,9 +299,12 @@ contains
       !! Adapted from Hal Levison's Swift routine discard_mass_peri.f
       implicit none
       ! Arguments
-      class(symba_pl),              intent(inout) :: pl     !! SyMBA massive body object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters
+      class(symba_pl),              intent(inout) :: pl     
+         !! SyMBA massive body object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  
+         !! Current run configuration parameters
       ! Internals
       logical               :: lfirst_orig
       integer(I4B)          :: i
@@ -337,9 +349,12 @@ contains
       !! body or escaping the nbody_system
       implicit none
       ! Arguments
-      class(symba_pl),              intent(inout) :: self   !! SyMBA test particle object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
+      class(symba_pl),              intent(inout) :: self   
+         !! SyMBA test particle object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param  
+         !! Current run configuration parameters 
       ! Internals
       real(DP) :: E_orbit_before, E_orbit_after
       logical, dimension(:), allocatable :: ldiscard

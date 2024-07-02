@@ -65,14 +65,18 @@ def get_solar_system_body_mass_rotation(id: str,
             if len(M) > 0:
                 M = M[0].split('Mass')[-1].strip()
                 if 'kg' in M:
-                    unit_conv_str = M.split('kg')[0].strip()
-                    unit_conv_str = unit_conv_str.split('^')[1].strip()
-                    unit_conv = 10**int(unit_conv_str)
-                    mult = M.split('=')[1].strip().split(' ')[1].strip('()')
-                    mult = 10**int(mult.split('^')[1].strip())
-                    M = M.split('=')[1].strip().split(' ')[0].strip()
-                    M = float(M)  * mult * unit_conv
                     try:
+                        unit_conv_str = M.split('kg')[0].strip()
+                        unit_conv_str = unit_conv_str.split('^')[1].strip()
+                        unit_conv = 10**int(unit_conv_str)
+                        M = M.split('=')[1].strip()
+                        if '^' in M:
+                            mult = M.split('^')[1].split(')')[0].strip()
+                            mult = 10**int(mult)
+                        else:
+                            mult = 1.0
+                        M = M.split()[0].strip()
+                        M = float(M)  * mult * unit_conv
                         return M * swiftest.GC * 1e-9 # Return units of km**3 / s**2 for consistency
                     except:
                         return None
@@ -91,17 +95,17 @@ def get_solar_system_body_mass_rotation(id: str,
         return GM
 
     def get_radius(raw_response):
-
-        radius = [s for s in raw_response.split('\n') if 'mean radius' in s.lower() or 'RAD' in s or 'Radius (km)' in s]
+        radius = [s for s in raw_response.split('\n') if 'mean radius' in s.lower() or 'RAD' in s or 'Radius (km' in s]
         if len(radius) == 0:
             return None
         radius = radius[0]
-        if "Radius (km)" in radius:
-            radius = radius.split("Radius (km)")[1].strip(' =').split('+')[0].split()[0].strip()
-        elif "R_eff" in radius: # Some small bodies list an effective radius 
-            radius = radius.split('R_eff')[1].strip(' =').split('+')[0].split()[0].strip()
-        elif "RAD" in radius: # Some small bodies list the radius like this
-            radius = radius.split('RAD')[1].strip(' =').split('+')[0].split()[0].strip()
+        if "Radius (km" in radius or "RAD" in radius:
+            if "Radius (km" in radius: 
+                radius = radius.split("Radius (km")[1].strip().strip('=').split('+')[0].strip()
+            elif "RAD" in radius:
+                radius = radius.split('RAD')[1].strip().strip('=').split('+')[0].strip().split()[0].strip()
+            if "=" in radius:
+                radius = radius.split('=')[1].strip()
             if 'x' in radius: # Triaxial ellipsoid bodies like Haumea may have multiple dimensions which need to be averaged
                 radius = radius.split('x')
                 try:
@@ -110,6 +114,10 @@ def get_solar_system_body_mass_rotation(id: str,
                     radius = np.average(radius)
                 except:
                     radius = None
+            else:
+                radius = radius.split()[0].strip()
+        elif "R_eff" in radius: # Some small bodies list an effective radius 
+            radius = radius.split('R_eff')[1].strip(' =').split('+')[0].split()[0].strip()
         else: # Handles most major bodies
             radius = radius.split('=')[1].strip().split('+')[0].split()[0].strip() 
         try:
@@ -119,28 +127,30 @@ def get_solar_system_body_mass_rotation(id: str,
         return radius
 
     def get_rotrate(raw_response):
-        rotrate = [s for s in raw_response.split('\n') if 'rot. rat' in s.lower()]
-        if len(rotrate) == 0:
-            rotrate = [s for s in raw_response.split('\n') if 'ROTPER' in s.upper()] # Try the small body version
-            if len(rotrate) > 0:
-                rotrate = rotrate[0].split('ROTPER=')[1].strip()
-                try:
-                   rotrate = 2*np.pi / (float(rotrate) * 3600)
-                except:
-                   rotrate = None
-            else:
-                if "Synchronous" in raw_response: # Satellites have this:
-                    rotrate = [s for s in raw_response.split('\n') if 'Orbital period' in s][0]
-                    rotrate = rotrate.split('Orbital period')[1].replace('~',' ').replace('d',' ').replace('=',' ').strip()
-                    rotrate = 2*np.pi / (float(rotrate) *  swiftest.JD2S) 
-                else:   
-                    rotrate = None
-        else:
+        if 'rot. rat' in raw_response.lower():  # or 'ROTPER' in raw_response.upper() or 'Orbital period' in raw_response:
+            rotrate = [s for s in raw_response.split('\n') if 'rot. rat' in s.lower()]
             rotrate = rotrate[0].lower().split('rot. rat')[1].split('=')[1].strip().split('  ')[0].strip()
             try:
                 rotrate = float(rotrate)
             except:
                 rotrate = None
+        elif 'ROTPER' in raw_response.upper():
+            rotrate = [s for s in raw_response.split('\n') if 'ROTPER' in s.upper()] # Try the small body version
+            rotrate = rotrate[0].split('ROTPER=')[1].strip()
+            try:
+                rotrate = 2*np.pi / (float(rotrate) * 3600)
+            except:
+                rotrate = None
+        elif "Synchronous" in raw_response: # Satellites have this:
+            rotrate = [s for s in raw_response.split('\n') if 'Orbital period' in s][0]
+            rotrate = rotrate.split('Orbital period')[1].replace('~',' ').replace('d',' ').replace('=',' ').strip()
+            rotrate = 2*np.pi / (float(rotrate) *  swiftest.JD2S) 
+        elif "Orbital period" in raw_response:
+            rotrate = [s for s in raw_response.split('\n') if 'Orbital period' in s][0]
+            rotrate = rotrate.split('Orbital period')[1].split('=')[1].strip().split()[0].strip()
+            rotrate = 2*np.pi / (float(rotrate) *  swiftest.JD2S)
+        else:
+            rotrate = None
         return rotrate
 
     def get_rotpole(jpl):
@@ -181,20 +191,22 @@ def get_solar_system_body_mass_rotation(id: str,
             jpl = None
     Gmass = get_Gmass(raw_response)
     if Rpl is None or Gmass is None:
-        rot = np.full(3,np.nan) 
-        mass = None
+       mass = None
     else:
-        if verbose:
-            print(f"Physical properties found for {namelist[0]}") 
         Gmass *= 1e9  # JPL returns GM in units of km**3 / s**2, so convert to SI
         mass = Gmass / swiftest.GC
+    if Rpl is not None:
         rotrate = get_rotrate(raw_response)
         if rotrate is None:
             rotrate = 0.0
         else:
             rotrate = np.rad2deg(rotrate)
-
+    
         rot = rotpole*rotrate
+    else:
+        rot = np.full(3,np.nan)
+    if Gmass is not None or Rpl is not None and verbose:
+        print(f"Physical properties found for {namelist[0]}") 
         
     return {'Gmass':Gmass,'mass':mass,'radius':Rpl,'rot':rot}
 
@@ -420,6 +432,7 @@ def get_solar_system_body(name: str,
         rot = (360.0 / 25.05) / constants.JD2S  * rotpoleSun           
         rot = np.array([rot.x.value, rot.y.value, rot.z.value])
         Gmass = swiftest.GMSun
+        mass = Gmass / swiftest.GC
         Rpl = swiftest.RSun 
         rh = np.array([0.0, 0.0, 0.0])
         vh = np.array([0.0, 0.0, 0.0])
