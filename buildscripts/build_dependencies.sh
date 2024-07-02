@@ -59,7 +59,7 @@ ${SCRIPT_DIR}/build_netcdf-fortran.sh
 ${SCRIPT_DIR}/build_shtools.sh 
 
 if [ $OS = "Linux" ]; then
-    FORTNAME=$(basename $OMP_FC)
+    FORTNAME=$(basename $OMPI_FC)
     if [ $FORTNAME="gfortran" ]; then
         ${SCRIPT_DIR}/build_opencoarrays.sh
     fi
