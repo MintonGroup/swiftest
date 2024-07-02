@@ -16,7 +16,7 @@ on:
 
 jobs:
   call-build_wheels:
-    uses: ./.github/workflows/build_wheels.yml@main
+    uses: ./.github/workflows/build_wheels.yml
     secrets: inherit
 
   download_artifacts:
