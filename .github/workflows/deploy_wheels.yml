@@ -3,8 +3,9 @@ name: deploy_swiftest
 on:
   workflow_dispatch:
     inputs:
-      build_id: true
-      type: string
+      run_id: 
+        required: true
+        type: string
   release:
     types:
       - published
