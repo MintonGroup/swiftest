@@ -1,0 +1,38 @@
+name: deploy_wheels
+
+on:
+  workflow_dispatch:
+  release:
+    types:
+      - published
+
+jobs:
+  download_artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cibw-*
+          path: wheelhouse
+
+  upload_pypi:
+    needs: [download_artifacts]
+    runs-on: ubuntu-latest
+    environment: 
+      name: pypi
+      url: https://pypi.org/p/swiftest
+    permissions:
+      id-token: write
+    if: github.event_name == 'release' && github.event.action == 'published'
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cibw-*
+          path: dist
+          merge-multiple: true
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
