@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -967,11 +967,11 @@ contains
 
 
             if (nc%lc_lm_exists) then
-               call netcdf_io_check( nf90_def_dim(nc%id, nc%sign_dimname, NF90_UNLIMITED, nc%sign_dimid), &
+               call netcdf_io_check( nf90_def_dim(nc%id, nc%sign_dimname, 2, nc%sign_dimid), &
                                     "swiftest_io_netcdf_open nf90_def_dim sign_dimid")
-               call netcdf_io_check( nf90_def_dim(nc%id, nc%l_dimname, NF90_UNLIMITED, nc%l_dimid), &
+               call netcdf_io_check( nf90_def_dim(nc%id, nc%l_dimname, nc%l_dim_max, nc%l_dimid), &
                                     "swiftest_io_netcdf_open nf90_def_dim l_dimid")
-               call netcdf_io_check( nf90_def_dim(nc%id, nc%m_dimname, NF90_UNLIMITED, nc%m_dimid), &
+               call netcdf_io_check( nf90_def_dim(nc%id, nc%m_dimname, nc%m_dim_max, nc%m_dimid), &
                                     "swiftest_io_netcdf_open nf90_def_dim m_dimid")
 
                call netcdf_io_check( nf90_def_var(nc%id, nc%sign_dimname, nc%out_type, nc%sign_dimid, nc%sign_varid), &
@@ -1592,11 +1592,13 @@ contains
                if(.not. allocated(cb%c_lm)) allocate(cb%c_lm(nc%m_dim_max, nc%l_dim_max, 2)) 
                call netcdf_io_check( nf90_get_var(nc%id, nc%c_lm_varid, cb%c_lm, count = [nc%m_dim_max, nc%l_dim_max, 2]), &
                                      "netcdf_io_read_frame_system nf90_getvar c_lm_varid")
-               
-               if (abs(cb%j2rp2) > tiny(1.0_DP) .or. (abs(cb%j4rp4) > tiny(1.0_DP))) then
-                  write(*,*) "Error reading in NetCDF file: cannot use both c_lm and j2rp2/j4rp4"
-                  call base_util_exit(FAILURE,param%display_unit) 
-               end if
+              
+               if ((cb%j2rp2 == cb%j2rp2) .or. (cb%j4rp4 == cb%j4rp4)) then
+                  if (abs(cb%j2rp2) > tiny(1.0_DP) .or. (abs(cb%j4rp4) > tiny(1.0_DP))) then
+                     write(*,*) "Error reading in NetCDF file: cannot use both c_lm and j2rp2/j4rp4"
+                     call base_util_exit(FAILURE,param%display_unit) 
+                  end if
+               endif
    
                nc%lc_lm_exists = .true.
             else
@@ -2982,6 +2984,7 @@ contains
       integer(I4B)                   :: nseeds
 
       associate(param => self)
+         call io_param_writer_one("RESTART", param%lrestart, unit)
          call io_param_writer_one("T0", param%t0, unit)
          call io_param_writer_one("TSTART", param%tstart, unit)
          call io_param_writer_one("TSTOP", param%tstop, unit)

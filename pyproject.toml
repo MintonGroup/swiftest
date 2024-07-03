@@ -1,6 +1,7 @@
 [project]
 name = "swiftest"
-version = "2024.6.2"
+version = "2024.7.1"
+description = "Swiftest is a software packaged designed to model the long-term dynamical dynamics of n-body systems with a dominant central body, like the solar system."
 authors=[
     {name = 'David A. Minton', email='daminton@purdue.edu'},
     {name = 'Carlisle Wishard'},
@@ -100,12 +101,12 @@ CXXFLAGS="${CFLAGS}"
 MPI_HOME="${HOMEBREW_PREFIX}"
 PATH="${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin:${HOMEBREW_PREFIX}/bin:${PREFIX}/bin:${PATH}"
 GFORTRAN_VERSION="$(buildscripts/get_gfortran_version.sh)"
-OMPI_FC="$(buildscripts/get_gfortran_path.sh)"
 CC="mpicc"
 CXX="mpic++"
 FC="mpifort"
 F77="mpifort"
 F95="mpifort"
+OMPI_FC="$(buildscripts/get_fortran_path.sh)"
 
 [tool.cibuildwheel.linux.environment]
 SKBUILD_CMAKE_ARGS=["-DMACHINE_CODE_VALUE=generic","-DUSE_COARRAY:BOOL=OFF"]
@@ -127,17 +128,17 @@ CXXFLAGS="${CFLAGS}"
 LDFLAGS="-L${PREFIX}/lib"
 REPAIR_LIBRARY_PATH="${LD_LIBRARY_PATH}"
 PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH}"
-GFORTRAN_VERSION="$(buildscripts/get_gfortran_version.sh)"
-OMPI_FC="$(buildscripts/get_gfortran_path.sh)"
 CC="mpicc"
 CXX="mpic++"
 FC="mpifort"
 F77="mpifort"
 F95="mpifort"
+OMPI_FC="$(buildscripts/get_fortran_path.sh)"
 
 [tool.cibuildwheel.macos]
 before-all = [
-    "brew install coreutils pkg-config fftw vecLibFort opencoarrays open-mpi;buildscripts/build_dependencies.sh"
+    "brew install coreutils pkg-config fftw vecLibFort opencoarrays open-mpi",
+    "buildscripts/build_dependencies.sh"
 ]
 repair-wheel-command = """\
 DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel \

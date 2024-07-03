@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -20,8 +20,10 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_whm_kick_getacch.f90
       implicit none
       ! Arguments
-      class(helio_pl),            intent(inout) :: self   !! Helio massive body particle data structure
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters 
+      class(helio_pl),            intent(inout) :: self   
+         !! Helio massive body particle data structure
+      class(swiftest_parameters), intent(in)    :: param 
+         !! Current run configuration parameters 
       
       if (self%nbody == 0) return
 
@@ -43,8 +45,10 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_helio_kick_getacch.f90
       implicit none
       ! Arguments
-      class(helio_tp),            intent(inout) :: self   !! Helio massive body particle data structure
-      class(swiftest_parameters), intent(in)    :: param  !! Current run configuration parameters 
+      class(helio_tp),            intent(inout) :: self   
+         !! Helio massive body particle data structure
+      class(swiftest_parameters), intent(in)    :: param  
+         !! Current run configuration parameters 
       
       if (self%nbody == 0) return
 
@@ -66,10 +70,14 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_helio_p4.f90
       implicit none
       ! Arguments
-      class(helio_pl),              intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: dt     !! Step size
+      class(helio_pl),              intent(inout) :: self  
+          !! Swiftest particle object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param 
+         !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: dt     
+         !! Step size
       ! Internals
       integer(I4B) :: i, npl
 
@@ -99,10 +107,14 @@ contains
       !! Adapted from David A. Minton's Swifter routine routine gr_helio_p4.f90
       implicit none
       ! Arguments
-      class(helio_tp),              intent(inout) :: self   !! Swiftest particle object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: dt     !! Step size
+      class(helio_tp),              intent(inout) :: self   
+         !! Swiftest particle object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  
+         !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: dt     
+         !! Step size
       ! Internals
       integer(I4B) :: i, ntp
 

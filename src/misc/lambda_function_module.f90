@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -12,13 +12,16 @@ module lambda_function
    !!
    !! Defines a class that can enable objects that behave like lambda functions.
    !! 
-   !! To use this class, define a type of either lambda_obj or lambda_obj_err, or extend the lambda_obj class as necessary, such that an interface that matches the function you wish to lambdafy.
-   !! Once defined, the lambda object can evaluate itself by calling the type-bound procedure eval. e.g. f%eval(x) (or f%eval(x, lerr), f%eval(x, [argument list], etc)) 
+   !! To use this class, define a type of either lambda_obj or lambda_obj_err, or extend the lambda_obj class as necessary, such 
+   !! that an interface that matches the function you wish to lambdafy.
+   !! Once defined, the lambda object can evaluate itself by calling the type-bound procedure eval. e.g. f%eval(x) 
+   !! (or f%eval(x, lerr), f%eval(x, [argument list], etc)) 
    !! 
-   !! ********************************************************************************************************************************************************************************************
-   !! Example - Defining a lambda function f(x,rval,ival) where rval and ival are a real and integer argument, respectively. This implementation uses an abstract interface, though this is not
+   !! ******************************************************************************************************************************
+   !! Example - Defining a lambda function f(x,rval,ival) where rval and ival are a real and integer argument, respectively. 
+   !! This implementation uses an abstract interface, though this is not
    !! strictly necessary unless you want to bind more than one function with the same interface.
-   !! ********************************************************************************************************************************************************************************************
+   !! ******************************************************************************************************************************
    !!
    !! module lambda_new 
    !!    use swiftest ! This will bring in the lambda_function module
@@ -91,7 +94,8 @@ module lambda_function
    !!    end subroutine lambda_ri_args_destroy
    !!
    !!    function example_function(x, rval, ival) result(y)
-   !!       !This is the actual function you are going to use as the lambda function. Its interface must match the abstract interface previously defined
+   !!       ! This is the actual function you are going to use as the lambda function. Its interface must match the abstract 
+   !!       ! interface previously defined
    !!       implicit none
    !!       ! Arguments
    !!       real(DP), dimension(:), intent(in) :: x
@@ -128,14 +132,15 @@ module lambda_function
    !!       write(*,*) i,f%eval(xarr)
    !!    end do
    !! end program usage
-   !! ********************************************************************************************************************************************************************************************
+   !! ******************************************************************************************************************************
    
    use globals
    implicit none
    public
 
    type :: lambda_obj 
-      !! Base class for an lambda function object. This object takes no additional arguments other than the dependent variable x, an array of real numbers
+      !! Base class for an lambda function object. This object takes no additional arguments other than the dependent variable x, an
+      !! array of real numbers
       procedure(lambda0), pointer, nopass :: lambdaptr => null()
       real(DP) :: lastval
       real(DP),dimension(:), allocatable :: lastarg
@@ -147,7 +152,8 @@ module lambda_function
    end type
 
    type, extends(lambda_obj) :: lambda_obj_err
-      !! Extended class for an lambda function object. This object takes allows for the return of a logical error flag during evaluation of the function.
+      !! Extended class for an lambda function object. This object takes allows for the return of a logical error flag during 
+      !! evaluation of the function.
       procedure(lambda0err), pointer, nopass :: lambdaptr_err => null()
       logical   :: lerr     
    contains
@@ -157,7 +163,8 @@ module lambda_function
    end type
 
    type, extends(lambda_obj) :: lambda_obj_tvar
-      !! Base class for an lambda function object. This object takes no additional arguments other than the dependent variable x, an array of real numbers
+      !! Base class for an lambda function object. This object takes no additional arguments other than the dependent variable x, an
+      !! array of real numbers
       procedure(lambda0tvar), pointer, nopass :: lambdaptr_tvar => null()
       real(DP) :: t 
    contains

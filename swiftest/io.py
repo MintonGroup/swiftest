@@ -937,10 +937,16 @@ def swiftest_xr2infile(ds: SwiftestDataset,
         if verbose:
             print(f"Writing initial conditions to file {infile_name}")
         frame = reorder_dims(frame)
+        
+        idx = ds.indexes
+        if "id" in idx:
+            unlimited_dims = ["time", "id"]
+        elif "name" in idx:
+            unlimited_dims = ["time", "name"]
         # This suppresses this warning: RuntimeWarning: numpy.ndarray size changed, may indicate binary incompatibility. Expected 16 from C header, got 96 from PyObject
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            frame.to_netcdf(path=infile_name)
+            frame.to_netcdf(path=infile_name, unlimited_dims=unlimited_dims)
         frame.close()
         return frame
 

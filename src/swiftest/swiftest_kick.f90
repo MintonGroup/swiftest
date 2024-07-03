@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -18,8 +18,10 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int.f90
       implicit none
       ! Arguments
-      class(swiftest_pl),         intent(inout) :: self  !! Swiftest massive body object
-      class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
+      class(swiftest_pl),         intent(inout) :: self  
+         !! Swiftest massive body object
+      class(swiftest_parameters), intent(inout) :: param 
+         !! Current swiftest run configuration parameters
       ! Internals
 #ifdef PROFILE
       type(walltimer), save :: timer 
@@ -52,11 +54,16 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int_tp.f90
       implicit none
       ! Arguments
-      class(swiftest_tp),         intent(inout) :: self  !! Swiftest test particle object
-      class(swiftest_parameters), intent(inout) :: param !! Current swiftest run configuration parameters
-      real(DP), dimension(:),     intent(in)    :: GMpl  !! Massive body masses
-      real(DP), dimension(:,:),   intent(in)    :: rhp   !! Massive body position vectors
-      integer(I4B),               intent(in)    :: npl   !! Number of active massive bodies
+      class(swiftest_tp),         intent(inout) :: self  
+         !! Swiftest test particle object
+      class(swiftest_parameters), intent(inout) :: param 
+         !! Current swiftest run configuration parameters
+      real(DP), dimension(:),     intent(in)    :: GMpl  
+         !! Massive body masses
+      real(DP), dimension(:,:),   intent(in)    :: rhp   
+         !! Massive body position vectors
+      integer(I4B),               intent(in)    :: npl   
+         !! Number of active massive bodies
 
       if ((self%nbody == 0) .or. (npl == 0)) return
 
@@ -75,13 +82,20 @@ contains
       !! Adapted from Hal Levison's Swift routine getacch_ah3.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int.f9
       implicit none
-      integer(I4B),                 intent(in)             :: npl    !! Number of massive bodies
-      integer(I8B),                 intent(in)             :: nplpl  !! Number of massive body interactions to compute
-      integer(I4B), dimension(:,:), intent(in)             :: k_plpl !! Array of interaction pair indices (flattened upper triangular matrix)
-      real(DP),     dimension(:,:), intent(in)             :: r      !! Position vector array
-      real(DP),     dimension(:),   intent(in)             :: Gmass  !! Array of massive body G*mass
-      real(DP),     dimension(:),   intent(in)             :: radius !! Array of massive body radii
-      real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
+      integer(I4B),                 intent(in)             :: npl    
+         !! Number of massive bodies
+      integer(I8B),                 intent(in)             :: nplpl  
+         !! Number of massive body interactions to compute
+      integer(I4B), dimension(:,:), intent(in)             :: k_plpl 
+         !! Array of interaction pair indices (flattened upper triangular matrix)
+      real(DP),     dimension(:,:), intent(in)             :: r      
+         !! Position vector array
+      real(DP),     dimension(:),   intent(in)             :: Gmass  
+         !! Array of massive body G*mass
+      real(DP),     dimension(:),   intent(in)             :: radius 
+         !! Array of massive body radii
+      real(DP),     dimension(:,:), intent(inout)          :: acc    
+         !! Acceleration vector array 
       ! Internals
       integer(I8B)                      :: k
       real(DP), dimension(NDIM,npl) :: ahi, ahj
@@ -124,12 +138,18 @@ contains
       !! Adapted from Hal Levison's Swift routine getacch_ah3.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int.f9
       implicit none
-      integer(I4B),                 intent(in)             :: npl    !! Number of massive bodies
-      integer(I8B),                 intent(in)             :: nplpl  !! Number of massive body interactions to compute
-      integer(I4B), dimension(:,:), intent(in)             :: k_plpl !! Array of interaction pair indices (flattened upper triangular matrix)
-      real(DP),     dimension(:,:), intent(in)             :: r      !! Position vector array
-      real(DP),     dimension(:),   intent(in)             :: Gmass  !! Array of massive body G*mass
-      real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
+      integer(I4B),                 intent(in)             :: npl    
+         !! Number of massive bodies
+      integer(I8B),                 intent(in)             :: nplpl  
+         !! Number of massive body interactions to compute
+      integer(I4B), dimension(:,:), intent(in)             :: k_plpl 
+         !! Array of interaction pair indices (flattened upper triangular matrix)
+      real(DP),     dimension(:,:), intent(in)             :: r      
+         !! Position vector array
+      real(DP),     dimension(:),   intent(in)             :: Gmass  
+         !! Array of massive body G*mass
+      real(DP),     dimension(:,:), intent(inout)          :: acc    
+         !! Acceleration vector array 
       ! Internals
       integer(I8B)                      :: k
       real(DP), dimension(NDIM,npl) :: ahi, ahj
@@ -171,12 +191,18 @@ contains
       !! Adapted from Hal Levison's Swift routine getacch_ah3.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int.f9
       implicit none
-      integer(I4B),                 intent(in)             :: npl    !! Total number of massive bodies
-      integer(I4B),                 intent(in)             :: nplm   !! Number of fully interacting massive bodies
-      real(DP),     dimension(:,:), intent(in)             :: r      !! Position vector array
-      real(DP),     dimension(:),   intent(in)             :: Gmass  !! Array of massive body G*mass
-      real(DP),     dimension(:),   intent(in)             :: radius !! Array of massive body radii
-      real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
+      integer(I4B),                 intent(in)             :: npl    
+         !! Total number of massive bodies
+      integer(I4B),                 intent(in)             :: nplm   
+         !! Number of fully interacting massive bodies
+      real(DP),     dimension(:,:), intent(in)             :: r      
+         !! Position vector array
+      real(DP),     dimension(:),   intent(in)             :: Gmass  
+         !! Array of massive body G*mass
+      real(DP),     dimension(:),   intent(in)             :: radius 
+         !! Array of massive body radii
+      real(DP),     dimension(:,:), intent(inout)          :: acc    
+         !! Acceleration vector array 
       ! Internals
       integer(I4B) :: i, j, nplt
       real(DP)     :: rji2, rlim2, fac, rx, ry, rz
@@ -280,11 +306,16 @@ contains
       !! Adapted from Hal Levison's Swift routine getacch_ah3.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int.f9
       implicit none
-      integer(I4B),                 intent(in)             :: npl    !! Total number of massive bodies
-      integer(I4B),                 intent(in)             :: nplm   !! Number of fully interacting massive bodies
-      real(DP),     dimension(:,:), intent(in)             :: r      !! Position vector array
-      real(DP),     dimension(:),   intent(in)             :: Gmass  !! Array of massive body G*mass
-      real(DP),     dimension(:,:), intent(inout)          :: acc    !! Acceleration vector array 
+      integer(I4B),                 intent(in)             :: npl    
+         !! Total number of massive bodies
+      integer(I4B),                 intent(in)             :: nplm   
+         !! Number of fully interacting massive bodies
+      real(DP),     dimension(:,:), intent(in)             :: r      
+         !! Position vector array
+      real(DP),     dimension(:),   intent(in)             :: Gmass  
+         !! Array of massive body G*mass
+      real(DP),     dimension(:,:), intent(inout)          :: acc    
+         !! Acceleration vector array 
       ! Internals
       integer(I4B) :: i, j, nplt
       real(DP)     :: rji2, fac, rx, ry, rz
@@ -379,13 +410,20 @@ contains
       !! Adapted from Hal Levison's Swift routine getacch_ah3_tp.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int_tp.f99
       implicit none
-      integer(I4B),                 intent(in)    :: ntp    !! Number of test particles
-      integer(I4B),                 intent(in)    :: npl    !! Number of massive bodies
-      real(DP),     dimension(:,:), intent(in)    :: rtp    !! Test particle position vector array
-      real(DP),     dimension(:,:), intent(in)    :: rpl    !! Massive body particle position vector array
-      real(DP),     dimension(:),   intent(in)    :: GMpl   !! Array of massive body G*mass
-      logical,      dimension(:),   intent(in)    :: lmask  !! Logical mask indicating which test particles should be computed
-      real(DP),     dimension(:,:), intent(inout) :: acc    !! Acceleration vector array 
+      integer(I4B),                 intent(in)    :: ntp    
+         !! Number of test particles
+      integer(I4B),                 intent(in)    :: npl    
+         !! Number of massive bodies
+      real(DP),     dimension(:,:), intent(in)    :: rtp    
+         !! Test particle position vector array
+      real(DP),     dimension(:,:), intent(in)    :: rpl    
+         !! Massive body particle position vector array
+      real(DP),     dimension(:),   intent(in)    :: GMpl   
+         !! Array of massive body G*mass
+      logical,      dimension(:),   intent(in)    :: lmask  
+         !! Logical mask indicating which test particles should be computed
+      real(DP),     dimension(:,:), intent(inout) :: acc    
+         !! Acceleration vector array 
       ! Internals
       real(DP)     :: rji2
       real(DP)     :: rx, ry, rz
@@ -423,12 +461,18 @@ contains
       !! Adapted from Hal Levison's Swift routine getacch_ah3.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int.f9
       implicit none
-      real(DP), intent(in)  :: rji2            !! Square of distance between the two bodies
-      real(DP), intent(in)  :: xr, yr, zr      !! Distances between the two bodies in x, y, and z directions
-      real(DP), intent(in)  :: Gmi             !! G*mass of body i
-      real(DP), intent(in)  :: Gmj             !! G*mass of body j
-      real(DP), intent(inout) :: axi, ayi, azi !! Acceleration vector components of body i
-      real(DP), intent(inout) :: axj, ayj, azj !! Acceleration vector components of body j
+      real(DP), intent(in)  :: rji2            
+         !! Square of distance between the two bodies
+      real(DP), intent(in)  :: xr, yr, zr      
+         !! Distances between the two bodies in x, y, and z directions
+      real(DP), intent(in)  :: Gmi             
+         !! G*mass of body i
+      real(DP), intent(in)  :: Gmj             
+         !! G*mass of body j
+      real(DP), intent(inout) :: axi, ayi, azi 
+         !! Acceleration vector components of body i
+      real(DP), intent(inout) :: axj, ayj, azj 
+         !! Acceleration vector components of body j
       ! Internals
       real(DP) :: faci, facj, irij3
 
@@ -454,10 +498,14 @@ contains
       !! Adapted from Hal Levison's Swift routine getacch_ah3_tp.f
       !! Adapted from David E. Kaufmann's Swifter routine whm_kick_getacch_ah3.f90 and helio_kick_getacch_int_tp.f90
       implicit none
-      real(DP), intent(in)  :: rji2         !! Square of distance between the test particle and massive body
-      real(DP), intent(in)  :: xr, yr, zr   !! Distances between the two bodies in x, y, and z directions
-      real(DP), intent(in)  :: Gmpl         !! G*mass of massive body
-      real(DP), intent(inout) :: ax, ay, az !! Acceleration vector components of test particle
+      real(DP), intent(in)  :: rji2         
+         !! Square of distance between the test particle and massive body
+      real(DP), intent(in)  :: xr, yr, zr   
+         !! Distances between the two bodies in x, y, and z directions
+      real(DP), intent(in)  :: Gmpl         
+         !! G*mass of massive body
+      real(DP), intent(inout) :: ax, ay, az 
+         !! Acceleration vector components of test particle
       ! Internals
       real(DP) :: fac
 

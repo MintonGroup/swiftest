@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -181,9 +181,12 @@ module solver
                real(DP)             :: y
             end function f
          end interface
-         real(DP),           intent(inout) :: x    !! Initial guess and also the final answer
-         real(DP), optional, intent(in)    :: tol  !! The relative tolerance on the solution
-         logical, optional,  intent(out)   :: lerr !! Returns .true. if a root was found, otherwise returns .false.
+         real(DP),           intent(inout) :: x    
+            !! Initial guess and also the final answer
+         real(DP), optional, intent(in)    :: tol  
+            !! The relative tolerance on the solution
+         logical, optional,  intent(out)   :: lerr 
+            !! Returns .true. if a root was found, otherwise returns .false.
          ! Internals
          real(DP),parameter :: TOL_DEFAULT = 1.e-7_DP
          integer(I4B),parameter :: maxIterations=100
