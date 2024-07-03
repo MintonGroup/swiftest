@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -17,10 +17,14 @@ contains
       !! Wrapper function used to call the body drift routine from a symba_pl structure
       implicit none
       ! Arguments
-      class(symba_pl),              intent(inout) :: self   !! Helio massive body object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: dt     !! Stepsize
+      class(symba_pl),              intent(inout) :: self   
+         !! Helio massive body object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  
+         !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: dt     
+         !! Stepsize
 
       if (self%nbody == 0) return
       associate(pl => self, npl => self%nbody)

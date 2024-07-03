@@ -1,13 +1,10 @@
-name: build_swiftest
+name: deploy_swiftest
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  release:
+    types:
+      - published
 
 jobs:
   build_wheels:
@@ -27,7 +24,6 @@ jobs:
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
-          retention-days: 1
 
   build_sdist:
     name: Build source distribution
@@ -42,5 +38,23 @@ jobs:
         with:
           name: cibw-sdist
           path: dist/*.tar.gz              
-          retention-days: 1
 
+  upload_pypi:
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    environment: 
+      name: pypi
+      url: https://pypi.org/p/swiftest
+    permissions:
+      id-token: write
+    if: github.event_name == 'release' && github.event.action == 'published'
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cibw-*
+          path: dist
+          merge-multiple: true
+
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true

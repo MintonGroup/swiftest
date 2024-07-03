@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -18,9 +18,12 @@ contains
       !!
       implicit none
       ! Arguments
-      class(helio_nbody_system),               intent(inout) :: self   !! Helio nbody system object
-      class(swiftest_storage),    allocatable, intent(inout) :: system_history !! Stores the system history between output dumps
-      class(swiftest_parameters),              intent(inout) :: param          !! Current run configuration parameters 
+      class(helio_nbody_system),               intent(inout) :: self   
+         !! Helio nbody system object
+      class(swiftest_storage),    allocatable, intent(inout) :: system_history 
+         !! Stores the system history between output dumps
+      class(swiftest_parameters),              intent(inout) :: param          
+         !! Current run configuration parameters 
 
       call swiftest_util_setup_initialize_system(self, system_history, param)
       call self%pl%sort("mass", ascending=.false.)
@@ -33,7 +36,8 @@ contains
       call self%pl%set_mu(self%cb)
       call self%tp%set_mu(self%cb)
 
-      if (param%lgr .and. param%in_type == "ASCII") then !! pseudovelocity conversion for NetCDF input files is handled by NetCDF routines
+      if (param%lgr .and. param%in_type == "ASCII") then 
+         !! pseudovelocity conversion for NetCDF input files is handled by NetCDF routines
          call self%pl%v2pv(param)
          call self%tp%v2pv(param)
       end if

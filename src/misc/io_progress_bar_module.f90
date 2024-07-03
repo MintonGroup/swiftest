@@ -7,21 +7,30 @@ module io_progress_bar
    implicit none
    public
 
-   character(len=1),parameter, private                :: barchar = "#" !! The progress bar character
+   character(len=1),parameter, private                :: barchar = "#" 
+         !! The progress bar character
 
    type :: progress_bar
       !! author: David A. Minton
       !! 
       !! Implements a class for a simple progress bar that can print on the screen.
-      integer(I4B)                  :: PBARSIZE = 80 !! Number of characters acros for a whole progress bar
-      integer(I8B)                  :: loop_length   !! The total number of loops that the progrees bar is executing
-      character(len=:), allocatable :: barstr        !! The string that prints out as the progress bar
-      integer(I4B)                  :: bar_pos       !! The current position of the progress bar
-      character(len=32)             :: fmt           !! The format string that is used to define the progress bar itself
-      character(len=64)             :: message       !! The current message displayed at the end of the progress bar
+      integer(I4B)                  :: PBARSIZE = 80 
+         !! Number of characters acros for a whole progress bar
+      integer(I8B)                  :: loop_length   
+         !! The total number of loops that the progrees bar is executing
+      character(len=:), allocatable :: barstr        
+         !! The string that prints out as the progress bar
+      integer(I4B)                  :: bar_pos       
+         !! The current position of the progress bar
+      character(len=32)             :: fmt           
+         !! The format string that is used to define the progress bar itself
+      character(len=64)             :: message       
+         !! The current message displayed at the end of the progress bar
    contains
-      procedure :: reset  => io_progress_bar_reset   !! Resets the progress bar to the beginning
-      procedure :: update => io_progress_bar_update !! Updates the progress bar with new values 
+      procedure :: reset  => io_progress_bar_reset   
+         !! Resets the progress bar to the beginning
+      procedure :: update => io_progress_bar_update 
+         !! Updates the progress bar with new values 
    end type progress_bar
 
 contains
@@ -32,8 +41,10 @@ contains
       !! Resets the progress bar to the beginning
       implicit none
       ! Arguments
-      class(progress_bar),intent(inout)        :: self         !! The progress bar object
-      integer(I8B),       intent(in)           :: loop_length  !! The length of the loop that the progress bar is attached to
+      class(progress_bar),intent(inout)        :: self         
+         !! The progress bar object
+      integer(I8B),       intent(in)           :: loop_length  
+         !! The length of the loop that the progress bar is attached to
       ! Internals
       character(len=2) :: numchar
       integer(I4B) :: k
@@ -62,12 +73,16 @@ contains
       !! Updates the progress bar with new values 
       implicit none
       ! Arguments
-      class(progress_bar), intent(inout)        :: self    !! Progres bar object
-      integer(I8B),        intent(in)           :: i       !! The current loop index of the progress loop
-      character(len=*),    intent(in), optional :: message !! An optional message to display to the right of the progress bar
+      class(progress_bar), intent(inout)        :: self    
+         !! Progres bar object
+      integer(I8B),        intent(in)           :: i       
+         !! The current loop index of the progress loop
+      character(len=*),    intent(in), optional :: message 
+         !! An optional message to display to the right of the progress bar
       ! Internals
       real(DP)     :: frac
-      integer(I4B) :: bar_pos  !! The current integer position of the progress bar 
+      integer(I4B) :: bar_pos  
+         !! The current integer position of the progress bar 
       logical :: update = .false.
 
       ! Compute the current position

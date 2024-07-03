@@ -120,7 +120,7 @@ if PYSHTOOLS_AVAILABLE:
 
         Gmass = GC * mass # SHTOOLS uses an SI G value, and divides it before using the mass; NO NEED TO CHANGE UNITS
 
-        # cap lmax to 20 to ensure fast performance
+        # cap lmax to ensure fast performance
         lmax_limit = 6
         if(lmax > lmax_limit): # FIND A BETTER WAY to judge this cut off point, i.e., relative change between coefficients
             lmax = lmax_limit

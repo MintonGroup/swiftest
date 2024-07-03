@@ -23,6 +23,7 @@ build:
     - cmake
     - ninja-build
     - gfortran-12
+    - libopenmpi-dev
 
   jobs:
     pre_build:
