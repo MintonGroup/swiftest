@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -296,9 +296,9 @@ module netcdf_io
          !! ID for the m dimension for c_lm
       integer(I4B) :: m_varid
          !! ID for the m variable
-      integer(I4B) :: m_dim_max
+      integer(I4B) :: m_dim_max = 6
          !! Maximum value of the m dimension
-      integer(I4B) :: l_dim_max
+      integer(I4B) :: l_dim_max = 6
          !! Maximum value of the l dimension
 
    contains

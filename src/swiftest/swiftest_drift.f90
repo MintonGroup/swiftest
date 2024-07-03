@@ -26,10 +26,14 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_drift_tp.f90
       implicit none
       ! Arguments
-      class(swiftest_body),         intent(inout) :: self   !! Swiftest test particle data structure
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: dt     !! Stepsize
+      class(swiftest_body),         intent(inout) :: self   
+         !! Swiftest test particle data structure
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  
+         !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: dt     
+         !! Stepsize
       ! Internals
       integer(I4B)                              :: i   
       integer(I4B), dimension(:), allocatable   :: iflag
@@ -66,16 +70,24 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine whm_drift_tp.f9
       implicit none
       ! Arguments
-      real(DP), dimension(:),     intent(in)    :: mu    !! Vector of gravitational constants
-      real(DP), dimension(:,:),   intent(inout) :: x, v  !! Position and velocity vectors
-      integer(I4B),               intent(in)    :: n     !! number of bodies
-      class(swiftest_parameters), intent(in)    :: param !! Current run configuration parameters
-      real(DP),                   intent(in)    :: dt    !! Stepsize
-      logical, dimension(:),      intent(in)    :: lmask !! Logical mask of size self%nbody that determines which bodies to drift.
-      integer(I4B), dimension(:), intent(out)   :: iflag !! Vector of error flags. 0 means no problem
+      real(DP), dimension(:),     intent(in)    :: mu    
+         !! Vector of gravitational constants
+      real(DP), dimension(:,:),   intent(inout) :: x, v  
+         !! Position and velocity vectors
+      integer(I4B),               intent(in)    :: n     
+         !! number of bodies
+      class(swiftest_parameters), intent(in)    :: param 
+         !! Current run configuration parameters
+      real(DP),                   intent(in)    :: dt    
+         !! Stepsize
+      logical, dimension(:),      intent(in)    :: lmask 
+         !! Logical mask of size self%nbody that determines which bodies to drift.
+      integer(I4B), dimension(:), intent(out)   :: iflag 
+         !! Vector of error flags. 0 means no problem
       ! Internals
       integer(I4B)                              :: i   
-      real(DP)                                  :: energy, vmag2, rmag  !! Variables used in GR calculation
+      real(DP)                                  :: energy, vmag2, rmag  
+         !! Variables used in GR calculation
       real(DP), dimension(:), allocatable       :: dtp
 
       if (n == 0) return
@@ -117,10 +129,14 @@ contains
       !! Adapted from Hal Levison and Martin Duncan's Swift routine drift_one.f
       implicit none
       ! Arguments
-      real(DP), intent(in)      :: mu                     !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
-      real(DP), intent(inout)   :: rx, ry, rz, vx, vy, vz !! Position and velocity of body to drift
-      real(DP), intent(in)      :: dt                     !! Step size
-      integer(I4B), intent(out) :: iflag                  !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
+      real(DP), intent(in)      :: mu                     
+         !! G * (Mcb + m), G = gravitational constant, Mcb = mass of central body, m = mass of body to drift
+      real(DP), intent(inout)   :: rx, ry, rz, vx, vy, vz 
+         !! Position and velocity of body to drift
+      real(DP), intent(in)      :: dt                     
+         !! Step size
+      integer(I4B), intent(out) :: iflag                  
+         !! iflag : error status flag for Danby drift (0 = OK, nonzero = ERROR)
       ! Internals
       integer(I4B) :: i
       real(DP)   :: dttmp
@@ -147,11 +163,16 @@ contains
       !! Adapted from Hal Levison and Martin Duncan's Swift routine drift_dan.f
       implicit none
       ! Arguments
-      real(DP),     intent(in)    :: mu            !! G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift
-      real(DP),     intent(inout) :: rx0, ry0, rz0 !! position of body to drift
-      real(DP),     intent(inout) :: vx0, vy0, vz0 !! velocity of body to drift     
-      real(DP),     intent(in)    :: dt0           !! time step
-      integer(I4B), intent(out)   :: iflag         !! error status flag for Kepler drift (0 = OK, nonzero = NO CONVERGENCE)
+      real(DP),     intent(in)    :: mu            
+         !! G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift
+      real(DP),     intent(inout) :: rx0, ry0, rz0 
+         !! position of body to drift
+      real(DP),     intent(inout) :: vx0, vy0, vz0 
+         !! velocity of body to drift     
+      real(DP),     intent(in)    :: dt0           
+         !! time step
+      integer(I4B), intent(out)   :: iflag         
+         !! error status flag for Kepler drift (0 = OK, nonzero = NO CONVERGENCE)
       ! Internals
       real(DP)        :: rx, ry, rz, vx, vy, vz, dt
       real(DP)        :: f, g, fdot, gdot, c1, c2, c3, u, alpha, fp, r0
@@ -242,12 +263,18 @@ contains
       !! Adapted from Martin Duncan's Swift routine drift_kepmd.f
       implicit none
       ! Arguments
-      real(DP), intent(in)  :: dm !! increment in mean anomaly
-      real(DP), intent(in)  :: es !! eccentricity times the sine of eccentric anomaly
-      real(DP), intent(in)  :: ec !! eccentricity times the cosine of eccentric anomaly
-      real(DP), intent(out) :: x  !! solution to Kepler's equation in difference form (x = dE)
-      real(DP), intent(out) :: s  !! sine of x
-      real(DP), intent(out) :: c  !! cosine of x
+      real(DP), intent(in)  :: dm 
+         !! increment in mean anomaly
+      real(DP), intent(in)  :: es 
+         !! eccentricity times the sine of eccentric anomaly
+      real(DP), intent(in)  :: ec 
+         !! eccentricity times the cosine of eccentric anomaly
+      real(DP), intent(out) :: x  
+         !! solution to Kepler's equation in difference form (x = dE)
+      real(DP), intent(out) :: s  
+         !! sine of x
+      real(DP), intent(out) :: c  
+         !! cosine of x
       ! Internals
       real(DP), parameter :: a0 = 39916800.0_DP, a1 = 6652800.0_DP, a2 = 332640.0_DP, a3 = 7920.0_DP, a4 = 110.0_DP
       real(DP)      :: dx, fac1, fac2, q, y, f, fp, fpp, fppp
@@ -313,13 +340,20 @@ contains
       !! Adapted from Martin Duncan's Swift routine drift_kepu_fchk.f
       implicit none
       ! Internals
-      real(DP), intent(in)  :: dt    !! time step
-      real(DP), intent(in)  :: r0    !! distance between two bodies
-      real(DP), intent(in)  :: mu    !! G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift
-      real(DP), intent(in)  :: alpha !! twice the binding energy
-      real(DP), intent(in)  :: u     !! dot product of position and velocity vectors
-      real(DP), intent(in)  :: s     !! universal variable (approximate root of f)
-      real(DP), intent(out) :: f     !! function value
+      real(DP), intent(in)  :: dt    
+         !! time step
+      real(DP), intent(in)  :: r0    
+         !! distance between two bodies
+      real(DP), intent(in)  :: mu    
+         !! G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift
+      real(DP), intent(in)  :: alpha 
+         !! twice the binding energy
+      real(DP), intent(in)  :: u     
+         !! dot product of position and velocity vectors
+      real(DP), intent(in)  :: s     
+         !! universal variable (approximate root of f)
+      real(DP), intent(out) :: f     
+         !! function value
       ! Arguments
       real(DP) :: x, c0, c1, c2, c3
 
@@ -343,12 +377,18 @@ contains
       !! Adapted from Hal Levison and Martin Duncan's Swift routine drift_kepu_guess.f
       implicit none
       ! Arguments
-      real(DP), intent(in)  :: dt    !! time ste4p
-      real(DP), intent(in)  :: r0    !! distance between two bodies
-      real(DP), intent(in)  :: mu    !! G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift
-      real(DP), intent(in)  :: alpha !! twice the binding energy
-      real(DP), intent(in)  :: u     !! dot product of position and velocity vectors
-      real(DP), intent(out) :: s     !! initial guess for the value of the universal variable
+      real(DP), intent(in)  :: dt    
+         !! time ste4p
+      real(DP), intent(in)  :: r0    
+         !! distance between two bodies
+      real(DP), intent(in)  :: mu    
+         !! G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift
+      real(DP), intent(in)  :: alpha 
+         !! twice the binding energy
+      real(DP), intent(in)  :: u     
+         !! dot product of position and velocity vectors
+      real(DP), intent(out) :: s     
+         !! initial guess for the value of the universal variable
       ! Internals
       integer(I4B) :: iflag
       real(DP), parameter :: thresh = 0.4_DP, danbyk = 0.85_DP
@@ -388,17 +428,28 @@ contains
       !! Adapted from Hal Levison's Swift routine drift_kepu_lag.f
       implicit none
       ! Arguments
-      real(DP),     intent(inout) :: s     !! universal variable 
-      real(DP),     intent(in)    :: dt    !! time step
-      real(DP),     intent(in)    :: r0    !! distance between two bodies 
-      real(DP),     intent(in)    :: mu    !! G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift 
-      real(DP),     intent(in)    :: alpha !! twice the binding energy 
-      real(DP),     intent(in)    :: u     !! dot product of position and velocity vectors
-      real(DP),     intent(out)   :: fp    !! first derivative of Kepler's equation in universal variables with respect to s (see Danby, p. 175)
-      real(DP),     intent(out)   :: c1    !! Stumpff function c1 times s
-      real(DP),     intent(out)   :: c2    !! Stumpff function c2 times s**2
-      real(DP),     intent(out)   :: c3    !! Stumpff function c3 times s**3
-      integer(I4B), intent(out)   :: iflag !! error status flag for convergence (0 = CONVERGED, nonzero = NOT CONVERGED)
+      real(DP),     intent(inout) :: s     
+         !! universal variable 
+      real(DP),     intent(in)    :: dt    
+         !! time step
+      real(DP),     intent(in)    :: r0    
+         !! distance between two bodies 
+      real(DP),     intent(in)    :: mu    
+         !! G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift 
+      real(DP),     intent(in)    :: alpha 
+         !! twice the binding energy 
+      real(DP),     intent(in)    :: u     
+         !! dot product of position and velocity vectors
+      real(DP),     intent(out)   :: fp    
+         !! first derivative of Kepler's equation in universal variables with respect to s (see Danby, p. 175)
+      real(DP),     intent(out)   :: c1    
+         !! Stumpff function c1 times s
+      real(DP),     intent(out)   :: c2    
+         !! Stumpff function c2 times s**2
+      real(DP),     intent(out)   :: c3    
+         !! Stumpff function c3 times s**3
+      integer(I4B), intent(out)   :: iflag 
+         !! error status flag for convergence (0 = CONVERGED, nonzero = NOT CONVERGED)
       ! Internals
       integer(I4B) :: nc, ncmax
       real(DP)   :: x, fpp, ds, c0, f, fdt
@@ -442,17 +493,28 @@ contains
       !! Adapted from Hal Levison's Swift routine drift_kepu_new.f
       implicit none
       ! Arguments
-      real(DP),     intent(inout) :: s     !! universal variable
-      real(DP),     intent(in)    :: dt    !! time step
-      real(DP),     intent(in)    :: r0    !! distance between two bodies
-      real(DP),     intent(in)    :: mu    !! G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift
-      real(DP),     intent(in)    :: alpha !! twice the binding energy
-      real(DP),     intent(in)    :: u     !! dot product of position and velocity vectors
-      real(DP),     intent(out)   :: fp    !! first derivative of Kepler's equation in universal variables with respect to s (see Danby, p. 175)
-      real(DP),     intent(out)   :: c1    !! Stumpff function c1 times s
-      real(DP),     intent(out)   :: c2    !! Stumpff function c2 times s**2
-      real(DP),     intent(out)   :: c3    !! Stumpff function c3 times s**3
-      integer(I4B), intent(out)   :: iflag !! error status flag for convergence (0 = CONVERGED, nonzero = NOT CONVERGED)
+      real(DP),     intent(inout) :: s     
+         !! universal variable
+      real(DP),     intent(in)    :: dt    
+         !! time step
+      real(DP),     intent(in)    :: r0    
+         !! distance between two bodies
+      real(DP),     intent(in)    :: mu    
+         !! G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift
+      real(DP),     intent(in)    :: alpha 
+         !! twice the binding energy
+      real(DP),     intent(in)    :: u     
+         !! dot product of position and velocity vectors
+      real(DP),     intent(out)   :: fp    
+         !! first derivative of Kepler's equation in universal variables with respect to s (see Danby, p. 175)
+      real(DP),     intent(out)   :: c1    
+         !! Stumpff function c1 times s
+      real(DP),     intent(out)   :: c2    
+         !! Stumpff function c2 times s**2
+      real(DP),     intent(out)   :: c3    
+         !! Stumpff function c3 times s**3
+      integer(I4B), intent(out)   :: iflag 
+         !! error status flag for convergence (0 = CONVERGED, nonzero = NOT CONVERGED)
       ! Internals
       integer( I4B) :: nc
       real(DP)   :: x, c0, ds, f, fpp, fppp, fdt
@@ -494,13 +556,20 @@ contains
       !! Adapted from Martin Duncan's Swift routine drift_kepu_p3solve.f
       implicit none
       ! Arguments
-      real(DP), intent(in)      :: dt    !! time step
-      real(DP), intent(in)      :: r0    !! distance between two bodies
-      real(DP), intent(in)      :: mu    !! G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift
-      real(DP), intent(in)      :: alpha !! twice the binding energy
-      real(DP), intent(in)      :: u     !! dot product of position and velocity vectors
-      real(DP), intent(out)     :: s     !! s     : real solution of cubic equation
-      integer(I4B), intent(out) :: iflag !! error status flag for solution (0 = OK, nonzero = ERROR)
+      real(DP), intent(in)      :: dt    
+         !! time step
+      real(DP), intent(in)      :: r0    
+         !! distance between two bodies
+      real(DP), intent(in)      :: mu    
+         !! G * (m1 + m2), G = gravitational constant, m1 = mass of central body, m2 = mass of body to drift
+      real(DP), intent(in)      :: alpha 
+         !! twice the binding energy
+      real(DP), intent(in)      :: u     
+         !! dot product of position and velocity vectors
+      real(DP), intent(out)     :: s     
+         !! s     : real solution of cubic equation
+      integer(I4B), intent(out) :: iflag 
+         !! error status flag for solution (0 = OK, nonzero = ERROR)
       ! Internals
       real(DP) :: denom, a0, a1, a2, q, r, sq2, sq, p1, p2
 
@@ -544,11 +613,16 @@ contains
       !! Adapted from Hal Levison's Swift routine drift_kepu_stumpff.f
       implicit none
       ! Arguments
-      real(DP), intent(inout) :: x  !! argument of Stumpff functions
-      real(DP), intent(out)   :: c0 !! zeroth Stumpff function
-      real(DP), intent(out)   :: c1 !! first Stumpff function
-      real(DP), intent(out)   :: c2 !! second Stumpff function
-      real(DP), intent(out)   :: c3 !! third Stumpff function
+      real(DP), intent(inout) :: x  
+         !! argument of Stumpff functions
+      real(DP), intent(out)   :: c0 
+         !! zeroth Stumpff function
+      real(DP), intent(out)   :: c1 
+         !! first Stumpff function
+      real(DP), intent(out)   :: c2 
+         !! second Stumpff function
+      real(DP), intent(out)   :: c3 
+         !! third Stumpff function
       ! Internals
       integer(I4B) :: i, n
       real(DP)   :: xm
@@ -589,9 +663,12 @@ contains
       !! phase is stored and calculated in radians. Converted to degrees for output
       implicit none
       ! Arguments
-      class(swiftest_cb),           intent(inout) :: self   !! Swiftest central body data structure
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: dt     !! Stepsize
+      class(swiftest_cb),           intent(inout) :: self   
+         !! Swiftest central body data structure
+      class(swiftest_parameters),   intent(in)    :: param  
+         !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: dt     
+         !! Stepsize
 
       self%rotphase = MOD(self%rotphase + (.mag. self%rot(:)) * dt, 2 * PI) ! phase angle calculated in radians
 

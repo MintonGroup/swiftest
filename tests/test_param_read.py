@@ -14,7 +14,7 @@ import unittest
 import os
 import tempfile
 
-class TestSwiftestUnits(unittest.TestCase):
+class TestSwiftestParamRead(unittest.TestCase):
     def setUp(self):
         # Initialize a target and surface for testing
         self.tmpdir=tempfile.TemporaryDirectory()

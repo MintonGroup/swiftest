@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -20,11 +20,16 @@ contains
       !! Adapted from Hal Levison's Swift routine helio_kick_getacch.f
       implicit none
       ! Arguments
-      class(helio_pl),              intent(inout) :: self   !! Helio massive body particle data structure
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: t      !! Current simulation time
-      logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
+      class(helio_pl),              intent(inout) :: self   
+         !! Helio massive body particle data structure
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param  
+         !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: t      
+         !! Current simulation time
+      logical,                      intent(in)    :: lbeg   
+         !! Logical flag that determines whether or not this is the beginning or end of the step
 
       if (self%nbody == 0) return
 
@@ -64,11 +69,16 @@ contains
       !! Adapted from Hal Levison's Swift routine helio_kick_getacch_tp.f
       implicit none
       ! Arguments
-      class(helio_tp),              intent(inout) :: self   !! Helio test particle data structure
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: t      !! Current time
-      logical,                      intent(in)    :: lbeg   !! Logical flag that determines whether or not this is the beginning or end of the step
+      class(helio_tp),              intent(inout) :: self   
+         !! Helio test particle data structure
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param  
+         !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: t      
+         !! Current time
+      logical,                      intent(in)    :: lbeg   
+         !! Logical flag that determines whether or not this is the beginning or end of the step
    
       if (self%nbody == 0) return
 
@@ -99,12 +109,18 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine helio_kick_vb.f90
       implicit none
       ! Arguments
-      class(helio_pl),              intent(inout) :: self   !! Swiftest generic body object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param  !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: t      !! Current time
-      real(DP),                     intent(in)    :: dt     !! Stepsize
-      logical,                      intent(in)    :: lbeg   !! Logical flag indicating whether this is the beginning of the half step or not. 
+      class(helio_pl),              intent(inout) :: self   
+         !! Swiftest generic body object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param  
+         !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: t      
+         !! Current time
+      real(DP),                     intent(in)    :: dt     
+         !! Stepsize
+      logical,                      intent(in)    :: lbeg   
+         !! Logical flag indicating whether this is the beginning of the half step or not. 
       ! Internals
       integer(I4B) :: i, npl
 
@@ -143,12 +159,18 @@ contains
       !! Adapted from David E. Kaufmann's Swifter routine helio_kick_vb_tp.f90
       implicit none
       ! Arguments
-      class(helio_tp),              intent(inout) :: self !! Swiftest generic body object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(inout) :: param !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: t     !! Current time
-      real(DP),                     intent(in)    :: dt    !! Stepsize
-      logical,                      intent(in)    :: lbeg  !! Logical flag indicating whether this is the beginning of the half step or not. 
+      class(helio_tp),              intent(inout) :: self 
+         !! Swiftest generic body object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(inout) :: param 
+         !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: t     
+         !! Current time
+      real(DP),                     intent(in)    :: dt    
+         !! Stepsize
+      logical,                      intent(in)    :: lbeg  
+         !! Logical flag indicating whether this is the beginning of the half step or not. 
       ! Internals
       integer(I4B) :: i, ntp
 

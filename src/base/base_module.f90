@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -411,7 +411,6 @@ module base
    contains
 
       subroutine base_util_append_arr_char_string(arr, source, nold, lsource_mask)
-         
          !! author: David A. Minton 
          !! 
          !! Append a single array of character string type onto another. If the destination array is not allocated, or is not big  
@@ -729,9 +728,9 @@ module base
          integer(I4B), intent(in) :: code
          integer(I4B), intent(in), optional :: unit
          ! Internals
-         character(*), parameter :: BAR = '("---------------------------------------------------")'
+         character(*), parameter :: BAR = '("-----------------------------------------------------")'
          character(*), parameter :: SUCCESS_MSG = '(/, "Normal termination of Swiftest (version ", A, ")")'
-         character(*), parameter :: FAIL_MSG = '(/, "Terminating Swiftest (version ", A, ") due to error!")' 
+         character(*), parameter :: FAIL_MSG    = '(/, "Terminating Swiftest (version ", A, ") due to error!")' 
          character(*), parameter :: USAGE_MSG = '("Usage: swiftest <whm|helio|rmvs|symba> <paramfile> ' // &
                                                 '[{standard}|compact|progress]")'
          character(*), parameter :: HELP_MSG  = USAGE_MSG
@@ -756,6 +755,7 @@ module base
          case default
             write(iu, FAIL_MSG) VERSION
             write(iu, BAR)
+            error stop 
          end select
 #ifdef COARRAY
          end if

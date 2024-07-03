@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -20,13 +20,19 @@ contains
       !! Adapted from Hal Levison's Swift routine drift.f
       implicit none
       ! Arguments
-      class(swiftest_body),         intent(inout) :: self   !! Swiftest body object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: dt     !! Stepsize
+      class(swiftest_body),         intent(inout) :: self   
+         !! Swiftest body object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  
+         !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: dt     
+         !! Stepsize
       ! Internals
-      integer(I4B) :: i !! Loop counter
-      integer(I4B), dimension(:),allocatable :: iflag !! Vectorized error code flag
+      integer(I4B) :: i 
+         !! Loop counter
+      integer(I4B), dimension(:),allocatable :: iflag 
+         !! Vectorized error code flag
       real(DP), dimension(:), allocatable    :: mu
       character(len=STRMAX) message
 
@@ -60,10 +66,14 @@ contains
       !! Wrapper function used to call the body drift routine from a helio_pl structure
       implicit none
       ! Arguments
-      class(helio_pl),              intent(inout) :: self   !! Helio massive body object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: dt     !! Stepsize
+      class(helio_pl),              intent(inout) :: self   
+         !! Helio massive body object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  
+         !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: dt     
+         !! Stepsize
 
       call helio_drift_body(self, nbody_system, param, dt)
 
@@ -77,10 +87,14 @@ contains
       !! Wrapper function used to call the body drift routine from a helio_pl structure
       implicit none
       ! Arguments
-      class(helio_tp),              intent(inout) :: self   !! Helio massive body object
-      class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
-      class(swiftest_parameters),   intent(in)    :: param  !! Current run configuration parameters 
-      real(DP),                     intent(in)    :: dt     !! Stepsize
+      class(helio_tp),              intent(inout) :: self   
+         !! Helio massive body object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system 
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param  
+         !! Current run configuration parameters 
+      real(DP),                     intent(in)    :: dt     
+         !! Stepsize
 
       call helio_drift_body(self, nbody_system, param, dt)
 
@@ -135,12 +149,17 @@ contains
       !! Adapted from Hal Levison's Swift routine helio_lindrift.f
       implicit none
       ! Arguments
-      class(helio_pl),               intent(inout) :: self !! Helio massive body object
-      class(helio_cb),               intent(inout) :: cb   !! Helio central body
-      real(DP),                      intent(in)    :: dt   !! Stepsize
-      logical,                       intent(in)    :: lbeg !! Argument that determines whether or not this is the beginning or end of the step
+      class(helio_pl),               intent(inout) :: self 
+         !! Helio massive body object
+      class(helio_cb),               intent(inout) :: cb   
+         !! Helio central body
+      real(DP),                      intent(in)    :: dt   
+         !! Stepsize
+      logical,                       intent(in)    :: lbeg 
+         !! Argument that determines whether or not this is the beginning or end of the step
       ! Internals
-      real(DP), dimension(NDIM) :: pt     !! negative barycentric velocity of the central body
+      real(DP), dimension(NDIM) :: pt     
+         !! negative barycentric velocity of the central body
 
       if (self%nbody == 0) return
 
@@ -173,12 +192,17 @@ contains
       !! Adapted from Hal Levison's Swift routine helio_lindrift_tp.f
       implicit none
       ! Arguments
-      class(helio_tp),               intent(inout) :: self !! Helio test particleb object
-      class(helio_cb),               intent(in)    :: cb   !! Helio central body
-      real(DP),                      intent(in)    :: dt   !! Stepsize
-      logical,                       intent(in)    :: lbeg !! Argument that determines whether or not this is the beginning or end of the step
+      class(helio_tp),               intent(inout) :: self 
+         !! Helio test particleb object
+      class(helio_cb),               intent(in)    :: cb   
+         !! Helio central body
+      real(DP),                      intent(in)    :: dt   
+         !! Stepsize
+      logical,                       intent(in)    :: lbeg 
+         !! Argument that determines whether or not this is the beginning or end of the step
       ! Internals
-      real(DP), dimension(NDIM)      :: pt     !! negative barycentric velocity of the central body
+      real(DP), dimension(NDIM)      :: pt     
+         !! negative barycentric velocity of the central body
         
       if (self%nbody == 0) return
 

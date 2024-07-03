@@ -176,16 +176,21 @@ class Simulation(object):
             else:
                 raise FileNotFoundError(f"BIN_OUT file {binpath} not found.")
         return
-
+    
+    
     def _run_swiftest_driver(self):
         """
         Internal callable function that executes the swiftest_driver run
         """
         from .core import driver
 
-        with _cwd(self.simdir):
-            driver(self.integrator,str(self.param_file), "progress")
-
+        # Set up signal handling to catch termination signals
+        try:
+            with _cwd(self.simdir):
+                driver(self.integrator,str(self.param_file), "progress")
+        except Exception as e:
+            warnings.warn(f"Failed to run the simulation with Exception: {e}", stacklevel=2)
+            
         return
 
     def run(self,
@@ -1202,6 +1207,8 @@ class Simulation(object):
             if restart is not None:
                 self.param["RESTART"] = restart
                 update_list.append("restart")
+            else:
+                self.restart = self.param["RESTART"]
 
             if interaction_loops is not None:
                 valid_vals = ["TRIANGULAR", "FLAT"]

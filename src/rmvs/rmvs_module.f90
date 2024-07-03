@@ -1,4 +1,4 @@
-! Copyight 2022 - David Minton, Carlisle Wishard, Jennifer Pouplin, Jake Elliott, & Dana Singh
+! Copyright 2024 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -102,7 +102,8 @@ module rmvs
          !! Flag that indicates that the object is a planetocentric set of masive bodies used for close encounter calculations
    contains
       procedure :: discard         => rmvs_discard_tp             
-         !! Check to see if test particles should be discarded based on pericenter passage distances with respect to planets encountered
+         !! Check to see if test particles should be discarded based on pericenter passage distances with respect to planets 
+         !! encountered
       procedure :: encounter_check => rmvs_encounter_check_tp     
          !! Checks if any test particles are undergoing a close encounter with a massive body
       procedure :: accel           => rmvs_kick_getacch_tp        
