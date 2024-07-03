@@ -20,7 +20,6 @@ sphinx-book-theme >= 0.3.0
 sphinx-copybutton
 sphinx-design
 sphinx-inline-tabs
-sphinxext-rediraffe
 sphinxext-opengraph
 nbsphinx
 ipython
