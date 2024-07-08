@@ -87,6 +87,8 @@ contains
       !!       References:
       !!       Hyodo, R., Genda, H., 2020. Escape and Accretion by Cratering Impacts: Formulation of Scaling Relations for 
       !!          High-speed Ejecta. ApJ 898 30. https://doi.org/10.3847/1538-4357/ab9897
+      !!       Housen, K., Holsapple, K., 2011. Ejecta from Impact Craters. Icarus, Volume 211, Issue 1, 2011.
+      !!          https://doi.org/10.1016/j.icarus.2010.09.017
       !!
 
       implicit none
@@ -123,6 +125,88 @@ contains
       real(DP), parameter :: f_imp = 1.28e-1_DP
          !! Best-fit parameter for ejecta C_HG20(theta) for the impactor body (Table 1 in HG20)
       real(DP), parameter :: g_imp = -8.71e-1_DP
+         !! Best-fit parameter for ejecta C_HG20(theta) for the impactor body (Table 1 in HG20)
+
+      real(DP), parameter :: k = 0.3_DP
+         !! material property constant from Housen and Holsapple (2011) (HH11)
+      real(DP), parameter :: C_0 = 1.5_DP
+         !! material property constant from Housen and Holsapple (2011) (HH11)
+      real(DP), parameter :: mu_HH11 = 0.55_DP
+         !! material property constant from Housen and Holsapple (2011) (HH11)
+         !! 0.55 for nonporous rocky and icy materials
+
+      V_imp = norm2(vb2(:) - vb1(:)) ! Impact velocity
+      theta_rad = calc_theta(rh2, vb2, rh1, vb1) ! Impact angle in radians
+      theta = theta * 180.0_DP / PI ! Impact angle in degrees
+      V_esc = sqrt(2 * GC * m_tar / rad_tar) ! Escape velocity of the target body
+
+      ! Calculate target body ejecta mass that escapes from the target body 
+
+      mu_HG20_tar = a_tar * theta**2 + b_tar * theta + c_tar
+      C_HG20_tar = exp(d_tar * theta**3 + e_tar * theta**2 + f_tar * theta + g_tar)
+      M_esc_tar_HG20 = C_HG20_tar * (V_esc / (V_imp * sin(theta_rad)))**(-3.0_DP * mu_HG20_tar) ! impactor mass units
+
+      C_HH11 = 3 * k / (4 * PI) * C_0**(3.0_DP * mu_HH11)
+      M_esc_tar_HH11 = C_HH11 * (V_esc / (V_imp * sin(theta_rad)))**(-3.0_DP * mu_HH11) ! impactor mass units
+
+      M_esc_tar = min(M_esc_tar_HG20, M_esc_tar_HH11)
+
+      ! Calculate impactor body ejecta mass that escapes from the target
+
+      mu_HG20_imp = a_imp * theta**2 + b_imp * theta + c_imp
+      C_HG20_imp = exp(d_imp * theta**3 + e_imp * theta**2 + f_imp * theta + g_imp) 
+      M_esc_imp = C_HG20_imp * (V_esc / (V_imp * sin(theta_rad)))**(-3.0_DP * mu_HG20_imp) ! impactor mass units
+
+      M_esc_total = M_esc_tar + M_esc_imp ! impactor mass units
+
+      ! Find collisional regime (MERGE or EROSION/DISRUPTION)
+
+      if ((m_tar < min_mfrag).or.(m_imp < min_mfrag)) then 
+         regime = COLLRESOLVE_REGIME_MERGE !perfect merging regime
+         call swiftest_io_log_one_message(COLLISION_LOG_OUT, &
+                                 "Fragments would have mass below the minimum. Converting this collision into a merger.")
+      else 
+         if (M_esc_total < 1.0_DP) then 
+            regime = COLLRESOLVE_REGIME_MERGE ! Net accretion regime       ! does partial accretion need a separate check?
+         else if (M_esc_total >= 1.0_DP) then
+            regime = COLLRESOLVE_REGIME_DISRUPTION ! Net erosion regime
+         else 
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Error no regime found in symba_regime")
+         end if
+      
+      ! Calculate largest and second-largest remnant masses and energy loss
+      
+         return
+
+         contains
+
+            function calc_theta(r_tar, v_tar, r_imp, v_imp) result(theta_rad)
+               !! author: Kaustub P. Anand, David A. Minton
+               !!
+               !! Calculate the impact angle between two colliding bodies
+               !! For HG20, theta = 90 degrees - asin(b) where b is the impact parameter 
+               !! (if impactor radius << target radius)
+               !! 90 degrees is a head-on collision
+               !!
+               implicit none
+               ! Arguments
+               real(DP), intent(in) :: r_tar, v_tar, r_imp, v_imp
+               ! Result
+               real(DP) :: theta_rad ! radians
+               ! Internals
+               real(DP), dimension(NDIM)  :: imp_vel, distance, x_cross_v
+
+               imp_vel(:) = proj_vel(:) - targ_vel(:)
+               distance(:) = proj_pos(:) - targ_pos(:)
+               x_cross_v(:) = distance(:) .cross. imp_vel(:) 
+               sintheta = norm2(x_cross_v(:)) / norm2(distance(:)) / norm2(imp_vel(:))
+
+               theta_rad = asin(sintheta) ! Find a more exact way to calculate theta
+
+               return
+            end function calc_theta
+            
+
 
 
       end subroutine collision_regime_HG20_SI
