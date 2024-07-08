@@ -135,10 +135,18 @@ contains
          !! material property constant from Housen and Holsapple (2011) (HH11)
          !! 0.55 for nonporous rocky and icy materials
 
+      real(DP), parameter   :: BETA = 2.85_DP 
+         !! slope of sfd for remnants from LS12 2.85
+      integer(I4B), parameter :: N1 = 1 
+          !!number of objects with mass equal to the largest remnant from LS12
+      integer(I4B), parameter :: N2 = 2  
+         !! number of objects with mass larger than second largest remnant from LS12
+      
+
       V_imp = norm2(vb2(:) - vb1(:)) ! Impact velocity
       theta_rad = calc_theta(rh2, vb2, rh1, vb1) ! Impact angle in radians
       theta = theta * 180.0_DP / PI ! Impact angle in degrees
-      V_esc = sqrt(2 * GC * m_tar / rad_tar) ! Escape velocity of the target body
+      V_esc = sqrt(2 * GC * M_tar / rad_tar) ! Escape velocity of the target body
 
       ! Calculate target body ejecta mass that escapes from the target body 
 
@@ -149,7 +157,7 @@ contains
       C_HH11 = 3 * k / (4 * PI) * C_0**(3.0_DP * mu_HH11)
       M_esc_tar_HH11 = C_HH11 * (V_esc / (V_imp * sin(theta_rad)))**(-3.0_DP * mu_HH11) ! impactor mass units
 
-      M_esc_tar = min(M_esc_tar_HG20, M_esc_tar_HH11)
+      M_esc_tar = min(M_esc_tar_HG20, M_esc_tar_HH11) ! impactor mass units
 
       ! Calculate impactor body ejecta mass that escapes from the target
 
@@ -161,7 +169,7 @@ contains
 
       ! Find collisional regime (MERGE or EROSION/DISRUPTION)
 
-      if ((m_tar < min_mfrag).or.(m_imp < min_mfrag)) then 
+      if ((M_tar < min_mfrag).or.(M_imp < min_mfrag)) then 
          regime = COLLRESOLVE_REGIME_MERGE !perfect merging regime
          call swiftest_io_log_one_message(COLLISION_LOG_OUT, &
                                  "Fragments would have mass below the minimum. Converting this collision into a merger.")
@@ -174,37 +182,58 @@ contains
             call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Error no regime found in symba_regime")
          end if
       
+      ! Convert from impactor mass units to system mass units
+      M_esc_total = M_esc_total * M_imp
+      M_esc_tar = M_esc_tar * M_imp
+      M_esc_imp = M_esc_imp * M_imp
+      M_acc_imp = M_imp - M_esc_imp ! impactor material accreted by the target body
+
       ! Calculate largest and second-largest remnant masses and energy loss
+      Mlr = M_tar - M_esc_tar + M_acc_imp
+
+      Mslr = max(Mtot * (3.0_DP - BETA) * (1.0_DP - N1 * Mlr / M_tot) / (N2 * BETA), min_mfrag)  !LS12 eq (37)
+      ! Mslr = max(M_esc_imp, M_esc_tar)
+
+      Qloss = 
+
+      if (Mslr > Mlr) then ! The second-largest fragment is actually larger than the largest, so we will swap them
+         Mtmp = Mlr
+         Mlr = Mslr
+         Mslr = Mtmp
+      end if
       
-         return
+      Qloss = (c_star - 1.0_DP) * U_binding * Mtot ! Convert specific energy loss to total energy loss in the system
+      Qmerge = (ke + pe + U_binding) * Mtot ! The  energy lost if this were a perfect merger
 
-         contains
+      return
 
-            function calc_theta(r_tar, v_tar, r_imp, v_imp) result(theta_rad)
-               !! author: Kaustub P. Anand, David A. Minton
-               !!
-               !! Calculate the impact angle between two colliding bodies
-               !! For HG20, theta = 90 degrees - asin(b) where b is the impact parameter 
-               !! (if impactor radius << target radius)
-               !! 90 degrees is a head-on collision
-               !!
-               implicit none
-               ! Arguments
-               real(DP), intent(in) :: r_tar, v_tar, r_imp, v_imp
-               ! Result
-               real(DP) :: theta_rad ! radians
-               ! Internals
-               real(DP), dimension(NDIM)  :: imp_vel, distance, x_cross_v
+      contains
 
-               imp_vel(:) = proj_vel(:) - targ_vel(:)
-               distance(:) = proj_pos(:) - targ_pos(:)
-               x_cross_v(:) = distance(:) .cross. imp_vel(:) 
-               sintheta = norm2(x_cross_v(:)) / norm2(distance(:)) / norm2(imp_vel(:))
+         function calc_theta(r_tar, v_tar, r_imp, v_imp) result(theta_rad)
+            !! author: Kaustub P. Anand, David A. Minton
+            !!
+            !! Calculate the impact angle between two colliding bodies
+            !! For HG20, theta = 90 degrees - asin(b) where b is the impact parameter 
+            !! (if impactor radius << target radius)
+            !! 90 degrees is a head-on collision
+            !!
+            implicit none
+            ! Arguments
+            real(DP), intent(in) :: r_tar, v_tar, r_imp, v_imp
+            ! Result
+            real(DP) :: theta_rad ! radians
+            ! Internals
+            real(DP), dimension(NDIM)  :: imp_vel, distance, x_cross_v
 
-               theta_rad = asin(sintheta) ! Find a more exact way to calculate theta
+            imp_vel(:) = proj_vel(:) - targ_vel(:)
+            distance(:) = proj_pos(:) - targ_pos(:)
+            x_cross_v(:) = distance(:) .cross. imp_vel(:) 
+            sintheta = norm2(x_cross_v(:)) / norm2(distance(:)) / norm2(imp_vel(:))
 
-               return
-            end function calc_theta
+            theta_rad = asin(sintheta) ! Find a more exact way to calculate theta
+
+            return
+         end function calc_theta
             
 
 
