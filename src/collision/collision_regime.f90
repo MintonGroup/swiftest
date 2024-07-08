@@ -40,8 +40,11 @@ contains
             if (allocated(impactors%mass_dist)) deallocate(impactors%mass_dist)
             allocate(impactors%mass_dist(1))
             impactors%mass_dist(1) = mtot
+         case("HG20") !! Put a check for mass ratios of projectile and target, and place in appropriate model 
+            call collision_regime_HG20(self, nbody_system, param) ! Cratering collisions. Mass ratio < 1:500 (approx.)
+            call collision_io_log_regime(self%impactors)
          case default
-            call collision_regime_LS12(self, nbody_system, param)
+            call collision_regime_LS12(self, nbody_system, param) ! Large planetary collisions. Mass ratio > 1:500 (approx.)
             call collision_io_log_regime(self%impactors)
          end select
       end select
@@ -50,6 +53,81 @@ contains
 
       return
    end subroutine collision_regime_collider
+
+   subroutine collision_regime_HG20(collider, nbody_system, param)
+      !! Author: Kaustub P. Anand, David A. Minton
+      !!
+      !! Determine the collisional regime of two colliding bodies based on the model by Hyodo and Genda (2020)
+      !!
+      !! This is a wrapper subroutine that converts quantities to SI units and calls the main HG20 subroutine
+      !! NOTE: Impact angle is converted to degrees
+      !! structured similar to collision_regime_LS12
+
+      implicit none
+      ! Arguments
+      class(collision_basic),       intent(inout) :: collider     
+         !! The impactors to determine the regime for
+      class(swiftest_nbody_system), intent(in)    :: nbody_system
+         !! Swiftest n-body system object
+      class(swiftest_parameters),   intent(in)    :: param        
+         !! The current parameters
+
+      ! Internals
+
+
+      associate(impactors => collider%impactors)
+
+   end subroutine collision_regime_HG20
+
+   subroutine collision_regime_HG20_SI()
+      !! Author: Kaustub P. Anand, David A. Minton
+      !!
+      !! Determine the collisional regime of two colliding bodies when projectile mass is very small compared to target mass
+      !! Current version requires all values to be converted to SI units prior to calling the function
+      !!       References:
+      !!       Hyodo, R., Genda, H., 2020. Escape and Accretion by Cratering Impacts: Formulation of Scaling Relations for 
+      !!          High-speed Ejecta. ApJ 898 30. https://doi.org/10.3847/1538-4357/ab9897
+      !!
+
+      implicit none
+      ! Arguments
+      real(DP), intent(out) :: Mlr, Mslr, Mslr_hitandrun, Qloss, Qmerge
+         !! Largest and second-largest remnant defined for various regimes
+
+      ! Constants
+      real(DP), parameter :: a_tar = 4.12e-5_DP
+         !! Best-fit parameter for ejection velocity mu_HG20(theta) for the target body (Table 1 in HG20) 
+      real(DP), parameter :: b_tar = 2.71e-3_DP
+         !! Best-fit parameter for ejection velocity mu_HG20(theta) for the target body (Table 1 in HG20)
+      real(DP), parameter :: c_tar = 5.13e-1_DP
+         !! Best-fit parameter for ejection velocity mu_HG20(theta) for the target body (Table 1 in HG20)
+      real(DP), parameter :: d_tar = 1.52e-5_DP
+         !! Best-fit parameter for ejecta C_HG20(theta) for the target body (Table 1 in HG20)
+      real(DP), parameter :: e_tar = -3.21e-3_DP
+         !! Best-fit parameter for ejecta C_HG20(theta) for the target body (Table 1 in HG20)
+      real(DP), parameter :: f_tar = 1.41e-1_DP
+         !! Best-fit parameter for ejecta C_HG20(theta) for the target body (Table 1 in HG20)
+      real(DP), parameter :: g_tar = -4.02_DP
+         !! Best-fit parameter for ejecta C_HG20(theta) for the target body (Table 1 in HG20)
+
+      real(DP), parameter :: a_imp = -7.06e-5_DP
+         !! Best-fit parameter for ejection velocity mu_HG20(theta) for the impactor body (Table 1 in HG20)
+      real(DP), parameter :: b_imp = 1.54e-2_DP
+         !! Best-fit parameter for ejection velocity mu_HG20(theta) for the impactor body (Table 1 in HG20)
+      real(DP), parameter :: c_imp = -1.93e-1_DP
+         !! Best-fit parameter for ejection velocity mu_HG20(theta) for the impactor body (Table 1 in HG20)
+      real(DP), parameter :: d_imp = 3.34e-5_DP
+         !! Best-fit parameter for ejecta C_HG20(theta) for the impactor body (Table 1 in HG20)
+      real(DP), parameter :: e_imp = -5.13e-3_DP
+         !! Best-fit parameter for ejecta C_HG20(theta) for the impactor body (Table 1 in HG20)
+      real(DP), parameter :: f_imp = 1.28e-1_DP
+         !! Best-fit parameter for ejecta C_HG20(theta) for the impactor body (Table 1 in HG20)
+      real(DP), parameter :: g_imp = -8.71e-1_DP
+
+
+      end subroutine collision_regime_HG20_SI
+
+
 
 
    subroutine collision_regime_LS12(collider, nbody_system, param) 
