@@ -89,6 +89,8 @@ contains
       !!          High-speed Ejecta. ApJ 898 30. https://doi.org/10.3847/1538-4357/ab9897
       !!       Housen, K., Holsapple, K., 2011. Ejecta from Impact Craters. Icarus, Volume 211, Issue 1, 2011.
       !!          https://doi.org/10.1016/j.icarus.2010.09.017
+      !!       Leinhardt, Z.M., Stewart, S.T., 2012. Collisions between Gravity-dominated Bodies. I. Outcome Regimes and 
+      !!          Scaling Laws 745, 79. https://doi.org/10.1088/0004-637X/745/1/79
       !!
 
       implicit none
@@ -142,6 +144,9 @@ contains
       integer(I4B), parameter :: N2 = 2  
          !! number of objects with mass larger than second largest remnant from LS12
       
+      M_tot = M_tar + M_imp
+      Rc1 = (3 * Mtot / (4 * PI * DENSITY1))**THIRD ! Stewart and Leinhardt (2009) 
+      c_star = calc_c_star(Rc1)
 
       V_imp = norm2(vb2(:) - vb1(:)) ! Impact velocity
       theta_rad = calc_theta(rh2, vb2, rh1, vb1) ! Impact angle in radians
@@ -191,10 +196,8 @@ contains
       ! Calculate largest and second-largest remnant masses and energy loss
       Mlr = M_tar - M_esc_tar + M_acc_imp
 
-      Mslr = max(Mtot * (3.0_DP - BETA) * (1.0_DP - N1 * Mlr / M_tot) / (N2 * BETA), min_mfrag)  !LS12 eq (37)
+      Mslr = max(M_tot * (3.0_DP - BETA) * (1.0_DP - N1 * Mlr / M_tot) / (N2 * BETA), min_mfrag)  !LS12 eq (37)
       ! Mslr = max(M_esc_imp, M_esc_tar)
-
-      Qloss = 
 
       if (Mslr > Mlr) then ! The second-largest fragment is actually larger than the largest, so we will swap them
          Mtmp = Mlr
@@ -202,8 +205,8 @@ contains
          Mslr = Mtmp
       end if
       
-      Qloss = (c_star - 1.0_DP) * U_binding * Mtot ! Convert specific energy loss to total energy loss in the system
-      Qmerge = (ke + pe + U_binding) * Mtot ! The  energy lost if this were a perfect merger
+      Qloss = (c_star - 1.0_DP) * U_binding * M_tot ! Convert specific energy loss to total energy loss in the system
+      Qmerge = (ke + pe + U_binding) * M_tot ! The  energy lost if this were a perfect merger
 
       return
 
@@ -234,6 +237,33 @@ contains
 
             return
          end function calc_theta
+
+         function calc_c_star(Rc1) result(c_star)
+            !! author: David A. Minton
+            !!
+            !! Calculates c_star as a function of impact equivalent radius. It interpolates between 5 for ~1 km sized bodies to
+            !! 1.8 for ~10000 km sized bodies. See LS12 Fig. 4 for details.
+            !! 
+            implicit none
+            ! Arguments
+            real(DP), intent(in) :: Rc1
+            ! Result
+            real(DP)             :: c_star
+            ! Internals
+            real(DP), parameter  :: loR   = 1.0e3_DP ! Lower bound of interpolation size (m)
+            real(DP), parameter  :: hiR   = 1.0e7_DP ! Upper bound of interpolation size (m)
+            real(DP), parameter  :: loval = 5.0_DP   ! Value of C* at lower bound
+            real(DP), parameter  :: hival = 1.9_DP   ! Value of C* at upper bound
+
+            if (Rc1 < loR) then
+               c_star = loval
+            else if (Rc1 < hiR) then
+               c_star = loval + (hival - loval) * log(Rc1 / loR) / log(hiR /loR)
+            else
+               c_star = hival
+            end if
+            return
+         end function calc_c_star 
             
 
 
