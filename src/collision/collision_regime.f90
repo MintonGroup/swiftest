@@ -272,8 +272,8 @@ contains
       c_star = calc_c_star(Rc1)
 
       V_imp = norm2(vb_imp(:) - vb_tar(:)) ! Impact velocity
-      theta_rad = calc_theta(rh_tar, vb_tar, rh_imp, vb_imp) ! Impact angle in radians
-      theta = theta * 180.0_DP / PI ! Impact angle in degrees
+      theta_rad = calc_theta(rh_tar, vb_tar, rh_imp, vb_imp) ! Impact angle in degrees
+      theta = theta_rad * RAD2DEG ! Impact angle in radians
       V_esc = sqrt(2 * GC * M_tar / rad_tar) ! Escape velocity of the target body
 
       ! Calculate target body ejecta mass that escapes from the target body 
@@ -292,6 +292,7 @@ contains
       mu_HG20_imp = a_imp * theta**2 + b_imp * theta + c_imp
       C_HG20_imp = exp(d_imp * theta**3 + e_imp * theta**2 + f_imp * theta + g_imp) 
       M_esc_imp = C_HG20_imp * (V_esc / (V_imp * sin(theta_rad)))**(-3.0_DP * mu_HG20_imp) ! impactor mass units
+      M_esc_imp = max(M_esc_imp, 1.0_DP) ! Max value of M_esc_imp is 1.0 (impactor mass units)
 
       M_esc_total = M_esc_tar + M_esc_imp ! impactor mass units
 
@@ -336,7 +337,7 @@ contains
       
       contains
 
-         function calc_theta(r_tar, v_tar, r_imp, v_imp) result(theta_rad)
+         function calc_theta(r_tar, v_tar, r_imp, v_imp) result(theta)
             !! author: Kaustub P. Anand, Jennifer L. L. Pouplin, David A. Minton
             !!
             !! Calculate the impact angle between two colliding bodies
@@ -348,7 +349,7 @@ contains
             ! Arguments
             real(DP), dimension(NDIM), intent(in) :: r_tar, v_tar, r_imp, v_imp
             ! Result
-            real(DP) :: theta_rad ! radians
+            real(DP) :: theta ! radians
             ! Internals
             real(DP), dimension(NDIM)  :: imp_vel, distance, x_cross_v
             real(DP) :: sintheta
@@ -358,7 +359,7 @@ contains
             x_cross_v(:) = distance(:) .cross. imp_vel(:) 
             sintheta = norm2(x_cross_v(:)) / norm2(distance(:)) / norm2(imp_vel(:))
 
-            theta_rad = asin(sintheta) ! Find a more exact way to calculate theta
+            theta = asin(sintheta) ! Find a more exact way to calculate theta
 
             return
          end function calc_theta
