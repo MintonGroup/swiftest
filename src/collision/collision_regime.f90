@@ -87,10 +87,96 @@ contains
 
       associate(impactors => collider%impactors)
 
+         ! Convert all quantities to SI units and determine which of the pair is the projectile vs. target before sending them to 
+         ! the regime determination subroutine
+         if (impactors%mass(1) > impactors%mass(2)) then
+            jtarg = 1
+            jproj = 2
+         else
+            jtarg = 2
+            jproj = 1
+         end if
+         ! The two-body equivalent masses of the collider system
+         mass_si(:)    = impactors%mass([jtarg, jproj]) * param%MU2KG 
+         
+         ! The two-body equivalent radii of the collider system
+         radius_si(:)  = impactors%radius([jtarg, jproj]) * param%DU2M 
+
+         ! The first body of the two-body equivalent position vector the collider system
+         x_tar_si(:)      = impactors%rb(:,jtarg) * param%DU2M                   
+
+         ! The first body of the two-body equivalent velocity vector the collider system
+         v_tar_si(:)      = impactors%vb(:,jtarg) * param%DU2M / param%TU2S      
+
+         ! The second body of the two-body equivalent position vector the collider system
+         x_imp_si(:)      = impactors%rb(:,jproj) * param%DU2M                   
+
+         ! The second body of the two-body equivalent velocity vector the collider system
+         v_imp_si(:)      = impactors%vb(:,jproj) * param%DU2M / param%TU2S           
+         
+         ! The minimum fragment mass to generate. Collider systems that would otherwise generate less massive fragments than this 
+         ! value will be forced to merge instead
+         min_mfrag_si  = (param%min_GMfrag / param%GU) * param%MU2KG 
+      
+         mtot = sum(mass_si(:)) 
+
+         ! Use the positions and velocities of the parents from indside the step (at collision) to calculate the collisional regime
+         call collision_regime_HG20_SI(mass_si(jtarg), mass_si(jproj), radius_si(jtarg), &
+                                       x_tar_si(:), x_imp_si(:), v_tar_si(:), v_imp_si(:), &
+                                       min_mfrag_si, impactors%regime, mlr, mslr, mslr_hr, Qloss, Qmerge)
+
+         ! Convert back from SI to system units
+         mlr = mlr / param%MU2KG
+         mslr = mslr / param%MU2kg
+         mslr_hr = mslr_hr / param%MU2kg
+         Qloss = Qloss * (param%TU2S / param%DU2M)**2 / param%MU2KG
+         Qmerge = Qmerge * (param%TU2S / param%DU2M)**2 / param%MU2KG
+         mtot = mtot / param%MU2kg
+
+         ! If this is came back as a merger, check to make sure that the rotation of the merged body doesn't exceed the rotation 
+         ! barrier
+         if (impactors%regime == COLLRESOLVE_REGIME_MERGE) then
+            volume = 4._DP / 3._DP * PI * sum(impactors%radius(:)**3)
+            radius = (3._DP * volume / (4._DP * PI))**(THIRD)
+#ifdef DOCONLOC
+            do concurrent(i = 1:NDIM) shared(impactors,Ip,L_rot)
+#else
+            do concurrent(i = 1:NDIM)
+#endif
+               Ip(i) = sum(impactors%mass(:) * impactors%Ip(i,:)) 
+               L_rot(i) = sum(impactors%L_orbit(i,:) + impactors%L_rot(i,:))
+            end do
+            Ip(:) = Ip(:) / mtot
+            rot(:) = L_rot(:) / (Ip(3) * mtot * radius**2)
+            if (.mag.rot(:) > collider%max_rot) then ! The merged body would rotation too fast, so reclasify this as a hit and run
+               mlr = impactors%mass(jtarg)
+               mslr = impactors%mass(jproj)
+               impactors%regime = COLLRESOLVE_REGIME_HIT_AND_RUN
+               impactors%Qloss = 0.0_DP
+            else
+               mlr =  mtot
+               mslr = 0.0_DP
+               impactors%Qloss = Qmerge
+            end if
+         else
+            impactors%Qloss = Qloss
+         end if
+
+         if (allocated(impactors%mass_dist)) deallocate(impactors%mass_dist)
+         allocate(impactors%mass_dist(NMASS_DIST))
+         impactors%mass_dist(1) = min(max(mlr, 0.0_DP), mtot)
+         impactors%mass_dist(2) = min(max(mslr, 0.0_DP), mtot)
+         impactors%mass_dist(3) = min(max(mtot - mlr - mslr, 0.0_DP), mtot)
+
+      end associate
+
+      return
+
    end subroutine collision_regime_HG20
 
-   subroutine collision_regime_HG20_SI(M_tar, M_imp, rad_tar, rh_tar, rh_imp, vb_tar, vb_imp, min_mfrag,
-                                       Mlr, Mslr, Qloss, Qmerge, regime)
+   subroutine collision_regime_HG20_SI(M_tar, M_imp, rad_tar, & 
+                                          rh_tar, rh_imp, vb_tar, vb_imp, &
+                                          min_mfrag, regime, Mlr, Mslr, Qloss, Qmerge)
       !! Author: Kaustub P. Anand, David A. Minton
       !!
       !! Determine the collisional regime of two colliding bodies when projectile mass is very small compared to target mass
