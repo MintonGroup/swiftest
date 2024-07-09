@@ -83,6 +83,15 @@ contains
          !! The current parameters
 
       ! Internals
+      integer(I4B) :: i,jtarg, jproj
+      real(DP), dimension(2) :: radius_si, mass_si
+      real(DP) :: min_mfrag_si
+      real(DP), dimension(NDIM)  :: x_tar_si, v_tar_si, x_imp_si, v_imp_si
+      real(DP) :: mlr, mslr, mtot, Qloss, Qmerge
+      integer(I4B), parameter :: NMASS_DIST = 3   ! Number of mass bins returned by the regime calculation (largest fragment, second
+                                                  ! largest, and remainder)  
+      real(DP), dimension(NDIM) :: Ip, rot, L_rot
+      real(DP) :: radius, volume
 
 
       associate(impactors => collider%impactors)
