@@ -270,6 +270,10 @@ contains
       M_tot = M_tar + M_imp
       Rc1 = (3 * M_tot / (4 * PI * DENSITY1))**THIRD ! Stewart and Leinhardt (2009) 
       c_star = calc_c_star(Rc1)
+      ! Specific binding energy
+      U_binding = (3 * GC * Mtot) / (5 * Rc1) ! LS12 eq. 27
+      ke = 0.5_DP * Vimp**2
+      pe = - GC * m1 * m2 / (Mtot * norm2(rh2 - rh1))
 
       V_imp = norm2(vb_imp(:) - vb_tar(:)) ! Impact velocity
       theta_rad = calc_theta(rh_tar, vb_tar, rh_imp, vb_imp) ! Impact angle in degrees
