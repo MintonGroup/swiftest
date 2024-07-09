@@ -40,12 +40,22 @@ contains
             if (allocated(impactors%mass_dist)) deallocate(impactors%mass_dist)
             allocate(impactors%mass_dist(1))
             impactors%mass_dist(1) = mtot
-         case("HG20") !! Put a check for mass ratios of projectile and target, and place in appropriate model 
-            call collision_regime_HG20(self, nbody_system, param) ! Cratering collisions. Mass ratio < 1:500 (approx.)
-            call collision_io_log_regime(self%impactors)
          case default
-            call collision_regime_LS12(self, nbody_system, param) ! Large planetary collisions. Mass ratio > 1:500 (approx.)
+            if (impactors%mass(1) > impactors%mass(2)) then
+               jtarg = 1
+               jproj = 2
+            else
+               jtarg = 2
+               jproj = 1
+            end if
+
+            if (impactors%mass(jtarg) / impactors%mass(jproj) > 500.0_DP) then
+               call collision_regime_HG20(self, nbody_system, param) ! Cratering collisions. Mass ratio (proj:target) < 1:500 (approx.)
+            else 
+               call collision_regime_LS12(self, nbody_system, param) ! Large planetary collisions. Mass ratio (proj:target) >= 1:500 (approx.)
+            end if
             call collision_io_log_regime(self%impactors)
+            
          end select
       end select
       end select
