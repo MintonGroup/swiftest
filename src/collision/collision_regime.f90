@@ -27,6 +27,7 @@ contains
          !! Current Swiftest run configuration parameters
       ! Internals
       real (DP) :: mtot
+      integer(I4B) :: i,jtarg, jproj
         
       associate(impactors => self%impactors)
       select type (nbody_system)
@@ -132,12 +133,11 @@ contains
          ! Use the positions and velocities of the parents from indside the step (at collision) to calculate the collisional regime
          call collision_regime_HG20_SI(mass_si(jtarg), mass_si(jproj), radius_si(jtarg), &
                                        x_tar_si(:), x_imp_si(:), v_tar_si(:), v_imp_si(:), &
-                                       min_mfrag_si, impactors%regime, mlr, mslr, mslr_hr, Qloss, Qmerge)
+                                       min_mfrag_si, impactors%regime, mlr, mslr, Qloss, Qmerge)
 
          ! Convert back from SI to system units
          mlr = mlr / param%MU2KG
          mslr = mslr / param%MU2kg
-         mslr_hr = mslr_hr / param%MU2kg
          Qloss = Qloss * (param%TU2S / param%DU2M)**2 / param%MU2KG
          Qmerge = Qmerge * (param%TU2S / param%DU2M)**2 / param%MU2KG
          mtot = mtot / param%MU2kg
@@ -205,7 +205,7 @@ contains
       real(DP), dimension(:), intent(in)  :: rh_tar, rh_imp, vb_tar, vb_imp
       real(DP), intent(out) :: Mlr, Mslr
          !! Largest and second-largest remnant defined for various regimes
-      real(DP), intent(out)          :: Qloss  
+      real(DP), intent(out)          :: Qloss
          !! The energy lost in the collision if it was a fragmentation event
       real(DP), intent(out)          :: Qmerge 
          !! The energy lost in the collision if it was a perfect merger
@@ -261,14 +261,14 @@ contains
          !! standard density parameter from LS12 [kg/m3]
 
       ! Internals
-      real(DP) :: M_tot, M_esc_tar_HG20, M_esc_tar_HH11, M_esc_tar, M_esc_imp, M_acc_imp, M_esc_total
-      real(DP) :: Rc1, c_star
+      real(DP) :: M_tot, M_esc_tar_HG20, M_esc_tar_HH11, M_esc_tar, M_esc_imp, M_acc_imp, M_esc_total, M_tmp
+      real(DP) :: Rc1, c_star, ke, pe, U_binding
       real(DP) :: V_imp, V_esc
       real(DP) :: theta_rad, theta
       real(DP) :: C_HH11, C_HG20_tar, C_HG20_imp, mu_HG20_tar, mu_HG20_imp
       
       M_tot = M_tar + M_imp
-      Rc1 = (3 * Mtot / (4 * PI * DENSITY1))**THIRD ! Stewart and Leinhardt (2009) 
+      Rc1 = (3 * M_tot / (4 * PI * DENSITY1))**THIRD ! Stewart and Leinhardt (2009) 
       c_star = calc_c_star(Rc1)
 
       V_imp = norm2(vb_imp(:) - vb_tar(:)) ! Impact velocity
@@ -309,6 +309,7 @@ contains
          else 
             call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Error no regime found in symba_regime")
          end if
+      end if
       
       ! Convert from impactor mass units to system mass units
       M_esc_total = M_esc_total * M_imp
@@ -323,20 +324,20 @@ contains
       Mslr = max(M_tot * (3.0_DP - BETA) * (1.0_DP - N1 * Mlr / M_tot) / (N2 * BETA), min_mfrag)  !LS12 eq (37)
 
       if (Mslr > Mlr) then ! The second-largest fragment is actually larger than the largest, so we will swap them
-         Mtmp = Mlr
+         M_tmp = Mlr
          Mlr = Mslr
-         Mslr = Mtmp
+         Mslr = M_tmp
       end if
       
       Qloss = (c_star - 1.0_DP) * U_binding * M_tot ! Convert specific energy loss to total energy loss in the system
       Qmerge = (ke + pe + U_binding) * M_tot ! The  energy lost if this were a perfect merger
 
       return
-
+      
       contains
 
          function calc_theta(r_tar, v_tar, r_imp, v_imp) result(theta_rad)
-            !! author: Kaustub P. Anand, David A. Minton
+            !! author: Kaustub P. Anand, Jennifer L. L. Pouplin, David A. Minton
             !!
             !! Calculate the impact angle between two colliding bodies
             !! For HG20, theta = 90 degrees - asin(b) where b is the impact parameter 
@@ -350,9 +351,10 @@ contains
             real(DP) :: theta_rad ! radians
             ! Internals
             real(DP), dimension(NDIM)  :: imp_vel, distance, x_cross_v
+            real(DP) :: sintheta
 
-            imp_vel(:) = proj_vel(:) - targ_vel(:)
-            distance(:) = proj_pos(:) - targ_pos(:)
+            imp_vel(:) = v_imp(:) - v_tar(:)
+            distance(:) = r_imp(:) - r_tar(:)
             x_cross_v(:) = distance(:) .cross. imp_vel(:) 
             sintheta = norm2(x_cross_v(:)) / norm2(distance(:)) / norm2(imp_vel(:))
 
@@ -387,11 +389,8 @@ contains
             end if
             return
          end function calc_c_star 
-            
 
-
-
-      end subroutine collision_regime_HG20_SI
+   end subroutine collision_regime_HG20_SI
 
 
 
@@ -819,7 +818,5 @@ contains
          end function calc_c_star 
 
    end subroutine collision_regime_LS12_SI
-
-
 
 end submodule s_collision_regime
