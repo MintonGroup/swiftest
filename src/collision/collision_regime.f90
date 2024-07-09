@@ -89,7 +89,8 @@ contains
 
    end subroutine collision_regime_HG20
 
-   subroutine collision_regime_HG20_SI()
+   subroutine collision_regime_HG20_SI(M_tar, M_imp, rad_tar, rh_tar, rh_imp, vb_tar, vb_imp, min_mfrag,
+                                       Mlr, Mslr, Qloss, Qmerge, regime)
       !! Author: Kaustub P. Anand, David A. Minton
       !!
       !! Determine the collisional regime of two colliding bodies when projectile mass is very small compared to target mass
@@ -105,8 +106,16 @@ contains
 
       implicit none
       ! Arguments
-      real(DP), intent(out) :: Mlr, Mslr, Mslr_hitandrun, Qloss, Qmerge
+      real(DP), intent(in)           :: M_tar, M_imp, rad_tar, min_mfrag 
+      real(DP), dimension(:), intent(in)  :: rh_tar, rh_imp, vb_tar, vb_imp
+      real(DP), intent(out) :: Mlr, Mslr
          !! Largest and second-largest remnant defined for various regimes
+      real(DP), intent(out)          :: Qloss  
+         !! The energy lost in the collision if it was a fragmentation event
+      real(DP), intent(out)          :: Qmerge 
+         !! The energy lost in the collision if it was a perfect merger
+      integer(I4B), intent(out) :: regime
+         !! The collisional regime
 
       ! Constants
       real(DP), parameter :: a_tar = 4.12e-5_DP
@@ -153,13 +162,22 @@ contains
           !!number of objects with mass equal to the largest remnant from LS12
       integer(I4B), parameter :: N2 = 2  
          !! number of objects with mass larger than second largest remnant from LS12
+      real(DP), parameter   :: DENSITY1 = 1000.0_DP 
+         !! standard density parameter from LS12 [kg/m3]
+
+      ! Internals
+      real(DP) :: M_tot, M_esc_tar_HG20, M_esc_tar_HH11, M_esc_tar, M_esc_imp, M_acc_imp, M_esc_total
+      real(DP) :: Rc1, c_star
+      real(DP) :: V_imp, V_esc
+      real(DP) :: theta_rad, theta
+      real(DP) :: C_HH11, C_HG20_tar, C_HG20_imp, mu_HG20_tar, mu_HG20_imp
       
       M_tot = M_tar + M_imp
       Rc1 = (3 * Mtot / (4 * PI * DENSITY1))**THIRD ! Stewart and Leinhardt (2009) 
       c_star = calc_c_star(Rc1)
 
-      V_imp = norm2(vb2(:) - vb1(:)) ! Impact velocity
-      theta_rad = calc_theta(rh2, vb2, rh1, vb1) ! Impact angle in radians
+      V_imp = norm2(vb_imp(:) - vb_tar(:)) ! Impact velocity
+      theta_rad = calc_theta(rh_tar, vb_tar, rh_imp, vb_imp) ! Impact angle in radians
       theta = theta * 180.0_DP / PI ! Impact angle in degrees
       V_esc = sqrt(2 * GC * M_tar / rad_tar) ! Escape velocity of the target body
 
@@ -201,13 +219,13 @@ contains
       M_esc_total = M_esc_total * M_imp
       M_esc_tar = M_esc_tar * M_imp
       M_esc_imp = M_esc_imp * M_imp
+
       M_acc_imp = M_imp - M_esc_imp ! impactor material accreted by the target body
 
       ! Calculate largest and second-largest remnant masses and energy loss
       Mlr = M_tar - M_esc_tar + M_acc_imp
 
       Mslr = max(M_tot * (3.0_DP - BETA) * (1.0_DP - N1 * Mlr / M_tot) / (N2 * BETA), min_mfrag)  !LS12 eq (37)
-      ! Mslr = max(M_esc_imp, M_esc_tar)
 
       if (Mslr > Mlr) then ! The second-largest fragment is actually larger than the largest, so we will swap them
          Mtmp = Mlr
@@ -232,7 +250,7 @@ contains
             !!
             implicit none
             ! Arguments
-            real(DP), intent(in) :: r_tar, v_tar, r_imp, v_imp
+            real(DP), dimension(NDIM), intent(in) :: r_tar, v_tar, r_imp, v_imp
             ! Result
             real(DP) :: theta_rad ! radians
             ! Internals
