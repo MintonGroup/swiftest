@@ -64,7 +64,7 @@ contains
             call self%disrupt(nbody_system, param, t, lfailure)
             if (lfailure) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, & 
-                                           "Fraggle failed to find a solution to match energy contraint. Treating this as a merge.")
+                                           "Fraggle failed to find a solution to match energy constraint. Treating this as a merge.")
                call self%merge(nbody_system, param, t) ! Use the default collision model, which is merge
                return
             end if
