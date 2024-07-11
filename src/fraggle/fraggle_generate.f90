@@ -64,7 +64,7 @@ contains
             call self%disrupt(nbody_system, param, t, lfailure)
             if (lfailure) then
                call swiftest_io_log_one_message(COLLISION_LOG_OUT, & 
-                                           "Fraggle failed to find a solution to match energy constraint. Treating this as a merge.")
+                                          "Fraggle failed to find a solution to match energy constraint. Treating this as a merge.")
                call self%merge(nbody_system, param, t) ! Use the default collision model, which is merge
                return
             end if
@@ -653,10 +653,10 @@ contains
       logical,                      intent(out)   :: lfailure     
          !! Did the velocity computation fail?
       ! Internals
-      real(DP), parameter :: ENERGY_SUCCESS_METRIC = 0.1_DP !! Relative energy error to accept as a success (success also must be 
+      real(DP), parameter :: ENERGY_SUCCESS_METRIC = 2.0_DP !! Relative energy error to accept as a success (success also must be 
                                                             !! energy-losing in addition to being within the metric amount)
       real(DP), parameter :: ENERGY_CONVERGENCE_TOL = 1e-3_DP !! Relative change in error before giving up on energy convergence
-      real(DP)  :: MOMENTUM_SUCCESS_METRIC = 10*epsilon(1.0_DP) !! Relative angular momentum error to accept as a success 
+      real(DP)  :: MOMENTUM_SUCCESS_METRIC = 1e-6_DP !! Relative angular momentum error to accept as a success 
                                                                 !! (should be *much* stricter than energy)
       integer(I4B) :: i, j, loop, try, istart, nfrag, nsteps, nsteps_best, posloop
       logical :: lhitandrun, lsupercat
@@ -732,7 +732,7 @@ contains
 #else
                do concurrent(i = 1:fragments%nbody) 
 #endif
-                  rimp(:) = fragments%rc(:,i) - impactors%rcimp(:) 
+                  rimp(:) = fragments%rc(:,i) - impactors%rbcom(:) 
                   vscale(i) = .mag. rimp(:) / sum(impactors%radius(1:2))
                end do
 
@@ -787,37 +787,29 @@ contains
                   L_residual_unit(:) = .unit. L_residual(:)
                   if (nsteps == 1) L_residual_best(:) = L_residual(:) * L_mag_factor
 
-                  ! Use equipartition of rotational kinetic energy to distribution rotational angular momentum
-#ifdef DOCONLOC
-                  do concurrent(i = istart:fragments%nbody) shared(DLi_mag, fragments)
-#else
-                  do concurrent(i = istart:fragments%nbody)
-#endif
-                     dLi_mag(i) = ((fragments%mass(i) / fragments%mass(istart)) * &
-                                   (fragments%radius(i) / fragments%radius(istart))**2 * &
-                                   (fragments%Ip(3,i) / fragments%Ip(3,istart)))**(1.5_DP)
-                  end do
-                  dL1_mag = .mag.L_residual(:) * L_mag_factor / sum(dLi_mag(istart:fragments%nbody))
-
                   do i = istart,fragments%nbody
-                     dL(:) = -dL1_mag * dLi_mag(i) * L_residual_unit(:)
-                     drot(:) = dL(:) / (fragments%mass(i) * fragments%Ip(3,i) * fragments%radius(i)**2)
-                     rot_new(:) = fragments%rot(:,i) + drot(:)
-                     if (.mag.rot_new(:) < collider_local%max_rot) then
-                        fragments%rot(:,i) = rot_new(:)
-                        fragments%rotmag(i) = .mag.fragments%rot(:,i)
-                     else ! We would break the rotation barrier here. Add a random component of rotation that is less than what 
-                          ! would break the limit. The rest will go in velocity shear
+                     if (i == 1) then
+                        dL(:) = -L_residual(:) * L_mag_factor
+                        drot(:) = dL(:) / (fragments%mass(i) * fragments%Ip(3,i) * fragments%radius(i)**2)
+                        fragments%rot(:,i) = fragments%rot(:,i) + drot(:)
+                     else
                         call random_number(drot)
                         call random_number(rn)
                         drot(:) = (rn * collider_local%max_rot - fragments%rotmag(i)) * 2 * (drot(:) - 0.5_DP)
                         fragments%rot(:,i) = fragments%rot(:,i) + drot(:)
                         fragments%rotmag(i) = .mag.fragments%rot(:,i)
-                        if (fragments%rotmag(i) > collider%max_rot) then
+                     end if
+                     if (fragments%rotmag(i) > collider%max_rot) then
+                        if (i == 1) then
+                           ! The rotation barrier would be broken. Set the rotation back to that of the target
+                           fragments%rot(:,i) = impactors%rot(:,i)
+                           fragments%rotmag(i) = .mag.fragments%rot(:,i)
+                        else 
+                           ! Drop the small fragment rotation down by half
                            fragments%rotmag(i) = 0.5_DP * collider%max_rot
                            fragments%rot(:,i) = fragments%rotmag(i) * .unit. fragments%rot(:,i)
                         end if
-                     end if
+                     end if 
                      L_residual(:) = L_residual(:) + drot(:) * fragments%Ip(3,i) * fragments%mass(i) * fragments%radius(i)**2 & 
                                                       / L_mag_factor
                   end do
