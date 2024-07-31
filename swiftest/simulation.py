@@ -720,7 +720,7 @@ class Simulation(object):
             must be included in the initial conditions.
             This argument only applies to Swiftest-SyMBA simulations. It will be ignored otherwise.
             Parameter input file equivalent is `ROTATION`
-        compute_conservation_values : bool, default False
+        compute_conservation_values : bool, default True for SyMBA, otherwise False
             Turns on the computation of energy, angular momentum, and mass conservation and reports the values
             every output step of a running simulation.
             Parameter input file equivalent is `ENERGY`
@@ -1200,8 +1200,16 @@ class Simulation(object):
                 self.param['ROTATION'] = True
                 update_list.append("rotation")
 
+            if self.integrator == "symba":
+                self.param["ENERGY"] = True
+            else:
+                self.param["ENERGY"] = False
+                
             if compute_conservation_values is not None:
-                self.param["ENERGY"] = compute_conservation_values
+                if self.integrator == "symba":
+                    self.param["ENERGY"] = True
+                else:
+                    self.param["ENERGY"] = compute_conservation_values
                 update_list.append("compute_conservation_values")
 
             if restart is not None:
