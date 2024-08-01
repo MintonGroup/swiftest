@@ -325,7 +325,7 @@ contains
 #else
          do concurrent (i = 1:npl, pl%lmask(i))
 #endif
-            oblpot_arr(i) = swiftest_obl_pot_one(cb%Gmass, pl%Gmass(i), cb%j2rp2, cb%j4rp4, pl%rh(3,i), 1.0_DP / norm2(pl%rh(:,i)))
+            oblpot_arr(i) = swiftest_obl_pot_one(cb%Gmass, pl%mass(i), cb%j2rp2, cb%j4rp4, pl%rh(3,i), 1.0_DP / norm2(pl%rh(:,i)))
          end do
        
          ! end if (uncomment when compatible with coarray syntax above)
@@ -337,7 +337,7 @@ contains
    end subroutine swiftest_obl_pot_system
 
 
-   elemental function swiftest_obl_pot_one(GMcb, GMpl, j2rp2, j4rp4, zh, irh) result(oblpot)
+   elemental function swiftest_obl_pot_one(GMcb, Mpl, j2rp2, j4rp4, zh, irh) result(oblpot)
       !! author: David A. Minton
       !!
       !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body from a 
@@ -351,7 +351,7 @@ contains
       implicit none
       ! Arguments
       real(DP),     intent(in)  :: GMcb   !! G*mass of the central body
-      real(DP),     intent(in)  :: GMpl   !! G*mass of the massive body
+      real(DP),     intent(in)  :: Mpl    !! mass of the massive body
       real(DP),     intent(in)  :: j2rp2  !! J_2 / R**2 of the central body
       real(DP),     intent(in)  :: j4rp4  !! J_2 / R**4 of the central body
       real(DP),     intent(in)  :: zh     !! z-component of the heliocentric distance vector of the massive body
@@ -363,7 +363,7 @@ contains
       real(DP)                  :: rinv2, t0, t1, t2, t3, p2, p4
          
       rinv2 = irh**2
-      t0 = GMcb * GMpl * rinv2 * irh
+      t0 = GMcb * Mpl * rinv2 * irh
       t1 = j2rp2
       t2 = zh**2 * rinv2
       t3 = j4rp4 * rinv2
