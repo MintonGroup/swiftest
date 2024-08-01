@@ -314,6 +314,12 @@ contains
          npl = self%pl%nbody
          if (npl == 0) return
          if (.not. any(pl%lmask(1:npl))) return
+
+         if (allocated(cb%c_lm)) then
+            call shgrav_pot_system(self)
+            return
+         end if ! else (make compatible with coarray syntax below)
+
 #ifdef DOCONLOC
          do concurrent (i = 1:npl, pl%lmask(i)) shared(cb,pl,oblpot_arr)
 #else
@@ -321,6 +327,9 @@ contains
 #endif
             oblpot_arr(i) = swiftest_obl_pot_one(cb%Gmass, pl%Gmass(i), cb%j2rp2, cb%j4rp4, pl%rh(3,i), 1.0_DP / norm2(pl%rh(:,i)))
          end do
+       
+         ! end if (uncomment when compatible with coarray syntax above)
+
          nbody_system%oblpot = sum(oblpot_arr, pl%lmask(1:npl))
       end associate
          
