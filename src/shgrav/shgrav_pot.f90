@@ -111,7 +111,7 @@ contains
     module subroutine shgrav_pot_system(self)
         !! author: Kaustub P. Anand
         !!
-        !! Compute the gravitational potential energy for a given system of bodies soleley due to the gravitational harmonics terms
+        !! Compute the gravitational potential energy for a given system of bodies solely due to the gravitational harmonics terms
         !!
         implicit none
         ! Arguments
