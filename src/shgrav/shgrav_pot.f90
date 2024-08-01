@@ -132,7 +132,7 @@ contains
                 obplot_arr(i) = shgrav_pot_one(cb%Gmass,  pl%mass(i), cb%radius, cb%rotphase, pl%rh(:,i), cb%c_lm)
             end do
 
-            nbody_system%oblpot = sum(oblpot_arr, pl%lmask(1:npl)) !! delete when compatible coarray syntax
+            nbody_system%oblpot = sum(oblpot_arr, pl%lmask(1:npl)) 
         end associate
 
         return
