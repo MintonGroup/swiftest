@@ -16,7 +16,7 @@ use SHTOOLS
 
 contains
 
-    elemental function shgrav_pot_one(GMcb, Mpl, r_0, phi_cb, rh, c_lm) result(oblpot)
+    function shgrav_pot_one(GMcb, Mpl, r_0, phi_cb, rh, c_lm) result(oblpot)
         !! author: Kaustub P. Anand
         !!
         !! Calculate the gravitational potential energy for one pair of bodies given c_lm, theta, phi, r
@@ -124,11 +124,7 @@ contains
         associate(nbody_system => self, pl => self%pl, cb => self%cb)
             npl = self%pl%nbody
 
-#ifdef DOCONLOC
-            do concurrent (i = 1:npl, pl%lmask(i)) shared(cb,pl,oblpot_arr)
-#else
-            do concurrent (i = 1:npl, pl%lmask(i))
-#endif
+            do (i = 1:npl, pl%lmask(i))
                 obplot_arr(i) = shgrav_pot_one(cb%Gmass,  pl%mass(i), cb%radius, cb%rotphase, pl%rh(:,i), cb%c_lm)
             end do
 
