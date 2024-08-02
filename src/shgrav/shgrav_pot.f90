@@ -16,6 +16,34 @@ use SHTOOLS
 
 contains
 
+    module subroutine shgrav_pot_system(self)
+        !! author: Kaustub P. Anand
+        !!
+        !! Compute the gravitational potential energy for a given system of bodies solely due to the gravitational harmonics terms
+        !!
+        implicit none
+        ! Arguments
+        class(swiftest_nbody_system), intent(inout) :: self
+            !! Swiftest nbody system object
+        ! Internals
+        integer(I4B) :: i, npl
+        real(DP), dimension(self%pl%nbody) :: oblpot_arr
+
+        associate(nbody_system => self, pl => self%pl, cb => self%cb)
+            npl = self%pl%nbody
+
+            do i = 1, npl
+                if (pl%lmask(i)) then
+                    oblpot_arr(i) = shgrav_pot_one(cb%Gmass,  pl%mass(i), cb%radius, cb%rotphase, pl%rh(:,i), cb%c_lm) 
+                endif
+            end do
+
+            nbody_system%oblpot = sum(oblpot_arr, pl%lmask(1:npl)) 
+        end associate
+
+        return
+    end subroutine shgrav_pot_system
+
     function shgrav_pot_one(GMcb, Mpl, r_0, phi_cb, rh, c_lm) result(oblpot)
         !! author: Kaustub P. Anand
         !!
@@ -38,7 +66,7 @@ contains
             !! Spherical Harmonic coefficients
 
         ! Result
-        real(DP) :: oblpot = 0.0_DP
+        real(DP) :: oblpot
             !! Gravitational potential energy
 
         ! Internals
@@ -107,31 +135,5 @@ contains
 
         return
     end function shgrav_pot_one
-
-    module subroutine shgrav_pot_system(self)
-        !! author: Kaustub P. Anand
-        !!
-        !! Compute the gravitational potential energy for a given system of bodies solely due to the gravitational harmonics terms
-        !!
-        implicit none
-        ! Arguments
-        class(swiftest_nbody_system), intent(inout) :: self
-            !! Swiftest nbody system object
-        ! Internals
-        integer(I4B) :: i, npl
-        real(DP), dimension(self%pl%nbody) :: oblpot_arr
-
-        associate(nbody_system => self, pl => self%pl, cb => self%cb)
-            npl = self%pl%nbody
-
-            do (i = 1:npl, pl%lmask(i))
-                obplot_arr(i) = shgrav_pot_one(cb%Gmass,  pl%mass(i), cb%radius, cb%rotphase, pl%rh(:,i), cb%c_lm)
-            end do
-
-            nbody_system%oblpot = sum(oblpot_arr, pl%lmask(1:npl)) 
-        end associate
-
-        return
-    end subroutine shgrav_pot_system
 
 end submodule s_shgrav_pot
