@@ -96,7 +96,7 @@ contains
                 plm = p(lmindex)                  ! p_l,m
 
                 r_fac = GMcb * Mpl * r_0**l / r_mag**(l + 1)
-                ccss = cos(m * phi_bar) * c_lm(m+1, l+1, 1)
+                ccss = cos(m * phi_bar) * c_lm(m+1, l+1, 1) &
                         + sin(m * phi_bar) * c_lm(m+1, l+1, 2) ! C_lm * cos(m * phi_bar) + S_lm * sin(m * phi_bar)
                 
                 oblpot = oblpot + r_fac * plm * ccss
