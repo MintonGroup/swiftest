@@ -738,7 +738,7 @@ contains
             call netcdf_io_check( nf90_get_var(nc%id, nc%Gmass_varid, vals, start=[1,tslot], count=[idmax,1]), &
                                   "netcdf_io_get_t0_values_system Gmass_varid" )
             call nc%get_valid_masks(plmask,tpmask)
-            self%GMtot_orig = vals(1) + sum(vals(2:idmax), plmask(:))
+            self%GMtot_orig = vals(1) + sum(vals(1:idmax), plmask(:)) 
 
             cb%GM0 = vals(1)
             cb%dGM = cb%Gmass - cb%GM0
