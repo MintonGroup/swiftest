@@ -111,6 +111,7 @@ contains
             call PlmBar(p, l_max, cos_theta)
         end if
 
+        oblpot = 0.0_DP
         do l = 1, l_max ! skipping the l = 0 term; It is the spherical body term
             do m = 0, l
 
