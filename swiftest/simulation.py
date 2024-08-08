@@ -3782,7 +3782,7 @@ class Simulation(object):
         
         if codename == "Swiftest":
             infile_name = Path(self.simdir) / param['NC_IN']
-            io.swiftest_xr2infile(ds=self.data, param=param, in_type=self.param['IN_TYPE'], infile_name=infile_name, framenum=framenum, verbose=self.verbose)
+            io.swiftest_xr2infile(ds=self.init_cond, param=param, in_type=self.param['IN_TYPE'], infile_name=infile_name, framenum=framenum, verbose=self.verbose)
             self.write_param(param_file=param_file,**kwargs)
         elif codename == "Swifter":
             swifter_param = io.swiftest2swifter_param(param)
