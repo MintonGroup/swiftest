@@ -2511,8 +2511,6 @@ class Simulation(object):
         def input_to_array_3d(val,n=None):
             if val is None:
                 return None, n
-            elif isinstance(val, np.ndarray):
-                pass
             else:
                 try:
                     val = np.array(val,dtype=np.float64)
@@ -3689,6 +3687,13 @@ class Simulation(object):
         Drops the oblateness terms from all bodies except the central body.
         """
         ds = self.init_cond
+        
+        # Drop any variables that may have been copied over from old runs. This is a list of all potential init_cond.nc variables
+        ic_vars=['rh', 'vh', 'a', 'e', 'inc', 'capom', 'omega', 'capm', 'varpi', 'lam', 'f', 'cape', 'capf', 'Gmass', 'mass', 
+                 'radius', 'rhill', 'j2rp2', 'j4rp4', 'rot', 'Ip', 'id', 'particle_type', 'status', 'c_lm', 'ntp', 'npl', 'nplm']
+       
+        vars=[k for k in ic_vars if k in ds] 
+        ds=ds[vars]
         cbname = ds['name'].where(ds['particle_type'] == constants.CB_TYPE_NAME,drop=True).values[0]
         if 'j2rp2' in ds:
             if 'name' in ds.j2rp2.dims:
@@ -3723,7 +3728,8 @@ class Simulation(object):
                 ds = ds.drop_vars(['c_lm','sign','l','m'],errors="ignore")
             else:
                 ds['c_lm'] = c_lm
-           
+         
+        # Drop any variables that may have been copied over from old runs. 
         if self.param['IN_FORM'] == "EL":
             ds = ds.drop_vars(['rh','vh'], errors="ignore")
         elif self.param['IN_FORM'] == "XV":
