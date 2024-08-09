@@ -646,6 +646,9 @@ def process_netcdf_input(ds: xr.Dataset, param: dict) -> SwiftestDataset:
         ds = fix_types(ds,ftype=np.float64)
     elif param['OUT_TYPE'] == "NETCDF_FLOAT":
         ds = fix_types(ds,ftype=np.float32)
+       
+    if "name" in ds.dims: 
+        ds = fix_name_and_id(ds)
 
     return ds
 
@@ -840,6 +843,30 @@ def fix_types(ds: SwiftestDataset,
     for floatcoord in float_coordnames:
         ds[floatcoord] = ds[floatcoord].astype(np.float64)
 
+    return ds
+
+def fix_name_and_id(ds: SwiftestDataset) -> SwiftestDataset:
+    """
+    Removes empty name/id slots that arise when bodies are created and destroyed between output frames, leaving gaps in the 
+    name and id arrays
+    
+    Parameters
+    ----------
+    ds : SwiftestDataset
+        Input dataset 
+        
+    Returns
+    -------
+    ds : SwiftestDataset with the empty name slots removed
+    """
+    if (ds['id'] >= 0).all():
+        return ds # No bad values, so return the dataset as is
+    ds['id']= SwiftestDataArray(np.sign(ds.id)*np.arange(ds.name.size),dims='name')
+    ds = ds.swap_dims({'name':'id'}) 
+    goodid=ds.id.where(ds.id >= 0,drop=True).astype(np.int64).values 
+    ds = ds.sel(id=goodid)
+    ds = ds.swap_dims({'id':'name'})
+    
     return ds
 
 
