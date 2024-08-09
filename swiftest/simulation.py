@@ -55,7 +55,6 @@ class Simulation(object):
                  read_data: bool = False, 
                  read_collisions: bool | None = None, 
                  read_encounters: bool | None = None,
-                 simdir: os.PathLike | str = "simdata", 
                  dask: bool = False,
                  **kwargs: Any):
         """
@@ -89,9 +88,6 @@ class Simulation(object):
             If True, read in a pre-existing collision file `collisions.nc`. If None, then it will take the value of `read_data`. 
         read_encounters : bool, default None
             If True, read in a pre-existing encounter file `encounters.nc`. If None, then it will take the value of `read_data`. 
-        simdir : PathLike, default `"simdir"`
-            Directory where simulation data will be stored, including the parameter file, initial conditions file, output file,
-            dump files, and log files.
         dask : bool, default False
             If true, will use Dask to lazily load data (useful for very large datasets).
         **kwargs : Any
@@ -119,7 +115,6 @@ class Simulation(object):
         self._integrator = "symba"
         self._codename = "Swiftest"
         
-        self.simdir = simdir 
         self.verbose = kwargs.pop("verbose",False)
 
         # Parameters are set in reverse priority order. First the defaults, then values from a pre-existing input file,
@@ -149,9 +144,12 @@ class Simulation(object):
             self.read_encounters = read_encounters
             
         if read_param or read_data:
+            if "simdir" in kwargs:
+                self.set_parameter(simdir = Path(kwargs.pop("simdir")))
             if "param_file" in kwargs:
                 self.set_parameter(param_file = Path(kwargs.pop("param_file")))
 
+             
             if self.read_param(read_init_cond = True, dask=dask, **kwargs):
                 param_file_found = True
             else:
@@ -615,7 +613,8 @@ class Simulation(object):
             Specifies the format for the data saved to the output file. If "XV" then cartesian position and velocity
             vectors for all bodies are stored. If "XVEL" then the orbital elements are also stored.
             Parameter input file equivalent is `OUT_FORM`
-
+        simdir : PathLike, optional
+            Directory where simulation data will be stored, including the parameter file, initial conditions file, output file
         MU : str, optional
            The mass unit system to use. Case-insensitive valid options are
            
@@ -823,18 +822,25 @@ class Simulation(object):
             "coarray" : False,
             "simdir" : self.simdir,
             "verbose" : False,
-            "param_file" : Path("param.in")
+            "param_file" : Path("param.in"),
+            "simdir" : Path("simdata")
         }
         param_file = kwargs.pop("param_file",None)
 
         if param_file is not None:
             self.param_file = Path(param_file)
             kwargs['param_file'] = self.param_file
+        
+        simdir = kwargs.pop("simdir",None)
+        if simdir is not None:
+            self.simdir = Path(simdir)
+            kwargs['simdir'] = self.simdir
 
-        # If no arguments  are requested, use defaults
+        # If no arguments are requested, use defaults
         if len(kwargs) == 0:
             kwargs = default_arguments
             self.param_file = default_arguments["param_file"]
+            self.simdir = default_arguments["simdir"]
 
         unrecognized = [k for k,v in kwargs.items() if k not in default_arguments]
         if len(unrecognized) > 0:
@@ -1538,6 +1544,7 @@ class Simulation(object):
                          output_file_name: os.PathLike | str | None = None,
                          output_format: Literal["XV", "XVEL"] | None = None,
                          restart: bool | None = None,
+                         simdir: os.PathLike | str | None = None,
                          **kwargs: Any
                          ) -> Dict[str, Any]:
         """
@@ -1561,6 +1568,8 @@ class Simulation(object):
             vectors for all bodies are stored. If "XVEL" then the orbital elements are also stored.
         restart : bool, optional
             Indicates whether this is a restart of an old run or a new run.
+        simdir : PathLike, optional
+            Directory where simulation data will be stored, including the parameter file, initial conditions file, output file
         **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
@@ -1580,6 +1589,9 @@ class Simulation(object):
         if restart is not None:
             self.restart = restart
             update_list.append("restart")
+        if simdir is not None:
+            self.simdir = simdir
+            update_list.append("simdir")
         if len(update_list) == 0:
             return {}
 
@@ -1662,7 +1674,13 @@ class Simulation(object):
                      "output_format": "OUT_FORM",
                      "restart": "OUT_STAT"
                      }
-
+        
+        valid_instance_vars = {"simdir": self.simdir}
+        
+        if not bool(kwargs) and arg_list is None:
+            arg_list = list(valid_instance_vars.keys())
+            arg_list.append(*[a for a in valid_var.keys() if a not in valid_instance_vars])
+        
         valid_arg, output_file_dict = self._get_valid_arg_list(arg_list, valid_var)
 
         if self.verbose:
@@ -3133,10 +3151,8 @@ class Simulation(object):
             return    
             
         self.data = self.data.sel(name=keepnames) 
-        self.init_cond = self.init_cond.sel(name=keepnames)
                 
         self.data = self._get_nvals(self.data)      
-        self.init_cond = self._get_nvals(self.init_cond) 
              
         return
 
@@ -3233,6 +3249,8 @@ class Simulation(object):
         modnames = self._get_valid_body_list(name=name, id=id) 
         if modnames is None or len(modnames) == 0:
             return
+        name_str = ', '.join(modnames)
+        print(f"Modifying bodies: {name_str}") 
         dsnew = self.data.sel(name=modnames)
         
         if arguments['c_lm'] is not None:
@@ -3552,9 +3570,13 @@ class Simulation(object):
                     print("Reading initial conditions file as .init_cond")
                 if "NETCDF" in self.param['IN_TYPE']:
                     param_tmp['BIN_OUT'] = self.simdir / self.param['NC_IN']
-                    self.init_cond = io.swiftest2xr(param_tmp, verbose=self.verbose, dask=dask)
+                    if os.path.exists(param_tmp['BIN_OUT']):
+                        self.init_cond = io.swiftest2xr(param_tmp, verbose=self.verbose, dask=dask)
+                    else:
+                        self.save(framenum=0)
                 else:
                     self.init_cond = self.data.isel(time=[0]).copy(deep=True)
+                    self._scrub_init_cond()
 
             if self.read_encounters:
                 self.read_encounter_file(dask=dask)
@@ -3782,13 +3804,13 @@ class Simulation(object):
         
         if codename == "Swiftest":
             infile_name = Path(self.simdir) / param['NC_IN']
-            io.swiftest_xr2infile(ds=self.init_cond, param=param, in_type=self.param['IN_TYPE'], infile_name=infile_name, framenum=framenum, verbose=self.verbose)
+            io.swiftest_xr2infile(ds=self.init_cond, param=param, in_type=self.param['IN_TYPE'], infile_name=infile_name, verbose=self.verbose)
             self.write_param(param_file=param_file,**kwargs)
         elif codename == "Swifter":
             swifter_param = io.swiftest2swifter_param(param)
             if "rhill" in self.data:
                 swifter_param['RHILL_PRESENT'] = 'YES'
-            io.swifter_xr2infile(self.data, swifter_param, self.simdir, framenum)
+            io.swifter_xr2infile(self.init_cond, swifter_param, self.simdir)
             self.write_param(codename=codename,param_file=param_file,param=swifter_param,**kwargs)
         else:
             warnings.warn(f'Saving to {codename} not supported',stacklevel=2)
