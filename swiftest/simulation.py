@@ -4005,7 +4005,7 @@ class Simulation(object):
             if 'space' in self.data[var].dims and var not in pos_skip and not np.isnan(self.data[var].values).any():
                 if np.any(cbda[var].values != 0.0):
                     recompute_el = True
-                    self.data[var] -= cbda[var]
+                    self.data[var] = self.data[var] - cbda[var]
                
         # If the central body origin has changed and we expect the system to be aligned with its rotation frame, then rotate the system
         # before computing the orbital elements 
