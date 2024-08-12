@@ -3944,7 +3944,12 @@ class Simulation(object):
         for g in glob_files:
             for f in g:
                if f.exists():
-                  os.remove(f)        
+                  os.remove(f)
+                  
+        # Clean out data structure and reset it to initial conditions
+        self.data = self.init_cond.copy(deep=True)
+        self.encounters = SwiftestDataset()
+        self.collisions = SwiftestDataset()
         return
 
     def _set_central_body(self, 
