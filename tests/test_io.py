@@ -319,7 +319,6 @@ class TestSwiftestIO(unittest.TestCase):
                         self.assertTrue(np.allclose(test_prop[k],v),msg=f"Error in {name} {k}: {test_prop[k]} != {v}")
         return
        
-        
     def test_xv2el2xv(self):
         """
         Tests that the functions xv2el and el2xv are able to convert between position-velocity and orbital elements without any exceptions being raised
@@ -805,6 +804,33 @@ class TestSwiftestIO(unittest.TestCase):
             self.fail(f"Failed to read in data with dask: {e}")
 
         return
+   
+    def test_newrun_from_old(self):
+        '''
+        Test that a new set of initial conditions can be extracted from an arbitrary output point of an old run
+        '''
+        # Build a fresh simulation
+        sim = swiftest.Simulation(simdir=self.simdir)
+        sim.add_solar_system_body(["Sun"])
+        sim.add_body(a=1.0)
+        sim.run(tstop=1.0,dt=0.01,istep_out=1,dump_cadence=0,integrator='whm')
+       
+        # Build a new simulation from the half way point of the old one 
+        tmpdir2=tempfile.TemporaryDirectory()
+        simdir2 = tmpdir2.name 
+        sim.set_parameter(simdir=simdir2)
+        sim.save(framenum=50)
+        sim2 = swiftest.Simulation(simdir=simdir2, read_param=True, read_data=False)
+        sim2.run(tstop=0.5,dt=0.01,istep_out=1,dump_cadence=0,integrator='whm')
+        
+        # Now check if the final states of the two simulations are approximately the same:
+        s1=sim.data.isel(name=1,time=np.arange(51,101))
+        s2=sim2.data.isel(name=1)
+        self.assertTrue(np.allclose(s1.rh.values,s2.rh.values,rtol=1e-12),msg=f"Error in rh: {s1.rh.values - s2.rh.values}")
+        self.assertTrue(np.allclose(s1.vh.values,s2.vh.values,rtol=1e-12),msg=f"Error in vh: {s1.vh.values - s2.vh.values}") 
+        
+        tmpdir2.cleanup()  
+        return   
     
 if __name__ == '__main__':
     os.environ["HDF5_USE_FILE_LOCKING"]="FALSE"

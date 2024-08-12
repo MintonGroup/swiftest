@@ -2917,6 +2917,9 @@ class Simulation(object):
             mass = Gmass / self.GU
         elif mass is not None:
             Gmass = mass * self.GU
+        else:
+            mass = np.zeros(nbody)
+            Gmass = np.zeros(nbody)
             
         valid_vars = vector_vars + scalar_vars + sph_vars + ['time','id']
 
@@ -3068,16 +3071,18 @@ class Simulation(object):
            
         if "particle_type" not in ds: 
             ds = self._set_particle_type(ds)
-            
-        ds['ntp'] = ds[count_dim].where(ds['particle_type'] == constants.TP_TYPE_NAME).count(dim=count_dim)
-        ds['npl'] = ds[count_dim].where(ds['particle_type'] == constants.PL_TYPE_NAME).count(dim=count_dim)
-        if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
-            ds['npl'] += ds[count_dim].where(ds['particle_type'] == constants.PL_TINY_TYPE_NAME).count(dim=count_dim)
-            ds['nplm'] = ds[count_dim].where(ds['particle_type'] == constants.PL_TYPE_NAME).count(dim=count_dim)
-            ds['nplm'] = ds['nplm'].expand_dims(dim={"time":1}, axis=0) 
-            
-        ds['ntp'] = ds['ntp'].expand_dims(dim={"time":1}, axis=0) 
-        ds['npl'] = ds['npl'].expand_dims(dim={"time":1}, axis=0) 
+           
+        if "Gmass" in ds: 
+            Gmass = ds.Gmass
+            ds['ntp']=Gmass.where((ds.id != 0) & (~np.isnan(Gmass) & (Gmass == 0.0))).count(dim=[count_dim]) 
+            ds['npl']=Gmass.where((ds.id != 0) & (~np.isnan(Gmass) & (Gmass > 0.0))).count(dim=[count_dim]) 
+            if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
+                ds['nplm']=Gmass.where((ds.id != 0) & (~np.isnan(Gmass) & (Gmass > self.param['GMTINY']))).count(dim=[count_dim]) 
+        else:
+            ds['ntp']=ds.id.where(ds.id != 0).count(dim=[count_dim])
+            ds['npl']=xr.zeros_like(ds['ntp'])
+            if self.integrator == "symba" and "GMTINY" in self.param and self.param['GMTINY'] is not None:
+                ds['nplm']=xr.zeros_like(ds['ntp'])
         return ds
 
     def _get_valid_body_list(self, 
@@ -3178,6 +3183,7 @@ class Simulation(object):
                 j4rp4: float | List[float] | npt.NDArray[np.float_] | None=None,
                 c_lm: List[float] | List[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
                 align_to_central_body_rotation: bool = False,
+                framenum: int = -1,
                 **kwargs: Any
                 ) -> None:
         """
@@ -3232,7 +3238,8 @@ class Simulation(object):
         align_to_central_body_rotation : bool, default False
             If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
             rotation is enabled.
-        
+        framenum : int, default -1
+            Frame number to modify. If -1, the last frame is modified. 
         Returns
         -------
         None
@@ -3251,16 +3258,18 @@ class Simulation(object):
             return
         name_str = ', '.join(modnames)
         print(f"Modifying bodies: {name_str}") 
-        dsnew = self.data.sel(name=modnames)
+        dsnew = self.data.sel(name=modnames).isel(time=[framenum])
         
         if arguments['c_lm'] is not None:
-            dsnew = dsnew.drop_vars(['j2rp2','j4rp4'],errors="ignore")
+            if 'j2rp2' in dsnew:
+                dsnew['j2rp2'] = xr.full_like(dsnew['j2rp2'],np.nan) 
+            if 'j4rp4' in dsnew:
+                dsnew['j4rp4'] = xr.full_like(dsnew['j4rp4'],np.nan) 
         if arguments['j2rp2'] is not None or arguments['j4rp4'] is not None:
-            dsnew = dsnew.drop_vars(['c_lm','sign','l','m'],errors="ignore")
+            if 'c_lm' in dsnew:
+                dsnew['c_lm'] = xr.full_like(dsnew['c_lm'],np.nan)
         dsmod = self._vec2xr(**arguments)
         dsnew.update(dsmod)
-        # Remove the old bodies prior to adding the modified ones
-        self.remove_body(name=modnames)
         if 'mass' in arguments or 'Gmass' in arguments: 
             dsnew = self._set_particle_type(dsnew)
             if 'particle_type' in self.data:
@@ -3269,15 +3278,15 @@ class Simulation(object):
                 
             if CB_TYPE_NAME in dsnew['particle_type']:
                 cbname = dsnew['name'].where(dsnew['particle_type'] == CB_TYPE_NAME,drop=True).values[0]
-                GMcb = dsnew['Gmass'].sel(name=cbname)
+                GMcb = dsnew['Gmass'].sel(name=cbname).isel(time=framenum)
             elif CB_TYPE_NAME in self.data.particle_type:
                 cbname = self.data['name'].where(self.data['particle_type'] == CB_TYPE_NAME,drop=True).values[0]
-                GMcb = self.data['Gmass'].sel(name=cbname)
+                GMcb = self.data['Gmass'].sel(name=cbname).isel(time=framenum)
             else:
                 raise ValueError("No central body found in either the old or new Dataset")                  
         else:
             cbname = self.data['name'].where(self.data['particle_type'] == CB_TYPE_NAME,drop=True).values[0]
-            GMcb = self.data['Gmass'].sel(name=cbname)    
+            GMcb = self.data['Gmass'].sel(name=cbname).isel(time=framenum)    
               
         if any(arguments[var] is not None for var in ['rh','vh']):
             dsnew = dsnew.xv2el(GMcb)
@@ -3321,22 +3330,37 @@ class Simulation(object):
                 msg = "Non-unique names detected for bodies. The Dataset will be dimensioned by integer id instead of name."
                 msg +="\nConsider using unique names instead."
                 print(msg)
-        dsnew['status'] = xr.zeros_like(dsnew['id'])
-        
-        def filter_by_dimension(ds, dim_name):
-            """Filter variables in the dataset by whether they contain a specific dimension."""
-            with_dim = xr.Dataset({var: ds[var] for var in ds.variables if dim_name in ds[var].dims})
-            without_dim = xr.Dataset({var: ds[var] for var in ds.variables if dim_name not in ds[var].dims})
-            return with_dim, without_dim
+        dsnew['status'] = xr.zeros_like(dsnew['id']).expand_dims(dim={"time":dsnew.time.values}, axis=0)
 
         if "name" in self.data:
-            # Split each dataset into variables with and without the 'name' dimension
-            data_with_name, data_without_name = filter_by_dimension(self.data, 'name')
-            dsnew_with_name, _ = filter_by_dimension(dsnew, 'name')
-            concatenated_with_name = xr.concat([data_with_name, dsnew_with_name], dim='name')
-            self.data = xr.merge([concatenated_with_name, data_without_name]) 
+            for name in dsnew.coords['name'].values:
+                for time in dsnew.coords['time'].values:
+                    # Create a selector for the combination of name and time
+                    selector_name_time = dict(name=name, time=time)
+                    selector_name = dict(name=name)
+                    
+                    # Check if this combination exists in the old dataset
+                    if ((self.data.coords['name'] == name) & 
+                        (self.data.coords['time'] == time)).any():
+                        
+                        # If it exists, update the corresponding values
+                        for var in dsnew.data_vars:
+                            if 'name' in dsnew[var].dims: 
+                                if var in self.data: 
+                                    # Check if the variable depends on both name and time
+                                    if 'time' in self.data[var].dims:
+                                        self.data[var].loc[selector_name_time] = dsnew[var].loc[selector_name_time]
+                                    else:
+                                        # Update based only on name if time is not a dimension
+                                        self.data[var].loc[selector_name] = dsnew[var].loc[selector_name]
+                                else:
+                                    self.data[var] = dsnew[var]
+                    else:
+                        # If it doesn't exist, concatenate the new data
+                        to_concat = dsnew.sel(selector_name)
+                        self.data = xr.concat([self.data, to_concat], dim='name')
         else:
-            self.data = xr.combine_by_coords([self.data, dsnew])
+            self.data = xr.combine_by_coords([self.data, dsnew])                 
         
         if not isinstance(self.data, SwiftestDataset):
             self.data = SwiftestDataset(self.data)
@@ -3711,7 +3735,7 @@ class Simulation(object):
         ds = self.init_cond
         
         # Drop any variables that may have been copied over from old runs. This is a list of all potential init_cond.nc variables
-        ic_vars=['rh', 'vh', 'a', 'e', 'inc', 'capom', 'omega', 'capm', 'varpi', 'lam', 'f', 'cape', 'capf', 'Gmass', 'mass', 
+        ic_vars=['rh', 'vh', 'gr_pseudo_vh', 'a', 'e', 'inc', 'capom', 'omega', 'capm', 'varpi', 'lam', 'f', 'cape', 'capf', 'Gmass', 'mass', 
                  'radius', 'rhill', 'j2rp2', 'j4rp4', 'rot', 'Ip', 'id', 'particle_type', 'status', 'c_lm', 'ntp', 'npl', 'nplm']
        
         vars=[k for k in ic_vars if k in ds] 
