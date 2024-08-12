@@ -3268,9 +3268,14 @@ class Simulation(object):
         if arguments['j2rp2'] is not None or arguments['j4rp4'] is not None:
             if 'c_lm' in dsnew:
                 dsnew['c_lm'] = xr.full_like(dsnew['c_lm'],np.nan)
+                
         dsmod = self._vec2xr(**arguments)
+        if 'Gmass' in dsnew:
+            if arguments['Gmass'] is None and arguments['mass'] is None:
+                dsmod['Gmass'] = dsnew['Gmass']
+                dsmod['mass'] = dsnew['mass']
         dsnew.update(dsmod)
-        if 'mass' in arguments or 'Gmass' in arguments: 
+        if arguments['mass'] is not None or arguments['Gmass'] is not None: 
             dsnew = self._set_particle_type(dsnew)
             if 'particle_type' in self.data:
                 if CB_TYPE_NAME in self.data['particle_type'] and CB_TYPE_NAME in dsnew['particle_type']:
@@ -3365,20 +3370,18 @@ class Simulation(object):
         if not isinstance(self.data, SwiftestDataset):
             self.data = SwiftestDataset(self.data)
            
+        self._set_central_body(align_to_central_body_rotation)
+        dsnew = self._get_nvals(dsnew)
+        self.data = self._get_nvals(self.data)
+        self.data = self.data.sortby("id")
+        self.data = io.reorder_dims(self.data)
+        
         if self.param['OUT_TYPE'] == "NETCDF_DOUBLE":
             dsnew = io.fix_types(dsnew, ftype=np.float64)
             self.data = io.fix_types(self.data, ftype=np.float64)
         elif self.param['OUT_TYPE'] == "NETCDF_FLOAT":
             dsnew = io.fix_types(dsnew, ftype=np.float32)
             self.data = io.fix_types(self.data, ftype=np.float32)
-
-        self._set_central_body(align_to_central_body_rotation)
-
-        dsnew = self._get_nvals(dsnew)
-        self.data = self._get_nvals(self.data)
-
-        self.data = self.data.sortby("id")
-        self.data = io.reorder_dims(self.data)
 
         return dsnew
 
