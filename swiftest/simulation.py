@@ -887,7 +887,21 @@ class Simulation(object):
         if param_file is not None:
             self.param_file  = param_file
             
-        valid_args = list(self._param_to_argument.values()) + ["codename","integrator","coarray","verbose","dask","MU","DU","TU","MU_name","DU_name","TU_name"]
+        valid_args = list(self._param_to_argument.values()) + ["codename",
+                                                               "integrator",
+                                                               "coarray",
+                                                               "verbose",
+                                                               "dask",
+                                                               "MU",
+                                                               "DU",
+                                                               "TU",
+                                                               "MU_name",
+                                                               "DU_name",
+                                                               "TU_name",
+                                                               "tstep_out",
+                                                               "nstep_out",
+                                                               "mtiny",
+                                                               "minimum_fragment_mass"]
         
 
         unrecognized = [k for k,v in kwargs.items() if k not in valid_args]
