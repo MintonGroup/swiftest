@@ -901,7 +901,8 @@ class Simulation(object):
                                                                "tstep_out",
                                                                "nstep_out",
                                                                "mtiny",
-                                                               "minimum_fragment_mass"]
+                                                               "minimum_fragment_mass",
+                                                               "ephemeris_date"]
         
 
         unrecognized = [k for k,v in kwargs.items() if k not in valid_args]
@@ -3373,12 +3374,14 @@ class Simulation(object):
                         for var in dsnew.data_vars:
                             if 'name' in dsnew[var].dims: 
                                 if var in self.data: 
+                                    if 'name' not in self.data[var].dims:
+                                        self.data[var] = self.data[var].expand_dims(dim={"name":self.data.name.values}, axis=1).copy(deep=True)
                                     # Check if the variable depends on both name and time
                                     if 'time' in self.data[var].dims:
-                                        self.data[var].loc[selector_name_time] = dsnew[var].loc[selector_name_time]
+                                        self.data[var].loc[selector_name_time] = dsnew[var].loc[selector_name_time].values
                                     else:
                                         # Update based only on name if time is not a dimension
-                                        self.data[var].loc[selector_name] = dsnew[var].loc[selector_name]
+                                        self.data[var].loc[selector_name] = dsnew[var].loc[selector_name].values
                                 else:
                                     self.data[var] = dsnew[var]
                     else:
@@ -4100,9 +4103,7 @@ class Simulation(object):
         if recompute_el:
             self.data = self.data.xv2el()
 
-        if self.param['CHK_CLOSE']:
-           if 'CHK_RMIN' not in self.param:
-               self.param['CHK_RMIN'] = cbda.radius.values.item()
+        self.set_distance_range(rmin=cbda.radius.values.item())
                
         return 
     
