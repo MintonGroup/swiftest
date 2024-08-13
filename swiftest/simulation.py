@@ -3997,18 +3997,28 @@ class Simulation(object):
 
         return frame
 
-    def clean(self):
+    def clean(self,deep: bool=False) -> None:
         """
         Cleans up simulation directory by deleting old files (dump, logs, and output files).
         
         Parameters
         ----------
-        None
+        deep : bool, default False
+            If True, also delete the entire simulation directory.
         
         Returns
         -------
         None
         """
+        
+        self.encounters = SwiftestDataset()
+        self.collisions = SwiftestDataset()
+        if deep:
+            shutil.rmtree(self.simdir)
+            self.init_cond = SwiftestDataset()
+            self.data = SwiftestDataset()
+            return
+        
         old_files = [self.simdir / self.param['BIN_OUT'],
                      self.simdir / "fraggle.log",
                      self.simdir / "swiftest.log",
@@ -4030,8 +4040,6 @@ class Simulation(object):
                   
         # Clean out data structure and reset it to initial conditions
         self.data = self.init_cond.copy(deep=True)
-        self.encounters = SwiftestDataset()
-        self.collisions = SwiftestDataset()
         return
 
     def _set_central_body(self, 
