@@ -50,12 +50,19 @@ class Simulation(object):
     This is a class that defines the basic Swift/Swifter/Swiftest simulation object
     
     """
-
-    def __init__(self,read_param: bool = False, 
-                 read_data: bool = False, 
+    def __init__(self,
+                 simdir: os.PathLike | Path | str = "simdata",
+                 param_file: os.PathLike | Path | str = "param.in",
+                 read_param: bool = True, 
+                 read_init_cond: bool = True,
+                 read_data: bool = True,
                  read_collisions: bool | None = None, 
                  read_encounters: bool | None = None,
                  dask: bool = False,
+                 codename: Literal["Swiftest", "Swifter", "Swift"] = "Swiftest",
+                 integrator: Literal["symba", "rmvs", "whm", "helio"] = "symba",
+                 coarray: bool = False,
+                 verbose: bool = True, 
                  **kwargs: Any):
         """
         Set up a new simulation object with the given parameters.
@@ -78,21 +85,37 @@ class Simulation(object):
         
         Parameters
         ----------
-        read_param : bool, default False
+        simdir : str, path-like, or None, default "simdata"
+            The directory where the simulation data will be stored. 
+        param_file : str, path-like, or None, default "param.in"
+            The name of the parameter input file that will be passed to the integrator. The parameter file should be 
+            located in the directory set by `simdir`. If the file does not exist, it will be created. 
+        read_param : bool, default True
             If true, read in a pre-existing parameter input file given by the argument `param_file` if it exists.
             Otherwise, create a new parameter file using the arguments passed to Simulation or defaults
-        read_data : bool, default False
+        read_init_cond: bool, default True
+            If True, read in a pre-existing initial condition file given by the param.in parameter `NC_IN` or the argument 
+            `init_cond_file_name` if it exists. If this is True, then `read_param` will also be set to True
+        read_data : bool, default True
             If True, read in a pre-existing binary input file given by the argument `output_file_name` if it exists.
-            Parameter input file equivalent is None
+            If this is True, then `read_param` will also be set to True.
         read_collisions : bool, default None
             If True, read in a pre-existing collision file `collisions.nc`. If None, then it will take the value of `read_data`. 
         read_encounters : bool, default None
             If True, read in a pre-existing encounter file `encounters.nc`. If None, then it will take the value of `read_data`. 
         dask : bool, default False
             If true, will use Dask to lazily load data (useful for very large datasets).
+        coarray : bool, default False
+            If true, will employ Coarrays on test particle structures to run in single program/multiple data parallel mode. 
+            In order to use this capability, Swiftest must be compiled for Coarray support. Only certain integrators can use 
+            Coarrays. RMVS, WHM, Helio are all compatible, but SyMBA is not, due to the way tp-pl close encounters are handeled.
+        verbose : bool, default False
+            If set to True, then more information is printed by Simulation methods as they are executed. Setting to
+            False suppresses most messages other than errors and some warnings.        
         **kwargs : Any
             Any valid keyword arguments accepted by :meth:`~swiftest.Simulation.set_parameter` (see below)
         """
+        self.verbose = kwargs.pop("verbose",False)
 
         # Define some instance variables
         self._getter_column_width = 32
@@ -101,7 +124,6 @@ class Simulation(object):
         self._init_cond = SwiftestDataset()
         self._encounters = SwiftestDataset()
         self._collisions = SwiftestDataset()
-        self._simdir = None 
         self._MU_name = "MU"
         self._DU_name = "DU"
         self._TU_name = "TU"
@@ -112,10 +134,103 @@ class Simulation(object):
         self._DU2M = None
         self._M2DU = None
         self._GU = None
-        self._integrator = "symba"
-        self._codename = "Swiftest"
+        self._ephemeris_date = constants.MINTON_BCL
+        self._codename = None
+        self._integrator = None
         
-        self.verbose = kwargs.pop("verbose",False)
+        # Define a dictionary that maps parameter names used in `param.in` files to arguments passed to Simulation() and `set_parameter()`
+        self._param_to_argument = {
+            "T0": "t0",
+            "TSTART": "tstart",
+            "TSTOP": "tstop",
+            "DT": "dt",
+            "ISTEP_OUT": "istep_out",
+            "NSTEP_OUT": "nstep_out",
+            "DUMP_CADENCE": "dump_cadence",
+            "GMTINY": "gmtiny",
+            "CHK_CLOSE": "close_encounter_check",
+            "COLLISION_MODEL": "collision_model",
+            "ENCOUNTER_SAVE": "encounter_save",
+            "MIN_GMFRAG": "minimum_fragment_gmass",
+            "NFRAG_REDUCTION": "nfrag_reduction",
+            "ROTATION": "rotation",
+            "GR": "general_relativity",
+            "ENERGY": "compute_conservation_values",
+            "RHILL_PRESENT": "rhill_present",
+            "EXTRA_FORCE": "extra_force",
+            "BIG_DISCARD": "big_discard",
+            "INTERACTION_LOOPS": "interaction_loops",
+            "ENCOUNTER_CHECK": "encounter_check_loops",
+            "COARRAY": "coarray",
+            "RESTART": "restart",
+            "IN_TYPE": "init_cond_file_type",
+            "IN_FORM": "init_cond_format",
+            "NC_IN": "init_cond_file_name",
+            "CB_IN": "init_cond_file_name['CB']",
+            "PL_IN": "init_cond_file_name['PL']",
+            "TP_IN": "init_cond_file_name['TP']",
+            "OUT_TYPE": "output_file_type",
+            "BIN_OUT": "output_file_name",
+            "OUT_FORM": "output_format",
+            "OUT_STAT": "restart",
+            "MU2KG": "MU",
+            "DU2M": "DU",
+            "TU2S": "TU",
+            "CHK_RMIN": "rmin",
+            "CHK_RMAX": "rmax",
+            "CHK_QMIN_COORD": "qmin_coord",
+            "CHK_QMIN": "qmin",
+            "CHK_QMIN_RANGE": "qminR"
+        }
+        
+        # Define default parameters
+        self.MU_name = "Msun"
+        self.MU2KG = constants.MSun   
+        self.DU_name = "AU"  
+        self.DU2M = constants.AU2M
+        self.TU_name = "YR" 
+        self.TU2S = constants.YR2S
+        self.param = {
+            "T0": 0.0,
+            "TSTART": 0.0,
+            "ISTEP_OUT": 1,
+            "DUMP_CADENCE": 1,
+            "IN_TYPE": "NETCDF_DOUBLE",
+            "NC_IN": "init_cond.nc",
+            "IN_FORM": "XV",
+            "OUT_TYPE": "NETCDF_DOUBLE",
+            "BIN_OUT": "data.nc",
+            "OUT_FORM": "XVEL",
+            "OUT_STAT": "REPLACE",
+            "MU2KG": self.MU2KG,
+            "DU2M": self.DU2M,
+            "TU2S": self.TU2S,
+            "CHK_RMIN": constants.RSun * self.M2DU,
+            "CHK_RMAX": 10000.0,
+            "CHK_EJECT": 10000.0,
+            "CHK_QMIN_RANGE": "-1 10000.0",
+            "CHK_QMIN_COORD": "HELIO",
+            "CHK_CLOSE": True,
+            "GR": True,
+            "GMTINY": 0.0,
+            "COLLISION_MODEL": "FRAGGLE",
+            "MIN_GMFRAG": 0.0,
+            "NFRAG_REDUCTION": 30.0,
+            "ROTATION": True,
+            "ENERGY": False,
+            "EXTRA_FORCE": False,
+            "BIG_DISCARD": False,
+            "RHILL_PRESENT": False,
+            "INTERACTION_LOOPS": "TRIANGULAR",
+            "ENCOUNTER_CHECK": "TRIANGULAR",
+            "RESTART": False,
+            "ENCOUNTER_SAVE" : "NONE",
+            "TIDES": False,
+        }         
+        self.codename = codename
+        self.integrator = integrator
+        self.simdir = simdir
+        self.param_file = param_file
 
         # Parameters are set in reverse priority order. First the defaults, then values from a pre-existing input file,
         # then using the arguments passed via **kwargs.
@@ -143,36 +258,32 @@ class Simulation(object):
         else:
             self.read_encounters = read_encounters
             
-        if read_param or read_data:
+        if read_init_cond or read_data:
+            read_param = True
+            
+        if read_param: 
             if "simdir" in kwargs:
                 self.set_parameter(simdir = Path(kwargs.pop("simdir")))
             if "param_file" in kwargs:
                 self.set_parameter(param_file = Path(kwargs.pop("param_file")))
-
-             
-            if self.read_param(read_init_cond = True, dask=dask, **kwargs):
-                param_file_found = True
-            else:
-                param_file_found = False
-
+            self.read_param(**kwargs)
+                
         # -----------------------------------------------------------------
         # Highest Priority: Values from arguments passed to Simulation()
         # -----------------------------------------------------------------
         if len(kwargs) > 0: 
             self.set_parameter(**kwargs)
 
-        # Let the user know that there was a problem reading an old parameter file and we're going to create a new one
-        if read_param and not param_file_found:
-            warnings.warn(f"{self.param_file} not found. Creating a new file using default values for parameters not passed to Simulation().",stacklevel=2)
-            self.write_param()
-
         # Read in an old simulation file if requested
+        if read_init_cond:
+            icpath = self.simdir / self.param['NC_IN']
+            if icpath.exists():
+                self.read_init_cond(dask=dask)
+        
         if read_data:
-            binpath = os.path.join(self.simdir, self.param['BIN_OUT'])
-            if os.path.exists(binpath):
+            binpath = self.simdir / self.param['BIN_OUT']
+            if binpath.exists():
                 self.read_output_file(dask=dask)
-            else:
-                raise FileNotFoundError(f"BIN_OUT file {binpath} not found.")
         return
     
     
@@ -284,6 +395,25 @@ class Simulation(object):
         param = {valid_var[arg]: self.param[valid_var[arg]] for arg in valid_arg if valid_var[arg] in self.param}
 
         return valid_arg, param
+    
+    def _create_valid_var(self, valid_arg):
+        """
+        Internal function for getters that extracts subset of arguments that is contained in the dictionary of valid
+        argument/parameter variable pairs.
+
+        Parameters
+        ----------
+        valid_arg : List
+            A list of argument values
+
+        Returns
+        -------
+        Dict :
+            A dictionary where each key is the argument name and the values are the corresponding parameter name
+        """  
+        valid_var = {arg: key for key, arg in self._param_to_argument.items() if arg in valid_arg}
+
+        return valid_var    
 
     def set_simulation_time(self,
                             t0: float | None = None,
@@ -454,14 +584,8 @@ class Simulation(object):
            A dictionary containing the requested parameters
         """
 
-        valid_var = {"t0": "T0",
-                     "tstart": "TSTART",
-                     "tstop": "TSTOP",
-                     "dt": "DT",
-                     "istep_out": "ISTEP_OUT",
-                     "nstep_out": "NSTEP_OUT",
-                     "dump_cadence": "DUMP_CADENCE",
-                     }
+        valid_arg = ["t0", "tstart", "tstop", "dt", "istep_out", "tstep_out", "nstep_out", "dump_cadence"]
+        valid_var = self._create_valid_var(valid_arg)
 
         units = {"t0": self.TU_name,
                  "tstart": self.TU_name,
@@ -493,40 +617,25 @@ class Simulation(object):
 
         return time_dict
 
-    def set_parameter(self, 
+    def set_parameter(self,                      
                       **kwargs: Any
                       ) -> Dict[str, Any]:
         """
         Setter for all possible parameters. This will call each of the specialized setters using keyword arguments.
-        If no arguments are passed, then default values will be used.
+        If no arguments are passed, then either values from the param_file or default values will be used.
         
         Parameters
         ----------
-        read_param : bool, default False
-            If true, read in a pre-existing parameter input file given by the argument `param_file` if it exists.
-            Otherwise, create a new parameter file using the arguments passed to Simulation or defaults
-        read_data : bool, default False
-            If True, read in a pre-existing binary input file given by the argument `output_file_name` if it exists.
-            Parameter input file equivalent is None
-        read_collisions : bool, default None
-            If True, read in a pre-existing collision file `collisions.nc`. If None, then it will take the value of `read_data`. 
-        read_encounters : bool, default None
-            If True, read in a pre-existing encounter file `encounters.nc`. If None, then it will take the value of `read_data`. 
-        simdir : PathLike, default `"simdir"`
-            Directory where simulation data will be stored, including the parameter file, initial conditions file, output file,
-            dump files, and log files.
         **kwargs : dict
             See list of valid parameters and their defaults below
+        param_file : str, path-like, or file-like, default None
+            Name of the parameter input file that will be passed to the integrator.
+            If passed, then the file will be read in and the parameters set from them, but can be overriden by any explicit arguments
         codename : {"Swiftest", "Swifter", "Swift"}, default "Swiftest"
             Name of the n-body code that will be used.
             Parameter input file equivalent is None
         integrator : {"symba","rmvs","whm","helio"}, default "symba"
             Name of the n-body integrator that will be used when executing a run.
-            Parameter input file equivalent is None
-        read_param : bool, default False
-            Read the parameter file given by `param_file`.
-        param_file : str, path-like, or file-lke, default "param.in"
-            Name of the parameter input file that will be passed to the integrator.
             Parameter input file equivalent is None
         t0 : float, default 0.0
             The reference time for the start of the simulation. Defaults is 0.0.
@@ -771,78 +880,17 @@ class Simulation(object):
             A dictionary of all Simulation parameters that changed
         """
 
-        default_arguments = {
-            "codename" : "Swiftest",
-            "integrator": "symba",
-            "t0": 0.0,
-            "tstart": 0.0,
-            "tstop": None,
-            "dt": None,
-            "istep_out": 1,
-            "tstep_out": None,
-            "nstep_out": None,
-            "dump_cadence": 10,
-            "init_cond_file_type": "NETCDF_DOUBLE",
-            "init_cond_file_name": None,
-            "init_cond_format": "XV",
-            "read_data": False,
-            "output_file_type": "NETCDF_DOUBLE",
-            "output_file_name": None,
-            "output_format": "XVEL",
-            "MU": "MSUN",
-            "DU": "AU",
-            "TU": "Y",
-            "MU2KG": None,
-            "DU2M": None,
-            "TU2S": None,
-            "MU_name": None,
-            "DU_name": None,
-            "TU_name": None,
-            "rmin": None,
-            "rmax": 10000.0,
-            "qmin_coord": "HELIO",
-            "gmtiny": 0.0,
-            "mtiny": None,
-            "nfrag_reduction": 30.0,
-            "close_encounter_check": True,
-            "general_relativity": True,
-            "collision_model": "MERGE",
-            "minimum_fragment_mass": None,
-            "minimum_fragment_gmass": None,
-            "rotation": True,
-            "compute_conservation_values": False,
-            "extra_force": False,
-            "big_discard": False,
-            "rhill_present": False,
-            "interaction_loops": "TRIANGULAR",
-            "encounter_check_loops": "TRIANGULAR",
-            "ephemeris_date": "MBCL",
-            "restart": False,
-            "encounter_save" : "NONE",
-            "coarray" : False,
-            "simdir" : self.simdir,
-            "verbose" : False,
-            "param_file" : Path("param.in"),
-            "simdir" : Path("simdata")
-        }
-        param_file = kwargs.pop("param_file",None)
-
-        if param_file is not None:
-            self.param_file = Path(param_file)
-            kwargs['param_file'] = self.param_file
-        
         simdir = kwargs.pop("simdir",None)
         if simdir is not None:
-            self.simdir = Path(simdir)
-            kwargs['simdir'] = self.simdir
+            self.simdir = simdir
+        param_file = kwargs.pop("param_file",None)
+        if param_file is not None:
+            self.param_file  = param_file
+            
+        valid_args = list(self._param_to_argument.values()) + ["codename","integrator","coarray","verbose","dask","MU","DU","TU","MU_name","DU_name","TU_name"]
+        
 
-        # If no arguments are requested, use defaults
-        if len(kwargs) == 0:
-            kwargs = default_arguments
-            self.param_file = default_arguments["param_file"]
-            self.simdir = default_arguments["simdir"]
-
-        unrecognized = [k for k,v in kwargs.items() if k not in default_arguments]
+        unrecognized = [k for k,v in kwargs.items() if k not in valid_args]
         if len(unrecognized) > 0:
             for k in unrecognized:
                 warnings.warn(f'Unrecognized argument "{k}"',stacklevel=2)
@@ -858,7 +906,8 @@ class Simulation(object):
         param_dict.update(self.set_feature(**kwargs))
 
         # Non-returning setters
-        self.set_ephemeris_date(**kwargs)
+        if "ephemeris_date" in kwargs:
+            self.ephemeris_date = kwargs["ephemeris_date"]
 
         return param_dict
 
@@ -980,8 +1029,8 @@ class Simulation(object):
         integrator_dict : dict
             The subset of the dictionary containing the code name if codename is selected
         """
-
-        valid_var = {"gmtiny"  : "GMTINY"}
+        valid_arg = ["gmtiny"]
+        valid_var = self._create_valid_var(valid_arg)
 
         valid_instance_vars = {"codename": self.codename,
                                "integrator": self.integrator,
@@ -1296,22 +1345,22 @@ class Simulation(object):
            A dictionary containing the requested features.
         """
 
-        valid_var = {"close_encounter_check": "CHK_CLOSE",
-                     "collision_model": "COLLISION_MODEL",
-                     "encounter_save": "ENCOUNTER_SAVE",
-                     "minimum_fragment_gmass": "MIN_GMFRAG",
-                     "nfrag_reduction": "NFRAG_REDUCTION",
-                     "rotation": "ROTATION",
-                     "general_relativity": "GR",
-                     "compute_conservation_values": "ENERGY",
-                     "rhill_present": "RHILL_PRESENT",
-                     "extra_force": "EXTRA_FORCE",
-                     "big_discard": "BIG_DISCARD",
-                     "interaction_loops": "INTERACTION_LOOPS",
-                     "encounter_check_loops": "ENCOUNTER_CHECK",
-                     "coarray" : "COARRAY",
-                     "restart": "RESTART"
-                     }
+        valid_arg = ["close_encounter_check", 
+                     "collision_model",
+                     "encounter_save",
+                     "minimum_fragment_gmass",
+                     "nfrag_reduction",
+                     "rotation",
+                     "general_relativity",
+                     "compute_conservation_values",
+                     "rhill_present",
+                     "extra_force",
+                     "big_discard",
+                     "interaction_loops",
+                     "encounter_check_loops",
+                     "coarray",
+                     "restart"]
+        valid_var = self._create_valid_var(valid_arg)
 
         valid_arg, feature_dict = self._get_valid_arg_list(arg_list, valid_var)
 
@@ -1493,13 +1542,14 @@ class Simulation(object):
            A dictionary containing the requested parameters
         """
 
-        valid_var = {"init_cond_file_type": "IN_TYPE",
-                     "init_cond_format": "IN_FORM",
-                     "init_cond_file_name": "NC_IN",
-                     "init_cond_file_name['CB']": "CB_IN",
-                     "init_cond_file_name['PL']": "PL_IN",
-                     "init_cond_file_name['TP']": "TP_IN",
-                     }
+        valid_arg = ["init_cond_file_type",
+                     "init_cond_format",
+                     "init_cond_file_name",
+                     "init_cond_file_name['CB']",
+                     "init_cond_file_name['PL']",
+                     "init_cond_file_name['TP']",
+                     ]
+        valid_var = self._create_valid_var(valid_arg)
 
         three_file_args = ["init_cond_file_name['CB']",
                            "init_cond_file_name['PL']",
@@ -1669,17 +1719,19 @@ class Simulation(object):
 
         """
 
-        valid_var = {"output_file_type": "OUT_TYPE",
-                     "output_file_name": "BIN_OUT",
-                     "output_format": "OUT_FORM",
-                     "restart": "OUT_STAT"
-                     }
+        valid_arg = ["output_file_type",
+                     "output_file_name",
+                     "output_format",
+                     "restart",
+                     ]
+        
+        valid_var = self._create_valid_var(valid_arg)
         
         valid_instance_vars = {"simdir": self.simdir}
         
         if not bool(kwargs) and arg_list is None:
             arg_list = list(valid_instance_vars.keys())
-            arg_list.append(*[a for a in valid_var.keys() if a not in valid_instance_vars])
+            arg_list += [a for a in valid_var.keys() if a not in valid_instance_vars]
         
         valid_arg, output_file_dict = self._get_valid_arg_list(arg_list, valid_var)
 
@@ -1908,11 +1960,8 @@ class Simulation(object):
 
         """
 
-        valid_var = {
-            "MU": "MU2KG",
-            "DU": "DU2M",
-            "TU": "TU2S",
-        }
+        valid_arg = ["MU", "DU", "TU"]
+        valid_var = self._create_valid_var(valid_arg)
 
         if "MU_name" not in dir(self) or self.MU_name is None:
             MU_name = "mass unit"
@@ -2176,7 +2225,7 @@ class Simulation(object):
             ephemeris_id = [None] * len(name)
 
         if self.ephemeris_date is None:
-            self.set_ephemeris_date()
+            self.ephemeris_date = "MCBL"
 
         if date is None:
             date = self.ephemeris_date
@@ -2306,51 +2355,6 @@ class Simulation(object):
 
         return
 
-    def set_ephemeris_date(self,
-                          ephemeris_date: str | None = None,
-                          **kwargs: Any
-                          ) -> str:
-        """
-        Sets the date to use when obtaining the ephemerides.
-        
-        Parameters
-        ----------
-        ephemeris_date : str, optional
-            Date to use when obtaining the ephemerides.
-            Valid options are "today", "MBCL", or date in the format YYYY-MM-DD.
-        **kwargs : Any
-            A dictionary of additional keyword argument. This allows this method to be called by the more general
-            set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
-
-        Returns
-        -------
-        ephemeris_date : str
-            The ISO-formatted date string for the ephemeris computation.
-            Also Sets the `ephemeris_date` instance variable.
-        """
-
-        if ephemeris_date is None:
-            return
-
-        if ephemeris_date is None or ephemeris_date.upper() == "MBCL":
-            ephemeris_date = constants.MINTON_BCL
-        elif ephemeris_date.upper() == "TODAY":
-            ephemeris_date = datetime.date.today().isoformat()
-        else:
-            try:
-                datetime.datetime.fromisoformat(ephemeris_date)
-            except:
-                valid_date_args = ['"MBCL"', '"TODAY"', '"YYYY-MM-DD"']
-                msg = f"{ephemeris_date} is not a valid format. Valid options include:", ', '.join(valid_date_args)
-                msg += "\nUsing MBCL for date."
-                warnings.warn(msg,stacklevel=2)
-                ephemeris_date = constants.MINTON_BCL
-
-        self.ephemeris_date = ephemeris_date
-
-        ephemeris_date = self.get_ephemeris_date()
-
-        return ephemeris_date
 
     def get_ephemeris_date(self, 
                            arg_list: str | List[str] | None = None, 
@@ -2914,12 +2918,15 @@ class Simulation(object):
                 raise ValueError("If Gmass is passed, then radius must also be passed when CHK_CLOSE is True")
             
         if Gmass is not None: 
+            Gmass[np.isnan(Gmass)] = 0.0
             mass = Gmass / self.GU
         elif mass is not None:
+            mass[np.isnan(mass)] = 0.0
             Gmass = mass * self.GU
         else:
             mass = np.zeros(nbody)
             Gmass = np.zeros(nbody)
+        
             
         valid_vars = vector_vars + scalar_vars + sph_vars + ['time','id']
 
@@ -3385,11 +3392,10 @@ class Simulation(object):
 
         return dsnew
 
+
     def read_param(self,
                    param_file : os.PathLike | str | None = None,
                    codename: Literal["Swiftest", "Swifter", "Swift"] | None = None,
-                   read_init_cond : bool | None = None,
-                   dask: bool = False, 
                    **kwargs : Any
                    ) -> bool:
         """
@@ -3399,52 +3405,106 @@ class Simulation(object):
         ----------
         param_file : str or path-like, default is the value of the Simulation object's internal `param_file`.
             File name of the input parameter file
-        codename : {"Swiftest", "Swifter", "Swift"}, default is the value of the Simulation object's internal`codename`
+        codename : {"Swiftest", "Swifter", "Swift"}, default is the value of the Simulation object's internal `codename` instance variable
             Type of parameter file, either "Swift", "Swifter", or "Swiftest"
-        read_init_cond : bool, optional
-            If true, will read in the initial conditions file into the data instance variable. Default True
-        dask : bool, default False
-            Use Dask to lazily load data (useful for very large datasets)
             
         Returns
         -------
-        bool
-            True if the parameter file exists and is read correctly. False otherwise.
+        None
         """
         if param_file is None:
             param_file = self.simdir / self.param_file
-        if read_init_cond is None:
-            read_init_cond = True
         if codename is None:
             codename = self.codename
 
         if not os.path.exists(param_file):
-            return False
+            raise FileNotFoundError(f"Parameter file {param_file} not found.")
 
         if codename == "Swiftest":
             self.param = io.read_swiftest_param(param_file, self.param, verbose=self.verbose)
-            if read_init_cond:
-                if "NETCDF" in self.param['IN_TYPE']:
-                   init_cond_file = self.simdir / self.param['NC_IN']
-                   if os.path.exists(init_cond_file):
-                       param_tmp = self.param.copy()
-                       param_tmp['BIN_OUT'] = init_cond_file
-                       self.data = io.swiftest2xr(param_tmp, verbose=self.verbose, dask=dask)
-                       self.init_cond = self.data.copy(deep=True)
-                   else:
-                       warnings.warn(f"Initial conditions file file {init_cond_file} not found.", stacklevel=2)
-                else:
-                    warnings.warn("Reading in ASCII initial conditions files in Python is not yet supported", stacklevel=2)
         elif codename == "Swifter":
             self.param = io.read_swifter_param(param_file, verbose=self.verbose)
         elif codename == "Swift":
             self.param = io.read_swift_param(param_file, verbose=self.verbose)
         else:
             warnings.warn(f'{codename} is not a recognized code name. Valid options are "Swiftest", "Swifter", or "Swift".',stacklevel=2)
-            return False
+            return 
 
-        return True
+        return 
 
+
+    def read_init_cond(self,
+                   init_cond_file_name : os.PathLike | str | None = None,
+                   init_cond_file_type: Literal["NETCDF", "ASCII"] | None = None,
+                   init_cond_format: Literal["EL", "XV"] | None = None,
+                   dask: bool = False, 
+                   **kwargs : Any
+                   ) -> bool:
+        """
+        Reads in a set of initial conditions from file and stores them as the init_cond and data instance variables.
+        
+        Parameters
+        ----------
+        init_cond_file_name : str, path-like, or dict, optional
+            Name of the input initial condition file or files. Whether to pass a single file name or a dictionary
+            depends on the argument passed to `init_cond_file_type`. If `init_cond_file_type={"NETCDF_DOUBLE","NETCDF_FLOAT"}`,
+            then this will be a single file name. If `init_cond_file_type="ASCII"` then this must be a dictionary where::
+            
+                init_cond_file_name = {
+                    "CB" - [path to central body initial conditions file] (Swiftest only),
+                    "PL" - [path to massive body initial conditions file], 
+                    "TP" - [path to test particle initial conditions file] }
+                                      
+            If no file name is provided then the following default file names will be used.
+            
+            * "NETCDF_DOUBLE", "NETCDF_FLOAT" `init_cond_file_name = "init_cond.nc"`
+            * "ASCII" `init_cond_file_name = {"CB" : "cb.in", "PL" : "pl.in", "TP" : "tp.in"}`
+            
+            Parameter input file equivalent is `NC_IN`, `CB_IN`, `PL_IN`, `TP_IN`        
+        init_cond_file_type : {"NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"}, default "NETCDF_DOUBLE"
+            The file type containing initial conditions for the simulation.
+            
+            * "NETCDF_DOUBLE" A single initial conditions input file in NetCDF file format of type NETCDF_DOUBLE.
+            * "NETCDF_FLOAT" A single initial conditions input file in NetCDF file format of type NETCDF_FLOAT.
+            * "ASCII"  Three initial conditions files in ASCII format. The individual files define the central body,
+            
+            massive body, and test particle initial conditions.
+            Parameter input file equivalent is `IN_TYPE`
+
+        init_cond_format : {"EL", "XV"}, default "XV"
+            Indicates whether the input initial conditions are given as orbital elements or cartesian position and
+            velocity vectors.
+            If `codename` is "Swift" or "Swifter", EL initial conditions are converted to XV.
+            Parameter input file equivalent is `IN_FORM`
+        dask : bool, default False
+            Use Dask to lazily load data (useful for very large datasets)
+            
+        Returns
+        -------
+        None
+        """
+        if init_cond_file_name is None:
+            init_cond_file_name = self.param['NC_IN']
+        init_cond_file = self.simdir / self.param['NC_IN']
+        if not os.path.exists(init_cond_file):
+            raise FileNotFoundError(f"Initial conditions file {init_cond_file} not found.")
+        if self.verbose:
+            print("Reading initial conditions file as .init_cond")
+        if init_cond_file_type is None:
+            init_cond_file_type = self.param['IN_TYPE']
+        if init_cond_format is None:
+            init_cond_format = self.param['IN_FORM']
+        if "NETCDF" in init_cond_file_type:
+            param_tmp = self.param.copy()
+            param_tmp['BIN_OUT'] = init_cond_file
+            param_tmp['IN_TYPE'] = init_cond_file_type
+            param_tmp['IN_FORM'] = init_cond_format 
+            self.init_cond = io.swiftest2xr(param_tmp, verbose=self.verbose, dask=dask)
+        else:
+            warnings.warn("Reading in ASCII initial conditions files in Python is not yet supported", stacklevel=2)
+
+        return 
+    
     def write_param(self,
                     codename: Literal["Swiftest", "Swifter", "Swift"]  | None = None,
                     param_file: str | os.PathLike | None = None,
@@ -3587,21 +3647,22 @@ class Simulation(object):
         # results
 
         param_tmp = self.param.copy()
-        param_tmp['BIN_OUT'] = os.path.join(self.simdir, self.param['BIN_OUT'])
+        param_tmp['BIN_OUT'] = self.simdir / self.param['BIN_OUT']
+        datafilefound=param_tmp['BIN_OUT'].exists()
         if self.codename == "Swiftest":
-            self.data = io.swiftest2xr(param_tmp, verbose=self.verbose, dask=dask)
-            if self.verbose:
-                print('Swiftest simulation data stored as xarray Dataset .data')
-            if read_init_cond:
+            if datafilefound:
+                self.data = io.swiftest2xr(param_tmp, verbose=self.verbose, dask=dask)
                 if self.verbose:
-                    print("Reading initial conditions file as .init_cond")
-                if "NETCDF" in self.param['IN_TYPE']:
-                    param_tmp['BIN_OUT'] = self.simdir / self.param['NC_IN']
-                    if os.path.exists(param_tmp['BIN_OUT']):
-                        self.init_cond = io.swiftest2xr(param_tmp, verbose=self.verbose, dask=dask)
-                    else:
-                        self.save(framenum=0)
-                else:
+                    print('Swiftest simulation data stored as xarray Dataset .data')
+            elif self.verbose:
+                print(f"Output file {param_tmp['BIN_OUT']} not found.")
+            if read_init_cond:
+                try:
+                    self.read_init_cond(dask=dask)
+                    if not datafilefound:
+                        self.data = self.init_cond.copy(deep=True)
+                except:
+                    print("No initial conditions file found. Generating from the first time step of the output file.")
                     self.init_cond = self.data.isel(time=[0]).copy(deep=True)
                     self._scrub_init_cond()
 
@@ -3613,8 +3674,12 @@ class Simulation(object):
                 print("Finished reading Swiftest dataset files.")
 
         elif self.codename == "Swifter":
-            self.data = io.swifter2xr(param_tmp, verbose=self.verbose)
-            if self.verbose: print('Swifter simulation data stored as SwiftestDataset .data')
+            if datafilefound:
+                self.data = io.swifter2xr(param_tmp, verbose=self.verbose)
+                if self.verbose: 
+                    print('Swifter simulation data stored as SwiftestDataset .data')
+            elif self.verbose:
+                print(f"Output file {param_tmp['BIN_OUT']} not found.")
         elif self.codename == "Swift":
             warnings.warn("Reading Swift simulation data is not implemented yet",stacklevel=2)
         else:
@@ -4117,7 +4182,7 @@ class Simulation(object):
         return self._simdir
     
     @simdir.setter
-    def simdir(self, value: os.PathLike | Path) -> None:
+    def simdir(self, value: os.PathLike | Path ) -> None:
         try:
             value = Path(value).resolve()
         except:
@@ -4130,6 +4195,24 @@ class Simulation(object):
                 raise NotADirectoryError(msg)        
         self._simdir = value
         return
+    
+    @property
+    def param_file(self) -> Path:
+        """
+        Path: The parameter file 
+        """
+        return self._param_file
+    
+    @param_file.setter
+    def param_file(self, value: os.PathLike | Path) -> None:
+        if not os.path.exists(self.simdir / value):
+            self.write_param(param_file = value)
+        param_path = self.simdir / value
+        if not param_path.exists():
+            raise FileNotFoundError(f"Parameter file {param_path} not found.")
+        self._param_file = value
+        return    
+    
     
     @property
     def MU_name(self) -> str:
@@ -4321,7 +4404,6 @@ class Simulation(object):
         self._codename = value.title()
         return
     
-   
     @property
     def verbose(self) -> bool:
         """
@@ -4332,10 +4414,50 @@ class Simulation(object):
     @verbose.setter
     def verbose(self, value: bool) -> None:
         if not isinstance(value, bool):
-            raise TypeError("Verbose value must be a boolean")
+            raise TypeError("verbose value must be a boolean")
         self._verbose = value
         return
     
+    @property
+    def ephemeris_date(self) -> str:
+        """
+        ISO-formatted date sto use when obtaining the ephemerides in the format YYYY-MM-DD. 
+        """
+        return self._ephemeris_date
     
+    @ephemeris_date.setter
+    def ephemeris_date(self, value: str) -> None:
+        """
+        Sets the date to use when obtaining the ephemerides.
+        
+        Parameters
+        ----------
+        ephemeris_date : str, optional
+            Date to use when obtaining the ephemerides.
+            Valid options are "today", "MBCL", or date in the format YYYY-MM-DD.
+        **kwargs : Any
+            A dictionary of additional keyword argument. This allows this method to be called by the more general
+            set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.       
+        if not isinstance(str, bool):
+            raise TypeError("ephemeris_date value must be a string")
+        """ 
+        if value.upper() == "MBCL":
+            value = constants.MINTON_BCL
+        elif value.upper() == "TODAY":
+            value = datetime.date.today().isoformat()
+        else:
+            try:
+                datetime.datetime.fromisoformat(value)
+            except:
+                valid_date_args = ['"MBCL"', '"TODAY"', '"YYYY-MM-DD"']
+                msg = f"{value} is not a valid format. Valid options include:", ', '.join(valid_date_args)
+                msg += "\nUsing MBCL for date."
+                warnings.warn(msg,stacklevel=2)
+                value = constants.MINTON_BCL
+
+        self._ephemeris_date = value
+
+        return 
+        
     
     

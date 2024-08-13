@@ -370,7 +370,7 @@ class TestSwiftestIO(unittest.TestCase):
         sim2 = swiftest.Simulation(simdir=self.simdir, read_param=True, read_data=False)
         # Add the modern planets and the Sun using the JPL Horizons Database.
         # Check if all names in Dataset read in from file match the expected list of names
-        self.assertTrue((major_bodies == sim2.data['name']).all(), msg="Name mismatch in Dataset")
+        self.assertTrue((major_bodies == sim2.init_cond['name']).all(), msg="Name mismatch in Dataset")
         
         # Check to see if all parameter values read in from file match the expected parameters saved when generating the file
         self.assertTrue(all([v == param[k] for k,v in sim2.param.items() if k in param]))
@@ -710,7 +710,7 @@ class TestSwiftestIO(unittest.TestCase):
         Tests that Swiftest is able to modify the properties of a body in the simulation 
         """
         print("\ntest_modify_body")
-        sim = swiftest.Simulation()
+        sim = swiftest.Simulation(simdir=self.simdir)
         sim.add_solar_system_body(['Sun','Mercury'])
         sim.modify_body(name='Mercury',a=100.0) 
         self.assertGreater(sim.data.sel(name='Mercury')['a'].values.item(), 99.0)
