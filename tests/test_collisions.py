@@ -225,7 +225,7 @@ class TestCollisions(unittest.TestCase):
         rh_tp = []
         vh_tp = []
         for i in range(ncoll): 
-            rh_tp.append(rh_E + [0,-25*(i+1)*rad_E, 0])
+            rh_tp.append(rh_E + [0,-20*(i+1)*rad_E, 0])
             vh_tp.append(vh_E + [0.0, 1e-2, 0])
 
         sim.add_body(rh=rh_tp, vh=vh_tp)
