@@ -4014,7 +4014,7 @@ class Simulation(object):
         self.encounters = SwiftestDataset()
         self.collisions = SwiftestDataset()
         if deep:
-            shutil.rmtree(self.simdir)
+            shutil.rmtree(self.simdir, ignore_errors=True)
             self.init_cond = SwiftestDataset()
             self.data = SwiftestDataset()
             return
