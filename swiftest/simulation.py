@@ -62,7 +62,7 @@ class Simulation(object):
                  codename: Literal["Swiftest", "Swifter", "Swift"] = "Swiftest",
                  integrator: Literal["symba", "rmvs", "whm", "helio"] = "symba",
                  coarray: bool = False,
-                 verbose: bool = True, 
+                 verbose: bool = False, 
                  **kwargs: Any):
         """
         Set up a new simulation object with the given parameters.
@@ -115,7 +115,7 @@ class Simulation(object):
         **kwargs : Any
             Any valid keyword arguments accepted by :meth:`~swiftest.Simulation.set_parameter` (see below)
         """
-        self.verbose = kwargs.pop("verbose",False)
+        self.verbose = verbose
 
         # Define some instance variables
         self._getter_column_width = 32
@@ -173,9 +173,9 @@ class Simulation(object):
             "BIN_OUT": "output_file_name",
             "OUT_FORM": "output_format",
             "OUT_STAT": "restart",
-            "MU2KG": "MU",
-            "DU2M": "DU",
-            "TU2S": "TU",
+            "MU2KG": "MU2KG",
+            "DU2M": "DU2M",
+            "TU2S": "TU2S",
             "CHK_RMIN": "rmin",
             "CHK_RMAX": "rmax",
             "CHK_QMIN_COORD": "qmin_coord",
@@ -262,10 +262,6 @@ class Simulation(object):
             read_param = True
             
         if read_param: 
-            if "simdir" in kwargs:
-                self.set_parameter(simdir = Path(kwargs.pop("simdir")))
-            if "param_file" in kwargs:
-                self.set_parameter(param_file = Path(kwargs.pop("param_file")))
             self.read_param(**kwargs)
                 
         # -----------------------------------------------------------------
@@ -3446,6 +3442,10 @@ class Simulation(object):
         else:
             warnings.warn(f'{codename} is not a recognized code name. Valid options are "Swiftest", "Swifter", or "Swift".',stacklevel=2)
             return 
+        
+        # Set all the Simulation parameters based on values retrieved from the parameter file
+        kwargs = {self._param_to_argument[key]: value for key, value in self.param.items() if key in self._param_to_argument}
+        self.set_parameter(**kwargs, verbose=self.verbose)
 
         return 
 
