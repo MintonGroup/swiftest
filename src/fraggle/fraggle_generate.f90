@@ -70,27 +70,7 @@ contains
             end if
 
             associate (fragments => self%fragments)
-               ! Get the energy and momentum of the system before and after the collision
-               call self%get_energy_and_momentum(nbody_system, param, phase="before")
                nfrag = fragments%nbody
-#ifdef DOCONLOC
-               do concurrent(i = 1:2) shared(fragments,impactors)
-#else
-               do concurrent(i = 1:2)
-#endif
-                  fragments%rc(:,i) = fragments%rb(:,i) - impactors%rbcom(:)
-                  fragments%vc(:,i) = fragments%vb(:,i) - impactors%vbcom(:)
-               end do
-               call self%get_energy_and_momentum(nbody_system, param, phase="after")
-               L_residual(:) = (self%L_total(:,2) - self%L_total(:,1))
-
-               ! Put any residual angular momentum into orbital velocity
-               vbcom_orig = impactors%vbcom(:)
-               call collision_util_velocity_torque(-L_residual(:), fragments%mtot, impactors%rbcom(:), impactors%vbcom(:))
-               do i=1,nfrag
-                  fragments%vb(:,i) = fragments%vc(:,i) + impactors%vbcom(:)
-               end do
-
                select case(impactors%regime)
                case(COLLRESOLVE_REGIME_DISRUPTION)
                   status = DISRUPTED
