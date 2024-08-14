@@ -54,8 +54,8 @@ class Simulation(object):
                  simdir: os.PathLike | Path | str = "simdata",
                  param_file: os.PathLike | Path | str = "param.in",
                  read_param: bool = True, 
-                 read_init_cond: bool = True,
-                 read_data: bool = True,
+                 read_data: bool = False,
+                 read_init_cond: bool | None = None,
                  read_collisions: bool | None = None, 
                  read_encounters: bool | None = None,
                  dask: bool = False,
@@ -93,16 +93,22 @@ class Simulation(object):
         read_param : bool, default True
             If true, read in a pre-existing parameter input file given by the argument `param_file` if it exists.
             Otherwise, create a new parameter file using the arguments passed to Simulation or defaults
-        read_init_cond: bool, default True
-            If True, read in a pre-existing initial condition file given by the param.in parameter `NC_IN` or the argument 
-            `init_cond_file_name` if it exists. If this is True, then `read_param` will also be set to True
-        read_data : bool, default True
+        read_data : bool, default False
             If True, read in a pre-existing binary input file given by the argument `output_file_name` if it exists.
-            If this is True, then `read_param` will also be set to True.
+            If True, then `read_param` will also be set to True.
+        read_init_cond: bool, default None
+            If True, read in a pre-existing initial condition file given by the param.in parameter `NC_IN` or the argument 
+            `init_cond_file_name` if it exists. 
+            If None, then it will take the value of `read_data`. 
+            If True, then `read_param` will also be set to True
         read_collisions : bool, default None
-            If True, read in a pre-existing collision file `collisions.nc`. If None, then it will take the value of `read_data`. 
+            If True, read in a pre-existing collision file `collisions.nc`. 
+            If None, then it will take the value of `read_data`. 
+            If True, then `read_param` will also be set to True
         read_encounters : bool, default None
-            If True, read in a pre-existing encounter file `encounters.nc`. If None, then it will take the value of `read_data`. 
+            If True, read in a pre-existing encounter file `encounters.nc`. 
+            If True, then `read_param` will also be set to True
+            If None, then it will take the value of `read_data`. 
         dask : bool, default False
             If true, will use Dask to lazily load data (useful for very large datasets).
         coarray : bool, default False
@@ -248,6 +254,9 @@ class Simulation(object):
         # If the file doesn't exist, flag it for now so we know to create it
         param_file_found = False
         
+        if read_init_cond is None:
+            read_init_cond = read_data 
+        
         if read_collisions is None:
             self.read_collisions = read_data
         else:
@@ -258,7 +267,7 @@ class Simulation(object):
         else:
             self.read_encounters = read_encounters
             
-        if read_init_cond or read_data:
+        if read_init_cond or read_data or read_collisions or read_encounters:
             read_param = True
             
         if read_param: 
