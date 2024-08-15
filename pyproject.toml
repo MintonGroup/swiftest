@@ -1,6 +1,6 @@
 [project]
 name = "swiftest"
-version = "2024.7.1"
+version = "2024.8.0"
 description = "Swiftest is a software packaged designed to model the long-term dynamical dynamics of n-body systems with a dominant central body, like the solar system."
 authors=[
     {name = 'David A. Minton', email='daminton@purdue.edu'},
