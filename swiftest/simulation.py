@@ -510,8 +510,7 @@ class Simulation(object):
 
         if tstop is not None:
             if tstop <= tstart:
-                warnings.warn("tstop must be greater than tstart.",stacklevel=2)
-                return {}
+                warnings.warn("tstop should be greater than tstart.",stacklevel=2)
 
         if tstop is not None:
             self.param['TSTOP'] = tstop
@@ -523,10 +522,8 @@ class Simulation(object):
 
         if dt is not None and tstop is not None:
             if dt > (tstop - tstart):
-                msg = "dt must be smaller than tstop-tstart"
-                msg +=f"\nSetting dt = {tstop - tstart} instead of {dt}"
+                msg = "dt should be smaller than tstop-tstart"
                 warnings.warn(msg,stacklevel=2)
-                dt = tstop - tstart
 
         if dt is not None:
             self.param['DT'] = dt
@@ -548,7 +545,6 @@ class Simulation(object):
 
         if istep_out is not None:
             self.param['ISTEP_OUT'] = int(istep_out)
-            
             
         if nstep_out is not None:
             if istep_out is None:
@@ -3916,9 +3912,10 @@ class Simulation(object):
 
         if not self.simdir.exists():
             self.simdir.mkdir(parents=True, exist_ok=True)
-            
-        self.init_cond = self.data.isel(time=[framenum]).copy(deep=True)
-        self._scrub_init_cond()
+        
+        if not self.restart:    
+            self.init_cond = self.data.isel(time=[framenum]).copy(deep=True)
+            self._scrub_init_cond()
         
         if codename == "Swiftest":
             infile_name = Path(self.simdir) / param['NC_IN']
