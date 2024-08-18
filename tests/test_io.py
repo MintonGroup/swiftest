@@ -513,7 +513,7 @@ class TestSwiftestIO(unittest.TestCase):
         sim1.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars"])
         sim1.save() 
         copy_folder_contents(simdir1, simdir2)
-        sim2 = swiftest.Simulation(read_param=True, simdir=simdir2)
+        sim2 = swiftest.Simulation(read_init_cond=True, simdir=simdir2)
         try:
             sim2.run()
         except:
@@ -820,7 +820,7 @@ class TestSwiftestIO(unittest.TestCase):
         simdir2 = tmpdir2.name 
         sim.set_parameter(simdir=simdir2)
         sim.save(framenum=50)
-        sim2 = swiftest.Simulation(simdir=simdir2, read_param=True, read_data=False)
+        sim2 = swiftest.Simulation(simdir=simdir2, read_init_cond=True)
         sim2.run(tstop=0.5,dt=0.01,istep_out=1,dump_cadence=0,integrator='whm')
         
         # Now check if the final states of the two simulations are approximately the same:
