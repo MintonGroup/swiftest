@@ -367,7 +367,7 @@ class TestSwiftestIO(unittest.TestCase):
             self.assertTrue(os.path.exists(f))
 
         print("\ntest_read_ic")
-        sim2 = swiftest.Simulation(simdir=self.simdir, read_param=True, read_data=False)
+        sim2 = swiftest.Simulation(simdir=self.simdir, read_init_cond=True)
         # Add the modern planets and the Sun using the JPL Horizons Database.
         # Check if all names in Dataset read in from file match the expected list of names
         self.assertTrue((major_bodies == sim2.init_cond['name']).all(), msg="Name mismatch in Dataset")
