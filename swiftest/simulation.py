@@ -186,7 +186,8 @@ class Simulation(object):
             "CHK_RMAX": "rmax",
             "CHK_QMIN_COORD": "qmin_coord",
             "CHK_QMIN": "qmin",
-            "CHK_QMIN_RANGE": "qminR"
+            "CHK_QMIN_RANGE": "qminR",
+            "SEED": "seed"
         }
         
         # Define default parameters
@@ -874,6 +875,9 @@ class Simulation(object):
         verbose : bool, default False
             If set to True, then more information is printed by Simulation methods as they are executed. Setting to
             False suppresses most messages other than errors and some warnings.
+        seed : ArrayLike of int, optional
+            Seed for the random number generator. If not set, then a random seed is generated.
+            Parameter input file equivalent is `SEED`
 
         Returns
         -------
@@ -1109,6 +1113,7 @@ class Simulation(object):
                     encounter_save: Literal["NONE", "TRAJECTORY", "CLOSEST", "BOTH"] | None = None,
                     coarray: bool | None = None,
                     simdir: str | os.PathLike = None, 
+                    seed: int | List[int] | npt.NDArray[np.int_] | None = None,
                     **kwargs: Any
                     ) -> Dict[str, Any]:
         """
@@ -1193,6 +1198,9 @@ class Simulation(object):
         simdir : PathLike, optional
             Directory where simulation data will be stored, including the parameter file, initial conditions file, output file,
             dump files, and log files. 
+        seed : ArrayLike of int, optional
+            Seed for the random number generator. If not set, then a random seed is generated.
+            Parameter input file equivalent is `SEED`
         **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
@@ -1334,6 +1342,14 @@ class Simulation(object):
                     update_list.append("coarray")     
                     
             self.param["TIDES"] = False
+            
+            if seed is not None:
+                if self.codename == "Swiftest":
+                    if isinstance(seed, (int, np.integer)):
+                        seed = [seed]
+                    seed = np.array(seed, dtype=np.int64)
+                    self.param["SEED"] = seed
+                    update_list.append("seed")
                 
                     
         feature_dict = self.get_feature(update_list)
@@ -1375,6 +1391,7 @@ class Simulation(object):
                      "interaction_loops",
                      "encounter_check_loops",
                      "coarray",
+                     "seed",
                      "restart"]
         valid_var = self._create_valid_var(valid_arg)
 

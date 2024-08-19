@@ -193,6 +193,13 @@ def read_swiftest_param(param_file_name: os.PathLike, param: dict, verbose: bool
                         alo = _real2float(fields[1])
                         ahi = _real2float(fields[2])
                         param['CHK_QMIN_RANGE'] = f"{alo} {ahi}"
+                    # Special case of SEED requires an array of inputs
+                    if fields[0].upper() == 'SEED':
+                        nseed = int(fields[1])
+                        seed = []
+                        for i in range(nseed):
+                            seed.append(int(fields[i+2]))
+                        param['SEED'] = np.array(seed, np.int64)
 
         for uc in upper_str_param:
             if uc in param:
@@ -466,6 +473,11 @@ def write_labeled_param(param: dict, param_file_name: os.PathLike) -> None:
                 print(f"{key:<32} {_bool2yesno(val)}", file=outfile)
             else:
                 print(f"{key:<32} {val}", file=outfile)
+    val = ptmp.pop('SEED', None)
+    if val is not None:
+        seed_str = f"{val.size} " + " ".join(map(str, val))
+        print(f"{'SEED':<32} {seed_str}", file=outfile)
+
     # Print the remaining key/value pairs in whatever order
     for key, val in ptmp.items():
         if val != "":
