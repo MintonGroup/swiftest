@@ -156,7 +156,7 @@ contains
                L_rot(i) = sum(impactors%L_orbit(i,:) + impactors%L_rot(i,:))
             end do
             Ip(:) = Ip(:) / mtot
-            rot(:) = L_rot(:) / (Ip(3) * mtot * radius**2)
+            rot(:) = L_rot(:) * RAD2DEG / (Ip(3) * mtot * radius**2)
             if (.mag.rot(:) > collider%max_rot) then ! The merged body would rotation too fast, so reclasify this as a hit and run
                mlr = impactors%mass(jtarg)
                mslr = impactors%mass(jproj)
@@ -495,7 +495,7 @@ contains
                L_rot(i) = sum(impactors%L_orbit(i,:) + impactors%L_rot(i,:))
             end do
             Ip(:) = Ip(:) / mtot
-            rot(:) = L_rot(:) / (Ip(3) * mtot * radius**2)
+            rot(:) = L_rot(:) * RAD2DEG / (Ip(3) * mtot * radius**2)
             if (.mag.rot(:) > collider%max_rot) then ! The merged body would rotation too fast, so reclasify this as a hit and run
                mlr = impactors%mass(jtarg)
                mslr = impactors%mass(jproj)

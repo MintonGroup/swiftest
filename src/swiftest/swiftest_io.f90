@@ -3335,7 +3335,7 @@ contains
          self%dGM = 0.0_DP
          self%R0 = self%radius
          if (param%lrotation) then
-            self%L0(:) = self%Ip(3) * self%mass * self%radius**2 * self%rot(:)
+            self%L0(:) = self%Ip(3) * self%mass * self%radius**2 * self%rot(:) * DEG2RAD
             self%dL(:) = 0.0_DP
          end if
       end if

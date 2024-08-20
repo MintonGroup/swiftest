@@ -233,7 +233,7 @@ contains
          if (allocated(cb%c_lm)) then
             call shgrav_acc(self, nbody_system)
          else
-            call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rh, pl%lmask, pl%aobl, cb%rot, pl%Gmass, cb%aobl)
+            call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rh, pl%lmask, pl%aobl, cb%rot*DEG2RAD, pl%Gmass, cb%aobl)
          end if
 
 #ifdef DOCONLOC
