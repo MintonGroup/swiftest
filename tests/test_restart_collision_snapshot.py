@@ -122,7 +122,6 @@ class TestSwiftestRestart(unittest.TestCase):
                                           tstop = 10, dt = 0.01,
                                           DU = 'AU', TU = 'y', MU2KG = 1e15,
                                           compute_conservation_values = True)
-              sim.clean()
               sim.add_solar_system_body(['Sun', 'Mercury', 'Venus', 'Earth', 'Mars'])
 
               try:
@@ -137,7 +136,6 @@ class TestSwiftestRestart(unittest.TestCase):
                                                  tstop = 10, dt = 0.01,
                                                  DU = 'AU', TU = 'y', MU2KG = 1e15,
                                                  compute_conservation_values = True)
-              sim_repeat.clean()
               sim_repeat.add_solar_system_body(['Sun', 'Mercury', 'Venus', 'Earth', 'Mars'])
 
               try:
@@ -154,10 +152,10 @@ class TestSwiftestRestart(unittest.TestCase):
        
               # restarted run (from halfway mark in this case)
 
-              sim_restart = swiftest.Simulation(simdir = self.simdir, integrator='symba',
-                                               read_param = True, read_data = True,
-                                               param_file = 'param.00000000000000000500.in',
-                                               compute_conservation_values = True)
+              sim_restart = swiftest.Simulation(simdir = self.simdir, 
+                                                 read_data = True,
+                                                 param_file = 'param.00000000000000000500.in',
+                                                 compute_conservation_values = True)
               
               try:
                      sim_restart.run()
