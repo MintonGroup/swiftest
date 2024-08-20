@@ -103,6 +103,7 @@ class TestSwiftestRestart(unittest.TestCase):
 
               sim_restart = swiftest.Simulation(simdir = self.simdir, read_data=True, param_file = 'param.restart.in', tstop=365.25 * 10)
 
+
               try:
                   sim_restart.run()
               except Exception as e:
@@ -145,9 +146,12 @@ class TestSwiftestRestart(unittest.TestCase):
 
                      # Check that the output files are the same
 
-              for name in sim.data.sel(time = 0).name.values:
-                     for var in sim.data.data_vars:
-                           self.assertEqual(sim.data.sel(name = name)[var].values, sim_repeat.data.sel(name = name)[var].values, f'{var} values are not equal for {name}')
+              for var in sim.data.data_vars:
+                     if (sim.data[var].dtype.type != np.str_ and np.isnan(sim.data[var].values).any()):
+                            idx = np.where(~np.isnan(sim.data[var].values))
+                            self.assertTrue((sim.data[var].values[idx] == sim_repeat.data[var].values[idx]).all(), f'{var} values are not equal\n\n{sim.data[var].values[idx]}\n\nREPEAT\n{sim_repeat.data[var].values[idx]}')
+                     else:
+                            self.assertTrue((sim.data[var].values == sim_repeat.data[var].values).all(), f'{var} values are not equal\n\n{sim.data[var].values}\n\nREPEAT\n{sim_repeat.data[var].values}')
 
        
               # restarted run (from halfway mark in this case)
@@ -164,11 +168,14 @@ class TestSwiftestRestart(unittest.TestCase):
               
                      # check that the output files are the same
 
-              for name in sim.data.sel(time = 0).name.values:
-                     for var in sim.data.data_vars:
-                           self.assertEqual(sim.data.sel(name = name)[var].values, sim_restart.data.sel(name = name)[var].values, f'{var} values are not equal for {name}')
+              print(sim.data.data_vars)
+              for var in sim.data.data_vars:
+                     if (sim.data[var].dtype.type != np.str_ and np.isnan(sim.data[var].values).any()):
+                            idx = np.where(~np.isnan(sim.data[var].values))
+                            self.assertTrue((sim.data[var].values[idx] == sim_restart.data[var].values[idx]).all(), f'{var} values are not equal\n\n{sim.data[var].values[idx]}\n\nRESTART\n{sim_restart.data[var].values[idx]}')
+                     else:
+                            self.assertTrue((sim.data[var].values == sim_restart.data[var].values).all(), f'{var} values are not equal\n\n{sim.data[var].values}\n\nRESTART\n{sim_restart.data[var].values}')
 
-              return
        
        def test_restart_accurate_collision(self):
               '''
