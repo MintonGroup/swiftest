@@ -2774,6 +2774,8 @@ class Simulation(object):
         if j2rp2 is not None or j4rp4 is not None:
             if c_lm is not None:
                 raise ValueError("Cannot use J2/J4 and c_lm inputs simultaneously!")
+        if a is not None:
+            a = np.abs(a) # Ensure that the semimajor axis is positive, per Swiftest convention for hyperbolic orbits
      
         validated_arguments = locals().copy()
         validated_arguments.pop("self")  
