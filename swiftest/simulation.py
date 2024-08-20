@@ -3076,6 +3076,8 @@ class Simulation(object):
                 rot = np.zeros((nbody,3))
             if Ip is None and Gmass is not None: 
                 Ip = np.full((nbody,3), 0.4)
+            if rotphase is None and Gmass is not None:
+                rotphase = np.zeros(nbody)
 
         if time is None:
             if 'time' in self.data: 
@@ -4045,7 +4047,7 @@ class Simulation(object):
         
         # Drop any variables that may have been copied over from old runs. This is a list of all potential init_cond.nc variables
         ic_vars=['rh', 'vh', 'gr_pseudo_vh', 'a', 'e', 'inc', 'capom', 'omega', 'capm', 'varpi', 'lam', 'f', 'cape', 'capf', 'Gmass', 'mass', 
-                 'radius', 'rhill', 'j2rp2', 'j4rp4', 'rot', 'Ip', 'id', 'particle_type', 'status', 'c_lm', 'ntp', 'npl', 'nplm']
+                 'radius', 'rhill', 'j2rp2', 'j4rp4', 'rot', 'rotphase', 'Ip', 'id', 'particle_type', 'status', 'c_lm', 'ntp', 'npl', 'nplm']
        
         vars=[k for k in ic_vars if k in ds] 
         ds=ds[vars]
@@ -4083,6 +4085,17 @@ class Simulation(object):
                 ds = ds.drop_vars(['c_lm','sign','l','m'],errors="ignore")
             else:
                 ds['c_lm'] = c_lm
+        if 'rotphase' in ds:
+            if 'name' in ds.rotphase.dims:
+                rotphase = ds.rotphase.sel(name=cbname)
+            elif 'id' in ds.rotphase.dims:
+                rotphase = ds.rotphase.sel(id=0)
+            else:
+                rotphase = ds.rotphase
+            if np.isnan(rotphase.values[0]):
+                ds = ds.drop_vars('rotphase')
+            else:
+                ds['rotphase'] = rotphase
          
         # Drop any variables that may have been copied over from old runs. 
         if self.param['IN_FORM'] == "EL":
