@@ -840,7 +840,8 @@ module swiftest
          character(len=:), intent(in), allocatable :: param_file_name 
             !! Name of the input parameters file
          character(len=:), intent(in), allocatable :: display_style   
-            !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD" 
+            !! {"CLASSIC", "PROGRESS", "COMPACT", "QUIET"}). 
+            !! Default is "PROGRESS"   
       end subroutine swiftest_driver
 
       pure module subroutine swiftest_gr_kick_getaccb_ns_body(self, nbody_system, param)
@@ -990,7 +991,8 @@ module swiftest
          character(len=:), allocatable, intent(inout) :: param_file_name 
             !! Name of the input parameters file
          character(len=:), allocatable, intent(inout) :: display_style   
-            !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
+            !! {"CLASSIC", "PROGRESS", "COMPACT", "QUIET"}). 
+            !! Default is "PROGRESS"   
          logical,                       intent(in)    :: from_cli        
             !! If true, get command-line arguments. Otherwise, use the values of the input variables
       end subroutine swiftest_io_get_args

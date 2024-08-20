@@ -13,6 +13,8 @@
 import swiftest
 import unittest
 import os
+import io
+import sys
 import numpy as np
 from numpy.random import default_rng
 from astroquery.jplhorizons import Horizons
@@ -831,7 +833,61 @@ class TestSwiftestIO(unittest.TestCase):
         
         tmpdir2.cleanup()  
         return   
-    
+
+    def test_verbose_flag(self): 
+        """
+        Tests behavior of the verbose flag that is passed to various functions.
+        """   
+        # Set up a default system (verbose should be set to True in this case)
+        sim = swiftest.Simulation(simdir=self.simdir)
+        
+        # Capture the output
+        captured_output = io.StringIO()
+        sys.stdout = captured_output
+
+        # Add the modern planets and the Sun using the JPL Horizons Database.
+        sim.add_solar_system_body(["Sun", "Earth"])
+
+        # Assert that something was printed when verbose=True
+        self.assertTrue(captured_output.getvalue().strip() != "", "Verbose mode should print output, but nothing was printed.")
+
+        # Reset output capture
+        captured_output.truncate(0)
+        captured_output.seek(0)
+
+        # Test with verbose turned off
+        sim = swiftest.Simulation(clean=True, verbose=False)
+        sim.add_solar_system_body(["Sun", "Earth"])
+        
+        # Assert that nothing was printed when verbose=False
+        self.assertEqual(captured_output.getvalue().strip(), "", "Verbose mode is off, but output was printed.")
+
+        # Test that setting the verbose flag using set_parameter sets the verbose attribute of the Simulation object
+        sim.set_parameter(verbose=True)
+        self.assertTrue(sim.verbose, "Verbose flag should be True after setting it using set_parameter.")
+
+        # Reset output capture
+        captured_output.truncate(0)
+        captured_output.seek(0)
+
+        # Test that passing a different verbose flag to a function overrides the verbose attribute of the Simulation object
+        sim.add_solar_system_body("Mercury", verbose=False)
+        
+        self.assertTrue(sim.verbose, "Verbose flag should still be set to True after calling a method with verbose=False.")
+        sim.run(tstop=0.1,dt=0.01,verbose=False) 
+        # Assert that nothing was printed despite verbose=True in the object, because verbose=False was passed to the method
+        self.assertEqual(captured_output.getvalue().strip(), "", "Method call with verbose=False should suppress output.")
+        
+        captured_output.truncate(0)
+        captured_output.seek(0)
+        
+        sim.run(tstart=0,tstop=0.1)
+        self.maxDiff = None
+        
+        self.assertTrue(captured_output.getvalue().strip() != "", "Verbose mode should print output, but nothing was printed.")
+
+        # Clean up by resetting stdout
+        sys.stdout = sys.__stdout__
 if __name__ == '__main__':
     os.environ["HDF5_USE_FILE_LOCKING"]="FALSE"
     unittest.main()

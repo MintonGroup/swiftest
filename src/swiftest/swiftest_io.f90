@@ -477,7 +477,8 @@ contains
       character(len=:), intent(inout), allocatable :: integrator      !! Symbolic code of the requested integrator  
       character(len=:), intent(inout), allocatable :: param_file_name !! Name of the input parameters file
       character(len=:), intent(inout), allocatable :: display_style   !! Style of the output display 
-                                                                      !! {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"
+                                                                      !! {"CLASSIC", "COMPACT", "PROGRESS", "QUIET"}). 
+                                                                      !! Default is "CLASSIC"
       logical,          intent(in)                 :: from_cli        !! If true, get command-line arguments. Otherwise, use the 
                                                                       !! values of the input variables
       ! Internals
@@ -552,7 +553,7 @@ contains
       end if
 
       if (narg == 2) then
-         display_style = "STANDARD"
+         display_style = "PROGRESS"
       else if (narg == 3) then
          call swiftest_io_toupper(arg(3))
          display_style = trim(adjustl(arg(3)))
@@ -3554,8 +3555,11 @@ contains
    module subroutine swiftest_io_set_display_param(self, display_style)
       !! author: David A. Minton
       !!
-      !! Sets the display style parameters. If display is "STANDARD" then output goes to stdout. If display is "COMPACT" 
-      !! then it is redirected to a log file and a progress-bar is used for stdout
+      !! Sets the display style parameters, which cause the following output behavior:
+      !! "PROGRESS": A progress bar is displayed on stdout. Standard output is redirected to a log file. 
+      !! "CLASSIC": All output goes to stdout, similar to Swifter. No log file is written.
+      !! "COMPACT" : A compact machine-readable output is displayed on stdout. Standard output is redirected to a log file. 
+      !! "QUIET"   : No output is displayed on stdout. Standard output is redirected to a log file.
       implicit none
       ! Arguments
       class(swiftest_parameters), intent(inout) :: self            !! Current run configuration parameters
@@ -3565,10 +3569,10 @@ contains
       logical           :: fileExists   
 
       select case(display_style)
-      case ('STANDARD')
+      case ('CLASSIC')
          self%display_unit = OUTPUT_UNIT !! stdout from iso_fortran_env
          self%log_output = .false.
-      case ('COMPACT', 'PROGRESS')
+      case ('COMPACT', 'PROGRESS', 'QUIET')
 #ifdef COARRAY
          if (self%lcoarray) then
             write(SWIFTEST_LOG_FILE,'("swiftest_coimage",I0.4,".log")') this_image()
@@ -3585,7 +3589,7 @@ contains
          self%display_unit = SWIFTEST_LOG_OUT 
          self%log_output = .true.
       case default
-         write(*,*) display_style, " is an unknown display style"
+         write(*,*) display_style, " is an unknown display style."
          call base_util_exit(USAGE)
       end select
 

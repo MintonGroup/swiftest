@@ -185,9 +185,8 @@ module base
          !! Initiate the first kick in a symplectic step 
       logical                   :: lrestart     = .false. 
          !! Indicates whether or not this is a restarted run 
-
       character(NAMELEN)       :: display_style        
-         !! Style of the output display {["STANDARD"], "COMPACT"}).  
+         !! Style of the output display {["PROGRESS"], "CLASSIC", "COMPACT", "QUIET"}).  
       integer(I4B)             :: display_unit = OUTPUT_UNIT  
          !! File unit number for display (either to stdout or to a log file) 
       logical                  :: log_output  = .false. 
