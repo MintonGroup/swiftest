@@ -1577,7 +1577,8 @@ module swiftest
             !! Swiftest nbody system object
       end subroutine swiftest_obl_pot_system
 
-      pure elemental module subroutine swiftest_orbel_el2xv(mu, a, ie, inc, capom, omega, capm, rx, ry, rz, vx, vy, vz)
+      pure elemental module subroutine swiftest_orbel_el2xv(mu, a, ie, inc_deg, capom_deg, omega_deg, capm_deg, &
+                                                                rx, ry, rz, vx, vy, vz)
          implicit none
          real(DP), intent(in)  :: mu
             !! Gravitational constant
@@ -1585,14 +1586,14 @@ module swiftest
             !! semimajor axis
          real(DP), intent(in) :: ie
             !! eccentricity input. If <0 then 0.0 is used
-         real(DP), intent(in)  :: inc
-            !! inclination (radians)
-         real(DP), intent(in)  :: capom
-            !! longitude of ascending node (radians)
-         real(DP), intent(in)  :: omega
-            !! argument of periapsis (radians)
-         real(DP), intent(in)  :: capm
-            !! mean anomaly (radians)
+         real(DP), intent(in)  :: inc_deg
+            !! inclination (degrees)
+         real(DP), intent(in)  :: capom_deg
+            !! longitude of ascending node (degrees)
+         real(DP), intent(in)  :: omega_deg
+            !! argument of periapsis (degrees)
+         real(DP), intent(in)  :: capm_deg
+            !! mean anomaly (degrees)
          real(DP), intent(out) :: rx, ry, rz
             !! Position vector
          real(DP), intent(out) :: vx, vy, vz

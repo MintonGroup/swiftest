@@ -45,7 +45,7 @@ contains
    end subroutine swiftest_orbel_el2xv_vec
 
 
-   pure elemental module subroutine swiftest_orbel_el2xv(mu, a, ie, inc, capom, omega, capm, rx, ry, rz, vx, vy, vz)
+   pure elemental module subroutine swiftest_orbel_el2xv(mu, a, ie, inc_deg, capom_deg, omega_deg, capm_deg, rx, ry, rz, vx, vy, vz)
       !! author: David A. Minton
       !!
       !! Compute osculating orbital elements from relative C)rtesian position and velocity
@@ -62,15 +62,20 @@ contains
       !!  and hyperbolae called EHYBRID.F and FHYBRID.F
       implicit none
       real(DP), intent(in)  :: mu
-      real(DP), intent(in)  :: a, ie, inc, capom, omega, capm
+      real(DP), intent(in)  :: a, ie, inc_deg, capom_deg, omega_deg, capm_deg
       real(DP), intent(out) :: rx, ry, rz, vx, vy, vz
 
       integer(I4B) :: iorbit_type
-      real(DP) :: e, cape, capf, zpara, em1
+      real(DP) :: e, inc, capom, omega, capm, cape, capf, zpara, em1
       real(DP) :: sip, cip, so, co, si, ci
       real(DP) :: d11, d12, d13, d21, d22, d23
       real(DP) :: scap, ccap, shcap, chcap
       real(DP) :: sqe, sqgma, xfac1, xfac2, ri, vfac1, vfac2
+
+      inc = inc_deg * DEG2RAD
+      capom = capom_deg * DEG2RAD
+      omega = omega_deg * DEG2RAD
+      capm = capm_deg * DEG2RAD
 
       if(ie < 0.0_DP) then
          !write(*,*) ' ERROR in swiftest_orbel_el2xv: e<0, setting e=0!!1'
@@ -936,15 +941,15 @@ contains
       real(DP), intent(in)  :: vx,vy,vz !! Velocity vector
       real(DP), intent(out) :: a     !! semimajor axis
       real(DP), intent(out) :: e     !! eccentricity
-      real(DP), intent(out) :: inc   !! inclination
-      real(DP), intent(out) :: capom !! longitude of ascending node
-      real(DP), intent(out) :: omega !! argument of periapsis
-      real(DP), intent(out) :: capm  !! mean anomaly
-      real(DP), intent(out) :: varpi !! longitude of periapsis
-      real(DP), intent(out) :: lam   !! mean longitude
-      real(DP), intent(out) :: f     !! true anomaly
-      real(DP), intent(out) :: cape  !! eccentric anomaly (eccentric orbits)
-      real(DP), intent(out) :: capf  !! hyperbolic anomaly (hyperbolic orbits)
+      real(DP), intent(out) :: inc   !! inclination (deg)
+      real(DP), intent(out) :: capom !! longitude of ascending node (deg)
+      real(DP), intent(out) :: omega !! argument of periapsis (deg)
+      real(DP), intent(out) :: capm  !! mean anomaly (deg)
+      real(DP), intent(out) :: varpi !! longitude of periapsis (deg)
+      real(DP), intent(out) :: lam   !! mean longitude (deg)
+      real(DP), intent(out) :: f     !! true anomaly (deg)
+      real(DP), intent(out) :: cape  !! eccentric anomaly - eccentric orbits (deg)
+      real(DP), intent(out) :: capf  !! hyperbolic anomaly - hyperbolic orbits (deg)
       ! Internals
       integer(I4B) :: iorbit_type
       real(DP)   :: hx, hy, hz, r, v2, h2, h, rdotv, energy, fac, u, w, cw, sw, face, tmpf, sf, cf, rdot
@@ -1072,6 +1077,15 @@ contains
          f = u
       end if
 
+      inc = inc * RAD2DEG
+      capom = capom * RAD2DEG
+      omega = omega * RAD2DEG
+      capm = capm * RAD2DEG
+      varpi = varpi * RAD2DEG
+      lam = lam * RAD2DEG
+      f = f * RAD2DEG
+      cape = cape * RAD2DEG
+      capf = capf * RAD2DEG
 
       return
    end subroutine swiftest_orbel_xv2el

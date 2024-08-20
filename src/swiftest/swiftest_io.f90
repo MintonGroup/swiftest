@@ -752,11 +752,10 @@ contains
             if (param%lrotation) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%rot_varid, rot0, start=[1,1,tslot], count=[NDIM,1,1]), &
                                      "netcdf_io_get_t0_values_system rot_varid" )
-               rot0(:) = rot0(:) * DEG2RAD
                call netcdf_io_check( nf90_get_var(nc%id, nc%Ip_varid, Ip0, start=[1,1,tslot], count=[NDIM,1,1]), &
                                      "netcdf_io_get_t0_values_system Ip_varid" )
-               cb%L0(:) = Ip0(3) * mass0 * cb%R0**2 * rot0(:)
-               L(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
+               cb%L0(:) = Ip0(3) * mass0 * cb%R0**2 * rot0(:) * DEG2RAD
+               L(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:) * DEG2RAD
                cb%dL(:) = L(:) - cb%L0
 
                status = nf90_inq_varid(nc%id, nc%j2rp2_varname, nc%j2rp2_varid)
@@ -1467,7 +1466,6 @@ contains
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%inc_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
                                   "netcdf_io_read_frame_system nf90_getvar inc_varid"  )
-            rtemp = rtemp * DEG2RAD
             if (.not.allocated(pl%inc)) allocate(pl%inc(npl))
             if (.not.allocated(tp%inc)) allocate(tp%inc(ntp))
             if (npl > 0) pl%inc(:) = pack(rtemp, plmask)
@@ -1475,7 +1473,6 @@ contains
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%capom_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
                                   "netcdf_io_read_frame_system nf90_getvar capom_varid"  )
-            rtemp = rtemp * DEG2RAD
             if (.not.allocated(pl%capom)) allocate(pl%capom(npl))
             if (.not.allocated(tp%capom)) allocate(tp%capom(ntp))
             if (npl > 0) pl%capom(:) = pack(rtemp, plmask)
@@ -1483,7 +1480,6 @@ contains
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%omega_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
                                   "netcdf_io_read_frame_system nf90_getvar omega_varid"  )
-            rtemp = rtemp * DEG2RAD
             if (.not.allocated(pl%omega)) allocate(pl%omega(npl))
             if (.not.allocated(tp%omega)) allocate(tp%omega(ntp))
             if (npl > 0) pl%omega(:) = pack(rtemp, plmask)
@@ -1491,7 +1487,6 @@ contains
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%capm_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
                                   "netcdf_io_read_frame_system nf90_getvar capm_varid"  )
-            rtemp = rtemp * DEG2RAD
             if (.not.allocated(pl%capm)) allocate(pl%capm(npl))
             if (.not.allocated(tp%capm)) allocate(tp%capm(ntp))
             if (npl > 0) pl%capm(:) = pack(rtemp, plmask)
@@ -1540,21 +1535,19 @@ contains
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%rot_varid, vectemp, start=[1, 1, tslot], count=[NDIM,idmax,1]), &
                                   "netcdf_io_read_frame_system nf90_getvar rot_varid"  )
-            vectemp(:,:) = vectemp(:,:) * DEG2RAD
             cb%rot(:) = vectemp(:,1) 
             do i = 1, NDIM
                if (npl > 0) pl%rot(i,:) = pack(vectemp(i,:), plmask(:))
             end do
 
             ! Set initial central body angular momentum for bookkeeping
-            cb%L0(:) = cb%Ip(3) * cb%mass * cb%R0**2 * cb%rot(:) 
+            cb%L0(:) = cb%Ip(3) * cb%mass * cb%R0**2 * cb%rot(:) * DEG2RAD
            
             ! Check if rotphase is input by user. If not, set to 0 
             status = nf90_inq_varid(nc%id, nc%rotphase_varname, nc%rotphase_varid)
             if (status == NF90_NOERR) then
                call netcdf_io_check( nf90_get_var(nc%id, nc%rotphase_varid, cb%rotphase, start=[tslot]), &
                                   "netcdf_io_read_frame_system nf90_getvar rotphase_varid"  )
-               cb%rotphase = cb%rotphase * DEG2RAD
             else
                cb%rotphase = 0.0_DP
             end if
@@ -2032,25 +2025,25 @@ contains
                                   "netcdf_io_write_frame_body nf90_put_var body a_varid"  )
                   call netcdf_io_check( nf90_put_var(nc%id, nc%e_varid, e, start=[idslot, tslot]), &
                                   "netcdf_io_write_frame_body nf90_put_var body e_varid"  )
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%inc_varid, inc * RAD2DEG, start=[idslot, tslot]), &
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%inc_varid, inc, start=[idslot, tslot]), &
                                   "netcdf_io_write_frame_body nf90_put_var body inc_varid"  )
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%capom_varid, capom * RAD2DEG, start=[idslot, tslot]), &
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%capom_varid, capom, start=[idslot, tslot]), &
                                   "netcdf_io_write_frame_body nf90_put_var body capom_varid"  )
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%omega_varid, omega * RAD2DEG, start=[idslot, tslot]), &
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%omega_varid, omega, start=[idslot, tslot]), &
                                   "netcdf_io_write_frame_body nf90_put_var body omega_varid"  )
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%capm_varid, capm * RAD2DEG, start=[idslot, tslot]), &
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%capm_varid, capm, start=[idslot, tslot]), &
                                   "netcdf_io_write_frame_body nf90_put_var body capm_varid"  ) 
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%varpi_varid, varpi * RAD2DEG, start=[idslot, tslot]), &
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%varpi_varid, varpi, start=[idslot, tslot]), &
                                   "netcdf_io_write_frame_body nf90_put_var body varpi_varid"  ) 
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%lam_varid, lam * RAD2DEG, start=[idslot, tslot]), &
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%lam_varid, lam, start=[idslot, tslot]), &
                                   "netcdf_io_write_frame_body nf90_put_var body lam_varid"  ) 
-                  call netcdf_io_check( nf90_put_var(nc%id, nc%f_varid, f * RAD2DEG, start=[idslot, tslot]), &
+                  call netcdf_io_check( nf90_put_var(nc%id, nc%f_varid, f, start=[idslot, tslot]), &
                                   "netcdf_io_write_frame_body nf90_put_var body f_varid"  ) 
                   if (e < 1.0_DP) then
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%cape_varid, cape * RAD2DEG, start=[idslot, tslot]), &
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%cape_varid, cape, start=[idslot, tslot]), &
                                   "netcdf_io_write_frame_body nf90_put_var body cape_varid"  ) 
                   else if (e > 1.0_DP) then
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%cape_varid, capf * RAD2DEG, start=[idslot, tslot]), &
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%cape_varid, capf , start=[idslot, tslot]), &
                                   "netcdf_io_write_frame_body nf90_put_var body (capf) cape_varid"  ) 
                   end if
                end if
@@ -2072,7 +2065,7 @@ contains
                      call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid, self%Ip(:, j), start=[1,idslot, tslot], &
                                                         count=[NDIM,1,1]), &
                                   "netcdf_io_write_frame_body nf90_put_var body Ip_varid"  )
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, self%rot(:, j) * RAD2DEG, start=[1,idslot, tslot], &
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, self%rot(:, j), start=[1,idslot, tslot], &
                                                         count=[NDIM,1,1]), &
                                   "netcdf_io_write_frame_body nf90_put_var body rotx_varid"  )
                   end if
@@ -2157,11 +2150,11 @@ contains
          if (param%lrotation) then
             call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid, self%Ip(:), start=[1, idslot, tslot], count=[NDIM,1,1]), &
                                   "swiftest_io_netcdf_write_frame_cb nf90_put_var cb Ip_varid"  )
-            call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, self%rot(:) * RAD2DEG, start=[1, idslot, tslot], &
+            call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid, self%rot(:), start=[1, idslot, tslot], &
                                                count=[NDIM,1,1]), &
                                   "swiftest_io_netcdf_write_frame_cb nf90_put_var cb rot_varid"  )
             
-            call netcdf_io_check( nf90_put_var(nc%id, nc%rotphase_varid, self%rotphase * RAD2DEG, start = [tslot]), & 
+            call netcdf_io_check( nf90_put_var(nc%id, nc%rotphase_varid, self%rotphase, start = [tslot]), & 
                                   "swiftest_io_netcdf_write_frame_cb nf90_put_var cb rotphase")
             
             if (nc%lc_lm_exists) then
@@ -3330,7 +3323,6 @@ contains
       if (param%lrotation) then
          read(iu, *, err = 667, iomsg = errmsg) self%Ip(1), self%Ip(2), self%Ip(3)
          read(iu, *, err = 667, iomsg = errmsg) self%rot(1), self%rot(2), self%rot(3)
-         self%rot(:) = self%rot(:) * DEG2RAD
       end if
       ierr = 0
       close(iu, err = 667, iomsg = errmsg)
@@ -3488,7 +3480,6 @@ contains
                   if (param%lrotation) then
                      read(iu, *, err = 667, iomsg = errmsg) self%Ip(1, i), self%Ip(2, i), self%Ip(3, i)
                      read(iu, *, err = 667, iomsg = errmsg) self%rot(1, i), self%rot(2, i), self%rot(3, i)
-                     self%rot(:,i) = self%rot(:,i) * DEG2RAD 
                   end if
                   ! if (param%ltides) then
                   !    read(iu, *, err = 667, iomsg = errmsg) self%k2(i)
@@ -3497,13 +3488,6 @@ contains
                end select
             end do
          end select
-
-         if (param%in_form == "EL") then
-            self%inc(1:n)   = self%inc(1:n) * DEG2RAD
-            self%capom(1:n) = self%capom(1:n) * DEG2RAD
-            self%omega(1:n) = self%omega(1:n) * DEG2RAD
-            self%capm(1:n)  = self%capm(1:n) * DEG2RAD
-         end if
       end associate
 
       ierr = 0

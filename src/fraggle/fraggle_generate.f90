@@ -568,7 +568,7 @@ contains
          if (mass_fac > 1.0_DP) then
             dL(:) = (fragments%mass(1) - impactors%mass(1)) * (impactors%rc(:,2) - impactors%rc(:,1)) &
                                                       .cross. (impactors%vc(:,2) - impactors%vc(:,1))
-            drot(:) = dL(:) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(3,1))
+            drot(:) = dL(:) * RAD2DEG / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(3,1))
             ! Check to make sure we haven't broken the rotation barrier. Reduce the rotation change if so
             do i = 1, MAXLOOP
                if (.mag.(fragments%rot(:,1) + drot(:)) < collider%max_rot) exit
@@ -585,7 +585,7 @@ contains
          if (lhitandrun) then
             dL(:) = hitandrun_momentum_transfer * impactors%mass(2) * (impactors%rc(:,2) - impactors%rc(:,1)) & 
                                                               .cross. (impactors%vc(:,2) - impactors%vc(:,1)) 
-            drot(:) = dL(:) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(3,1))
+            drot(:) = dL(:) * RAD2DEG / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(3,1))
             do i = 1, MAXLOOP
                if (.mag.(fragments%rot(:,1) + drot(:)) < collider%max_rot) exit
                if (i == MAXLOOP) drot(:) = 0.0_DP
@@ -735,6 +735,7 @@ contains
                           - impactors%rot(1,j) * (fragments%rc(3,i) - impactors%rc(3,j))
                   vrot(3) = impactors%rot(1,j) * (fragments%rc(2,i) - impactors%rc(2,j)) &
                           - impactors%rot(2,j) * (fragments%rc(1,i) - impactors%rc(1,j))
+                  vrot(:) = vrot(:) * DEG2RAD
                   if (lhitandrun) then
                      vumag = norm2(fragments%rc(:,i) - impactors%rc(:,2)) 
                      vdisp(:) = (fragments%rc(:,i) - impactors%rc(:,2)) / vumag * vesc
@@ -770,7 +771,7 @@ contains
                   do i = istart,fragments%nbody
                      if (i == 1) then
                         dL(:) = -L_residual(:) * L_mag_factor
-                        drot(:) = dL(:) / (fragments%mass(i) * fragments%Ip(3,i) * fragments%radius(i)**2)
+                        drot(:) = dL(:) * RAD2DEG / (fragments%mass(i) * fragments%Ip(3,i) * fragments%radius(i)**2)
                         fragments%rot(:,i) = fragments%rot(:,i) + drot(:)
                      else
                         call random_number(drot)
@@ -791,7 +792,7 @@ contains
                         end if
                      end if 
                      L_residual(:) = L_residual(:) + drot(:) * fragments%Ip(3,i) * fragments%mass(i) * fragments%radius(i)**2 & 
-                                                      / L_mag_factor
+                                                     * DEG2RAD / L_mag_factor
                   end do
 
                   ! Put any remaining residual into velocity shear

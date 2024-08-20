@@ -42,7 +42,7 @@ module collision
    character(len=NAMELEN),dimension(7), parameter :: REGIME_NAMES = [REGIME_NAME_MERGE, REGIME_NAME_DISRUPTION, &
                                                      REGIME_NAME_SUPERCATASTROPHIC, REGIME_NAME_GRAZE_AND_MERGE, &
                                                      REGIME_NAME_HIT_AND_RUN, REGIME_NAME_CB_IMPACT, REGIME_NAME_EJECTED]
-   real(DP), parameter :: MAX_ROT_SI = 7.108e-4 !! Rotational limit in rad/s of cohesionless body from Holsapple (2007)
+   real(DP), parameter :: MAX_ROT_SI = 7.108e-4 * RAD2DEG !! Rotational limit in deg/s of cohesionless body from Holsapple (2007)
 
    !> Swiftest class for tracking pl-pl close encounters in a step when collisions are possible
    type, extends(encounter_list) :: collision_list_plpl

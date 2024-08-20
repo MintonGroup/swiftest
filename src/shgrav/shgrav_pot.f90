@@ -34,7 +34,7 @@ contains
 
             do i = 1, npl
                 if (pl%lmask(i)) then
-                    oblpot_arr(i) = shgrav_pot_one(cb%Gmass,  pl%mass(i), cb%radius, cb%rotphase, pl%rh(:,i), cb%c_lm) 
+                    oblpot_arr(i) = shgrav_pot_one(cb%Gmass,  pl%mass(i), cb%radius, cb%rotphase*DEG2RAD, pl%rh(:,i), cb%c_lm) 
                 endif
             end do
 

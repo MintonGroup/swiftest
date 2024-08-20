@@ -1264,10 +1264,10 @@ contains
          end if
 
          if (param%lrotation) then
-            kerotcb = cb%mass * cb%Ip(3) * cb%radius**2 * dot_product(cb%rot(:), cb%rot(:))
+            kerotcb = cb%mass * cb%Ip(3) * cb%radius**2 * dot_product(cb%rot(:), cb%rot(:)) * DEG2RAD**2
 
             ! For simplicity, we always assume that the rotation pole is the 3rd principal axis
-            Lcbrot(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
+            Lcbrot(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:) * DEG2RAD
 
             if (npl > 0) then
 #ifdef DOCONLOC
@@ -1277,10 +1277,10 @@ contains
 #endif
                   ! Currently we assume that the rotation pole is the 3rd principal axis
                   ! Angular momentum from rotation
-                  Lplrot(:,i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(:,i)
+                  Lplrot(:,i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(:,i) * DEG2RAD
 
                   ! Kinetic energy from rotation
-                  kerotpl(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * dot_product(pl%rot(:,i), pl%rot(:,i))
+                  kerotpl(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * dot_product(pl%rot(:,i), pl%rot(:,i)) * DEG2RAD**2
                end do
 
                nbody_system%ke_rot = 0.5_DP * (kerotcb + sum(kerotpl(1:npl), pl%lmask(1:npl)))

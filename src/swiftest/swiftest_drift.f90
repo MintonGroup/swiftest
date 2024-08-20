@@ -670,7 +670,7 @@ contains
       real(DP),                     intent(in)    :: dt     
          !! Stepsize
 
-      self%rotphase = MOD(self%rotphase + (.mag. self%rot(:)) * dt, 2 * PI) ! phase angle calculated in radians
+      self%rotphase = MOD(self%rotphase + (.mag. self%rot(:)) * dt, 360.0_DP) ! phase angle calculated in degrees
 
    end subroutine swiftest_drift_cb_rotphase_update
 
