@@ -18,8 +18,11 @@ import numpy as np
 class TestSwiftestRestart(unittest.TestCase):
        def setUp(self):
               # Initialize a target and surface for testing
-              self.tmpdir=tempfile.TemporaryDirectory()
+              self.tmpdir = tempfile.TemporaryDirectory()
               self.simdir = self.tmpdir.name
+
+              self.tmpdir2 = tempfile.TemporaryDirectory()
+              self.simdir_repeat = self.tmpdir2.name
         
        def tearDown(self):
               # Clean up temporary directory
@@ -27,7 +30,7 @@ class TestSwiftestRestart(unittest.TestCase):
 
        def test_restart_collision_snapshot(self):
               """
-              Test that a restarted simulations runs correctly with collisions
+              Test that a simulation with collisions restarts
               """
 
               sim = swiftest.Simulation(simdir = self.simdir, integrator = 'symba',
@@ -111,6 +114,74 @@ class TestSwiftestRestart(unittest.TestCase):
                   self.fail(f'Failed restart with Exception: {e}')
               
               self.assertTrue(os.path.exists(os.path.join(self.simdir,"param.00000000000000365250.in")))
+              return
+
+       def test_restart_accurate(self):
+              '''
+              Test that a restarted run gives the same outputs as a full run
+
+              '''
+              sim = swiftest.Simulation(simdir = self.simdir, integrator = 'symba',
+                                          tstep_out = 1, dump_cadence = 5,
+                                          tstop = 10, dt = 0.01,
+                                          DU = 'AU', TU = 'y', MU2KG = 1e15,
+                                          compute_conservation_values = True)
+              sim.clean()
+              sim.add_solar_system_body(['Sun', 'Mercury', 'Venus', 'Earth', 'Mars'])
+
+              try:
+                     sim.run()
+              except Exception as e:
+                     self.fail(f'Failed initial run with Exception: {e}')
+              
+              # repeat run with exact same parameters
+
+              sim_repeat = swiftest.Simulation(simdir = self.simdir_repeat, integrator = 'symba',
+                                                 tstep_out = 1, dump_cadence = 5,
+                                                 tstop = 10, dt = 0.01,
+                                                 DU = 'AU', TU = 'y', MU2KG = 1e15,
+                                                 compute_conservation_values = True)
+              sim_repeat.clean()
+              sim_repeat.add_solar_system_body(['Sun', 'Mercury', 'Venus', 'Earth', 'Mars'])
+
+              try:
+                     sim_repeat.run()      
+              except Exception as e:
+                     self.fail(f'Failed repeat run with Exception: {e}')     
+
+                     # Check that the output files are the same
+
+              for name in sim.data.sel(time = 0).name.values:
+                     for var in sim.data.data_vars:
+                           self.assertEqual(sim.data.sel(name = name)[var].values, sim_repeat.data.sel(name = name)[var].values, f'{var} values are not equal for {name}')
+
+       
+              # restarted run (from halfway mark in this case)
+
+              sim_restart = swiftest.Simulation(simdir = self.simdir, integrator='symba',
+                                               read_param = True, read_data = True,
+                                               param_file = 'param.00000000000000000500.in',
+                                               compute_conservation_values = True)
+              
+              try:
+                     sim_restart.run()
+              except Exception as e:
+                     self.fail(f'Failed restart run with Exception: {e}')
+              
+                     # check that the output files are the same
+
+              for name in sim.data.sel(time = 0).name.values:
+                     for var in sim.data.data_vars:
+                           self.assertEqual(sim.data.sel(name = name)[var].values, sim_restart.data.sel(name = name)[var].values, f'{var} values are not equal for {name}')
+
+              return
+       
+       def test_restart_accurate_collision(self):
+              '''
+              Test that a restarted run with collisions gives the same outputs as a full run
+
+              '''
+
               return
 
 if __name__ == '__main__':
