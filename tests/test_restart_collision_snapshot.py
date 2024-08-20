@@ -37,7 +37,6 @@ class TestSwiftestRestart(unittest.TestCase):
                                    dump_cadence = 1, tstep_out = 1 * 365.25, 
                                    tstop = 365.25 * 1, dt = 0.01,
                                    DU = 'km', TU = 'd', MU2KG = 1e15)
-              sim.clean()
               sim.add_solar_system_body(['Mars', 'Phobos', 'Deimos'])
 
               # Add Mars c_lm from GMM3 (hardcoded so we don't have to rely on pyshtools being installed)
@@ -102,11 +101,7 @@ class TestSwiftestRestart(unittest.TestCase):
 
               # restart run
 
-              sim_restart = swiftest.Simulation(simdir = self.simdir, 
-                                          read_param = True, read_collisions=False, read_data = True,
-                                          param_file = 'param.restart.in')
-
-              sim_restart.set_parameter(tstop = 365.25 * 10)
+              sim_restart = swiftest.Simulation(simdir = self.simdir, read_data=True, param_file = 'param.restart.in', tstop=365.25 * 10)
 
               try:
                   sim_restart.run()
@@ -114,6 +109,7 @@ class TestSwiftestRestart(unittest.TestCase):
                   self.fail(f'Failed restart with Exception: {e}')
               
               self.assertTrue(os.path.exists(os.path.join(self.simdir,"param.00000000000000365250.in")))
+              self.assertEqual(sim_restart.data.time.size, 11)
               return
 
        def test_restart_accurate(self):
