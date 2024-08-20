@@ -147,6 +147,7 @@ class Simulation(object):
         self._ephemeris_date = constants.MINTON_BCL
         self._codename = None
         self._integrator = None
+        self._restart = False
         
         # Define a dictionary that maps parameter names used in `param.in` files to arguments passed to Simulation() and `set_parameter()`
         self._param_to_argument = {
@@ -360,9 +361,7 @@ class Simulation(object):
             return
 
         # Save initial conditions
-        if self.restart:
-            self.save(framenum=-1,verbose=verbose)
-        else:
+        if not self.restart:
             self.clean(verbose=verbose)
             self.save(framenum=0,verbose=verbose)
             
@@ -1160,7 +1159,6 @@ class Simulation(object):
                     extra_force: bool | None = None,
                     big_discard: bool | None = None,
                     rhill_present: bool | None = None,
-                    restart: bool | None = None,
                     tides: bool | None = None,
                     interaction_loops: Literal["TRIANGULAR", "FLAT"] | None = None,
                     encounter_check_loops: Literal["TRIANGULAR", "SORTSWEEP"] | None = None,
@@ -1245,10 +1243,6 @@ class Simulation(object):
             Turns on Yarkovsky model (IN DEVELOPMENT - IGNORED)
         YORP : bool, optional
             Turns on YORP model (IN DEVELOPMENT - IGNORED)
-        restart : bool, default False
-            If true, will restart an old run. The file given by `output_file_name` must exist before the run can
-            execute. If false, will start a new run. If the file given by `output_file_name` exists, it will be replaced
-            when the run is executed.
         simdir : PathLike, optional
             Directory where simulation data will be stored, including the parameter file, initial conditions file, output file,
             dump files, and log files. 
@@ -1353,12 +1347,6 @@ class Simulation(object):
                     self.param["ENERGY"] = compute_conservation_values
                 update_list.append("compute_conservation_values")
 
-            if restart is not None:
-                self.param["RESTART"] = restart
-                update_list.append("restart")
-            else:
-                self.restart = self.param["RESTART"]
-
             if interaction_loops is not None:
                 valid_vals = ["TRIANGULAR", "FLAT"]
                 interaction_loops = interaction_loops.upper()
@@ -1461,8 +1449,8 @@ class Simulation(object):
                      "interaction_loops",
                      "encounter_check_loops",
                      "coarray",
-                     "seed",
-                     "restart"]
+                     "seed"]
+                     
         valid_var = self._create_valid_var(valid_arg)
 
         valid_arg, feature_dict = self._get_valid_arg_list(arg_list, valid_var)
@@ -4707,6 +4695,20 @@ class Simulation(object):
             raise TypeError("verbose value must be a boolean")
         self._verbose = value
         return
+    
+    @property
+    def restart(self) -> bool:
+        """
+        bool: A boolean value indicating whether the run should be restarted from a previous output.
+        """
+        return self._restart
+    
+    @restart.setter
+    def restart(self, value: bool) -> None:
+        if not isinstance(value, bool):
+            raise TypeError("restart value must be a boolean")
+        self._restart = value
+        return    
     
     @property
     def ephemeris_date(self) -> str:
