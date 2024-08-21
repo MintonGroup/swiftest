@@ -225,6 +225,7 @@ contains
       class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       ! Internals
       integer(I4B) :: i, npl
+      real(DP), dimension(NDIM) :: cbrot_rad
 
       if (self%nbody == 0) return
 
@@ -233,7 +234,8 @@ contains
          if (allocated(cb%c_lm)) then
             call shgrav_acc(self, nbody_system)
          else
-            call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rh, pl%lmask, pl%aobl, cb%rot*DEG2RAD, pl%Gmass, cb%aobl)
+            cbrot_rad = cb%rot * DEG2RAD
+            call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rh, pl%lmask, pl%aobl, cbrot_rad, pl%Gmass, cb%aobl)
          end if
 
 #ifdef DOCONLOC
