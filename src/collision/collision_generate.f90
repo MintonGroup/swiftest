@@ -234,7 +234,7 @@ contains
                         L_rot_new(i) = sum(impactors%L_orbit(i,:) + impactors%L_rot(i,:))
                      end do
                      fragments%Ip(:,1) = fragments%Ip(:,1) / fragments%mass(1)
-                     fragments%rot(:,1) = RAD2DEG * L_rot_new(:) / (fragments%Ip(3,1) * fragments%mass(1) * fragments%radius(1)**2)
+                     fragments%rot(:,1) = L_rot_new(:) / (fragments%Ip(3,1) * fragments%mass(1) * fragments%radius(1)**2)
                   else ! If rotation is not enabled, we will consider the lost pre-collision angular momentum as "escaped" and add 
                        ! it to our bookkeeping variable
                      nbody_system%L_escape(:) = nbody_system%L_escape(:) + impactors%L_orbit(:,1) + impactors%L_orbit(:,2) 
