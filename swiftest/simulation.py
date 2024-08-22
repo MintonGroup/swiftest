@@ -373,7 +373,7 @@ class Simulation(object):
             if verbose:
                 msg = "dt should be smaller than tstop-tstart"
                 warnings.warn(msg,stacklevel=2)
-
+                
         if verbose:
             print(f"Running a {self.codename} {self.integrator} run from tstart={self.param['TSTART']} {self.TU_name} to tstop={self.param['TSTOP']} {self.TU_name}")
            
@@ -550,7 +550,7 @@ class Simulation(object):
             update_list.append("tstop")
 
         if tstop is not None:
-            if tstop <= tstart:
+            if tstop < tstart:
                 warnings.warn("tstop should be greater than tstart.",stacklevel=2)
 
         if tstop is not None:
