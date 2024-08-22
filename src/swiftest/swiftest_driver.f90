@@ -164,15 +164,6 @@ contains
                      istep = floor(istep_out * fstep_out**nout, kind=I4B)
                   end if
 
-                  call system_history%take_snapshot(param,nbody_system)
-
-                  if (idump == dump_cadence) then
-                     idump = 0
-                     call nbody_system%dump(param, system_history)
-#ifdef COARRAY
-                     if (param%lcoarray) call nbody_system%coarray_balance(param)
-#endif
-                  end if
 #ifdef COARRAY
                   if (this_image() == 1 .or. param%log_output) then
 #endif
@@ -189,6 +180,16 @@ contains
 #ifdef COARRAY
                   end if 
 #endif
+
+                  call system_history%take_snapshot(param,nbody_system)
+
+                  if (idump == dump_cadence) then
+                     idump = 0
+                     call nbody_system%dump(param, system_history)
+#ifdef COARRAY
+                     if (param%lcoarray) call nbody_system%coarray_balance(param)
+#endif
+                  end if
                end if
             end if
 
