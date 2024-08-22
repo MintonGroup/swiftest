@@ -130,6 +130,7 @@ class Simulation(object):
         # Define some instance variables
         self._getter_column_width = 32
         self._param = {}
+        self._param_file = None
         self._data = SwiftestDataset()
         self._init_cond = SwiftestDataset()
         self._encounters = SwiftestDataset()
@@ -4503,6 +4504,7 @@ class Simulation(object):
         param_path = self.simdir / value
         if not param_path.exists():
             raise FileNotFoundError(f"Parameter file {param_path} not found.")
+        self.read_param(param_file=param_path)
         self._param_file = value
         return    
     
