@@ -190,7 +190,7 @@ contains
 #endif
                   impactors%ke_orbit(i) = 0.5_DP * impactors%mass(i) * dot_product(impactors%vc(:,i), impactors%vc(:,i))
                   impactors%ke_rot(i) = 0.5_DP * impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i)  & 
-                                                * dot_product(impactors%rot(:,i), impactors%rot(:,i)) * DEG2RAD**2
+                                                * dot_product(impactors%rot(:,i), impactors%rot(:,i))
                   impactors%be(i) = -3 * impactors%Gmass(i) * impactors%mass(i) / (5 * impactors%radius(i))
                   impactors%L_orbit(1,i) = impactors%mass(i) * (impactors%rc(2,i) * impactors%vc(3,i) &
                                                               - impactors%rc(3,i) * impactors%vc(2,i))
@@ -198,8 +198,7 @@ contains
                                                               - impactors%rc(1,i) * impactors%vc(3,i))
                   impactors%L_orbit(3,i) = impactors%mass(i) * (impactors%rc(1,i) * impactors%vc(2,i) &
                                                               - impactors%rc(2,i) * impactors%vc(1,i))
-                  impactors%L_rot(:,i) = impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i) * impactors%rot(:,i) &
-                                                                                                                     * DEG2RAD
+                  impactors%L_rot(:,i) = impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i) * impactors%rot(:,i)
                end do
                self%L_orbit(:,phase_val) = sum(impactors%L_orbit(:,1:2),dim=2)
                self%L_rot(:,phase_val) = sum(impactors%L_rot(:,1:2),dim=2)
@@ -218,15 +217,14 @@ contains
 #endif
                   fragments%ke_orbit(i) = 0.5_DP * fragments%mass(i) * dot_product(fragments%vc(:,i), fragments%vc(:,i))
                   fragments%ke_rot(i) = 0.5_DP * fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) & 
-                                                * dot_product(fragments%rot(:,i), fragments%rot(:,i)) * DEG2RAD**2
+                                                * dot_product(fragments%rot(:,i), fragments%rot(:,i))
                   fragments%L_orbit(1,i) = fragments%mass(i) * (fragments%rc(2,i) * fragments%vc(3,i) - &
                                                                 fragments%rc(3,i) * fragments%vc(2,i))
                   fragments%L_orbit(2,i) = fragments%mass(i) * (fragments%rc(3,i) * fragments%vc(1,i) - &
                                                                 fragments%rc(1,i) * fragments%vc(3,i))
                   fragments%L_orbit(3,i) = fragments%mass(i) * (fragments%rc(1,i) * fragments%vc(2,i) - &
                                                                 fragments%rc(2,i) * fragments%vc(1,i))
-                  fragments%L_rot(:,i) = fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) * fragments%rot(:,i) &
-                                                                                                                     * DEG2RAD
+                  fragments%L_rot(:,i) = fragments%mass(i) * fragments%radius(i)**2 * fragments%Ip(3,i) * fragments%rot(:,i)
                end do
                call swiftest_util_get_potential_energy(nfrag, [(.true., i = 1, nfrag)], 0.0_DP, fragments%Gmass, fragments%mass, &
                                                       fragments%rb, fragments%pe)
@@ -1068,7 +1066,7 @@ contains
          impactors%Qloss     = impactors%Qloss     / collider%Escale
 
          collider%min_mfrag = collider%min_mfrag / collider%mscale
-         collider%max_rot   = collider%max_rot   * collider%tscale
+         collider%max_rot   = collider%max_rot   * collider%tscale * DEG2RAD
       end associate
 
       return
@@ -1140,7 +1138,7 @@ contains
          collider%be(:)        = collider%be(:)        * collider%Escale
          collider%te(:)        = collider%te(:)        * collider%Escale
          collider%min_mfrag    = collider%min_mfrag    * collider%mscale
-         collider%max_rot      = collider%max_rot      / collider%tscale
+         collider%max_rot      = collider%max_rot      / collider%tscale * RAD2DEG
    
          collider%mscale = 1.0_DP
          collider%dscale = 1.0_DP
