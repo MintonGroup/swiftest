@@ -368,6 +368,11 @@ class Simulation(object):
             
         # Write out the current parameter set before executing run
         self.write_param(verbose=verbose,**kwargs)
+        
+        if self.param['DT'] > (self.param['TSTOP'] - self.param['TSTART']):
+            if verbose:
+                msg = "dt should be smaller than tstop-tstart"
+                warnings.warn(msg,stacklevel=2)
 
         if verbose:
             print(f"Running a {self.codename} {self.integrator} run from tstart={self.param['TSTART']} {self.TU_name} to tstop={self.param['TSTOP']} {self.TU_name}")
@@ -555,11 +560,6 @@ class Simulation(object):
             dt = self.param.pop("DT", None)
         else:
             update_list.append("dt")
-
-        if dt is not None and tstop is not None:
-            if dt > (tstop - tstart):
-                msg = "dt should be smaller than tstop-tstart"
-                warnings.warn(msg,stacklevel=2)
 
         if dt is not None:
             self.param['DT'] = dt
