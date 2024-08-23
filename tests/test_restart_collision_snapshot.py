@@ -381,7 +381,7 @@ class TestSwiftestRestart(unittest.TestCase):
                 restart_frame = 2
                 param_restart = f'param.{restart_frame:020d}.in'
 
-                sim.set_parameter(param_file=param_restart, read_data=True)
+                sim.set_parameter(param_file=param_restart)
                 try:
                     sim.run()
                 except Exception as e:
