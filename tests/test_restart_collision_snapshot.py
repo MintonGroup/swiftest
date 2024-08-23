@@ -311,7 +311,6 @@ class TestSwiftestRestart(unittest.TestCase):
 
                     # check that the output files are the same
 
-            print(sim.data.data_vars)
             for var in sim.data.data_vars:
                     if (sim.data[var].dtype.type != np.str_ and np.isnan(sim.data[var].values).any()):
                         idx = np.where(~np.isnan(sim.data[var].values))
@@ -341,12 +340,58 @@ class TestSwiftestRestart(unittest.TestCase):
                                 minimum_fragment_gmass=minimum_fragment_gmass, 
                                 nfrag_reduction=nfrag_reduction[style])
                 try:
-                    sim.run(dt=tstop[style]/4, tstop=tstop[style], istep_out=1, dump_cadence=0)
+                    sim.run(dt=tstop[style]/4, tstop=tstop[style], istep_out=1, dump_cadence=2)
                 except Exception as e:
                     self.fail(f'Failed initial run with Exception: {e}')
                 
                 # repeat run with exact same parameters
+                sim_repeat = swiftest.Simulation(simdir=self.simdir_repeat, rotation=True, compute_conservation_values=True, seed = seed)
+                sim_repeat.add_solar_system_body("Sun")
+                sim_repeat.add_body(name=names, Gmass=body_Gmass[style], radius=body_radius[style], rh=pos_vectors[style], vh=vel_vectors[style], rot=rot_vectors[style])
 
+                # Set fragmentation parameters
+                sim_repeat.set_parameter(encounter_save="both",
+                                        gmtiny=gmtiny,
+                                        minimum_fragment_gmass=minimum_fragment_gmass,
+                                        nfrag_reduction=nfrag_reduction[style])
+                try:
+                    sim_repeat.run(dt=tstop[style]/4, tstop=tstop[style], istep_out=1, dump_cadence=2)
+                except Exception as e:
+                    self.fail(f'Failed repeat run with Exception: {e}')
+
+                    # check that the output files are the same
+
+                for var in sim.data.data_vars:
+                    if (sim.data[var].dtype.type != np.str_ and np.isnan(sim.data[var].values).any()):
+                        idx = np.where(~np.isnan(sim.data[var].values))
+                        self.assertTrue((sim.data[var].values[idx] == sim_repeat.data[var].values[idx]).all(), f'{var} values are not equal\n\n{sim.data[var].values[idx]}\n\nREPEAT\n{sim_repeat.data[var].values[idx]}')
+                    else:
+                        self.assertTrue((sim.data[var].values == sim_repeat.data[var].values).all(), f'{var} values are not equal\n\n{sim.data[var].values}\n\nREPEAT\n{sim_repeat.data[var].values}')
+
+                # restarted run (from the halfway mark in this case)
+
+                restart_time = f'{2 * int(tstop[style]/4)}'
+                param_restart = f'param.' + restart_time.zfill(20) + '.in'
+
+                sim_restart = swiftest.Simulation(simdir=self.simdir, read_data=True, param_file=param_restart, compute_conservation_values=True, seed = seed)
+                try:
+                    sim_restart.run()
+                except Exception as e:
+                    self.fail(f'Failed restart run with Exception: {e}')
+
+                    # check that the output files are the same
+                
+                for var in sim.data.data_vars:
+                    if (sim.data[var].dtype.type != np.str_ and np.isnan(sim.data[var].values).any()):
+                        idx = np.where(~np.isnan(sim.data[var].values))
+                        self.assertTrue((sim.data[var].values[idx] == sim_restart.data[var].values[idx]).all(), f'{var} values are not equal\n\n{sim.data[var].values[idx]}\n\nRESTART\n{sim_restart.data[var].values[idx]}')
+                    else:
+                        self.assertTrue((sim.data[var].values == sim_restart.data[var].values).all(), f'{var} values are not equal\n\n{sim.data[var].values}\n\nRESTART\n{sim_restart.data[var].values}')
+                
+                # clean 
+                sim.clean()
+                sim_repeat.clean()
+                sim_restart.clean()
 
 
             return
