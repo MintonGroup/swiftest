@@ -328,7 +328,11 @@ class TestSwiftestRestart(unittest.TestCase):
             seed = [974899978, -2041855733, 14415898, 615945619, 1818808148, 462758063, 762516551, 1276432020]
             
             for style in collision_type:
-                sim = swiftest.Simulation(simdir=self.simdir, rotation=True, compute_conservation_values=True, seed = seed)
+                sim = swiftest.Simulation(simdir=self.simdir, 
+                                          rotation=True, 
+                                          compute_conservation_values=True, 
+                                          seed = seed,
+                                          clean=True)
                 sim.add_solar_system_body("Sun")
                 sim.add_body(name=names, Gmass=body_Gmass[style], radius=body_radius[style], rh=pos_vectors[style], vh=vel_vectors[style], rot=rot_vectors[style])
 
@@ -345,7 +349,11 @@ class TestSwiftestRestart(unittest.TestCase):
                     self.fail(f'Failed initial run with Exception: {e}')
                 
                 # repeat run with exact same parameters
-                sim_repeat = swiftest.Simulation(simdir=self.simdir_repeat, rotation=True, compute_conservation_values=True, seed = seed)
+                sim_repeat = swiftest.Simulation(simdir=self.simdir_repeat, 
+                                                 rotation=True, 
+                                                 compute_conservation_values=True, 
+                                                 seed = seed,
+                                                 clean=True)
                 sim_repeat.add_solar_system_body("Sun")
                 sim_repeat.add_body(name=names, Gmass=body_Gmass[style], radius=body_radius[style], rh=pos_vectors[style], vh=vel_vectors[style], rot=rot_vectors[style])
 
@@ -370,12 +378,12 @@ class TestSwiftestRestart(unittest.TestCase):
 
                 # restarted run (from the halfway mark in this case)
 
-                restart_time = f'{2 * int(tstop[style]/4)}'
-                param_restart = f'param.' + restart_time.zfill(20) + '.in'
+                restart_frame = 2
+                param_restart = f'param.{restart_frame:020d}.in'
 
-                sim_restart = swiftest.Simulation(simdir=self.simdir, read_data=True, param_file=param_restart, compute_conservation_values=True, seed = seed)
+                sim.set_parameter(param_file=param_restart, read_data=True)
                 try:
-                    sim_restart.run()
+                    sim.run()
                 except Exception as e:
                     self.fail(f'Failed restart run with Exception: {e}')
 
@@ -384,14 +392,10 @@ class TestSwiftestRestart(unittest.TestCase):
                 for var in sim.data.data_vars:
                     if (sim.data[var].dtype.type != np.str_ and np.isnan(sim.data[var].values).any()):
                         idx = np.where(~np.isnan(sim.data[var].values))
-                        self.assertTrue((sim.data[var].values[idx] == sim_restart.data[var].values[idx]).all(), f'{var} values are not equal\n\n{sim.data[var].values[idx]}\n\nRESTART\n{sim_restart.data[var].values[idx]}')
+                        self.assertTrue((sim.data[var].values[idx] == sim_repeat.data[var].values[idx]).all(), f'{var} values are not equal\n\n{sim.data[var].values[idx]}\n\nRESTART\n{sim_repeat.data[var].values[idx]}')
                     else:
-                        self.assertTrue((sim.data[var].values == sim_restart.data[var].values).all(), f'{var} values are not equal\n\n{sim.data[var].values}\n\nRESTART\n{sim_restart.data[var].values}')
+                        self.assertTrue((sim.data[var].values == sim_repeat.data[var].values).all(), f'{var} values are not equal\n\n{sim.data[var].values}\n\nRESTART\n{sim_repeat.data[var].values}')
                 
-                # clean 
-                sim.clean()
-                sim_repeat.clean()
-                sim_restart.clean()
 
 
             return

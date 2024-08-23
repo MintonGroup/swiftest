@@ -118,23 +118,23 @@ module swiftest
          !! String containing a description of the particle type (e.g. Central Body,  Massive Body, Test Particle)
       character(len=NAMELEN)    :: origin_type     
          !! String containing a description of the origin of the particle (e.g. Initial  Conditions, Disruption, etc.)
-      real(DP)                  :: origin_time     
+      real(DP)                  :: origin_time  = -huge(1.0_DP)
          !! The time of the particle's formation
-      integer(I4B)              :: collision_id    
+      integer(I4B)              :: collision_id = 0   
          !! The ID of the collision that formed the particle
-      real(DP), dimension(NDIM) :: origin_rh       
+      real(DP), dimension(NDIM) :: origin_rh  = [0.0_DP, 0.0_DP, 0.0_DP] 
          !! The heliocentric distance vector at the time of the particle's formation
-      real(DP), dimension(NDIM) :: origin_vh       
+      real(DP), dimension(NDIM) :: origin_vh  = [0.0_DP, 0.0_DP, 0.0_DP] 
          !! The heliocentric velocity vector at the time of the particle's formation
-      real(DP)                  :: discard_time    
+      real(DP)                  :: discard_time = huge(1.0_DP) 
          !! The time of the particle's discard
       character(len=NAMELEN)    :: status          
          !! Particle status description: Active, Merged, Fragmented, etc.
-      real(DP), dimension(NDIM) :: discard_rh      
+      real(DP), dimension(NDIM) :: discard_rh = [0.0_DP, 0.0_DP, 0.0_DP]     
          !! The heliocentric distance vector at the time of the particle's discard
-      real(DP), dimension(NDIM) :: discard_vh      
+      real(DP), dimension(NDIM) :: discard_vh = [0.0_DP, 0.0_DP, 0.0_DP] 
          !! The heliocentric velocity vector at the time of the particle's discard
-      integer(I4B)              :: discard_body_id 
+      integer(I4B)              :: discard_body_id = -1
          !! The id of the other body involved in the discard (0 if no other body involved)
    contains
       procedure :: copy      => swiftest_util_copy_particle_info  
