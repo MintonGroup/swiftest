@@ -743,7 +743,17 @@ contains
 
             cb%GM0 = vals(1)
             cb%dGM = cb%Gmass - cb%GM0
-            mass0 = cb%GM0 / param%GU
+
+
+            status = nf90_inq_varid(nc%id, nc%mass_varname, nc%mass_varid)
+            if (status == NF90_NOERR) then
+               call netcdf_io_check( nf90_get_var(nc%id, nc%mass_varid,  vals, start=[1,tslot], count=[idmax,1]), &
+                                    "netcdf_io_get_t0_values_system mass_varid" )
+               mass0 = vals(1)
+            else
+               mass0 = cb%GM0 / param%GU
+            end if
+
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%radius_varid, rtemp, start=[1,tslot], count=[1,1]), &
                                   "netcdf_io_get_t0_values_system radius_varid" )
@@ -1496,21 +1506,31 @@ contains
       
          call netcdf_io_check( nf90_get_var(nc%id, nc%Gmass_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
                                   "netcdf_io_read_frame_system nf90_getvar Gmass_varid"  )
-         cb%Gmass = rtemp(1)
-         cb%mass = cb%Gmass / param%GU
+
+         cb%Gmass = rtemp(1)           
 
          ! Set initial central body mass for Helio bookkeeping
          cb%GM0 = cb%Gmass
-
+                                  
          if (npl > 0) then
             pl%Gmass(:) = pack(rtemp, plmask)
-            pl%mass(:) = pl%Gmass(:) / param%GU
             if (param%lmtiny_pl) pl%nplm = count(pack(rtemp,plmask) > param%GMTINY )
 
             status = nf90_get_var(nc%id, nc%rhill_varid, rtemp, start=[1, tslot], count=[idmax,1])
             if (status == NF90_NOERR) then
                pl%rhill(:) = pack(rtemp, plmask)
             end if
+         end if
+
+         status = nf90_inq_varid(nc%id, nc%mass_varname, nc%mass_varid)
+         if (status == NF90_NOERR) then
+            call netcdf_io_check( nf90_get_var(nc%id, nc%mass_varid, rtemp, start=[1,tslot], count=[idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar mass_varid"  )
+            cb%mass = rtemp(1)
+            if (npl > 0) pl%mass(:) = pack(rtemp, plmask)
+         else
+            cb%mass = cb%Gmass / param%GU
+            if (npl > 0) pl%mass(:) = pl%Gmass(:) / param%GU
          end if
 
          if (param%lclose) then
@@ -3083,7 +3103,7 @@ contains
       integer(I4B),     intent(in)    :: unit        !! Open file unit number to print parameter to
       ! Internals
       character(len=STRMAX) :: param_value_string   !! Parameter value converted to a string
-      character(*),parameter :: Rfmt  = '(ES25.17)' !! Format label for real values 
+      character(*),parameter :: Rfmt  = '(ES27.19)' !! Format label for real values 
 
       write(param_value_string,Rfmt) param_value
       call io_param_writer_one(param_name, param_value_string, unit)
@@ -3104,8 +3124,8 @@ contains
       integer(I4B),           intent(in) :: unit        !! Open file unit number to print parameter to
       ! Internals
       character(len=STRMAX) :: param_value_string   !! Parameter value converted to a string
-      character(*),parameter :: Rfmt  = '(ES25.17)' !! Format label for real values 
-      character(len=25) :: arr_val
+      character(*),parameter :: Rfmt  = '(ES27.19)' !! Format label for real values 
+      character(len=27) :: arr_val
       integer(I4B) :: i, narr
 
       narr = size(param_value)
@@ -3231,7 +3251,7 @@ contains
       integer(I4B),     intent(in) :: unit        !! Open file unit number to print parameter to
       ! Internals
       character(len=STRMAX) :: param_value_string   !! Parameter value converted to a string
-      character(*),parameter :: Rfmt  = '(ES25.17)' !! Format label for real values 
+      character(*),parameter :: Rfmt  = '(ES27.19)' !! Format label for real values 
 
       write(param_value_string,Rfmt) param_value
       call io_param_writer_one(param_name, param_value_string, unit)

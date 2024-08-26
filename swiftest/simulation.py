@@ -149,7 +149,7 @@ class Simulation(object):
         self._codename = None
         self._integrator = None
         self._restart = False
-        
+
         # Define a dictionary that maps parameter names used in `param.in` files to arguments passed to Simulation() and `set_parameter()`
         self._param_to_argument = {
             "T0": "t0",
@@ -240,9 +240,26 @@ class Simulation(object):
             "ENCOUNTER_SAVE" : "NONE",
             "TIDES": False,
         }         
+        
         self.codename = codename
         self.integrator = integrator
         self.simdir = simdir
+        
+        if read_init_cond is None:
+            read_init_cond = read_data 
+        
+        if read_collisions is None:
+            read_collisions = read_data
+        
+        if read_encounters is None:
+            read_encounters = read_data
+            
+        if read_init_cond or read_data or read_collisions or read_encounters:
+            read_param = True        
+            
+        if clean and not read_param:
+            self.clean(deep=True)
+        
         self.param_file = param_file
 
         # Parameters are set in reverse priority order. First the defaults, then values from a pre-existing input file,
@@ -259,22 +276,7 @@ class Simulation(object):
 
         # If the user asks to read in an old parameter file or output file, override any default parameters with values from the file
         # If the file doesn't exist, flag it for now so we know to create it
-        param_file_found = False
-        
-        if read_init_cond is None:
-            read_init_cond = read_data 
-        
-        if read_collisions is None:
-            read_collisions = read_data
-        
-        if read_encounters is None:
-            read_encounters = read_data
-            
-        if read_init_cond or read_data or read_collisions or read_encounters:
-            read_param = True
-            
-        if clean and not read_param:
-            self.clean(deep=True)
+
             
         if read_param: 
             self.read_param(**kwargs)
@@ -4568,7 +4570,7 @@ class Simulation(object):
     def MU2KG(self, value: FloatLike) -> None:
         if not isinstance(value, (float, int, np.number)):
             raise TypeError("Mass unit to kilogram conversion value must be a float")
-        self._MU2KG = np.float64(value)
+        self._MU2KG = np.longdouble(value)
         self._KG2MU = 1.0 / self._MU2KG
         return 
    
@@ -4583,7 +4585,7 @@ class Simulation(object):
     def KG2MU(self, value: FloatLike) -> None:
         if not isinstance(value, (float, int, np.number)):
             raise TypeError("Kilogram to mass unit conversion value must be a float")
-        self._KG2MU = np.float64(value)
+        self._KG2MU = np.longdouble(value)
         self._MU2KG = 1.0 / self._KG2MU
         return 
     
@@ -4598,7 +4600,7 @@ class Simulation(object):
     def DU2M(self, value: FloatLike) -> None:
         if not isinstance(value, (float, int, np.number)):
             raise TypeError("Distance unit to meter conversion value must be a float")
-        self._DU2M = np.float64(value)
+        self._DU2M = np.longdouble(value)
         self._M2DU = 1.0 / self._DU2M
         return
     
@@ -4613,7 +4615,7 @@ class Simulation(object):
     def M2DU(self, value: FloatLike) -> None:
         if not isinstance(value, (float, int, np.number)):
             raise TypeError("Meter to distance unit conversion value must be a float")
-        self._M2DU = np.float64(value)
+        self._M2DU = np.longdouble(value)
         self._DU2M = 1.0 / self._M2DU
         return
     
@@ -4628,7 +4630,7 @@ class Simulation(object):
     def TU2S(self, value: FloatLike) -> None:
         if not isinstance(value, (float, int, np.number)):
             raise TypeError("Time unit to second conversion value must be a float")
-        self._TU2S = np.float64(value)
+        self._TU2S = np.longdouble(value)
         self._S2TU = 1.0 / self._TU2S
         return
     
@@ -4643,7 +4645,7 @@ class Simulation(object):
     def S2TU(self, value: FloatLike) -> None:
         if not isinstance(value, (float, int, np.number)):
             raise TypeError("Second to time unit conversion value must be a float")
-        self._S2TU = np.float64(value)
+        self._S2TU = np.longdouble(value)
         self._TU2S = 1.0 / self._S2TU
         return
    
