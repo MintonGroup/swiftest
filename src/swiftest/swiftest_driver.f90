@@ -118,6 +118,7 @@ contains
          end if
 #endif 
          call nbody_system%initialize(system_history, param)
+         nbody_system%t = t0 + iloop * dt
 #ifdef COARRAY  
          if (param%lcoarray .and. (this_image() < num_images())) sync images(this_image() + 1)
 
@@ -141,6 +142,7 @@ contains
 
          call system_history%take_snapshot(param,nbody_system)
          call nbody_system%dump(param, system_history)
+
 
          do iloop = istart, nloops
             !> Step the nbody_system forward in time
