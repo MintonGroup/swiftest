@@ -134,14 +134,6 @@ contains
                                                      //'"; DE_total/|E0| = ", ES12.5, "; DM/M0 = ", ES12.5)'
 
       associate(nbody_system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, display_unit => param%display_unit)
-
-         select type(self)
-         class is (helio_nbody_system) ! Don't convert vh to vb for Helio-based integrators, because it's already calculated
-         class is (whm_nbody_system)
-            call pl%vh2vb(cb)
-         end select
-         call pl%rh2rb(cb)
-
          call nbody_system%get_energy_and_momentum(param) 
          ke_orbit_now = nbody_system%ke_orbit
          ke_rot_now = nbody_system%ke_rot

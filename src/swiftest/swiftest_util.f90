@@ -1225,6 +1225,7 @@ contains
       real(DP), dimension(NDIM) :: h
 
       associate(nbody_system => self, pl => self%pl, cb => self%cb)
+         call pl%h2b(cb)
          npl = self%pl%nbody
          nbody_system%L_orbit(:) = 0.0_DP
          nbody_system%L_rot(:) = 0.0_DP
