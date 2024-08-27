@@ -811,11 +811,13 @@ class TestSwiftestIO(unittest.TestCase):
         '''
         Test that a new set of initial conditions can be extracted from an arbitrary output point of an old run
         '''
+        
+        run_args={'tstop':1.0,'dt':0.01,'istep_out':1,'dump_cadence':0,'integrator':'whm'} 
         # Build a fresh simulation
         sim = swiftest.Simulation(simdir=self.simdir)
         sim.add_solar_system_body(["Sun"])
         sim.add_body(a=1.0)
-        sim.run(tstop=1.0,dt=0.01,istep_out=1,dump_cadence=0,integrator='whm')
+        sim.run(**run_args)
        
         # Build a new simulation from the half way point of the old one 
         tmpdir2=tempfile.TemporaryDirectory()
@@ -823,10 +825,11 @@ class TestSwiftestIO(unittest.TestCase):
         sim.set_parameter(simdir=simdir2)
         sim.save(framenum=50)
         sim2 = swiftest.Simulation(simdir=simdir2, read_init_cond=True)
-        sim2.run(tstop=0.5,dt=0.01,istep_out=1,dump_cadence=0,integrator='whm')
+        tstart = sim2.init_cond.time.values[0]
+        sim2.run(tstart=tstart,**run_args)
         
         # Now check if the final states of the two simulations are approximately the same:
-        s1=sim.data.isel(name=1,time=np.arange(51,101))
+        s1=sim.data.isel(name=1,time=np.arange(50,101))
         s2=sim2.data.isel(name=1)
         self.assertTrue(np.allclose(s1.rh.values,s2.rh.values,rtol=1e-12),msg=f"Error in rh: {s1.rh.values - s2.rh.values}")
         self.assertTrue(np.allclose(s1.vh.values,s2.vh.values,rtol=1e-12),msg=f"Error in vh: {s1.vh.values - s2.vh.values}") 
