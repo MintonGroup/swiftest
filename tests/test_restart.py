@@ -261,62 +261,64 @@ class TestSwiftestRestart(unittest.TestCase):
             Test that a restarted run gives the same outputs as a full run
 
             '''
-            sim = swiftest.Simulation(simdir = self.simdir, integrator = 'symba',
-                                        tstep_out = 1, dump_cadence = 5,
-                                        tstop = 10, dt = 0.01,
-                                        DU = 'AU', TU = 'y', MU2KG = 1e15,
-                                        compute_conservation_values = True)
-            sim.add_solar_system_body(['Sun', 'Mercury', 'Venus', 'Earth', 'Mars'])
-
-            try:
+            #Define some common arguments
+            run_args = {"tstop": 10, 
+                        "dt": 0.01,
+                        "tstep_out": 1, 
+                        "dump_cadence": 1,  
+                        "compute_conservation_values": True}
+            
+            integrators= ["whm","helio","rmvs","symba"]
+            bodies= ['Sun', 'Mercury', 'Venus', 'Earth', 'Mars']
+            restart_iout = 500
+            param_restart = f'param.{restart_iout:020d}.in'
+            for i in integrators: 
+                sim = swiftest.Simulation(simdir = self.simdir, integrator = i,**run_args,clean=True)
+                sim.add_solar_system_body(bodies)
+                try:
                     sim.run()
-            except Exception as e:
+                except Exception as e:
                     self.fail(f'Failed initial run with Exception: {e}')
 
-            # repeat run with exact same parameters
+                # repeat run with exact same parameters
+                sim_repeat = swiftest.Simulation(simdir = self.simdir_repeat, integrator = i,**run_args,clean=True)
+                sim_repeat.add_solar_system_body(bodies)
 
-            sim_repeat = swiftest.Simulation(simdir = self.simdir_repeat, integrator = 'symba',
-                                                tstep_out = 1, dump_cadence = 5,
-                                                tstop = 10, dt = 0.01,
-                                                DU = 'AU', TU = 'y', MU2KG = 1e15,
-                                                compute_conservation_values = True)
-            sim_repeat.add_solar_system_body(['Sun', 'Mercury', 'Venus', 'Earth', 'Mars'])
-
-            try:
+                try:
                     sim_repeat.run()
-            except Exception as e:
+                except Exception as e:
                     self.fail(f'Failed repeat run with Exception: {e}')
 
-                    # Check that the output files are the same
-
-            for var in sim.data.data_vars:
+                # Check that the output files are the same
+                for var in sim.data.data_vars:
                     if (sim.data[var].dtype.type != np.str_ and np.isnan(sim.data[var].values).any()):
                         idx = np.where(~np.isnan(sim.data[var].values))
-                        self.assertTrue((sim.data[var].values[idx] == sim_repeat.data[var].values[idx]).all(), f'{var} values are not equal\n\n{sim.data[var].values[idx]}\n\nREPEAT\n{sim_repeat.data[var].values[idx]}')
+                        self.assertTrue((sim.data[var].values[idx] == sim_repeat.data[var].values[idx]).all(), 
+                                        f'{i}: {var} values are not equal\n\n{sim.data[var].values[idx]}\n\nREPEAT\n{sim_repeat.data[var].values[idx]}')
                     else:
                         self.assertTrue((sim.data[var].values == sim_repeat.data[var].values).all(), f'{var} values are not equal\n\n{sim.data[var].values}\n\nREPEAT\n{sim_repeat.data[var].values}')
 
+                # restarted run (from halfway mark in this case)
+                sim_restart = swiftest.Simulation(simdir = self.simdir,
+                                                  read_data = True,
+                                                  param_file = param_restart,
+                                                  compute_conservation_values = True)
 
-            # restarted run (from halfway mark in this case)
-
-            sim_restart = swiftest.Simulation(simdir = self.simdir,
-                                                read_data = True,
-                                                param_file = 'param.00000000000000000500.in',
-                                                compute_conservation_values = True)
-
-            try:
+                try:
                     sim_restart.run()
-            except Exception as e:
+                except Exception as e:
                     self.fail(f'Failed restart run with Exception: {e}')
 
-                    # check that the output files are the same
-
-            for var in sim.data.data_vars:
+                # check that the output files are the same
+                for var in sim.data.data_vars:
                     if (sim.data[var].dtype.type != np.str_ and np.isnan(sim.data[var].values).any()):
                         idx = np.where(~np.isnan(sim.data[var].values))
-                        self.assertTrue((sim.data[var].values[idx] == sim_restart.data[var].values[idx]).all(), f'{var} values are not equal\n\n{sim.data[var].values[idx]}\n\nRESTART\n{sim_restart.data[var].values[idx]}')
+                        self.assertTrue((sim.data[var].values[idx] == sim_restart.data[var].values[idx]).all(), 
+                                        f'{i}: {var} values are not equal\n\n{sim.data[var].values[idx]}\n\nRESTART\n{sim_restart.data[var].values[idx]}')
                     else:
-                        self.assertTrue((sim.data[var].values == sim_restart.data[var].values).all(), f'{var} values are not equal\n\n{sim.data[var].values}\n\nRESTART\n{sim_restart.data[var].values}')
+                        self.assertTrue((sim.data[var].values == sim_restart.data[var].values).all(), 
+                                        f'{i}: {var} values are not equal\n\n{sim.data[var].values}\n\nRESTART\n{sim_restart.data[var].values}')
+            return
 
 
     def test_restart_accurate_collision(self):
@@ -378,8 +380,8 @@ class TestSwiftestRestart(unittest.TestCase):
 
                 # restarted run (from the halfway mark in this case)
 
-                restart_frame = 2
-                param_restart = f'param.{restart_frame:020d}.in'
+                restart_iout = 2
+                param_restart = f'param.{restart_iout:020d}.in'
 
                 sim.set_parameter(param_file=param_restart)
                 try:
