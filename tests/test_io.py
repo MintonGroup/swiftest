@@ -13,6 +13,8 @@
 import swiftest
 import unittest
 import os
+import io
+import sys
 import numpy as np
 from numpy.random import default_rng
 from astroquery.jplhorizons import Horizons
@@ -319,7 +321,6 @@ class TestSwiftestIO(unittest.TestCase):
                         self.assertTrue(np.allclose(test_prop[k],v),msg=f"Error in {name} {k}: {test_prop[k]} != {v}")
         return
        
-        
     def test_xv2el2xv(self):
         """
         Tests that the functions xv2el and el2xv are able to convert between position-velocity and orbital elements without any exceptions being raised
@@ -368,10 +369,10 @@ class TestSwiftestIO(unittest.TestCase):
             self.assertTrue(os.path.exists(f))
 
         print("\ntest_read_ic")
-        sim2 = swiftest.Simulation(simdir=self.simdir, read_param=True, read_data=False)
+        sim2 = swiftest.Simulation(simdir=self.simdir, read_init_cond=True)
         # Add the modern planets and the Sun using the JPL Horizons Database.
         # Check if all names in Dataset read in from file match the expected list of names
-        self.assertTrue((major_bodies == sim2.data['name']).all(), msg="Name mismatch in Dataset")
+        self.assertTrue((major_bodies == sim2.init_cond['name']).all(), msg="Name mismatch in Dataset")
         
         # Check to see if all parameter values read in from file match the expected parameters saved when generating the file
         self.assertTrue(all([v == param[k] for k,v in sim2.param.items() if k in param]))
@@ -514,7 +515,7 @@ class TestSwiftestIO(unittest.TestCase):
         sim1.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars"])
         sim1.save() 
         copy_folder_contents(simdir1, simdir2)
-        sim2 = swiftest.Simulation(read_param=True, simdir=simdir2)
+        sim2 = swiftest.Simulation(read_init_cond=True, simdir=simdir2)
         try:
             sim2.run()
         except:
@@ -711,7 +712,7 @@ class TestSwiftestIO(unittest.TestCase):
         Tests that Swiftest is able to modify the properties of a body in the simulation 
         """
         print("\ntest_modify_body")
-        sim = swiftest.Simulation()
+        sim = swiftest.Simulation(simdir=self.simdir)
         sim.add_solar_system_body(['Sun','Mercury'])
         sim.modify_body(name='Mercury',a=100.0) 
         self.assertGreater(sim.data.sel(name='Mercury')['a'].values.item(), 99.0)
@@ -805,7 +806,91 @@ class TestSwiftestIO(unittest.TestCase):
             self.fail(f"Failed to read in data with dask: {e}")
 
         return
-    
+   
+    def test_newrun_from_old(self):
+        '''
+        Test that a new set of initial conditions can be extracted from an arbitrary output point of an old run
+        '''
+        
+        run_args={'tstop':1.0,'dt':0.01,'istep_out':1,'dump_cadence':0,'integrator':'whm'} 
+        # Build a fresh simulation
+        sim = swiftest.Simulation(simdir=self.simdir)
+        sim.add_solar_system_body(["Sun"])
+        sim.add_body(a=1.0)
+        sim.run(**run_args)
+       
+        # Build a new simulation from the half way point of the old one 
+        tmpdir2=tempfile.TemporaryDirectory()
+        simdir2 = tmpdir2.name 
+        sim.set_parameter(simdir=simdir2)
+        sim.save(framenum=50)
+        sim2 = swiftest.Simulation(simdir=simdir2, read_init_cond=True)
+        tstart = sim2.init_cond.time.values[0]
+        sim2.run(tstart=tstart,**run_args)
+        
+        # Now check if the final states of the two simulations are approximately the same:
+        s1=sim.data.isel(name=1,time=np.arange(50,101))
+        s2=sim2.data.isel(name=1)
+        self.assertTrue(np.allclose(s1.rh.values,s2.rh.values,rtol=1e-12),msg=f"Error in rh: {s1.rh.values - s2.rh.values}")
+        self.assertTrue(np.allclose(s1.vh.values,s2.vh.values,rtol=1e-12),msg=f"Error in vh: {s1.vh.values - s2.vh.values}") 
+        
+        tmpdir2.cleanup()  
+        return   
+
+    def test_verbose_flag(self): 
+        """
+        Tests behavior of the verbose flag that is passed to various functions.
+        """   
+        # Set up a default system (verbose should be set to True in this case)
+        sim = swiftest.Simulation(simdir=self.simdir)
+        
+        # Capture the output
+        captured_output = io.StringIO()
+        sys.stdout = captured_output
+
+        # Add the modern planets and the Sun using the JPL Horizons Database.
+        sim.add_solar_system_body(["Sun", "Earth"])
+
+        # Assert that something was printed when verbose=True
+        self.assertTrue(captured_output.getvalue().strip() != "", "Verbose mode should print output, but nothing was printed.")
+
+        # Reset output capture
+        captured_output.truncate(0)
+        captured_output.seek(0)
+
+        # Test with verbose turned off
+        sim = swiftest.Simulation(clean=True, verbose=False)
+        sim.add_solar_system_body(["Sun", "Earth"])
+        
+        # Assert that nothing was printed when verbose=False
+        self.assertEqual(captured_output.getvalue().strip(), "", "Verbose mode is off, but output was printed.")
+
+        # Test that setting the verbose flag using set_parameter sets the verbose attribute of the Simulation object
+        sim.set_parameter(verbose=True)
+        self.assertTrue(sim.verbose, "Verbose flag should be True after setting it using set_parameter.")
+
+        # Reset output capture
+        captured_output.truncate(0)
+        captured_output.seek(0)
+
+        # Test that passing a different verbose flag to a function overrides the verbose attribute of the Simulation object
+        sim.add_solar_system_body("Mercury", verbose=False)
+        
+        self.assertTrue(sim.verbose, "Verbose flag should still be set to True after calling a method with verbose=False.")
+        sim.run(tstop=0.1,dt=0.01,verbose=False) 
+        # Assert that nothing was printed despite verbose=True in the object, because verbose=False was passed to the method
+        self.assertEqual(captured_output.getvalue().strip(), "", "Method call with verbose=False should suppress output.")
+        
+        captured_output.truncate(0)
+        captured_output.seek(0)
+        
+        sim.run(tstart=0,tstop=0.1)
+        self.maxDiff = None
+        
+        self.assertTrue(captured_output.getvalue().strip() != "", "Verbose mode should print output, but nothing was printed.")
+
+        # Clean up by resetting stdout
+        sys.stdout = sys.__stdout__
 if __name__ == '__main__':
     os.environ["HDF5_USE_FILE_LOCKING"]="FALSE"
     unittest.main()

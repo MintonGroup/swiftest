@@ -1,6 +1,6 @@
 [project]
 name = "swiftest"
-version = "2024.7.1"
+dynamic = ["version"]
 description = "Swiftest is a software packaged designed to model the long-term dynamical dynamics of n-body systems with a dominant central body, like the solar system."
 authors=[
     {name = 'David A. Minton', email='daminton@purdue.edu'},
@@ -58,6 +58,8 @@ requires = [
     "scikit-build-core>=0.8.2",
     "cython>=3.0.8",
     "numpy==1.26.4",
+    "setuptools>=64", 
+    "setuptools_scm>=8"    
 ]
 build-backend = "scikit_build_core.build"
 
@@ -67,6 +69,10 @@ ninja.version = ">=1.11.1"
 sdist.include = ["src/globals/globals_module.f90.in","swiftest/*.py","swiftest/*.pyx","swiftest/*.h"]
 build-dir = "build/{wheel_tag}"
 cmake.verbose = true
+metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
+
+[tool.setuptools_scm]
+write_to = "swiftest/_version.py"
 
 [tool.cibuildwheel]
 test-command = "pytest -vv {package}/tests"
@@ -153,7 +159,3 @@ before-all = [
     "buildscripts/build_dependencies.sh"
 ]
 
-[[tool.scikit-build.generate]]
-path = "version.txt"
-location = "source"
-template = '''${version}'''

@@ -59,13 +59,13 @@ bool_param = ["RESTART",
               "COARRAY"]
 
 int_param = ["ISTEP_OUT", "DUMP_CADENCE"]
-float_param = ["T0", "TSTART", "TSTOP", "DT", "CHK_RMIN", "CHK_RMAX", "CHK_EJECT", "CHK_QMIN", "DU2M", "MU2KG",
-               "TU2S", "MIN_GMFRAG", "GMTINY"]
+float_param = ["T0", "TSTART", "TSTOP", "DT", "CHK_RMIN", "CHK_RMAX", "CHK_EJECT", "CHK_QMIN", "MIN_GMFRAG", "GMTINY"]
+quad_param = ["DU2M", "MU2KG", "TU2S"]
 
 upper_str_param = ["OUT_TYPE","OUT_FORM","OUT_STAT","IN_TYPE","IN_FORM","ENCOUNTER_SAVE", "CHK_QMIN_COORD"]
 lower_str_param = ["NC_IN", "PL_IN", "TP_IN", "CB_IN", "CHK_QMIN_RANGE"]
 
-param_keys = ['! VERSION'] + int_param + float_param + upper_str_param + lower_str_param+ bool_param
+param_keys = ['! VERSION'] + int_param + float_param + quad_param + upper_str_param + lower_str_param+ bool_param
 
 # This defines SwiftestDataset variables that are strings, which must be processed due to quirks in how NetCDF-Fortran
 # handles strings differently than Python's Xarray.
@@ -142,7 +142,7 @@ def _str2bool(input_str):
 
 def _real2float(realstr):
     """
-    Converts a Fortran-generated ASCII string of a real value into a numpy float type. Handles cases where double precision
+    Converts a Fortran-generated ASCII string of a real value into a numpy float64 type. Handles cases where double precision
     numbers in exponential notation use 'd' or 'D' instead of 'e' or 'E'
     
     Parameters
@@ -155,7 +155,24 @@ def _real2float(realstr):
     float
         The converted floating point value of the input string
     """
-    return float(realstr.replace('d', 'E').replace('D', 'E'))
+    return np.float64(realstr.replace('d', 'E').replace('D', 'E'))
+
+def _real2quad(realstr):
+    """
+    Converts a Fortran-generated ASCII string of a real value into a numpy longdouble type. Handles cases where double precision 
+    numbers in exponential notation use 'd' or 'D' instead of 'e' or 'E'
+    
+    Parameters
+    ----------
+    realstr : str
+        Fortran-generated ASCII string of a real value.
+        
+    Returns
+    -------
+    np.longdouble
+        The converted floating point value of the input string
+    """ 
+    return np.longdouble(realstr.replace('d', 'E').replace('D', 'E'))
 
 
 def read_swiftest_param(param_file_name: os.PathLike, param: dict, verbose: bool=True) -> dict:
@@ -193,6 +210,13 @@ def read_swiftest_param(param_file_name: os.PathLike, param: dict, verbose: bool
                         alo = _real2float(fields[1])
                         ahi = _real2float(fields[2])
                         param['CHK_QMIN_RANGE'] = f"{alo} {ahi}"
+                    # Special case of SEED requires an array of inputs
+                    if fields[0].upper() == 'SEED':
+                        nseed = int(fields[1])
+                        seed = []
+                        for i in range(nseed):
+                            seed.append(int(fields[i+2]))
+                        param['SEED'] = np.array(seed, np.int64)
 
         for uc in upper_str_param:
             if uc in param:
@@ -205,6 +229,10 @@ def read_swiftest_param(param_file_name: os.PathLike, param: dict, verbose: bool
         for f in float_param:
             if f in param and type(param[f]) is str:
                 param[f] = _real2float(param[f])
+        
+        for q in quad_param:
+            if q in param and type(param[q]) is str:
+                param[q] = _real2quad(param[q])
 
         for b in bool_param:
             if b in param:
@@ -455,6 +483,10 @@ def write_labeled_param(param: dict, param_file_name: os.PathLike) -> None:
     Returns
     -------
     None
+    
+    Notes
+    -----
+    Using str(val) instead of f-strings prevents np.longdouble from being cast as float before printing.
     """
     outfile = open(param_file_name, 'w')
     ptmp = param.copy()
@@ -465,14 +497,19 @@ def write_labeled_param(param: dict, param_file_name: os.PathLike) -> None:
             if type(val) is bool:
                 print(f"{key:<32} {_bool2yesno(val)}", file=outfile)
             else:
-                print(f"{key:<32} {val}", file=outfile)
+                print(f"{key:<32} "+str(val), file=outfile)
+    val = ptmp.pop('SEED', None)
+    if val is not None:
+        seed_str = f"{val.size} "+ " ".join(map(str, val))
+        print(f"{'SEED':<32} {seed_str}", file=outfile)
+
     # Print the remaining key/value pairs in whatever order
     for key, val in ptmp.items():
         if val != "":
             if type(val) is bool:
                 print(f"{key:<32} {_bool2yesno(val)}", file=outfile)
             else:
-                print(f"{key:<32} {val}", file=outfile)
+                print(f"{key:<32} "+str(val), file=outfile)
     outfile.close()
     return
 
@@ -646,6 +683,9 @@ def process_netcdf_input(ds: xr.Dataset, param: dict) -> SwiftestDataset:
         ds = fix_types(ds,ftype=np.float64)
     elif param['OUT_TYPE'] == "NETCDF_FLOAT":
         ds = fix_types(ds,ftype=np.float32)
+       
+    if "name" in ds.dims: 
+        ds = fix_name_and_id(ds)
 
     return ds
 
@@ -840,6 +880,30 @@ def fix_types(ds: SwiftestDataset,
     for floatcoord in float_coordnames:
         ds[floatcoord] = ds[floatcoord].astype(np.float64)
 
+    return ds
+
+def fix_name_and_id(ds: SwiftestDataset) -> SwiftestDataset:
+    """
+    Removes empty name/id slots that arise when bodies are created and destroyed between output frames, leaving gaps in the 
+    name and id arrays
+    
+    Parameters
+    ----------
+    ds : SwiftestDataset
+        Input dataset 
+        
+    Returns
+    -------
+    ds : SwiftestDataset with the empty name slots removed
+    """
+    if (ds['id'] >= 0).all():
+        return ds # No bad values, so return the dataset as is
+    ds['id']= SwiftestDataArray(np.sign(ds.id)*np.arange(ds.name.size),dims='name')
+    ds = ds.swap_dims({'name':'id'}) 
+    goodid=ds.id.where(ds.id >= 0,drop=True).astype(np.int64).values 
+    ds = ds.sel(id=goodid)
+    ds = ds.swap_dims({'id':'name'})
+    
     return ds
 
 
@@ -1497,23 +1561,23 @@ def swifter2swiftest(swifter_param: dict,
         print("Unit system is MSun-AU-day")
         swiftest_param['MU2KG'] = MSun
         swiftest_param['DU2M'] = AU2M
-        swiftest_param['TU2S'] = JD2S
+        swiftest_param['TU2S'] = np.longdouble(JD2S)
     elif unit_type == 3 or unit_system.upper() == 'SI':
         print("Unit system is SI: kg-m-s")
-        swiftest_param['MU2KG'] = 1.0
-        swiftest_param['DU2M'] = 1.0
-        swiftest_param['TU2S'] = 1.0
+        swiftest_param['MU2KG'] = np.longdouble(1.0)
+        swiftest_param['DU2M'] = np.longdouble(1.0)
+        swiftest_param['TU2S'] = np.longdouble(1.0)
     elif unit_type == 4 or unit_system.upper() == 'CGS':
         print("Unit system is CGS: g-cm-s")
-        swiftest_param['MU2KG'] = 1e-3
-        swiftest_param['DU2M'] = 1.0e-2
-        swiftest_param['TU2S'] = 1.0
+        swiftest_param['MU2KG'] = np.longdouble(1e-3)
+        swiftest_param['DU2M'] = np.longdouble(1.0e-2)
+        swiftest_param['TU2S'] = np.longdouble(1.0)
     elif unit_type == 5:
         print("User-defined units.")
         print("Define each unit (mass, distance, and time) by its corresponding SI value.")
-        swiftest_param['MU2KG'] = input("Mass value in kilograms: ")
-        swiftest_param['DU2M'] = input("Distance value in meters: ")
-        swiftest_param['TU2S'] = input("Time unit in seconds: ")
+        swiftest_param['MU2KG'] = np.longdouble(input("Mass value in kilograms: "))
+        swiftest_param['DU2M'] = np.longdouble(input("Distance value in meters: "))
+        swiftest_param['TU2S'] = np.longdouble(input("Time unit in seconds: "))
     GU = GC / (swiftest_param['DU2M'] ** 3 / (swiftest_param['MU2KG'] * swiftest_param['TU2S'] ** 2))
     print(f"Central body mass: {GMcb / GU} MU ({(GMcb / GU) * swiftest_param['MU2KG']} kg)")
    

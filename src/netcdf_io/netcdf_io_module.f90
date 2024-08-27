@@ -127,9 +127,9 @@ module netcdf_io
       integer(I4B) :: f_varid 
          !! ID for the true anomaly variable 
       character(NAMELEN) :: cape_varname = "cape"
-         !! name of the eccentric anomaly variable 
+         !! name of the eccentric/hyperbolic anomaly variable 
       integer(I4B) :: cape_varid 
-         !! ID for the eccentric anomaly variable 
+         !! ID for the eccentric/hyperbolic anomaly variable 
       character(NAMELEN) :: rh_varname = "rh"
          !! name of the heliocentric position vector variable
       integer(I4B) :: rh_varid 

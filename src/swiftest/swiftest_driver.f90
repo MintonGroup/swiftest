@@ -24,7 +24,8 @@ contains
       character(len=:), intent(in), allocatable :: integrator      !! Symbolic code of the requested integrator  
       character(len=:), intent(in), allocatable :: param_file_name !! Name of the input parameters file
       character(len=:), intent(in), allocatable :: display_style   !! Style of the output display 
-                                                                   !! {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD"   
+                                                                   !! {"PROGRESS", "CLASSIC", "COMPACT", "QUIET"}). 
+                                                                   !! Default is "PROGRESS"   
 
       ! Internals
       class(swiftest_nbody_system), allocatable :: nbody_system !! Polymorphic object containing the nbody system to be integrated
@@ -89,14 +90,18 @@ contains
 #ifdef COARRAY
             if (this_image() ==1) then
 #endif
-               !$ if (param%log_output) write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
+               !$ if (param%log_output.and.(param%display_style /= "QUIET")) then
+               !$    write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
+               !$ end if
 #ifdef COARRAY
             end if
             if (param%lcoarray) then
                write(param%display_unit,*)   ' Coarray parameters:'
                write(param%display_unit,*)   ' -------------------'
                write(param%display_unit,*) ' Number of images = ', num_images()
-               if (param%log_output .and. this_image() == 1) write(*,'(a,i3)') ' Coarray: Number of images = ',num_images()
+               if (param%log_output .and. (this_image() == 1) .and. (param%display_style /= "QUIET")) then
+                  write(*,'(a,i3)') ' Coarray: Number of images = ',num_images()
+               end if
             else
                write(param%display_unit,*)   ' Coarrays disabled.'
                if (param%log_output) write(*,*)   ' Coarrays disabled.'
@@ -113,6 +118,7 @@ contains
          end if
 #endif 
          call nbody_system%initialize(system_history, param)
+         nbody_system%t = t0 + iloop * dt
 #ifdef COARRAY  
          if (param%lcoarray .and. (this_image() < num_images())) sync images(this_image() + 1)
 
@@ -137,6 +143,7 @@ contains
          call system_history%take_snapshot(param,nbody_system)
          call nbody_system%dump(param, system_history)
 
+
          do iloop = istart, nloops
             !> Step the nbody_system forward in time
             call integration_timer%start()
@@ -159,15 +166,6 @@ contains
                      istep = floor(istep_out * fstep_out**nout, kind=I4B)
                   end if
 
-                  call system_history%take_snapshot(param,nbody_system)
-
-                  if (idump == dump_cadence) then
-                     idump = 0
-                     call nbody_system%dump(param, system_history)
-#ifdef COARRAY
-                     if (param%lcoarray) call nbody_system%coarray_balance(param)
-#endif
-                  end if
 #ifdef COARRAY
                   if (this_image() == 1 .or. param%log_output) then
 #endif
@@ -184,6 +182,16 @@ contains
 #ifdef COARRAY
                   end if 
 #endif
+
+                  call system_history%take_snapshot(param,nbody_system)
+
+                  if (idump == dump_cadence) then
+                     idump = 0
+                     call nbody_system%dump(param, system_history)
+#ifdef COARRAY
+                     if (param%lcoarray) call nbody_system%coarray_balance(param)
+#endif
+                  end if
                end if
             end if
 

@@ -118,23 +118,23 @@ module swiftest
          !! String containing a description of the particle type (e.g. Central Body,  Massive Body, Test Particle)
       character(len=NAMELEN)    :: origin_type     
          !! String containing a description of the origin of the particle (e.g. Initial  Conditions, Disruption, etc.)
-      real(DP)                  :: origin_time     
+      real(DP)                  :: origin_time  = -huge(1.0_DP)
          !! The time of the particle's formation
-      integer(I4B)              :: collision_id    
+      integer(I4B)              :: collision_id = 0   
          !! The ID of the collision that formed the particle
-      real(DP), dimension(NDIM) :: origin_rh       
+      real(DP), dimension(NDIM) :: origin_rh  = [0.0_DP, 0.0_DP, 0.0_DP] 
          !! The heliocentric distance vector at the time of the particle's formation
-      real(DP), dimension(NDIM) :: origin_vh       
+      real(DP), dimension(NDIM) :: origin_vh  = [0.0_DP, 0.0_DP, 0.0_DP] 
          !! The heliocentric velocity vector at the time of the particle's formation
-      real(DP)                  :: discard_time    
+      real(DP)                  :: discard_time = huge(1.0_DP) 
          !! The time of the particle's discard
       character(len=NAMELEN)    :: status          
          !! Particle status description: Active, Merged, Fragmented, etc.
-      real(DP), dimension(NDIM) :: discard_rh      
+      real(DP), dimension(NDIM) :: discard_rh = [0.0_DP, 0.0_DP, 0.0_DP]     
          !! The heliocentric distance vector at the time of the particle's discard
-      real(DP), dimension(NDIM) :: discard_vh      
+      real(DP), dimension(NDIM) :: discard_vh = [0.0_DP, 0.0_DP, 0.0_DP] 
          !! The heliocentric velocity vector at the time of the particle's discard
-      integer(I4B)              :: discard_body_id 
+      integer(I4B)              :: discard_body_id = -1
          !! The id of the other body involved in the discard (0 if no other body involved)
    contains
       procedure :: copy      => swiftest_util_copy_particle_info  
@@ -840,7 +840,8 @@ module swiftest
          character(len=:), intent(in), allocatable :: param_file_name 
             !! Name of the input parameters file
          character(len=:), intent(in), allocatable :: display_style   
-            !! Style of the output display {"STANDARD", "COMPACT", "PROGRESS"}). Default is "STANDARD" 
+            !! {"PROGRESS", "CLASSIC", "QUIET", "COMPACT"}). 
+            !! Default is "PROGRESS"   
       end subroutine swiftest_driver
 
       pure module subroutine swiftest_gr_kick_getaccb_ns_body(self, nbody_system, param)
@@ -990,7 +991,8 @@ module swiftest
          character(len=:), allocatable, intent(inout) :: param_file_name 
             !! Name of the input parameters file
          character(len=:), allocatable, intent(inout) :: display_style   
-            !! Style of the output display {"STANDARD", "COMPACT"}). Default is "STANDARD"
+            !! {"PROGRESS", "CLASSIC", "QUIET", "COMPACT"}. 
+            !! Default is "PROGRESS"   
          logical,                       intent(in)    :: from_cli        
             !! If true, get command-line arguments. Otherwise, use the values of the input variables
       end subroutine swiftest_io_get_args
@@ -1575,7 +1577,8 @@ module swiftest
             !! Swiftest nbody system object
       end subroutine swiftest_obl_pot_system
 
-      pure elemental module subroutine swiftest_orbel_el2xv(mu, a, ie, inc, capom, omega, capm, rx, ry, rz, vx, vy, vz)
+      pure elemental module subroutine swiftest_orbel_el2xv(mu, a, ie, inc_deg, capom_deg, omega_deg, capm_deg, &
+                                                                rx, ry, rz, vx, vy, vz)
          implicit none
          real(DP), intent(in)  :: mu
             !! Gravitational constant
@@ -1583,14 +1586,14 @@ module swiftest
             !! semimajor axis
          real(DP), intent(in) :: ie
             !! eccentricity input. If <0 then 0.0 is used
-         real(DP), intent(in)  :: inc
-            !! inclination (radians)
-         real(DP), intent(in)  :: capom
-            !! longitude of ascending node (radians)
-         real(DP), intent(in)  :: omega
-            !! argument of periapsis (radians)
-         real(DP), intent(in)  :: capm
-            !! mean anomaly (radians)
+         real(DP), intent(in)  :: inc_deg
+            !! inclination (degrees)
+         real(DP), intent(in)  :: capom_deg
+            !! longitude of ascending node (degrees)
+         real(DP), intent(in)  :: omega_deg
+            !! argument of periapsis (degrees)
+         real(DP), intent(in)  :: capm_deg
+            !! mean anomaly (degrees)
          real(DP), intent(out) :: rx, ry, rz
             !! Position vector
          real(DP), intent(out) :: vx, vy, vz

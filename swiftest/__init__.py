@@ -8,7 +8,7 @@ of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Publ
 You should have received a copy of the GNU General Public License along with Swiftest. 
 If not, see: https://www.gnu.org/licenses. 
 """
-
+from ._version import version as __version__
 from .constants import *
 from .simulation import Simulation
 from .shgrav import clm_from_ellipsoid, clm_from_relief
