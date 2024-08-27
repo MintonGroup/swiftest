@@ -113,6 +113,8 @@ Attributes
     Simulation.codename
     Simulation.simdir
     Simulation.verbose
+    Simulation.ephemeris_date
+    Simulation.restart
 
 Data Representation
 ===================
