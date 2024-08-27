@@ -159,9 +159,9 @@ Initial Conditions Generation Functions
 .. autosummary::
     :toctree: generated/
 
-    swiftest.init_cond.get_solar_system_body
-    swiftest.init_cond.horizons_query
-    swiftest.init_cond.get_solar_system_body_mass_rotation
+    init_cond.get_solar_system_body
+    init_cond.horizons_query
+    init_cond.get_solar_system_body_mass_rotation
 
 Gravitional Harmonics Functions
 ===============================
@@ -169,8 +169,8 @@ Gravitional Harmonics Functions
 .. autosummary::
     :toctree: generated/
 
-    swiftest.shgrav.clm_from_ellipsoid
-    swiftest.shgrav.clm_from_relief
+    shgrav.clm_from_ellipsoid
+    shgrav.clm_from_relief
 
 
 Input/Output Processing Functions
@@ -184,14 +184,14 @@ Reading and writing simulation parameter and initial conditions files
 .. autosummary::
     :toctree: generated/
 
-    swiftest.io.process_netcdf_input
-    swiftest.io.read_swiftest_param
-    swiftest.io.read_swifter_param
-    swiftest.io.read_swift_param
-    swiftest.io.write_swift_param
-    swiftest.io.write_labeled_param
-    swiftest.io.select_active_from_frame
-    swiftest.io.swiftest_xr2infile
+    io.process_netcdf_input
+    io.read_swiftest_param
+    io.read_swifter_param
+    io.read_swift_param
+    io.write_swift_param
+    io.write_labeled_param
+    io.select_active_from_frame
+    io.swiftest_xr2infile
 
 Tools for fixing differences between NetCDF-Fortran and xarray data structures
 ------------------------------------------------------------------------------
@@ -199,9 +199,9 @@ Tools for fixing differences between NetCDF-Fortran and xarray data structures
 .. autosummary::
     :toctree: generated/
 
-    swiftest.io.swiftest2xr
-    swiftest.io.reorder_dims
-    swiftest.io.fix_types
+    io.swiftest2xr
+    io.reorder_dims
+    io.fix_types
 
 
 Tools
@@ -212,8 +212,8 @@ Miscellaneous helper functions
 .. autosummary::
     :toctree: generated/
 
-    swiftest.tool.wrap_angle
-    swiftest.tool.follow_swift
+    tool.wrap_angle
+    tool.follow_swift
 
 
 Core
@@ -224,9 +224,9 @@ Compiled Fortran routines for the core of the Swiftest project.
 .. autosummary::
    :toctree: generated/
 
-   swiftest.core.driver
-   swiftest.core.el2xv
-   swiftest.core.xv2el
+   core.driver
+   core.el2xv
+   core.xv2el
 
 Constants
 =========
