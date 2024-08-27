@@ -43,7 +43,6 @@ Setting Simulation Parameters
     Simulation.set_output_files
     Simulation.set_unit_system
     Simulation.set_distance_range
-    Simulation.set_ephemeris_date
 
 Retrieving Simulation Parameters
 --------------------------------------------

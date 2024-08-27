@@ -2338,7 +2338,7 @@ class Simulation(object):
             In that case, the id is passed to the ephemeris service and the name is used. 
         date : str, optional
             ISO-formatted date sto use when obtaining the ephemerides in the format YYYY-MM-DD. Defaults to value
-            set by `set_ephemeris_date`.
+            set by `ephemeris_date`.
         align_to_central_body_rotation : bool, default False
             If True, the cartesian coordinates will be aligned to the rotation pole of the central body. Otherwise, the This is only valid for when
             rotation is enabled.
