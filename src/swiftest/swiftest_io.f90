@@ -3553,7 +3553,7 @@ contains
       !!
       !! Sets the display style parameters, which cause the following output behavior:
       !! "PROGRESS": A progress bar is displayed on stdout. Standard output is redirected to a log file. 
-      !! "CLASSIC": All output goes to stdout, similar to Swifter. No log file is written.
+      !! "CLASSIC" : All output goes to stdout, similar to Swifter. No log file is written.
       !! "COMPACT" : A compact machine-readable output is displayed on stdout. Standard output is redirected to a log file. 
       !! "QUIET"   : No output is displayed on stdout. Standard output is redirected to a log file.
       implicit none

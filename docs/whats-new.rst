@@ -3,6 +3,36 @@
 What's New
 ==========
 
+.. _whats-new.2024.08.0:
+
+`v2024.08.0`_
+-------------
+.. _v2024.08.0: https:///github.com/MintonGroup/swiftest/releases/tag/v2024.08.0
+
+This is a major update with a number of important improvements, bug fixes, and new features.
+
+New Features
+~~~~~~~~~~~~
+- The collision module has been updated to include a new model for small impacts based on `Hyodo and Genda (2020) <https://doi.org/10.3847/1538-4357/ab9897>`_. The new model is activated when the ratio of the projectile to the target body is less than 1/500. `GH53`_
+
+
+Bug Fixes
+~~~~~~~~~
+- Fixed several issues related to repeatability with restarted runs. A new suite of tests was added to ensure that restarted runs create output that is bit-identical with the original run. `GH53`_
+
+.. _GH53: https://github.com/MintonGroup/swiftest/issues/53
+
+
+Contributors
+~~~~~~~~~~~~
+- `David Minton`_
+- `Kaustub Anand`_
+
+.. _David Minton: https://github.com/profminton
+.. _Kaustub Anand: https://github.com/kaustubanand
+
+
+
 .. _whats-new.2024.07.0:
 
 `v2024.07.0`_

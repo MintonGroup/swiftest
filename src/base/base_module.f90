@@ -186,7 +186,7 @@ module base
       logical                   :: lrestart     = .false. 
          !! Indicates whether or not this is a restarted run 
       character(NAMELEN)       :: display_style        
-         !! Style of the output display {["PROGRESS"], "CLASSIC", "COMPACT", "QUIET"}).  
+         !! Style of the output display [{"PROGRESS"}, "CLASSIC", "QUIET", "COMPACT"]).  
       integer(I4B)             :: display_unit = OUTPUT_UNIT  
          !! File unit number for display (either to stdout or to a log file) 
       logical                  :: log_output  = .false. 
@@ -731,7 +731,7 @@ module base
          character(*), parameter :: SUCCESS_MSG = '(/, "Normal termination of Swiftest (version ", A, ")")'
          character(*), parameter :: FAIL_MSG    = '(/, "Terminating Swiftest (version ", A, ") due to error!")' 
          character(*), parameter :: USAGE_MSG = '("Usage: swiftest <whm|helio|rmvs|symba> <paramfile> ' // &
-                                                '[{standard}|compact|progress]")'
+                                                '[{progress}|classic|quiet]")'
          character(*), parameter :: HELP_MSG  = USAGE_MSG
          integer(I4B) :: iu
 

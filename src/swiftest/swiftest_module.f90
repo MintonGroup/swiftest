@@ -840,7 +840,7 @@ module swiftest
          character(len=:), intent(in), allocatable :: param_file_name 
             !! Name of the input parameters file
          character(len=:), intent(in), allocatable :: display_style   
-            !! {"CLASSIC", "PROGRESS", "COMPACT", "QUIET"}). 
+            !! {"PROGRESS", "CLASSIC", "QUIET", "COMPACT"}). 
             !! Default is "PROGRESS"   
       end subroutine swiftest_driver
 
@@ -991,7 +991,7 @@ module swiftest
          character(len=:), allocatable, intent(inout) :: param_file_name 
             !! Name of the input parameters file
          character(len=:), allocatable, intent(inout) :: display_style   
-            !! {"CLASSIC", "PROGRESS", "COMPACT", "QUIET"}). 
+            !! {"PROGRESS", "CLASSIC", "QUIET", "COMPACT"}. 
             !! Default is "PROGRESS"   
          logical,                       intent(in)    :: from_cli        
             !! If true, get command-line arguments. Otherwise, use the values of the input variables

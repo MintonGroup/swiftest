@@ -27,9 +27,9 @@ dump*
 !CITATION.cff
 *ipynb_checkpoints
 **/.DS_Store
-!version.txt
 !requirements.txt
 !pyproject.toml
+swiftest/_version.py
 **/_skbuild
 *.egg*
 swiftest-*

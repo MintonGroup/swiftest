@@ -51,9 +51,9 @@ contains
             end if
 
             if (impactors%mass(jtarg) / impactors%mass(jproj) > 500.0_DP) then
-               call collision_regime_HG20(self, nbody_system, param) ! Cratering collisions. Mass ratio (proj:target) < 1:500 (approx.)
+               call collision_regime_HG20(self, nbody_system, param) ! Cratering collisions. Mass ratio (proj:target) <~ 1:500 
             else 
-               call collision_regime_LS12(self, nbody_system, param) ! Large planetary collisions. Mass ratio (proj:target) >= 1:500 (approx.)
+               call collision_regime_LS12(self, nbody_system, param) ! Large planetary collisions. Mass ratio (proj:target) >= 1:500
             end if
             call collision_io_log_regime(self%impactors)
             
@@ -397,8 +397,6 @@ contains
          end function calc_c_star 
 
    end subroutine collision_regime_HG20_SI
-
-
 
 
    subroutine collision_regime_LS12(collider, nbody_system, param) 

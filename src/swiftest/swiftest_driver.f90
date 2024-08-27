@@ -24,7 +24,7 @@ contains
       character(len=:), intent(in), allocatable :: integrator      !! Symbolic code of the requested integrator  
       character(len=:), intent(in), allocatable :: param_file_name !! Name of the input parameters file
       character(len=:), intent(in), allocatable :: display_style   !! Style of the output display 
-                                                                   !! {"CLASSIC", "PROGRESS", "COMPACT", "QUIET"}). 
+                                                                   !! {"PROGRESS", "CLASSIC", "COMPACT", "QUIET"}). 
                                                                    !! Default is "PROGRESS"   
 
       ! Internals
