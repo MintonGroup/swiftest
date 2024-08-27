@@ -23,6 +23,10 @@ Bug Fixes
 .. _GH53: https://github.com/MintonGroup/swiftest/issues/53
 
 
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Switched to an automated versioning system based on git tags. This will allow us to automatically increment the version number with each new release. `GH53`_
+
 Contributors
 ~~~~~~~~~~~~
 - `David Minton`_
