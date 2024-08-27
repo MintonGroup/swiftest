@@ -40,6 +40,7 @@ swiftest-*
 __pycache__*
 _cmake*
 _dependencies
+src/globals/globals_module.f90
 
 #Documentation
 !.readthedocs.yaml
