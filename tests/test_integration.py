@@ -143,7 +143,7 @@ class TestSwiftestIntegration(unittest.TestCase):
 
         # Get the start and end date of the simulation so we can compare with the real solar system.
         start_date = sim.ephemeris_date
-        tstop_d = sim.param['TSTOP'] * sim.param['TU2S'] / swiftest.JD2S
+        tstop_d = float(sim.param['TSTOP'] * sim.TU2S / swiftest.JD2S)
 
         stop_date = (datetime.datetime.fromisoformat(start_date) + datetime.timedelta(days=tstop_d)).isoformat()
 

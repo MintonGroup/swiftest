@@ -63,7 +63,7 @@ sim_nogr.run(**run_args,general_relativity=False)
 
 # Get the start and end date of the simulation so we can compare with the real solar system.
 start_date = sim_gr.ephemeris_date
-tstop_d = sim_gr.param['TSTOP'] * sim_gr.param['TU2S'] / swiftest.JD2S
+tstop_d = float(sim_gr.param['TSTOP'] * sim_gr.TU2S / swiftest.JD2S)
 
 stop_date = (datetime.datetime.fromisoformat(start_date) + datetime.timedelta(days=tstop_d)).isoformat()
 
