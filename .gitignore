@@ -21,7 +21,12 @@ dump*
 !.github/workflows/*.yml
 !setup.py
 !examples/**
-!swiftest/**
+!swiftest/
+!swiftest/*.py
+!swiftest/core.pyx
+!swiftest/core.h
+!swiftest/CMakeLists.txt
+swiftest/_version.py
 !tests/**
 !.zenodo.json
 !CITATION.cff
@@ -29,7 +34,6 @@ dump*
 **/.DS_Store
 !requirements.txt
 !pyproject.toml
-swiftest/_version.py
 **/_skbuild
 *.egg*
 swiftest-*
