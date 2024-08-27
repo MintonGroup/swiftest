@@ -3217,7 +3217,7 @@ contains
       type(swiftest_particle_info),  dimension(:), allocatable :: tmp !! Temporary copy of array used during rearrange operation
 
       if (.not. allocated(arr) .or. n <= 0) return
-      allocate(tmp, mold=arr)
+      allocate(tmp, source=arr)
 
       call swiftest_util_copy_particle_info_arr(arr, tmp, ind)
       call move_alloc(tmp, arr)
