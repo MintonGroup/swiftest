@@ -21,13 +21,17 @@ dump*
 !.github/workflows/*.yml
 !setup.py
 !examples/**
-!swiftest/**
+!swiftest/
+!swiftest/*.py
+!swiftest/core.pyx
+!swiftest/core.h
+!swiftest/CMakeLists.txt
+swiftest/_version.py
 !tests/**
 !.zenodo.json
 !CITATION.cff
 *ipynb_checkpoints
 **/.DS_Store
-!version.txt
 !requirements.txt
 !pyproject.toml
 **/_skbuild
@@ -36,6 +40,7 @@ swiftest-*
 __pycache__*
 _cmake*
 _dependencies
+src/globals/globals_module.f90
 
 #Documentation
 !.readthedocs.yaml

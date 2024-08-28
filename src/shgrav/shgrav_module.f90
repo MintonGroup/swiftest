@@ -24,6 +24,12 @@ module shgrav
             class(swiftest_nbody_system), intent(inout) :: nbody_system 
                 !! Swiftest nbody system object
         end subroutine shgrav_acc
+
+        module subroutine shgrav_pot_system(self)
+            implicit none
+            class(swiftest_nbody_system), intent(inout) :: self
+                !! Swiftest nbody system object
+        end subroutine shgrav_pot_system
         
     end interface
 

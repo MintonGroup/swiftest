@@ -137,20 +137,20 @@ class TestSwiftestIntegration(unittest.TestCase):
         integrators= ["whm","helio","rmvs","symba"] 
         
         # Initialize the simulation object as a variable. Define the directory in which the output will be placed.
-        tstep_out = 10.0
-        sim = swiftest.Simulation(simdir=self.simdir, tstop=1000.0, dt=0.005, tstep_out=tstep_out, dump_cadence=0,general_relativity=True)
+        tstep_out = 50
+        sim = swiftest.Simulation(simdir=self.simdir, tstop=5000.0, dt=0.01, tstep_out=tstep_out, dump_cadence=0,general_relativity=True)
         sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune"])
 
         # Get the start and end date of the simulation so we can compare with the real solar system.
         start_date = sim.ephemeris_date
-        tstop_d = sim.param['TSTOP'] * sim.param['TU2S'] / swiftest.JD2S
+        tstop_d = float(sim.param['TSTOP'] * sim.TU2S / swiftest.JD2S)
 
         stop_date = (datetime.datetime.fromisoformat(start_date) + datetime.timedelta(days=tstop_d)).isoformat()
 
         #Get the ephemerides of Mercury for the same timeframe as the simulation.
         obj = Horizons(id='1', location='@sun',
                     epochs={'start':start_date, 'stop':stop_date,
-                            'step':'10y'})
+                            'step':f'{tstep_out}y'})
         el = obj.elements()
         t = (el['datetime_jd']-el['datetime_jd'][0]) / 365.25
         varpi_obs = el['w'] + el['Omega']
