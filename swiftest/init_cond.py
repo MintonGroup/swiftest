@@ -23,7 +23,7 @@ import warnings
 def get_solar_system_body_mass_rotation(id: str,
                                         jpl: HorizonsClass=None,
                                         ephemerides_start_date: str=constants.MINTON_BCL,
-                                        verbose: bool=False,
+                                        verbose: bool=True,
                                         **kwargs: Any) -> dict:
     """
     Parses the raw output from JPL Horizons in order to extract physical properties of a body if they exist
@@ -168,18 +168,18 @@ def get_solar_system_body_mass_rotation(id: str,
         ephemerides_start_date = constants.MINTON_BCL 
         
     if jpl is None:
-        if type(id) != list:
+        if not isinstance(id,list): 
             id = [id]
-        jpl, altid, namelist = horizons_query(id=id[0],ephemerides_start_date=ephemerides_start_date,verbose=False,**kwargs)
+        jpl, altid, namelist = horizons_query(id=id[0],ephemerides_start_date=ephemerides_start_date,verbose=verbose,**kwargs)
     else: 
-        if type(id) != list:
+        if not isinstance(id,list):
             altid = [id]
         else:
             altid = id
 
     for i in altid:
         if jpl is None:
-            jpl,_,namelist = horizons_query(id=i,ephemerides_start_date=ephemerides_start_date,verbose=False,**kwargs)
+            jpl,_,namelist = horizons_query(id=i,ephemerides_start_date=ephemerides_start_date,verbose=verbose,**kwargs)
         namelist = [jpl.table['targetname'][0]]
         raw_response = jpl.vectors_async().text
         Rpl = get_radius(raw_response) 
@@ -206,7 +206,8 @@ def get_solar_system_body_mass_rotation(id: str,
     else:
         rot = np.full(3,np.nan)
     if Gmass is not None or Rpl is not None and verbose:
-        print(f"Physical properties found for {namelist[0]}") 
+        if verbose:
+            print(f"Physical properties found for {namelist[0]}") 
         
     return {'Gmass':Gmass,'mass':mass,'radius':Rpl,'rot':rot}
 
@@ -299,7 +300,8 @@ def horizons_query(id: str | int,
                                 'step': ephemerides_step})
             _=jpl.ephemerides()
         else:
-            warnings.warn(f"Could not find {id} in the JPL/Horizons system",stacklevel=2)
+            if verbose:
+                warnings.warn(f"Could not find {id} in the JPL/Horizons system",stacklevel=2)
             return None,None,None
     if verbose:
         print(f"Found matching body: {altname[0]} ({altid[0]})") 
@@ -443,7 +445,7 @@ def get_solar_system_body(name: str,
         if verbose: 
             print(f"Fetching ephemerides data for {ephemeris_id} from JPL/Horizons")
         
-        jpl,altid,altname = horizons_query(ephemeris_id,ephemerides_start_date,**kwargs)
+        jpl,altid,altname = horizons_query(ephemeris_id,ephemerides_start_date,verbose=verbose,**kwargs)
         if jpl is not None:
             if verbose:
                 print(f"Found ephemerides data for {altname[0]} ({altid[0]}) from JPL/Horizons")
@@ -453,7 +455,7 @@ def get_solar_system_body(name: str,
             return None
         
         if central_body_name != "Sun":
-            jplcb, altidcb, _ = horizons_query(central_body_name,ephemerides_start_date,**kwargs)
+            jplcb, altidcb, _ = horizons_query(central_body_name,ephemerides_start_date,verbose=verbose,**kwargs)
             GMcb = get_solar_system_body_mass_rotation(altidcb,jplcb)['Gmass']
             cbrx = jplcb.vectors()['x'][0] * DCONV
             cbry = jplcb.vectors()['y'][0] * DCONV
@@ -478,18 +480,18 @@ def get_solar_system_body(name: str,
         rh = np.array([rx,ry,rz]) - cbrh
         vh = np.array([vx,vy,vz]) - cbvh
 
-        Gmass,_,Rpl,rot = get_solar_system_body_mass_rotation(altid,jpl,**kwargs).values()
+        Gmass,_,Rpl,rot = get_solar_system_body_mass_rotation(altid,jpl,verbose=verbose,**kwargs).values()
         # If the user inputs "Earth" or Pluto, then the Earth-Moon or Pluto-Charon barycenter and combined mass is used. 
         # To use the Earth or Pluto alone, simply pass "399" or "999", respectively to name
         if name == "Earth":
             if verbose:
                 print("Combining mass of Earth and the Moon")
-            Gmass_moon = get_solar_system_body_mass_rotation(["301"],**kwargs)['Gmass']
+            Gmass_moon = get_solar_system_body_mass_rotation(["301"],verbose=verbose,**kwargs)['Gmass']
             Gmass += Gmass_moon
         elif name == "Pluto":
             if verbose:
                 print("Combining mass of Pluto and Charon")
-            Gmass_charon = get_solar_system_body_mass_rotation(["901"],**kwargs)['Gmass']
+            Gmass_charon = get_solar_system_body_mass_rotation(["901"],verbose=verbose,**kwargs)['Gmass']
             Gmass += Gmass_charon 
         
         if Gmass is not None:

@@ -137,7 +137,8 @@ contains
          be = -3*pl%Gmass(ipl) * pl%mass(ipl) / (5 * pl%radius(ipl))
          ke_orbit = 0.5_DP * pl%mass(ipl) * dot_product(pl%vb(:, ipl), pl%vb(:, ipl)) 
          if (param%lrotation) then
-            ke_rot  = 0.5_DP * pl%mass(ipl) * pl%radius(ipl)**2 * pl%Ip(3, ipl) * dot_product(pl%rot(:, ipl), pl%rot(:, ipl))
+            ke_rot  = 0.5_DP * pl%mass(ipl) * pl%radius(ipl)**2 * pl%Ip(3, ipl) * dot_product(pl%rot(:, ipl), pl%rot(:, ipl)) & 
+                                                                                                                     * DEG2RAD**2
          else
             ke_rot = 0.0_DP
          end if
@@ -170,20 +171,26 @@ contains
             end do 
             L_total(:) = L_total(:) - cb%mass * (cb%rb(:) .cross. cb%vb(:))
             nbody_system%L_escape(:) = nbody_system%L_escape(:) + L_total(:)
-            if (param%lrotation) nbody_system%L_escape(:) = nbody_system%L_escape + pl%mass(ipl) * pl%radius(ipl)**2 &
-                                                                    * pl%Ip(3, ipl) * pl%rot(:, ipl)
+            if (param%lrotation) then
+               nbody_system%L_escape(:) = nbody_system%L_escape + pl%mass(ipl) * pl%radius(ipl)**2 &
+                                                                    * pl%Ip(3, ipl) * pl%rot(:, ipl) * DEG2RAD
+            end if
    
          else
             xcom(:) = (pl%mass(ipl) * pl%rb(:, ipl) + cb%mass * cb%rb(:)) / (cb%mass + pl%mass(ipl))
             vcom(:) = (pl%mass(ipl) * pl%vb(:, ipl) + cb%mass * cb%vb(:)) / (cb%mass + pl%mass(ipl))
             Lpl(:) = (pl%rb(:,ipl) - xcom(:)) .cross. (pL%vb(:,ipl) - vcom(:))
-            if (param%lrotation) Lpl(:) = Lpl(:) + pl%radius(ipl)**2 * pl%Ip(3,ipl) * pl%rot(:, ipl)
+            if (param%lrotation) then
+               Lpl(:) = Lpl(:) + pl%radius(ipl)**2 * pl%Ip(3,ipl) * pl%rot(:, ipl) * DEG2RAD
+            end if
             Lpl(:) = pl%mass(ipl) * Lpl(:)
      
             Lcb(:) = cb%mass * ((cb%rb(:) - xcom(:)) .cross. (cb%vb(:) - vcom(:)))
    
             ke_orbit = ke_orbit + 0.5_DP * cb%mass * dot_product(cb%vb(:), cb%vb(:)) 
-            if (param%lrotation) ke_rot = ke_rot + 0.5_DP * cb%mass * cb%radius**2 * cb%Ip(3) * dot_product(cb%rot(:), cb%rot(:))
+            if (param%lrotation) then
+               ke_rot = ke_rot + 0.5_DP * cb%mass * cb%radius**2 * cb%Ip(3) * dot_product(cb%rot(:), cb%rot(:)) * DEG2RAD**2
+            end if
             ! Update mass of central body to be consistent with its total mass
             becb0 = -(3 * cb%Gmass * cb%mass) / (5 * cb%radius)
             cb%dGM = cb%dGM + pl%Gmass(ipl)
@@ -198,10 +205,10 @@ contains
             cb%dL(:) = Lpl(:) + cb%dL(:) + Lcb(:)
             ! Update rotation of central body to by consistent with its angular momentum 
             if (param%lrotation) then
-               drot0(:) = cb%L0(:)/ (cb%Ip(3) * cb%mass * cb%radius**2)  
-               drot1(:) = cb%dL(:) / (cb%Ip(3) * cb%mass * cb%radius**2)
+               drot0(:) = cb%L0(:) * RAD2DEG / (cb%Ip(3) * cb%mass * cb%radius**2)  
+               drot1(:) = cb%dL(:) * RAD2DEG / (cb%Ip(3) * cb%mass * cb%radius**2)
                cb%rot(:) = drot0(:) + drot1(:)
-               ke_rot  = ke_rot - 0.5_DP * cb%mass * cb%radius**2 * cb%Ip(3) * dot_product(cb%rot(:), cb%rot(:)) 
+               ke_rot  = ke_rot - 0.5_DP * cb%mass * cb%radius**2 * cb%Ip(3) * dot_product(cb%rot(:), cb%rot(:)) * DEG2RAD**2
             end if
             cb%rb(:) = xcom(:)
             cb%vb(:) = vcom(:)

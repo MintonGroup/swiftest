@@ -11,19 +11,20 @@ If not, see: https://www.gnu.org/licenses.
 
 import astropy.constants as const
 import datetime
+import numpy as np
 
 # Constants in SI units
-GC = const.G.value[()]
-AU2M = const.au.value
-GMSun = const.GM_sun.value
-MSun = const.M_sun.value
-RSun = const.R_sun.value
-MEarth = const.M_earth.value
-REarth = const.R_earth.value
-GMEarth = const.GM_earth.value
+GC = np.longdouble(const.G.value[()])
+AU2M = np.longdouble(const.au.value)
+GMSun = np.longdouble(const.GM_sun.value)
+MSun = np.longdouble(const.M_sun.value)
+RSun = np.longdouble(const.R_sun.value)
+MEarth = np.longdouble(const.M_earth.value)
+REarth = np.longdouble(const.R_earth.value)
+GMEarth = np.longdouble(const.GM_earth.value)
 JD2S = 86400
-YR2S = 365.25 * JD2S
-einsteinC = 299792458.0
+YR2S = np.longdouble(365.25 * JD2S)
+einsteinC = np.longdouble(const.c) 
 CB_TYPE_NAME = "Central Body"
 PL_TYPE_NAME = "Massive Body"
 TP_TYPE_NAME = "Test Particle"

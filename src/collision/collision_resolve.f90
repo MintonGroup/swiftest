@@ -99,7 +99,7 @@ contains
                ! Assume principal axis rotation about axis corresponding to highest moment of inertia (3rd Ip)
                if (param%lrotation) then
                   impactors%Ip(:, j) = impactors%mass(j) * pl%Ip(:, idx_parent(j))
-                  impactors%L_rot(:, j) = impactors%Ip(3, j) * impactors%radius(j)**2 * pl%rot(:, idx_parent(j))
+                  impactors%L_rot(:, j) = impactors%Ip(3, j) * impactors%radius(j)**2 * pl%rot(:, idx_parent(j)) * DEG2RAD
                end if
 
                if (nchild(j) > 0) then
@@ -128,7 +128,7 @@ contains
 
                         impactors%L_rot(:, j) = impactors%L_rot(:, j) + mchild * pl%Ip(3, idx_child)  &
                                                                                  * pl%radius(idx_child)**2 &
-                                                                                 * pl%rot(:, idx_child)
+                                                                                 * pl%rot(:, idx_child) * DEG2RAD
                         impactors%Ip(:, j) = impactors%Ip(:, j) + mchild * pl%Ip(:, idx_child)
                      end if
 
@@ -142,7 +142,8 @@ contains
                impactors%radius(j) = (3 * volume(j) / (4 * PI))**(1.0_DP / 3.0_DP)
                if (param%lrotation) then
                   impactors%Ip(:, j) = impactors%Ip(:, j) / impactors%mass(j)
-                  impactors%rot(:,j) = impactors%L_rot(:, j) / (impactors%Ip(3,j) * impactors%mass(j) * impactors%radius(j)**2)
+                  impactors%rot(:,j) = impactors%L_rot(:, j) / (impactors%Ip(3,j) * impactors%mass(j) * impactors%radius(j)**2) &
+                                       * RAD2DEG
                end if
             end do
             lflag = .true.

@@ -39,7 +39,6 @@ dependencies:
   - palettable>=3.3
   - jupyter
   - flake8>=7.1.0
-  - flake80pyproject>=1.2.3
   - pyshtools>=4.12.2
   - scikit-build-core>=0.9.6
   - ipython>=8.25.0

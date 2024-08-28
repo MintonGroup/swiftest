@@ -383,7 +383,7 @@ class SwiftestDataset(xr.Dataset):
                 GMcb = self['Gmass'].where(self['particle_type'] == CB_TYPE_NAME, drop=True)
             else:
                 GMcb = self['Gmass'].where(self['id'] == 0, drop=True)
-            if GMcb.size != 1:
+            if GMcb.isel(time=0).size != 1:
                 raise ValueError("Dataset must have a single central body") 
         
         if isinstance(GMcb, xr.DataArray):

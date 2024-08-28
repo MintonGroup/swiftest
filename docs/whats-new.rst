@@ -3,6 +3,57 @@
 What's New
 ==========
 
+.. _whats-new.2024.08.0:
+
+`v2024.08.0`_
+-------------
+.. _v2024.08.0: https:///github.com/MintonGroup/swiftest/releases/tag/v2024.08.0
+
+This is a major update with a number of important improvements, bug fixes, and new features.
+
+New Features
+~~~~~~~~~~~~
+- The collision module has been updated to include a new model for small impacts based on `Hyodo and Genda (2020) <https://doi.org/10.3847/1538-4357/ab9897>`_. The new model is activated when the ratio of the projectile to the target body is less than 1/500. `GH53`_
+- The core compiled library now stores angular quantities in degrees, just as the Python API does. This will help to prevent floating point errors from accumulating when passing values back and forth between the Python and Fortran code. `GH53`_
+- Added a deep cleaning option that removes the simdir directory completely, which can be called with the :meth:`~swiftest.Simulation.clean` method by passing ``deep=True`` as an argument.
+- Added a new argument to :class:`~swiftest.Simulation` called ``clean`` that, when set to ``True``, will perform a deep cleaning of the simdir directory before starting a new run. This is useful for ensuring that the simdir is completely clean before starting a new run.  
+
+Bug Fixes
+~~~~~~~~~
+- Fixed several issues related to repeatability with restarted runs. A new suite of tests was added to ensure that restarted runs create output that is bit-identical with the original run. `GH53`_
+- Changed the defaults and behaviors of read_data and read_init_cond to prevent an issue where bodies get added multiple times when running scripts from the same simdir without doing a deep clean inbetween.
+- Fixed problems where parameters like unit conversion factors were not being set properly when reading in a parameter file. Parameter input files are now processed the same way as arguments passed to the :meth:`~swiftest.Simulation.set_parameter` method. `GH53`_
+- Fixed issue where the inner radius limit was not being set based on the central body radius.
+- Fixed issues getting initial conditions files build correctly when using an old data file as a source.
+- Fixed problem where the energy and momentum values were computed after the dump step, causing the values to be out of sync.
+
+
+Breaking Changes
+~~~~~~~~~~~~~~~~
+- Switched to using ``np.longdouble`` for the unit conversion attributes, which includes :attr:`~swiftest.Simulation.MU2KG`, :attr:`~swiftest.Simulation.KG2MU`, :attr:`~swiftest.Simulation.TU2S`, :attr:`~swiftest.Simulation.S2TU`, :attr:`~swiftest.Simulation.DU2M`, :attr:`~swiftest.Simulation.M2DU`, and :attr:`~swiftest.Simulation.GU`. This was done to ensure that the precise value is passed back and forth to the compiled core library, otherwise floating point conversion errors can accumulate and cause the simulation to diverge on restarts. Be aware when making use of these values, and their equivalents in :attr:`~swiftest.Simulation.param`, that not all external libraries support ``np.longdouble``, and so you may need to cast it as ``float``. `GH53`_
+- Changed the default display style to ``progress`` and renamed the ``standard`` display style to ``classic``. 
+- Changed the default collision model to ``Fraggle`` instead of ``Merge``.
+
+
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Switched to an automated versioning system based on git tags. This will allow us to automatically increment the version number with each new release. `GH53`_
+- Updated methods for extracting and saving initial conditions from old files, including a major overhaul of the modify_body method that is more robust.
+- Improved handling of initial conditions retrieval and saving from specific frames.
+
+.. _GH53: https://github.com/MintonGroup/swiftest/issues/53
+
+Contributors
+~~~~~~~~~~~~
+- `David Minton`_
+- `Kaustub Anand`_
+
+.. _David Minton: https://github.com/profminton
+.. _Kaustub Anand: https://github.com/kaustubanand
+
+
+
 .. _whats-new.2024.07.0:
 
 `v2024.07.0`_

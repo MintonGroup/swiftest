@@ -27,6 +27,7 @@ contains
          !! Current Swiftest run configuration parameters
       ! Internals
       real (DP) :: mtot
+      integer(I4B) :: i,jtarg, jproj
         
       associate(impactors => self%impactors)
       select type (nbody_system)
@@ -41,8 +42,21 @@ contains
             allocate(impactors%mass_dist(1))
             impactors%mass_dist(1) = mtot
          case default
-            call collision_regime_LS12(self, nbody_system, param)
+            if (impactors%mass(1) > impactors%mass(2)) then
+               jtarg = 1
+               jproj = 2
+            else
+               jtarg = 2
+               jproj = 1
+            end if
+
+            if (impactors%mass(jtarg) / impactors%mass(jproj) > 500.0_DP) then
+               call collision_regime_HG20(self, nbody_system, param) ! Cratering collisions. Mass ratio (proj:target) <~ 1:500 
+            else 
+               call collision_regime_LS12(self, nbody_system, param) ! Large planetary collisions. Mass ratio (proj:target) >= 1:500
+            end if
             call collision_io_log_regime(self%impactors)
+            
          end select
       end select
       end select
@@ -50,6 +64,339 @@ contains
 
       return
    end subroutine collision_regime_collider
+
+   subroutine collision_regime_HG20(collider, nbody_system, param)
+      !! Author: Kaustub P. Anand, David A. Minton
+      !!
+      !! Determine the collisional regime of two colliding bodies based on the model by Hyodo and Genda (2020)
+      !!
+      !! This is a wrapper subroutine that converts quantities to SI units and calls the main HG20 subroutine
+      !! NOTE: Impact angle is converted to degrees
+      !! structured similar to collision_regime_LS12
+
+      implicit none
+      ! Arguments
+      class(collision_basic),       intent(inout) :: collider     
+         !! The impactors to determine the regime for
+      class(swiftest_nbody_system), intent(in)    :: nbody_system
+         !! Swiftest n-body system object
+      class(swiftest_parameters),   intent(in)    :: param        
+         !! The current parameters
+
+      ! Internals
+      integer(I4B) :: i,jtarg, jproj
+      real(DP), dimension(2) :: radius_si, mass_si
+      real(DP) :: min_mfrag_si
+      real(DP), dimension(NDIM)  :: x_tar_si, v_tar_si, x_imp_si, v_imp_si
+      real(DP) :: mlr, mslr, mtot, Qloss, Qmerge
+      integer(I4B), parameter :: NMASS_DIST = 3   ! Number of mass bins returned by the regime calculation (largest fragment, second
+                                                  ! largest, and remainder)  
+      real(DP), dimension(NDIM) :: Ip, rot, L_rot
+      real(DP) :: radius, volume
+
+
+      associate(impactors => collider%impactors)
+
+         ! Convert all quantities to SI units and determine which of the pair is the projectile vs. target before sending them to 
+         ! the regime determination subroutine
+         if (impactors%mass(1) > impactors%mass(2)) then
+            jtarg = 1
+            jproj = 2
+         else
+            jtarg = 2
+            jproj = 1
+         end if
+         ! The two-body equivalent masses of the collider system
+         mass_si(:)    = impactors%mass([jtarg, jproj]) * param%MU2KG 
+         
+         ! The two-body equivalent radii of the collider system
+         radius_si(:)  = impactors%radius([jtarg, jproj]) * param%DU2M 
+
+         ! The first body of the two-body equivalent position vector the collider system
+         x_tar_si(:)      = impactors%rb(:,jtarg) * param%DU2M                   
+
+         ! The first body of the two-body equivalent velocity vector the collider system
+         v_tar_si(:)      = impactors%vb(:,jtarg) * param%DU2M / param%TU2S      
+
+         ! The second body of the two-body equivalent position vector the collider system
+         x_imp_si(:)      = impactors%rb(:,jproj) * param%DU2M                   
+
+         ! The second body of the two-body equivalent velocity vector the collider system
+         v_imp_si(:)      = impactors%vb(:,jproj) * param%DU2M / param%TU2S           
+         
+         ! The minimum fragment mass to generate. Collider systems that would otherwise generate less massive fragments than this 
+         ! value will be forced to merge instead
+         min_mfrag_si  = (param%min_GMfrag / param%GU) * param%MU2KG 
+      
+         mtot = sum(mass_si(:)) 
+
+         ! Use the positions and velocities of the parents from indside the step (at collision) to calculate the collisional regime
+         call collision_regime_HG20_SI(mass_si(jtarg), mass_si(jproj), radius_si(jtarg), &
+                                       x_tar_si(:), x_imp_si(:), v_tar_si(:), v_imp_si(:), &
+                                       min_mfrag_si, impactors%regime, mlr, mslr, Qloss, Qmerge)
+
+         ! Convert back from SI to system units
+         mlr = mlr / param%MU2KG
+         mslr = mslr / param%MU2kg
+         Qloss = Qloss * (param%TU2S / param%DU2M)**2 / param%MU2KG
+         Qmerge = Qmerge * (param%TU2S / param%DU2M)**2 / param%MU2KG
+         mtot = mtot / param%MU2kg
+
+         ! If this is came back as a merger, check to make sure that the rotation of the merged body doesn't exceed the rotation 
+         ! barrier
+         if (impactors%regime == COLLRESOLVE_REGIME_MERGE) then
+            volume = 4._DP / 3._DP * PI * sum(impactors%radius(:)**3)
+            radius = (3._DP * volume / (4._DP * PI))**(THIRD)
+#ifdef DOCONLOC
+            do concurrent(i = 1:NDIM) shared(impactors,Ip,L_rot)
+#else
+            do concurrent(i = 1:NDIM)
+#endif
+               Ip(i) = sum(impactors%mass(:) * impactors%Ip(i,:)) 
+               L_rot(i) = sum(impactors%L_orbit(i,:) + impactors%L_rot(i,:))
+            end do
+            Ip(:) = Ip(:) / mtot
+            rot(:) = L_rot(:) * RAD2DEG / (Ip(3) * mtot * radius**2)
+            if (.mag.rot(:) > collider%max_rot) then ! The merged body would rotation too fast, so reclasify this as a hit and run
+               mlr = impactors%mass(jtarg)
+               mslr = impactors%mass(jproj)
+               impactors%regime = COLLRESOLVE_REGIME_HIT_AND_RUN
+               impactors%Qloss = 0.0_DP
+            else
+               mlr =  mtot
+               mslr = 0.0_DP
+               impactors%Qloss = Qmerge
+            end if
+         else
+            impactors%Qloss = Qloss
+         end if
+
+         if (allocated(impactors%mass_dist)) deallocate(impactors%mass_dist)
+         allocate(impactors%mass_dist(NMASS_DIST))
+         impactors%mass_dist(1) = min(max(mlr, 0.0_DP), mtot)
+         impactors%mass_dist(2) = min(max(mslr, 0.0_DP), mtot)
+         impactors%mass_dist(3) = min(max(mtot - mlr - mslr, 0.0_DP), mtot)
+
+      end associate
+
+      return
+
+   end subroutine collision_regime_HG20
+
+   subroutine collision_regime_HG20_SI(M_tar, M_imp, rad_tar, & 
+                                          rh_tar, rh_imp, vb_tar, vb_imp, &
+                                          min_mfrag, regime, Mlr, Mslr, Qloss, Qmerge)
+      !! Author: Kaustub P. Anand, David A. Minton
+      !!
+      !! Determine the collisional regime of two colliding bodies when projectile mass is very small compared to target mass
+      !! Current version requires all values to be converted to SI units prior to calling the function
+      !!       References:
+      !!       Hyodo, R., Genda, H., 2020. Escape and Accretion by Cratering Impacts: Formulation of Scaling Relations for 
+      !!          High-speed Ejecta. ApJ 898 30. https://doi.org/10.3847/1538-4357/ab9897
+      !!       Housen, K., Holsapple, K., 2011. Ejecta from Impact Craters. Icarus, Volume 211, Issue 1, 2011.
+      !!          https://doi.org/10.1016/j.icarus.2010.09.017
+      !!       Leinhardt, Z.M., Stewart, S.T., 2012. Collisions between Gravity-dominated Bodies. I. Outcome Regimes and 
+      !!          Scaling Laws 745, 79. https://doi.org/10.1088/0004-637X/745/1/79
+      !!
+
+      implicit none
+      ! Arguments
+      real(DP), intent(in)           :: M_tar, M_imp, rad_tar, min_mfrag 
+      real(DP), dimension(:), intent(in)  :: rh_tar, rh_imp, vb_tar, vb_imp
+      real(DP), intent(out) :: Mlr, Mslr
+         !! Largest and second-largest remnant defined for various regimes
+      real(DP), intent(out)          :: Qloss
+         !! The energy lost in the collision if it was a fragmentation event
+      real(DP), intent(out)          :: Qmerge 
+         !! The energy lost in the collision if it was a perfect merger
+      integer(I4B), intent(out) :: regime
+         !! The collisional regime
+
+      ! Constants
+      real(DP), parameter :: a_tar = 4.12e-5_DP
+         !! Best-fit parameter for ejection velocity mu_HG20(theta) for the target body (Table 1 in HG20) 
+      real(DP), parameter :: b_tar = 2.71e-3_DP
+         !! Best-fit parameter for ejection velocity mu_HG20(theta) for the target body (Table 1 in HG20)
+      real(DP), parameter :: c_tar = 5.13e-1_DP
+         !! Best-fit parameter for ejection velocity mu_HG20(theta) for the target body (Table 1 in HG20)
+      real(DP), parameter :: d_tar = 1.52e-5_DP
+         !! Best-fit parameter for ejecta C_HG20(theta) for the target body (Table 1 in HG20)
+      real(DP), parameter :: e_tar = -3.21e-3_DP
+         !! Best-fit parameter for ejecta C_HG20(theta) for the target body (Table 1 in HG20)
+      real(DP), parameter :: f_tar = 1.41e-1_DP
+         !! Best-fit parameter for ejecta C_HG20(theta) for the target body (Table 1 in HG20)
+      real(DP), parameter :: g_tar = -4.02_DP
+         !! Best-fit parameter for ejecta C_HG20(theta) for the target body (Table 1 in HG20)
+
+      real(DP), parameter :: a_imp = -7.06e-5_DP
+         !! Best-fit parameter for ejection velocity mu_HG20(theta) for the impactor body (Table 1 in HG20)
+      real(DP), parameter :: b_imp = 1.54e-2_DP
+         !! Best-fit parameter for ejection velocity mu_HG20(theta) for the impactor body (Table 1 in HG20)
+      real(DP), parameter :: c_imp = -1.93e-1_DP
+         !! Best-fit parameter for ejection velocity mu_HG20(theta) for the impactor body (Table 1 in HG20)
+      real(DP), parameter :: d_imp = 3.34e-5_DP
+         !! Best-fit parameter for ejecta C_HG20(theta) for the impactor body (Table 1 in HG20)
+      real(DP), parameter :: e_imp = -5.13e-3_DP
+         !! Best-fit parameter for ejecta C_HG20(theta) for the impactor body (Table 1 in HG20)
+      real(DP), parameter :: f_imp = 1.28e-1_DP
+         !! Best-fit parameter for ejecta C_HG20(theta) for the impactor body (Table 1 in HG20)
+      real(DP), parameter :: g_imp = -8.71e-1_DP
+         !! Best-fit parameter for ejecta C_HG20(theta) for the impactor body (Table 1 in HG20)
+
+      real(DP), parameter :: k = 0.3_DP
+         !! material property constant from Housen and Holsapple (2011) (HH11)
+      real(DP), parameter :: C_0 = 1.5_DP
+         !! material property constant from Housen and Holsapple (2011) (HH11)
+      real(DP), parameter :: mu_HH11 = 0.55_DP
+         !! material property constant from Housen and Holsapple (2011) (HH11)
+         !! 0.55 for nonporous rocky and icy materials
+
+      real(DP), parameter   :: BETA = 2.85_DP 
+         !! slope of sfd for remnants from LS12 2.85
+      integer(I4B), parameter :: N1 = 1 
+          !!number of objects with mass equal to the largest remnant from LS12
+      integer(I4B), parameter :: N2 = 2  
+         !! number of objects with mass larger than second largest remnant from LS12
+      real(DP), parameter   :: DENSITY1 = 1000.0_DP 
+         !! standard density parameter from LS12 [kg/m3]
+
+      ! Internals
+      real(DP) :: M_tot, M_esc_tar_HG20, M_esc_tar_HH11, M_esc_tar, M_esc_imp, M_acc_imp, M_esc_total, M_tmp
+      real(DP) :: Rc1, c_star, ke, pe, U_binding
+      real(DP) :: V_imp, V_esc
+      real(DP) :: theta_rad, theta
+      real(DP) :: C_HH11, C_HG20_tar, C_HG20_imp, mu_HG20_tar, mu_HG20_imp
+      
+      M_tot = M_tar + M_imp
+      Rc1 = (3 * M_tot / (4 * PI * DENSITY1))**THIRD ! Stewart and Leinhardt (2009) 
+      c_star = calc_c_star(Rc1)
+
+      V_imp = norm2(vb_imp(:) - vb_tar(:)) ! Impact velocity
+      theta_rad = calc_theta(rh_tar, vb_tar, rh_imp, vb_imp) ! Impact angle in degrees
+      theta = theta_rad * RAD2DEG ! Impact angle in radians
+      V_esc = sqrt(2 * GC * M_tar / rad_tar) ! Escape velocity of the target body
+
+      ! Specific binding energy
+      U_binding = (3 * GC * M_tot) / (5 * Rc1) ! LS12 eq. 27
+      ke = 0.5_DP * V_imp**2
+      pe = - GC * M_tar * M_imp / (M_tot * norm2(rh_imp - rh_tar))
+
+      ! Calculate target body ejecta mass that escapes from the target body 
+
+      mu_HG20_tar = a_tar * theta**2 + b_tar * theta + c_tar
+      C_HG20_tar = exp(d_tar * theta**3 + e_tar * theta**2 + f_tar * theta + g_tar)
+      M_esc_tar_HG20 = C_HG20_tar * (V_esc / (V_imp * sin(theta_rad)))**(-3.0_DP * mu_HG20_tar) ! impactor mass units
+
+      C_HH11 = 3 * k / (4 * PI) * C_0**(3.0_DP * mu_HH11)
+      M_esc_tar_HH11 = C_HH11 * (V_esc / (V_imp * sin(theta_rad)))**(-3.0_DP * mu_HH11) ! impactor mass units
+
+      M_esc_tar = min(M_esc_tar_HG20, M_esc_tar_HH11) ! impactor mass units
+
+      ! Calculate impactor body ejecta mass that escapes from the target
+
+      mu_HG20_imp = a_imp * theta**2 + b_imp * theta + c_imp
+      C_HG20_imp = exp(d_imp * theta**3 + e_imp * theta**2 + f_imp * theta + g_imp) 
+      M_esc_imp = C_HG20_imp * (V_esc / (V_imp * sin(theta_rad)))**(-3.0_DP * mu_HG20_imp) ! impactor mass units
+      M_esc_imp = min(M_esc_imp, 1.0_DP) ! Max value of M_esc_imp is 1.0 (impactor mass units)
+
+      M_esc_total = M_esc_tar + M_esc_imp ! impactor mass units
+
+      ! Find collisional regime (MERGE or EROSION/DISRUPTION)
+
+      if ((M_tar < min_mfrag).or.(M_imp < min_mfrag)) then 
+         regime = COLLRESOLVE_REGIME_MERGE !perfect merging regime
+         call swiftest_io_log_one_message(COLLISION_LOG_OUT, &
+                                 "Fragments would have mass below the minimum. Converting this collision into a merger.")
+      else 
+         if (M_esc_total < 1.0_DP) then 
+            regime = COLLRESOLVE_REGIME_MERGE ! Net accretion regime       ! does partial accretion need a separate check?
+         else if (M_esc_total >= 1.0_DP) then
+            regime = COLLRESOLVE_REGIME_DISRUPTION ! Net erosion regime
+         else 
+            call swiftest_io_log_one_message(COLLISION_LOG_OUT,"Error no regime found in symba_regime")
+         end if
+      end if
+      
+      ! Convert from impactor mass units to system mass units
+      M_esc_total = M_esc_total * M_imp
+      M_esc_tar = M_esc_tar * M_imp
+      M_esc_imp = M_esc_imp * M_imp
+
+      M_acc_imp = M_imp - M_esc_imp ! impactor material accreted by the target body
+
+      ! Calculate largest and second-largest remnant masses and energy loss
+      Mlr = M_tar - M_esc_tar + M_acc_imp
+
+      Mslr = max(M_tot * (3.0_DP - BETA) * (1.0_DP - N1 * Mlr / M_tot) / (N2 * BETA), min_mfrag)  !LS12 eq (37)
+
+      if (Mslr > Mlr) then ! The second-largest fragment is actually larger than the largest, so we will swap them
+         M_tmp = Mlr
+         Mlr = Mslr
+         Mslr = M_tmp
+      end if
+      
+      Qloss = (c_star - 1.0_DP) * U_binding * M_tot ! Convert specific energy loss to total energy loss in the system
+      Qmerge = (ke + pe + U_binding) * M_tot ! The  energy lost if this were a perfect merger
+
+      return
+      
+      contains
+
+         function calc_theta(r_tar, v_tar, r_imp, v_imp) result(theta)
+            !! author: Kaustub P. Anand, Jennifer L. L. Pouplin, David A. Minton
+            !!
+            !! Calculate the impact angle between two colliding bodies
+            !! For HG20, theta = 90 degrees - asin(b) where b is the impact parameter 
+            !! (if impactor radius << target radius)
+            !! 90 degrees is a head-on collision
+            !!
+            implicit none
+            ! Arguments
+            real(DP), dimension(NDIM), intent(in) :: r_tar, v_tar, r_imp, v_imp
+            ! Result
+            real(DP) :: theta ! radians
+            ! Internals
+            real(DP), dimension(NDIM)  :: imp_vel, distance, x_cross_v
+            real(DP) :: sintheta
+
+            imp_vel(:) = v_imp(:) - v_tar(:)
+            distance(:) = r_imp(:) - r_tar(:)
+            x_cross_v(:) = distance(:) .cross. imp_vel(:) 
+            sintheta = norm2(x_cross_v(:)) / norm2(distance(:)) / norm2(imp_vel(:))
+
+            theta = asin(sintheta) ! Find a more exact way to calculate theta
+
+            return
+         end function calc_theta
+
+         function calc_c_star(Rc1) result(c_star)
+            !! author: David A. Minton
+            !!
+            !! Calculates c_star as a function of impact equivalent radius. It interpolates between 5 for ~1 km sized bodies to
+            !! 1.8 for ~10000 km sized bodies. See LS12 Fig. 4 for details.
+            !! 
+            implicit none
+            ! Arguments
+            real(DP), intent(in) :: Rc1
+            ! Result
+            real(DP)             :: c_star
+            ! Internals
+            real(DP), parameter  :: loR   = 1.0e3_DP ! Lower bound of interpolation size (m)
+            real(DP), parameter  :: hiR   = 1.0e7_DP ! Upper bound of interpolation size (m)
+            real(DP), parameter  :: loval = 5.0_DP   ! Value of C* at lower bound
+            real(DP), parameter  :: hival = 1.9_DP   ! Value of C* at upper bound
+
+            if (Rc1 < loR) then
+               c_star = loval
+            else if (Rc1 < hiR) then
+               c_star = loval + (hival - loval) * log(Rc1 / loR) / log(hiR /loR)
+            else
+               c_star = hival
+            end if
+            return
+         end function calc_c_star 
+
+   end subroutine collision_regime_HG20_SI
 
 
    subroutine collision_regime_LS12(collider, nbody_system, param) 
@@ -146,7 +493,7 @@ contains
                L_rot(i) = sum(impactors%L_orbit(i,:) + impactors%L_rot(i,:))
             end do
             Ip(:) = Ip(:) / mtot
-            rot(:) = L_rot(:) / (Ip(3) * mtot * radius**2)
+            rot(:) = L_rot(:) * RAD2DEG / (Ip(3) * mtot * radius**2)
             if (.mag.rot(:) > collider%max_rot) then ! The merged body would rotation too fast, so reclasify this as a hit and run
                mlr = impactors%mass(jtarg)
                mslr = impactors%mass(jproj)
@@ -475,7 +822,5 @@ contains
          end function calc_c_star 
 
    end subroutine collision_regime_LS12_SI
-
-
 
 end submodule s_collision_regime
