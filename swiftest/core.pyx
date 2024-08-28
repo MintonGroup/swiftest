@@ -78,13 +78,13 @@ def el2xv(cnp.ndarray[cnp.float64_t, ndim=1] mu,
     a.flags.writeable = True
     e = np.ascontiguousarray(e, dtype=np.float64)
     e.flags.writeable = True
-    inc_rad = np.ascontiguousarray(np.deg2rad(inc), dtype=np.float64)
+    inc_rad = np.ascontiguousarray(inc, dtype=np.float64)
     inc_rad.flags.writeable = True
-    capom_rad = np.ascontiguousarray(np.deg2rad(capom), dtype=np.float64)
+    capom_rad = np.ascontiguousarray(capom, dtype=np.float64)
     capom_rad.flags.writeable = True
-    omega_rad = np.ascontiguousarray(np.deg2rad(omega), dtype=np.float64)
+    omega_rad = np.ascontiguousarray(omega, dtype=np.float64)
     omega_rad.flags.writeable = True
-    capm_rad = np.ascontiguousarray(np.deg2rad(capm), dtype=np.float64)
+    capm_rad = np.ascontiguousarray(capm, dtype=np.float64)
     capm_rad.flags.writeable = True
 
     # Make memory view of the numpy arrays and convert angular quantities to radians
@@ -217,15 +217,15 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
     # Convert angular quantities to degrees 
     cdef cnp.ndarray[cnp.float64_t, ndim=1] a_np = np.asarray(a)
     cdef cnp.ndarray[cnp.float64_t, ndim=1] e_np = np.asarray(e)
-    cdef cnp.ndarray[cnp.float64_t, ndim=1] inc_np = np.rad2deg(np.asarray(inc))
-    cdef cnp.ndarray[cnp.float64_t, ndim=1] capom_np = np.rad2deg(np.asarray(capom))
-    cdef cnp.ndarray[cnp.float64_t, ndim=1] omega_np = np.rad2deg(np.asarray(omega))
-    cdef cnp.ndarray[cnp.float64_t, ndim=1] capm_np = np.rad2deg(np.asarray(capm))
-    cdef cnp.ndarray[cnp.float64_t, ndim=1] varpi_np = np.rad2deg(np.asarray(varpi))
-    cdef cnp.ndarray[cnp.float64_t, ndim=1] lam_np = np.rad2deg(np.asarray(lam))
-    cdef cnp.ndarray[cnp.float64_t, ndim=1] f_np = np.rad2deg(np.asarray(f))
-    cdef cnp.ndarray[cnp.float64_t, ndim=1] cape_np = np.rad2deg(np.asarray(cape))
-    cdef cnp.ndarray[cnp.float64_t, ndim=1] capf_np = np.rad2deg(np.asarray(capf))
+    cdef cnp.ndarray[cnp.float64_t, ndim=1] inc_np = np.asarray(inc)
+    cdef cnp.ndarray[cnp.float64_t, ndim=1] capom_np = np.asarray(capom)
+    cdef cnp.ndarray[cnp.float64_t, ndim=1] omega_np = np.asarray(omega)
+    cdef cnp.ndarray[cnp.float64_t, ndim=1] capm_np = np.asarray(capm)
+    cdef cnp.ndarray[cnp.float64_t, ndim=1] varpi_np = np.asarray(varpi)
+    cdef cnp.ndarray[cnp.float64_t, ndim=1] lam_np = np.asarray(lam)
+    cdef cnp.ndarray[cnp.float64_t, ndim=1] f_np = np.asarray(f)
+    cdef cnp.ndarray[cnp.float64_t, ndim=1] cape_np = np.asarray(cape)
+    cdef cnp.ndarray[cnp.float64_t, ndim=1] capf_np = np.asarray(capf)
 
     for i in range(nbody):
         if (rx_v[i] == 0.0 and ry_v[i] == 0.0 and rz_v[i] == 0.0 and vx_v[i] == 0.0 and vy_v[i] == 0.0 and vz_v[i] == 0.0):

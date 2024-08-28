@@ -533,7 +533,7 @@ contains
                      if (param%lrotation) then
                         call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid,  cb%Ip(:),   start=[1, idslot, stage, eslot], &
                            count=[NDIM,1,1,1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var Ip_varid: cb")
-                        call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid,    cb%rot(:)*RAD2DEG,  &
+                        call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid,    cb%rot(:),  &
                            start=[1, idslot, stage, eslot], count=[NDIM,1,1,1]), &
                            "collision_io_netcdf_write_frame_snapshot nf90_put_var rotx_varid: cb")
                      end if                    
@@ -564,7 +564,7 @@ contains
                         if (param%lrotation) then
                            call netcdf_io_check( nf90_put_var(nc%id, nc%Ip_varid,  pl%Ip(:,i),   start=[1, idslot, stage, eslot], &
                               count=[NDIM,1,1,1]), "collision_io_netcdf_write_frame_snapshot nf90_put_var Ip_varid: pl")
-                           call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid,    pl%rot(:,i)*RAD2DEG,  &
+                           call netcdf_io_check( nf90_put_var(nc%id, nc%rot_varid,    pl%rot(:,i),  &
                               start=[1, idslot, stage, eslot], count=[NDIM,1,1,1]), &
                               "collision_io_netcdf_write_frame_snapshot nf90_put_var rotx_varid: pl")
                         end if

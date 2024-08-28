@@ -28,7 +28,7 @@ class TestCollisions(unittest.TestCase):
         '''
         Tests that impacts into the central body work correctly
         '''
-        sim = swiftest.Simulation(simdir=self.simdir,compute_conservation_values=True, rotation=True)
+        sim = swiftest.Simulation(simdir=self.simdir,compute_conservation_values=True, rotation=True, collision_model='merge')
 
         # Add the modern planets and the Sun using the JPL Horizons Database.
         sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"])
@@ -146,7 +146,7 @@ class TestCollisions(unittest.TestCase):
         """
         Tests that merging bodies are handled correctly
         """
-        sim = swiftest.Simulation(simdir=self.simdir,compute_conservation_values=True, rotation=True) 
+        sim = swiftest.Simulation(simdir=self.simdir,compute_conservation_values=True, rotation=True, collision_model='merge') 
         sim.add_solar_system_body("Sun")
         
         name = ["Target","Projectile"]
@@ -190,7 +190,7 @@ class TestCollisions(unittest.TestCase):
         Tests that multiple collisions are handled correctly
         """              
         
-        sim = swiftest.Simulation(simdir=self.simdir)
+        sim = swiftest.Simulation(simdir=self.simdir, collision_model='merge')
         
 
         sim.add_solar_system_body(['Sun', 'Earth'])
@@ -225,7 +225,7 @@ class TestCollisions(unittest.TestCase):
         rh_tp = []
         vh_tp = []
         for i in range(ncoll): 
-            rh_tp.append(rh_E + [0,-25*(i+1)*rad_E, 0])
+            rh_tp.append(rh_E + [0,-20*(i+1)*rad_E, 0])
             vh_tp.append(vh_E + [0.0, 1e-2, 0])
 
         sim.add_body(rh=rh_tp, vh=vh_tp)

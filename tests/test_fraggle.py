@@ -209,6 +209,7 @@ class TestFraggle(unittest.TestCase):
                             
                 self.assertGreaterEqual(newbody_count, nfrag_minimum_expected[style], f"{style}: Expected more than {nfrag_minimum_expected[style]} new bodies, got {newbody_count}") 
                 self.assertLessEqual(newbody_count, nfrag_maximum_expected[style], f"{style}: Expected less than {nfrag_maximum_expected[style]} new bodies, got {newbody_count}")
+                sim.clean()
         return 
          
 if __name__ == '__main__':

@@ -1225,6 +1225,7 @@ contains
       real(DP), dimension(NDIM) :: h
 
       associate(nbody_system => self, pl => self%pl, cb => self%cb)
+         call pl%h2b(cb)
          npl = self%pl%nbody
          nbody_system%L_orbit(:) = 0.0_DP
          nbody_system%L_rot(:) = 0.0_DP
@@ -1264,10 +1265,10 @@ contains
          end if
 
          if (param%lrotation) then
-            kerotcb = cb%mass * cb%Ip(3) * cb%radius**2 * dot_product(cb%rot(:), cb%rot(:))
+            kerotcb = cb%mass * cb%Ip(3) * cb%radius**2 * dot_product(cb%rot(:), cb%rot(:)) * DEG2RAD**2
 
             ! For simplicity, we always assume that the rotation pole is the 3rd principal axis
-            Lcbrot(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:)
+            Lcbrot(:) = cb%Ip(3) * cb%mass * cb%radius**2 * cb%rot(:) * DEG2RAD
 
             if (npl > 0) then
 #ifdef DOCONLOC
@@ -1277,10 +1278,10 @@ contains
 #endif
                   ! Currently we assume that the rotation pole is the 3rd principal axis
                   ! Angular momentum from rotation
-                  Lplrot(:,i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(:,i)
+                  Lplrot(:,i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * pl%rot(:,i) * DEG2RAD
 
                   ! Kinetic energy from rotation
-                  kerotpl(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * dot_product(pl%rot(:,i), pl%rot(:,i))
+                  kerotpl(i) = pl%mass(i) * pl%Ip(3,i) * pl%radius(i)**2 * dot_product(pl%rot(:,i), pl%rot(:,i)) * DEG2RAD**2
                end do
 
                nbody_system%ke_rot = 0.5_DP * (kerotcb + sum(kerotpl(1:npl), pl%lmask(1:npl)))
@@ -2615,14 +2616,17 @@ contains
          if (.not. allocated(self%cb%info)) allocate(swiftest_particle_info :: self%cb%info)
 
          call self%cb%info%set_value(particle_type=CB_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", &
-                                origin_time=param%t0, origin_rh=[0.0_DP, 0.0_DP, 0.0_DP], origin_vh=[0.0_DP, 0.0_DP, 0.0_DP])
+                                origin_time=param%t0, origin_rh=[0.0_DP, 0.0_DP, 0.0_DP], origin_vh=[0.0_DP, 0.0_DP, 0.0_DP], &
+                                collision_id=0)
          do i = 1, self%pl%nbody
             call pl%info(i)%set_value(particle_type=PL_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", &
-                                       origin_time=param%t0, origin_rh=self%pl%rh(:,i), origin_vh=self%pl%vh(:,i))
+                                       origin_time=param%t0, origin_rh=self%pl%rh(:,i), origin_vh=self%pl%vh(:,i), &
+                                       collision_id=0)
          end do
          do i = 1, self%tp%nbody
             call tp%info(i)%set_value(particle_type=TP_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", &
-                                      origin_time=param%t0, origin_rh=self%tp%rh(:,i), origin_vh=self%tp%vh(:,i))
+                                      origin_time=param%t0, origin_rh=self%tp%rh(:,i), origin_vh=self%tp%vh(:,i), &
+                                      collision_id=0)
          end do
 
       end associate
@@ -3213,7 +3217,7 @@ contains
       type(swiftest_particle_info),  dimension(:), allocatable :: tmp !! Temporary copy of array used during rearrange operation
 
       if (.not. allocated(arr) .or. n <= 0) return
-      allocate(tmp, mold=arr)
+      allocate(tmp, source=arr)
 
       call swiftest_util_copy_particle_info_arr(arr, tmp, ind)
       call move_alloc(tmp, arr)

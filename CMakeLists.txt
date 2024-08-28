@@ -11,11 +11,17 @@
 ##################################################
 # Define the project and the depencies that it has
 ##################################################
-CMAKE_MINIMUM_REQUIRED(VERSION 3.23.1...3.28.3)
-SET(SKBUILD_PROJECT_NAME "swiftest" CACHE STRING "Name of project set by scikit-build")
+CMAKE_MINIMUM_REQUIRED(VERSION 3.23.1...3.30.2)
+IF (SKBUILD)
+    SET(VERSION ${SKBUILD_PROJECT_VERSION})
+    SET(PROJECT_NAME ${SKBUILD_PROJECT_NAME})
+ELSE ()
+    SET(VERSION "0.0.0")
+    STRING(TIMESTAMP DATESTR "%Y%m%d-%s")
+    SET(SKBUILD_PROJECT_VERSION_FULL "CUSTOM BUILD ${DATESTR}")
+    SET(PROJECT_NAME "swiftest" CACHE STRING "Name of project")
+ENDIF()
 
-# Get version stored in text file
-FILE(READ "version.txt" VERSION)
 SET(SKBUILD_SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/bin" CACHE STRING "Install location of binary executable")
 
 IF (SKBUILD)
@@ -90,7 +96,7 @@ ELSE()
 ENDIF()
 MESSAGE(STATUS "Using C++ compiler: ${CMAKE_CXX_COMPILER}")
 
-PROJECT(${SKBUILD_PROJECT_NAME} LANGUAGES C CXX Fortran VERSION ${VERSION})
+PROJECT(${PROJECT_NAME} LANGUAGES C CXX Fortran VERSION ${VERSION})
 # Use the old method to get Python packages, as that's what scikit-build uses
 IF (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.27")
     CMAKE_POLICY(SET CMP0148 OLD)
@@ -123,7 +129,7 @@ INCLUDE(GNUInstallDirs)
 IF (SKBUILD)
     SET(CMAKE_LIBRARY_PATH "${CMAKE_CURRENT_BINARY_DIR}/deps/usr/lib")
     SET(INSTALL_INCLUDEDIR ${SKBUILD_HEADERS_DIR}) 
-    SET(INSTALL_PYPROJ ${SKBUILD_PLATLIB_DIR}/${SKBUILD_PROJECT_NAME}) 
+    SET(INSTALL_PYPROJ ${SKBUILD_PLATLIB_DIR}/${PROJECT_NAME}) 
     SET(INSTALL_BINDIR ${INSTALL_PYPROJ})
     # The following is needed so that the shared libraries get installed into the correct place. cibuildwheel behaves differently 
     # than just running pip install directly. When running pip install directly, the libraries will be installed to the environment's
@@ -219,7 +225,7 @@ ELSE()
 ENDIF()
 
 # Set the name of the swiftest library
-SET(SWIFTEST_LIBRARY ${SKBUILD_PROJECT_NAME})
+SET(SWIFTEST_LIBRARY ${PROJECT_NAME})
 IF (USE_COARRAY)
     SET(SWIFTEST_LIBRARY_CAF ${SWIFTEST_LIBRARY}_caf) 
 ENDIF()
