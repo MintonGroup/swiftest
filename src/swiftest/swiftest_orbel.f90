@@ -1085,7 +1085,6 @@ contains
       lam = lam * RAD2DEG
       f = f * RAD2DEG
       cape = cape * RAD2DEG
-      capf = capf * RAD2DEG
 
       return
    end subroutine swiftest_orbel_xv2el

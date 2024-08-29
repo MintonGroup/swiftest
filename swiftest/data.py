@@ -269,7 +269,7 @@ class SwiftestDataset(xr.Dataset):
         SwiftestDataset
             Dataset containing the computed state vectors (position 'rh' and velocity 'vh').
         """
-        from .core import el2xv  # Assuming el2xv is implemented in the .core module
+        from .core import el2xv,xv2el  # Assuming el2xv is implemented in the .core module
 
         if 'space' not in self.dims:
             raise ValueError("Dataset must have a 'space' dimension")
@@ -339,12 +339,23 @@ class SwiftestDataset(xr.Dataset):
             output_dtypes=[np.float64, np.float64]  # Expected data types for outputs
         )
 
-        # Create a new Dataset with the state vectors
-        new_vars = {'rh': rh, 'vh': vh}
+        # Use the newly computed rh and vh to compute the remaining orbital elements
+        a, e, inc, capom, omega, capm, varpi, lam, f, cape, capf = xr.apply_ufunc(
+            xv2el,  
+            mu, rh, vh,
+            input_core_dims=[[index_dim], [index_dim, 'space'], [index_dim, 'space']],  
+            output_core_dims=[[index_dim]] * 11,  
+            vectorize=True,  
+            dask="parallelized",  
+            output_dtypes=[np.float64] * 11  
+        )
+        
+        # Create a new Dataset with the state vectors and elements
+        new_vars = {'rh': rh, 'vh': vh, 'varpi': varpi, 'lam': lam, 'f': f, 'cape': cape, 'capf': capf}
         dataset = xr.Dataset(new_vars)
         if "name" in dataset.variables:
             dataset = dataset.drop_vars("name")        
-        dsnew = xr.merge([dataset, self], compat="override")
+        dsnew = xr.merge([dataset, self], compat="no_conflicts")
         
         return SwiftestDataset(dsnew)
      
@@ -419,7 +430,7 @@ class SwiftestDataset(xr.Dataset):
         dataset = xr.Dataset({var: result[i] for i, var in enumerate(varnames)})
         if "name" in dataset.variables:
             dataset = dataset.drop_vars("name")        
-        dsnew = xr.merge([dataset, self], compat="override")
+        dsnew = xr.merge([dataset, self], compat="no_conflicts")
         
         return SwiftestDataset(dsnew)
 
