@@ -918,6 +918,8 @@ contains
                                   "netcdf_io_initialize_output nf90_def_var f_varid"  )
             call netcdf_io_check( nf90_def_var(nc%id, nc%cape_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%cape_varid),&
                                   "netcdf_io_initialize_output nf90_def_var cape_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%capf_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%capf_varid),&
+                                  "netcdf_io_initialize_output nf90_def_var capf_varid"  )
          end if
 
          call netcdf_io_check( nf90_def_var(nc%id, nc%Gmass_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%Gmass_varid), &
@@ -1235,6 +1237,7 @@ contains
          status = nf90_inq_varid(nc%id, nc%lam_varname, nc%lam_varid)
          status = nf90_inq_varid(nc%id, nc%f_varname, nc%f_varid)
          status = nf90_inq_varid(nc%id, nc%cape_varname, nc%cape_varid)
+         status = nf90_inq_varid(nc%id, nc%capf_varname, nc%capf_varid)
 
          if (param%lmtiny_pl) status = nf90_inq_varid(nc%id, nc%nplm_varname, nc%nplm_varid)
 
@@ -2055,8 +2058,8 @@ contains
                      call netcdf_io_check( nf90_put_var(nc%id, nc%cape_varid, cape, start=[idslot, tslot]), &
                                   "netcdf_io_write_frame_body nf90_put_var body cape_varid"  ) 
                   else if (e > 1.0_DP) then
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%cape_varid, capf , start=[idslot, tslot]), &
-                                  "netcdf_io_write_frame_body nf90_put_var body (capf) cape_varid"  ) 
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%capf_varid, capf , start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body (capf) capf_varid"  ) 
                   end if
                end if
 
