@@ -49,8 +49,8 @@ class TestParticleType(unittest.TestCase):
         sim.run()
 
         # check that the rotation rate is conserved
-        rot_before = sim.collisions.sel(collision_id = 1, collision_body = 1, stage = 'before').rot.magnitude.values
-        rot_after = sim.collisions.sel(collision_id = 1, collision_body = 1, stage = 'after').rot.magnitude.values
+        rot_before = sim.collisions.sel(collision_id = 1, collision_body = 1, stage = 'before').rot.magnitude().values # rot_before = 285.03562945368185
+        rot_after = sim.collisions.sel(collision_id = 1, collision_body = 1, stage = 'after').rot.magnitude().values # 285.03804937240477
 
         print(rot_before) 
         print(rot_after)
