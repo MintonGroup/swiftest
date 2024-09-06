@@ -562,41 +562,31 @@ contains
          ! Initialize fragment rotations and velocities to be pre-impact rotation for body 1, and randomized for bodies >1 and 
          ! scaled to the original rotation.  This will get updated later when conserving angular momentum
          mass_fac = fragments%mass(1) / impactors%mass(1)
-         fragments%rot(:,1) = mass_fac**(5.0_DP/3.0_DP) * impactors%rot(:,1)
 
-         ! If mass was added, also add rotational angular momentum
-         if (mass_fac > 1.0_DP) then
-            dL(:) = (fragments%mass(1) - impactors%mass(1)) * (impactors%rc(:,2) - impactors%rc(:,1)) &
-                                                      .cross. (impactors%vc(:,2) - impactors%vc(:,1))
-            drot(:) = dL(:) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(3,1))
-            ! Check to make sure we haven't broken the rotation barrier. Reduce the rotation change if so
-            do i = 1, MAXLOOP
-               if (.mag.(fragments%rot(:,1) + drot(:)) < collider%max_rot) exit
-               if (i == MAXLOOP) drot(:) = 0.0_DP
-               where(drot(:) > TINY(1.0_DP))
-                  drot(:) = drot(:) / 2
-               elsewhere
-                  drot(:) = 0.0_DP
-               endwhere
-            end do
-            fragments%rot(:,1) = fragments%rot(:,1) + drot(:)
-         end if
-
+         ! Adjust initial rotation based on torque from the impactor
+         ! Compute angular momentum transfer from the impact
+         dL(:) = impactors%mass(2) * (impactors%rc(:,2) - impactors%rc(:,1)) &
+                                    .cross. (impactors%vc(:,2) - impactors%vc(:,1))
          if (lhitandrun) then
-            dL(:) = hitandrun_momentum_transfer * impactors%mass(2) * (impactors%rc(:,2) - impactors%rc(:,1)) & 
-                                                              .cross. (impactors%vc(:,2) - impactors%vc(:,1)) 
-            drot(:) = dL(:) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(3,1))
-            do i = 1, MAXLOOP
-               if (.mag.(fragments%rot(:,1) + drot(:)) < collider%max_rot) exit
-               if (i == MAXLOOP) drot(:) = 0.0_DP
-               where(drot(:) > TINY(1.0_DP))
-                  drot(:) = drot(:) / 2
-               elsewhere
-                  drot(:) = 0.0_DP
-               endwhere
-            end do
-            fragments%rot(:,1) = fragments%rot(:,1) + drot(:)
-         end if   
+            dL(:) = dL(:) * hitandrun_momentum_transfer
+         end if
+   
+         ! Estimate the change in rotation (impulsive torque approximation)
+         drot(:) = dL(:) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(3,1))
+   
+         ! Ensure the resulting rotation doesn't exceed the allowed maximum rotation
+         do i = 1, MAXLOOP
+            if (.mag.(fragments%rot(:,1) + drot(:)) < collider%max_rot) exit
+            if (i == MAXLOOP) drot(:) = 0.0_DP
+            where(drot(:) > TINY(1.0_DP))
+               drot(:) = drot(:) / 2
+            elsewhere
+               drot(:) = 0.0_DP
+            endwhere
+         end do
+   
+         ! Update rotation for body 1 based on impulse
+         fragments%rot(:,1) =impactors%rot(:,1) + drot(:)
 
          call random_number(fragments%rot(:,2:nfrag))
 #ifdef DOCONLOC
@@ -767,49 +757,52 @@ contains
                   L_residual_unit(:) = .unit. L_residual(:)
                   if (nsteps == 1) L_residual_best(:) = L_residual(:) * L_mag_factor
 
-                  do i = istart,fragments%nbody
-                     if (i == 1) then
-                        dL(:) = -L_residual(:) * L_mag_factor
-                        drot(:) = dL(:) / (fragments%mass(i) * fragments%Ip(3,i) * fragments%radius(i)**2)
-                        fragments%rot(:,i) = fragments%rot(:,i) + drot(:)
+                  angmtm: do j = 1, MAXANGMTM
+                     if (j == MAXANGMTM) exit inner
+                     dL(:) = -L_residual(:) * L_mag_factor
+                     drot(:) = dL(:) / (fragments%mass(istart) * fragments%Ip(3,istart) * fragments%radius(istart)**2)
+                     
+                     ! Ensure rotation adjustment doesn't exceed allowed limit
+                     if (.mag.(fragments%rot(:,istart) + drot(:)) <= collider%max_rot) then
+                        fragments%rot(:,istart) = fragments%rot(:,istart) + drot(:)
                      else
-                        call random_number(drot)
+                        drot(:) = 0.0_DP  ! Avoid breaking rotation limit
+                     end if     
+                     do i = istart+1,fragments%nbody,istart
+                        call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
+                        L_mag_factor = .mag.(collider_local%L_total(:,1) + collider_local%L_total(:,2))
+                        L_residual(:) = (collider_local%L_total(:,2) / L_mag_factor - collider_local%L_total(:,1)/L_mag_factor)
+                        dL_metric(:) = abs(L_residual(:)) / MOMENTUM_SUCCESS_METRIC
+                        if (all(dL_metric(:) <= 1.0_DP)) exit angmtm
+
+                        ! Adjust velocity proportionally to the fragment's mass and angular momentum
+                        dL(:) = -L_residual(:) * L_mag_factor * fragments%mass(i) / sum(fragments%mass(istart:fragments%nbody))
+                        call collision_util_velocity_torque(dL, fragments%mass(i), fragments%rc(:,i), fragments%vc(:,i))
+                        call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)  
+                        fragments%vmag(:) = .mag.fragments%vc(:,:)
+
+                        call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
+                        L_mag_factor = .mag.(collider_local%L_total(:,1) + collider_local%L_total(:,2))
+                        L_residual(:) = (collider_local%L_total(:,2) / L_mag_factor - collider_local%L_total(:,1)/L_mag_factor)
+                        dL_metric(:) = abs(L_residual(:)) / MOMENTUM_SUCCESS_METRIC
+                        if (all(dL_metric(:) <= 1.0_DP)) exit angmtm
+
+                        dL(:) = -L_residual(:) * L_mag_factor * fragments%mass(i) / sum(fragments%mass(istart:fragments%nbody))
+                        drot(:) = dL(:) / (fragments%mass(i) * fragments%Ip(3,i) * fragments%radius(i)**2)
+                        
+                        ! Apply randomized adjustments but ensure they are proportional
                         call random_number(rn)
-                        drot(:) = (rn * collider_local%max_rot - fragments%rotmag(i)) * 2 * (drot(:) - 0.5_DP)
+                        drot(:) = drot(:) * (rn * 2.0_DP - 1.0_DP)  ! Scale random adjustment
+
                         fragments%rot(:,i) = fragments%rot(:,i) + drot(:)
                         fragments%rotmag(i) = .mag.fragments%rot(:,i)
-                     end if
-                     if (fragments%rotmag(i) > collider%max_rot) then
-                        if (i == 1) then
-                           ! The rotation barrier would be broken. Set the rotation back to that of the target
-                           fragments%rot(:,i) = impactors%rot(:,i)
-                           fragments%rotmag(i) = .mag.fragments%rot(:,i)
-                        else 
-                           ! Drop the small fragment rotation down by half
+
+                        ! Prevent excessive rotation for small fragments
+                        if (fragments%rotmag(i) > collider%max_rot) then
                            fragments%rotmag(i) = 0.5_DP * collider%max_rot
                            fragments%rot(:,i) = fragments%rotmag(i) * .unit. fragments%rot(:,i)
                         end if
-                     end if 
-                     L_residual(:) = L_residual(:) + drot(:) * fragments%Ip(3,i) * fragments%mass(i) * fragments%radius(i)**2 & 
-                                                      / L_mag_factor
-                  end do
-
-                  ! Put any remaining residual into velocity shear
-                  angmtm: do j = 1, MAXANGMTM
-                     if (j == MAXANGMTM) exit inner
-                     call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
-                     L_mag_factor = .mag.(collider_local%L_total(:,1) + collider_local%L_total(:,2))
-                     L_residual(:) = (collider_local%L_total(:,2) / L_mag_factor - collider_local%L_total(:,1)/L_mag_factor)
-                     dL_metric(:) = abs(L_residual(:)) / MOMENTUM_SUCCESS_METRIC
-
-                     if (all(dL_metric(:) <= 1.0_DP)) exit angmtm
-   
-                     do i = istart, fragments%nbody
-                        dL(:) = -L_residual(:) * L_mag_factor * fragments%mass(i) / sum(fragments%mass(istart:fragments%nbody))
-                        call collision_util_velocity_torque(dL, fragments%mass(i), fragments%rc(:,i), fragments%vc(:,i))
                      end do
-                     call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)  
-                     fragments%vmag(:) = .mag.fragments%vc(:,:)
                   end do angmtm
 
                   call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)            
