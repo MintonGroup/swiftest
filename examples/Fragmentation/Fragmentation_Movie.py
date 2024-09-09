@@ -104,12 +104,12 @@ vel_vectors = {"disruption_headon"         : [np.array([ 0.00,  6.280005, 0.0]),
                                               np.array([ 0.05,  6.18,     0.0])] 
                }
 
-rot_vectors = {"disruption_headon"         : [np.array([0.0, 0.0, 1.0e5]),
-                                              np.array([0.0, 0.0, -5e5])],
+rot_vectors = {"disruption_headon"         : [np.array([0.0, 0.0, 0.0e0]),
+                                              np.array([0.0, 0.0, 0e0])],
                "disruption_off_axis":        [np.array([0.0, 0.0, 2.0e5]),
                                               np.array([0.0, 0.0, -1.0e5])],
-               "supercatastrophic_headon":   [np.array([0.0, 0.0, 1.0e5]),
-                                              np.array([0.0, 0.0, -5.0e5])],
+               "supercatastrophic_headon":   [np.array([0.0, 0.0, 0.0e0]),
+                                              np.array([0.0, 0.0, 0.0e0])],
                "supercatastrophic_off_axis": [np.array([0.0, 0.0, 1.0e5]),
                                               np.array([0.0, 0.0, -1.0e4])],
                "hitandrun_disrupt"         : [np.array([0.0, 0.0, 0.0]),
@@ -236,6 +236,7 @@ class AnimatedScatter(object):
         rhy2 = self.sim.data['rh'].sel(name=names[1],space='y').isel(time=0).values[()]
 
         scale_frame =   abs(rhy1) + abs(rhy2)
+        
         if "hitandrun" in style:
            scale_frame *= 2
            
@@ -255,10 +256,10 @@ class AnimatedScatter(object):
     def init_func(self):
         self.artists = [] 
         aarg = self.vec_props('xkcd:beige')
+        self.artists.append(self.ax.scatter([],[],c='k', animated=True, zorder=10))
         for i in range(self.npl):
             self.artists.append(self.ax.annotate("",xy=(0,0),**aarg)) 
         
-        self.artists.append(self.ax.scatter([],[],c='k', animated=True, zorder=10))
         return self.artists
 
     def update_plot(self, frame):
@@ -268,12 +269,14 @@ class AnimatedScatter(object):
         t, Gmass, rh, radius, rotangle = next(self.data_stream(frame))
         x_ref, y_ref = center(Gmass, rh[:,0], rh[:,1]) 
         rh = np.c_[rh[:,0] - x_ref, rh[:,1] - y_ref]
-        self.artists[-1].set_offsets(rh)
+        self.artists[0].set_offsets(rh)
         point_rad = radius * self.ax_pt_size
-        self.artists[-1].set_sizes(point_rad**2)
+        self.artists[0].set_sizes(point_rad**2)
         
-        sarrowend, sarrowtip = self.spin_arrows(rh, rotangle, 1.1*radius) 
-        for i, s in enumerate(self.artists[:-1]):
+        sarrowend, sarrowtip = self.spin_arrows(rh, rotangle, 1.1*radius)
+        for i, s in enumerate(self.artists):
+            if (i == 0):
+                continue
             self.artists[i].set_position(sarrowtip[i])
             self.artists[i].xy = sarrowend[i]
         
@@ -294,7 +297,7 @@ class AnimatedScatter(object):
             radius = ds['radius'].values
             Gmass = ds['Gmass'].values
             rh = ds['rh'].values
-            rotangle = ds['rotangle'].values
+            rotangle = np.deg2rad(ds['rotangle'].values)
 
             yield t, Gmass, rh, radius, rotangle
             

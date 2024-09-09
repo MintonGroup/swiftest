@@ -360,9 +360,9 @@ contains
       logical,                      intent(out)   :: lfailure     
          !! Did the velocity computation fail?
       ! Internals
-      real(DP)  :: dis, direction, rdistance
+      real(DP)  :: dis, direction, rdistance, bias_factor, rmag
       real(DP), dimension(NDIM,2) :: fragment_cloud_center
-      real(DP), dimension(NDIM) :: rwalk
+      real(DP), dimension(NDIM) :: rwalk, orthogonal_vector
       real(DP), dimension(2) :: fragment_cloud_radius
       logical, dimension(collider%fragments%nbody) :: loverlap
       real(DP), dimension(collider%fragments%nbody) :: mass_rscale, phi, theta, u
@@ -428,39 +428,43 @@ contains
                   call random_number(theta(i))
                   call random_number(u(i))
                   phi(i) = TWOPI * phi(i)
-                  theta(i) = asin(2 * theta(i) - 1.0_DP)
+                  theta(i) = PI * theta(i) 
                end if
             end do
 
-            ! Randomly place the n>2 fragments inside their cloud until none are overlapping
-#ifdef DOCONLOC
-            do concurrent(i = istart:nfrag, loverlap(i)) shared(fragments, impactors, fragment_cloud_radius, fragment_cloud_center,&
-                                                               loverlap, mass_rscale, u, phi, theta, lhitandrun) local(j, direction)
-#else
-            do concurrent(i = istart:nfrag, loverlap(i))
-#endif
+            ! Compute random angles and radial distance for fragment positioning
+            do i = istart, nfrag
+               if (.not.loverlap(i)) cycle
                j = fragments%origin_body(i)
 
-               ! Scale the cloud size
-               if (lhitandrun) then
-                  fragments%rmag(i) = fragment_cloud_radius(j) * u(i)**(THIRD)
+               rmag = fragment_cloud_radius(j) * mass_rscale(i) * u(i)**(THIRD)
+
+               if (.not.lhitandrun) then
+                  orthogonal_vector(1) = sin(theta(i)) * cos(phi(i))
+                  orthogonal_vector(2) = sin(theta(i)) * sin(phi(i))
+                  orthogonal_vector(3) = cos(theta(i))
+
+                  ! Rotate the orthogonal vector to be perpendicular to the bounce unit
+                  orthogonal_vector = orthogonal_vector - dot_product(orthogonal_vector, impactors%bounce_unit(:)) * &
+                                        impactors%bounce_unit(:)
+                  orthogonal_vector = orthogonal_vector / .mag.(orthogonal_vector)  ! Normalize it
+
+                  ! Calculate the final position by mixing the bounce direction and random orthogonal component
+                  bias_factor = mass_rscale(i)**(-2)  ! Bias factor: 0 means random, 1 means fully along bounce_unit
+                  fragments%rc(:,i) = rmag * (bias_factor * impactors%bounce_unit(:) + &
+                                      (1.0_DP - bias_factor) * orthogonal_vector)
                else
-                  fragments%rmag(i) = fragment_cloud_radius(j) * mass_rscale(i) * u(i)**(THIRD)
+                  fragments%rc(1,i) = rmag * sin(theta(i)) * cos(phi(i))
+                  fragments%rc(2,i) = rmag * sin(theta(i)) * sin(phi(i))
+                  fragments%rc(3,i) = rmag * cos(theta(i))
                end if
 
-               ! Position the fragment in a random point within the cloud
-               fragments%rc(1,i) = fragments%rmag(i) * sin(theta(i)) * cos(phi(i))
-               fragments%rc(2,i) = fragments%rmag(i) * sin(theta(i)) * sin(phi(i))
-               fragments%rc(3,i) = fragments%rmag(i) * cos(theta(i))
-
-               ! Shift to the cloud center coordinates
-
-               ! Stretch out the hit and run cloud along the flight trajectory
+               ! Adjust based on collision type
                if (lhitandrun) then
+                  ! Stretch out the hit and run cloud along the flight trajectory
                   fragments%rc(:,i) = fragments%rc(:,i) * (1.0_DP + 2 * fragment_cloud_radius(j) * mass_rscale(i) &
-                                                                                                 * impactors%bounce_unit(:))
+                                                            * impactors%bounce_unit(:))
                end if
-
                fragments%rc(:,i) = fragments%rc(:,i) + fragment_cloud_center(:,j)
 
                if (lhitandrun) then
@@ -475,21 +479,25 @@ contains
                   end if
                end if
             end do
+            fragments%rmag(:) = .mag.fragments%rc(:,:)
 
             ! Because body 1 and 2 are initialized near the original impactor positions, then if these bodies are still overlapping
             ! when the rest are not, we will randomly walk their position in space so as not to move them too far from their 
             ! starting  position
             if (all(.not.loverlap(istart:nfrag)) .and. any(loverlap(1:istart-1))) then
+               do j = 1, MAXLOOP
 #ifdef DOCONLOC
-               do concurrent(i = 1:istart-1,loverlap(i)) shared(fragments,loverlap, u, theta, i) local(rwalk, dis)
+                  do concurrent(i = 1:istart-1,loverlap(i)) shared(fragments,loverlap, u, theta, i) local(rwalk, dis)
 #else
-               do concurrent(i = 1:istart-1,loverlap(i))
+                  do concurrent(i = 1:istart-1,loverlap(i))
 #endif
-                  dis = 0.1_DP * fragments%radius(i) * u(i)**(THIRD)
-                  rwalk(1) = fragments%rmag(i) * sin(theta(i)) * cos(phi(i))
-                  rwalk(2) = fragments%rmag(i) * sin(theta(i)) * sin(phi(i))
-                  rwalk(3) = fragments%rmag(i) * cos(theta(i)) 
-                  fragments%rc(:,i) = fragments%rc(:,i) + rwalk(:)
+                     dis = 0.1_DP * fragments%radius(i) * u(i)**(THIRD)
+                     rwalk(1) = dis * sin(theta(i)) * cos(phi(i))
+                     rwalk(2) = dis * sin(theta(i)) * sin(phi(i))
+                     rwalk(3) = dis * cos(theta(i)) 
+                     fragments%rc(:,i) = fragments%rc(:,i) + rwalk(:)
+                  end do
+                  if (all(.not.loverlap(1:istart-1))) exit
                end do
             end if
 
@@ -695,14 +703,15 @@ contains
                   vsign(:) = 1
                end where
 
-               ! Scale the magnitude of the velocity by the distance from the impact point
+               ! Scale the magnitude of the velocity by the distance from the origin body.
                ! This will reduce the chances of fragments colliding with each other immediately, and is more physically correct  
 #ifdef DOCONLOC
-               do concurrent(i = 1:fragments%nbody) shared(fragments,impactors,vscale) local(rimp)
+               do concurrent(i = 1:fragments%nbody) shared(fragments,impactors,vscale) local(rimp,j)
 #else
                do concurrent(i = 1:fragments%nbody) 
 #endif
-                  rimp(:) = fragments%rc(:,i) - impactors%rbcom(:) 
+                  j = fragments%origin_body(i)
+                  rimp(:) = fragments%rc(:,i) - impactors%rc(:,j)
                   vscale(i) = .mag. rimp(:) / sum(impactors%radius(1:2))
                end do
 
