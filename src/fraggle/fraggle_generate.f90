@@ -572,7 +572,6 @@ contains
          mass_fac = fragments%mass(1) / impactors%mass(1)
 
          ! Estimate the angular momentum transfer to the target from the impactor 
-         mfrag = sum(fragments%mass(2:nfrag))
          dL(:) = impactors%mass(2) * (impactors%rc(:,2) - impactors%rc(:,1)) .cross. (impactors%vc(:,2) - impactors%vc(:,1))
 
          if (lhitandrun) then
