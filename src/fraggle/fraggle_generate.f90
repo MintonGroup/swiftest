@@ -586,7 +586,7 @@ contains
          do i = 1, MAXLOOP
             if (.mag.(fragments%rot(:,1) + drot(:)) < collider%max_rot) exit
             if (i == MAXLOOP) drot(:) = 0.0_DP
-            where(drot(:) > TINY(1.0_DP))
+            where(abs(drot(:)) > TINY(1.0_DP))
                drot(:) = drot(:) / 2
             elsewhere
                drot(:) = 0.0_DP
