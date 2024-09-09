@@ -104,10 +104,10 @@ vel_vectors = {"disruption_headon"         : [np.array([ 0.00,  6.280005, 0.0]),
                                               np.array([ 0.05,  6.18,     0.0])] 
                }
 
-rot_vectors = {"disruption_headon"         : [np.array([0.0, 0.0, 0.0e0]),
-                                              np.array([0.0, 0.0, 0e0])],
-               "disruption_off_axis":        [np.array([0.0, 0.0, 2.0e5]),
-                                              np.array([0.0, 0.0, -1.0e5])],
+rot_vectors = {"disruption_headon"         : [np.array([0.0, 0.0, 0.0]),
+                                              np.array([0.0, 0.0, 0.0])],
+               "disruption_off_axis":        [np.array([0.0, 0.0, 0.0]),
+                                              np.array([0.0, 0.0, 0.0])],
                "supercatastrophic_headon":   [np.array([0.0, 0.0, 0.0e0]),
                                               np.array([0.0, 0.0, 0.0e0])],
                "supercatastrophic_off_axis": [np.array([0.0, 0.0, 1.0e5]),
@@ -269,16 +269,16 @@ class AnimatedScatter(object):
         t, Gmass, rh, radius, rotangle = next(self.data_stream(frame))
         x_ref, y_ref = center(Gmass, rh[:,0], rh[:,1]) 
         rh = np.c_[rh[:,0] - x_ref, rh[:,1] - y_ref]
-        self.artists[0].set_offsets(rh)
         point_rad = radius * self.ax_pt_size
-        self.artists[0].set_sizes(point_rad**2)
         
         sarrowend, sarrowtip = self.spin_arrows(rh, rotangle, 1.1*radius)
         for i, s in enumerate(self.artists):
-            if (i == 0):
-                continue
-            self.artists[i].set_position(sarrowtip[i])
-            self.artists[i].xy = sarrowend[i]
+            if (i == 0): # First update the circles representing the bodies
+                self.artists[i].set_offsets(rh)
+                self.artists[i].set_sizes(point_rad**2)
+            else: # Then update the arrows representing the spin
+                self.artists[i].set_position(sarrowtip[i])
+                self.artists[i].xy = sarrowend[i]
         
         return self.artists
 
