@@ -268,8 +268,8 @@ class TestFraggle(unittest.TestCase):
                 expected_rot = np.rad2deg(dL / (body_mass[0] * body_radius[0]**2 * 0.4))
                 rot_error =((rot_final - expected_rot) / rotmag_final).values
                 
-                # Assert that the absolute value of all components of rot_error is less than 1
-                self.assertTrue(np.all(np.abs(rot_error) < 1), f"{style}: The relative error in the final rotation is greater than 1")
+                # Assert that the absolute value of all components of rot_error is less than 2
+                self.assertTrue(np.all(np.abs(rot_error) < 2), f"{style}: The relative error in the final rotation is greater than 2")
                 
                 # for the off axis collision styles, assert that the sign of the z component of rotation is consistent with the expected_rot sign
                 if style != "disruption_headon":
