@@ -1114,14 +1114,14 @@ contains
 #else
          do concurrent(i = 1:2)
 #endif
-            impactors%rot(:,i) = impactors%L_rot(:,i) * (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i))
+            impactors%rot(:,i) = impactors%L_rot(:,i) / (impactors%mass(i) * impactors%radius(i)**2 * impactors%Ip(3,i)) * RAD2DEG
          end do
    
          fragments%mtot      = fragments%mtot      * collider%mscale
          fragments%mass(:)   = fragments%mass(:)   * collider%mscale
          fragments%Gmass(:)  = fragments%Gmass(:)  * (collider%dscale**3/collider%tscale**2)
          fragments%radius(:) = fragments%radius(:) * collider%dscale
-         fragments%rot(:,:)  = fragments%rot(:,:)  / collider%tscale
+         fragments%rot(:,:)  = fragments%rot(:,:)  / collider%tscale * RAD2DEG
          fragments%rc(:,:)   = fragments%rc(:,:)   * collider%dscale
          fragments%vc(:,:)   = fragments%vc(:,:)   * collider%vscale
          fragments%rb(:,:)   = fragments%rb(:,:)   * collider%dscale

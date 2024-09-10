@@ -360,9 +360,9 @@ contains
       logical,                      intent(out)   :: lfailure     
          !! Did the velocity computation fail?
       ! Internals
-      real(DP)  :: dis, direction, rdistance
+      real(DP)  :: dis, direction, rdistance, bias_factor, rmag
       real(DP), dimension(NDIM,2) :: fragment_cloud_center
-      real(DP), dimension(NDIM) :: rwalk
+      real(DP), dimension(NDIM) :: rwalk, orthogonal_vector
       real(DP), dimension(2) :: fragment_cloud_radius
       logical, dimension(collider%fragments%nbody) :: loverlap
       real(DP), dimension(collider%fragments%nbody) :: mass_rscale, phi, theta, u
@@ -428,39 +428,43 @@ contains
                   call random_number(theta(i))
                   call random_number(u(i))
                   phi(i) = TWOPI * phi(i)
-                  theta(i) = asin(2 * theta(i) - 1.0_DP)
+                  theta(i) = PI * theta(i) 
                end if
             end do
 
-            ! Randomly place the n>2 fragments inside their cloud until none are overlapping
-#ifdef DOCONLOC
-            do concurrent(i = istart:nfrag, loverlap(i)) shared(fragments, impactors, fragment_cloud_radius, fragment_cloud_center,&
-                                                               loverlap, mass_rscale, u, phi, theta, lhitandrun) local(j, direction)
-#else
-            do concurrent(i = istart:nfrag, loverlap(i))
-#endif
+            ! Compute random angles and radial distance for fragment positioning
+            do i = istart, nfrag
+               if (.not.loverlap(i)) cycle
                j = fragments%origin_body(i)
 
-               ! Scale the cloud size
-               if (lhitandrun) then
-                  fragments%rmag(i) = fragment_cloud_radius(j) * u(i)**(THIRD)
+               rmag = fragment_cloud_radius(j) * mass_rscale(i) * u(i)**(THIRD)
+
+               if (.not.lhitandrun) then
+                  orthogonal_vector(1) = sin(theta(i)) * cos(phi(i))
+                  orthogonal_vector(2) = sin(theta(i)) * sin(phi(i))
+                  orthogonal_vector(3) = cos(theta(i))
+
+                  ! Rotate the orthogonal vector to be perpendicular to the bounce unit
+                  orthogonal_vector = orthogonal_vector - dot_product(orthogonal_vector, impactors%bounce_unit(:)) * &
+                                        impactors%bounce_unit(:)
+                  orthogonal_vector = orthogonal_vector / .mag.(orthogonal_vector)  ! Normalize it
+
+                  ! Calculate the final position by mixing the bounce direction and random orthogonal component
+                  bias_factor = mass_rscale(i)**(-2)  ! Bias factor: 0 means random, 1 means fully along bounce_unit
+                  fragments%rc(:,i) = rmag * (bias_factor * impactors%bounce_unit(:) + &
+                                      (1.0_DP - bias_factor) * orthogonal_vector)
                else
-                  fragments%rmag(i) = fragment_cloud_radius(j) * mass_rscale(i) * u(i)**(THIRD)
+                  fragments%rc(1,i) = rmag * sin(theta(i)) * cos(phi(i))
+                  fragments%rc(2,i) = rmag * sin(theta(i)) * sin(phi(i))
+                  fragments%rc(3,i) = rmag * cos(theta(i))
                end if
 
-               ! Position the fragment in a random point within the cloud
-               fragments%rc(1,i) = fragments%rmag(i) * sin(theta(i)) * cos(phi(i))
-               fragments%rc(2,i) = fragments%rmag(i) * sin(theta(i)) * sin(phi(i))
-               fragments%rc(3,i) = fragments%rmag(i) * cos(theta(i))
-
-               ! Shift to the cloud center coordinates
-
-               ! Stretch out the hit and run cloud along the flight trajectory
+               ! Adjust based on collision type
                if (lhitandrun) then
+                  ! Stretch out the hit and run cloud along the flight trajectory
                   fragments%rc(:,i) = fragments%rc(:,i) * (1.0_DP + 2 * fragment_cloud_radius(j) * mass_rscale(i) &
-                                                                                                 * impactors%bounce_unit(:))
+                                                            * impactors%bounce_unit(:))
                end if
-
                fragments%rc(:,i) = fragments%rc(:,i) + fragment_cloud_center(:,j)
 
                if (lhitandrun) then
@@ -475,21 +479,25 @@ contains
                   end if
                end if
             end do
+            fragments%rmag(:) = .mag.fragments%rc(:,:)
 
             ! Because body 1 and 2 are initialized near the original impactor positions, then if these bodies are still overlapping
             ! when the rest are not, we will randomly walk their position in space so as not to move them too far from their 
             ! starting  position
             if (all(.not.loverlap(istart:nfrag)) .and. any(loverlap(1:istart-1))) then
+               do j = 1, MAXLOOP
 #ifdef DOCONLOC
-               do concurrent(i = 1:istart-1,loverlap(i)) shared(fragments,loverlap, u, theta, i) local(rwalk, dis)
+                  do concurrent(i = 1:istart-1,loverlap(i)) shared(fragments,loverlap, u, theta, i) local(rwalk, dis)
 #else
-               do concurrent(i = 1:istart-1,loverlap(i))
+                  do concurrent(i = 1:istart-1,loverlap(i))
 #endif
-                  dis = 0.1_DP * fragments%radius(i) * u(i)**(THIRD)
-                  rwalk(1) = fragments%rmag(i) * sin(theta(i)) * cos(phi(i))
-                  rwalk(2) = fragments%rmag(i) * sin(theta(i)) * sin(phi(i))
-                  rwalk(3) = fragments%rmag(i) * cos(theta(i)) 
-                  fragments%rc(:,i) = fragments%rc(:,i) + rwalk(:)
+                     dis = 0.1_DP * fragments%radius(i) * u(i)**(THIRD)
+                     rwalk(1) = dis * sin(theta(i)) * cos(phi(i))
+                     rwalk(2) = dis * sin(theta(i)) * sin(phi(i))
+                     rwalk(3) = dis * cos(theta(i)) 
+                     fragments%rc(:,i) = fragments%rc(:,i) + rwalk(:)
+                  end do
+                  if (all(.not.loverlap(1:istart-1))) exit
                end do
             end if
 
@@ -562,51 +570,40 @@ contains
          ! Initialize fragment rotations and velocities to be pre-impact rotation for body 1, and randomized for bodies >1 and 
          ! scaled to the original rotation.  This will get updated later when conserving angular momentum
          mass_fac = fragments%mass(1) / impactors%mass(1)
-         fragments%rot(:,1) = mass_fac**(5.0_DP/3.0_DP) * impactors%rot(:,1)
 
-         ! If mass was added, also add rotational angular momentum
-         if (mass_fac > 1.0_DP) then
-            dL(:) = (fragments%mass(1) - impactors%mass(1)) * (impactors%rc(:,2) - impactors%rc(:,1)) &
-                                                      .cross. (impactors%vc(:,2) - impactors%vc(:,1))
-            drot(:) = dL(:) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(3,1))
-            ! Check to make sure we haven't broken the rotation barrier. Reduce the rotation change if so
-            do i = 1, MAXLOOP
-               if (.mag.(fragments%rot(:,1) + drot(:)) < collider%max_rot) exit
-               if (i == MAXLOOP) drot(:) = 0.0_DP
-               where(drot(:) > TINY(1.0_DP))
-                  drot(:) = drot(:) / 2
-               elsewhere
-                  drot(:) = 0.0_DP
-               endwhere
-            end do
-            fragments%rot(:,1) = fragments%rot(:,1) + drot(:)
-         end if
+         ! Estimate the angular momentum transfer to the target from the impactor 
+         dL(:) = impactors%mass(2) * (impactors%rc(:,2) - impactors%rc(:,1)) .cross. (impactors%vc(:,2) - impactors%vc(:,1))
 
          if (lhitandrun) then
-            dL(:) = hitandrun_momentum_transfer * impactors%mass(2) * (impactors%rc(:,2) - impactors%rc(:,1)) & 
-                                                              .cross. (impactors%vc(:,2) - impactors%vc(:,1)) 
-            drot(:) = dL(:) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(3,1))
-            do i = 1, MAXLOOP
-               if (.mag.(fragments%rot(:,1) + drot(:)) < collider%max_rot) exit
-               if (i == MAXLOOP) drot(:) = 0.0_DP
-               where(drot(:) > TINY(1.0_DP))
-                  drot(:) = drot(:) / 2
-               elsewhere
-                  drot(:) = 0.0_DP
-               endwhere
-            end do
-            fragments%rot(:,1) = fragments%rot(:,1) + drot(:)
-         end if   
+            dL(:) = dL(:) * hitandrun_momentum_transfer
+         end if
+   
+         ! Estimate the change in rotation (impulsive torque approximation)
+         drot(:) = dL(:) / (fragments%mass(1) * fragments%radius(1)**2 * fragments%Ip(3,1))
+   
+         ! Ensure the resulting rotation doesn't exceed the allowed maximum rotation
+         do i = 1, MAXLOOP
+            if (.mag.(fragments%rot(:,1) + drot(:)) < collider%max_rot) exit
+            if (i == MAXLOOP) drot(:) = 0.0_DP
+            where(abs(drot(:)) > TINY(1.0_DP))
+               drot(:) = drot(:) / 2
+            elsewhere
+               drot(:) = 0.0_DP
+            endwhere
+         end do
+   
+         ! Update rotation for body 1 based on impulse
+         fragments%rot(:,1) =impactors%rot(:,1) + drot(:)
 
          call random_number(fragments%rot(:,2:nfrag))
 #ifdef DOCONLOC
-         do concurrent (i = 2:nfrag) shared(fragments,impactors) local(mass_fac)
+         do concurrent (i = 2:nfrag) shared(fragments,impactors,drot) local(mass_fac)
 #else
          do concurrent (i = 2:nfrag)
 #endif
             mass_fac = fragments%mass(i) / impactors%mass(2)
-            fragments%rot(:,i) = mass_fac**(5.0_DP/3.0_DP) * impactors%rot(:,2) + 2 * (fragments%rot(:,i) - 1.0_DP) * &
-                                 FRAG_ROT_FAC * norm2(impactors%rot(:,2))
+            fragments%rot(:,i) = mass_fac**(5.0_DP/3.0_DP) * impactors%rot(:,2) +  (2 * fragments%rot(:,i) - 1.0_DP) * &
+                                 FRAG_ROT_FAC * (.mag.(impactors%rot(:,2) - drot(:)))
          end do
          fragments%rotmag(:) = .mag.fragments%rot(:,:)
 
@@ -705,14 +702,15 @@ contains
                   vsign(:) = 1
                end where
 
-               ! Scale the magnitude of the velocity by the distance from the impact point
+               ! Scale the magnitude of the velocity by the distance from the origin body.
                ! This will reduce the chances of fragments colliding with each other immediately, and is more physically correct  
 #ifdef DOCONLOC
-               do concurrent(i = 1:fragments%nbody) shared(fragments,impactors,vscale) local(rimp)
+               do concurrent(i = 1:fragments%nbody) shared(fragments,impactors,vscale) local(rimp,j)
 #else
                do concurrent(i = 1:fragments%nbody) 
 #endif
-                  rimp(:) = fragments%rc(:,i) - impactors%rbcom(:) 
+                  j = fragments%origin_body(i)
+                  rimp(:) = fragments%rc(:,i) - impactors%rc(:,j)
                   vscale(i) = .mag. rimp(:) / sum(impactors%radius(1:2))
                end do
 
@@ -767,49 +765,47 @@ contains
                   L_residual_unit(:) = .unit. L_residual(:)
                   if (nsteps == 1) L_residual_best(:) = L_residual(:) * L_mag_factor
 
-                  do i = istart,fragments%nbody
-                     if (i == 1) then
-                        dL(:) = -L_residual(:) * L_mag_factor
-                        drot(:) = dL(:) / (fragments%mass(i) * fragments%Ip(3,i) * fragments%radius(i)**2)
-                        fragments%rot(:,i) = fragments%rot(:,i) + drot(:)
-                     else
-                        call random_number(drot)
-                        call random_number(rn)
-                        drot(:) = (rn * collider_local%max_rot - fragments%rotmag(i)) * 2 * (drot(:) - 0.5_DP)
-                        fragments%rot(:,i) = fragments%rot(:,i) + drot(:)
-                        fragments%rotmag(i) = .mag.fragments%rot(:,i)
-                     end if
-                     if (fragments%rotmag(i) > collider%max_rot) then
-                        if (i == 1) then
-                           ! The rotation barrier would be broken. Set the rotation back to that of the target
-                           fragments%rot(:,i) = impactors%rot(:,i)
-                           fragments%rotmag(i) = .mag.fragments%rot(:,i)
-                        else 
-                           ! Drop the small fragment rotation down by half
-                           fragments%rotmag(i) = 0.5_DP * collider%max_rot
-                           fragments%rot(:,i) = fragments%rotmag(i) * .unit. fragments%rot(:,i)
-                        end if
-                     end if 
-                     L_residual(:) = L_residual(:) + drot(:) * fragments%Ip(3,i) * fragments%mass(i) * fragments%radius(i)**2 & 
-                                                      / L_mag_factor
-                  end do
-
-                  ! Put any remaining residual into velocity shear
                   angmtm: do j = 1, MAXANGMTM
                      if (j == MAXANGMTM) exit inner
-                     call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
-                     L_mag_factor = .mag.(collider_local%L_total(:,1) + collider_local%L_total(:,2))
-                     L_residual(:) = (collider_local%L_total(:,2) / L_mag_factor - collider_local%L_total(:,1)/L_mag_factor)
-                     dL_metric(:) = abs(L_residual(:)) / MOMENTUM_SUCCESS_METRIC
 
-                     if (all(dL_metric(:) <= 1.0_DP)) exit angmtm
-   
-                     do i = istart, fragments%nbody
-                        dL(:) = -L_residual(:) * L_mag_factor * fragments%mass(i) / sum(fragments%mass(istart:fragments%nbody))
+                     ! First try to put residual momentum into the velocity distribution of the fragments
+                     do i = istart,fragments%nbody
+                        ! Compute the current residual angular momentum and check if the metric has been met yet
+                        call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
+                        L_mag_factor = .mag.(collider_local%L_total(:,1) + collider_local%L_total(:,2))
+                        L_residual(:) = (collider_local%L_total(:,2) / L_mag_factor - collider_local%L_total(:,1)/L_mag_factor)
+                        dL_metric(:) = abs(L_residual(:)) / MOMENTUM_SUCCESS_METRIC
+                        if (all(dL_metric(:) <= 1.0_DP)) exit angmtm
+
+                        dL(:) = -L_residual(:) * L_mag_factor  
                         call collision_util_velocity_torque(dL, fragments%mass(i), fragments%rc(:,i), fragments%vc(:,i))
+                        call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)  
+                        fragments%vmag(:) = .mag.fragments%vc(:,:)
+
+                        ! Now try to put residual momentum into the rotation of the fragments
+                        call collider_local%get_energy_and_momentum(nbody_system, param, phase="after")
+                        L_mag_factor = .mag.(collider_local%L_total(:,1) + collider_local%L_total(:,2))
+                        L_residual(:) = (collider_local%L_total(:,2) / L_mag_factor - collider_local%L_total(:,1)/L_mag_factor)
+                        dL_metric(:) = abs(L_residual(:)) / MOMENTUM_SUCCESS_METRIC
+                        if (all(dL_metric(:) <= 1.0_DP)) exit angmtm
+
+                        if (i == istart) then
+                           dL(:) = -L_residual(:) * L_mag_factor
+                        else
+                           dL(:) = -L_residual(:) * L_mag_factor * fragments%mass(i) / sum(fragments%mass(istart+1:fragments%nbody))
+                        end if
+                        drot(:) = dL(:) / (fragments%mass(i) * fragments%Ip(3,i) * fragments%radius(i)**2)
+
+                        ! Ensure rotation adjustment doesn't exceed allowed limit
+                        if (.mag.(fragments%rot(:,i) + drot(:)) <= collider%max_rot) then
+                           fragments%rot(:,i) = fragments%rot(:,i) + drot(:)
+                        else if (i > istart) then
+                           fragments%rotmag(i) = 0.5_DP * collider%max_rot
+                           fragments%rot(:,i) = fragments%rotmag(i) * .unit. fragments%rot(:,i)
+                        end if  
+                        
+                        fragments%rotmag(i) = .mag.fragments%rot(:,i)
                      end do
-                     call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)  
-                     fragments%vmag(:) = .mag.fragments%vc(:,:)
                   end do angmtm
 
                   call collision_util_shift_vector_to_origin(fragments%mass, fragments%vc)            
