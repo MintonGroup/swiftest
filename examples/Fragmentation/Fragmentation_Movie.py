@@ -141,15 +141,6 @@ tstop = {"disruption_headon"         : 2.0e-3,
          "merge"                     : 5.0e-3,
          "merge_spinner"             : 5.0e-3,
          }
-dt = {"disruption_headon"         : 5e-4,
-      "disruption_off_axis"       : 5e-4,
-      "supercatastrophic_headon"  : 5e-4,
-      "supercatastrophic_off_axis": 5e-4,
-      "hitandrun_disrupt"         : 1e-4,
-      "hitandrun_pure"            : 1e-4,
-      "merge"                     : 5e-4,
-      "merge_spinner"             : 5e-4,
-      }   
 
 density = 3000 * swiftest.AU2M**3 / swiftest.MSun
 GU = swiftest.GMSun * swiftest.YR2S**2 / swiftest.AU2M**3
@@ -384,7 +375,7 @@ if __name__ == "__main__":
                           gmtiny=gmtiny, 
                           minimum_fragment_gmass=minimum_fragment_gmass, 
                           nfrag_reduction=nfrag_reduction[style])
-        sim.run(dt=dt[style], tstop=tstop[style], istep_out=1, dump_cadence=0)
+        sim.run(dt=tstop[style]/4, tstop=tstop[style], istep_out=1, dump_cadence=0)
 
         print("\nGenerating animation")
         anim = AnimatedScatter(sim,movie_filename,movie_titles[style],style,nskip=1)
