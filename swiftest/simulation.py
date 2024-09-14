@@ -4054,7 +4054,8 @@ class Simulation(object):
        
         vars=[k for k in ic_vars if k in ds] 
         ds=ds[vars]
-        cbname = ds['name'].where(ds['particle_type'] == constants.CB_TYPE_NAME,drop=True).values[0]
+        iscb = ds['particle_type'].compute() == constants.CB_TYPE_NAME
+        cbname = ds['name'].where(iscb,drop=True).values[0]
         if 'j2rp2' in ds:
             if 'name' in ds.j2rp2.dims:
                 j2rp2 = ds.j2rp2.sel(name=cbname)
