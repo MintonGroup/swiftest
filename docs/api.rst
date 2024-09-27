@@ -83,7 +83,6 @@ File Input and Output
     Simulation.read_encounter_file
     Simulation.read_collision_file
     Simulation.follow
-    Simulation.initial_conditions_from_data
     Simulation.save
     Simulation.convert
     Simulation.clean
