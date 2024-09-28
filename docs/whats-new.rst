@@ -2,6 +2,42 @@
 
 What's New
 ==========
+.. _whats-new.2024.09.2:
+
+`v2024.09.2`_
+-------------
+.. _v2024.09.2: https:///github.com/MintonGroup/swiftest/releases/tag/v2024.09.2
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Added Python 3.13 for aarch64 Linux to the ignore list for cibuildwheel for due to incompatibility with the hdf5 python package.
+
+.. _whats-new.2024.09.1:
+
+`v2024.09.1`_
+-------------
+.. _v2024.09.1: https:///github.com/MintonGroup/swiftest/releases/tag/v2024.09.1
+
+Bug Fixes
+~~~~~~~~~
+-  Added a `.compute()` method call to to the the `particle_type` call in the indexer inside of the internal `_scrub_init_cond()` method to allow for proper operation when dask is turned on.
+
+Breaking Changes
+~~~~~~~~~~~~~~~~
+- Removed `initial_conditions_from_data` method, as its core functionality is the same as :func:`save <swiftest.Simulation.save>` . `GH46`_
+
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Added support for macos-15 (Sequoia) to the build process.
+
+.. _GH46: https://github.com/MintonGroup/swiftest/issues/46
+
+Contributors
+~~~~~~~~~~~~
+- `David Minton`_
+
+.. _David Minton: https://github.com/profminton
 
 .. _whats-new.2024.09.0:
 
