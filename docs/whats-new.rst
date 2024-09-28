@@ -2,8 +2,17 @@
 
 What's New
 ==========
+.. _whats-new.2024.09.2:
 
-.. _whats-new.2024.09.0:
+`v2024.09.2`_
+-------------
+.. _v2024.09.2: https:///github.com/MintonGroup/swiftest/releases/tag/v2024.09.2
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Added Python 3.13 for aarch64 Linux to the ignore list for cibuildwheel for due to incompatibility with the hdf5 python package.
+
+.. _whats-new.2024.09.1:
 
 `v2024.09.1`_
 -------------
