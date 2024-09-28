@@ -798,10 +798,11 @@ class TestSwiftestIO(unittest.TestCase):
                         nfrag_reduction=nfrag_reduction)
         sim.run(dt=tstop/4, tstop=tstop, istep_out=1, dump_cadence=0)
 
-        # read in the data with dask
+        # read in the data with dask and then save a new set of initial conditions
         try:
             sim_read = swiftest.Simulation(simdir=self.simdir, read_param=True, read_data=True, 
                                             read_collisions=True, dask = True)
+            sim_read.save()
         except Exception as e:
             self.fail(f"Failed to read in data with dask: {e}")
 
@@ -891,6 +892,7 @@ class TestSwiftestIO(unittest.TestCase):
 
         # Clean up by resetting stdout
         sys.stdout = sys.__stdout__
+
 if __name__ == '__main__':
     os.environ["HDF5_USE_FILE_LOCKING"]="FALSE"
     unittest.main()
