@@ -4054,7 +4054,8 @@ class Simulation(object):
        
         vars=[k for k in ic_vars if k in ds] 
         ds=ds[vars]
-        cbname = ds['name'].where(ds['particle_type'] == constants.CB_TYPE_NAME,drop=True).values[0]
+        iscb = ds['particle_type'].compute() == constants.CB_TYPE_NAME
+        cbname = ds['name'].where(iscb,drop=True).values[0]
         if 'j2rp2' in ds:
             if 'name' in ds.j2rp2.dims:
                 j2rp2 = ds.j2rp2.sel(name=cbname)
@@ -4171,86 +4172,6 @@ class Simulation(object):
             warnings.warn(f'Saving to {codename} not supported',stacklevel=2)
 
         return
-
-    def initial_conditions_from_data(self, 
-                                    framenum: int=-1, 
-                                    new_param: os.PathLike | None=None, 
-                                    new_param_file: os.PathLike="param.new.in",
-                                    new_initial_conditions_file: os.PathLike="bin_in.nc", 
-                                    restart: bool=False, 
-                                    codename: str="Swiftest",
-                                    **kwargs: Any
-                                    ) -> SwiftestDataset:
-        """
-        Generates a set of input files from a old output file.
-
-        Parameters
-        ----------
-        framenum : int (default=-1)
-            Time frame to use to generate the initial conditions. If this argument is not passed, the default is to use the last frame in the dataset.
-        new_param : PathLike, optional
-            File to copy parameters from. Default is the old parameter file.
-        new_param_file : PathLike, default "param.new.in"
-            Name of the new parameter file.
-        new_initial_conditions_file : PathLike, default "bin_in.nc"
-            Name of the new NetCDF file containing the new initial conditions.
-        restart : bool, default False
-            If True, overwrite the old output file. If False, generate a new output file.
-        codename : str, default "Swiftest"
-            Name of the desired format (Swift/Swifter/Swiftest)
-        **kwargs : Any
-            A dictionary of additional keyword arguments. 
-
-        Returns
-        -------
-        xarray dataset
-            A dataset containing the extracted initial condition data.
-        """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose         
-            
-        frame = None
-        if codename != "Swiftest":
-            self.save(new_param_file, framenum, codename)
-            return
-
-        if new_param is None:
-            new_param = self.param.copy()
-
-        if codename == "Swiftest":
-            if restart:
-                new_param['T0'] = self.data.time.values[framenum]
-            if self.param['OUT_TYPE'] == 'NETCDF_DOUBLE':
-                new_param['IN_TYPE'] = 'NETCDF_DOUBLE'
-            elif self.param['OUT_TYPE'] == 'NETCDF_FLOAT':
-                new_param['IN_TYPE'] = 'NETCDF_FLOAT'
-            else:
-                if verbose:
-                    warnings.warn(f"{self.param['OUT_TYPE']} is an invalid OUT_TYPE file",stacklevel=2)
-                return
-
-            if self.param['BIN_OUT'] != new_param['BIN_OUT'] and restart:
-                print(f"Restart run with new output file. Copying {self.param['BIN_OUT']} to {new_param['BIN_OUT']}")
-                shutil.copy2(self.param['BIN_OUT'], new_param['BIN_OUT'])
-
-            new_param['IN_FORM'] = 'XV'
-            if restart:
-                new_param['OUT_STAT'] = 'APPEND'
-
-            new_param['FIRSTKICK'] = 'T'
-            new_param['NC_IN'] = new_initial_conditions_file
-            new_param.pop('PL_IN', None)
-            new_param.pop('TP_IN', None)
-            new_param.pop('CB_IN', None)
-            if verbose:
-                print(f"Extracting data from dataset at time frame number {framenum} and saving it to {new_param['NC_IN']}")
-            frame = io.swiftest_xr2infile(self.data, self.param, infile_name=new_param['NC_IN'], framenum=framenum, verbose=verbose)
-            print(f"Saving parameter configuration file to {new_param_file}")
-            self.write_param(new_param_file, param=new_param,verbose=verbose)
-
-        return frame
 
     def clean(self,
               deep: bool=False,
