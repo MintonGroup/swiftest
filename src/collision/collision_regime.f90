@@ -295,10 +295,18 @@ contains
 
       ! Calculate impactor body ejecta mass that escapes from the target
 
-      mu_HG20_imp = a_imp * theta**2 + b_imp * theta + c_imp
+      if (theta < 15.0_DP) then ! Below table 1
+         mu_HG20_imp = 0.0_DP
+         C_HG20_imp = 1.0_DP
+      else
+         mu_HG20_imp = a_imp * theta**2 + b_imp * theta + c_imp
+         C_HG20_imp = exp(d_imp * theta**3 + e_imp * theta**2 + f_imp * theta + g_imp) 
+      end if
+
       C_HG20_imp = exp(d_imp * theta**3 + e_imp * theta**2 + f_imp * theta + g_imp) 
       M_esc_imp = C_HG20_imp * (V_esc / (V_imp * sin(theta_rad)))**(-3.0_DP * mu_HG20_imp) ! impactor mass units
       M_esc_imp = min(M_esc_imp, 1.0_DP) ! Max value of M_esc_imp is 1.0 (impactor mass units)
+      M_esc_imp = max(M_esc_imp, 0.0_DP) ! Min value of M_esc_imp is 0.0 (impactor mass units)
 
       M_esc_total = M_esc_tar + M_esc_imp ! impactor mass units
 
