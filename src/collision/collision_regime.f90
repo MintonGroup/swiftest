@@ -272,8 +272,8 @@ contains
       c_star = calc_c_star(Rc1)
 
       V_imp = norm2(vb_imp(:) - vb_tar(:)) ! Impact velocity
-      theta_rad = calc_theta(rh_tar, vb_tar, rh_imp, vb_imp) ! Impact angle in degrees
-      theta = theta_rad * RAD2DEG ! Impact angle in radians
+      theta_rad = calc_theta(rh_tar, vb_tar, rh_imp, vb_imp) ! Impact angle in radians
+      theta = theta_rad * RAD2DEG ! Impact angle in degrees
       V_esc = sqrt(2 * GC * M_tar / rad_tar) ! Escape velocity of the target body
 
       ! Specific binding energy
@@ -291,6 +291,7 @@ contains
       M_esc_tar_HH11 = C_HH11 * (V_esc / (V_imp * sin(theta_rad)))**(-3.0_DP * mu_HH11) ! impactor mass units
 
       M_esc_tar = min(M_esc_tar_HG20, M_esc_tar_HH11) ! impactor mass units
+      M_esc_tar = max(M_esc_tar, 0.0_DP) ! Min value of M_esc_tar is 0.0 (impactor mass units)
 
       ! Calculate impactor body ejecta mass that escapes from the target
 
@@ -364,7 +365,7 @@ contains
             x_cross_v(:) = distance(:) .cross. imp_vel(:) 
             sintheta = norm2(x_cross_v(:)) / norm2(distance(:)) / norm2(imp_vel(:))
 
-            theta = asin(sintheta) ! Find a more exact way to calculate theta
+            theta = (PI / 2) - abs(asin(sintheta)) ! Find a more exact way to calculate theta
 
             return
          end function calc_theta
