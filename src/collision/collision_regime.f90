@@ -291,8 +291,7 @@ contains
       M_esc_tar_HH11 = C_HH11 * (V_esc / (V_imp * sin(theta_rad)))**(-3.0_DP * mu_HH11) ! impactor mass units
 
       M_esc_tar = min(M_esc_tar_HG20, M_esc_tar_HH11) ! impactor mass units
-      M_tmp = M_esc_tar
-      M_esc_tar = max(M_tmp, 0.0_DP) ! Min value of M_esc_tar is 0.0 (impactor mass units)
+      M_esc_tar = max(M_esc_tar, 0.0_DP) ! Min value of M_esc_tar is 0.0 (impactor mass units)
 
       ! Calculate impactor body ejecta mass that escapes from the target
 
