@@ -356,7 +356,7 @@ contains
             !! Calculate the impact angle between two colliding bodies
             !! For HG20, theta = 90 degrees - asin(b) where b is the impact parameter 
             !! (if impactor radius << target radius)
-            !! 90 degrees is a head-on collision
+            !! 90 degrees is a head-on collision, angle calculated from horizon
             !!
             implicit none
             ! Arguments
@@ -372,7 +372,7 @@ contains
             x_cross_v(:) = distance(:) .cross. imp_vel(:) 
             sintheta = norm2(x_cross_v(:)) / norm2(distance(:)) / norm2(imp_vel(:))
 
-            theta = (PI / 2) - abs(asin(sintheta)) ! Find a more exact way to calculate theta
+            theta = (PI / 2) - abs(asin(sintheta)) ! asin() bounds angle to -pi/2 to pi/2
 
             return
          end function calc_theta
