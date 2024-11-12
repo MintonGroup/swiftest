@@ -364,15 +364,14 @@ contains
             ! Result
             real(DP) :: theta ! radians
             ! Internals
-            real(DP), dimension(NDIM)  :: imp_vel, distance, x_cross_v
-            real(DP) :: sintheta
+            real(DP), dimension(NDIM)  :: imp_vel, distance
+            real(DP) :: x_dot_v
 
             imp_vel(:) = v_imp(:) - v_tar(:)
             distance(:) = r_imp(:) - r_tar(:)
-            x_cross_v(:) = distance(:) .cross. imp_vel(:) 
-            sintheta = norm2(x_cross_v(:)) / norm2(distance(:)) / norm2(imp_vel(:))
 
-            theta = (PI / 2) - abs(asin(sintheta)) ! asin() bounds angle to -pi/2 to pi/2
+            x_dot_v = distance(1) * imp_vel(1) + distance(2) * imp_vel(2) + distance(3) * imp_vel(3)
+            theta = PIBY2 - acos(x_dot_v / (.mag.distance(:) * .mag.imp_vel(:)))
 
             return
          end function calc_theta
