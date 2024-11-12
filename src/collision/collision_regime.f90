@@ -365,13 +365,11 @@ contains
             real(DP) :: theta ! radians
             ! Internals
             real(DP), dimension(NDIM)  :: imp_vel, distance
-            real(DP) :: x_dot_v
 
             imp_vel(:) = v_imp(:) - v_tar(:)
             distance(:) = r_imp(:) - r_tar(:)
 
-            x_dot_v = distance(1) * imp_vel(1) + distance(2) * imp_vel(2) + distance(3) * imp_vel(3)
-            theta = PIBY2 - acos(x_dot_v / (.mag.distance(:) * .mag.imp_vel(:)))
+            theta = PIBY2 - acos(dot_product(distance(:), imp_vel(:)) / (.mag.distance(:) * .mag.imp_vel(:)))
 
             return
          end function calc_theta
