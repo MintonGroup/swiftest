@@ -20,6 +20,8 @@ from numpy.random import default_rng
 from astroquery.jplhorizons import Horizons
 import datetime
 import tempfile
+import subprocess
+from contextlib import chdir
 
 rng = default_rng(seed=123)
 
@@ -892,7 +894,36 @@ class TestSwiftestIO(unittest.TestCase):
 
         # Clean up by resetting stdout
         sys.stdout = sys.__stdout__
+        
 
+
+    def test_init_cond_format_change(self):
+        """
+        Test that the user can switch between XV and EL input types even after bodies have been added
+        """
+        def _run_simulation(start_format, end_format):
+            sim = swiftest.Simulation(simdir=self.simdir, init_cond_format=start_format)
+            sim.clean(deep=True)
+            sim.add_solar_system_body(["Sun", "Jupiter"])
+            sim.set_parameter(init_cond_format=end_format,tstop=5, dt=5)
+            sim.clean()
+            sim.save()
+            with chdir(sim.simdir):
+                res = subprocess.run(["swiftest","symba","param.in","quiet"], capture_output=True).stdout.decode()
+            if "error" in res:
+                raise Exception("Error in simulation")
+           
+        try:
+            _run_simulation("XV", "EL")    
+        except:
+            self.fail("Failed XV->EL")
+            
+        try:
+            _run_simulation("EL", "XV")    
+        except:
+            self.fail("Failed EL->XV")
+
+                
 if __name__ == '__main__':
     os.environ["HDF5_USE_FILE_LOCKING"]="FALSE"
     unittest.main()

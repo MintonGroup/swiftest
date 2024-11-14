@@ -4227,7 +4227,10 @@ class Simulation(object):
                   os.remove(f)
                   
         # Clean out data structure and reset it to initial conditions
-        self.data = self.init_cond.copy(deep=True)
+        if 'time' in self.data:
+            self.data = self.data.isel(time=[0])
+        else:
+            self.data = self.init_cond.copy(deep=True)
         return
 
     def _set_central_body(self, 
