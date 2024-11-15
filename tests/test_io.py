@@ -21,7 +21,20 @@ from astroquery.jplhorizons import Horizons
 import datetime
 import tempfile
 import subprocess
-from contextlib import chdir
+
+# if python version is >=3.11 use contextlib.chdir, otherwise we need to define it manually 
+if sys.version_info >= (3, 11):
+    from contextlib import chdir
+else:
+    from contextlib import contextmanager
+    @contextmanager
+    def chdir(path):
+        oldpwd = os.getcwd()
+        os.chdir(path)
+        try:
+            yield
+        finally:
+            os.chdir(oldpwd)
 
 rng = default_rng(seed=123)
 
