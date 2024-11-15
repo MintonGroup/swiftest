@@ -2,6 +2,34 @@
 
 What's New
 ==========
+.. _whats-new.2024.11.0:
+
+`v2024.11.0`_
+-------------
+.. _v2024.11.0: https:///github.com/MintonGroup/swiftest/releases/tag/v2024.11.0
+
+Bug Fixes
+~~~~~~~~~
+- Fixed impact angle calculation in the Hyodo and Genda (2020) model. Previously it was measured from the zenith rather than from the horizon. `GH61`_
+- Fixed issue that was causing EL or XV inputs to get erased. When calling the clean() method, the data Dataset needs to be reset to the first time frame rather than getting overridden by the init_cond Dataset, because init_cond gets scrubbed of unneeded values. `GH63`_
+- Override the rotation and compute_conservation_values options to set them to True when using SyMBA, and issue a warning if the user tries to turn them off. `GH63`_
+- Added a check for SyMBA rotation and energy parameters in the Fortran side and a corresponding unit test. `GH63`_
+
+Breaking Changes
+~~~~~~~~~~~~~~~~
+- Support for ``python 3.9`` has been dropped and the minimum versions of some dependencies were changed in order to allow for ``numpy>=2``.
+
+  ===================== ========= =========
+   Package                    Old       New
+  ===================== ========= =========
+   python                     3.8       3.9
+   numpy                 ==1.26.4  >=1.26.4
+   xarray                2024.2.0 2024.10.0
+  ===================== ========= =========
+
+.. _GH61: https://github.com/MintonGroup/swiftest/issues/61
+.. _GH63: https://github.com/MintonGroup/swiftest/issues/63
+
 .. _whats-new.2024.09.2:
 
 `v2024.09.2`_
