@@ -924,13 +924,31 @@ class TestSwiftestIO(unittest.TestCase):
     def test_symba_override_options(self):
         # Tests that the `rotation=False` and `compute_conservation_values=False` options are ignored when using the SyMBA integrator, and that
         # a warning will be issued if they are set to False.
-        sim = swiftest.Simulation(simdir=self.simdir, integrator="symba")         
+        sim = swiftest.Simulation(simdir=self.simdir, integrator="symba")      
+        sim.add_solar_system_body(["Sun","Mercury"])   
         with self.assertWarns(UserWarning):
             sim.set_parameter(rotation=False)
         with self.assertWarns(UserWarning):
             sim.set_parameter(compute_conservation_values=False)
         self.assertTrue(sim.param["ROTATION"], "The `rotation` parameter should be set to True when using the SyMBA integrator.")
         self.assertTrue(sim.param["ENERGY"], "The `compute_conservation_values` parameter should be set to True when using the SyMBA integrator.") 
+        
+        # Test that manually overriding still throws an error on the Fortran side
+        sim.param['ENERGY'] = False
+        sim.save() 
+        with chdir(self.simdir):
+            res = subprocess.run(["swiftest","symba","param.in","quiet"], capture_output=True).stdout.decode()
+            if "error" not in res:
+                self.fail('Failed to throw error when setting ENERGY to "NO" param.in')
+                
+        sim.param['ENERGY'] = True
+        sim.param['ROTATION'] = False
+        sim.save()
+        with chdir(self.simdir):
+            res = subprocess.run(["swiftest","symba","param.in","quiet"], capture_output=True).stdout.decode()
+            if "error" not in res:
+                self.fail('Failed to throw error when setting ROTATION to "NO" param.in')
+        
         
 if __name__ == '__main__':
     os.environ["HDF5_USE_FILE_LOCKING"]="FALSE"
