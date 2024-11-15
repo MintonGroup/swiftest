@@ -230,7 +230,7 @@ class Simulation(object):
             "MIN_GMFRAG": 0.0,
             "NFRAG_REDUCTION": 30.0,
             "ROTATION": True,
-            "ENERGY": False,
+            "ENERGY": True,
             "EXTRA_FORCE": False,
             "BIG_DISCARD": False,
             "RHILL_PRESENT": False,
@@ -1331,7 +1331,13 @@ class Simulation(object):
                 update_list.append("nfrag_reduction")
 
             if rotation is not None:
-                self.param['ROTATION'] = rotation
+                if self.integrator == "symba":
+                    if not rotation:
+                        if verbose:
+                            warnings.warn("Rotation is on by default for SyMBA. This option is ignored",stacklevel=2)                 
+                    self.param['ROTATION'] = True
+                else:
+                    self.param['ROTATION'] = rotation
                 update_list.append("rotation")
 
             if self.param['COLLISION_MODEL'] == "FRAGGLE" and not self.param['ROTATION']:
@@ -1345,6 +1351,9 @@ class Simulation(object):
                 
             if compute_conservation_values is not None:
                 if self.integrator == "symba":
+                    if not compute_conservation_values:
+                        if verbose:
+                            warnings.warn("Energy, angular momentum, and mass conservation values are computed by default for SyMBA. This option is ignored",stacklevel=2) 
                     self.param["ENERGY"] = True
                 else:
                     self.param["ENERGY"] = compute_conservation_values

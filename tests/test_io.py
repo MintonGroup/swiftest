@@ -895,8 +895,6 @@ class TestSwiftestIO(unittest.TestCase):
         # Clean up by resetting stdout
         sys.stdout = sys.__stdout__
         
-
-
     def test_init_cond_format_change(self):
         """
         Test that the user can switch between XV and EL input types even after bodies have been added
@@ -923,7 +921,17 @@ class TestSwiftestIO(unittest.TestCase):
         except:
             self.fail("Failed EL->XV")
 
-                
+    def test_symba_override_options(self):
+        # Tests that the `rotation=False` and `compute_conservation_values=False` options are ignored when using the SyMBA integrator, and that
+        # a warning will be issued if they are set to False.
+        sim = swiftest.Simulation(simdir=self.simdir, integrator="symba")         
+        with self.assertWarns(UserWarning):
+            sim.set_parameter(rotation=False)
+        with self.assertWarns(UserWarning):
+            sim.set_parameter(compute_conservation_values=False)
+        self.assertTrue(sim.param["ROTATION"], "The `rotation` parameter should be set to True when using the SyMBA integrator.")
+        self.assertTrue(sim.param["ENERGY"], "The `compute_conservation_values` parameter should be set to True when using the SyMBA integrator.") 
+        
 if __name__ == '__main__':
     os.environ["HDF5_USE_FILE_LOCKING"]="FALSE"
     unittest.main()
