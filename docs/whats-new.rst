@@ -2,18 +2,21 @@
 
 What's New
 ==========
+.. _whats-new.2024.11.1:
+
+:release:`v2024.11.1`
+---------------------
 
 Bug Fixes
 ~~~~~~~~~
-- Some versions of Cython would raise an exception of a long double array was passed to the :meth:`~swiftest.SwiftestDataset.xv2el` or :meth:`~swiftest.SwiftestDataset.el2xv` methods. All input values are now cast to ``np.float64`` before being passed to the Cython methods. `GH66`_
-
-.. _GH66: https://github.com/MintonGroup/swiftest/issues/66
+- Some versions of Cython would raise an exception of a long double array was passed to the :meth:`~swiftest.SwiftestDataset.xv2el` or :meth:`~swiftest.SwiftestDataset.el2xv` methods. All input values are now cast to ``np.float64`` before being passed to the Cython methods. 
+  (:issue:`66` :pull:`67`)
+  By `David Minton`_
 
 .. _whats-new.2024.11.0:
 
-`v2024.11.0`_
--------------
-.. _v2024.11.0: https:///github.com/MintonGroup/swiftest/releases/tag/v2024.11.0
+:release:`v2024.11.0`
+---------------------
 
 Bug Fixes
 ~~~~~~~~~
@@ -37,11 +40,16 @@ Breaking Changes
 .. _GH61: https://github.com/MintonGroup/swiftest/issues/61
 .. _GH63: https://github.com/MintonGroup/swiftest/issues/63
 
+Contributors
+~~~~~~~~~~~~
+- `David Minton`_
+- `Kaustub Anand`_
+
 .. _whats-new.2024.09.2:
 
 `v2024.09.2`_
 -------------
-.. _v2024.09.2: https:///github.com/MintonGroup/swiftest/releases/tag/v2024.09.2
+.. _v2024.09.2: https://github.com/MintonGroup/swiftest/releases/tag/v2024.09.2
 
 Internal Changes
 ~~~~~~~~~~~~~~~~
@@ -51,7 +59,7 @@ Internal Changes
 
 `v2024.09.1`_
 -------------
-.. _v2024.09.1: https:///github.com/MintonGroup/swiftest/releases/tag/v2024.09.1
+.. _v2024.09.1: https://github.com/MintonGroup/swiftest/releases/tag/v2024.09.1
 
 Bug Fixes
 ~~~~~~~~~
@@ -72,13 +80,11 @@ Contributors
 ~~~~~~~~~~~~
 - `David Minton`_
 
-.. _David Minton: https://github.com/profminton
-
 .. _whats-new.2024.09.0:
 
 `v2024.09.0`_
 -------------
-.. _v2024.09.0: https:///github.com/MintonGroup/swiftest/releases/tag/v2024.09.0
+.. _v2024.09.0: https://github.com/MintonGroup/swiftest/releases/tag/v2024.09.0
 
 Bug Fixes
 ~~~~~~~~~
@@ -96,15 +102,11 @@ Contributors
 - `David Minton`_
 - `Kaustub Anand`_
 
-.. _David Minton: https://github.com/profminton
-.. _Kaustub Anand: https://github.com/kaustubanand
-
-
 .. _whats-new.2024.08.0:
 
 `v2024.08.0`_
 -------------
-.. _v2024.08.0: https:///github.com/MintonGroup/swiftest/releases/tag/v2024.08.0
+.. _v2024.08.0: https://github.com/MintonGroup/swiftest/releases/tag/v2024.08.0
 
 This is a major update with a number of important improvements, bug fixes, and new features.
 
@@ -146,16 +148,11 @@ Contributors
 - `David Minton`_
 - `Kaustub Anand`_
 
-.. _David Minton: https://github.com/profminton
-.. _Kaustub Anand: https://github.com/kaustubanand
-
-
-
 .. _whats-new.2024.07.0:
 
 `v2024.07.0`_
 -------------
-.. _v2024.07.0: https:///github.com/MintonGroup/swiftest/releases/tag/v2024.07.0
+.. _v2024.07.0: https://github.com/MintonGroup/swiftest/releases/tag/v2024.07.0
 
 Bug Fixes
 ~~~~~~~~~
@@ -179,7 +176,7 @@ Contributors
 
 `v2024.06.1`_
 -------------
-.. _v2024.06.1: https:///github.com/MintonGroup/swiftest/releases/tag/v2024.06.1
+.. _v2024.06.1: https://github.com/MintonGroup/swiftest/releases/tag/v2024.06.1
 
 Bug Fixes
 ~~~~~~~~~
@@ -200,7 +197,7 @@ Internal Changes
 
 `v2024.06.0`_
 -------------
-.. _v2024.06.0: https:///github.com/MintonGroup/swiftest/releases/tag/v2024.06.0
+.. _v2024.06.0: https://github.com/MintonGroup/swiftest/releases/tag/v2024.06.0
 
 
 Bug Fixes
@@ -217,7 +214,7 @@ Internal Changes
 
 `v2024.04.3`_
 -------------
-.. _v2024.04.3: https:///github.com/MintonGroup/swiftest/releases/tag/v2024.04.3
+.. _v2024.04.3: https://github.com/MintonGroup/swiftest/releases/tag/v2024.04.3
 
 
 Bug Fixes
