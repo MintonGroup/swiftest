@@ -2,6 +2,13 @@
 
 What's New
 ==========
+
+Bug Fixes
+~~~~~~~~~
+- Some versions of Cython would raise an exception of a long double array was passed to the :meth:`~swiftest.SwiftestDataset.xv2el` or :meth:`~swiftest.SwiftestDataset.el2xv` methods. All input values are now cast to ``np.float64`` before being passed to the Cython methods. `GH66`_
+
+.. _GH66: https://github.com/MintonGroup/swiftest/issues/66
+
 .. _whats-new.2024.11.0:
 
 `v2024.11.0`_
@@ -22,7 +29,7 @@ Breaking Changes
   ===================== ========= =========
    Package                    Old       New
   ===================== ========= =========
-   python                     3.8       3.9
+   python                     3.8      3.10
    numpy                 ==1.26.4  >=1.26.4
    xarray                2024.2.0 2024.10.0
   ===================== ========= =========
