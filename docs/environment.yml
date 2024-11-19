@@ -5,41 +5,35 @@ channels:
   - defaults
 
 dependencies:
-  - python==3.10
-  - numpy==1.26.4
-  - scipy>=1.12.0
-  - xarray>=2024.2.0
-  - distributed>=2024.6.2
-  - dask>=2024.4.2
-  - bottleneck>=1.4.0
-  - h5netcdf>=1.3.0
-  - netcdf4>=1.6.5
-  - matplotlib>=3.8.4
-  - astropy>=6.1.1
-  - astroquery>=0.4.7
-  - tqdm>=4.66.2
-  - ffmpeg>=6.1.1
-  - ffmpeg-python>=0.2.0
-  - x264>=1!164.3095
-  - x265>=3.5
-  - cython>=3.0.8
+  - python>=3.10
+  - xarray>=2024.10.0
+  - scipy
+  - h5py
+  - h5netcdf
+  - dask
+  - distributed
+  - bottleneck
+  - matplotlib
+  - astropy>=6
+  - astroquery
+  - tqdm
+  - x264>=1!157.20191217
+  - ffmpeg>=4.3.2
+  - cython>=3
   - pkg-config
-  - meson>=1.4.1
-  - meson-python>=0.16.0
-  - setuptools>=70.1.0
-  - setuptools_scm>=8.1.0
+  - meson-python>=0.14
+  - setuptools_scm>=8
   - fftw>=3.3.8
   - blas-devel>=3.8
-  - requests
-  - pooch>=1.1
   - cartopy>=0.18.0
   - gmt>=6.1.1
   - pygmt>=0.3.0
   - ducc0>=0.15
   - palettable>=3.3
   - jupyter
-  - flake8>=7.1.0
-  - pyshtools>=4.12.2
+  - pip
+  - flake8
+  - pyshtools
   - scikit-build-core>=0.9.6
   - ipython>=8.25.0
   - ipykernel>=6.29.4
