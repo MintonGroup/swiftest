@@ -2,7 +2,6 @@
 
 What's New
 ==========
-.. _whats-new.2024.11.0:
 
 Bug Fixes
 ~~~~~~~~~
@@ -10,6 +9,7 @@ Bug Fixes
 
 .. _GH66: https://github.com/MintonGroup/swiftest/issues/66
 
+.. _whats-new.2024.11.0:
 
 `v2024.11.0`_
 -------------
