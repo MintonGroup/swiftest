@@ -28,7 +28,7 @@ dependencies = [
     'numpy',
     'xarray>=2024.10.0',
     'scipy',
-    'h5py',
+    'h5py>=3.12.1',
     'netcdf4',
     'h5netcdf',
     'dask',
@@ -152,7 +152,7 @@ DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel \
 """
 
 [tool.cibuildwheel.linux]
-skip = "pp* *-manylinux_i686* *-musllinux* cp312-*_aarch64* cp313-*_aarch64*"
+skip = "pp* *-manylinux_i686* *-musllinux*" 
 before-all = [
     "yum install epel-release -y",
     "yum install doxygen libxml2-devel libcurl-devel fftw-static openblas-static openmpi-devel -y",
