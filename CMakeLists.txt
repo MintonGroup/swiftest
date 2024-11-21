@@ -140,7 +140,7 @@ IF (SKBUILD)
     # when running cibuildwheel.
     IF (CIBUILDWHEEL)
         SET(INSTALL_LIBDIR ${CMAKE_BINARY_DIR}/lib)
-        SET(CMAKE_INSTALL_RPATH "${CMAKE_BINARY_DIR}/bin")
+        SET(CMAKE_INSTALL_RPATH "${INSTALL_LIBDIR}")
     ELSE()
         SET(INSTALL_LIBDIR ${INSTALL_BINDIR})
         IF (APPLE)
