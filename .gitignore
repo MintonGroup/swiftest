@@ -60,6 +60,7 @@ docs/_static/fortran_docs/
 docs/_static/fortran_docs/*/**
 !fortran_docs.md
 !README_figs/*
+!build.sh
 
 #Docker and Singularity files
 !docker/
