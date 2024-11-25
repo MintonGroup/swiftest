@@ -11,18 +11,32 @@
 # Tries to find the cmake config files first. Otherwise, try to find the libraries and headers by hand
 
 IF (NOT netCDF-Fortran_DIR)
-   IF (DEFINED ENV{NETCDF_FORTRAN_DIR}) 
-      SET(netCDF-Fortran_DIR "$ENV{NETCDF_FORTRAN_DIR}" CACHE PATH "Location of provided netCDF-FortranConfig.cmake file")
+   IF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+      FILE(GLOB LIBDIRS "C:/Program Files*/NC4F")
+      LIST(SORT LIBDIRS)
+      LIST(GET LIBDIRS -1 LIBPREFIX)
+      SET(netCDF-Fortran_DIR "${LIBPREFIX}/lib/cmake/netCDF" CACHE PATH "Location of provided netCDF-FortranConfig.cmake file")
    ELSE()
-      IF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-         FILE(GLOB LIBDIRS "C:/Program Files*/NC4F")
-         LIST(SORT LIBDIRS)
-         LIST(GET LIBDIRS -1 LIBPREFIX)
-         SET(netCDF-Fortran_DIR "${LIBPREFIX}/lib/cmake/netCDF" CACHE PATH "Location of provided netCDF-FortranConfig.cmake file")
-      ELSE()
-         SET(netCDF-Fortran_DIR "/usr/local/lib/cmake/netCDF" CACHE PATH "Location of provided netCDF-FortranConfig.cmake file")
-      ENDIF ()
-   ENDIF()
+      FIND_PATH(netCDF-Fortran_DIR
+         NAMES netCDF-FortranConfig.cmake
+         PATH_SUFFIXES 
+            lib/cmake 
+            lib/cmake/netCDF
+            lib/netCDF/cmake
+         HINTS
+            ENV NETCDF_FORTRAN_HOME
+            ENV NETCDF_FORTRAN_DIR
+            ENV CONDA_PREFIX
+            ENV HOMEBREW_PREFIX
+         DOC "Location of provided netCDF-FortranConfig.cmake file"
+      )
+   ENDIF ()
+ENDIF()
+
+IF (netCDF-Fortran_DIR)
+  MESSAGE(STATUS "Found netCDF-FortranConfig.cmake in ${netCDF-Fortran_DIR}")
+ELSE()
+  MESSAGE(STATUS "Could not find netCDF-FortranConfig.cmake")
 ENDIF()
 
 MESSAGE(STATUS "Looking for netCDF-FortranConfig.cmake in ${netCDF-Fortran_DIR}")
@@ -118,6 +132,7 @@ ELSE ()
             NCPREFIX_DIR
             ENV NCDIR
             ENV NETCDF_HOME
+            ENV CONDA_PREFIX
             ENV PATH
          PATH_SUFFIXES
             bin
@@ -172,6 +187,7 @@ ELSE ()
          ${NCINCLUDE_DIR}
          ENV NETCDF_HOME
          ENV NETCDF_INCLUDE
+         ENV CONDA_PREFIX
          ENV CPATH
       PATH_SUFFIXES
          include
@@ -184,6 +200,7 @@ ELSE ()
          ${NFINCLUDE_DIR}
          ENV NETCDF_FORTRAN_HOME
          ENV NETCDF_INCLUDE
+         ENV CONDA_PREFIX
          ENV CPATH
       PATH_SUFFIXES
          include
@@ -216,6 +233,7 @@ ELSE ()
       PATHS
          ${NCPREFIX_DIR}
          ENV NETCDF_HOME
+         ENV CONDA_PREFIX
          ENV LD_LIBRARY_PATH
       PATH_SUFFIXES
          lib
@@ -240,6 +258,7 @@ ELSE ()
          ${NFPREFIX_DIR}
          ENV NETCDF_FORTRAN_HOME
          ENV NETCDF_HOME
+         ENV CONDA_PREFIX
          ENV LD_LIBRARY_PATH
       PATH_SUFFIXES
          lib
@@ -254,6 +273,7 @@ ELSE ()
          HINTS 
             NCPREFIX_DIR
             ENV NETCDF_HOME
+            ENV CONDA_PREFIX
             ENV PATH
          PATH_SUFFIXES
             bin
@@ -270,6 +290,7 @@ ELSE ()
          HINTS 
             NFPREFIX_DIR
             ENV NETCDF_FORTRAN_HOME
+            ENV CONDA_PREFIX
             ENV PATH
          PATH_SUFFIXES
             bin

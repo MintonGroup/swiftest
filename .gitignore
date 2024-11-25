@@ -61,6 +61,8 @@ docs/_static/fortran_docs/*/**
 !fortran_docs.md
 !README_figs/*
 !build.sh
+!environments/
+!environments/*.yml
 
 #Docker and Singularity files
 !docker/
