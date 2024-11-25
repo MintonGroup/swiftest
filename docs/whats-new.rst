@@ -2,6 +2,19 @@
 
 What's New
 ==========
+.. _whats-new.2024.11.2:
+
+:release:`v2024.11.2`
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+
+- Updated the build scripts to be more friendly to being build in a conda package. This is part of an effort to generate a conda-forge package version of Swiftest. :issue:`68`.
+
+Contributors
+~~~~~~~~~~~~
+- `David Minton`_
+
 .. _whats-new.2024.11.1:
 
 :release:`v2024.11.1`
