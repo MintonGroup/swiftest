@@ -8,8 +8,8 @@ What's New
 
 Internal Changes
 ~~~~~~~~~~~~~~~~
-
 - Updated the build scripts to be more friendly to being build in a conda package. This is part of an effort to generate a conda-forge package version of Swiftest. :issue:`68`.
+- Removed deprecated MacOS-12 support from the GitHub Actions and added MacOS-15 support.
 
 Contributors
 ~~~~~~~~~~~~
