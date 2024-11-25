@@ -3,9 +3,14 @@ import pty
 import subprocess
 import sys
 
-
 def main_caf():
-    main("swiftest_caf")
+    package_root = os.path.dirname(os.path.abspath(__file__))
+    binary_path = os.path.join(package_root, "swiftest_caf")
+    if os.path.exists(binary_path):
+        main("swiftest_caf")
+    else:
+        print("This version of swiftest has not been compiled with coarray support. The standard version of swiftest will be executed instead.")
+        main() 
     return
 
 def main(binary_name="swiftest"):
