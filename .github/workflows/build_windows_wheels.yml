@@ -1,0 +1,51 @@
+name: build_swiftest_msys2
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  msys2-ucrt64:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: 
+            git 
+            mingw-w64-ucrt-x86_64-gcc 
+            mingw-w64-ucrt-x86_64-gcc-fortran 
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-msmpi
+            mingw-w64-ucrt-x86_64-netcdf-fortran
+          
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.19.2
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-wheels-windows-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
+          retention-days: 1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.19.2
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-wheels-windows-latest-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
+          retention-days: 1
+
+

@@ -59,7 +59,8 @@ requires = [
     "cython>=3.0.8",
     "numpy>=1.26.4",
     "setuptools>=64", 
-    "setuptools_scm>=8"    
+    "setuptools_scm>=8",
+    "delvewheel ; platform_system=='Windows'",  
 ]
 build-backend = "scikit_build_core.build"
 
@@ -158,4 +159,7 @@ before-all = [
     "yum install doxygen libxml2-devel libcurl-devel fftw-static openblas-static openmpi-devel -y",
     "buildscripts/build_dependencies.sh"
 ]
+
+[tool.cibuildwheel.windows]
+repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
 
