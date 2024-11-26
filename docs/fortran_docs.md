@@ -7,7 +7,7 @@ project_download: https://github.com/MintonGroup/swiftest/releases
 project_website: https://swiftest.readthedocs.io
 github: https://github.com/MintonGroup/
 src_dir: src
-output_dir: ./docs/_static/fortran_docs
+output_dir: ./_static/fortran_docs
 source: true
 graph: true
 sort: alpha

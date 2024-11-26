@@ -14,8 +14,6 @@
 !paper/paper.md
 !paper/paper.bib
 !paper/performance.png
-!README.swifter 
-dump*
 !.github/
 !.github/workflows/
 !.github/workflows/*.yml
@@ -47,21 +45,7 @@ src/globals/globals_module.f90
 #Documentation
 !.readthedocs.yaml
 !docs/
-!docs/**/*
-!docs/_build/
-docs/_build/**/*
-docs/generated/
-docs/generated/**/*
-docs/**/*.DS_Store
-docs/**/*.swp
-docs/**/simdata/** 
-!docs/_static/**/*.png
-!docs/_static/**/*.svg
-**/*.ai
-docs/_static/fortran_docs/
-docs/_static/fortran_docs/*/**
-!fortran_docs.md
-!README_figs/*
+!docs/.gitignore
 
 
 swiftest/core.cpython*
