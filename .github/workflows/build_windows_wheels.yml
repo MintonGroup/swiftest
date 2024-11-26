@@ -36,16 +36,4 @@ jobs:
           path: ./wheelhouse/*.whl
           retention-days: 1
 
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v2.19.2
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: cibw-wheels-windows-latest-${{ strategy.job-index }}
-          path: ./wheelhouse/*.whl
-          retention-days: 1
-
 
