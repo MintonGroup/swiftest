@@ -2,6 +2,35 @@
 
 What's New
 ==========
+
+.. _whats-new.2024.11.3:
+
+:release:`v2024.11.3`
+---------------------
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Cleaned out lots of cruft from the repository, including obsolete Docker and Apptainer/Singularity files and folders.  
+- Adjusted project files so that the complete repository, including documenatation and build scripts, gets packaged into the sdist. This is necessary for the conda build process to be able to rely on the sdist tarball rather than getting it GitHub.
+
+Contributors
+~~~~~~~~~~~~
+- `David Minton`_
+
+.. _whats-new.2024.11.2:
+
+:release:`v2024.11.2`
+---------------------
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Updated the build scripts to be more friendly to being build in a conda package. This is part of an effort to generate a conda-forge package version of Swiftest. :issue:`68`.
+- Removed deprecated MacOS-12 support from the GitHub Actions and added MacOS-15 support.
+
+Contributors
+~~~~~~~~~~~~
+- `David Minton`_
+
 .. _whats-new.2024.11.1:
 
 :release:`v2024.11.1`

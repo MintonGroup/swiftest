@@ -1,7 +1,5 @@
 # First, ignore everything
 *
-# Now, whitelist anything that's a directory
-!*/
 # whitelist only the files that ever need to be tracked
 !*.f90
 !CMakeLists.txt
@@ -12,64 +10,43 @@
 !README.md
 !README_figs/**
 !README_tables/**
+!paper/
 !paper/paper.md
 !paper/paper.bib
 !paper/performance.png
-!README.swifter 
-dump*
-!**/.gitignore
+!.github/
+!.github/workflows/
 !.github/workflows/*.yml
 !setup.py
-!examples/**
 !swiftest/
 !swiftest/*.py
 !swiftest/core.pyx
 !swiftest/core.h
 !swiftest/CMakeLists.txt
 swiftest/_version.py
-!tests/**
+!tests/
+!tests/*.py 
 !.zenodo.json
 !CITATION.cff
-*ipynb_checkpoints
-**/.DS_Store
 !requirements.txt
 !pyproject.toml
-**/_skbuild
-*.egg*
-swiftest-*
-__pycache__*
-_cmake*
-_dependencies
+!src/
+!src/**/*.f90
 src/globals/globals_module.f90
+!environments/
+!environments/*.yml
+!buildscripts/
+!buildscripts/*.sh
+!environments/
+!environments/swiftest-dev.yml
+!examples/
+!examples/** 
 
 #Documentation
 !.readthedocs.yaml
 !docs/
-!docs/**/*
-!docs/_build/
-docs/_build/**/*
-docs/generated/
-docs/generated/**/*
-docs/**/*.DS_Store
-docs/**/*.swp
-docs/**/simdata/** 
-!docs/_static/**/*.png
-!docs/_static/**/*.svg
-**/*.ai
-docs/_static/fortran_docs/
-docs/_static/fortran_docs/*/**
-!fortran_docs.md
-!README_figs/*
-!build.sh
-!environments/
-!environments/*.yml
+!docs/.gitignore
 
-#Docker and Singularity files
-!docker/
-!singularity/
-!Dockerfile.*
-!environment.yml
-!.dockerignore
 
 swiftest/core.cpython*
 bin/
@@ -84,3 +61,6 @@ venv/**
 sandbox/**
 swiftest/swiftest
 swiftest/swiftest_caf
+
+
+

@@ -67,7 +67,33 @@ build-backend = "scikit_build_core.build"
 [tool.scikit-build]
 cmake.version = ">=3.23.1"
 ninja.version = ">=1.11.1"
-sdist.include = ["src/globals/globals_module.f90.in","swiftest/*.py","swiftest/*.pyx","swiftest/*.h"]
+sdist.include = [
+    "src/globals/globals_module.f90.in",
+    "swiftest/*.py",
+    "swiftest/*.pyx",
+    "swiftest/*.h",
+    "buildscripts/*.sh",
+    "cmake/Modules/*.cmake",
+    "examples/*/*.py",
+    "examples/*/*/*.py",
+    "examples/*/README.txt",
+    "examples/*/*/README.txt",
+    "docs/*.rst",
+    "docs/Makefile",
+    "docs/requirements.txt",
+    "docs/environment.yml",
+    "docs/conf.py",
+    "docs/_templates/autosummary/*.rst",
+    "docs/_static/style.css",
+    "docs/_static/*.png",
+    "docs/_static/*.svg",
+    "docs/_static/logos/*.svg",
+    "docs/_static/logos/*.png",
+    "docs/fortran_docs.md",
+    "docs/getting-started-guide/*.rst",
+    "docs/user-guide/*.rst",
+    ]
+sdist.exclude = [".github"]
 build-dir = "build/{wheel_tag}"
 cmake.verbose = true
 metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
@@ -144,7 +170,7 @@ OMPI_FC="$(buildscripts/get_fortran_path.sh)"
 
 [tool.cibuildwheel.macos]
 before-all = [
-    "brew install coreutils pkg-config fftw vecLibFort opencoarrays open-mpi cmake",
+    "brew install coreutils fftw vecLibFort opencoarrays open-mpi cmake",
     "buildscripts/build_dependencies.sh"
 ]
 repair-wheel-command = """\
@@ -153,7 +179,6 @@ DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel \
 """
 
 [tool.cibuildwheel.linux]
-skip = "pp* *-manylinux_i686* *-musllinux*" 
 before-all = [
     "yum install epel-release -y",
     "yum install doxygen libxml2-devel libcurl-devel fftw-static openblas-static openmpi-devel -y",
