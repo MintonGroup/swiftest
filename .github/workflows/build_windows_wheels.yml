@@ -36,6 +36,12 @@ jobs:
           
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.19.2
+        env:
+          CIBW_ARCHS_WINDOWS: auto64
+          CIBW_ENVIRONMENT_WINDOWS: 
+            CC=${{ steps.msys2.outputs.msys2-location }}/bin/mpicc 
+            CXX=${{ steps.msys2.outputs.msys2-location }}/bin/mpic++ 
+            FC=${{ steps.msys2.outputs.msys2-location }}/bin/mpifort
 
       - uses: actions/upload-artifact@v4
         with:
