@@ -185,6 +185,29 @@ before-all = [
     "buildscripts/build_dependencies.sh"
 ]
 
+[tool.cibuildwheel.windows.environment]
+SKBUILD_CMAKE_ARGS=["-DMACHINE_CODE_VALUE=generic","-DUSE_COARRAY:BOOL=OFF"]
+PREFIX="$(pwd)/build/deps/usr/local"
+NETCDF_FORTRAN_HOME="${PREFIX}"
+NETCDF_FORTRAN_INCLUDE="${NETCDF_FORTRAN_HOME}/include"
+NETCDF_DIR="${NETCDF_FORTRAN_HOME}/lib/cmake/netCDF"
+NETCDF_FORTRAN_DIR="${NETCDF_FORTRAN_HOME}/lib/cmake/netCDF"
+SHTOOLS_HOME="${PREFIX}"
+CFLAGS="-fPIC"
+FCFLAGS="${CFLAGS}"
+FFLAGS="${FCFLAGS}"
+CXXFLAGS="${CFLAGS}"
+LDFLAGS="-L${PREFIX}/lib"
+CPPFLAGS="-I${PREFIX}/include"
+LIBS="-ldl" 
+LD_LIBRARY_PATH="${PREFIX}/lib:${MINGW_PREFIX}/lib:${LD_LIBRARY_PATH}"
+CC="mpicc"
+CXX="mpic++"
+FC="mpifort"
+F77="mpifort"
+F95="mpifort"
+OMPI_FC="$(buildscripts/get_fortran_path.sh)"
+
 [tool.cibuildwheel.windows]
 repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
 
