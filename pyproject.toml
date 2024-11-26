@@ -206,7 +206,7 @@ CXX="mpic++"
 FC="mpifort"
 F77="mpifort"
 F95="mpifort"
-OMPI_FC="$(buildscripts/get_fortran_path.sh)"
+OMPI_FC="gfortran"
 
 [tool.cibuildwheel.windows]
 repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
