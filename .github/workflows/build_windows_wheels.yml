@@ -2,6 +2,9 @@ name: build_swiftest_msys2
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - "*"
   pull_request:
     branches:
       - main
