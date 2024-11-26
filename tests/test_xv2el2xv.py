@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
  Copyright 2024 - The Minton Group at Purdue University
  This file is part of Swiftest.
