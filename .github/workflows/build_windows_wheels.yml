@@ -8,7 +8,11 @@ on:
 
 jobs:
   msys2-ucrt64:
-    runs-on: windows-latest
+    name: Build wheels on Windows
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
     defaults:
       run:
         shell: msys2 {0}
@@ -32,7 +36,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: cibw-wheels-windows-${{ strategy.job-index }}
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
           retention-days: 1
 
