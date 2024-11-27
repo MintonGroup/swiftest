@@ -1,6 +1,7 @@
 [project]
 name = "swiftest"
-dynamic = ["version"]
+#dynamic = ["version"]
+version = "2024.11.4"
 description = "Swiftest is a software packaged designed to model the long-term dynamical dynamics of n-body systems with a dominant central body, like the solar system."
 authors=[
     {name = 'David A. Minton', email='daminton@purdue.edu'},
@@ -95,10 +96,10 @@ sdist.include = [
 sdist.exclude = [".github"]
 build-dir = "build/{wheel_tag}"
 cmake.verbose = true
-metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
+#metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
 
-[tool.setuptools_scm]
-write_to = "swiftest/_version.py"
+#[tool.setuptools_scm]
+#write_to = "swiftest/_version.py"
 
 [tool.cibuildwheel]
 test-command = "pytest -vv {package}/tests"
