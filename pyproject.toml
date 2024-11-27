@@ -178,7 +178,6 @@ DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel \
 """
 
 [tool.cibuildwheel.linux]
-skip = "pp* *-manylinux_i686* *-musllinux*" 
 before-all = [
     "yum install epel-release -y",
     "yum install doxygen libxml2-devel libcurl-devel fftw-static openblas-static openmpi-devel -y",

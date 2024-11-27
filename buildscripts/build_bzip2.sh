@@ -11,12 +11,12 @@
 # If not, see: https://www.gnu.org/licenses. 
 BZ2_VER="1.0.8"
 
-SCRIPT_DIR=$(realpath $(dirname $0))
-ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+SCRIPT_DIR=$(realpath "$(dirname "$0")")
+ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
 
 set -e
-cd $ROOT_DIR
-. ${SCRIPT_DIR}/set_environment.sh
+cd "${ROOT_DIR}"
+. "${SCRIPT_DIR}"/set_environment.sh
 
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
@@ -29,10 +29,10 @@ printf "*********************************************************\n"
 printf "*             FETCHING BZ2 SOURCE                      *\n"
 printf "*********************************************************\n"
 printf "Copying files to ${DEPENDENCY_DIR}\n"
-mkdir -p ${DEPENDENCY_DIR}
-if [ ! -d ${DEPENDENCY_DIR}/bzip2-${BZ2_VER} ]; then
-    [ -d ${DEPENDENCY_DIR}/bzip2-* ] && rm -rf ${DEPENDENCY_DIR}/bzip2-*
-    curl -L https://gitlab.com/bzip2/bzip2/-/archive/bzip2-${BZ2_VER}/bzip2-bzip2-${BZ2_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+mkdir -p "${DEPENDENCY_DIR}"
+if [ ! -d "${DEPENDENCY_DIR}"/bzip2-${BZ2_VER} ]; then
+    [ -d "${DEPENDENCY_DIR}"/bzip2-* ] && rm -rf "${DEPENDENCY_DIR}"/bzip2-*
+    curl -L https://gitlab.com/bzip2/bzip2/-/archive/bzip2-${BZ2_VER}/bzip2-bzip2-${BZ2_VER}.tar.gz | tar xvz -C "${DEPENDENCY_DIR}"
 fi
 printf "*********************************************************\n"
 printf "*               BUILDING BZ2 LIBRARY                  *\n"
@@ -46,7 +46,7 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "INSTALL_PREFIX: ${BZ2_ROOT}\n"
 printf "*********************************************************\n"
 
-cd ${DEPENDENCY_DIR}/bzip2-*
+cd "${DEPENDENCY_DIR}"/bzip2-*
 printf "Updating Makefile with new flags\n"
 # Update the Makefile to use the environment flags set by this script
 if [ ! -f Makefile.bak ]; then

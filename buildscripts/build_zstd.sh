@@ -11,12 +11,12 @@
 # If not, see: https://www.gnu.org/licenses. 
 ZSTD_VER="1.5.6"
 
-SCRIPT_DIR=$(realpath $(dirname $0))
-ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+SCRIPT_DIR=$(realpath "$(dirname "$0")")
+ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
 
 set -e
-cd $ROOT_DIR
-. ${SCRIPT_DIR}/set_environment.sh
+cd "${ROOT_DIR}"
+. "${SCRIPT_DIR}"/set_environment.sh
 
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
@@ -29,10 +29,10 @@ printf "*********************************************************\n"
 printf "*             FETCHING ZSTD SOURCE                      *\n"
 printf "*********************************************************\n"
 printf "Copying files to ${DEPENDENCY_DIR}\n"
-mkdir -p ${DEPENDENCY_DIR}
-if [ ! -d ${DEPENDENCY_DIR}/zstd-${ZSTD_VER} ]; then
-    [ -d ${DEPENDENCY_DIR}/zstd-* ] && rm -rf ${DEPENDENCY_DIR}/zstd-*
-    curl -L https://github.com/facebook/zstd/releases/download/v${ZSTD_VER}/zstd-${ZSTD_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+mkdir -p "${DEPENDENCY_DIR}"
+if [ ! -d "${DEPENDENCY_DIR}"/zstd-${ZSTD_VER} ]; then
+    [ -d "${DEPENDENCY_DIR}"/zstd-* ] && rm -rf "${DEPENDENCY_DIR}"/zstd-*
+    curl -L https://github.com/facebook/zstd/releases/download/v${ZSTD_VER}/zstd-${ZSTD_VER}.tar.gz | tar xvz -C "${DEPENDENCY_DIR}"
 fi
 printf "*********************************************************\n"
 printf "*               BUILDING ZSTD LIBRARY                  *\n"
@@ -46,7 +46,7 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "INSTALL_PREFIX: ${ZSTD_ROOT}\n"
 printf "*********************************************************\n"
 
-cd ${DEPENDENCY_DIR}/zstd-*
+cd "${DEPENDENCY_DIR}"/zstd-*
 cd build/cmake
 cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${ZSTD_ROOT} -DCMAKE_INSTALL_LIBDIR="lib" -DBUILD_SHARED_LIBS:BOOL=OFF -DZSTD_BUILD_SHARED:BOOL=OFF -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON 
 cmake --build build -j${NPROC}    
