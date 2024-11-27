@@ -7,7 +7,7 @@ on:
       - main
 
 jobs:
-  build_wheels:
+  build_mac_linux_wheels:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -26,18 +26,41 @@ jobs:
           path: ./wheelhouse/*.whl
           retention-days: 1
 
-  build_sdist:
-    name: Build source distribution
-    runs-on: ubuntu-latest
+  build_windows_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
+    defaults:
+      run:
+        shell: msys2 {0}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build sdist
-        run: pipx run build --sdist
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          path-type: inherit
+          install: >-
+            git 
+            mingw-w64-ucrt-x86_64-toolchain
+            mingw-w64-ucrt-x86_64-gcc-fortran 
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-msmpi
+            mingw-w64-ucrt-x86_64-netcdf-fortran
+            mingw-w64-ucrt-x86_64-openblas
+            mingw-w64-ucrt-x86_64-fftw
+          
+      - name: Build wheels
+        run: |
+          ./buildscripts/build_shtools.sh
+          pipx run cibuildwheel
 
       - uses: actions/upload-artifact@v4
         with:
-          name: cibw-sdist
-          path: dist/*.tar.gz              
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
           retention-days: 1
-
