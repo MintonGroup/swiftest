@@ -29,7 +29,6 @@ jobs:
           path-type: inherit
           install: >-
             git 
-            cython
             mingw-w64-ucrt-x86_64-gcc 
             mingw-w64-ucrt-x86_64-gcc-fortran 
             mingw-w64-ucrt-x86_64-cmake
