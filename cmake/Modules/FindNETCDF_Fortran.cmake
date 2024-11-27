@@ -24,8 +24,7 @@ IF (NOT netCDF-Fortran_DIR)
          ENV HOMEBREW_PREFIX
       DOC "Location of provided netCDF-FortranConfig.cmake file"
    )
-   ENDIF ()
-ENDIF()
+ENDIF ()
 
 IF (netCDF-Fortran_DIR)
   MESSAGE(STATUS "Found netCDF-FortranConfig.cmake in ${netCDF-Fortran_DIR}")

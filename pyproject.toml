@@ -210,4 +210,7 @@ OMPI_FC="gfortran"
 
 [tool.cibuildwheel.windows]
 repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
+before-all = [
+    "buildscripts/build_shtools.sh"
+]
 
