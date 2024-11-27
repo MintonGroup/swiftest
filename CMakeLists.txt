@@ -221,7 +221,7 @@ MESSAGE(STATUS "CMAKE_SYSTEM_PROCESSOR: " ${CMAKE_SYSTEM_PROCESSOR})
 #####################################
 # Tell how to install this executable
 #####################################
-IF(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+IF(MSVC)
     SET(CMAKE_INSTALL_PREFIX "C:\\Program Files\\swiftest")
     FILE(TO_CMAKE_PATH ${CMAKE_INSTALL_PREFIX} CMAKE_INSTALL_PREFIX)
     SET(CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX} CACHE PATH "Path for install")
