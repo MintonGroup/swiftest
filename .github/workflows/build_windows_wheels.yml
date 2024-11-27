@@ -35,8 +35,8 @@ jobs:
             mingw-w64-ucrt-x86_64-ninja
             mingw-w64-ucrt-x86_64-msmpi
             mingw-w64-ucrt-x86_64-netcdf-fortran
-            mingw-w64-x86_64-openblas
-            mingw-w64-x86_64-fftw
+            mingw-w64-ucrt-x86_64-openblas
+            mingw-w64-ucrt-x86_64-fftw
           
       - name: Build wheels
         run: |
