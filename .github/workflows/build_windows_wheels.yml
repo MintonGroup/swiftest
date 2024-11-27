@@ -37,12 +37,11 @@ jobs:
             mingw-w64-ucrt-x86_64-netcdf-fortran
             mingw-w64-ucrt-x86_64-openblas
             mingw-w64-ucrt-x86_64-fftw
-          run: |
-            ls -lh ${{ github.workspace }}
-            ${{ github.workspace }}/buildscripts/build_shtools.sh
           
       - name: Build wheels
         run: |
+          ls -lh ${{ github.workspace }}
+          ${{ github.workspace }}\buildscripts\build_shtools.sh
           pipx run cibuildwheel
 
       - uses: actions/upload-artifact@v4
