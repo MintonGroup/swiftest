@@ -29,7 +29,7 @@ jobs:
           path-type: inherit
           install: >-
             git 
-            mingw-w64-ucrt-x86_64-gcc 
+            mingw-w64-ucrt-x86_64-toolchain
             mingw-w64-ucrt-x86_64-gcc-fortran 
             mingw-w64-ucrt-x86_64-cmake
             mingw-w64-ucrt-x86_64-ninja
@@ -37,6 +37,7 @@ jobs:
             mingw-w64-ucrt-x86_64-netcdf-fortran
             mingw-w64-ucrt-x86_64-openblas
             mingw-w64-ucrt-x86_64-fftw
+            mingw-w64-ucrt-x86_64-clang
           
       - name: Build wheels
         run: |
