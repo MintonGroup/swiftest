@@ -40,8 +40,7 @@ jobs:
           
       - name: Build wheels
         run: |
-          ls -lh ${{ github.workspace }}
-          ${{ github.workspace }}\buildscripts\build_shtools.sh
+          ./buildscripts/build_shtools.sh
           pipx run cibuildwheel
 
       - uses: actions/upload-artifact@v4
