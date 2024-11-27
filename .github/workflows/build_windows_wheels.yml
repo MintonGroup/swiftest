@@ -21,11 +21,13 @@ jobs:
         shell: msys2 {0}
     steps:
       - uses: actions/checkout@v4
+
       - uses: msys2/setup-msys2@v2
         with:
           msystem: UCRT64
           update: true
-          install: 
+          path-type: inherit
+          install: >-
             git 
             mingw-w64-ucrt-x86_64-gcc 
             mingw-w64-ucrt-x86_64-gcc-fortran 
@@ -35,13 +37,8 @@ jobs:
             mingw-w64-ucrt-x86_64-netcdf-fortran
           
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.19.2
-        env:
-          CIBW_ARCHS_WINDOWS: auto64
-          CIBW_ENVIRONMENT_WINDOWS: 
-            CC=mpicc 
-            CXX=mpic++ 
-            FC=mpifort
+        run: |
+          pipx run cibuildwheel
 
       - uses: actions/upload-artifact@v4
         with:
