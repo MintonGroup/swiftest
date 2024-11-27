@@ -59,7 +59,7 @@ requires = [
     "cython>=3.0.8",
     "numpy>=1.26.4",
     "setuptools>=64", 
-    "setuptools_scm>=8"    
+    "setuptools_scm>=8",
 ]
 build-backend = "scikit_build_core.build"
 
@@ -183,4 +183,26 @@ before-all = [
     "yum install doxygen libxml2-devel libcurl-devel fftw-static openblas-static openmpi-devel -y",
     "buildscripts/build_dependencies.sh"
 ]
+
+[tool.cibuildwheel.windows.environment]
+PREFIX="./build/deps/usr/local"
+SHTOOLS_HOME="${PREFIX}"
+CFLAGS="-fPIC -DMS_WIN64"
+FCFLAGS="${CFLAGS}"
+FFLAGS="${FCFLAGS}"
+CXXFLAGS="${CFLAGS}"
+LDFLAGS="-L${PREFIX}/lib"
+CPPFLAGS="-I${PREFIX}/include"
+LIBS="-ldl" 
+LD_LIBRARY_PATH="${PREFIX}/lib:${LD_LIBRARY_PATH}"
+CC="mpicc"
+CXX="mpic++"
+FC="mpifort"
+F77="mpifort"
+F95="mpifort"
+OMPI_FC="gfortran"
+
+[tool.cibuildwheel.windows]
+before-build = "pip install delvewheel"
+repair-wheel-command = "delvewheel repair --ignore-existing -w {dest_dir} {wheel}"
 
