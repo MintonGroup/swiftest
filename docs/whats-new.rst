@@ -3,6 +3,19 @@
 What's New
 ==========
 
+.. _whats-new.2024.11.4:
+
+:release:`v2024.11.4`
+---------------------
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- We now support Windows builds using MSYS2. This is a major step forward in making Swiftest more accessible to Windows users. :pull:`69`.
+
+Contributors
+~~~~~~~~~~~~
+- `David Minton`_
+
 .. _whats-new.2024.11.3:
 
 :release:`v2024.11.3`
