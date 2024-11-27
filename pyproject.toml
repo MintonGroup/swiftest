@@ -203,5 +203,5 @@ F95="mpifort"
 OMPI_FC="gfortran"
 
 [tool.cibuildwheel.windows]
-repair-wheel-command = "pip install delvewheel -y;delvewheel repair -w {dest_dir} {wheel}"
+repair-wheel-command = "pip install delvewheel;delvewheel repair -w {dest_dir} {wheel}"
 
