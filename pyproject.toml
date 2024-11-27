@@ -188,7 +188,7 @@ before-all = [
 [tool.cibuildwheel.windows.environment]
 PREFIX="./build/deps/usr/local"
 SHTOOLS_HOME="${PREFIX}"
-CFLAGS="-fPIC"
+CFLAGS="-fPIC -DMS_WIN64"
 FCFLAGS="${CFLAGS}"
 FFLAGS="${FCFLAGS}"
 CXXFLAGS="${CFLAGS}"
