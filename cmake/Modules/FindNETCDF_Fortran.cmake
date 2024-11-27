@@ -11,25 +11,19 @@
 # Tries to find the cmake config files first. Otherwise, try to find the libraries and headers by hand
 
 IF (NOT netCDF-Fortran_DIR)
-   IF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-      FILE(GLOB LIBDIRS "C:/Program Files*/NC4F")
-      LIST(SORT LIBDIRS)
-      LIST(GET LIBDIRS -1 LIBPREFIX)
-      SET(netCDF-Fortran_DIR "${LIBPREFIX}/lib/cmake/netCDF" CACHE PATH "Location of provided netCDF-FortranConfig.cmake file")
-   ELSE()
-      FIND_PATH(netCDF-Fortran_DIR
-         NAMES netCDF-FortranConfig.cmake
-         PATH_SUFFIXES 
-            lib/cmake 
-            lib/cmake/netCDF
-            lib/netCDF/cmake
-         HINTS
-            ENV NETCDF_FORTRAN_HOME
-            ENV NETCDF_FORTRAN_DIR
-            ENV CONDA_PREFIX
-            ENV HOMEBREW_PREFIX
-         DOC "Location of provided netCDF-FortranConfig.cmake file"
-      )
+   FIND_PATH(netCDF-Fortran_DIR
+      NAMES netCDF-FortranConfig.cmake
+      PATH_SUFFIXES 
+         lib/cmake 
+         lib/cmake/netCDF
+         lib/netCDF/cmake
+      HINTS
+         ENV NETCDF_FORTRAN_HOME
+         ENV NETCDF_FORTRAN_DIR
+         ENV CONDA_PREFIX
+         ENV HOMEBREW_PREFIX
+      DOC "Location of provided netCDF-FortranConfig.cmake file"
+   )
    ENDIF ()
 ENDIF()
 
@@ -69,24 +63,24 @@ ELSE ()
          SET(H5PREFIX_DIR "${LIBPREFIX}" CACHE PATH "Location of provided HDF5 dependencies")
          SET(ZPREFIX_DIR  "${LIBPREFIX}" CACHE PATH "Location of provided zlib dependencies")
       ENDIF ()
-   ELSEIF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-      FILE(GLOB LIBDIRS "C:/Program Files*/NC4F")
-      LIST(SORT LIBDIRS)
-      LIST(GET LIBDIRS -1 LIBPREFIX)
-      SET(NFPREFIX_DIR "${LIBPREFIX}" CACHE PATH "Location of provided NetCDF-Fortran dependencies")
-      SET(NFINCLUDE_DIR "${LIBPREFIX}/include" CACHE PATH "Location of provided netcdf.mod")
-      IF (NOT BUILD_SHARED_LIBS)
-         # Assumes that the dependency libraries are packaged with NetCDF-C.
-         FILE(GLOB LIBDIRS "C:/Program Files*/netCDF*")
-         LIST(SORT LIBDIRS)
-         LIST(GET LIBDIRS -1 LIBPREFIX)
-         SET(NCPREFIX_DIR "${LIBPREFIX}" CACHE PATH "Location of provided NetCDF-C dependencies")
-         SET(H5PREFIX_DIR "${LIBPREFIX}" CACHE PATH "Location of provided HDF5 dependencies")
-         SET(ZPREFIX_DIR  "${LIBPREFIX}" CACHE PATH "Location of provided zlib dependencies")
-      ENDIF ()
+   #ELSEIF (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+      #FILE(GLOB LIBDIRS "C:/Program Files*/NC4F")
+      #LIST(SORT LIBDIRS)
+      #LIST(GET LIBDIRS -1 LIBPREFIX)
+      #SET(NFPREFIX_DIR "${LIBPREFIX}" CACHE PATH "Location of provided NetCDF-Fortran dependencies")
+      #SET(NFINCLUDE_DIR "${LIBPREFIX}/include" CACHE PATH "Location of provided netcdf.mod")
+      #IF (NOT BUILD_SHARED_LIBS)
+      #   # Assumes that the dependency libraries are packaged with NetCDF-C.
+      #   FILE(GLOB LIBDIRS "C:/Program Files*/netCDF*")
+      #   LIST(SORT LIBDIRS)
+      #   LIST(GET LIBDIRS -1 LIBPREFIX)
+      #   SET(NCPREFIX_DIR "${LIBPREFIX}" CACHE PATH "Location of provided NetCDF-C dependencies")
+      #   SET(H5PREFIX_DIR "${LIBPREFIX}" CACHE PATH "Location of provided HDF5 dependencies")
+      #   SET(ZPREFIX_DIR  "${LIBPREFIX}" CACHE PATH "Location of provided zlib dependencies")
+      #ENDIF ()
    ENDIF ()
 
-   IF(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
+   #IF(NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
       FIND_FILE(NFBIN
       NAMES nf-config
       HINTS 
@@ -178,7 +172,7 @@ ELSE ()
             ENDIF ()
          ENDIF () 
       ENDIF ()
-   ENDIF()
+   #ENDIF()
 
 
    FIND_PATH(NETCDF_INCLUDE_DIR 
@@ -242,12 +236,12 @@ ELSE ()
    )
 
    ADD_LIBRARY(netCDF::netcdf UNKNOWN IMPORTED PUBLIC)
-   IF (NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
+   #IF (NOT CMAKE_SYSTEM_NAME STREQUAL "Windows")
       SET_TARGET_PROPERTIES(netCDF::netcdf PROPERTIES 
                            IMPORTED_LOCATION "${NCLIB}"
                            INTERFACE_INCLUDE_DIRECTORIES "${NETCDF_INCLUDE_DIR}"
                            )
-   ENDIF()
+   #ENDIF()
 
    MESSAGE(STATUS "NetCDF-C library: ${NCLIB}")
    MESSAGE(STATUS "NetCDF-C include directory: ${NETCDF_INCLUDE_DIR}")
@@ -266,42 +260,42 @@ ELSE ()
       REQUIRED
    )
    ADD_LIBRARY(netCDF::netcdff UNKNOWN IMPORTED PUBLIC)
-   IF (CMAKE_SYSTEM_NAME STREQUAL "Windows" AND BUILD_SHARED_LIBS)
-      # Get the DLL added in
-      FIND_FILE(NCDLL
-         NAMES "netcdf.dll"
-         HINTS 
-            NCPREFIX_DIR
-            ENV NETCDF_HOME
-            ENV CONDA_PREFIX
-            ENV PATH
-         PATH_SUFFIXES
-            bin
-      )
-      SET_TARGET_PROPERTIES(netCDF::netcdf PROPERTIES 
-                           IMPORTED_IMPLIB "${NCLIB}"
-                           IMPORTED_LOCATION "${NCDLL}"
-                           INTERFACE_INCLUDE_DIRECTORIES "${NETCDF_INCLUDE_DIR}"
-                           )
-      MESSAGE(STATUS "NetCDF-C dll: ${NCDLL}")
+   # IF (CMAKE_SYSTEM_NAME STREQUAL "Windows" AND BUILD_SHARED_LIBS)
+   #    # Get the DLL added in
+   #    FIND_FILE(NCDLL
+   #       NAMES "netcdf.dll"
+   #       HINTS 
+   #          NCPREFIX_DIR
+   #          ENV NETCDF_HOME
+   #          ENV CONDA_PREFIX
+   #          ENV PATH
+   #       PATH_SUFFIXES
+   #          bin
+   #    )
+   #    SET_TARGET_PROPERTIES(netCDF::netcdf PROPERTIES 
+   #                         IMPORTED_IMPLIB "${NCLIB}"
+   #                         IMPORTED_LOCATION "${NCDLL}"
+   #                         INTERFACE_INCLUDE_DIRECTORIES "${NETCDF_INCLUDE_DIR}"
+   #                         )
+   #    MESSAGE(STATUS "NetCDF-C dll: ${NCDLL}")
 
-      FIND_FILE(NFDLL
-         NAMES "netcdff.dll"
-         HINTS 
-            NFPREFIX_DIR
-            ENV NETCDF_FORTRAN_HOME
-            ENV CONDA_PREFIX
-            ENV PATH
-         PATH_SUFFIXES
-            bin
-      )
-      SET_TARGET_PROPERTIES(netCDF::netcdff PROPERTIES 
-                           IMPORTED_IMPLIB "${NFLIB}"
-                           IMPORTED_LOCATION "${NFDLL}"
-                           INTERFACE_INCLUDE_DIRECTORIES "${NETCDF_FORTRAN_INCLUDE_DIR}"
-                           )
-      MESSAGE(STATUS "NetCDF-Fortran dll: ${NFDLL}")
-   ELSE ()
+   #    FIND_FILE(NFDLL
+   #       NAMES "netcdff.dll"
+   #       HINTS 
+   #          NFPREFIX_DIR
+   #          ENV NETCDF_FORTRAN_HOME
+   #          ENV CONDA_PREFIX
+   #          ENV PATH
+   #       PATH_SUFFIXES
+   #          bin
+   #    )
+   #    SET_TARGET_PROPERTIES(netCDF::netcdff PROPERTIES 
+   #                         IMPORTED_IMPLIB "${NFLIB}"
+   #                         IMPORTED_LOCATION "${NFDLL}"
+   #                         INTERFACE_INCLUDE_DIRECTORIES "${NETCDF_FORTRAN_INCLUDE_DIR}"
+   #                         )
+   #    MESSAGE(STATUS "NetCDF-Fortran dll: ${NFDLL}")
+   # ELSE ()
       SET_TARGET_PROPERTIES(netCDF::netcdf PROPERTIES 
          IMPORTED_LOCATION "${NCLIB}"
          INTERFACE_INCLUDE_DIRECTORIES "${NETCDF_INCLUDE_DIR}"
@@ -311,7 +305,7 @@ ELSE ()
                            IMPORTED_LOCATION "${NFLIB}"
                            INTERFACE_INCLUDE_DIRECTORIES "${NETCDF_FORTRAN_INCLUDE_DIR}"
                            )
-   ENDIF()
+   # ENDIF()
    
    MESSAGE(STATUS "NetCDF-C library: ${NCLIB}")
    MESSAGE(STATUS "NetCDF-C include directory: ${NETCDF_INCLUDE_DIR}")
