@@ -37,7 +37,6 @@ jobs:
             mingw-w64-ucrt-x86_64-netcdf-fortran
             mingw-w64-ucrt-x86_64-openblas
             mingw-w64-ucrt-x86_64-fftw
-            mingw-w64-ucrt-x86_64-clang
           
       - name: Build wheels
         run: |
