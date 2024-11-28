@@ -12,12 +12,12 @@
 HDF5_VER="1.14.4"
 HDF5_SUBVER="2"
 
-SCRIPT_DIR=$(realpath $(dirname $0))
-ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+SCRIPT_DIR=$(realpath "$(dirname "$0")")
+ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
 
 set -e
-cd $ROOT_DIR
-. ${SCRIPT_DIR}/set_environment.sh
+cd "${ROOT_DIR}"
+. "${SCRIPT_DIR}"/set_environment.sh
 
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
@@ -31,14 +31,14 @@ printf "*             FETCHING HDF5 SOURCE                      *\n"
 printf "*********************************************************\n"
 printf "Copying files to ${DEPENDENCY_DIR}\n"
 
-HDF5_SRC_DIR=${DEPENDENCY_DIR}/hdf5-${HDF5_VER}-${HDF5_SUBVER}
+HDF5_SRC_DIR="${DEPENDENCY_DIR}"/hdf5-${HDF5_VER}-${HDF5_SUBVER}
 
 printf "Checking if HDF5 source directory exists\n"
-if [[ (-d ${HDF5_SRC_DIR}) && (-f ${HDF5_SRC_DIR}/README.md) ]]; then
-    OLDVER=$(grep version ${HDF5_SRC_DIR}/README.md | awk '{print $3}' | sed 's/\./_/g')
+if [[ (-d "${HDF5_SRC_DIR}") && (-f "${HDF5_SRC_DIR}"/README.md) ]]; then
+    OLDVER=$(grep version "${HDF5_SRC_DIR}"/README.md | awk '{print $3}' | sed 's/\./_/g')
     printf "Existing copy of HDF5 source detected\n"
 else 
-    curl -s -L https://github.com/HDFGroup/hdf5/releases/download/hdf5_${HDF5_VER}.${HDF5_SUBVER}/hdf5-${HDF5_VER}-${HDF5_SUBVER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+    curl -s -L https://github.com/HDFGroup/hdf5/releases/download/hdf5_${HDF5_VER}.${HDF5_SUBVER}/hdf5-${HDF5_VER}-${HDF5_SUBVER}.tar.gz | tar xvz -C "${DEPENDENCY_DIR}"
 fi
 printf "\n"
 printf "*********************************************************\n"
@@ -53,7 +53,7 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "INSTALL_PREFIX: ${HDF5_ROOT}\n"
 printf "*********************************************************\n"
 
-cd ${HDF5_SRC_DIR}
+cd "${HDF5_SRC_DIR}"
 
 ZLIB_LIBRARY="${ZLIB_ROOT}/lib/libz.a"
 SZIP_LIBRARY="${SZIP_ROOT}/lib/libsz.a"

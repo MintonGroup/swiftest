@@ -11,21 +11,21 @@
 # If not, see: https://www.gnu.org/licenses. 
 OpenCoarrays_VER="2.10.2"
 
-SCRIPT_DIR=$(realpath $(dirname $0))
-ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+SCRIPT_DIR=$(realpath "$(dirname "$0")")
+ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
 
 set -e
-cd $ROOT_DIR
-. ${SCRIPT_DIR}/set_environment.sh
+cd "${ROOT_DIR}"
+. "${SCRIPT_DIR}"/set_environment.sh
 
 printf "*********************************************************\n"
 printf "*             FETCHING OpenCoarrays SOURCE               *\n"
 printf "*********************************************************\n"
 printf "Copying files to ${DEPENDENCY_DIR}\n"
-mkdir -p ${DEPENDENCY_DIR}
-if [ ! -d ${DEPENDENCY_DIR}/OpenCoarrays-${OpenCoarrays_VER} ]; then
-    [ -d ${DEPENDENCY_DIR}/OpenCoarrays-* ] && rm -rf ${DEPENDENCY_DIR}/OpenCoarrays-*
-    curl -L https://github.com/sourceryinstitute/OpenCoarrays/releases/download/${OpenCoarrays_VER}/OpenCoarrays-${OpenCoarrays_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+mkdir -p "${DEPENDENCY_DIR}"
+if [ ! -d "${DEPENDENCY_DIR}"/OpenCoarrays-${OpenCoarrays_VER} ]; then
+    [ -d "${DEPENDENCY_DIR}"/OpenCoarrays-* ] && rm -rf "${DEPENDENCY_DIR}"/OpenCoarrays-*
+    curl -L https://github.com/sourceryinstitute/OpenCoarrays/releases/download/${OpenCoarrays_VER}/OpenCoarrays-${OpenCoarrays_VER}.tar.gz | tar xvz -C "${DEPENDENCY_DIR}"
 fi
 
 printf "*********************************************************\n"
@@ -44,7 +44,7 @@ printf "CC : ${CC}\n"
 printf "CXX: ${CXX}\n"
 printf "*********************************************************\n"
 
-cd ${DEPENDENCY_DIR}/OpenCoarrays-*
+cd "${DEPENDENCY_DIR}"/OpenCoarrays-*
 
 export TERM=xterm
 ./install.sh --prefix-root=${OpenCoarrays_HOME}/../.. --yes-to-all --with-fortran ${FC} --with-cxx ${CXX} --with-c ${CC} --verbose

@@ -1,0 +1,31 @@
+name: swiftest-dev
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python>=3.10, <3.13
+  - numpy
+  - xarray>=2024.10.0
+  - scipy
+  - hdf5
+  - h5py>=3.12.1
+  - netcdf4
+  - netcdf-fortran
+  - h5netcdf
+  - dask
+  - distributed
+  - bottleneck
+  - matplotlib
+  - astropy>=6
+  - astroquery
+  - tqdm
+  - pyshtools
+  - pip
+  - scikit-build-core>=0.8.2
+  - cython>=3.0.8
+  - numpy>=1.26.4
+  - setuptools>=64
+  - setuptools_scm>=8 
+  - pytest

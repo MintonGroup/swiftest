@@ -11,12 +11,12 @@
 # If not, see: https://www.gnu.org/licenses. 
 NF_VER="4.6.1"
 
-SCRIPT_DIR=$(realpath $(dirname $0))
-ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+SCRIPT_DIR=$(realpath "$(dirname "$0")")
+ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
 
 set -e
-cd $ROOT_DIR
-. ${SCRIPT_DIR}/set_environment.sh
+cd "${ROOT_DIR}"
+. "${SCRIPT_DIR}"/set_environment.sh
 
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
@@ -29,9 +29,9 @@ printf "*********************************************************\n"
 printf "*          FETCHING NETCDF-FORTRAN SOURCE                  *\n"
 printf "*********************************************************\n"
 printf "Copying files to ${DEPENDENCY_DIR}\n"
-if [ ! -d ${DEPENDENCY_DIR}/netcdf-fortran-${NF_VER} ]; then
-    [ -d ${DEPENDENCY_DIR}/netcdf-fortran-* ] && rm -rf ${DEPENDENCY_DIR}/netcdf-fortran-*
-    curl -s -L https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v${NF_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+if [ ! -d "${DEPENDENCY_DIR}"/netcdf-fortran-${NF_VER} ]; then
+    [ -d "${DEPENDENCY_DIR}"/netcdf-fortran-* ] && rm -rf "${DEPENDENCY_DIR}"/netcdf-fortran-*
+    curl -s -L https://github.com/Unidata/netcdf-fortran/archive/refs/tags/v${NF_VER}.tar.gz | tar xvz -C "${DEPENDENCY_DIR}"
 fi 
 CFLAGS="$(${NCDIR}/bin/nc-config --cflags) $CFLAGS"
 LIBS="$(${NCDIR}/bin/nc-config --libs --static) $LIBS"
@@ -50,7 +50,7 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "netCDF_LIBRARIES: ${netCDF_LIBRARIES}\n"
 printf "*********************************************************\n"
 
-cd ${DEPENDENCY_DIR}/netcdf-fortran-*
+cd "${DEPENDENCY_DIR}"/netcdf-fortran-*
 
 # This will patch the CMakeLists.txt file to add in the proper szip library link
 CMAKE_LISTS_FILE="CMakeLists.txt"

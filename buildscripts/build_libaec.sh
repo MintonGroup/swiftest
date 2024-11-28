@@ -11,12 +11,12 @@
 # If not, see: https://www.gnu.org/licenses. 
 LIBAEC_VER="1.1.3"
 
-SCRIPT_DIR=$(realpath $(dirname $0))
-ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+SCRIPT_DIR=$(realpath "$(dirname "$0")")
+ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
 
 set -e
-cd $ROOT_DIR
-. ${SCRIPT_DIR}/set_environment.sh
+cd "${ROOT_DIR}"
+. "${SCRIPT_DIR}"/set_environment.sh
 
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
@@ -29,10 +29,10 @@ printf "*********************************************************\n"
 printf "*             FETCHING LIBAEC SOURCE                      *\n"
 printf "*********************************************************\n"
 printf "Copying files to ${DEPENDENCY_DIR}\n"
-mkdir -p ${DEPENDENCY_DIR}
-if [ ! -d ${DEPENDENCY_DIR}/libaec-${LIBAEC_VER} ]; then
-    [ -d ${DEPENDENCY_DIR}/libaec-* ] && rm -rf ${DEPENDENCY_DIR}/libaec-*
-    curl -L https://github.com/MathisRosenhauer/libaec/releases/download/v${LIBAEC_VER}/libaec-${LIBAEC_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+mkdir -p "${DEPENDENCY_DIR}"
+if [ ! -d "${DEPENDENCY_DIR}"/libaec-${LIBAEC_VER} ]; then
+    [ -d "${DEPENDENCY_DIR}"/libaec-* ] && rm -rf "${DEPENDENCY_DIR}"/libaec-*
+    curl -L https://github.com/MathisRosenhauer/libaec/releases/download/v${LIBAEC_VER}/libaec-${LIBAEC_VER}.tar.gz | tar xvz -C "${DEPENDENCY_DIR}"
 fi
 printf "*********************************************************\n"
 printf "*               BUILDING LIBAEC LIBRARY                  *\n"
@@ -46,25 +46,27 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "INSTALL_PREFIX: ${SZIP_ROOT}\n"
 printf "*********************************************************\n"
 OS=$(uname -s)
-if [ "${OS}" == "Darwin" ]; then
+if [[ "${OS}" == "Darwin" ]]; then
     LIBEXT="dylib"
-else
+elif [[ "${OS}" == "Linux" ]]; then
     LIBEXT="so"
-fi
-cd ${DEPENDENCY_DIR}/libaec-*
+elif [[ "${OS}" == *"MINGW64"* ]]; then
+    LIBEXT="dll"
+fi 
+cd "${DEPENDENCY_DIR}"/libaec-*
 cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${SZIP_ROOT} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON
 
 cmake --build build -j${NPROC}
 if [ -w "${SZIP_ROOT}" ]; then
     cmake --install build 
     # Remove shared libraries
-    rm -f ${SZIP_ROOT}/lib/libaec*${LIBEXT}*
-    rm -f ${SZIP_ROOT}/lib/libsz*${LIBEXT}*
+    rm -f "${SZIP_ROOT}"/lib/libaec*${LIBEXT}*
+    rm -f "${SZIP_ROOT}"/lib/libsz*${LIBEXT}*
 else
     sudo cmake --install build
     # Remove shared libraries
-    sudo rm -f ${SZIP_ROOT}/lib/libaec*${LIBEXT}*
-    sudo rm -f ${SZIP_ROOT}/lib/libsz*${LIBEXT}*
+    sudo rm -f "${SZIP_ROOT}"/lib/libaec*${LIBEXT}*
+    sudo rm -f "${SZIP_ROOT}"/lib/libsz*${LIBEXT}*
 fi
 
 if [ $? -ne 0 ]; then

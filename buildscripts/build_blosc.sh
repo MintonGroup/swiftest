@@ -11,12 +11,12 @@
 # If not, see: https://www.gnu.org/licenses. 
 BLOSC_VER="1.21.5"
 
-SCRIPT_DIR=$(realpath $(dirname $0))
-ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+SCRIPT_DIR=$(realpath "$(dirname "$0")")
+ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
 
 set -e
-cd $ROOT_DIR
-. ${SCRIPT_DIR}/set_environment.sh
+cd "${ROOT_DIR}"
+. "${SCRIPT_DIR}"/set_environment.sh
 
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
@@ -29,10 +29,10 @@ printf "*********************************************************\n"
 printf "*             FETCHING BLOSC SOURCE                      *\n"
 printf "*********************************************************\n"
 printf "Copying files to ${DEPENDENCY_DIR}\n"
-mkdir -p ${DEPENDENCY_DIR}
-if [ ! -d ${DEPENDENCY_DIR}/c-blosc-${BLOSC_VER} ]; then
-    [ -d ${DEPENDENCY_DIR}/c-blosc-* ] && rm -rf ${DEPENDENCY_DIR}/c-blosc-*
-    curl -L https://github.com/Blosc/c-blosc/archive/refs/tags/v${BLOSC_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+mkdir -p "${DEPENDENCY_DIR}"
+if [ ! -d "${DEPENDENCY_DIR}"/c-blosc-${BLOSC_VER} ]; then
+    [ -d "${DEPENDENCY_DIR}"/c-blosc-* ] && rm -rf "${DEPENDENCY_DIR}"/c-blosc-*
+    curl -L https://github.com/Blosc/c-blosc/archive/refs/tags/v${BLOSC_VER}.tar.gz | tar xvz -C "${DEPENDENCY_DIR}"
 fi
 printf "*********************************************************\n"
 printf "*               BUILDING BLOSC LIBRARY                  *\n"
@@ -46,7 +46,7 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "INSTALL_PREFIX: ${BLOSC_ROOT}\n"
 printf "*********************************************************\n"
 
-cd ${DEPENDENCY_DIR}/c-blosc-*
+cd "${DEPENDENCY_DIR}"/c-blosc-*
 cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${BLOSC_ROOT} -DCMAKE_INSTALL_LIBDIR="lib" -DBUILD_SHARED:BOOL=OFF -DBUILD_STATIC:BOOL=ON -DBUILD_TESTS:BOOL=OFF -DBUILD_FUZZERS:BOOL=OFF -DBUILD_BENCHMARKS:BOOL=OFF -DBUILD_EXAMPLES:BOOL=OFF -DPREFER_EXTERNAL_ZLIB:BOOL=ON -DPREFER_EXTERNAL_ZSTD:BOOL=ON -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON 
 cmake --build build -j${NPROC}    
 if [ -w "${BLOSC_ROOT}" ]; then

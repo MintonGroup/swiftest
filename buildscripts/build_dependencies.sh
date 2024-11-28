@@ -12,13 +12,14 @@
 # If not, see: https://www.gnu.org/licenses. 
 
 # Determine the platform and architecture
-SCRIPT_DIR=$(realpath $(dirname $0))
-ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+SCRIPT_DIR=$(realpath "$(dirname "$0")")
+ROOT_DIR=$(realpath "${SCRIPT_DIR}"/..)
 
 set -e
-cd $ROOT_DIR
-. ${SCRIPT_DIR}/set_environment.sh
+cd "${ROOT_DIR}"
+. "${SCRIPT_DIR}"/set_environment.sh
 
+echo "Checking for Ninja"
 if ! command -v ninja &> /dev/null; then
     NINJA_VER="1.11.1"
 
@@ -26,12 +27,12 @@ if ! command -v ninja &> /dev/null; then
     printf "*             FETCHING NINJA SOURCE                      *\n"
     printf "*********************************************************\n"
     printf "Copying files to ${DEPENDENCY_DIR}\n"
-    mkdir -p ${DEPENDENCY_DIR}
-    if [ ! -d ${DEPENDENCY_DIR}/ninja-${NINJA_VER} ]; then
-        [ -d ${DEPENDENCY_DIR}/ninja-* ] && rm -rf ${DEPENDENCY_DIR}/ninja-*
-        curl -L https://github.com/ninja-build/ninja/archive/refs/tags/v${NINJA_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+    mkdir -p "${DEPENDENCY_DIR}"
+    if [ ! -d "${DEPENDENCY_DIR}"/ninja-${NINJA_VER} ]; then
+        [ -d "${DEPENDENCY_DIR}"/ninja-* ] && rm -rf "${DEPENDENCY_DIR}"/ninja-*
+        curl -L https://github.com/ninja-build/ninja/archive/refs/tags/v${NINJA_VER}.tar.gz | tar xvz -C "${DEPENDENCY_DIR}"
     fi
-    cd ${DEPENDENCY_DIR}/ninja-*
+    cd "${DEPENDENCY_DIR}"/ninja-*
     cmake -B build -S . -DCMAKE_INSTALL_PREFIX=/usr/local
     cmake --build build 
     if [ -w "${PREFIX}" ]; then
@@ -41,27 +42,31 @@ if ! command -v ninja &> /dev/null; then
     fi
 fi
 
+echo "Checking for OpenMP"
+
 # Get the OpenMP Libraries
 OS=$(uname -s)
 if [ $OS = "Darwin" ]; then
     echo "Fetching OpenMP libraries for MacOS"
-    ${SCRIPT_DIR}/get_lomp.sh 
+    "${SCRIPT_DIR}"/get_lomp.sh 
 fi
 
-${SCRIPT_DIR}/build_zlib.sh 
-${SCRIPT_DIR}/build_libaec.sh
-${SCRIPT_DIR}/build_bzip2.sh 
-${SCRIPT_DIR}/build_zstd.sh 
-${SCRIPT_DIR}/build_blosc.sh
-${SCRIPT_DIR}/build_hdf5.sh 
-${SCRIPT_DIR}/build_netcdf-c.sh
-${SCRIPT_DIR}/build_netcdf-fortran.sh
-${SCRIPT_DIR}/build_shtools.sh 
+echo "Starting build scripts"
+
+"${SCRIPT_DIR}"/build_zlib.sh 
+"${SCRIPT_DIR}"/build_libaec.sh
+"${SCRIPT_DIR}"/build_bzip2.sh 
+"${SCRIPT_DIR}"/build_zstd.sh 
+"${SCRIPT_DIR}"/build_blosc.sh
+"${SCRIPT_DIR}"/build_hdf5.sh 
+"${SCRIPT_DIR}"/build_netcdf-c.sh
+"${SCRIPT_DIR}"/build_netcdf-fortran.sh
+"${SCRIPT_DIR}"/build_shtools.sh 
 
 if [ $OS = "Linux" ]; then
-    FORTNAME=$(basename $OMPI_FC)
+    FORTNAME="$(basename $OMPI_FC)"
     if [ $FORTNAME="gfortran" ]; then
-        ${SCRIPT_DIR}/build_opencoarrays.sh
+        "${SCRIPT_DIR}"/build_opencoarrays.sh
     fi
 fi
 
