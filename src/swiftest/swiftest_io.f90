@@ -2912,6 +2912,19 @@ contains
 #endif
          end if
 
+         if (param%integrator == INT_SYMBA) then
+            if (.not.param%lenergy) then
+               write(iomsg,*) 'This integrator requires ENERGY to be enabled.'
+               iostat = -1
+               return
+            end if
+            if (.not.param%lrotation) then
+               write(iomsg,*) 'This integrator requires ROTATION to be enabled.'
+               iostat = -1
+               return
+            end if
+         end if
+
          iostat = 0
 #ifdef COARRAY
       end if ! this_image() == 1

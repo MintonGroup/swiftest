@@ -10,13 +10,12 @@
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
 ZLIB_VER="1.3.1"
-
-SCRIPT_DIR=$(realpath $(dirname $0))
-ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+SCRIPT_DIR=$(realpath "$(dirname "$0")")
+ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
 
 set -e
-cd $ROOT_DIR
-. ${SCRIPT_DIR}/set_environment.sh
+cd "${ROOT_DIR}"
+. "${SCRIPT_DIR}"/set_environment.sh
 
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
@@ -29,10 +28,10 @@ printf "*********************************************************\n"
 printf "*             FETCHING ZLIB SOURCE                      *\n"
 printf "*********************************************************\n"
 printf "Copying files to ${DEPENDENCY_DIR}\n"
-mkdir -p ${DEPENDENCY_DIR}
-if [ ! -d ${DEPENDENCY_DIR}/zlib-${ZLIB_VER} ]; then
-    [ -d ${DEPENDENCY_DIR}/zlib-* ] && rm -rf ${DEPENDENCY_DIR}/zlib-*
-    curl -L https://github.com/madler/zlib/releases/download/v${ZLIB_VER}/zlib-${ZLIB_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+mkdir -p "${DEPENDENCY_DIR}"
+if [ ! -d "${DEPENDENCY_DIR}"/zlib-${ZLIB_VER} ]; then
+    [ -d "${DEPENDENCY_DIR}"/zlib-* ] && rm -rf "${DEPENDENCY_DIR}"/zlib-*
+    curl -L https://github.com/madler/zlib/releases/download/v${ZLIB_VER}/zlib-${ZLIB_VER}.tar.gz | tar xvz -C "${DEPENDENCY_DIR}"
 fi
 
 printf "*********************************************************\n"
@@ -47,22 +46,32 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "INSTALL_PREFIX: ${ZLIB_ROOT}\n"
 printf "*********************************************************\n"
 
-cd ${DEPENDENCY_DIR}/zlib-*
-cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${ZLIB_ROOT} -DCMAKE_INSTALL_LIBDIR="lib" -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON 
+cd "${DEPENDENCY_DIR}"/zlib-*
+cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX="${ZLIB_ROOT}" -DCMAKE_INSTALL_LIBDIR="lib" -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON 
 OS=$(uname -s)
-if [ "${OS}" == "Darwin" ]; then
+if [[ "${OS}" == "Darwin" ]]; then
     LIBEXT="dylib"
-else
+elif [[ "${OS}" == "Linux" ]]; then
     LIBEXT="so"
+elif [[ "${OS}" == *"MINGW64"* ]]; then
+    LIBEXT="dll"
 fi 
 cmake --build build -j${NPROC}
 if [ -w "${ZLIB_ROOT}" ]; then
     cmake --install build 
-    rm -f ${ZLIB_ROOT}/lib/libz*${LIBEXT}*
+    rm -f "${ZLIB_ROOT}"/lib/libz*${LIBEXT}*
+    # On some platforms the name is slightly different. Rename it so that later scripts can find it more easily
+    if [ -f "${ZLIB_ROOT}"/lib/libzlibstatic.a ]; then #
+        mv "${ZLIB_ROOT}"/lib/libzlibstatic.a "${ZLIB_ROOT}"/lib/libz.a
+    fi
 else
     sudo cmake --install build
-    sudo rm -f ${ZLIB_ROOT}/lib/libz*${LIBEXT}*
+    sudo rm -f "${ZLIB_ROOT}"/lib/libz*${LIBEXT}*
+    if [ -f "${ZLIB_ROOT}"/lib/libzlibstatic.a ]; then
+        sudo mv "${ZLIB_ROOT}"/lib/libzlibstatic.a "${ZLIB_ROOT}"/lib/libz.a
+    fi
 fi
+
 
 if [ $? -ne 0 ]; then
    printf "zlib could not be compiled.\n"

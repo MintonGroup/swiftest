@@ -9,23 +9,23 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
-SHTOOLS_VER="4.12.2"
+SHTOOLS_VER="4.13.1"
 
-SCRIPT_DIR=$(realpath $(dirname $0))
-ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+SCRIPT_DIR=$(realpath "$(dirname "$0")")
+ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
 
 set -e
-cd $ROOT_DIR
-. ${SCRIPT_DIR}/set_environment.sh
+cd "${ROOT_DIR}"
+. "${SCRIPT_DIR}"/set_environment.sh
 
 printf "*********************************************************\n"
 printf "*             FETCHING SHTOOLS SOURCE                      *\n"
 printf "*********************************************************\n"
 printf "Copying files to ${DEPENDENCY_DIR}\n"
-mkdir -p ${DEPENDENCY_DIR}
-if [ ! -d ${DEPENDENCY_DIR}/SHTOOLS-${SHTOOLS_VER} ]; then
-    [ -d ${DEPENDENCY_DIR}/SHTOOLS-* ] && rm -rf ${DEPENDENCY_DIR}/SHTOOLS-*
-    curl -L https://github.com/SHTOOLS/SHTOOLS/archive/refs/tags/v${SHTOOLS_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+mkdir -p "${DEPENDENCY_DIR}"
+if [ ! -d "${DEPENDENCY_DIR}"/SHTOOLS-${SHTOOLS_VER} ]; then
+    [ -d "${DEPENDENCY_DIR}"/SHTOOLS-* ] && rm -rf "${DEPENDENCY_DIR}"/SHTOOLS-*
+    curl -L https://github.com/SHTOOLS/SHTOOLS/archive/refs/tags/v${SHTOOLS_VER}.tar.gz | tar xvz -C "${DEPENDENCY_DIR}"
 fi
 
 printf "*********************************************************\n"
@@ -40,7 +40,7 @@ printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
 printf "LDFLAGS: ${LDFLAGS}\n"
 printf "*********************************************************\n"
 
-cd ${DEPENDENCY_DIR}/SHTOOLS*
+cd "${DEPENDENCY_DIR}"/SHTOOLS*
 
 case $FC in
     *"mpiifort"*|*"ifx"*)

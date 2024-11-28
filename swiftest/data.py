@@ -321,12 +321,13 @@ class SwiftestDataset(xr.Dataset):
             mu = GMcb
         
         # Prepare the orbital elements for the function call
-        a = self['a']
-        e = self['e']
-        inc = self['inc']
-        capom = self['capom']
-        omega = self['omega']
-        capm = self['capm']
+        a = self['a'].astype(np.float64)
+        e = self['e'].astype(np.float64)
+        inc = self['inc'].astype(np.float64)
+        capom = self['capom'].astype(np.float64)
+        omega = self['omega'].astype(np.float64)
+        capm = self['capm'].astype(np.float64)
+        mu = mu.astype(np.float64)
 
         # Use apply_ufunc to convert orbital elements back to state vectors
         rh, vh = xr.apply_ufunc(
@@ -413,12 +414,15 @@ class SwiftestDataset(xr.Dataset):
             mu = xr.where(self['Gmass'] > 0.0, GMcb + self['Gmass'], GMcb)
         else:
             mu = GMcb
+            
+        # Prepare the cartesian state vectorsfor the function call
+        rh = self['rh'].astype(np.float64)
+        vh = self['vh'].astype(np.float64)  
+        mu = mu.astype(np.float64)
         
         result = xr.apply_ufunc(
             xv2el,  
-            mu,  
-            self['rh'],  
-            self['vh'],  
+            mu, rh, vh,
             input_core_dims=[[index_dim], [index_dim, 'space'], [index_dim, 'space']],  
             output_core_dims=[[index_dim]] * 11,  
             vectorize=True,  

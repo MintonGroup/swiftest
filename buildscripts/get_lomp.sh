@@ -22,8 +22,8 @@ SCRIPT_DIR=$(realpath $(dirname $0))
 ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
 
 set -e
-cd $ROOT_DIR
-. ${SCRIPT_DIR}/set_environment.sh
+cd "${ROOT_DIR}"
+. "${SCRIPT_DIR}"/set_environment.sh
 
 TARGET_MAJOR=`echo $MACOSX_DEPLOYMENT_TARGET | cut -d. -f1`
 TARGET_MINOR=`echo $MACOSX_DEPLOYMENT_TARGET | cut -d. -f2`
@@ -92,7 +92,7 @@ printf "*             FETCHING OPENMP LIBRARY                   *\n"
 printf "*********************************************************\n"
 LOMP_DIR="${PREFIX}/../.."
 printf "Copying files to ${LOMP_DIR}\n"
-mkdir -p ${DEPENDENCY_DIR}
+mkdir -p "${DEPENDENCY_DIR}"
 
 filename="openmp-${OMPVER}-darwin${DVER}-Release.tar.gz"
 #Download and install the libraries

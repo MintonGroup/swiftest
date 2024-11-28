@@ -49,8 +49,8 @@ Building Swiftest from source
 
 If you wish to build Swiftest from source, which in some cases can lead to some performance improvements over the pre-built wheels, 
 you can do so by following the instructions below. This will require a Fortran compiler, CMake, and the NetCDF and HDF5 libraries to
-be installed on your system. The instructions below are for building Swiftest on a Linux or MacOS system. Windows support is 
-currently being explored. 
+be installed on your system. The instructions below are for building Swiftest on a Linux or MacOS system. Installing on Windows is 
+similar when using the `MSYS2 platform <https://www.msys2.org>`__.
 
 You can obtain the latest version of Swiftest from the GitHub `repository <https://github.com/MintonGroup/swiftest>`__ , or from
 from a `releases <https://github.com/MintonGroup/swiftest/releases>`__ as a tarball.
