@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
  Copyright 2024 - The Minton Group at Purdue University
  This file is part of Swiftest.
@@ -15,7 +14,7 @@ import os
 import tempfile
 import numpy as np
 
-class TestUnits(unittest.TestCase):
+class TestXV2EL2XV(unittest.TestCase):
     def setUp(self):
         # Initialize a target and surface for testing
         self.tmpdir=tempfile.TemporaryDirectory()
@@ -61,7 +60,17 @@ class TestUnits(unittest.TestCase):
         self.assertTrue(sim.data.lam.dims == el_dims)
 
         return 
-         
+       
+    def test_type_mismatch(self):
+        ''' 
+        Checks that dtypes are converted properly before passing arguments to the el2xv or xv2el methods 
+        '''  
+        sim = swiftest.Simulation(simdir=self.simdir)
+        sim.add_solar_system_body(["Sun","Mercury"])
+        GMcb = swiftest.GMSun * sim.M2DU**3 / sim.S2TU**2
+        sim.data.xv2el(GMcb)
+        sim.data.el2xv(GMcb)
+        
 if __name__ == '__main__':
     os.environ["HDF5_USE_FILE_LOCKING"]="FALSE"
     unittest.main()

@@ -26,6 +26,7 @@ extensions = [
     "sphinx.ext.doctest",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
+    "sphinx.ext.extlinks",
     "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
@@ -39,6 +40,13 @@ extensions = [
     "sphinx_design",
     "sphinx_inline_tabs",
 ]
+
+extlinks = {
+    "issue": ("https://github.com/MintonGroup/swiftest/issues/%s", "GH%s"),
+    "pull": ("https://github.com/MintonGroup/swiftest/pull/%s", "PR%s"),
+    "discussion": ("https://github.com/MintonGroup/swiftest/discussions/%s", "D%s"),
+    "release": ("https://github.com/MintonGroup/swiftest/releases/tag/%s", "%s"),
+}
 
 # Sometimes the savefig directory doesn't exist and needs to be created
 # https://github.com/ipython/ipython/issues/8733

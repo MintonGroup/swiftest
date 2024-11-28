@@ -11,12 +11,12 @@
 # If not, see: https://www.gnu.org/licenses. 
 NC_VER="4.9.2"
 
-SCRIPT_DIR=$(realpath $(dirname $0))
-ROOT_DIR=$(realpath ${SCRIPT_DIR}/..)
+SCRIPT_DIR=$(realpath "$(dirname "$0")")
+ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
 
 set -e
-cd $ROOT_DIR
-. ${SCRIPT_DIR}/set_environment.sh
+cd "${ROOT_DIR}"
+. "${SCRIPT_DIR}"/set_environment.sh
 
 printf "*********************************************************\n"
 printf "*          STARTING DEPENDENCY BUILD                    *\n"
@@ -31,9 +31,9 @@ printf "*            FETCHING NETCDF-C SOURCE                   *\n"
 printf "*********************************************************\n"
 printf "Copying files to ${DEPENDENCY_DIR}\n"
 
-if [ ! -d ${DEPENDENCY_DIR}/netcdf-c-${NC_VER} ]; then
-    [ -d ${DEPENDENCY_DIR}/netcdf-c-* ] && rm -rf ${DEPENDENCY_DIR}/netcdf-c-*
-    curl -s -L https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NC_VER}.tar.gz | tar xvz -C ${DEPENDENCY_DIR}
+if [ ! -d "${DEPENDENCY_DIR}"/netcdf-c-${NC_VER} ]; then
+    [ -d "${DEPENDENCY_DIR}"/netcdf-c-* ] && rm -rf "${DEPENDENCY_DIR}"/netcdf-c-*
+    curl -s -L https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NC_VER}.tar.gz | tar xvz -C "${DEPENDENCY_DIR}"
 fi
 LIBS="-lhdf5_hl -lhdf5 -lm -lz -lzstd -lbz2 -lcurl -lsz ${LIBS}"
 LDFLAGS="${LDFLAGS} ${LIBS}"
@@ -51,7 +51,7 @@ printf "HDF5_ROOT: ${HDF5_ROOT}\n"
 printf "INSTALL_PREFIX: ${NCDIR}\n"
 printf "*********************************************************\n"
 
-cd ${DEPENDENCY_DIR}/netcdf-c-*
+cd "${DEPENDENCY_DIR}"/netcdf-c-*
 cmake -B build -S . -G Ninja  \
     -DCMAKE_BUILD_TYPE:STRING="Release" \
     -DHDF5_DIR:PATH=${HDF5_ROOT}/cmake \

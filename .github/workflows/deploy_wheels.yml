@@ -7,15 +7,16 @@ on:
       - published
 
 jobs:
-  build_wheels:
+  build_mac_linux_wheels:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-12, macos-13, macos-14]  
+        os: [ubuntu-latest,  macos-13, macos-14, macos-15]  
 
     steps:
       - uses: actions/checkout@v4
+        with:
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.19.2
@@ -24,6 +25,45 @@ jobs:
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
+          retention-days: 1
+
+  build_windows_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          path-type: inherit
+          install: >-
+            mingw-w64-ucrt-x86_64-toolchain
+            mingw-w64-ucrt-x86_64-gcc-fortran 
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
+            mingw-w64-ucrt-x86_64-msmpi
+            mingw-w64-ucrt-x86_64-netcdf-fortran
+            mingw-w64-ucrt-x86_64-openblas
+            mingw-w64-ucrt-x86_64-fftw
+          
+      - name: Build wheels
+        run: |
+          ./buildscripts/build_shtools.sh
+          pipx run cibuildwheel
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          path: ./wheelhouse/*.whl
+          retention-days: 1
 
   build_sdist:
     name: Build source distribution
@@ -38,9 +78,10 @@ jobs:
         with:
           name: cibw-sdist
           path: dist/*.tar.gz              
+          retention-days: 1
 
   upload_pypi:
-    needs: [build_wheels, build_sdist]
+    needs: [build_mac_linux_wheels, build_windows_wheels, build_sdist]
     runs-on: ubuntu-latest
     environment: 
       name: pypi

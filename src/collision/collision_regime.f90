@@ -272,8 +272,8 @@ contains
       c_star = calc_c_star(Rc1)
 
       V_imp = norm2(vb_imp(:) - vb_tar(:)) ! Impact velocity
-      theta_rad = calc_theta(rh_tar, vb_tar, rh_imp, vb_imp) ! Impact angle in degrees
-      theta = theta_rad * RAD2DEG ! Impact angle in radians
+      theta_rad = calc_theta(rh_tar, vb_tar, rh_imp, vb_imp) ! Impact angle in radians
+      theta = theta_rad * RAD2DEG ! Impact angle in degrees
       V_esc = sqrt(2 * GC * M_tar / rad_tar) ! Escape velocity of the target body
 
       ! Specific binding energy
@@ -291,13 +291,21 @@ contains
       M_esc_tar_HH11 = C_HH11 * (V_esc / (V_imp * sin(theta_rad)))**(-3.0_DP * mu_HH11) ! impactor mass units
 
       M_esc_tar = min(M_esc_tar_HG20, M_esc_tar_HH11) ! impactor mass units
+      M_esc_tar = max(M_esc_tar, 0.0_DP) ! Min value of M_esc_tar is 0.0 (impactor mass units)
 
       ! Calculate impactor body ejecta mass that escapes from the target
 
-      mu_HG20_imp = a_imp * theta**2 + b_imp * theta + c_imp
-      C_HG20_imp = exp(d_imp * theta**3 + e_imp * theta**2 + f_imp * theta + g_imp) 
+      if (theta < 15.0_DP) then ! Below table 1
+         mu_HG20_imp = 0.0_DP
+         C_HG20_imp = 1.0_DP
+      else
+         mu_HG20_imp = a_imp * theta**2 + b_imp * theta + c_imp
+         C_HG20_imp = exp(d_imp * theta**3 + e_imp * theta**2 + f_imp * theta + g_imp) 
+      end if
+
       M_esc_imp = C_HG20_imp * (V_esc / (V_imp * sin(theta_rad)))**(-3.0_DP * mu_HG20_imp) ! impactor mass units
       M_esc_imp = min(M_esc_imp, 1.0_DP) ! Max value of M_esc_imp is 1.0 (impactor mass units)
+      M_esc_imp = max(M_esc_imp, 0.0_DP) ! Min value of M_esc_imp is 0.0 (impactor mass units)
 
       M_esc_total = M_esc_tar + M_esc_imp ! impactor mass units
 
@@ -348,7 +356,7 @@ contains
             !! Calculate the impact angle between two colliding bodies
             !! For HG20, theta = 90 degrees - asin(b) where b is the impact parameter 
             !! (if impactor radius << target radius)
-            !! 90 degrees is a head-on collision
+            !! 90 degrees is a head-on collision, angle calculated from horizon
             !!
             implicit none
             ! Arguments
@@ -356,15 +364,12 @@ contains
             ! Result
             real(DP) :: theta ! radians
             ! Internals
-            real(DP), dimension(NDIM)  :: imp_vel, distance, x_cross_v
-            real(DP) :: sintheta
+            real(DP), dimension(NDIM)  :: imp_vel, distance
 
             imp_vel(:) = v_imp(:) - v_tar(:)
             distance(:) = r_imp(:) - r_tar(:)
-            x_cross_v(:) = distance(:) .cross. imp_vel(:) 
-            sintheta = norm2(x_cross_v(:)) / norm2(distance(:)) / norm2(imp_vel(:))
 
-            theta = asin(sintheta) ! Find a more exact way to calculate theta
+            theta = PIBY2 - acos(dot_product(distance(:), imp_vel(:)) / (.mag.distance(:) * .mag.imp_vel(:)))
 
             return
          end function calc_theta

@@ -28,7 +28,7 @@ build:
   jobs:
     pre_build:
       - pip install swiftest 
-      - ford fortran_docs.md 
+      - ford docs/fortran_docs.md 
 
 python:
   install: 
