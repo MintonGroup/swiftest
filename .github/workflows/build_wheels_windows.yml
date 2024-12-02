@@ -33,9 +33,15 @@ jobs:
             mingw-w64-ucrt-x86_64-fftw
       
       - uses: actions/checkout@v4
-          
+
+      - name: Get history and tags for SCM versioning to work
+        run: |
+          git fetch --prune --unshallow
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*          
+
       - name: Build shtools 
         run: ./buildscripts/build_shtools.sh
+
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.22.0
