@@ -9,7 +9,7 @@ What's New
 
 Bug Fixes
 ~~~~~~~~~
-- Adapted Updated the cli script to make it compatible with windows by using `pywinpty`` instead of `pty`. 
+- Adapted Updated the cli script to make it compatible with windows by using ``pywinpty`` instead of ``pty``. 
 
 Internal Changes
 ~~~~~~~~~~~~~~~~
