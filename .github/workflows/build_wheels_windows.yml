@@ -17,6 +17,9 @@ jobs:
       run:
         shell: msys2 {0}
     steps:
+      # Used to host cibuildwheel
+      - uses: actions/setup-python@v5
+
       - uses: msys2/setup-msys2@v2
         with:
           msystem: UCRT64
