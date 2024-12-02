@@ -42,7 +42,6 @@ jobs:
       - name: Build shtools 
         run: ./buildscripts/build_shtools.sh
 
-
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.22.0
 
