@@ -2,6 +2,23 @@
 
 What's New
 ==========
+.. _whats-new.2024.12.0:
+
+:release:`v2024.12.0`
+---------------------
+
+Bug Fixes
+~~~~~~~~~
+- Adapted Updated the cli script to make it compatible with windows by using `pywinpty`` instead of `pty`. 
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Updated GitHub Actions workflows to properly build the correct version of the Windows wheels.
+
+Contributors
+~~~~~~~~~~~~
+- `David Minton`_
+
 
 .. _whats-new.2024.11.4:
 
