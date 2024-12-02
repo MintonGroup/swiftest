@@ -17,8 +17,6 @@ jobs:
       run:
         shell: msys2 {0}
     steps:
-      - uses: actions/checkout@v4
-
       - uses: msys2/setup-msys2@v2
         with:
           msystem: UCRT64
@@ -33,10 +31,11 @@ jobs:
             mingw-w64-ucrt-x86_64-netcdf-fortran
             mingw-w64-ucrt-x86_64-openblas
             mingw-w64-ucrt-x86_64-fftw
+      
+      - uses: actions/checkout@v4
           
       - name: Build shtools 
-        run: |
-          ./buildscripts/build_shtools.sh
+        run: ./buildscripts/build_shtools.sh
 
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.22.0
