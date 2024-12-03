@@ -35,7 +35,7 @@ dependencies = [
     'distributed',
     'bottleneck',
     'matplotlib',
-    'astropy-base>=6',
+    'astropy>=6',
     'astroquery',
     'tqdm',
     'cython>=3',
