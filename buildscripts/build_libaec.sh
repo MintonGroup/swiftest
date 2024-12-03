@@ -49,19 +49,7 @@ OS=$(uname -s)
 LIBEXT="a"
 cd "${DEPENDENCY_DIR}"/libaec-*
 cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${SZIP_ROOT} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON
-
 cmake --build build -j${NPROC}
-if [ -w "${SZIP_ROOT}" ]; then
-    cmake --install build 
-    # Remove static libraries
-    rm -f "${SZIP_ROOT}"/lib/libaec*${LIBEXT}*
-    rm -f "${SZIP_ROOT}"/lib/libsz*${LIBEXT}*
-else
-    sudo cmake --install build
-    # Remove static libraries
-    sudo rm -f "${SZIP_ROOT}"/lib/libaec*${LIBEXT}*
-    sudo rm -f "${SZIP_ROOT}"/lib/libsz*${LIBEXT}*
-fi
 
 if [ $? -ne 0 ]; then
    printf "libaec could not be compiled.\n"
