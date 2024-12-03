@@ -169,8 +169,8 @@ OMPI_FC="$(buildscripts/get_fortran_path.sh)"
 
 [tool.cibuildwheel.macos]
 before-all = [
-    "brew install coreutils fftw vecLibFort opencoarrays open-mpi cmake",
-    "buildscripts/build_dependencies.sh"
+    "brew install coreutils fftw vecLibFort opencoarrays open-mpi cmake netcdf-fortran",
+    "buildscripts/build_shtools.sh"
 ]
 repair-wheel-command = """\
 DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel \
