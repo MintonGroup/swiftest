@@ -35,10 +35,11 @@ dependencies = [
     'distributed',
     'bottleneck',
     'matplotlib',
-    'astropy>=6',
+    'astropy-base>=6',
     'astroquery',
     'tqdm',
-    'cython>=3'
+    'cython>=3',
+    'pywinpty; platform_system == "Windows"'
 ]
 
 [project.optional-dependencies]
