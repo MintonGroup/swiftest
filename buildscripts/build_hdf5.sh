@@ -55,8 +55,17 @@ printf "*********************************************************\n"
 
 cd "${HDF5_SRC_DIR}"
 
-ZLIB_LIBRARY="${ZLIB_ROOT}/lib/libz.a"
-SZIP_LIBRARY="${SZIP_ROOT}/lib/libsz.a"
+
+if [ $OS = "MacOSX" ]; then
+    ZLIB_LIBRARY="${ZLIB_ROOT}/lib/libz.dylib"
+    SZIP_LIBRARY="${SZIP_ROOT}/lib/libsz.dylib"
+elif [ $OS = "Linux" ]; then
+    ZLIB_LIBRARY="${ZLIB_ROOT}/lib/libz.so"
+    SZIP_LIBRARY="${SZIP_ROOT}/lib/libsz.so"
+elif [[ $OS == *"MINGW64"* ]]; then
+    ZLIB_LIBRARY="${ZLIB_ROOT}/bin/zlib.dll"
+    SZIP_LIBRARY="${SZIP_ROOT}/bin/szip.dll"
+fi
 
 ARGLIST="-DCMAKE_INSTALL_PREFIX:PATH=${HDF5_ROOT} \
     -DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING="NO" \
@@ -75,8 +84,8 @@ ARGLIST="-DCMAKE_INSTALL_PREFIX:PATH=${HDF5_ROOT} \
     -DHDF5_BUILD_JAVA:BOOL=OFF \
     -DHDF5_BUILD_EXAMPLES:BOOL=OFF \
     -DBUILD_TESTING:BOOL=OFF \
-    -DBUILD_STATIC_LIBS:BOOL=ON \
-    -DBUILD_SHARED_LIBS:BOOL=OFF \
+    -DBUILD_STATIC_LIBS:BOOL=OFF \
+    -DBUILD_SHARED_LIBS:BOOL=ON \
     -DHDF5_ENABLE_ALL_WARNINGS:BOOL=OFF \
     -DHDF5_TEST_PARALLEL:BOOL=OFF \
     -DHDF5_TEST_SERIAL:BOOL=OFF \

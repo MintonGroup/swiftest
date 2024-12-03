@@ -46,25 +46,19 @@ printf "LDFLAGS: ${LDFLAGS}\n"
 printf "INSTALL_PREFIX: ${SZIP_ROOT}\n"
 printf "*********************************************************\n"
 OS=$(uname -s)
-if [[ "${OS}" == "Darwin" ]]; then
-    LIBEXT="dylib"
-elif [[ "${OS}" == "Linux" ]]; then
-    LIBEXT="so"
-elif [[ "${OS}" == *"MINGW64"* ]]; then
-    LIBEXT="dll"
-fi 
+LIBEXT="a"
 cd "${DEPENDENCY_DIR}"/libaec-*
 cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX=${SZIP_ROOT} -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON
 
 cmake --build build -j${NPROC}
 if [ -w "${SZIP_ROOT}" ]; then
     cmake --install build 
-    # Remove shared libraries
+    # Remove static libraries
     rm -f "${SZIP_ROOT}"/lib/libaec*${LIBEXT}*
     rm -f "${SZIP_ROOT}"/lib/libsz*${LIBEXT}*
 else
     sudo cmake --install build
-    # Remove shared libraries
+    # Remove static libraries
     sudo rm -f "${SZIP_ROOT}"/lib/libaec*${LIBEXT}*
     sudo rm -f "${SZIP_ROOT}"/lib/libsz*${LIBEXT}*
 fi
