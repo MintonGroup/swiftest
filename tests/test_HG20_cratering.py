@@ -61,11 +61,11 @@ class TestCollisions(unittest.TestCase):
                 sim.add_solar_system_body(['Mars', 'Phobos', 'Deimos'])
 
                 sim.modify_body(name = 'Deimos', radius = 6.203) # JPL Horizons only gives the longest axis
-                deimos_ds = sim.data.sel(name = 'Deimos')
-                deimos_rh = deimos_ds.rh.values[0]
-                deimos_vh = deimos_ds.vh.values[0]
-                deimos_radius = deimos_ds.radius.values[0]
-                deimos_v_esc = np.sqrt(2 * deimos_ds.Gmass.values[0] / deimos_radius)
+                deimos_ds = sim.data.sel(name = 'Deimos', time = 0)
+                deimos_rh = deimos_ds.rh
+                deimos_vh = deimos_ds.vh
+                deimos_radius = deimos_ds.radius
+                deimos_v_esc = np.sqrt(2 * deimos_ds.Gmass / deimos_radius)
 
                 # set up impactor "behind" deimos => r_hat = - vh_deimos_hat
                 # we want the impact in the first time step
@@ -74,23 +74,23 @@ class TestCollisions(unittest.TestCase):
                 r = r_mag * r_hat
 
                 # impactor velocity
-                # rotate r_hat by angle
-                # for simplicity keep Z component the same
+                # rotate r_hat by "angle" and keep Z component the same for simplicity 
                 v_mag = velocity * deimos_v_esc
 
                 rot_angle = np.radians(90.0 - angle) # impact angle = 90 - angle between r and v
-                v_hat_0 = -r_hat # v_hat at 0 degree rotation
-                x_tmp = v_hat_0[0]
-                y_tmp = v_hat_0[1]
+                v_hat = -r_hat # v_hat at 0 degree rotation
+                x_tmp = v_hat[0]
+                y_tmp = v_hat[1]
                     
                 x = x_tmp * np.cos(rot_angle) + y_tmp * np.sin(rot_angle)
                 y = x_tmp * -1.0 * np.sin(rot_angle) + y_tmp * np.cos(rot_angle)
 
-                v_hat = np.array([x, y, v_hat_0[2]])
+                v_hat[0] = x
+                v_hat[1] = y
                 v = v_mag * v_hat
 
-                impactor_radius = 0.1 # km
-                impactor_mass = deimos_ds.mass.values * impactor_radius**3 / deimos_radius**3
+                impactor_radius = 100.0 / sim.DU2M # DU
+                impactor_mass = [deimos_ds.mass * impactor_radius**3 / deimos_radius**3] # [] needed for sim.add_body
                 impactor_rh = r + deimos_rh
                 impactor_vh = v + deimos_vh
 
@@ -109,23 +109,23 @@ class TestCollisions(unittest.TestCase):
                 
                 # Extract body velocity
                 col_body = col.sel(collision_body = 1)
-                v_body = col_body['vh'].values
-                r_body = col_body['rh'].values
-                Gmass_before = col_body['Gmass'].values
+                v_body = col_body['vh']
+                r_body = col_body['rh']
+                Gmass_before = col_body['Gmass']
 
-                Gmass_after = sim.collisions.sel(collision_id = 1, stage = 'after', collision_body = 1)['Gmass'].values
+                Gmass_after = sim.collisions.sel(collision_id = 1, stage = 'after', collision_body = 1)['Gmass']
                 Gmass_change = Gmass_after - Gmass_before
 
                 # impact velocity
 
                 # Extract impactor velocity and position
-                impactor_gmass = col.sel(collision_body = 2)['Gmass'].values
-                v_impactor = col.sel(collision_body = 2)['vh'].values - v_body
-                r_impactor = col.sel(collision_body = 2)['rh'].values - r_body
+                impactor_gmass = col.sel(collision_body = 2)['Gmass']
+                v_impactor = col.sel(collision_body = 2)['vh'] - v_body
+                r_impactor = col.sel(collision_body = 2)['rh'] - r_body
 
                 # Calculate impactor velocity and position magnitude
-                vmag = np.linalg.norm(v_impactor)
-                rmag = np.linalg.norm(r_impactor)
+                vmag = v_impactor.magnitude() 
+                rmag = r_impactor.magnitude()
 
                 # impact angle 
                 impact_angle = np.dot(r_impactor, v_impactor) / vmag / rmag
@@ -135,10 +135,6 @@ class TestCollisions(unittest.TestCase):
                 impact_velocity = np.array(vmag/ deimos_v_esc)
                 impact_mass_change = np.array(Gmass_change / impactor_gmass) # m_impactor units
                 impact_angle = np.array(impact_angle) 
-
-                print(f'impact angle = {impact_angle} deg\t expected = {angle} deg')
-                print(f'impact velocity = {impact_velocity} v_esc\t expected = {velocity} v_esc')
-                print(f'impact mass change = {impact_mass_change} m_impactor\t expected = {expected_mass_change} m_impactor')
 
                 self.assertGreater(impact_angle, 0, msg = 'Impact angle should be positive')
                 self.assertAlmostEqual(impact_angle, angle, delta = 7, msg = 'Impact angle not as expected')
