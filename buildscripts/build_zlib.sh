@@ -49,27 +49,14 @@ printf "*********************************************************\n"
 cd "${DEPENDENCY_DIR}"/zlib-*
 cmake -B build -S . -G Ninja -DCMAKE_INSTALL_PREFIX="${ZLIB_ROOT}" -DCMAKE_INSTALL_LIBDIR="lib" -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON 
 OS=$(uname -s)
-if [[ "${OS}" == "Darwin" ]]; then
-    LIBEXT="dylib"
-elif [[ "${OS}" == "Linux" ]]; then
-    LIBEXT="so"
-elif [[ "${OS}" == *"MINGW64"* ]]; then
-    LIBEXT="dll"
-fi 
+LIBEXT="a"
 cmake --build build -j${NPROC}
 if [ -w "${ZLIB_ROOT}" ]; then
     cmake --install build 
     rm -f "${ZLIB_ROOT}"/lib/libz*${LIBEXT}*
-    # On some platforms the name is slightly different. Rename it so that later scripts can find it more easily
-    if [ -f "${ZLIB_ROOT}"/lib/libzlibstatic.a ]; then #
-        mv "${ZLIB_ROOT}"/lib/libzlibstatic.a "${ZLIB_ROOT}"/lib/libz.a
-    fi
 else
     sudo cmake --install build
     sudo rm -f "${ZLIB_ROOT}"/lib/libz*${LIBEXT}*
-    if [ -f "${ZLIB_ROOT}"/lib/libzlibstatic.a ]; then
-        sudo mv "${ZLIB_ROOT}"/lib/libzlibstatic.a "${ZLIB_ROOT}"/lib/libz.a
-    fi
 fi
 
 
