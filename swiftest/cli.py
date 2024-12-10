@@ -31,25 +31,24 @@ def main(binary_name="swiftest"):
     # Check if we're on Windows
     if os.name == 'nt':
         # Use pywinpty on Windows
-        import pywinpty
+        from winpty import PtyProcess
         import threading
 
         # Create a new pseudo-terminal
-        parent, child = pywinpty.PtyProcess.spawn(' '.join(args))
+        cmd = f"{' '.join(args)}.exe"
+        proc = PtyProcess.spawn(cmd)
 
         def read_output():
-            while True:
-                data = parent.read(1024)
-                if not data:
-                    break
-                sys.stdout.write(data.decode())
+            while proc.isalive():
+                data = proc.read()
+                sys.stdout.write(data)
                 sys.stdout.flush()
 
         t = threading.Thread(target=read_output)
         t.start()
 
         # Wait for the process to finish
-        parent.wait()
+        proc.wait()
         t.join()
     else:
         # Use pty on POSIX systems
