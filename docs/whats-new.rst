@@ -2,6 +2,21 @@
 
 What's New
 ==========
+
+.. _whats-new.2024.12.1:
+
+:release:`v2024.12.1`
+---------------------
+
+Bug Fixes
+~~~~~~~~~
+- Fixed incorrect angle calculation in HG20 cratering model by `Kaustub Anand`_ in :pull:73
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Switched to shared library builds and/or pre built dependency builds for all dependencies by `David Minton`_ in :pull:`70`.
+
+
 .. _whats-new.2024.12.0:
 
 :release:`v2024.12.0`
