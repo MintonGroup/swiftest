@@ -369,7 +369,7 @@ contains
             imp_vel(:) = v_imp(:) - v_tar(:)
             distance(:) = r_imp(:) - r_tar(:)
 
-            theta = PIBY2 - acos(dot_product(distance(:), imp_vel(:)) / (.mag.distance(:) * .mag.imp_vel(:)))
+            theta = abs(PIBY2 - acos(dot_product(distance(:), imp_vel(:)) / (.mag.distance(:) * .mag.imp_vel(:))))
 
             return
          end function calc_theta
