@@ -35,17 +35,16 @@ class TestCollisions(unittest.TestCase):
         impact_angles = np.array([30, 45, 60, 75, 90]) # degrees
         impact_velocities = np.array([1.0, 3.0, 5.0, 10.0, 15.0]) # v_escape
         impact_mass_changes = {impact_angle: {impact_velocity: None for impact_velocity in impact_velocities} for impact_angle in impact_angles}
-        simulation_derived_mass_changes = [1.0, 1.0, -0.3938, -1.5315, -3.0704, 
-                                           1.0, 1.0, -0.3082, -3.0934, -6.4454,
-                                           1.0, 1.0, 1.0, -3.8059, -8.9207,
-                                           1.0, 1.0, 1.0, -3.0412, -10.6972,
-                                           1.0, 1.0, 1.0, -2.71889, -11.4195]
+        simulation_derived_mass_changes = [[1.0, 1.0, -0.3938, -1.5315, -3.0704], 
+                                           [1.0, 1.0, -0.3082, -3.0934, -6.4454],
+                                           [1.0, 1.0, 1.0, -3.8059, -8.9207],
+                                           [1.0, 1.0, 1.0, -3.0412, -10.6972],
+                                           [1.0, 1.0, 1.0, -2.71889, -11.4195]]
 
-        i = 0
-        for angle in impact_angles:
-            for velocity in impact_velocities:
-                impact_mass_changes[angle][velocity] = simulation_derived_mass_changes[i]
-                i += 1
+        impact_mass_changes = {
+            angle: dict(zip(impact_velocities, mass_row))
+            for angle, mass_row in zip(impact_angles, simulation_derived_mass_changes)
+        }
 
         ###################################################################
         # Setup and run through each set of impact angles and velocities
@@ -56,7 +55,7 @@ class TestCollisions(unittest.TestCase):
                 expected_mass_change = impact_mass_changes[angle][velocity]
 
                 sim = swiftest.Simulation(simdir = self.simdir, tstop = 0.01, dt = 0.005, 
-                                    collision_model = "FRAGGLE", MU2KG = 1e15, DU = 'km', TU = 'day')
+                                    collision_model = "FRAGGLE", MU2KG = 1e15, DU = 'km', TU = 'day', verbose=False)
                 
                 sim.add_solar_system_body(['Mars', 'Phobos', 'Deimos'])
 
@@ -70,7 +69,7 @@ class TestCollisions(unittest.TestCase):
                 # set up impactor "behind" deimos => r_hat = - vh_deimos_hat
                 # we want the impact in the first time step
                 r_mag = 1.07 * deimos_radius # 1 v_esc * 0.005 days ~ 0.38 deimos radii
-                r_hat = - deimos_vh / np.linalg.norm(deimos_vh)
+                r_hat = - deimos_vh / deimos_vh.magnitude()
                 r = r_mag * r_hat
 
                 # impactor velocity
@@ -89,7 +88,7 @@ class TestCollisions(unittest.TestCase):
                 v_hat[1] = y
                 v = v_mag * v_hat
 
-                impactor_radius = 100.0 / sim.DU2M # DU
+                impactor_radius = 100.0 * sim.M2DU 
                 impactor_mass = [deimos_ds.mass * impactor_radius**3 / deimos_radius**3] # [] needed for sim.add_body
                 impactor_rh = r + deimos_rh
                 impactor_vh = v + deimos_vh
