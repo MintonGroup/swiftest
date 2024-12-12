@@ -28,7 +28,7 @@ contains
       ! Internals
       real (DP) :: mtot
       integer(I4B) :: i,jtarg, jproj
-        
+      
       associate(impactors => self%impactors)
       select type (nbody_system)
       class is (swiftest_nbody_system)
@@ -90,7 +90,7 @@ contains
       real(DP), dimension(NDIM)  :: x_tar_si, v_tar_si, x_imp_si, v_imp_si
       real(DP) :: mlr, mslr, mtot, Qloss, Qmerge
       integer(I4B), parameter :: NMASS_DIST = 3   ! Number of mass bins returned by the regime calculation (largest fragment, second
-                                                  ! largest, and remainder)  
+                                                ! largest, and remainder)  
       real(DP), dimension(NDIM) :: Ip, rot, L_rot
       real(DP) :: radius, volume
 
@@ -254,7 +254,7 @@ contains
       real(DP), parameter   :: BETA = 2.85_DP 
          !! slope of sfd for remnants from LS12 2.85
       integer(I4B), parameter :: N1 = 1 
-          !!number of objects with mass equal to the largest remnant from LS12
+         !! number of objects with mass equal to the largest remnant from LS12
       integer(I4B), parameter :: N2 = 2  
          !! number of objects with mass larger than second largest remnant from LS12
       real(DP), parameter   :: DENSITY1 = 1000.0_DP 
@@ -369,7 +369,13 @@ contains
             imp_vel(:) = v_imp(:) - v_tar(:)
             distance(:) = r_imp(:) - r_tar(:)
 
-            theta = abs(PIBY2 - acos(dot_product(distance(:), imp_vel(:)) / (.mag.distance(:) * .mag.imp_vel(:))))
+            theta = dot_product(distance(:), imp_vel(:)) / (.mag.distance(:) * .mag.imp_vel(:))
+
+            if (abs(theta) >= 1.0_DP) then
+               theta = sign(1.0_DP, theta) 
+            end if
+
+            theta = acos(theta) - PIBY2 
 
             return
          end function calc_theta
@@ -424,8 +430,8 @@ contains
       real(DP) :: min_mfrag_si, Mcb_si
       real(DP), dimension(NDIM)  :: x1_si, v1_si, x2_si, v2_si
       real(DP) :: mlr, mslr, mslr_hr, mtot, dentot, Qloss, Qmerge
-      integer(I4B), parameter :: NMASS_DIST = 3   ! Number of mass bins returned by the regime calculation (largest fragment, second
-                                                  ! largest, and remainder)  
+      integer(I4B), parameter :: NMASS_DIST = 3 ! Number of mass bins returned by the regime calculation (largest fragment, second
+                                                ! largest, and remainder)  
       real(DP), dimension(NDIM) :: Ip, rot, L_rot
       real(DP) :: radius, volume
       
@@ -523,7 +529,7 @@ contains
 
       return
    end subroutine collision_regime_LS12
-   
+
 
    subroutine collision_regime_LS12_SI(Mcb, m1, m2, rad1, rad2, rh1, rh2, vb1, vb2, den1, den2, min_mfrag, &
                                                 regime, Mlr, Mslr, Mslr_hitandrun, Qloss, Qmerge)
@@ -556,7 +562,7 @@ contains
          !! The energy lost in the collision if it was a perfect merger
       ! Constants
       integer(I4B), parameter :: N1 = 1 
-          !!number of objects with mass equal to the largest remnant from LS12
+         !! number of objects with mass equal to the largest remnant from LS12
       integer(I4B), parameter :: N2 = 2  
          !! number of objects with mass larger than second largest remnant from LS12
       real(DP), parameter   :: DENSITY1 = 1000.0_DP 
