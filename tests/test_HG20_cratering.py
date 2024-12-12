@@ -50,7 +50,6 @@ class TestCollisions(unittest.TestCase):
         # Setup and run through each set of impact angles and velocities
 
         for angle in impact_angles[:]:
-            print(f'\nimpact angle = {angle} deg')
             for velocity in impact_velocities[:]:
                 expected_mass_change = impact_mass_changes[angle][velocity]
 
