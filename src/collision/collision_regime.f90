@@ -562,7 +562,7 @@ contains
          !! The energy lost in the collision if it was a perfect merger
       ! Constants
       integer(I4B), parameter :: N1 = 1 
-         !!number of objects with mass equal to the largest remnant from LS12
+         !! number of objects with mass equal to the largest remnant from LS12
       integer(I4B), parameter :: N2 = 2  
          !! number of objects with mass larger than second largest remnant from LS12
       real(DP), parameter   :: DENSITY1 = 1000.0_DP 
