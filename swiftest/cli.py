@@ -1,6 +1,4 @@
 import os
-import pty
-import subprocess
 import sys
 
 def main_caf():
@@ -10,11 +8,18 @@ def main_caf():
         main("swiftest_caf")
     else:
         print("This version of swiftest has not been compiled with coarray support. The standard version of swiftest will be executed instead.")
-        main() 
+        main()
     return
 
 def main(binary_name="swiftest"):
-    """Executes the 'swiftest' binary located in the package root, passing along any command-line arguments, and streams the output to the terminal in real-time, handling progress bars correctly by using a pseudo-terminal."""
+    """
+    Executes the 'swiftest' binary located in the package root, passing along any command-line arguments, and streams the output to the terminal in real-time, handling progress bars correctly by using a pseudo-terminal.
+    
+    Parameters
+    ----------
+    binary_name : str, optional
+        The name of the binary to execute. Default is 'swiftest'.
+    """
 
     # Determine the path to the binary relative to this script
     package_root = os.path.dirname(os.path.abspath(__file__))
@@ -27,34 +32,54 @@ def main(binary_name="swiftest"):
             print(f"The Coarray version of Swiftest must be built locally from source.")    
         sys.exit(1)    
 
-    # sys.argv[1:] contains all the arguments passed to the script, excluding the script name itself
+    # Command-line arguments
     args = [binary_path] + sys.argv[1:]
 
-    # Use pty to spawn the process and create a pseudo-terminal
-    main_fd, subordinate_fd = pty.openpty()
+    # Check if we're on Windows
+    if os.name == 'nt':
+        # Use pywinpty on Windows
+        from winpty import PtyProcess
+        import threading
 
-    # Spawn the subprocess
-    proc = subprocess.Popen(args, stdin=subordinate_fd, stdout=subordinate_fd, stderr=subordinate_fd, close_fds=True)
+        # Create a new pseudo-terminal
+        cmd = f"{' '.join(args)}.exe"
+        proc = PtyProcess.spawn(cmd)
 
-    # Close the subordinate file descriptor in the parent process
-    os.close(subordinate_fd)
-
-    # Read the output from the main file descriptor
-    while True:
-        try:
-            output = os.read(main_fd, 1024).decode()
-            if output:
-                sys.stdout.write(output)
+        def read_output():
+            while proc.isalive():
+                data = proc.read()
+                sys.stdout.write(data)
                 sys.stdout.flush()
-            else:
-                break
-        except OSError:
-            break
 
-    # Wait for the subprocess to finish
-    proc.wait()
+        t = threading.Thread(target=read_output)
+        t.start()
 
-    return
+        # Wait for the process to finish
+        proc.wait()
+        t.join()
+    else:
+        # Use pty on POSIX systems
+        import pty
+        import select
+
+        pid, fd = pty.fork()
+        if pid == 0:
+            # Child process
+            os.execv(binary_path, args)
+        else:
+            # Parent process
+            try:
+                while True:
+                    r, _, _ = select.select([fd], [], [])
+                    if fd in r:
+                        output = os.read(fd, 1024)
+                        if not output:
+                            break
+                        sys.stdout.buffer.write(output)
+                        sys.stdout.flush()
+            except OSError:
+                pass
+            os.waitpid(pid, 0)
 
 if __name__ == "__main__":
     main()
