@@ -118,7 +118,6 @@ contains
       real(DP)                             :: dE
       real(DP), dimension(NDIM)            :: dL
       character(len=STRMAX)                :: message
-      real(DP), parameter                  :: fail_scale_initial = 1.0003_DP
       integer(I4B)                         :: nfrag_start
 
       ! The minimization and linear solvers can sometimes lead to floating point exceptions. Rather than halting the code entirely 
@@ -149,7 +148,6 @@ contains
          call self%set_natural_scale()
          lfailure = .false.
          call self%get_energy_and_momentum(nbody_system, param, phase="before")
-         self%fail_scale = fail_scale_initial
          call fraggle_generate_pos_vec(self, nbody_system, param, lfailure)
          if (.not.lfailure) then
             call fraggle_generate_rot_vec(self, nbody_system, param)
@@ -371,6 +369,8 @@ contains
       integer(I4B), parameter :: MAXLOOP = 10000
       real(DP), parameter :: rbuffer = 1.01_DP ! Body radii are inflated by this scale factor to prevent secondary collisions 
       real(DP), parameter :: pack_density = 0.5236_DP ! packing density of loose spheres
+      real(DP) :: min_overlap_distance ! Minimum distance between overlapping pairs of bodies that is used to adjust the 
+                                         ! fragment cloud radius
 
       associate(fragments => collider%fragments, impactors => collider%impactors, pl => nbody_system%pl, tp => nbody_system%tp)
          nfrag = collider%fragments%nbody
@@ -483,7 +483,7 @@ contains
 
             ! Because body 1 and 2 are initialized near the original impactor positions, then if these bodies are still overlapping
             ! when the rest are not, we will randomly walk their position in space so as not to move them too far from their 
-            ! starting  position
+            ! starting position
             if (all(.not.loverlap(istart:nfrag)) .and. any(loverlap(1:istart-1))) then
                do j = 1, MAXLOOP
 #ifdef DOCONLOC
@@ -491,7 +491,7 @@ contains
 #else
                   do concurrent(i = 1:istart-1,loverlap(i))
 #endif
-                     dis = 0.1_DP * fragments%radius(i) * u(i)**(THIRD)
+                     dis = 0.5_DP * fragments%radius(i) * u(i)**(THIRD)
                      rwalk(1) = dis * sin(theta(i)) * cos(phi(i))
                      rwalk(2) = dis * sin(theta(i)) * sin(phi(i))
                      rwalk(3) = dis * cos(theta(i)) 
@@ -503,7 +503,11 @@ contains
 
             fragments%rmag(:) = .mag. fragments%rc(:,:)
 
-            ! Check for any overlapping bodies.
+            ! Check for any overlapping bodies. If there are any overlaps, we will increase the size of the fragment cloud for the 
+            ! next iteration, so that overlapping bodies are moved further apart. The reason the minimum overlapping distance is
+            ! chosen for the adjustment rather than the maximum is so that the fragments can be placed as close together as allowed,
+            ! rather than increasing the distance for all overlapping fragments in one go.
+            min_overlap_distance = huge(1.0_DP)
             do j = nfrag, 1, -1
                if (.not.loverlap(j)) cycle
                loverlap(j) = .false.
@@ -512,16 +516,23 @@ contains
                   if (i == j) cycle
                   dis = .mag.(fragments%rc(:,j) - fragments%rc(:,i))
                   loverlap(j) = (dis <= rbuffer * (fragments%radius(i) + fragments%radius(j)))
-                  if (loverlap(j)) exit
+                  if (loverlap(j)) then
+                     min_overlap_distance = min(rbuffer * (fragments%radius(i) + fragments%radius(j)) - dis,min_overlap_distance)
+                     exit  
+                  end if 
                end do
                if (loverlap(j)) cycle
+               ! Check for overlaps between fragments and all other massive bodies
                do i = 1, npl
                   if (any(impactors%id(:) == i)) cycle
                   dis = .mag. (fragments%rc(:,j) - (pl%rb(:,i) / collider%dscale - impactors%rbcom(:)))
                   loverlap(j) = loverlap(j) .or. (dis <= rbuffer * (pl%radius(i) / collider%dscale + fragments%radius(j))) 
+                  if (loverlap(j)) then
+                     min_overlap_distance = min(rbuffer * (fragments%radius(i) + fragments%radius(j)) - dis,min_overlap_distance)
+                  end if
                end do
             end do
-            rdistance = rdistance * collider%fail_scale
+            rdistance = rdistance + min_overlap_distance
          end do
 
          lfailure = any(loverlap(:))
@@ -859,7 +870,6 @@ contains
             end associate
 
             do posloop = 1, MAXLOOP
-               collider_local%fail_scale = collider%fail_scale * posloop
                call collider_local%restructure(nbody_system, param, lfailure)
                if (.not.lfailure) exit
             end do
