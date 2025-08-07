@@ -21,7 +21,7 @@ cd "${ROOT_DIR}"
 
 echo "Checking for Ninja"
 if ! command -v ninja &> /dev/null; then
-    NINJA_VER="1.11.1"
+    NINJA_VER="1.13.1"
 
     printf "*********************************************************\n"
     printf "*             FETCHING NINJA SOURCE                      *\n"
