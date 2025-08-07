@@ -9,7 +9,7 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
-NF_VER="4.6.1"
+NF_VER="4.6.2"
 
 SCRIPT_DIR=$(realpath "$(dirname "$0")")
 ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
