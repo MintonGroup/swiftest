@@ -491,7 +491,7 @@ contains
 #else
                   do concurrent(i = 1:istart-1,loverlap(i))
 #endif
-                     dis = 0.5_DP * fragments%radius(i) * u(i)**(THIRD)
+                     dis = 0.1_DP * fragments%radius(i) * u(i)**(THIRD)
                      rwalk(1) = dis * sin(theta(i)) * cos(phi(i))
                      rwalk(2) = dis * sin(theta(i)) * sin(phi(i))
                      rwalk(3) = dis * cos(theta(i)) 
