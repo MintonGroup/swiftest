@@ -25,7 +25,7 @@ printf "Copying files to ${DEPENDENCY_DIR}\n"
 mkdir -p "${DEPENDENCY_DIR}"
 if [ ! -d "${DEPENDENCY_DIR}"/OpenCoarrays-${OpenCoarrays_VER} ]; then
     [ -d "${DEPENDENCY_DIR}"/OpenCoarrays-* ] && rm -rf "${DEPENDENCY_DIR}"/OpenCoarrays-*
-    curl -L https://github.com/sourceryinstitute/OpenCoarrays/releases/download/${OpenCoarrays_VER}/OpenCoarrays-${OpenCoarrays_VER}.tar.gz | tar xvz -C "${DEPENDENCY_DIR}"
+    curl -L https://github.com/sourceryinstitute/OpenCoarrays/archive/refs/tags/${OpenCoarrays_VER}.tar.gz ${OpenCoarrays_VER}.tar.gz | tar xvz -C "${DEPENDENCY_DIR}"
 fi
 
 printf "*********************************************************\n"

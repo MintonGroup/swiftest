@@ -63,12 +63,12 @@ echo "Starting build scripts"
 "${SCRIPT_DIR}"/build_netcdf-fortran.sh
 "${SCRIPT_DIR}"/build_shtools.sh 
 
-if [ $OS = "Linux" ]; then
-    FORTNAME="$(basename $OMPI_FC)"
-    if [ $FORTNAME="gfortran" ]; then
-        "${SCRIPT_DIR}"/build_opencoarrays.sh
-    fi
-fi
+#if [ $OS = "Linux" ]; then
+#    FORTNAME="$(basename $OMPI_FC)"
+#    if [ $FORTNAME="gfortran" ]; then
+#        "${SCRIPT_DIR}"/build_opencoarrays.sh
+#    fi
+#fi
 
 printf "\n"
 printf "*********************************************************\n"
