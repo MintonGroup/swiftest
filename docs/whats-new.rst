@@ -2,6 +2,20 @@
 
 What's New
 ==========
+.. _whats-new.2025.8.0:
+
+:release:`v2025.8.0`
+---------------------
+
+Bug Fixes
+~~~~~~~~~
+- Changed how positions are redone when fragments are overlapping. The fragment cloud is now scaled to the minimum of the overlap distance between pairs of bodies. The position code now converges on a solution much faster than before, from ~9000 loops to less than 10 in the test case. By `David Minton`_ in :pull:`78`.
+
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Updated versions of dependencies and modernized build process and GitHub Actions Workflows by `David Minton`_ in :pull:`78`.
+
 
 .. _whats-new.2024.12.1:
 
