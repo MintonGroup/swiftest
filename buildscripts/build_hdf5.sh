@@ -30,7 +30,7 @@ printf "*             FETCHING HDF5 SOURCE                      *\n"
 printf "*********************************************************\n"
 printf "Copying files to ${DEPENDENCY_DIR}\n"
 
-HDF5_SRC_DIR="${DEPENDENCY_DIR}"/hdf5-${HDF5_VER}-${HDF5_SUBVER}
+HDF5_SRC_DIR="${DEPENDENCY_DIR}"/hdf5-${HDF5_VER}
 
 printf "Checking if HDF5 source directory exists\n"
 if [[ (-d "${HDF5_SRC_DIR}") && (-f "${HDF5_SRC_DIR}"/README.md) ]]; then
