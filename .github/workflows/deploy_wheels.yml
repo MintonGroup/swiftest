@@ -86,7 +86,7 @@ jobs:
           retention-days: 1
 
   upload_pypi:
-    needs: [build_mac_linux_wheels, build_windows_wheels, build_sdist]
+    needs: [build_mac_linux_wheels, build_sdist]
     runs-on: ubuntu-latest
     environment: 
       name: pypi
