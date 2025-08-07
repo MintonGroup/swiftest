@@ -9,8 +9,7 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
-HDF5_VER="1.14.4"
-HDF5_SUBVER="2"
+HDF5_VER="1.14.6"
 
 SCRIPT_DIR=$(realpath "$(dirname "$0")")
 ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
@@ -38,7 +37,7 @@ if [[ (-d "${HDF5_SRC_DIR}") && (-f "${HDF5_SRC_DIR}"/README.md) ]]; then
     OLDVER=$(grep version "${HDF5_SRC_DIR}"/README.md | awk '{print $3}' | sed 's/\./_/g')
     printf "Existing copy of HDF5 source detected\n"
 else 
-    curl -s -L https://github.com/HDFGroup/hdf5/releases/download/hdf5_${HDF5_VER}.${HDF5_SUBVER}/hdf5-${HDF5_VER}-${HDF5_SUBVER}.tar.gz | tar xvz -C "${DEPENDENCY_DIR}"
+    curl -s -L https://github.com/HDFGroup/hdf5/releases/download/hdf5_${HDF5_VER}/hdf5-${HDF5_VER}.tar.gz | tar xvz -C "${DEPENDENCY_DIR}"
 fi
 printf "\n"
 printf "*********************************************************\n"
