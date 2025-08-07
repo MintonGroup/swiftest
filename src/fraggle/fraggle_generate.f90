@@ -487,7 +487,7 @@ contains
             if (all(.not.loverlap(istart:nfrag)) .and. any(loverlap(1:istart-1))) then
                do j = 1, MAXLOOP
 #ifdef DOCONLOC
-                  do concurrent(i = 1:istart-1,loverlap(i)) shared(fragments,loverlap, u, theta, i) local(rwalk, dis)
+                  do concurrent(i = 1:istart-1,loverlap(i)) shared(fragments,loverlap, u, theta) local(rwalk, dis)
 #else
                   do concurrent(i = 1:istart-1,loverlap(i))
 #endif

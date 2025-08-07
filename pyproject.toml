@@ -14,7 +14,7 @@ maintainers = [
     {name = 'David A. Minton', email='daminton@purdue.edu'},
 ]
 readme = "README.md"
-requires-python=">=3.10"
+requires-python=">=3.11"
 license={file = "LICENSE"}
 classifiers=[
 'Development Status :: 4 - Beta',
