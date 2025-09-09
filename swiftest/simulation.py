@@ -39,7 +39,7 @@ def _cwd(newdir):
         os.chdir(olddir)
 
 
-class Simulation(object):
+class Simulation:
     """
     This is a class that defines the basic Swift/Swifter/Swiftest simulation object
 
@@ -328,9 +328,7 @@ class Simulation(object):
             with _cwd(self.simdir):
                 driver(self.integrator, str(self.param_file), display_style)
         except Exception as e:
-            warnings.warn(
-                f"Failed to run the simulation with Exception: {e}", stacklevel=2
-            )
+            warnings.warn(f"Failed to run the simulation with Exception: {e}", stacklevel=2)
 
         return
 
@@ -350,7 +348,6 @@ class Simulation(object):
         -------
         None
         """
-
         if "verbose" in kwargs:
             verbose = kwargs.pop("verbose")
         else:
@@ -404,15 +401,11 @@ class Simulation(object):
             del os.environ["OMP_NUM_THREADS"]
 
         # Read in new data
-        self.read_output_file(
-            dask=dask, read_encounters=True, read_collisions=True, verbose=verbose
-        )
+        self.read_output_file(dask=dask, read_encounters=True, read_collisions=True, verbose=verbose)
 
         return
 
-    def _get_valid_arg_list(
-        self, arg_list: str | List[str] | None = None, valid_var: Dict | None = None
-    ) -> Tuple[List[str], Dict]:
+    def _get_valid_arg_list(self, arg_list: str | list[str] | None = None, valid_var: dict | None = None) -> tuple[list[str], dict]:
         """
         Internal function for getters that extracts subset of arguments that is contained in the dictionary of valid
         argument/parameter variable pairs.
@@ -434,7 +427,6 @@ class Simulation(object):
             A dictionary that is the subset of the Simulation parameter dictionary corresponding to the arguments listed
             in arg_list.
         """
-
         if arg_list is None:
             valid_arg = None
         else:
@@ -449,11 +441,7 @@ class Simulation(object):
             valid_arg = [k for k in arg_list if k in list(valid_var.keys())]
 
         # Extract the arg_list dictionary
-        param = {
-            valid_var[arg]: self.param[valid_var[arg]]
-            for arg in valid_arg
-            if valid_var[arg] in self.param
-        }
+        param = {valid_var[arg]: self.param[valid_var[arg]] for arg in valid_arg if valid_var[arg] in self.param}
 
         return valid_arg, param
 
@@ -472,9 +460,7 @@ class Simulation(object):
         Dict :
             A dictionary where each key is the argument name and the values are the corresponding parameter name
         """
-        valid_var = {
-            arg: key for key, arg in self._param_to_argument.items() if arg in valid_arg
-        }
+        valid_var = {arg: key for key, arg in self._param_to_argument.items() if arg in valid_arg}
 
         return valid_var
 
@@ -489,7 +475,7 @@ class Simulation(object):
         nstep_out: int | None = None,
         dump_cadence: int | None = None,
         **kwargs: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Set the parameters that control how a simulation is run, such as start and stop time, step size, and the cadence of output
         to both the screen and to file. Returns a dictionary of the parameters that were set.
@@ -538,7 +524,6 @@ class Simulation(object):
         time_dict : dict
            A dictionary containing the requested parameters
         """
-
         if (
             t0 is None
             and tstart is None
@@ -629,9 +614,7 @@ class Simulation(object):
 
         return time_dict
 
-    def get_simulation_time(
-        self, arg_list: str | List[str] | None = None, **kwargs: Any
-    ) -> Dict[str, Any]:
+    def get_simulation_time(self, arg_list: str | list[str] | None = None, **kwargs: Any) -> dict[str, Any]:
         """
         Returns a subset of the parameter dictionary containing the current simulation time parameters.
 
@@ -650,7 +633,6 @@ class Simulation(object):
         time_dict : dict
            A dictionary containing the requested parameters
         """
-
         valid_arg = [
             "t0",
             "tstart",
@@ -691,19 +673,15 @@ class Simulation(object):
             for arg in valid_arg:
                 key = valid_var[arg]
                 if key in time_dict:
-                    print(
-                        f"{arg:<{self._getter_column_width}} {time_dict[key]} {units[arg]}"
-                    )
+                    print(f"{arg:<{self._getter_column_width}} {time_dict[key]} {units[arg]}")
                 else:
                     print(f"{arg:<{self._getter_column_width}} NOT SET")
             if tstep_out is not None:
-                print(
-                    f"{'tstep_out':<{self._getter_column_width}} {tstep_out} {units['tstep_out']}"
-                )
+                print(f"{'tstep_out':<{self._getter_column_width}} {tstep_out} {units['tstep_out']}")
 
         return time_dict
 
-    def set_parameter(self, **kwargs: Any) -> Dict[str, Any]:
+    def set_parameter(self, **kwargs: Any) -> dict[str, Any]:
         """
         Setter for all possible parameters. This will call each of the specialized setters using keyword arguments.
         If no arguments are passed, then either values from the param_file or default values will be used.
@@ -740,7 +718,7 @@ class Simulation(object):
             The approximate time between when outputs are written to file.
             Passing this computes::
 
-                istep_out = floor(tstep_out/dt)
+                istep_out = floor(tstep_out / dt)
 
             Only `istep_out` or `tstep_out` can be set. `tstep_out` must be less than `tstop`.
             Parameter input file equivalent is None
@@ -748,7 +726,7 @@ class Simulation(object):
             The total number of times that outputs are written to file. Passing this allows for a geometric progression of output
             steps::
 
-                TSTART, f**0 * TSTEP_OUT, f**1 * TSTEP_OUT, f**2 * TSTEP_OUT, ..., f**(nstep_out-1) * TSTEP_OUT
+                TSTART, f**0 * TSTEP_OUT, f**1 * TSTEP_OUT, f**2 * TSTEP_OUT, ..., f ** (nstep_out - 1) * TSTEP_OUT
 
             where `f` is a factor that can stretch (or shrink) the time between outputs.  Setting::
 
@@ -966,7 +944,6 @@ class Simulation(object):
         param : dict
             A dictionary of all Simulation parameters that changed
         """
-
         simdir = kwargs.pop("simdir", None)
         if simdir is not None:
             self.simdir = simdir
@@ -1017,7 +994,7 @@ class Simulation(object):
 
         return param_dict
 
-    def get_parameter(self, **kwargs: Any) -> Dict[str, Any]:
+    def get_parameter(self, **kwargs: Any) -> dict[str, Any]:
         """
         Setter for all possible parameters. Calls each of the specialized setters using keyword arguments
 
@@ -1031,7 +1008,6 @@ class Simulation(object):
         param : dict
             A dictionary of all Simulation parameters requested
         """
-
         # Getters returning parameter dictionary values
         param_dict = {}
         param_dict.update(self.get_unit_system(**kwargs))
@@ -1053,7 +1029,7 @@ class Simulation(object):
         mtiny: float | None = None,
         gmtiny: float | None = None,
         **kwargs: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Sets the integrator to be used when running a simulation. Returns a dictionary of the parameters that were set.
 
@@ -1080,7 +1056,6 @@ class Simulation(object):
             A dictionary containing the subset of the parameter dictonary that was updated by this setter
 
         """
-
         if "verbose" in kwargs:
             verbose = kwargs.pop("verbose")
         else:
@@ -1103,13 +1078,9 @@ class Simulation(object):
         if mtiny is not None or gmtiny is not None:
             if verbose:
                 if self.integrator != "symba":
-                    warnings.warn(
-                        "mtiny and gmtiny are only used by SyMBA.", stacklevel=2
-                    )
+                    warnings.warn("mtiny and gmtiny are only used by SyMBA.", stacklevel=2)
                 if mtiny is not None and gmtiny is not None:
-                    warnings.warn(
-                        "Only set mtiny or gmtiny, not both. Using gmtiny", stacklevel=2
-                    )
+                    warnings.warn("Only set mtiny or gmtiny, not both. Using gmtiny", stacklevel=2)
 
             if gmtiny is not None:
                 self.param["GMTINY"] = gmtiny
@@ -1122,9 +1093,7 @@ class Simulation(object):
 
         return integrator_dict
 
-    def get_integrator(
-        self, arg_list: str | List[str] | None = None, **kwargs: Any
-    ) -> Dict[str, Any]:
+    def get_integrator(self, arg_list: str | list[str] | None = None, **kwargs: Any) -> dict[str, Any]:
         """
         Returns a subset of the parameter dictionary containing the current values of the distance range parameters.
         If the verbose option is set in the Simulation object, then it will also print the values.
@@ -1173,33 +1142,23 @@ class Simulation(object):
 
         if not bool(kwargs) and arg_list is None:
             arg_list = list(valid_instance_vars.keys())
-            arg_list.append(
-                *[a for a in valid_var.keys() if a not in valid_instance_vars]
-            )
+            arg_list.append(*[a for a in valid_var.keys() if a not in valid_instance_vars])
 
         valid_arg, integrator_dict = self._get_valid_arg_list(arg_list, valid_var)
 
         if verbose:
             for arg in arg_list:
                 if arg in valid_instance_vars:
-                    print(
-                        f"{arg:<{self._getter_column_width}} {valid_instance_vars[arg]}"
-                    )
+                    print(f"{arg:<{self._getter_column_width}} {valid_instance_vars[arg]}")
             for arg in valid_arg:
                 key = valid_var[arg]
                 if key in integrator_dict:
                     if arg == "gmtiny":
                         if self.integrator == "symba":
-                            print(
-                                f"{arg:<{self._getter_column_width}} {integrator_dict[key]} {self.DU_name}^3 / {self.TU_name}^2 "
-                            )
-                            print(
-                                f"{'mtiny':<{self._getter_column_width}} {integrator_dict[key] / self.GU} {self.MU_name}"
-                            )
+                            print(f"{arg:<{self._getter_column_width}} {integrator_dict[key]} {self.DU_name}^3 / {self.TU_name}^2 ")
+                            print(f"{'mtiny':<{self._getter_column_width}} {integrator_dict[key] / self.GU} {self.MU_name}")
                     else:
-                        print(
-                            f"{arg:<{self._getter_column_width}} {integrator_dict[key]}"
-                        )
+                        print(f"{arg:<{self._getter_column_width}} {integrator_dict[key]}")
                 else:
                     print(f"{arg:<{self._getter_column_width}} NOT SET")
 
@@ -1224,9 +1183,9 @@ class Simulation(object):
         encounter_save: Literal["NONE", "TRAJECTORY", "CLOSEST", "BOTH"] | None = None,
         coarray: bool | None = None,
         simdir: str | os.PathLike = None,
-        seed: int | List[int] | npt.NDArray[np.int_] | None = None,
+        seed: int | list[int] | npt.NDArray[np.int_] | None = None,
         **kwargs: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Turns on or off various features of a simulation.
 
@@ -1317,7 +1276,6 @@ class Simulation(object):
         feature_dict : dict
             A dictionary containing the requested features.
         """
-
         if "verbose" in kwargs:
             verbose = kwargs.pop("verbose")
         else:
@@ -1355,11 +1313,7 @@ class Simulation(object):
             if collision_model is not None:
                 collision_model = collision_model.upper()
                 fragmentation = collision_model in fragmentation_models
-                if (
-                    self.codename != "Swiftest"
-                    and self.integrator != "symba"
-                    and fragmentation
-                ):
+                if self.codename != "Swiftest" and self.integrator != "symba" and fragmentation:
                     if verbose:
                         warnings.warn(
                             "Fragmentation is only available on Swiftest SyMBA.",
@@ -1370,11 +1324,7 @@ class Simulation(object):
                     self.param["COLLISION_MODEL"] = collision_model
                     update_list.append("collision_model")
                     if fragmentation:
-                        if (
-                            "MIN_GMFRAG" not in self.param
-                            and minimum_fragment_mass is None
-                            and minimum_fragment_gmass is None
-                        ):
+                        if "MIN_GMFRAG" not in self.param and minimum_fragment_mass is None and minimum_fragment_gmass is None:
                             if verbose:
                                 warnings.warn(
                                     "Minimum fragment mass is not set. Set it using minimum_fragment_gmass or minimum_fragment_mass",
@@ -1384,10 +1334,7 @@ class Simulation(object):
                             update_list.append("minimum_fragment_gmass")
 
             if verbose:
-                if (
-                    minimum_fragment_gmass is not None
-                    and minimum_fragment_mass is not None
-                ):
+                if minimum_fragment_gmass is not None and minimum_fragment_mass is not None:
                     warnings.warn(
                         "Only set either minimum_fragment_mass or minimum_fragment_gmass, but not both!",
                         stacklevel=2,
@@ -1419,10 +1366,7 @@ class Simulation(object):
                     self.param["ROTATION"] = rotation
                 update_list.append("rotation")
 
-            if (
-                self.param["COLLISION_MODEL"] == "FRAGGLE"
-                and not self.param["ROTATION"]
-            ):
+            if self.param["COLLISION_MODEL"] == "FRAGGLE" and not self.param["ROTATION"]:
                 self.param["ROTATION"] = True
                 update_list.append("rotation")
 
@@ -1504,9 +1448,7 @@ class Simulation(object):
         feature_dict = self.get_feature(update_list, verbose=verbose)
         return feature_dict
 
-    def get_feature(
-        self, arg_list: str | List[str] | None = None, **kwargs: Any
-    ) -> Dict[str, Any]:
+    def get_feature(self, arg_list: str | list[str] | None = None, **kwargs: Any) -> dict[str, Any]:
         """
         Returns a subset of the parameter dictionary containing the current value of the feature boolean values.
         If the verbose option is set in the Simulation object, then it will also print the values.
@@ -1525,7 +1467,6 @@ class Simulation(object):
         feature_dict : dict
            A dictionary containing the requested features.
         """
-
         if "verbose" in kwargs:
             verbose = kwargs.pop("verbose")
         else:
@@ -1558,9 +1499,7 @@ class Simulation(object):
                 key = valid_var[arg]
                 if key in feature_dict:
                     if arg == "minimum_fragment_gmass":
-                        print(
-                            f"{arg:<{self._getter_column_width}} {feature_dict[key]} {self.DU_name}^3 / {self.TU_name}^2 "
-                        )
+                        print(f"{arg:<{self._getter_column_width}} {feature_dict[key]} {self.DU_name}^3 / {self.TU_name}^2 ")
                         print(
                             f"{'minimum_fragment_mass':<{self._getter_column_width}} {feature_dict[key] / self.GU} {self.MU_name}"
                         )
@@ -1573,16 +1512,11 @@ class Simulation(object):
 
     def set_init_cond_files(
         self,
-        init_cond_file_type: Literal["NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"]
-        | None = None,
-        init_cond_file_name: str
-        | os.PathLike
-        | Dict[str, str]
-        | Dict[str, os.PathLike]
-        | None = None,
+        init_cond_file_type: Literal["NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"] | None = None,
+        init_cond_file_name: str | os.PathLike | dict[str, str] | dict[str, os.PathLike] | None = None,
         init_cond_format: Literal["EL", "XV"] | None = None,
         **kwargs: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Sets the initial condition file parameters in the parameters dictionary.
 
@@ -1687,18 +1621,14 @@ class Simulation(object):
         valid_formats = {"EL", "XV"}
         if init_cond_format not in valid_formats:
             if verbose:
-                warnings.warn(
-                    f"{init_cond_format} is not a valid input format", stacklevel=2
-                )
+                warnings.warn(f"{init_cond_format} is not a valid input format", stacklevel=2)
         else:
             self.param["IN_FORM"] = init_cond_format
 
         valid_types = {"NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"}
         if init_cond_file_type not in valid_types:
             if verbose:
-                warnings.warn(
-                    f"{init_cond_file_type} is not a valid input type", stackevel=2
-                )
+                warnings.warn(f"{init_cond_file_type} is not a valid input type", stackevel=2)
         else:
             self.param["IN_TYPE"] = init_cond_file_type
 
@@ -1739,9 +1669,7 @@ class Simulation(object):
 
         return init_cond_file_dict
 
-    def get_init_cond_files(
-        self, arg_list: str | List[str] | None = None, **kwargs: Any
-    ) -> Dict[str, Any]:
+    def get_init_cond_files(self, arg_list: str | list[str] | None = None, **kwargs: Any) -> dict[str, Any]:
         """
         Returns a subset of the parameter dictionary containing the current initial condition file parameters
         If the verbose option is set in the Simulation object, then it will also print the values.
@@ -1817,16 +1745,13 @@ class Simulation(object):
 
     def set_output_files(
         self,
-        output_file_type: Literal[
-            "NETCDF_DOUBLE", "NETCDF_FLOAT", "REAL4", "REAL8", "XDR4", "XDR8"
-        ]
-        | None = None,
+        output_file_type: Literal["NETCDF_DOUBLE", "NETCDF_FLOAT", "REAL4", "REAL8", "XDR4", "XDR8"] | None = None,
         output_file_name: os.PathLike | str | None = None,
         output_format: Literal["XV", "XVEL"] | None = None,
         restart: bool | None = None,
         simdir: os.PathLike | str | None = None,
         **kwargs: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Sets the output file parameters in the parameter dictionary.
 
@@ -1859,7 +1784,6 @@ class Simulation(object):
         output_file_dict : dict
            A dictionary containing the requested parameters
         """
-
         if "verbose" in kwargs:
             verbose = kwargs.pop("verbose")
         else:
@@ -1946,9 +1870,7 @@ class Simulation(object):
 
         return output_file_dict
 
-    def get_output_files(
-        self, arg_list: str | List[str] | None = None, **kwargs: Any
-    ) -> Dict[str, Any]:
+    def get_output_files(self, arg_list: str | list[str] | None = None, **kwargs: Any) -> dict[str, Any]:
         """
         Returns a subset of the parameter dictionary containing the current output file parameters
         If the verbose option is set in the Simulation object, then it will also print the values.
@@ -1969,7 +1891,6 @@ class Simulation(object):
            A dictionary containing the requested parameters
 
         """
-
         if "verbose" in kwargs:
             verbose = kwargs.pop("verbose")
         else:
@@ -2012,7 +1933,7 @@ class Simulation(object):
         TU_name: str | None = None,
         recompute_unit_values: bool = True,
         **kwargs: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Setter for setting the unit conversion between one of the standard sets.
 
@@ -2079,11 +2000,10 @@ class Simulation(object):
             set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
 
         Returns
-        ----------
+        -------
         unit_dict : dict
            A dictionary containing the requested unit conversion parameters
         """
-
         if "verbose" in kwargs:
             verbose = kwargs.pop("verbose")
         else:
@@ -2168,28 +2088,13 @@ class Simulation(object):
                 self.param["TU2S"] = TU2S
                 self.TU_name = None
             else:
-                if (
-                    TU.upper() == "YR"
-                    or TU.upper() == "Y"
-                    or TU.upper() == "YEAR"
-                    or TU.upper() == "YEARS"
-                ):
+                if TU.upper() == "YR" or TU.upper() == "Y" or TU.upper() == "YEAR" or TU.upper() == "YEARS":
                     self.param["TU2S"] = constants.YR2S
                     self.TU_name = "y"
-                elif (
-                    TU.upper() == "DAY"
-                    or TU.upper() == "D"
-                    or TU.upper() == "JD"
-                    or TU.upper() == "DAYS"
-                ):
+                elif TU.upper() == "DAY" or TU.upper() == "D" or TU.upper() == "JD" or TU.upper() == "DAYS":
                     self.param["TU2S"] = constants.JD2S
                     self.TU_name = "d"
-                elif (
-                    TU.upper() == "S"
-                    or TU.upper() == "SECONDS"
-                    or TU.upper() == "SEC"
-                    or TU.upper() == "SECOND"
-                ):
+                elif TU.upper() == "S" or TU.upper() == "SECONDS" or TU.upper() == "SEC" or TU.upper() == "SECOND":
                     self.param["TU2S"] = 1.0
                     self.TU_name = "s"
                 else:
@@ -2212,12 +2117,7 @@ class Simulation(object):
         if "DU_name" in dir(self) and "TU_name" in dir(self):
             self.VU_name = f"{self.DU_name}/{self.TU_name}"
         if all(key in self.param for key in ["MU2KG", "DU2M", "TU2S"]):
-            self.GU = (
-                constants.GC
-                * self.param["TU2S"] ** 2
-                * self.param["MU2KG"]
-                / self.param["DU2M"] ** 3
-            )
+            self.GU = constants.GC * self.param["TU2S"] ** 2 * self.param["MU2KG"] / self.param["DU2M"] ** 3
 
         if "MU2KG" in self.param and "DU2M" in self.param and "TU2S" in self.param:
             if (
@@ -2232,9 +2132,7 @@ class Simulation(object):
 
         return unit_dict
 
-    def get_unit_system(
-        self, arg_list: str | List[str] | None = None, **kwargs
-    ) -> Dict[str, Any]:
+    def get_unit_system(self, arg_list: str | list[str] | None = None, **kwargs) -> dict[str, Any]:
         """
         Returns a subset of the parameter dictionary containing the current simulation unit system.
         If the verbose option is set in the Simulation object, then it will also print the values.
@@ -2254,7 +2152,6 @@ class Simulation(object):
            A dictionary containing the requested unit conversion parameters
 
         """
-
         if "verbose" in kwargs:
             verbose = kwargs.pop("verbose")
         else:
@@ -2289,9 +2186,7 @@ class Simulation(object):
             for arg in valid_arg:
                 key = valid_var[arg]
                 col_width = str(int(self._getter_column_width) - 4)
-                print(
-                    f"{arg}: {units1[arg]:<{col_width}} {unit_dict[key]} {units2[arg]}"
-                )
+                print(f"{arg}: {units1[arg]:<{col_width}} {unit_dict[key]} {units2[arg]}")
 
         return unit_dict
 
@@ -2312,7 +2207,6 @@ class Simulation(object):
         -------
         Updates the set of param dictionary values for the new unit system
         """
-
         mass_keys = ["GMTINY", "MIN_GMFRAG"]
         distance_keys = ["CHK_QMIN", "CHK_RMIN", "CHK_RMAX", "CHK_EJECT"]
         time_keys = ["T0", "TSTOP", "DT"]
@@ -2333,9 +2227,7 @@ class Simulation(object):
                 for i, v in enumerate(CHK_QMIN_RANGE):
                     if float(v) > 0.0:
                         CHK_QMIN_RANGE[i] = float(v) * DU2M_old / self.param["DU2M"]
-                self.param["CHK_QMIN_RANGE"] = (
-                    f"{CHK_QMIN_RANGE[0]} {CHK_QMIN_RANGE[1]}"
-                )
+                self.param["CHK_QMIN_RANGE"] = f"{CHK_QMIN_RANGE[0]} {CHK_QMIN_RANGE[1]}"
 
         if TU2S_old is not None:
             for k in time_keys:
@@ -2350,7 +2242,7 @@ class Simulation(object):
         rmax: float | None = None,
         qmin_coord: Literal["HELIO", "BARY"] | None = None,
         **kwargs: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Sets the minimum and maximum distances of the simulation.
 
@@ -2371,7 +2263,6 @@ class Simulation(object):
         range_dict : dict
            A dictionary containing the requested parameters.
         """
-
         if "verbose" in kwargs:
             verbose = kwargs.pop("verbose")
         else:
@@ -2416,9 +2307,7 @@ class Simulation(object):
 
         return range_dict
 
-    def get_distance_range(
-        self, arg_list: str | List[str] | None = None, **kwargs: Any
-    ) -> Dict[str, Any]:
+    def get_distance_range(self, arg_list: str | list[str] | None = None, **kwargs: Any) -> dict[str, Any]:
         """
         Returns a subset of the parameter dictionary containing the current values of the distance range parameters.
         If the verbose option is set in the Simulation object, then it will also print the values.
@@ -2436,7 +2325,6 @@ class Simulation(object):
         range_dict : dict
            A dictionary containing the requested parameters.
         """
-
         if "verbose" in kwargs:
             verbose = kwargs.pop("verbose")
         else:
@@ -2470,14 +2358,10 @@ class Simulation(object):
         if verbose:
             if "rmin" in valid_arg:
                 key = valid_var["rmin"]
-                print(
-                    f"{'rmin':<{self._getter_column_width}} {range_dict[key]} {units['rmin']}"
-                )
+                print(f"{'rmin':<{self._getter_column_width}} {range_dict[key]} {units['rmin']}")
             if "rmax" in valid_arg:
                 key = valid_var["rmax"]
-                print(
-                    f"{'rmax':<{self._getter_column_width}} {range_dict[key]} {units['rmax']}"
-                )
+                print(f"{'rmax':<{self._getter_column_width}} {range_dict[key]} {units['rmax']}")
             if "qmin_coord" in valid_arg:
                 key = valid_var["qmin_coord"]
                 print(f"{'qmin_coord':<{self._getter_column_width}} {range_dict[key]}")
@@ -2486,8 +2370,8 @@ class Simulation(object):
 
     def add_solar_system_body(
         self,
-        name: str | List[str] | None = None,
-        ephemeris_id: int | List[int] | None = None,
+        name: str | list[str] | None = None,
+        ephemeris_id: int | list[int] | None = None,
         date: str | None = None,
         align_to_central_body_rotation: bool = False,
         **kwargs: Any,
@@ -2537,9 +2421,7 @@ class Simulation(object):
 
         if name is None and ephemeris_id is None:
             if verbose:
-                warnings.warn(
-                    "Either `name` and/or `ephemeris_id` must be supplied to add_solar_system_body"
-                )
+                warnings.warn("Either `name` and/or `ephemeris_id` must be supplied to add_solar_system_body")
             return None
         if name is not None:
             if type(name) is str or type(name) is int:
@@ -2573,15 +2455,8 @@ class Simulation(object):
             date = self.ephemeris_date
 
         # Sun is the default central body
-        if (
-            "particle_type" in self.data.variables
-            and CB_TYPE_NAME in self.data.particle_type
-        ):
-            cbname = (
-                self.data["name"]
-                .where(self.data.isel(time=0).particle_type == CB_TYPE_NAME, drop=True)
-                .values[0]
-            )
+        if "particle_type" in self.data.variables and CB_TYPE_NAME in self.data.particle_type:
+            cbname = self.data["name"].where(self.data.isel(time=0).particle_type == CB_TYPE_NAME, drop=True).values[0]
         else:
             cbname = "Sun"
 
@@ -2689,55 +2564,36 @@ class Simulation(object):
         dsnew = self._set_id_number(dsnew)
         dsnew = self._set_particle_type(dsnew)
         if "particle_type" in self.data:
-            if (
-                CB_TYPE_NAME in self.data["particle_type"]
-                and CB_TYPE_NAME in dsnew["particle_type"]
-            ):
+            if CB_TYPE_NAME in self.data["particle_type"] and CB_TYPE_NAME in dsnew["particle_type"]:
                 self.data = self._set_particle_type(
                     self.data
                 )  # Make sure we update the original dataset if there is going to be a central body change
 
         if CB_TYPE_NAME in dsnew["particle_type"]:
-            cbname = (
-                dsnew["name"]
-                .where(dsnew["particle_type"] == CB_TYPE_NAME, drop=True)
-                .values[0]
-            )
+            cbname = dsnew["name"].where(dsnew["particle_type"] == CB_TYPE_NAME, drop=True).values[0]
             GMcb = dsnew["Gmass"].sel(name=cbname)
         elif CB_TYPE_NAME in self.data.particle_type:
-            cbname = (
-                self.data["name"]
-                .where(self.data["particle_type"] == CB_TYPE_NAME, drop=True)
-                .values[0]
-            )
+            cbname = self.data["name"].where(self.data["particle_type"] == CB_TYPE_NAME, drop=True).values[0]
             GMcb = self.data["Gmass"].sel(name=cbname)
         else:
-            raise ValueError(
-                "No central body found in either the new dataset or the existing dataset"
-            )
+            raise ValueError("No central body found in either the new dataset or the existing dataset")
 
         if (
             align_to_central_body_rotation and cbname not in dsnew["name"]
         ):  # If a new central body is being added, then the rotation occurs after the two datasets are merged
-            rot = init_cond.get_solar_system_body_mass_rotation(
-                cbname, ephemerides_start_date=date, verbose=verbose
-            )["rot"]
+            rot = init_cond.get_solar_system_body_mass_rotation(cbname, ephemerides_start_date=date, verbose=verbose)["rot"]
             if rot is not None:
                 rot *= self.param["TU2S"]
                 dsnew = dsnew.rotate(pole=rot)
 
         dsnew = dsnew.xv2el(GMcb)
 
-        dsnew = self._combine_and_fix_dsnew(
-            dsnew, align_to_central_body_rotation, verbose=verbose, **kwargs
-        )
+        dsnew = self._combine_and_fix_dsnew(dsnew, align_to_central_body_rotation, verbose=verbose, **kwargs)
         self.save(verbose=verbose)
 
         return
 
-    def get_ephemeris_date(
-        self, arg_list: str | List[str] | None = None, **kwargs: Any
-    ) -> str:
+    def get_ephemeris_date(self, arg_list: str | list[str] | None = None, **kwargs: Any) -> str:
         """
         Prints the current value of the ephemeris date.
 
@@ -2755,7 +2611,6 @@ class Simulation(object):
         ephemeris_date : str
             The ISO-formatted date string for the ephemeris computation
         """
-
         if "verbose" in kwargs:
             verbose = kwargs.pop("verbose")
         else:
@@ -2776,10 +2631,10 @@ class Simulation(object):
 
     def _get_instance_var(
         self,
-        arg_list: str | List[str] | None = None,
-        valid_arg: Dict | None = None,
+        arg_list: str | list[str] | None = None,
+        valid_arg: dict | None = None,
         **kwargs: Any,
-    ) -> Tuple[Any, ...]:
+    ) -> tuple[Any, ...]:
         """
         Prints the current value of an instance variable.
 
@@ -2798,7 +2653,6 @@ class Simulation(object):
         Tuple[Any, ...]
             Instance variable values given by the arg_list
         """
-
         if "verbose" in kwargs:
             verbose = kwargs.pop("verbose")
         else:
@@ -2817,38 +2671,26 @@ class Simulation(object):
 
     def _validate_body_arguments(
         self,
-        name: str | List[str] | npt.NDArray[np.str_] | None = None,
-        id: int | List[int] | npt.NDArray[np.int_] | None = None,
-        a: float | List[float] | npt.NDArray[np.float_] | None = None,
-        e: float | List[float] | npt.NDArray[np.float_] | None = None,
-        inc: float | List[float] | npt.NDArray[np.float_] | None = None,
-        capom: float | List[float] | npt.NDArray[np.float_] | None = None,
-        omega: float | List[float] | npt.NDArray[np.float_] | None = None,
-        capm: float | List[float] | npt.NDArray[np.float_] | None = None,
-        rh: List[float]
-        | List[npt.NDArray[np.float_]]
-        | npt.NDArray[np.float_]
-        | None = None,
-        vh: List[float]
-        | List[npt.NDArray[np.float_]]
-        | npt.NDArray[np.float_]
-        | None = None,
-        mass: float | List[float] | npt.NDArray[np.float_] | None = None,
-        Gmass: float | List[float] | npt.NDArray[np.float_] | None = None,
-        radius: float | List[float] | npt.NDArray[np.float_] | None = None,
-        rhill: float | List[float] | npt.NDArray[np.float_] | None = None,
-        rot: List[float]
-        | List[npt.NDArray[np.float_]]
-        | npt.NDArray[np.float_]
-        | None = None,
-        Ip: List[float] | npt.NDArray[np.float_] | None = None,
-        rotphase: float | List[float] | npt.NDArray[np.float_] | None = None,
-        j2rp2: float | List[float] | npt.NDArray[np.float_] | None = None,
-        j4rp4: float | List[float] | npt.NDArray[np.float_] | None = None,
-        c_lm: List[float]
-        | List[npt.NDArray[np.float_]]
-        | npt.NDArray[np.float_]
-        | None = None,
+        name: str | list[str] | npt.NDArray[np.str_] | None = None,
+        id: int | list[int] | npt.NDArray[np.int_] | None = None,
+        a: float | list[float] | npt.NDArray[np.float_] | None = None,
+        e: float | list[float] | npt.NDArray[np.float_] | None = None,
+        inc: float | list[float] | npt.NDArray[np.float_] | None = None,
+        capom: float | list[float] | npt.NDArray[np.float_] | None = None,
+        omega: float | list[float] | npt.NDArray[np.float_] | None = None,
+        capm: float | list[float] | npt.NDArray[np.float_] | None = None,
+        rh: list[float] | list[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+        vh: list[float] | list[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+        mass: float | list[float] | npt.NDArray[np.float_] | None = None,
+        Gmass: float | list[float] | npt.NDArray[np.float_] | None = None,
+        radius: float | list[float] | npt.NDArray[np.float_] | None = None,
+        rhill: float | list[float] | npt.NDArray[np.float_] | None = None,
+        rot: list[float] | list[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+        Ip: list[float] | npt.NDArray[np.float_] | None = None,
+        rotphase: float | list[float] | npt.NDArray[np.float_] | None = None,
+        j2rp2: float | list[float] | npt.NDArray[np.float_] | None = None,
+        j4rp4: float | list[float] | npt.NDArray[np.float_] | None = None,
+        c_lm: list[float] | list[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -2931,9 +2773,7 @@ class Simulation(object):
                 return val, len(val)
             else:
                 if n != len(val):
-                    raise ValueError(
-                        f"Mismatched array lengths in add_body. Got {len(val)} when expecting {n}"
-                    )
+                    raise ValueError(f"Mismatched array lengths in add_body. Got {len(val)} when expecting {n}")
                 return val, n
 
         def input_to_array_3d(val, n=None):
@@ -2947,29 +2787,21 @@ class Simulation(object):
                 if n is None:
                     ndims = len(val.shape)
                     if ndims > 2 or ndims == 0:
-                        raise ValueError(
-                            f"Argument must be an (n,3) or (3,) array. This one is {val.shape}"
-                        )
+                        raise ValueError(f"Argument must be an (n,3) or (3,) array. This one is {val.shape}")
                     else:
                         if val.shape[-1] != 3:
-                            raise ValueError(
-                                f"Argument must be a 3-dimensional vector. This one has {val.shape[0]}!"
-                            )
+                            raise ValueError(f"Argument must be a 3-dimensional vector. This one has {val.shape[0]}!")
                         if val.size == 3:
                             n = 1
                         else:
                             n = val.shape[0]
                 if n == 1:
                     if val.shape != (1, 3) and val.shape != (3,):
-                        raise ValueError(
-                            f"Argument is an incorrect shape. Expected {(n, 3)} or {(3, 1)}. Got {val.shape} instead"
-                        )
+                        raise ValueError(f"Argument is an incorrect shape. Expected {(n, 3)} or {(3, 1)}. Got {val.shape} instead")
                     elif val.shape == (3,):
                         val = np.expand_dims(val, axis=0)
                 elif val.shape != (n, 3) and val.shape != (3, n):
-                    raise ValueError(
-                        f"Argument is an incorrect shape. Expected {(n, 3)} or {(3, n)}. Got {val.shape} instead"
-                    )
+                    raise ValueError(f"Argument is an incorrect shape. Expected {(n, 3)} or {(3, n)}. Got {val.shape} instead")
                 elif val.shape == (3, n):
                     val = val.T
 
@@ -2988,9 +2820,7 @@ class Simulation(object):
                     raise ValueError(f"{val} cannot be converted to a numpy array")
                 ndims = len(val.shape)
                 if ndims != 3 or val.shape[0] != 2 or val.shape[1] != val.shape[2]:
-                    raise ValueError(
-                        f"C_lm is an incorrect shape. Expected (2, l_max + 1, l_max + 1). got {val.shape} instead."
-                    )
+                    raise ValueError(f"C_lm is an incorrect shape. Expected (2, l_max + 1, l_max + 1). got {val.shape} instead.")
             return val, n
 
         nbodies = None
@@ -3022,25 +2852,14 @@ class Simulation(object):
                 raise ValueError("Cannot use mass and Gmass inputs simultaneously!")
 
         if rh is not None or vh is not None:
-            if (
-                a is not None
-                or e is not None
-                or inc is not None
-                or capom is not None
-                or omega is not None
-                or capm is not None
-            ):
-                raise ValueError(
-                    "Only cartesian values or orbital elements may be passed, but not both."
-                )
+            if a is not None or e is not None or inc is not None or capom is not None or omega is not None or capm is not None:
+                raise ValueError("Only cartesian values or orbital elements may be passed, but not both.")
 
         if j2rp2 is not None or j4rp4 is not None:
             if c_lm is not None:
                 raise ValueError("Cannot use J2/J4 and c_lm inputs simultaneously!")
         if a is not None:
-            a = np.abs(
-                a
-            )  # Ensure that the semimajor axis is positive, per Swiftest convention for hyperbolic orbits
+            a = np.abs(a)  # Ensure that the semimajor axis is positive, per Swiftest convention for hyperbolic orbits
 
         validated_arguments = locals().copy()
         validated_arguments.pop("self")
@@ -3049,37 +2868,25 @@ class Simulation(object):
 
     def add_body(
         self,
-        name: str | List[str] | npt.NDArray[np.str_] | None = None,
-        a: float | List[float] | npt.NDArray[np.float_] | None = None,
-        e: float | List[float] | npt.NDArray[np.float_] | None = None,
-        inc: float | List[float] | npt.NDArray[np.float_] | None = None,
-        capom: float | List[float] | npt.NDArray[np.float_] | None = None,
-        omega: float | List[float] | npt.NDArray[np.float_] | None = None,
-        capm: float | List[float] | npt.NDArray[np.float_] | None = None,
-        rh: List[float]
-        | List[npt.NDArray[np.float_]]
-        | npt.NDArray[np.float_]
-        | None = None,
-        vh: List[float]
-        | List[npt.NDArray[np.float_]]
-        | npt.NDArray[np.float_]
-        | None = None,
-        mass: float | List[float] | npt.NDArray[np.float_] | None = None,
-        Gmass: float | List[float] | npt.NDArray[np.float_] | None = None,
-        radius: float | List[float] | npt.NDArray[np.float_] | None = None,
-        rhill: float | List[float] | npt.NDArray[np.float_] | None = None,
-        rot: List[float]
-        | List[npt.NDArray[np.float_]]
-        | npt.NDArray[np.float_]
-        | None = None,
-        Ip: List[float] | npt.NDArray[np.float_] | None = None,
-        rotphase: float | List[float] | npt.NDArray[np.float_] | None = None,
-        j2rp2: float | List[float] | npt.NDArray[np.float_] | None = None,
-        j4rp4: float | List[float] | npt.NDArray[np.float_] | None = None,
-        c_lm: List[float]
-        | List[npt.NDArray[np.float_]]
-        | npt.NDArray[np.float_]
-        | None = None,
+        name: str | list[str] | npt.NDArray[np.str_] | None = None,
+        a: float | list[float] | npt.NDArray[np.float_] | None = None,
+        e: float | list[float] | npt.NDArray[np.float_] | None = None,
+        inc: float | list[float] | npt.NDArray[np.float_] | None = None,
+        capom: float | list[float] | npt.NDArray[np.float_] | None = None,
+        omega: float | list[float] | npt.NDArray[np.float_] | None = None,
+        capm: float | list[float] | npt.NDArray[np.float_] | None = None,
+        rh: list[float] | list[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+        vh: list[float] | list[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+        mass: float | list[float] | npt.NDArray[np.float_] | None = None,
+        Gmass: float | list[float] | npt.NDArray[np.float_] | None = None,
+        radius: float | list[float] | npt.NDArray[np.float_] | None = None,
+        rhill: float | list[float] | npt.NDArray[np.float_] | None = None,
+        rot: list[float] | list[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+        Ip: list[float] | npt.NDArray[np.float_] | None = None,
+        rotphase: float | list[float] | npt.NDArray[np.float_] | None = None,
+        j2rp2: float | list[float] | npt.NDArray[np.float_] | None = None,
+        j4rp4: float | list[float] | npt.NDArray[np.float_] | None = None,
+        c_lm: list[float] | list[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
         align_to_central_body_rotation: bool = False,
         **kwargs: Any,
     ) -> None:
@@ -3179,9 +2986,7 @@ class Simulation(object):
             raise ValueError("If vh is passed, rh must also be passed")
         if rh is None:
             if a is None:
-                raise ValueError(
-                    "Orbital element input requires at least a value for a (semimajor axis)"
-                )
+                raise ValueError("Orbital element input requires at least a value for a (semimajor axis)")
             if e is None:
                 e = np.zeros_like(a)
             if inc is None:
@@ -3251,27 +3056,16 @@ class Simulation(object):
         dsnew = self._set_id_number(dsnew)
         dsnew = self._set_particle_type(dsnew)
         if "particle_type" in self.data:
-            if (
-                CB_TYPE_NAME in self.data["particle_type"]
-                and CB_TYPE_NAME in dsnew["particle_type"]
-            ):
+            if CB_TYPE_NAME in self.data["particle_type"] and CB_TYPE_NAME in dsnew["particle_type"]:
                 self.data = self._set_particle_type(
                     self.data
                 )  # Make sure we update the original dataset if there is going to be a central body change
 
         if CB_TYPE_NAME in dsnew["particle_type"]:
-            cbname = (
-                dsnew["name"]
-                .where(dsnew["particle_type"] == CB_TYPE_NAME, drop=True)
-                .values[0]
-            )
+            cbname = dsnew["name"].where(dsnew["particle_type"] == CB_TYPE_NAME, drop=True).values[0]
             GMcb = dsnew["Gmass"].sel(name=cbname)
         elif CB_TYPE_NAME in self.data.particle_type:
-            cbname = (
-                self.data["name"]
-                .where(self.data["particle_type"] == CB_TYPE_NAME, drop=True)
-                .values[0]
-            )
+            cbname = self.data["name"].where(self.data["particle_type"] == CB_TYPE_NAME, drop=True).values[0]
             GMcb = self.data["Gmass"].sel(name=cbname)
         else:
             raise ValueError("No central body found in either the old or new Dataset")
@@ -3281,9 +3075,7 @@ class Simulation(object):
         if a is None:
             dsnew = dsnew.xv2el(GMcb)
 
-        dsnew = self._combine_and_fix_dsnew(
-            dsnew, align_to_central_body_rotation, verbose=verbose, **kwargs
-        )
+        dsnew = self._combine_and_fix_dsnew(dsnew, align_to_central_body_rotation, verbose=verbose, **kwargs)
         self.save(verbose=verbose)
 
         return
@@ -3371,7 +3163,6 @@ class Simulation(object):
         ds : SwiftestDataset
             Dataset containing the variables of all bodies passed in kwargs
         """
-
         # Validate the inputs
         if name is None or len(name) == 0:
             raise ValueError("Name must be passed")
@@ -3441,9 +3232,7 @@ class Simulation(object):
 
         if self.param["CHK_CLOSE"]:
             if Gmass is not None and radius is None:
-                raise ValueError(
-                    "If Gmass is passed, then radius must also be passed when CHK_CLOSE is True"
-                )
+                raise ValueError("If Gmass is passed, then radius must also be passed when CHK_CLOSE is True")
 
         if Gmass is not None:
             Gmass[np.isnan(Gmass)] = 0.0
@@ -3457,16 +3246,10 @@ class Simulation(object):
 
         valid_vars = vector_vars + scalar_vars + sph_vars + ["time", "id"]
 
-        input_vars = {
-            k: v for k, v in locals().items() if k in valid_vars and v is not None
-        }
+        input_vars = {k: v for k, v in locals().items() if k in valid_vars and v is not None}
 
-        data_vars = {
-            k: (scalar_dims, v) for k, v in input_vars.items() if k in scalar_vars
-        }
-        data_vars.update(
-            {k: (vector_dims, v) for k, v in input_vars.items() if k in vector_vars}
-        )
+        data_vars = {k: (scalar_dims, v) for k, v in input_vars.items() if k in scalar_vars}
+        data_vars.update({k: (vector_dims, v) for k, v in input_vars.items() if k in vector_vars})
         ds = xr.Dataset(
             data_vars=data_vars,
             coords={
@@ -3490,9 +3273,7 @@ class Simulation(object):
 
         time_vars = [v for v in time_vars if v in ds]
         for v in time_vars:
-            ds[v] = (
-                ds[v].expand_dims(dim={"time": 1}, axis=0).assign_coords({"time": time})
-            )
+            ds[v] = ds[v].expand_dims(dim={"time": 1}, axis=0).assign_coords({"time": time})
 
         return SwiftestDataset(ds)
 
@@ -3516,7 +3297,6 @@ class Simulation(object):
         If a body from the new Dataset is found to be more massive than one from the existing Dataset, then the id of the old central
         body will be modified to no longer be id==0.
         """
-
         # Make sure neither the old nor the new Dataset is indexed by id, as these will shift
         if "id" in ds.dims:
             ds = ds.swap_dims({"id": "name"})
@@ -3549,9 +3329,7 @@ class Simulation(object):
             raise ValueError("No central body found in either the old or new Dataset")
 
         # Establish a new id variable for the new Dataset
-        ds["id"] = xr.DataArray(
-            np.arange(start=maxid + 1, stop=maxid + 1 + nnew, dtype=int), dims="name"
-        )
+        ds["id"] = xr.DataArray(np.arange(start=maxid + 1, stop=maxid + 1 + nnew, dtype=int), dims="name")
         if old_bigname is None:
             oldid = ds["id"].sel(name=new_bigname).values[()]
             ds["id"].loc[{"name": new_bigname}] = 0
@@ -3593,14 +3371,9 @@ class Simulation(object):
                 CB_TYPE_NAME,
                 xr.where(np.isnan(Gmass) | (Gmass == 0.0), TP_TYPE_NAME, PL_TYPE_NAME),
             )
-            if (
-                self.integrator == "symba"
-                and "GMTINY" in self.param
-                and self.param["GMTINY"] is not None
-            ):
+            if self.integrator == "symba" and "GMTINY" in self.param and self.param["GMTINY"] is not None:
                 ds["particle_type"] = xr.where(
-                    (ds["particle_type"] == PL_TYPE_NAME)
-                    & (Gmass < self.param["GMTINY"]),
+                    (ds["particle_type"] == PL_TYPE_NAME) & (Gmass < self.param["GMTINY"]),
                     PL_TINY_TYPE_NAME,
                     ds["particle_type"],
                 )
@@ -3632,34 +3405,20 @@ class Simulation(object):
 
         if "Gmass" in ds:
             Gmass = ds.Gmass
-            ds["ntp"] = Gmass.where(
-                (ds.id != 0) & (~np.isnan(Gmass) & (Gmass == 0.0))
-            ).count(dim=[count_dim])
-            ds["npl"] = Gmass.where(
-                (ds.id != 0) & (~np.isnan(Gmass) & (Gmass > 0.0))
-            ).count(dim=[count_dim])
-            if (
-                self.integrator == "symba"
-                and "GMTINY" in self.param
-                and self.param["GMTINY"] is not None
-            ):
-                ds["nplm"] = Gmass.where(
-                    (ds.id != 0) & (~np.isnan(Gmass) & (Gmass > self.param["GMTINY"]))
-                ).count(dim=[count_dim])
+            ds["ntp"] = Gmass.where((ds.id != 0) & (~np.isnan(Gmass) & (Gmass == 0.0))).count(dim=[count_dim])
+            ds["npl"] = Gmass.where((ds.id != 0) & (~np.isnan(Gmass) & (Gmass > 0.0))).count(dim=[count_dim])
+            if self.integrator == "symba" and "GMTINY" in self.param and self.param["GMTINY"] is not None:
+                ds["nplm"] = Gmass.where((ds.id != 0) & (~np.isnan(Gmass) & (Gmass > self.param["GMTINY"]))).count(dim=[count_dim])
         else:
             ds["ntp"] = ds.id.where(ds.id != 0).count(dim=[count_dim])
             ds["npl"] = xr.zeros_like(ds["ntp"])
-            if (
-                self.integrator == "symba"
-                and "GMTINY" in self.param
-                and self.param["GMTINY"] is not None
-            ):
+            if self.integrator == "symba" and "GMTINY" in self.param and self.param["GMTINY"] is not None:
                 ds["nplm"] = xr.zeros_like(ds["ntp"])
         return ds
 
     def _get_valid_body_list(
         self,
-        name: str | List[str] | npt.NDArray[np.str_] | None = None,
+        name: str | list[str] | npt.NDArray[np.str_] | None = None,
         id: int | list[int] | npt.NDArray[np.int_] | None = None,
     ):
         """
@@ -3685,30 +3444,22 @@ class Simulation(object):
         if name is not None:
             if type(name) is str or type(name) is int:
                 name = [name]
-            invalid_names = ", ".join(
-                [n for n in name if n not in self.data.name.values]
-            )
+            invalid_names = ", ".join([n for n in name if n not in self.data.name.values])
             if len(invalid_names) > 0:
-                warnings.warn(
-                    f"{invalid_names} not found in the Dataset. remove_body is ignoring these names."
-                )
+                warnings.warn(f"{invalid_names} not found in the Dataset. remove_body is ignoring these names.")
         else:
             if type(id) is int or type(id) is name:
                 id = [id]
-            invalid_ids = ", ".join(
-                [f"{i}" for i in id if i not in self.data.id.values]
-            )
+            invalid_ids = ", ".join([f"{i}" for i in id if i not in self.data.id.values])
             if len(invalid_ids) > 0:
-                warnings.warn(
-                    f"id number(s) {invalid_ids} not found in the Dataset. remove_body is ignoring these ids."
-                )
+                warnings.warn(f"id number(s) {invalid_ids} not found in the Dataset. remove_body is ignoring these ids.")
             name = self.data.name.where(self.data.id == id, drop=True).values.tolist()
 
         return name
 
     def remove_body(
         self,
-        name: str | List[str] | npt.NDArray[np.str_] | None = None,
+        name: str | list[str] | npt.NDArray[np.str_] | None = None,
         id: int | list[int] | npt.NDArray[np.int_] | None = None,
     ):
         """
@@ -3729,7 +3480,6 @@ class Simulation(object):
         -------
         None
         """
-
         names = self._get_valid_body_list(name=name, id=id)
         keepnames = [n for n in self.data.name.values if n not in names]
         if len(keepnames) == 0:
@@ -3746,38 +3496,26 @@ class Simulation(object):
 
     def modify_body(
         self,
-        name: str | List[str] | npt.NDArray[np.str_] | None = None,
+        name: str | list[str] | npt.NDArray[np.str_] | None = None,
         id: int | list[int] | npt.NDArray[np.int_] | None = None,
-        a: float | List[float] | npt.NDArray[np.float_] | None = None,
-        e: float | List[float] | npt.NDArray[np.float_] | None = None,
-        inc: float | List[float] | npt.NDArray[np.float_] | None = None,
-        capom: float | List[float] | npt.NDArray[np.float_] | None = None,
-        omega: float | List[float] | npt.NDArray[np.float_] | None = None,
-        capm: float | List[float] | npt.NDArray[np.float_] | None = None,
-        rh: List[float]
-        | List[npt.NDArray[np.float_]]
-        | npt.NDArray[np.float_]
-        | None = None,
-        vh: List[float]
-        | List[npt.NDArray[np.float_]]
-        | npt.NDArray[np.float_]
-        | None = None,
-        mass: float | List[float] | npt.NDArray[np.float_] | None = None,
-        Gmass: float | List[float] | npt.NDArray[np.float_] | None = None,
-        radius: float | List[float] | npt.NDArray[np.float_] | None = None,
-        rhill: float | List[float] | npt.NDArray[np.float_] | None = None,
-        rot: List[float]
-        | List[npt.NDArray[np.float_]]
-        | npt.NDArray[np.float_]
-        | None = None,
-        Ip: List[float] | npt.NDArray[np.float_] | None = None,
-        rotphase: float | List[float] | npt.NDArray[np.float_] | None = None,
-        j2rp2: float | List[float] | npt.NDArray[np.float_] | None = None,
-        j4rp4: float | List[float] | npt.NDArray[np.float_] | None = None,
-        c_lm: List[float]
-        | List[npt.NDArray[np.float_]]
-        | npt.NDArray[np.float_]
-        | None = None,
+        a: float | list[float] | npt.NDArray[np.float_] | None = None,
+        e: float | list[float] | npt.NDArray[np.float_] | None = None,
+        inc: float | list[float] | npt.NDArray[np.float_] | None = None,
+        capom: float | list[float] | npt.NDArray[np.float_] | None = None,
+        omega: float | list[float] | npt.NDArray[np.float_] | None = None,
+        capm: float | list[float] | npt.NDArray[np.float_] | None = None,
+        rh: list[float] | list[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+        vh: list[float] | list[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+        mass: float | list[float] | npt.NDArray[np.float_] | None = None,
+        Gmass: float | list[float] | npt.NDArray[np.float_] | None = None,
+        radius: float | list[float] | npt.NDArray[np.float_] | None = None,
+        rhill: float | list[float] | npt.NDArray[np.float_] | None = None,
+        rot: list[float] | list[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+        Ip: list[float] | npt.NDArray[np.float_] | None = None,
+        rotphase: float | list[float] | npt.NDArray[np.float_] | None = None,
+        j2rp2: float | list[float] | npt.NDArray[np.float_] | None = None,
+        j4rp4: float | list[float] | npt.NDArray[np.float_] | None = None,
+        c_lm: list[float] | list[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
         align_to_central_body_rotation: bool = False,
         framenum: int = -1,
         **kwargs: Any,
@@ -3836,6 +3574,7 @@ class Simulation(object):
             rotation is enabled.
         framenum : int, default -1
             Frame number to modify. If -1, the last frame is modified.
+
         Returns
         -------
         None
@@ -3880,53 +3619,31 @@ class Simulation(object):
         if arguments["mass"] is not None or arguments["Gmass"] is not None:
             dsnew = self._set_particle_type(dsnew)
             if "particle_type" in self.data:
-                if (
-                    CB_TYPE_NAME in self.data["particle_type"]
-                    and CB_TYPE_NAME in dsnew["particle_type"]
-                ):
+                if CB_TYPE_NAME in self.data["particle_type"] and CB_TYPE_NAME in dsnew["particle_type"]:
                     self.data = self._set_particle_type(
                         self.data
                     )  # Make sure we update the original dataset if there is going to be a central body change
 
             if CB_TYPE_NAME in dsnew["particle_type"]:
-                cbname = (
-                    dsnew["name"]
-                    .where(dsnew["particle_type"] == CB_TYPE_NAME, drop=True)
-                    .values[0]
-                )
+                cbname = dsnew["name"].where(dsnew["particle_type"] == CB_TYPE_NAME, drop=True).values[0]
                 GMcb = dsnew["Gmass"].sel(name=cbname).isel(time=framenum)
             elif CB_TYPE_NAME in self.data.particle_type:
-                cbname = (
-                    self.data["name"]
-                    .where(self.data["particle_type"] == CB_TYPE_NAME, drop=True)
-                    .values[0]
-                )
+                cbname = self.data["name"].where(self.data["particle_type"] == CB_TYPE_NAME, drop=True).values[0]
                 GMcb = self.data["Gmass"].sel(name=cbname).isel(time=framenum)
             else:
-                raise ValueError(
-                    "No central body found in either the old or new Dataset"
-                )
+                raise ValueError("No central body found in either the old or new Dataset")
         else:
-            cbname = (
-                self.data["name"]
-                .where(self.data["particle_type"] == CB_TYPE_NAME, drop=True)
-                .values[0]
-            )
+            cbname = self.data["name"].where(self.data["particle_type"] == CB_TYPE_NAME, drop=True).values[0]
             GMcb = self.data["Gmass"].sel(name=cbname).isel(time=framenum)
 
         if any(arguments[var] is not None for var in ["rh", "vh"]):
             dsnew = dsnew.xv2el(GMcb)
-        if any(
-            arguments[var] is not None
-            for var in ["a", "e", "inc", "capom", "omega", "capm"]
-        ):
+        if any(arguments[var] is not None for var in ["a", "e", "inc", "capom", "omega", "capm"]):
             dsnew = dsnew.el2xv(GMcb)
         if any(arguments[var] is not None for var in ["mass", "Gmass"]):
             dsnew = dsnew.xv2el(GMcb)
 
-        dsnew = self._combine_and_fix_dsnew(
-            dsnew, align_to_central_body_rotation, verbose=verbose, **kwargs
-        )
+        dsnew = self._combine_and_fix_dsnew(dsnew, align_to_central_body_rotation, verbose=verbose, **kwargs)
         self.save(verbose=verbose)
 
         return
@@ -3953,7 +3670,6 @@ class Simulation(object):
         dsnew : SwiftestDataset
             Updated Dataset with ntp, npl values and types fixed.
         """
-
         if "verbose" in kwargs:
             verbose = kwargs.pop("verbose")
         else:
@@ -3967,9 +3683,7 @@ class Simulation(object):
                 msg = "Non-unique names detected for bodies. The Dataset will be dimensioned by integer id instead of name."
                 msg += "\nConsider using unique names instead."
                 print(msg)
-        dsnew["status"] = xr.zeros_like(dsnew["id"]).expand_dims(
-            dim={"time": dsnew.time.values}, axis=0
-        )
+        dsnew["status"] = xr.zeros_like(dsnew["id"]).expand_dims(dim={"time": dsnew.time.values}, axis=0)
 
         if "name" in self.data:
             for name in dsnew.coords["name"].values:
@@ -3979,10 +3693,7 @@ class Simulation(object):
                     selector_name = dict(name=name)
 
                     # Check if this combination exists in the old dataset
-                    if (
-                        (self.data.coords["name"] == name)
-                        & (self.data.coords["time"] == time)
-                    ).any():
+                    if ((self.data.coords["name"] == name) & (self.data.coords["time"] == time)).any():
                         # If it exists, update the corresponding values
                         for var in dsnew.data_vars:
                             if "name" in dsnew[var].dims:
@@ -3998,14 +3709,10 @@ class Simulation(object):
                                         )
                                     # Check if the variable depends on both name and time
                                     if "time" in self.data[var].dims:
-                                        self.data[var].loc[selector_name_time] = (
-                                            dsnew[var].loc[selector_name_time].values
-                                        )
+                                        self.data[var].loc[selector_name_time] = dsnew[var].loc[selector_name_time].values
                                     else:
                                         # Update based only on name if time is not a dimension
-                                        self.data[var].loc[selector_name] = (
-                                            dsnew[var].loc[selector_name].values
-                                        )
+                                        self.data[var].loc[selector_name] = dsnew[var].loc[selector_name].values
                                 else:
                                     self.data[var] = dsnew[var]
                     else:
@@ -4053,7 +3760,6 @@ class Simulation(object):
         -------
         None
         """
-
         if "verbose" in kwargs:
             verbose = kwargs.pop("verbose")
         else:
@@ -4082,11 +3788,7 @@ class Simulation(object):
             return
 
         # Set all the Simulation parameters based on values retrieved from the parameter file
-        kwargs = {
-            self._param_to_argument[key]: value
-            for key, value in self.param.items()
-            if key in self._param_to_argument
-        }
+        kwargs = {self._param_to_argument[key]: value for key, value in self.param.items() if key in self._param_to_argument}
         self.set_parameter(**kwargs)
 
         return
@@ -4151,9 +3853,7 @@ class Simulation(object):
             init_cond_file_name = self.param["NC_IN"]
         init_cond_file = self.simdir / self.param["NC_IN"]
         if not os.path.exists(init_cond_file):
-            raise FileNotFoundError(
-                f"Initial conditions file {init_cond_file} not found."
-            )
+            raise FileNotFoundError(f"Initial conditions file {init_cond_file} not found.")
         if verbose:
             print("Reading initial conditions file as .init_cond")
         if init_cond_file_type is None:
@@ -4178,7 +3878,7 @@ class Simulation(object):
         self,
         codename: Literal["Swiftest", "Swifter", "Swift"] | None = None,
         param_file: str | os.PathLike | None = None,
-        param: Dict | None = None,
+        param: dict | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -4243,7 +3943,7 @@ class Simulation(object):
         plname: str = "pl.swiftest.in",
         tpname: str = "tp.swiftest.in",
         cbname: str = "cb.swiftest.in",
-        conversion_questions: Dict = {},
+        conversion_questions: dict = {},
         dask: bool = False,
         **kwargs: Any,
     ) -> SwiftestDataset:
@@ -4279,11 +3979,7 @@ class Simulation(object):
                 stacklevel=2,
             )
             return oldparam
-        if (
-            newcodename != "Swift"
-            and newcodename != "Swifter"
-            and newcodename != "Swiftest"
-        ):
+        if newcodename != "Swift" and newcodename != "Swifter" and newcodename != "Swiftest":
             warnings.warn(
                 f'{newcodename} is an invalid code type. Valid options are "Swiftest", "Swifter", or "Swift".',
                 stacklevel=2,
@@ -4292,20 +3988,14 @@ class Simulation(object):
         goodconversion = True
         if self.codename == "Swifter":
             if newcodename == "Swiftest":
-                self.param = io.swifter2swiftest(
-                    self.param, plname, tpname, cbname, conversion_questions
-                )
+                self.param = io.swifter2swiftest(self.param, plname, tpname, cbname, conversion_questions)
             else:
                 goodconversion = False
         elif self.codename == "Swift":
             if newcodename == "Swifter":
-                self.param = io.swift2swifter(
-                    self.param, plname, tpname, conversion_questions
-                )
+                self.param = io.swift2swifter(self.param, plname, tpname, conversion_questions)
             elif newcodename == "Swiftest":
-                self.param = io.swift2swiftest(
-                    self.param, plname, tpname, cbname, conversion_questions
-                )
+                self.param = io.swift2swiftest(self.param, plname, tpname, cbname, conversion_questions)
             else:
                 goodconversion = False
         else:
@@ -4368,9 +4058,7 @@ class Simulation(object):
                         self.data = self.init_cond.copy(deep=True)
                 except:
                     if verbose:
-                        print(
-                            "No initial conditions file found. Generating from the first time step of the output file."
-                        )
+                        print("No initial conditions file found. Generating from the first time step of the output file.")
                     self.init_cond = self.data.isel(time=[0]).copy(deep=True)
                     self._scrub_init_cond()
 
@@ -4390,9 +4078,7 @@ class Simulation(object):
                 print(f"Output file {param_tmp['BIN_OUT']} not found.")
         elif self.codename == "Swift":
             if verbose:
-                warnings.warn(
-                    "Reading Swift simulation data is not implemented yet", stacklevel=2
-                )
+                warnings.warn("Reading Swift simulation data is not implemented yet", stacklevel=2)
         else:
             if verbose:
                 warnings.warn(
@@ -4415,7 +4101,6 @@ class Simulation(object):
         None
             Sets the encounters instance variable SwiftestDataset
         """
-
         if "verbose" in kwargs:
             verbose = kwargs.pop("verbose")
         else:
@@ -4426,9 +4111,7 @@ class Simulation(object):
             return
 
         if dask:
-            self.encounters = xr.open_mfdataset(
-                enc_file, engine="h5netcdf", mask_and_scale=False
-            )
+            self.encounters = xr.open_mfdataset(enc_file, engine="h5netcdf", mask_and_scale=False)
         else:
             self.encounters = xr.open_dataset(enc_file, mask_and_scale=False)
         self.encounters = io.process_netcdf_input(self.encounters, self.param)
@@ -4437,9 +4120,7 @@ class Simulation(object):
         tgood, tid = np.unique(self.encounters.time, return_index=True)
         self.encounters = self.encounters.isel(time=tid)
         # Remove any NaN values
-        tgood = self.encounters.time.where(
-            ~np.isnan(self.encounters.time), drop=True
-        ).values
+        tgood = self.encounters.time.where(~np.isnan(self.encounters.time), drop=True).values
         self.encounters = self.encounters.sel(time=tgood)
 
         return
@@ -4460,7 +4141,6 @@ class Simulation(object):
         None
             Sets the collisions instance variable xarray dataset
         """
-
         if "verbose" in kwargs:
             verbose = kwargs.pop("verbose")
         else:
@@ -4474,9 +4154,7 @@ class Simulation(object):
             print("Reading collisions history file as .collisions")
 
         if dask:
-            self.collisions = xr.open_mfdataset(
-                col_file, engine="h5netcdf", mask_and_scale=False, combine="nested"
-            )
+            self.collisions = xr.open_mfdataset(col_file, engine="h5netcdf", mask_and_scale=False, combine="nested")
         else:
             self.collisions = xr.open_dataset(col_file, mask_and_scale=False)
 
@@ -4484,9 +4162,7 @@ class Simulation(object):
 
         return
 
-    def follow(
-        self, codestyle: str = "Swifter", dask: bool = False, **kwargs: Any
-    ) -> SwiftestDataset:
+    def follow(self, codestyle: str = "Swifter", dask: bool = False, **kwargs: Any) -> SwiftestDataset:
         """
         An implementation of the Swift tool_follow algorithm. Under development. Currently only for Swift simulations.
 
@@ -4504,7 +4180,6 @@ class Simulation(object):
         xarray dataset
             Dataset containing the variables retrieved from the follow algorithm
         """
-
         if "verbose" in kwargs:
             verbose = kwargs.pop("verbose")
         else:
@@ -4514,7 +4189,7 @@ class Simulation(object):
             self.read_output_file(dask=dask, verbose=verbose)
         if codestyle == "Swift":
             try:
-                with open("follow.in", "r") as f:
+                with open("follow.in") as f:
                     line = f.readline()  # Parameter file (ignored because read_output_file already takes care of it
                     line = f.readline()  # PL file (ignored)
                     line = f.readline()  # TP file (ignored)
@@ -4524,7 +4199,7 @@ class Simulation(object):
                     line = f.readline()  # nskp
                     i_list = [i for i in line.split(" ") if i.strip()]
                     nskp = int(i_list[0])
-            except IOError:
+            except OSError:
                 if verbose:
                     warnings.warn("No follow.in file found", stacklevel=2)
                 ifol = None
@@ -4653,7 +4328,7 @@ class Simulation(object):
         self,
         codename: Literal["Swiftest", "Swifter", "Swift"] | None = None,
         param_file: str | os.PathLike | None = None,
-        param: Dict | None = None,
+        param: dict | None = None,
         framenum: int = -1,
         **kwargs: Any,
     ) -> None:
@@ -4678,7 +4353,6 @@ class Simulation(object):
         -------
         None
         """
-
         if "verbose" in kwargs:
             verbose = kwargs.pop("verbose")
         else:
@@ -4755,9 +4429,7 @@ class Simulation(object):
             return
 
         if verbose:
-            print(
-                f"Cleaning up simulation directory {self.simdir} of old output files."
-            )
+            print(f"Cleaning up simulation directory {self.simdir} of old output files.")
 
         old_files = [
             self.simdir / self.param["BIN_OUT"],
@@ -4786,9 +4458,7 @@ class Simulation(object):
             self.data = self.init_cond.copy(deep=True)
         return
 
-    def _set_central_body(
-        self, align_to_central_body_rotation: bool = False, **kwargs: Any
-    ):
+    def _set_central_body(self, align_to_central_body_rotation: bool = False, **kwargs: Any):
         """
         Sets the central body to be the most massive body in the dataset. Cartesian position and velocity Cartesian coordinates are rotated  If align_to_central_body_rotation is True, the rotation pole is set to the z-axis.
 
@@ -4802,7 +4472,6 @@ class Simulation(object):
         None
 
         """
-
         if "verbose" in kwargs:
             verbose = kwargs.pop("verbose")
         else:
@@ -4832,14 +4501,10 @@ class Simulation(object):
             recompute_el = True
             if "name" in self.data.dims:
                 if 0 in self.data.id.values:
-                    name_0 = self.data.name.where(self.data.id == 0, drop=True).values[
-                        ()
-                    ]
+                    name_0 = self.data.name.where(self.data.id == 0, drop=True).values[()]
                     self.data["id"].loc[dict(name=name_0)] = cbid
                 self.data["id"].loc[dict(name=cbname)] = 0
-                self.data["particle_type"].loc[dict(name=cbname)] = (
-                    constants.CB_TYPE_NAME
-                )
+                self.data["particle_type"].loc[dict(name=cbname)] = constants.CB_TYPE_NAME
             else:
                 if 0 in self.data.id.values:
                     self.data["id"].loc[dict(id=0)] = cbid
@@ -4854,11 +4519,7 @@ class Simulation(object):
 
         pos_skip = ["space", "Ip", "rot"]
         for var in self.data.variables:
-            if (
-                "space" in self.data[var].dims
-                and var not in pos_skip
-                and not np.isnan(self.data[var].values).any()
-            ):
+            if "space" in self.data[var].dims and var not in pos_skip and not np.isnan(self.data[var].values).any():
                 if np.any(cbda[var].values != 0.0):
                     recompute_el = True
                     self.data[var] = self.data[var] - cbda[var]
@@ -4877,14 +4538,14 @@ class Simulation(object):
         return
 
     @property
-    def param(self) -> Dict:
+    def param(self) -> dict:
         """
         Dict: A dictionary of simulation parameters. These are stored in the param.in file
         """
         return self._param
 
     @param.setter
-    def param(self, value: Dict) -> None:
+    def param(self, value: dict) -> None:
         if not isinstance(value, dict):
             raise TypeError("Parameter value must be a dictionary")
         self._param = value
