@@ -41,7 +41,7 @@ def _cwd(newdir):
 
 class Simulation:
     """
-    This is a class that defines the basic Swift/Swifter/Swiftest simulation object
+    Defines the basic Swift/Swifter/Swiftest simulation object.
 
     """
 
@@ -64,6 +64,7 @@ class Simulation:
     ):
         """
         Set up a new simulation object with the given parameters.
+
         Parameters for a given Simulation object can be set a number of different ways, including via a parameter input
         file, arguments to Simulation, the general `set_parameter` method, or the specific setters for groups of
         similar parameters (e.g. set_init_cond_files, set_simulation_time, etc.). Each parameter has a default value
@@ -306,7 +307,7 @@ class Simulation:
 
     def _run_swiftest_driver(self, **kwargs: Any) -> None:
         """
-        Internal callable function that executes the swiftest_driver run
+        Internal callable function that executes the swiftest_driver run.
         """
         from .core import driver
 
@@ -334,8 +335,9 @@ class Simulation:
 
     def run(self, dask: bool = False, **kwargs: Any) -> None:
         """
-        Runs a Swiftest integration. Uses the parameters set by the `param` dictionary unless overridden by keyword
-        arguments. Accepts any keyword arguments that can be passed to `set_parameter`.
+        Runs a Swiftest integration.
+
+        Uses the parameters set by the `param` dictionary unless overridden by keyword arguments. Accepts any keyword arguments that can be passed to `set_parameter`.
 
         Parameters
         ----------
@@ -374,10 +376,9 @@ class Simulation:
         # Write out the current parameter set before executing run
         self.write_param(verbose=verbose, **kwargs)
 
-        if self.param["DT"] > (self.param["TSTOP"] - self.param["TSTART"]):
-            if verbose:
-                msg = "dt should be smaller than tstop-tstart"
-                warnings.warn(msg, stacklevel=2)
+        if self.param["DT"] > (self.param["TSTOP"] - self.param["TSTART"]) and verbose:
+            msg = "dt should be smaller than tstop-tstart"
+            warnings.warn(msg, stacklevel=2)
 
         if verbose:
             print(
@@ -407,8 +408,7 @@ class Simulation:
 
     def _get_valid_arg_list(self, arg_list: str | list[str] | None = None, valid_var: dict | None = None) -> tuple[list[str], dict]:
         """
-        Internal function for getters that extracts subset of arguments that is contained in the dictionary of valid
-        argument/parameter variable pairs.
+        Internal function for getters that extracts subset of arguments that is contained in the dictionary of valid argument/parameter variable pairs.
 
         Parameters
         ----------
@@ -447,8 +447,7 @@ class Simulation:
 
     def _create_valid_var(self, valid_arg):
         """
-        Internal function for getters that extracts subset of arguments that is contained in the dictionary of valid
-        argument/parameter variable pairs.
+        Internal function for getters that extracts subset of arguments that is contained in the dictionary of valid argument/parameter variable pairs.
 
         Parameters
         ----------
@@ -477,8 +476,7 @@ class Simulation:
         **kwargs: Any,
     ) -> dict[str, Any]:
         """
-        Set the parameters that control how a simulation is run, such as start and stop time, step size, and the cadence of output
-        to both the screen and to file. Returns a dictionary of the parameters that were set.
+        Set the parameters that control how a simulation is run, such as start and stop time, step size, and the cadence of output to both the screen and to file. Returns a dictionary of the parameters that were set.
 
         Parameters
         ----------
@@ -559,9 +557,8 @@ class Simulation:
         else:
             update_list.append("tstop")
 
-        if tstop is not None:
-            if tstop < tstart:
-                warnings.warn("tstop should be greater than tstart.", stacklevel=2)
+        if tstop is not None and tstop < tstart:
+            warnings.warn("tstop should be greater than tstart.", stacklevel=2)
 
         if tstop is not None:
             self.param["TSTOP"] = tstop
@@ -684,6 +681,7 @@ class Simulation:
     def set_parameter(self, **kwargs: Any) -> dict[str, Any]:
         """
         Setter for all possible parameters. This will call each of the specialized setters using keyword arguments.
+
         If no arguments are passed, then either values from the param_file or default values will be used.
 
         Parameters
@@ -996,7 +994,7 @@ class Simulation:
 
     def get_parameter(self, **kwargs: Any) -> dict[str, Any]:
         """
-        Setter for all possible parameters. Calls each of the specialized setters using keyword arguments
+        Setter for all possible parameters. Calls each of the specialized setters using keyword arguments.
 
         Parameters
         ----------
@@ -1096,6 +1094,7 @@ class Simulation:
     def get_integrator(self, arg_list: str | list[str] | None = None, **kwargs: Any) -> dict[str, Any]:
         """
         Returns a subset of the parameter dictionary containing the current values of the distance range parameters.
+
         If the verbose option is set in the Simulation object, then it will also print the values.
 
         Parameters
@@ -1451,6 +1450,7 @@ class Simulation:
     def get_feature(self, arg_list: str | list[str] | None = None, **kwargs: Any) -> dict[str, Any]:
         """
         Returns a subset of the parameter dictionary containing the current value of the feature boolean values.
+
         If the verbose option is set in the Simulation object, then it will also print the values.
 
         Parameters
@@ -1671,7 +1671,8 @@ class Simulation:
 
     def get_init_cond_files(self, arg_list: str | list[str] | None = None, **kwargs: Any) -> dict[str, Any]:
         """
-        Returns a subset of the parameter dictionary containing the current initial condition file parameters
+        Returns a subset of the parameter dictionary containing the current initial condition file parameters.
+
         If the verbose option is set in the Simulation object, then it will also print the values.
 
         Parameters
@@ -1872,7 +1873,8 @@ class Simulation:
 
     def get_output_files(self, arg_list: str | list[str] | None = None, **kwargs: Any) -> dict[str, Any]:
         """
-        Returns a subset of the parameter dictionary containing the current output file parameters
+        Returns a subset of the parameter dictionary containing the current output file parameters.
+
         If the verbose option is set in the Simulation object, then it will also print the values.
 
         Parameters
@@ -2135,6 +2137,7 @@ class Simulation:
     def get_unit_system(self, arg_list: str | list[str] | None = None, **kwargs) -> dict[str, Any]:
         """
         Returns a subset of the parameter dictionary containing the current simulation unit system.
+
         If the verbose option is set in the Simulation object, then it will also print the values.
 
         Parameters
@@ -2310,6 +2313,7 @@ class Simulation:
     def get_distance_range(self, arg_list: str | list[str] | None = None, **kwargs: Any) -> dict[str, Any]:
         """
         Returns a subset of the parameter dictionary containing the current values of the distance range parameters.
+
         If the verbose option is set in the Simulation object, then it will also print the values.
 
         Parameters
@@ -2377,18 +2381,13 @@ class Simulation:
         **kwargs: Any,
     ) -> None:
         """
-        Adds a solar system body to an existing simulation Dataset from the JPL Horizons ephemeris service. The JPL Horizons service
-        will be searched for a body matching the string passed by `name`, or alternatively `ephemeris_id` if passed. Bodies will be
-        named in the Swiftest initial conditions Dataset using `name`. Use `ephemeris_id` to have finer control over which body is
-        searched in Horizons while using a custom name.
+        Adds a solar system body to an existing simulation Dataset from the JPL Horizons ephemeris service.
 
-        If `name` is not passed, then the target name property is used as the name. You must pass either `name` and/or `ephemeris_id`
+        The JPL Horizons service will be searched for a body matching the string passed by `name`, or alternatively `ephemeris_id` if passed. Bodies will be named in the Swiftest initial conditions Dataset using `name`. Use `ephemeris_id` to have finer control over which body is searched in Horizons while using a custom name.
 
-        When passing `name` == "Earth" or `name` == "Pluto", it a body is generated that has initial conditions matching the system
-        barycenter and mass equal to the sum of Earth+Moon or Pluto+Charon.
+        If `name` is not passed, then the target name property is used as the name. You must pass either `name` and/or `ephemeris_id`.
 
-        To obtain initial conditions for either Earth or Pluto alone, pass `ephemeris_id` == "399" for Earth or
-        `ephemeris_id` == "999" for Pluto.
+        When passing `name` == "Earth" or `name` == "Pluto", it a body is generated that has initial conditions matching the system barycenter and mass equal to the sum of Earth+Moon or Pluto+Charon. To obtain initial conditions for either Earth or Pluto alone, pass `ephemeris_id` == "399" for Earth or `ephemeris_id` == "999" for Pluto.
 
         Parameters
         ----------
@@ -2847,9 +2846,8 @@ class Simulation:
         j4rp4, nbodies = input_to_array(j4rp4, "f", nbodies)
         c_lm, nbodies = input_to_clm_array(c_lm, nbodies)
 
-        if mass is not None:
-            if Gmass is not None:
-                raise ValueError("Cannot use mass and Gmass inputs simultaneously!")
+        if mass is not None and Gmass is not None:
+            raise ValueError("Cannot use mass and Gmass inputs simultaneously!")
 
         if rh is not None or vh is not None:
             if a is not None or e is not None or inc is not None or capom is not None or omega is not None or capm is not None:
@@ -2891,10 +2889,9 @@ class Simulation:
         **kwargs: Any,
     ) -> None:
         """
-        Adds a body (test particle or massive body) to the internal Dataset given a set of either orbital elements
-        or cartesian state vectors. If orbital elements are passed, cartesian state vectors are computed and vice versa, using the
-        currently-assigned central body, so cannot both be passed. Input all angles in degrees and dimensional quantities in the
-        unit system defined in the current Simulation instance.
+        Adds a body (test particle or massive body) to the internal Dataset given a set of either orbital elements or cartesian state vectors.
+
+        If orbital elements are passed, cartesian state vectors are computed and vice versa, using the currently-assigned central body, so cannot both be passed. Input all angles in degrees and dimensional quantities in the unit system defined in the current Simulation instance.
 
         This method will update the data attribute with the new body or bodies added to the existing Dataset.
 
@@ -3279,8 +3276,9 @@ class Simulation:
 
     def _set_id_number(self, ds: SwiftestDataset) -> SwiftestDataset:
         """
-        Sets the id numbers for new bodies to be added to the Dataset. It will set the most massive body of both the old and new
-        Dataset to have id=0 to indicate that it is to be considered the central body.
+        Sets the id numbers for new bodies to be added to the Dataset.
+
+        It will set the most massive body of both the old and new Dataset to have id=0 to indicate that it is to be considered the central body.
 
         Parameters
         ----------
@@ -3463,7 +3461,7 @@ class Simulation:
         id: int | list[int] | npt.NDArray[np.int_] | None = None,
     ):
         """
-        Removes a body (test particle or massive body) from the internal Dataset
+        Removes a body (test particle or massive body) from the internal Dataset.
 
         This method will update `data` and `init_cond` attributes with the body or bodies removed.
 
@@ -3521,11 +3519,9 @@ class Simulation:
         **kwargs: Any,
     ) -> None:
         """
-        Modifies an existing body in the internal Dataset given a new value of either the orbital elements
-        or cartesian state vectors, or the physical property of the body (mass, radius, etc). Input all angles in degrees and dimensions
-        in the units defined in the current Simulation instance. Currently, this will only modify the last entry of the body in the time dimension.
+        Modifies an existing body in the internal Dataset given a new value of either the orbital elements or cartesian state vectors, or the physical property of the body (mass, radius, etc).
 
-        This method will update the data attribute with the modified body or bodies added to the existing Dataset.
+        Input all angles in degrees and dimensions in the units defined in the current Simulation instance. Currently, this will only modify the last entry of the body in the time dimension.  This method will update the data attribute with the modified body or bodies added to the existing Dataset.
 
         Parameters
         ----------
@@ -4540,7 +4536,7 @@ class Simulation:
     @property
     def param(self) -> dict:
         """
-        Dict: A dictionary of simulation parameters. These are stored in the param.in file
+        Dict: A dictionary of simulation parameters. These are stored in the param.in file.
         """
         return self._param
 
@@ -4554,7 +4550,7 @@ class Simulation:
     @property
     def data(self) -> SwiftestDataset:
         """
-        SwiftestDataset: A dataset containing the simulation data
+        SwiftestDataset: A dataset containing the simulation data.
         """
         return self._data
 
@@ -4571,7 +4567,7 @@ class Simulation:
     @property
     def init_cond(self) -> SwiftestDataset:
         """
-        SwiftestDataset: A dataset containing the initial conditions
+        SwiftestDataset: A dataset containing the initial conditions.
         """
         return self._init_cond
 
@@ -4605,7 +4601,7 @@ class Simulation:
     @property
     def collisions(self) -> SwiftestDataset:
         """
-        SwiftestDataset: A dataset containing the collision history
+        SwiftestDataset: A dataset containing the collision history.
         """
         return self._collisions
 
@@ -4622,7 +4618,7 @@ class Simulation:
     @property
     def simdir(self) -> Path:
         """
-        Path: The simulation directory
+        Path: The simulation directory.
         """
         return self._simdir
 
@@ -4644,7 +4640,7 @@ class Simulation:
     @property
     def param_file(self) -> Path:
         """
-        Path: The parameter file
+        Path: The parameter file.
         """
         return self._param_file
 

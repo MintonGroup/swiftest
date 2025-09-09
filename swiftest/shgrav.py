@@ -34,6 +34,7 @@ if PYSHTOOLS_AVAILABLE:
     def clm_from_ellipsoid(mass, density, a, b=None, c=None, lmax=6, lref_radius=False, ref_radius=None):
         """
         Creates and returns the gravity coefficients for an ellipsoid with principal axes a, b, c upto a certain maximum degree lmax.
+
         Uses pyshtools. No units necessary for a, b, & c. However, they need to be in the same units (DU).
 
         Parameters
@@ -96,6 +97,7 @@ if PYSHTOOLS_AVAILABLE:
     def clm_from_relief(mass, density, grid, lmax=6, lref_radius=False, ref_radius=None):
         """
         Creates and returns the gravity coefficients for a body with a given DH grid upto a certain maximum degree lmax.
+
         Uses pyshtools.
 
         Parameters
