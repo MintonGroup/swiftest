@@ -2,6 +2,21 @@
 
 What's New
 ==========
+
+.. _whats-new.2025.9.0:
+
+:release:`v2025.9.0`
+---------------------
+
+Bug Fixes
+~~~~~~~~~
+- Fix bugs related to initializing fragments in Fraggle. When a fragment was ever put on a position that overlapped an existing massive body, this bug could result in placing the fragment onto unphysically large distances, which resulted in an anomolous jump in the orbit of the target body. by `David Minton`_ in :pull:`80`.
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Updated copyright blocks and added Ruff formatting to project by `David Minton`_ in :pull:`80`.
+
+
 .. _whats-new.2025.8.0:
 
 :release:`v2025.8.0`
