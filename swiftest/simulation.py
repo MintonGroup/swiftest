@@ -386,11 +386,10 @@ class Simulation:
             )
 
         # This is temporary until a better algorithm for setting OMP_NUM_THREADS is implemented
+        omp_num_threads_old = None
         if self.init_cond.isel(time=0).npl.values[()] < 100:
             if "OMP_NUM_THREADS" in os.environ:
                 omp_num_threads_old = os.environ["OMP_NUM_THREADS"]
-            else:
-                omp_num_threads_old = None
             os.environ["OMP_NUM_THREADS"] = "1"
 
         self._run_swiftest_driver(verbose=verbose)
@@ -4365,7 +4364,10 @@ class Simulation:
             self.simdir.mkdir(parents=True, exist_ok=True)
 
         if not self.restart:
-            self.init_cond = self.data.isel(time=[framenum]).copy(deep=True)
+            if len(self.data) == 0:
+                self.data = self.init_cond.copy(deep=True)
+            else:
+                self.init_cond = self.data.isel(time=[framenum]).copy(deep=True)
             self._scrub_init_cond()
 
         if codename == "Swiftest":
