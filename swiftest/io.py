@@ -869,17 +869,19 @@ def fix_types(ds: SwiftestDataset, itype: np.dtype = np.int64, ftype: np.dtype =
     """
     ds = _clean_string_values(ds)
     for intvar in int_varnames:
-        if intvar in ds:
+        if intvar in ds and ds[intvar].dtype != itype:
             ds[intvar] = ds[intvar].astype(itype)
 
     float_varnames = [x for x in list(ds.keys()) if x not in string_varnames + int_varnames + char_varnames]
 
     for floatvar in float_varnames:
-        ds[floatvar] = ds[floatvar].astype(ftype)
+        if ds[floatvar].dtype != ftype:
+            ds[floatvar] = ds[floatvar].astype(ftype)
 
     float_coordnames = [x for x in list(ds.coords) if x not in string_varnames + int_varnames + char_varnames]
     for floatcoord in float_coordnames:
-        ds[floatcoord] = ds[floatcoord].astype(np.float64)
+        if ds[floatcoord].dtype != np.float64:
+            ds[floatcoord] = ds[floatcoord].astype(np.float64)
 
     return ds
 
