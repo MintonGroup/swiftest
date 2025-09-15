@@ -2419,11 +2419,10 @@ class Simulation:
 
         if name is None and ephemeris_id is None:
             if verbose:
-                warnings.warn("Either `name` and/or `ephemeris_id` must be supplied to add_solar_system_body")
+                warnings.warn("Either `name` and/or `ephemeris_id` must be supplied to add_solar_system_body", stacklevel=2)
             return None
-        if name is not None:
-            if type(name) is str or type(name) is int:
-                name = [name]
+        if name is not None and (type(name) is str or type(name) is int):
+            name = [name]
 
         if ephemeris_id is not None:
             if type(ephemeris_id) is int or type(ephemeris_id) is str:
@@ -2444,7 +2443,7 @@ class Simulation:
             date = self.ephemeris_date
         try:
             datetime.datetime.fromisoformat(date)
-        except:
+        except Exception:
             if verbose:
                 warnings.warn(
                     f"{date} is not a valid date format. Must be 'YYYY-MM-DD'. Setting to {self.ephemeris_date}",

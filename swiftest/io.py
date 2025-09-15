@@ -734,7 +734,7 @@ def swiftest2xr(param: dict, verbose: bool = True, dask: bool = False) -> Swifte
 
 def _xstrip_nonstr(da: SwiftestDataArray) -> SwiftestDataArray:
     """
-    Cleans up the string values in the DataArray to remove extra white space
+    Cleans up the string values in the DataArray to remove extra white space.
 
     Parameters
     ----------
