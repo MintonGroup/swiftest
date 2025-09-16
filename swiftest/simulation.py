@@ -1,5 +1,6 @@
 """
-Copyright 2025 - David Minton
+Copyright 2025 - David Minton.
+
 This file is part of Swiftest.
 Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -17,7 +18,7 @@ import os
 import shutil
 import warnings
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Tuple, Union
+from typing import Any, Literal, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -26,17 +27,17 @@ import xarray as xr
 from . import constants, init_cond, io, tool
 from .data import SwiftestDataset
 
-FloatLike = Union[float, int, np.number]
+FloatLike = float | int | np.number
 
 
 @contextlib.contextmanager
-def _cwd(newdir):
-    olddir = os.getcwd()
-    os.chdir(newdir)
+def _cwd(newdir: Path):
+    olddir = Path.cwd()
+    os.chdir(str(newdir))
     try:
         yield
     finally:
-        os.chdir(olddir)
+        os.chdir(str(olddir))
 
 
 class Simulation:
@@ -657,11 +658,15 @@ class Simulation:
         }
 
         tstep_out = None
-        if arg_list is None or "tstep_out" in arg_list or "istep_out" in arg_list:
-            if "ISTEP_OUT" in self.param and "DT" in self.param:
-                istep_out = self.param["ISTEP_OUT"]
-                dt = self.param["DT"]
-                tstep_out = istep_out * dt
+        if (
+            arg_list is None
+            or "tstep_out" in arg_list
+            or "istep_out" in arg_list
+            and ("ISTEP_OUT" in self.param and "DT" in self.param)
+        ):
+            istep_out = self.param["ISTEP_OUT"]
+            dt = self.param["DT"]
+            tstep_out = istep_out * dt
 
         valid_arg, time_dict = self._get_valid_arg_list(arg_list, valid_var)
 
