@@ -3672,19 +3672,18 @@ class Simulation:
         if not isinstance(dsnew, SwiftestDataset):
             dsnew = SwiftestDataset(dsnew)
 
-        if "id" not in self.data.dims and verbose:
-            if not len(np.unique(dsnew["name"])) == len(dsnew["name"]):
-                msg = "Non-unique names detected for bodies. The Dataset will be dimensioned by integer id instead of name."
-                msg += "\nConsider using unique names instead."
-                print(msg)
+        if verbose and "id" not in self.data.dims and len(np.unique(dsnew["name"])) != len(dsnew["name"]):
+            msg = "Non-unique names detected for bodies. The Dataset will be dimensioned by integer id instead of name."
+            msg += "\nConsider using unique names instead."
+            print(msg)
         dsnew["status"] = xr.zeros_like(dsnew["id"]).expand_dims(dim={"time": dsnew.time.values}, axis=0)
 
         if "name" in self.data:
             for name in dsnew.coords["name"].values:
                 for time in dsnew.coords["time"].values:
                     # Create a selector for the combination of name and time
-                    selector_name_time = dict(name=name, time=time)
-                    selector_name = dict(name=name)
+                    selector_name_time = {"name": name, "time": time}
+                    selector_name = {"name": name}
 
                     # Check if this combination exists in the old dataset
                     if ((self.data.coords["name"] == name) & (self.data.coords["time"] == time)).any():
