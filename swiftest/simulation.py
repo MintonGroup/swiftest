@@ -3712,7 +3712,7 @@ class Simulation:
                     else:
                         # If it doesn't exist, concatenate the new data
                         to_concat = dsnew.sel(selector_name)
-                        self.data = xr.concat([self.data, to_concat], dim="name")
+                        self.data = xr.concat([self.data, to_concat], dim="name", data_vars="all")
         else:
             self.data = xr.combine_by_coords([self.data, dsnew])
 
