@@ -13,6 +13,7 @@ If not, see: https://www.gnu.org/licenses.
 import os
 import tempfile
 import unittest
+from pathlib import Path
 
 import numpy as np
 
@@ -332,7 +333,7 @@ class TestSwiftestRestart(unittest.TestCase):
         except Exception as e:
             self.fail(f"Failed restart with Exception: {e}")
 
-        self.assertTrue((self.simdir / "param.00000000000000365250.in").is_file())
+        self.assertTrue((Path(self.simdir) / "param.00000000000000365250.in").is_file())
         self.assertEqual(sim_restart.data.time.size, 11)
         return
 
