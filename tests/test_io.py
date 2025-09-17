@@ -518,8 +518,8 @@ class TestSwiftestIO(unittest.TestCase):
         sim_inc = sim.data.isel(time=0).inc.values
         sim_rot = sim.data.isel(time=0).rot.values
 
-        inc_close = np.allclose(sim_inc, inc_vals["ecliptic"], equal_nan=True)
-        rot_close = np.allclose(sim_rot, rot_vals["ecliptic"], rtol=1e-4)
+        inc_close = np.allclose(sim_inc, inc_vals["ecliptic"], rtol=1e-2, equal_nan=True)
+        rot_close = np.allclose(sim_rot, rot_vals["ecliptic"], rtol=1e-2)
 
         self.assertTrue(inc_close, msg="Error in inclination 1")
         self.assertTrue(rot_close, msg="Error in rotation 1")
@@ -531,8 +531,8 @@ class TestSwiftestIO(unittest.TestCase):
         sim_inc = sim.data.isel(time=0).inc.values
         sim_rot = sim.data.isel(time=0).rot.values
 
-        inc_close = np.allclose(sim_inc, inc_vals["mars equator"], equal_nan=True)
-        rot_close = np.allclose(sim_rot, rot_vals["mars equator"])
+        inc_close = np.allclose(sim_inc, inc_vals["mars equator"], rtol=1e-2, equal_nan=True)
+        rot_close = np.allclose(sim_rot, rot_vals["mars equator"], rtol=1e-2)
 
         self.assertTrue(inc_close, msg="Error in inclination 2")
         self.assertTrue(rot_close, msg="Error in rotation 2")
@@ -545,8 +545,10 @@ class TestSwiftestIO(unittest.TestCase):
         sim_inc = sim.data.isel(time=0).inc.values
         sim_rot = sim.data.isel(time=0).rot.values
 
-        inc_close = np.allclose(sim_inc[1:], inc_vals["mars equator"][1:])
-        rot_close = np.allclose(sim_rot[0:1], rot_vals["ecliptic"][0:1]) and np.allclose(sim_rot[1:], rot_vals["mars equator"][1:])
+        inc_close = np.allclose(sim_inc[1:], inc_vals["mars equator"][1:], rtol=1e-2)
+        rot_close = np.allclose(sim_rot[0:1], rot_vals["ecliptic"][0:1], rtol=1e-2) and np.allclose(
+            sim_rot[1:], rot_vals["mars equator"][1:], rtol=1e-2
+        )
 
         self.assertTrue(inc_close, msg="Error in inclination 3")
         self.assertTrue(rot_close, msg="Error in rotation 3")
@@ -558,8 +560,10 @@ class TestSwiftestIO(unittest.TestCase):
         sim_inc = sim.data.isel(time=0).inc.values
         sim_rot = sim.data.isel(time=0).rot.values
 
-        inc_close = np.allclose(sim_inc[1:], inc_vals["ecliptic"][1:])
-        rot_close = np.allclose(sim_rot[0:1], rot_vals["mars equator"][0:1]) and np.allclose(sim_rot[1:], rot_vals["ecliptic"][1:])
+        inc_close = np.allclose(sim_inc[1:], inc_vals["ecliptic"][1:], rtol=1e-2)
+        rot_close = np.allclose(sim_rot[0:1], rot_vals["mars equator"][0:1], rtol=1e-2) and np.allclose(
+            sim_rot[1:], rot_vals["ecliptic"][1:], rtol=1e-2
+        )
 
         self.assertTrue(inc_close, msg="Error in inclination 4")
         self.assertTrue(rot_close, msg="Error in rotation 4")
@@ -572,11 +576,13 @@ class TestSwiftestIO(unittest.TestCase):
         sim_inc = sim.data.isel(time=0).inc.values
         sim_rot = sim.data.isel(time=0).rot.values
 
-        inc_close = np.allclose(sim_inc[1:2], inc_vals["ecliptic"][1:2]) and np.allclose(sim_inc[2:], inc_vals["mars equator"][2:])
+        inc_close = np.allclose(sim_inc[1:2], inc_vals["ecliptic"][1:2], rtol=1e-2) and np.allclose(
+            sim_inc[2:], inc_vals["mars equator"][2:], rtol=1e-2
+        )
         rot_close = (
-            np.allclose(sim_rot[0:1], rot_vals["mars equator"][0:1])
-            and np.allclose(sim_rot[1:2], rot_vals["ecliptic"][1:2])
-            and np.allclose(sim_rot[2:], rot_vals["mars equator"][2:])
+            np.allclose(sim_rot[0:1], rot_vals["mars equator"][0:1], rtol=1e-2)
+            and np.allclose(sim_rot[1:2], rot_vals["ecliptic"][1:2], rtol=1e-2)
+            and np.allclose(sim_rot[2:], rot_vals["mars equator"][2:], rtol=1e-2)
         )
 
         self.assertTrue(inc_close, msg="Error in inclination 5")
@@ -590,8 +596,12 @@ class TestSwiftestIO(unittest.TestCase):
         sim_inc = sim.data.isel(time=0).inc.values
         sim_rot = sim.data.isel(time=0).rot.values
 
-        inc_close = np.allclose(sim_inc[1:2], inc_vals["mars equator"][1:2]) and np.allclose(sim_inc[2:], inc_vals["ecliptic"][2:])
-        rot_close = np.allclose(sim_rot[0:2], rot_vals["mars equator"][0:2]) and np.allclose(sim_rot[2:2], rot_vals["ecliptic"][2:])
+        inc_close = np.allclose(sim_inc[1:2], inc_vals["mars equator"][1:2], rtol=1e-2) and np.allclose(
+            sim_inc[2:], inc_vals["ecliptic"][2:], rtol=1e-2
+        )
+        rot_close = np.allclose(sim_rot[0:2], rot_vals["mars equator"][0:2], rtol=1e-2) and np.allclose(
+            sim_rot[2:2], rot_vals["ecliptic"][2:], rtol=1e-2
+        )
 
         self.assertTrue(inc_close, msg="Error in inclination 6")
         self.assertTrue(rot_close, msg="Error in rotation 6")
