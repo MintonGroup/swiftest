@@ -140,7 +140,7 @@ class TestSwiftestIO(unittest.TestCase):
             },
             "Vesta": {
                 "mass": 2.5902701406889116e20,
-                "radius": 262700.0,
+                "radius": 261385.0,
                 "rot": [0.008727916415949765, -0.004872733218667549, 0.01582674491187599],
             },
             "Pallas": {
