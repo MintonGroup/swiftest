@@ -3605,15 +3605,13 @@ class Simulation:
                 dsnew["j2rp2"] = xr.full_like(dsnew["j2rp2"], np.nan)
             if "j4rp4" in dsnew:
                 dsnew["j4rp4"] = xr.full_like(dsnew["j4rp4"], np.nan)
-        if arguments["j2rp2"] is not None or arguments["j4rp4"] is not None:
-            if "c_lm" in dsnew:
-                dsnew["c_lm"] = xr.full_like(dsnew["c_lm"], np.nan)
+        if arguments["j2rp2"] is not None or arguments["j4rp4"] is not None and "c_lm" in dsnew:
+            dsnew["c_lm"] = xr.full_like(dsnew["c_lm"], np.nan)
 
         dsmod = self._vec2xr(**arguments)
-        if "Gmass" in dsnew:
-            if arguments["Gmass"] is None and arguments["mass"] is None:
-                dsmod["Gmass"] = dsnew["Gmass"]
-                dsmod["mass"] = dsnew["mass"]
+        if "Gmass" in dsnew and arguments["Gmass"] is None and arguments["mass"] is None:
+            dsmod["Gmass"] = dsnew["Gmass"]
+            dsmod["mass"] = dsnew["mass"]
         dsnew.update(dsmod)
         if arguments["mass"] is not None or arguments["Gmass"] is not None:
             dsnew = self._set_particle_type(dsnew)
@@ -3690,8 +3688,35 @@ class Simulation:
 
             if overlap.size == 0:  # No overlapping names, so we can concat
                 self.data = xr.concat([self.data, dsnew], dim="name")
-            else:  # Some overlapping names, so we need to re-index by id
-                self.data = xr.merge([self.data, dsnew], compat="override", join="outer")
+            else:  # Modify the values corresponding to the overlapping names.
+                for name in overlap:
+                    for time in dsnew.coords["time"].values:
+                        # Create a selector for the combination of name and time
+                        selector_name_time = {"name": name, "time": time}
+                        selector_name = {"name": name}
+                        # Check if this combination exists in the old dataset
+                        if ((self.data.coords["name"] == name) & (self.data.coords["time"] == time)).any():
+                            # If it exists, update the corresponding values
+                            for var in dsnew.data_vars:
+                                if "name" in dsnew[var].dims:
+                                    if var in self.data:
+                                        if "name" not in self.data[var].dims:
+                                            self.data[var] = (
+                                                self.data[var]
+                                                .expand_dims(
+                                                    dim={"name": self.data.name.values},
+                                                    axis=1,
+                                                )
+                                                .copy(deep=True)
+                                            )
+                                        # Check if the variable depends on both name and time
+                                        if "time" in self.data[var].dims:
+                                            self.data[var].loc[selector_name_time] = dsnew[var].loc[selector_name_time].values
+                                        else:
+                                            # Update based only on name if time is not a dimension
+                                            self.data[var].loc[selector_name] = dsnew[var].loc[selector_name].values
+                                    else:
+                                        self.data[var] = dsnew[var]
         else:
             # If `name` is not a coord in either dataset, fall back to a safe outer-merge.
             self.data = xr.merge([self.data, dsnew], compat="override", join="outer")
