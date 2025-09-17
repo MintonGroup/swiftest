@@ -31,7 +31,6 @@ def main(binary_name="swiftest"):
 
     # Command-line arguments
     args = [binary_path] + sys.argv[1:]
-    print(f"args: {args}")
 
     # Check if we're on Windows
     if os.name == "nt":
