@@ -1022,11 +1022,12 @@ def swiftest_xr2infile(
             unlimited_dims = ["time", "id"]
         elif "name" in idx:
             unlimited_dims = ["time", "name"]
+        Path(infile_name).unlink(missing_ok=True)
         # This suppresses this warning: RuntimeWarning: numpy.ndarray size changed, may indicate binary incompatibility. Expected 16 from C header, got 96 from PyObject
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             frame.to_netcdf(path=infile_name, unlimited_dims=unlimited_dims)
-        frame.close()
+            frame.close()
         return frame
 
     # All other file types need seperate files for each of the inputs
