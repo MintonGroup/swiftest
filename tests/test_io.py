@@ -847,6 +847,7 @@ class TestSwiftestIO(unittest.TestCase):
             sim.add_solar_system_body(["Sun", "Jupiter"])
             sim.set_parameter(init_cond_format=end_format, tstop=5, dt=5)
             sim.clean()
+            sim.save()
             with chdir(sim.simdir):
                 res = subprocess.run(["swiftest", "symba", "param.in", "quiet"], capture_output=True).stdout.decode()
             if "error" in res:
