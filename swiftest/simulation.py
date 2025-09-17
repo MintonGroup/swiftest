@@ -883,7 +883,7 @@ class Simulation:
             Only set one of minimum_fragment_gmass or minimum_fragment_mass
             Parameter input file equivalent is `MIN_GMFRAG`
         nfrag_reduction : float, optional
-            If fragmentation is turne don, this is a reduction factor used to limit the number of fragments generated in a collision.
+            If fragmentation is turned on, this is a reduction factor used to limit the number of fragments generated in a collision.
             For instance, if the SFD of the collision would generated 300 fragments above the `minimum_fragment_mass`, then a value
             of `nfrag_reduction = 30.0` would reduce it to 10.
             Currently only used by the Fraggle collision model.
@@ -1220,7 +1220,7 @@ class Simulation:
             Only set one of minimum_fragment_gmass or minimum_fragment_mass
             Parameter input file equivalent is `MIN_GMFRAG`
         nfrag_reduction : float, optional
-            If fragmentation is turne don, this is a reduction factor used to limit the number of fragments generated in a collision.
+            If fragmentation is turned on, this is a reduction factor used to limit the number of fragments generated in a collision.
             For instance, if the SFD of the collision would generated 300 fragments above the `minimum_fragment_mass`, then a value
             of `nfrag_reduction = 30.0` would reduce it to 10.
             Currently only used by the Fraggle collision model.
