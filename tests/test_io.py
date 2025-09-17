@@ -1,5 +1,6 @@
 """
-Copyright 2025 - David Minton
+Copyright 2025 - David Minton.
+
 This file is part of Swiftest.
 Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -16,6 +17,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 
 import numpy as np
 from astroquery.jplhorizons import Horizons
@@ -31,12 +33,12 @@ else:
 
     @contextmanager
     def chdir(path):
-        oldpwd = os.getcwd()
-        os.chdir(path)
+        oldpwd = Path.cwd()
+        os.chdir(str(path))
         try:
             yield
         finally:
-            os.chdir(oldpwd)
+            os.chdir(str(oldpwd))
 
 
 rng = default_rng(seed=123)
@@ -217,7 +219,7 @@ class TestSwiftestIO(unittest.TestCase):
 
     def test_xv2el2xv(self):
         """
-        Tests that the functions xv2el and el2xv are able to convert between position-velocity and orbital elements without any exceptions being raised
+        Tests that the functions xv2el and el2xv are able to convert between position-velocity and orbital elements without any exceptions being raised.
         """
         print("\ntest_xv2el2xv")
         # Generate a set of random position-velocity vectors
@@ -247,11 +249,12 @@ class TestSwiftestIO(unittest.TestCase):
 
     def test_gen_ic(self):
         """
-        Tests that Swiftest is able to successfully generate a set of initial conditions in a file without any exceptions being raised
+        Tests that Swiftest is able to successfully generate a set of initial conditions in a file without any exceptions being raised.
         """
         print("\ntest_gen_ic")
         # Files that are expected to be generated:
-        file_list = [self.simdir, os.path.join(self.simdir, "param.in"), os.path.join(self.simdir, "init_cond.nc")]
+        simdir_path = Path(self.simdir)
+        file_list = [simdir_path, simdir_path / "param.in", simdir_path / "init_cond.nc"]
 
         sim = swiftest.Simulation(simdir=self.simdir)
 
@@ -260,7 +263,7 @@ class TestSwiftestIO(unittest.TestCase):
         sim.save()
 
         for f in file_list:
-            self.assertTrue(os.path.exists(f))
+            self.assertTrue(Path(f).exists())
 
         print("\ntest_read_ic")
         sim2 = swiftest.Simulation(simdir=self.simdir, read_init_cond=True)
@@ -269,7 +272,7 @@ class TestSwiftestIO(unittest.TestCase):
         self.assertTrue((major_bodies == sim2.init_cond["name"]).all(), msg="Name mismatch in Dataset")
 
         # Check to see if all parameter values read in from file match the expected parameters saved when generating the file
-        self.assertTrue(all([v == param[k] for k, v in sim2.param.items() if k in param]))
+        self.assertTrue(all(v == param[k] for k, v in sim2.param.items() if k in param))
         return
 
     def test_add_body_combinations(self):
@@ -345,7 +348,7 @@ class TestSwiftestIO(unittest.TestCase):
 
     def test_mixed_element_cart_input(self):
         """
-        Tests that we can mix orbital element and cartesian input
+        Tests that we can mix orbital element and cartesian input.
         """
         print("\ntest_mixed_element_cart_input")
         sim = swiftest.Simulation(simdir=self.simdir)
@@ -357,15 +360,14 @@ class TestSwiftestIO(unittest.TestCase):
         sim.add_body(rh=[2.0, 0.0, 0.0], vh=[0.0, 1.0, 0.0])
         try:
             sim.run(tstop=0.02, dt=0.01)
-        except:
-            self.fail("Failed to run simulation with mixed element and cartesian input")
+        except Exception as e:
+            self.fail(f"Failed to run simulation with mixed element and cartesian input: {e}")
 
         return
 
     def test_read_multi_dir(self):
         """
-        Tests that Swiftest can generate a set of initial conditions, copy them into a new directory, and then run those from a
-        different Simulation object (test inspired by Kaustub Anand's workflow)
+        Tests that Swiftest can generate a set of initial conditions, copy them into a new directory, and then run those from a different Simulation object (test inspired by Kaustub Anand's workflow).
         """
         print("\ntest_read_multi_dir")
 
@@ -387,30 +389,29 @@ class TestSwiftestIO(unittest.TestCase):
             import shutil
 
             # Ensure the destination directory exists
-            os.makedirs(dst, exist_ok=True)
+            Path(dst).mkdir(parents=True)
+
+            src_path = Path(src)
+            dst_path = Path(dst)
 
             # Iterate over all items in the source directory
-            for item in os.listdir(src):
-                src_path = os.path.join(src, item)
-                dst_path = os.path.join(dst, item)
-
-                # Copy files and directories
-                if os.path.isdir(src_path):
-                    # Recursively copy a directory to a destination
-                    shutil.copytree(src_path, dst_path, dirs_exist_ok=True)
+            for item in src_path.iterdir():
+                target = dst_path / item.name
+                if item.is_dir():
+                    shutil.copytree(item, target, dirs_exist_ok=True)
                 else:
-                    # Copy a single file
-                    shutil.copy(src_path, dst_path)
+                    shutil.copy(item, target)
 
             return
 
-        simdir1 = os.path.join(self.simdir, "sim1")
-        simdir2 = os.path.join(self.simdir, "sim2")
-        sim1 = swiftest.Simulation(simdir=simdir1, tstop=1.0, dt=0.01)
+        base = Path(self.simdir)
+        simdir1 = base / "sim1"
+        simdir2 = base / "sim2"
+        sim1 = swiftest.Simulation(simdir=str(simdir1), tstop=1.0, dt=0.01)
         sim1.add_solar_system_body(["Sun", "Mercury", "Venus", "Earth", "Mars"])
         sim1.save()
         copy_folder_contents(simdir1, simdir2)
-        sim2 = swiftest.Simulation(read_init_cond=True, simdir=simdir2)
+        sim2 = swiftest.Simulation(read_init_cond=True, simdir=str(simdir2))
         try:
             sim2.run()
         except:
@@ -420,7 +421,7 @@ class TestSwiftestIO(unittest.TestCase):
 
     def test_planetocentric(self):
         """
-        Tests that Swiftest is able to set up a simulation in a planetocentric frame and that the results are consistent with the expected values
+        Tests that Swiftest is able to set up a simulation in a planetocentric frame and that the results are consistent with the expected values.
         """
         print("\ntest_planetocentric")
         sim = swiftest.Simulation(simdir=self.simdir)
@@ -443,7 +444,6 @@ class TestSwiftestIO(unittest.TestCase):
                 location=cbcenter,
                 epochs={"start": ephemerides_start_date, "stop": ephemerides_end_date, "step": ephemerides_step},
             )
-            eph = jpl.ephemerides()
             DCONV = swiftest.AU2M / sim.param["DU2M"]
             VCONV = (swiftest.AU2M / swiftest.JD2S) / (sim.param["DU2M"] / sim.param["TU2S"])
 
@@ -598,7 +598,7 @@ class TestSwiftestIO(unittest.TestCase):
 
     def test_remove_body(self):
         """
-        Tests that Swiftest is able to remove a body from the simulation
+        Tests that Swiftest is able to remove a body from the simulation.
         """
         print("\ntest_remove_body")
         sim = swiftest.Simulation(simdir=self.simdir)
@@ -624,7 +624,7 @@ class TestSwiftestIO(unittest.TestCase):
 
     def test_modify_body(self):
         """
-        Tests that Swiftest is able to modify the properties of a body in the simulation
+        Tests that Swiftest is able to modify the properties of a body in the simulation.
         """
         print("\ntest_modify_body")
         sim = swiftest.Simulation(simdir=self.simdir)
@@ -694,9 +694,9 @@ class TestSwiftestIO(unittest.TestCase):
 
     def test_read_with_dask(self):
         """
-        Test that a swiftest Simulation data and collisions can be read in with dask
-        Adapted from test_fraggle.py
+        Test that a swiftest Simulation data and collisions can be read in with dask.
 
+        Adapted from test_fraggle.py.
         """
         # disruption_headon parameters
         names = ["Target", "Projectile"]
@@ -737,7 +737,7 @@ class TestSwiftestIO(unittest.TestCase):
 
     def test_newrun_from_old(self):
         """
-        Test that a new set of initial conditions can be extracted from an arbitrary output point of an old run
+        Test that a new set of initial conditions can be extracted from an arbitrary output point of an old run.
         """
         run_args = {"tstop": 1.0, "dt": 0.01, "istep_out": 1, "dump_cadence": 0, "integrator": "whm"}
         # Build a fresh simulation
@@ -821,8 +821,13 @@ class TestSwiftestIO(unittest.TestCase):
 
     def test_init_cond_format_change(self):
         """
-        Test that the user can switch between XV and EL input types even after bodies have been added
+        Test that the user can switch between XV and EL input types even after bodies have been added.
         """
+
+        class SimulationError(Exception):
+            """Custom exception for simulation errors."""
+
+            pass
 
         def _run_simulation(start_format, end_format):
             sim = swiftest.Simulation(simdir=self.simdir, init_cond_format=start_format)
@@ -830,21 +835,20 @@ class TestSwiftestIO(unittest.TestCase):
             sim.add_solar_system_body(["Sun", "Jupiter"])
             sim.set_parameter(init_cond_format=end_format, tstop=5, dt=5)
             sim.clean()
-            sim.save()
             with chdir(sim.simdir):
                 res = subprocess.run(["swiftest", "symba", "param.in", "quiet"], capture_output=True).stdout.decode()
             if "error" in res:
-                raise Exception("Error in simulation")
+                raise SimulationError("Error in simulation")
 
         try:
             _run_simulation("XV", "EL")
-        except:
-            self.fail("Failed XV->EL")
+        except Exception as e:
+            self.fail(f"Failed XV->EL {e}")
 
         try:
             _run_simulation("EL", "XV")
-        except:
-            self.fail("Failed EL->XV")
+        except Exception as e:
+            self.fail(f"Failed EL->XV {e}")
 
     def test_symba_override_options(self):
         # Tests that the `rotation=False` and `compute_conservation_values=False` options are ignored when using the SyMBA integrator, and that
