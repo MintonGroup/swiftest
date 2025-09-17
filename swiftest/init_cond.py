@@ -205,7 +205,7 @@ def get_solar_system_body_mass_rotation(
         rot = rotpole * rotrate
     else:
         rot = np.full(3, np.nan)
-    if Gmass is not None or Rpl is not None and verbose:
+    if verbose and (Gmass is not None or Rpl is not None):
         print(f"Physical properties found for {namelist[0]}")
 
     return {"Gmass": Gmass, "mass": mass, "radius": Rpl, "rot": rot}

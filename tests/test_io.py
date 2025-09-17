@@ -798,7 +798,7 @@ class TestSwiftestIO(unittest.TestCase):
         captured_output.seek(0)
 
         # Test with verbose turned off
-        sim = swiftest.Simulation(clean=True, verbose=False)
+        sim = swiftest.Simulation(simdir=self.simdir, clean=True, verbose=False)
         sim.add_solar_system_body(["Sun", "Earth"])
 
         # Assert that nothing was printed when verbose=False
