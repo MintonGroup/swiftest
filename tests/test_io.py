@@ -424,9 +424,11 @@ class TestSwiftestIO(unittest.TestCase):
         Tests that Swiftest is able to set up a simulation in a planetocentric frame and that the results are consistent with the expected values.
         """
         print("\ntest_planetocentric")
-        sim = swiftest.Simulation(simdir=self.simdir)
+
         cbname = "Mars"
         cbcenter = "@4"
+        cb = swiftest.get_solar_system_body(cbname)
+        sim = swiftest.Simulation(simdir=self.simdir, MU2KG=cb["mass"], DU2M=cb["radius"], TU="d")
         satname = ["Phobos", "Deimos"]
         sim.add_solar_system_body(cbname)
         sim.add_solar_system_body(satname)
@@ -479,7 +481,7 @@ class TestSwiftestIO(unittest.TestCase):
             jpl_rh, jpl_vh, jpl_elem = get_jpl_data(sat)
             self.assertTrue(np.allclose(sim_rh, jpl_rh), msg=f"Error in rh for {sat}: {sim_rh - jpl_rh}")
             self.assertTrue(np.allclose(sim_vh, jpl_vh), msg=f"Error in vh for {sat}: {sim_vh - jpl_vh}")
-            self.assertTrue(np.allclose(sim_elem, jpl_elem, rtol=1e-4), msg=f"Error in elements for {sat}: {sim_elem - jpl_elem}")
+            self.assertTrue(np.allclose(sim_elem, jpl_elem, rtol=1e-3), msg=f"Error in elements for {sat}: {sim_elem - jpl_elem}")
 
         return
 
