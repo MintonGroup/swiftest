@@ -122,7 +122,7 @@ def get_solar_system_body_mass_rotation(
             radius = radius.split("=")[1].strip().split("+")[0].split()[0].strip()
         try:
             radius = float(radius)
-        except:
+        except Exception:
             radius = None
         return radius
 
@@ -452,7 +452,7 @@ def get_solar_system_body(
         if jpl is not None:
             if verbose:
                 print(f"Found ephemerides data for {altname[0]} ({altid[0]}) from JPL/Horizons")
-            if name == None:
+            if name is None:
                 name = altname[0]
         else:
             return None
