@@ -171,7 +171,7 @@ class TestSwiftestRestart(unittest.TestCase):
 
     def test_restart_collision_snapshot(self):
         """
-        Test that a simulation with collisions restarts
+        Test that a simulation with collisions restarts.
         """
         sim = swiftest.Simulation(
             simdir=self.simdir,
@@ -332,13 +332,13 @@ class TestSwiftestRestart(unittest.TestCase):
         except Exception as e:
             self.fail(f"Failed restart with Exception: {e}")
 
-        self.assertTrue(os.path.exists(os.path.join(self.simdir, "param.00000000000000365250.in")))
+        self.assertTrue((self.simdir / "param.00000000000000365250.in").is_file())
         self.assertEqual(sim_restart.data.time.size, 11)
         return
 
     def test_restart_accurate(self):
         """
-        Test that a restarted run gives the same outputs as a full run
+        Test that a restarted run gives the same outputs as a full run.
 
         """
         # Define some common arguments
@@ -407,7 +407,8 @@ class TestSwiftestRestart(unittest.TestCase):
     def test_restart_accurate_collision(self):
         """
         Test that a restarted run with collisions gives the same outputs as a full run.
-        collision outcomes taken from test_fraggle.py
+
+        Collision outcomes taken from test_fraggle.py
 
         """
         seed = [974899978, -2041855733, 14415898, 615945619, 1818808148, 462758063, 762516551, 1276432020]
