@@ -381,7 +381,7 @@ class TestSwiftestRestart(unittest.TestCase):
 
             # restarted run (from halfway mark in this case)
             sim_restart = swiftest.Simulation(
-                simdir=self.simdir, read_data=True, param_file=param_restart, compute_conservation_values=True
+                simdir=self.simdir, integrator=i, read_data=True, param_file=param_restart, compute_conservation_values=True
             )
 
             try:
