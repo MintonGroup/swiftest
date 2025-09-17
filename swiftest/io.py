@@ -15,6 +15,7 @@ import re
 import sys
 import tempfile
 import warnings
+from pathlib import Path
 
 import numpy as np
 import xarray as xr
@@ -150,7 +151,9 @@ def _str2bool(input_str):
 
 def _real2float(realstr):
     """
-    Converts a Fortran-generated ASCII string of a real value into a numpy float64 type. Handles cases where double precision
+    Converts a Fortran-generated ASCII string of a real value into a numpy float64 type.
+
+    Handles cases where double precision
     numbers in exponential notation use 'd' or 'D' instead of 'e' or 'E'
 
     Parameters
@@ -168,8 +171,9 @@ def _real2float(realstr):
 
 def _real2quad(realstr):
     """
-    Converts a Fortran-generated ASCII string of a real value into a numpy longdouble type. Handles cases where double precision
-    numbers in exponential notation use 'd' or 'D' instead of 'e' or 'E'
+    Converts a Fortran-generated ASCII string of a real value into a numpy longdouble type.
+
+    Handles cases where double precision numbers in exponential notation use 'd' or 'D' instead of 'e' or 'E'
 
     Parameters
     ----------
@@ -186,7 +190,7 @@ def _real2quad(realstr):
 
 def read_swiftest_param(param_file_name: os.PathLike, param: dict, verbose: bool = True) -> dict:
     """
-    Reads in a Swiftest param.in file and saves it as a dictionary
+    Reads in a Swiftest param.in file and saves it as a dictionary.
 
     Parameters
     ----------
@@ -208,7 +212,7 @@ def read_swiftest_param(param_file_name: os.PathLike, param: dict, verbose: bool
     if verbose:
         print(f"Reading Swiftest file {param_file_name}")
     try:
-        with open(param_file_name) as f:
+        with Path.open(param_file_name) as f:
             for line in f.readlines():
                 fields = line.split()
                 if len(fields) > 0:
@@ -233,7 +237,7 @@ def read_swiftest_param(param_file_name: os.PathLike, param: dict, verbose: bool
                 param[uc] = param[uc].upper()
 
         for i in int_param:
-            if i in param and type(param[i]) != int:
+            if i in param and type(param[i]) is not int:
                 param[i] = int(float(param[i]))
 
         for f in float_param:
@@ -254,7 +258,7 @@ def read_swiftest_param(param_file_name: os.PathLike, param: dict, verbose: bool
 
 def reorder_dims(ds: SwiftestDataset) -> SwiftestDataset:
     """
-    Re-order dimension coordinates so that they are in the same order as the Fortran side
+    Re-order dimension coordinates so that they are in the same order as the Fortran side.
 
     Parameters
     ----------
@@ -278,7 +282,7 @@ def reorder_dims(ds: SwiftestDataset) -> SwiftestDataset:
 
 def read_swifter_param(param_file_name: os.PathLike, verbose: bool = True) -> dict:
     """
-    Reads in a Swifter param.in file and saves it as a dictionary
+    Reads in a Swifter param.in file and saves it as a dictionary.
 
     Parameters
     ----------
@@ -326,7 +330,7 @@ def read_swifter_param(param_file_name: os.PathLike, verbose: bool = True) -> di
     if verbose:
         print(f"Reading Swifter file {param_file_name}")
     try:
-        with open(param_file_name) as f:
+        with Path.open(param_file_name) as f:
             for line in f.readlines():
                 fields = line.split()
                 if len(fields) > 0:
@@ -365,7 +369,7 @@ def read_swifter_param(param_file_name: os.PathLike, verbose: bool = True) -> di
 
 def read_swift_param(param_file_name: os.PathLike, startfile: os.PathLike = "swift.in", verbose: bool = True) -> dict:
     """
-    Reads in a Swift param.in file and saves it as a dictionary
+    Reads in a Swift param.in file and saves it as a dictionary.
 
     Parameters
     ----------
@@ -404,11 +408,11 @@ def read_swift_param(param_file_name: os.PathLike, startfile: os.PathLike = "swi
     }
 
     try:
-        with open(startfile) as f:
+        with Path.open(startfile) as f:
             line = f.readline()
             plname = f.readline().split()[0]
             tpname = f.readline().split()[0]
-    except:
+    except Exception:
         plname = "pl.in"
         tpname = "tp.in"
     param["PL_IN"] = plname
@@ -418,7 +422,7 @@ def read_swift_param(param_file_name: os.PathLike, startfile: os.PathLike = "swi
     if verbose:
         print(f"Reading Swift file {param_file_name}")
     try:
-        with open(param_file_name) as f:
+        with Path.open(param_file_name) as f:
             line = f.readline().split()
             for i, l in enumerate(line):
                 line[i] = l
@@ -469,7 +473,7 @@ def write_swift_param(param: dict, param_file_name: os.PathLike) -> None:
     -------
     None
     """
-    outfile = open(param_file_name, "w")
+    outfile = Path.open(param_file_name, "w")
     print(param["T0"], param["TSTOP"], param["DT"], file=outfile)
     print(param["DTOUT"], param["DTDUMP"], file=outfile)
     print(param["L1"], param["L2"], param["L3"], param["L4"], param["L5"], param["L6"], file=outfile)
@@ -499,7 +503,7 @@ def write_labeled_param(param: dict, param_file_name: os.PathLike) -> None:
     -----
     Using str(val) instead of f-strings prevents np.longdouble from being cast as float before printing.
     """
-    outfile = open(param_file_name, "w")
+    outfile = Path.open(param_file_name, "w")
     ptmp = param.copy()
     # Print the list of key/value pairs in the preferred order
     for key in param_keys:
@@ -527,7 +531,7 @@ def write_labeled_param(param: dict, param_file_name: os.PathLike) -> None:
 
 def _swifter_stream(f, param):
     """
-    Reads in a Swifter bin.dat file and returns a single frame of data as a datastream
+    Reads in a Swifter bin.dat file and returns a single frame of data as a datastream.
 
     Parameters
     ----------
@@ -561,7 +565,7 @@ def _swifter_stream(f, param):
         try:
             # Read single-line header
             record = f.read_record("<f8", "<i4", "<i4", "<i4")
-        except:
+        except Exception:
             break
         t = record[0]
         npl = record[1][0] - 1
@@ -747,13 +751,16 @@ def _xstrip_nonstr(da: SwiftestDataArray) -> SwiftestDataArray:
     -------
     SwiftestDataset with the strings cleaned up
     """
-    func = lambda x: np.char.strip(x)
+
+    def func(x):
+        return np.char.strip(x)
+
     return xr.apply_ufunc(func, da.str.decode(encoding="utf-8"), dask="parallelized")
 
 
 def _xstrip_str(da: SwiftestDataset) -> SwiftestDataset:
     """
-    Cleans up the string values in the DataArray to remove extra white space
+    Cleans up the string values in the DataArray to remove extra white space.
 
     Parameters
     ----------
@@ -764,13 +771,16 @@ def _xstrip_str(da: SwiftestDataset) -> SwiftestDataset:
     -------
     SwiftestDataset with the strings cleaned up
     """
-    func = lambda x: np.char.strip(x)
+
+    def func(x):
+        return np.char.strip(x)
+
     return xr.apply_ufunc(func, da, dask="parallelized")
 
 
 def _string_converter(da: SwiftestDataArray) -> SwiftestDataArray:
     """
-    Converts a string to a unicode string
+    Converts a string to a unicode string.
 
     Parameters
     ----------
@@ -788,8 +798,8 @@ def _string_converter(da: SwiftestDataArray) -> SwiftestDataArray:
 
 
 def _char_converter(da: SwiftestDataArray) -> SwiftestDataArray:
-    """`
-    Converts a string to a unicode string
+    """
+    Converts a string to a unicode string.
 
     Parameters
     ----------
@@ -808,7 +818,7 @@ def _char_converter(da: SwiftestDataArray) -> SwiftestDataArray:
 
 def _clean_string_values(ds: SwiftestDataset) -> SwiftestDataset:
     """
-    Cleans up the string values in the DataSet that have artifacts as a result of coming from NetCDF Fortran
+    Cleans up the string values in the DataSet that have artifacts as a result of coming from NetCDF Fortran.
 
     Parameters
     ----------
@@ -830,7 +840,7 @@ def _clean_string_values(ds: SwiftestDataset) -> SwiftestDataset:
 
 def _unclean_string_values(ds: SwiftestDataset) -> SwiftestDataset:
     """
-    Returns strings back to a format readable to NetCDF Fortran
+    Returns strings back to a format readable to NetCDF Fortran.
 
     Parameters
     ----------
@@ -854,7 +864,7 @@ def _unclean_string_values(ds: SwiftestDataset) -> SwiftestDataset:
 
 def fix_types(ds: SwiftestDataset, itype: np.dtype = np.int64, ftype: np.dtype = np.float64) -> SwiftestDataset:
     """
-    Converts all variables in the dataset to the specified type
+    Converts all variables in the dataset to the specified type.
 
     Parameters
     ----------
@@ -890,8 +900,7 @@ def fix_types(ds: SwiftestDataset, itype: np.dtype = np.int64, ftype: np.dtype =
 
 def fix_name_and_id(ds: SwiftestDataset) -> SwiftestDataset:
     """
-    Removes empty name/id slots that arise when bodies are created and destroyed between output frames, leaving gaps in the
-    name and id arrays
+    Removes empty name/id slots that arise when bodies are created and destroyed between output frames, leaving gaps in the name and id arrays.
 
     Parameters
     ----------
@@ -915,7 +924,7 @@ def fix_name_and_id(ds: SwiftestDataset) -> SwiftestDataset:
 
 def select_active_from_frame(ds: SwiftestDataset, param: dict, framenum: int = -1) -> SwiftestDataset:
     """
-    Selects a particular frame from a DataSet and returns only the active particles in that frame
+    Selects a particular frame from a DataSet and returns only the active particles in that frame.
 
     Parameters
     ----------
@@ -971,7 +980,7 @@ def swiftest_xr2infile(
     verbose: bool = True,
 ) -> None:
     """
-    Writes a set of Swiftest input files from a single frame of a Swiftest xarray dataset
+    Writes a set of Swiftest input files from a single frame of a Swiftest xarray dataset.
 
     Parameters
     ----------
@@ -1041,11 +1050,10 @@ def swiftest_xr2infile(
         rotxcb = np.double(cb["rot"].values[0])
         rotycb = np.double(cb["rot"].values[1])
         rotzcb = np.double(cb["rot"].values[2])
-    cbid = 0
 
     if in_type == "ASCII":
         # Swiftest Central body file
-        cbfile = open(param["CB_IN"], "w")
+        cbfile = Path.open(param["CB_IN"], "w")
         print(cbname, file=cbfile)
         print(GMSun, file=cbfile)
         print(RSun, file=cbfile)
@@ -1056,7 +1064,7 @@ def swiftest_xr2infile(
             print(rotxcb, rotycb, rotzcb, file=cbfile)
         cbfile.close()
 
-        plfile = open(param["PL_IN"], "w")
+        plfile = Path.open(param["PL_IN"], "w")
         print(pl.id.count().values, file=plfile)
         for i in pl.id:
             pli = pl.sel(id=i)
@@ -1080,7 +1088,7 @@ def swiftest_xr2infile(
         plfile.close()
 
         # TP file
-        tpfile = open(param["TP_IN"], "w")
+        tpfile = Path.open(param["TP_IN"], "w")
         print(tp.id.count().values, file=tpfile)
         for i in tp.id:
             tpi = tp.sel(id=i)
@@ -1101,7 +1109,7 @@ def swiftest_xr2infile(
 
 def swifter_xr2infile(ds: SwiftestDataset, param: dict, simdir: os.PathLike = os.getcwd, framenum: int = -1) -> None:
     """
-    Writes a set of Swifter input files from a single frame of a Swiftest xarray dataset
+    Writes a set of Swifter input files from a single frame of a Swiftest xarray dataset.
 
     Parameters
     ----------
@@ -1141,7 +1149,7 @@ def swifter_xr2infile(ds: SwiftestDataset, param: dict, simdir: os.PathLike = os
 
     if param["IN_TYPE"] == "ASCII":
         # Swiftest Central body file
-        plfile = open(os.path.join(simdir, param["PL_IN"]), "w")
+        plfile = Path.open(Path(simdir) / param["PL_IN"], "w")
         print(pl.id.count().values + 1, file=plfile)
         print(cb.id.values[0], GMSun, file=plfile)
         print("0.0 0.0 0.0", file=plfile)
@@ -1159,7 +1167,7 @@ def swifter_xr2infile(ds: SwiftestDataset, param: dict, simdir: os.PathLike = os
         plfile.close()
 
         # TP file
-        tpfile = open(os.path.join(simdir, param["TP_IN"]), "w")
+        tpfile = Path.open(Path(simdir) / param["TP_IN"], "w")
         print(tp.id.count().values, file=tpfile)
         for i in tp.id:
             tpi = tp.sel(id=i)
@@ -1175,7 +1183,7 @@ def swifter_xr2infile(ds: SwiftestDataset, param: dict, simdir: os.PathLike = os
 
 def swift2swifter(swift_param: dict, plname: os.PathLike = "", tpname: os.PathLike = "", conversion_questions: dict = {}) -> dict:
     """
-    Converts from a Swift run to a Swifter run
+    Converts from a Swift run to a Swifter run.
 
     Parameters
     ----------
@@ -1287,14 +1295,14 @@ def swift2swifter(swift_param: dict, plname: os.PathLike = "", tpname: os.PathLi
             plname = "pl.swifter.in"
     swifter_param["PL_IN"] = plname
     try:
-        plnew = open(swifter_param["PL_IN"], "w")
+        plnew = Path.open(swifter_param["PL_IN"], "w")
     except OSError:
         print(f"Cannot write to file {swifter_param['PL_IN']}")
         return swift_param
 
     print(f"Converting PL file: {swift_param['PL_IN']} -> {swifter_param['PL_IN']}")
     try:
-        with open(swift_param["PL_IN"]) as plold:
+        with Path.open(swift_param["PL_IN"]) as plold:
             line = plold.readline()
             i_list = [i for i in re.split("  +|\t", line) if i.strip()]
             npl = int(i_list[0])
@@ -1355,14 +1363,14 @@ def swift2swifter(swift_param: dict, plname: os.PathLike = "", tpname: os.PathLi
     swifter_param["TP_IN"] = tpname
 
     try:
-        tpnew = open(swifter_param["TP_IN"], "w")
+        tpnew = Path.open(swifter_param["TP_IN"], "w")
     except OSError:
         print(f"Cannot write to file {swifter_param['TP_IN']}")
 
     print(f"Converting TP file: {swift_param['TP_IN']} -> {swifter_param['TP_IN']}")
     try:
         print(f"Writing out new TP file: {swifter_param['TP_IN']}")
-        with open(swift_param["TP_IN"]) as tpold:
+        with Path.open(swift_param["TP_IN"]) as tpold:
             line = tpold.readline()
             i_list = [i for i in re.split("  +|\t", line) if i.strip()]
             ntp = int(i_list[0])
@@ -1399,7 +1407,7 @@ def swifter2swiftest(
     conversion_questions: dict = {},
 ) -> dict:
     """
-    Converts from a Swifter run to a Swiftest run
+    Converts from a Swifter run to a Swiftest run.
 
     Parameters
     ----------
@@ -1431,14 +1439,14 @@ def swifter2swiftest(
     swiftest_param["PL_IN"] = plname
 
     try:
-        plnew = open(swiftest_param["PL_IN"], "w")
+        plnew = Path.open(swiftest_param["PL_IN"], "w")
     except OSError:
         print(f"Cannot write to file {swiftest_param['PL_IN']}")
         return swifter_param
 
     print(f"Converting PL file: {swifter_param['PL_IN']} -> {swiftest_param['PL_IN']}")
     try:
-        with open(swifter_param["PL_IN"]) as plold:
+        with Path.open(swifter_param["PL_IN"]) as plold:
             line = plold.readline()
             line = line.split("!")[0]  # Ignore comments
             i_list = [i for i in re.split("  +|\t", line) if i.strip()]
@@ -1489,7 +1497,7 @@ def swifter2swiftest(
     swiftest_param["TP_IN"] = tpname
 
     try:
-        tpnew = open(swiftest_param["TP_IN"], "w")
+        tpnew = Path.open(swiftest_param["TP_IN"], "w")
     except OSError:
         print(f"Cannot write to file {swiftest_param['TP_IN']}")
         return swifter_param
@@ -1497,7 +1505,7 @@ def swifter2swiftest(
     print(f"Converting TP file: {swifter_param['TP_IN']} -> {swiftest_param['TP_IN']}")
     try:
         print(f"Writing out new TP file: {swiftest_param['TP_IN']}")
-        with open(swifter_param["TP_IN"]) as tpold:
+        with Path.open(swifter_param["TP_IN"]) as tpold:
             line = tpold.readline()
             line = line.split("!")[0]  # Ignore comments
             i_list = [i for i in re.split("  +|\t", line) if i.strip()]
@@ -1610,7 +1618,7 @@ def swifter2swiftest(
     print(f"Writing out new CB file: {swiftest_param['CB_IN']}")
     # Write out new central body file
     try:
-        cbnew = open(swiftest_param["CB_IN"], "w")
+        cbnew = Path.open(swiftest_param["CB_IN"], "w")
         print(cbname, file=cbnew)
         print(GMcb, file=cbnew)
         print(cbrad, file=cbnew)
@@ -1653,7 +1661,7 @@ def swift2swiftest(
     swift_param: dict, plname: os.PathLike = "", tpname: os.PathLike = "", cbname: os.PathLike = "", conversion_questions: dict = {}
 ) -> dict:
     """
-    Converts from a Swift run to a Swiftest run
+    Converts from a Swift run to a Swiftest run.
 
     Parameters
     ----------
@@ -1676,30 +1684,31 @@ def swift2swiftest(
         plname = input("PL_IN: Name of new planet input file: [pl.swiftest.in]> ")
         if plname == "":
             plname = "pl.swiftest.in"
-    pltmp = tempfile.NamedTemporaryFile()
-    pltmpname = pltmp.name
 
     if tpname == "":
         tpname = input("TP_IN: Name of new planet input file: [tp.swiftest.in]> ")
         if tpname == "":
             tpname = "tp.swiftest.in"
-    tptmp = tempfile.NamedTemporaryFile()
-    tptmpname = tptmp.name
 
-    # Create the CB file
     if cbname == "":
         cbname = input("CB_IN: Name of new planet input file: [cb.swiftest.in]> ")
         if cbname == "":
             cbname = "cb.swiftest.in"
-    swifter_param = swift2swifter(swift_param, pltmpname, tptmpname, conversion_questions)
-    swiftest_param = swifter2swiftest(swifter_param, plname, tpname, cbname, conversion_questions)
-    swiftest_param["! VERSION"] = "Swiftest parameter file converted from Swift"
+
+    with tempfile.NamedTemporaryFile() as pltmp:
+        pltmpname = pltmp.name
+        with tempfile.NamedTemporaryFile() as tptmp:
+            tptmpname = tptmp.name
+
+            swifter_param = swift2swifter(swift_param, pltmpname, tptmpname, conversion_questions)
+            swiftest_param = swifter2swiftest(swifter_param, plname, tpname, cbname, conversion_questions)
+            swiftest_param["! VERSION"] = "Swiftest parameter file converted from Swift"
     return swiftest_param
 
 
 def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
     """
-    Converts from a Swiftest run to a Swifter run
+    Converts from a Swiftest run to a Swifter run.
 
     Parameters
     ----------
@@ -1715,13 +1724,13 @@ def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
     swifter_param : A set of input files for a new Swifter run
     """
     swifter_param = swiftest_param
-    CBIN = swifter_param.pop("CB_IN", None)
-    GMTINY = swifter_param.pop("GMTINY", None)
-    DISCARD_OUT = swifter_param.pop("DISCARD_OUT", None)
-    MU2KG = swifter_param.pop("MU2KG", 1.0)
-    DU2M = swifter_param.pop("DU2M", 1.0)
-    TU2S = swifter_param.pop("TU2S", 1.0)
-    GR = swifter_param.pop("GR", None)
+    # CBIN = swifter_param.pop("CB_IN", None)
+    # GMTINY = swifter_param.pop("GMTINY", None)
+    # DISCARD_OUT = swifter_param.pop("DISCARD_OUT", None)
+    # MU2KG = swifter_param.pop("MU2KG", 1.0)
+    # DU2M = swifter_param.pop("DU2M", 1.0)
+    # TU2S = swifter_param.pop("TU2S", 1.0)
+    # GR = swifter_param.pop("GR", None)
     # if GR is not None:
     #     if GR:
     #        swifter_param['C'] =  swiftest.einsteinC * np.longdouble(TU2S) / np.longdouble(DU2M)
@@ -1746,7 +1755,7 @@ def swiftest2swifter_param(swiftest_param, J2=0.0, J4=0.0):
 
 def swifter2swift_param(swifter_param, J2=0.0, J4=0.0):
     """
-    Converts from a Swifter run to a Swift run
+    Converts from a Swifter run to a Swift run.
 
     Parameters
     ----------
@@ -1768,7 +1777,6 @@ def swifter2swift_param(swifter_param, J2=0.0, J4=0.0):
         "DT": 0.0,
         "DTOUT": 0.0,
         "DTDUMP": 0.0,
-        "L1": "F",
         "L1": "F",
         "L2": "F",
         "L3": "F",
