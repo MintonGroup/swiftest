@@ -3683,42 +3683,18 @@ class Simulation:
             print(msg)
         dsnew["status"] = xr.zeros_like(dsnew["id"]).expand_dims(dim={"time": dsnew.time.values}, axis=0)
 
-        if "name" in self.data:
-            for name in dsnew.coords["name"].values:
-                for time in dsnew.coords["time"].values:
-                    # Create a selector for the combination of name and time
-                    selector_name_time = {"name": name, "time": time}
-                    selector_name = {"name": name}
+        if "name" in self.data.coords and "name" in dsnew.coords:
+            names_new = dsnew.coords["name"].to_numpy()
+            names_old = self.data.coords["name"].to_numpy() if "name" in self.data.coords else np.array([])
+            overlap = np.intersect1d(names_new, names_old)
 
-                    # Check if this combination exists in the old dataset
-                    if ((self.data.coords["name"] == name) & (self.data.coords["time"] == time)).any():
-                        # If it exists, update the corresponding values
-                        for var in dsnew.data_vars:
-                            if "name" in dsnew[var].dims:
-                                if var in self.data:
-                                    if "name" not in self.data[var].dims:
-                                        self.data[var] = (
-                                            self.data[var]
-                                            .expand_dims(
-                                                dim={"name": self.data.name.values},
-                                                axis=1,
-                                            )
-                                            .copy(deep=True)
-                                        )
-                                    # Check if the variable depends on both name and time
-                                    if "time" in self.data[var].dims:
-                                        self.data[var].loc[selector_name_time] = dsnew[var].loc[selector_name_time].values
-                                    else:
-                                        # Update based only on name if time is not a dimension
-                                        self.data[var].loc[selector_name] = dsnew[var].loc[selector_name].values
-                                else:
-                                    self.data[var] = dsnew[var]
-                    else:
-                        # If it doesn't exist, concatenate the new data
-                        to_concat = dsnew.sel(selector_name)
-                        self.data = xr.concat([self.data, to_concat], dim="name", data_vars="all")
+            if overlap.size == 0:  # No overlapping names, so we can concat
+                self.data = xr.concat([self.data, dsnew], dim="name")
+            else:  # Some overlapping names, so we need to re-index by id
+                self.data = xr.merge([self.data, dsnew], compat="override", join="outer")
         else:
-            self.data = xr.combine_by_coords([self.data, dsnew])
+            # If `name` is not a coord in either dataset, fall back to a safe outer-merge.
+            self.data = xr.merge([self.data, dsnew], compat="override", join="outer")
 
         if not isinstance(self.data, SwiftestDataset):
             self.data = SwiftestDataset(self.data)
