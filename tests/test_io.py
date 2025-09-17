@@ -414,8 +414,8 @@ class TestSwiftestIO(unittest.TestCase):
         sim2 = swiftest.Simulation(read_init_cond=True, simdir=str(simdir2))
         try:
             sim2.run()
-        except:
-            self.fail("Failed to run simulation from copied directory")
+        except Exception as e:
+            self.fail(f"Failed to run simulation from copied directory: {e}")
 
         return
 

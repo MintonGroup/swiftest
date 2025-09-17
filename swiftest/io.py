@@ -1,5 +1,6 @@
 """
-Copyright 2025 - David Minton
+Copyright 2025 - David Minton.
+
 This file is part of Swiftest.
 Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -670,8 +671,9 @@ def _swifter_stream(f, param):
 
 def process_netcdf_input(ds: xr.Dataset, param: dict) -> SwiftestDataset:
     """
-    Performs several tasks to convert raw NetCDF files output by the Fortran program into a form that
-    is used by the Python side. These include:
+    Performs several tasks to convert raw NetCDF files output by the Fortran program into a form that is used by the Python side.
+
+    These include:
     - Ensuring all types are correct
 
     Parameters
