@@ -393,6 +393,9 @@ class Simulation:
                 omp_num_threads_old = os.environ["OMP_NUM_THREADS"]
             os.environ["OMP_NUM_THREADS"] = "1"
 
+        # Prevent NetCDF file locking
+        os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
+
         self._run_swiftest_driver(verbose=verbose)
         if verbose:
             print("\nRun complete.")
