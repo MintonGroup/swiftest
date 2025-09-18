@@ -170,7 +170,7 @@ OMPI_FC="$(buildscripts/get_fortran_path.sh)"
 
 [tool.cibuildwheel.macos]
 before-all = [
-    "brew install coreutils fftw vecLibFort opencoarrays open-mpi cmake netcdf-fortran",
+    "brew install coreutils fftw vecLibFort opencoarrays open-mpi cmake netcdf-fortran gcc@14",
     "buildscripts/build_shtools.sh"
 ]
 repair-wheel-command = """\
