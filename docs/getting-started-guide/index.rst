@@ -116,13 +116,13 @@ These dependencies can be installed on a RedHat based system by running the foll
 .. code-block:: bash
 
    sudo yum install epel-release 
-   sudo yum install doxygen libxml2-devel libcurl-devel fftw-static openblas-devel lapack-devel cmake ninja-build gcc-gfortran graphviz
+   sudo yum install doxygen libxml2-devel libcurl-devel fftw-static openblas-static openmpi-devel lapack-devel cmake ninja-build gcc-gfortran openmpi-devel graphviz
 
 On a Debian based system, the dependencies can be installed by running the following commands from the command line
 
 .. code-block:: bash
 
-   sudo apt-get install doxygen libxml2-dev libcurl4-openssl-dev libfftw3-dev libopenblas-dev liblapack-dev cmake ninja-build gfortran graphviz
+   sudo apt-get install doxygen libxml2-dev libcurl4-openssl-dev libfftw3-dev libopenblas-dev liblapack-dev cmake ninja-build gfortran libopenmpi-dev graphviz
 
 On a MacOS system, be sure homebrew is installed.
 
