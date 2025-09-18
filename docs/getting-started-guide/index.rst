@@ -130,8 +130,6 @@ On a MacOS system, be sure homebrew is installed.
    
    brew install coreutils
 
-.. note:: Testing has revealed a bug that occurs when using gfortran-15, and therefore gfortran-14 is the highest version we support at this time. You can install it explicitly using homebrew by running ``brew install gcc@14``
-
 Then install the following dependencies by running the following command from the command line
 
 We provide a script that can be used to set environment variables prior to building the dependencies called ``set_environment.sh``. 
