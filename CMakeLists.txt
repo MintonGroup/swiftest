@@ -40,7 +40,7 @@ IF(DEFINED ENV{FC})
 ELSE()
     # If FC is not set, search for the Fortran compilers in the specified order.
     FIND_PROGRAM(Fortran_COMPILER
-               NAMES gfortran-15 gfortran-14 gfortran-13 gfortran-12 gfortran ifort mpiifort
+               NAMES gfortran-14 gfortran-13 gfortran-12 gfortran ifort mpiifort
                DOC "Fortran compiler")
 
     # If a compiler is found, set it as the Fortran compiler.

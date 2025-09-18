@@ -16,7 +16,7 @@ case $FC in
       OMPI_FC="$(command -v ifort || command -v ifx)"
       ;;
     *"gfortran"*|*"mpifort")
-      OMPI_FC="$(command -v gfortran-15 || command -v gfortran-14 || command -v gfortran-13 || command -v gfortran-12 || command -v gfortran)"
+      OMPI_FC="$(command -v gfortran-14 || command -v gfortran-13 || command -v gfortran-12 || command -v gfortran)"
       ;;
     *)
       "No Fortran compiler found"
