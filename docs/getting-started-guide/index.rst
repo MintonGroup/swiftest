@@ -144,18 +144,35 @@ Note that the above scripts will use gfortran to build the dependencies. If you 
 Building the Swiftest Python Package and Executable
 ---------------------------------------------------
 
-Once dependencies are installed, you can install the Swiftest Python package and the Swiftest executable by running the following command from the command line
+Once dependencies are installed, you can install the Swiftest Python package and the Swiftest executable into an active Python environment by running the following command from the command line:
 
 .. code-block:: bash
 
    pip install .
 
-Or, alternatively, if you wish to install an editable version
+Or, alternatively, if you wish to install an editable version, be sure that you have the build dependencies installed in your Python environment:
+
+.. code-block:: bash
+
+   pip install scikit-build-core cython numpy setuptools setuptools_scm
+
+Then build and install the editable version:
 
 .. code-block:: bash
 
    pip install --no-build-isolation -ve .
 
+You can test your installation using pytest. Be sure it is first installed into your Python environment:
+
+.. code-block:: bash
+
+   pip install pytest
+
+Then run the tests from the topmost directory in your Swiftest repository:
+
+.. code-block:: bash
+
+   python -m pytest tests
 
 Building the exectuable using CMake
 -----------------------------------
