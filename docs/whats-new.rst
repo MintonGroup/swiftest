@@ -10,8 +10,8 @@ What's New
 
 Bug Fixes
 ~~~~~~~~~
-- Disabled the locality-spec statements in do concurrent loops because of errors introduced when gfortran-15 started supporting it. This is a stop-gap fix until the core issues with these are resolved. This mainly affected the MacOS builds and caused failures in RMVS and WHM integrators. by `David Minton`_ in :pull:`82`.
-- Improved the speed and memory needs when reading and processing NetCDF files in the Python code.  `David Minton`_ in :pull:`82`.
+- Disabled the locality-spec statements in do concurrent loops because of errors introduced when gfortran-15 started supporting it. This is a stop-gap fix until the core issues with these are resolved. This mainly affected the MacOS builds and caused failures in RMVS and WHM integrators. by `David Minton`_ in :pull:`83`.
+- Improved the speed and memory needs when reading and processing NetCDF files in the Python code.  `David Minton`_ in :pull:`83`.
 
 
 .. _whats-new.2025.9.0:
