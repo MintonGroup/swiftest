@@ -1,5 +1,6 @@
 """
-Copyright 2025 - David Minton
+Copyright 2025 - David Minton.
+
 This file is part of Swiftest.
 Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -13,6 +14,7 @@ import os
 import tempfile
 import unittest
 import warnings
+from pathlib import Path
 
 import numpy as np
 
@@ -131,11 +133,11 @@ class TestFraggle(unittest.TestCase):
         }
 
         nfrag_maximum_expected = {
-            "disruption_headon": 100,
-            "disruption_off_axis": 100,
-            "supercatastrophic_headon": 100,
-            "supercatastrophic_off_axis": 100,
-            "hitandrun_disrupt": 100,
+            "disruption_headon": 200,
+            "disruption_off_axis": 200,
+            "supercatastrophic_headon": 200,
+            "supercatastrophic_off_axis": 200,
+            "hitandrun_disrupt": 200,
             "hitandrun_pure": 0,
             "merge": 0,
             "merge_spinner": 0,

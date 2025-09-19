@@ -1,5 +1,6 @@
 """
-Copyright 2025 - David Minton
+Copyright 2025 - David Minton.
+
 This file is part of Swiftest.
 Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -30,7 +31,7 @@ class TestCollisions(unittest.TestCase):
 
     def test_solar_impact(self):
         """
-        Tests that impacts into the central body work correctly
+        Tests that impacts into the central body work correctly.
         """
         sim = swiftest.Simulation(simdir=self.simdir, compute_conservation_values=True, rotation=True, collision_model="merge")
 
@@ -92,7 +93,7 @@ class TestCollisions(unittest.TestCase):
 
     def test_escape(self):
         """
-        Tests that escaping bodies are handled correctly
+        Tests that escaping bodies are handled correctly.
         """
         sim = swiftest.Simulation(simdir=self.simdir, compute_conservation_values=True, rotation=True)
 
@@ -164,7 +165,7 @@ class TestCollisions(unittest.TestCase):
 
     def test_merge(self):
         """
-        Tests that merging bodies are handled correctly
+        Tests that merging bodies are handled correctly.
         """
         sim = swiftest.Simulation(simdir=self.simdir, compute_conservation_values=True, rotation=True, collision_model="merge")
         sim.add_solar_system_body("Sun")
@@ -208,7 +209,7 @@ class TestCollisions(unittest.TestCase):
 
     def test_multi_collision(self):
         """
-        Tests that multiple collisions are handled correctly
+        Tests that multiple collisions are handled correctly.
         """
         sim = swiftest.Simulation(simdir=self.simdir, collision_model="merge")
 
@@ -227,7 +228,7 @@ class TestCollisions(unittest.TestCase):
 
     def test_multi_pltp_collision(self):
         """
-        Tests that multiple pl-tp collisions are handled correctly
+        Tests that multiple pl-tp collisions are handled correctly.
         """
         sim = swiftest.Simulation(simdir=self.simdir)  #
 

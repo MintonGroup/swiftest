@@ -116,19 +116,21 @@ These dependencies can be installed on a RedHat based system by running the foll
 .. code-block:: bash
 
    sudo yum install epel-release 
-   sudo yum install doxygen libxml2-devel libcurl-devel fftw-static openblas-devel lapack-devel cmake ninja-build gcc-gfortran graphviz
+   sudo yum install doxygen libxml2-devel libcurl-devel fftw-static openblas-static openmpi-devel lapack-devel cmake ninja-build gcc-gfortran openmpi-devel graphviz
 
 On a Debian based system, the dependencies can be installed by running the following commands from the command line
 
 .. code-block:: bash
 
-   sudo apt-get install doxygen libxml2-dev libcurl4-openssl-dev libfftw3-dev libopenblas-dev liblapack-dev cmake ninja-build gfortran graphviz
+   sudo apt-get install doxygen libxml2-dev libcurl4-openssl-dev libfftw3-dev libopenblas-dev liblapack-dev cmake ninja-build gfortran libopenmpi-dev graphviz
 
 On a MacOS system, be sure homebrew is installed.
 
 .. code-block:: bash
    
    brew install coreutils
+
+Then install the following dependencies by running the following command from the command line
 
 We provide a script that can be used to set environment variables prior to building the dependencies called ``set_environment.sh``. 
 Building the dependencies can be done by running the following command from the command line
@@ -144,18 +146,35 @@ Note that the above scripts will use gfortran to build the dependencies. If you 
 Building the Swiftest Python Package and Executable
 ---------------------------------------------------
 
-Once dependencies are installed, you can install the Swiftest Python package and the Swiftest executable by running the following command from the command line
+Once dependencies are installed, you can install the Swiftest Python package and the Swiftest executable into an active Python environment by running the following command from the command line:
 
 .. code-block:: bash
 
    pip install .
 
-Or, alternatively, if you wish to install an editable version
+Or, alternatively, if you wish to install an editable version, be sure that you have the build dependencies installed in your Python environment:
+
+.. code-block:: bash
+
+   pip install scikit-build-core cython numpy setuptools setuptools_scm
+
+Then build and install the editable version:
 
 .. code-block:: bash
 
    pip install --no-build-isolation -ve .
 
+You can test your installation using pytest. Be sure it is first installed into your Python environment:
+
+.. code-block:: bash
+
+   pip install pytest
+
+Then run the tests from the topmost directory in your Swiftest repository:
+
+.. code-block:: bash
+
+   python -m pytest tests
 
 Building the exectuable using CMake
 -----------------------------------

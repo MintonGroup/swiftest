@@ -367,7 +367,7 @@ contains
       integer(I4B) :: i, j, loop, istart, nfrag, npl, ntp
       logical :: lsupercat, lhitandrun
       integer(I4B), parameter :: MAXLOOP = 10000
-      real(DP), parameter :: rbuffer = 1.01_DP ! Body radii are inflated by this scale factor to prevent secondary collisions 
+      real(DP), parameter :: rbuffer = 1.1_DP ! Body radii are inflated by this scale factor to prevent secondary collisions 
       real(DP), parameter :: pack_density = 0.5236_DP ! packing density of loose spheres
       real(DP) :: min_overlap_distance ! Minimum distance between overlapping pairs of bodies that is used to adjust the 
                                          ! fragment cloud radius

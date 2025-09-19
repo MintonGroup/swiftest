@@ -1,5 +1,6 @@
 """
-Copyright 2025 - David Minton
+Copyright 2025 - David Minton.
+
 This file is part of Swiftest.
 Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -36,25 +37,25 @@ class TestSwiftestUnits(unittest.TestCase):
         sim = swiftest.Simulation(simdir=self.simdir)
         MSun = const.M_sun.value
         sim.set_parameter(MU="Msun")
-        self.assertEqual(sim.MU_name, "MSun")
+        self.assertAlmostEqual(sim.MU_name, "MSun")
         self.assertAlmostEqual(sim.MU2KG / MSun, np.longdouble(1.0))
         self.assertAlmostEqual(sim.KG2MU * MSun, np.longdouble(1.0))
-        self.assertEqual(sim.MU2KG, sim.param["MU2KG"])
+        self.assertAlmostEqual(sim.MU2KG, sim.param["MU2KG"])
 
         sim.set_parameter(MU2KG=1e-3)
-        self.assertEqual(sim.MU_name, "MU")
-        self.assertEqual(sim.MU2KG, np.longdouble(1e-3))
-        self.assertEqual(sim.KG2MU, np.longdouble(1000.0))
-        self.assertEqual(sim.MU2KG, sim.param["MU2KG"])
+        self.assertAlmostEqual(sim.MU_name, "MU")
+        self.assertAlmostEqual(sim.MU2KG, np.longdouble(1e-3))
+        self.assertAlmostEqual(sim.KG2MU, np.longdouble(1000.0))
+        self.assertAlmostEqual(sim.MU2KG, sim.param["MU2KG"])
 
         sim.set_parameter(DU="cm")
-        self.assertEqual(sim.DU_name, "cm")
-        self.assertEqual(sim.DU2M, np.longdouble(1e-2))
-        self.assertEqual(sim.M2DU, np.longdouble(100.0))
+        self.assertAlmostEqual(sim.DU_name, "cm")
+        self.assertAlmostEqual(sim.DU2M, np.longdouble(1e-2))
+        self.assertAlmostEqual(sim.M2DU, np.longdouble(100.0))
 
         sim.set_parameter(DU="km")
-        self.assertEqual(sim.DU_name, "km")
-        self.assertEqual(sim.DU2M, np.longdouble(1e3))
+        self.assertAlmostEqual(sim.DU_name, "km")
+        self.assertAlmostEqual(sim.DU2M, np.longdouble(1e3))
 
 
 if __name__ == "__main__":

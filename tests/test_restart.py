@@ -1,5 +1,6 @@
 """
-Copyright 2025 - David Minton
+Copyright 2025 - David Minton.
+
 This file is part of Swiftest.
 Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -12,6 +13,7 @@ If not, see: https://www.gnu.org/licenses.
 import os
 import tempfile
 import unittest
+from pathlib import Path
 
 import numpy as np
 
@@ -170,7 +172,7 @@ class TestSwiftestRestart(unittest.TestCase):
 
     def test_restart_collision_snapshot(self):
         """
-        Test that a simulation with collisions restarts
+        Test that a simulation with collisions restarts.
         """
         sim = swiftest.Simulation(
             simdir=self.simdir,
@@ -331,13 +333,13 @@ class TestSwiftestRestart(unittest.TestCase):
         except Exception as e:
             self.fail(f"Failed restart with Exception: {e}")
 
-        self.assertTrue(os.path.exists(os.path.join(self.simdir, "param.00000000000000365250.in")))
+        self.assertTrue((Path(self.simdir) / "param.00000000000000365250.in").is_file())
         self.assertEqual(sim_restart.data.time.size, 11)
         return
 
     def test_restart_accurate(self):
         """
-        Test that a restarted run gives the same outputs as a full run
+        Test that a restarted run gives the same outputs as a full run.
 
         """
         # Define some common arguments
@@ -380,7 +382,7 @@ class TestSwiftestRestart(unittest.TestCase):
 
             # restarted run (from halfway mark in this case)
             sim_restart = swiftest.Simulation(
-                simdir=self.simdir, read_data=True, param_file=param_restart, compute_conservation_values=True
+                simdir=self.simdir, integrator=i, read_data=True, param_file=param_restart, compute_conservation_values=True
             )
 
             try:
@@ -406,7 +408,8 @@ class TestSwiftestRestart(unittest.TestCase):
     def test_restart_accurate_collision(self):
         """
         Test that a restarted run with collisions gives the same outputs as a full run.
-        collision outcomes taken from test_fraggle.py
+
+        Collision outcomes taken from test_fraggle.py
 
         """
         seed = [974899978, -2041855733, 14415898, 615945619, 1818808148, 462758063, 762516551, 1276432020]

@@ -1,5 +1,6 @@
 """
-Copyright 2025 - David Minton
+Copyright 2025 - David Minton.
+
 This file is part of Swiftest.
 Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -29,7 +30,7 @@ def get_solar_system_body_mass_rotation(
     id: str, jpl: HorizonsClass = None, ephemerides_start_date: str = constants.MINTON_BCL, verbose: bool = True, **kwargs: Any
 ) -> dict:
     """
-    Parses the raw output from JPL Horizons in order to extract physical properties of a body if they exist
+    Parses the raw output from JPL Horizons in order to extract physical properties of a body if they exist.
 
     Parameters
     ----------
@@ -77,7 +78,7 @@ def get_solar_system_body_mass_rotation(
                         M = M.split()[0].strip()
                         M = float(M) * mult * unit_conv
                         return M * swiftest.GC * 1e-9  # Return units of km**3 / s**2 for consistency
-                    except:
+                    except Exception:
                         return None
             return None
         GM = GM[0]
@@ -89,7 +90,7 @@ def get_solar_system_body_mass_rotation(
                     GM = GM[1].strip().split(" ")[0].split("+")[0]
         try:
             GM = float(GM)
-        except:
+        except Exception:
             GM = None
         return GM
 
@@ -111,7 +112,7 @@ def get_solar_system_body_mass_rotation(
                     for i, v in enumerate(radius):
                         radius[i] = float(v.split()[0].strip())
                     radius = np.average(radius)
-                except:
+                except Exception:
                     radius = None
             else:
                 radius = radius.split()[0].strip()
@@ -121,7 +122,7 @@ def get_solar_system_body_mass_rotation(
             radius = radius.split("=")[1].strip().split("+")[0].split()[0].strip()
         try:
             radius = float(radius)
-        except:
+        except Exception:
             radius = None
         return radius
 
@@ -131,14 +132,14 @@ def get_solar_system_body_mass_rotation(
             rotrate = rotrate[0].lower().split("rot. rat")[1].split("=")[1].strip().split("  ")[0].strip()
             try:
                 rotrate = float(rotrate)
-            except:
+            except Exception:
                 rotrate = None
         elif "ROTPER" in raw_response.upper():
             rotrate = [s for s in raw_response.split("\n") if "ROTPER" in s.upper()]  # Try the small body version
             rotrate = rotrate[0].split("ROTPER=")[1].strip()
             try:
                 rotrate = 2 * np.pi / (float(rotrate) * 3600)
-            except:
+            except Exception:
                 rotrate = None
         elif "Synchronous" in raw_response:  # Satellites have this:
             rotrate = [s for s in raw_response.split("\n") if "Orbital period" in s][0]
@@ -204,9 +205,8 @@ def get_solar_system_body_mass_rotation(
         rot = rotpole * rotrate
     else:
         rot = np.full(3, np.nan)
-    if Gmass is not None or Rpl is not None and verbose:
-        if verbose:
-            print(f"Physical properties found for {namelist[0]}")
+    if verbose and (Gmass is not None or Rpl is not None):
+        print(f"Physical properties found for {namelist[0]}")
 
     return {"Gmass": Gmass, "mass": mass, "radius": Rpl, "rot": rot}
 
@@ -215,9 +215,9 @@ def horizons_query(
     id: str | int, ephemerides_start_date: str, exclude_spacecraft: bool = True, verbose: bool = False, **kwargs: Any
 ) -> HorizonsClass | None | (list | None) | (list | None):
     """
-    Queries JPL/Horizons for a body matching the id. If one is found, a HorizonsClass object is returned for the first object that
-    matches the passed id string. If more than one match is found, a list of alternate ids is also returned. If no object is found
-    then None is returned.
+    Queries JPL/Horizons for a body matching the id.
+
+    If one is found, a HorizonsClass object is returned for the first object that matches the passed id string. If more than one match is found, a list of alternate ids is also returned. If no object is found then None is returned.
 
     Parameters
     ----------
@@ -240,9 +240,9 @@ def horizons_query(
 
     def get_altid(errstr, exclude_spacecraft=True):
         """
-        Parses the error message returned from a failed Horizons query. If the query failed because of an ambiguous id, then it will
-        return a list of id values that could possibly match the query.
-        not found
+        Parses the error message returned from a failed Horizons query.
+
+        If the query failed because of an ambiguous id, then it will return a list of id values that could possibly match the query.
 
         Parameters
         ----------
@@ -325,7 +325,7 @@ def get_solar_system_body(
     **kwargs: Any,
 ) -> dict | None:
     """
-    Initializes a Swiftest dataset containing the major planets of the Solar System at a particular data from JPL/Horizons
+    Initializes a Swiftest dataset containing the major planets of the Solar System at a particular data from JPL/Horizons.
 
     Parameters
     ----------
@@ -452,7 +452,7 @@ def get_solar_system_body(
         if jpl is not None:
             if verbose:
                 print(f"Found ephemerides data for {altname[0]} ({altid[0]}) from JPL/Horizons")
-            if name == None:
+            if name is None:
                 name = altname[0]
         else:
             return None

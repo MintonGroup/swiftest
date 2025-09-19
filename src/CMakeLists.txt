@@ -208,7 +208,9 @@ do concurrent(i = 1:10) shared(a)
 end do
 end program TestDoConcurrentLoc
 ")
-TRY_COMPILE(DOCONLOC_WORKS ${CMAKE_BINARY_DIR} ${TESTFILE} COMPILE_DEFINITIONS "${CMAKE_Fortran_FLAGS}" OUTPUT_VARIABLE OUTPUT)
+# TODO: Fix the locality-spec issues that are causing bugs in the RMVS/WHM integrations with gfortran-15. Locality-spec is disabled for now.
+#TRY_COMPILE(DOCONLOC_WORKS ${CMAKE_BINARY_DIR} ${TESTFILE} COMPILE_DEFINITIONS "${CMAKE_Fortran_FLAGS}" OUTPUT_VARIABLE OUTPUT)
+SET(DOCONLOC_WORKS OFF)
 IF (DOCONLOC_WORKS)
     MESSAGE(STATUS "DO CONCURRENT supports locality-spec")
     TARGET_COMPILE_DEFINITIONS(${SWIFTEST_LIBRARY} PRIVATE -DDOCONLOC)

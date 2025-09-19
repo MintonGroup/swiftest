@@ -1,5 +1,6 @@
 """
-Copyright 2025 - David Minton
+Copyright 2025 - David Minton.
+
 This file is part of Swiftest.
 Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License
 as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -17,7 +18,7 @@ import os
 import shutil
 import warnings
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Tuple, Union
+from typing import Any, Literal, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -26,17 +27,17 @@ import xarray as xr
 from . import constants, init_cond, io, tool
 from .data import SwiftestDataset
 
-FloatLike = Union[float, int, np.number]
+FloatLike = float | int | np.number
 
 
 @contextlib.contextmanager
-def _cwd(newdir):
-    olddir = os.getcwd()
-    os.chdir(newdir)
+def _cwd(newdir: Path):
+    olddir = Path.cwd()
+    os.chdir(str(newdir))
     try:
         yield
     finally:
-        os.chdir(olddir)
+        os.chdir(str(olddir))
 
 
 class Simulation:
@@ -392,6 +393,9 @@ class Simulation:
                 omp_num_threads_old = os.environ["OMP_NUM_THREADS"]
             os.environ["OMP_NUM_THREADS"] = "1"
 
+        # Prevent NetCDF file locking
+        os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
+
         self._run_swiftest_driver(verbose=verbose)
         if verbose:
             print("\nRun complete.")
@@ -657,11 +661,15 @@ class Simulation:
         }
 
         tstep_out = None
-        if arg_list is None or "tstep_out" in arg_list or "istep_out" in arg_list:
-            if "ISTEP_OUT" in self.param and "DT" in self.param:
-                istep_out = self.param["ISTEP_OUT"]
-                dt = self.param["DT"]
-                tstep_out = istep_out * dt
+        if (
+            arg_list is None
+            or "tstep_out" in arg_list
+            or "istep_out" in arg_list
+            and ("ISTEP_OUT" in self.param and "DT" in self.param)
+        ):
+            istep_out = self.param["ISTEP_OUT"]
+            dt = self.param["DT"]
+            tstep_out = istep_out * dt
 
         valid_arg, time_dict = self._get_valid_arg_list(arg_list, valid_var)
 
@@ -878,7 +886,7 @@ class Simulation:
             Only set one of minimum_fragment_gmass or minimum_fragment_mass
             Parameter input file equivalent is `MIN_GMFRAG`
         nfrag_reduction : float, optional
-            If fragmentation is turne don, this is a reduction factor used to limit the number of fragments generated in a collision.
+            If fragmentation is turned on, this is a reduction factor used to limit the number of fragments generated in a collision.
             For instance, if the SFD of the collision would generated 300 fragments above the `minimum_fragment_mass`, then a value
             of `nfrag_reduction = 30.0` would reduce it to 10.
             Currently only used by the Fraggle collision model.
@@ -1215,7 +1223,7 @@ class Simulation:
             Only set one of minimum_fragment_gmass or minimum_fragment_mass
             Parameter input file equivalent is `MIN_GMFRAG`
         nfrag_reduction : float, optional
-            If fragmentation is turne don, this is a reduction factor used to limit the number of fragments generated in a collision.
+            If fragmentation is turned on, this is a reduction factor used to limit the number of fragments generated in a collision.
             For instance, if the SFD of the collision would generated 300 fragments above the `minimum_fragment_mass`, then a value
             of `nfrag_reduction = 30.0` would reduce it to 10.
             Currently only used by the Fraggle collision model.
@@ -2419,11 +2427,10 @@ class Simulation:
 
         if name is None and ephemeris_id is None:
             if verbose:
-                warnings.warn("Either `name` and/or `ephemeris_id` must be supplied to add_solar_system_body")
+                warnings.warn("Either `name` and/or `ephemeris_id` must be supplied to add_solar_system_body", stacklevel=2)
             return None
-        if name is not None:
-            if type(name) is str or type(name) is int:
-                name = [name]
+        if name is not None and (type(name) is str or type(name) is int):
+            name = [name]
 
         if ephemeris_id is not None:
             if type(ephemeris_id) is int or type(ephemeris_id) is str:
@@ -2444,7 +2451,7 @@ class Simulation:
             date = self.ephemeris_date
         try:
             datetime.datetime.fromisoformat(date)
-        except:
+        except Exception:
             if verbose:
                 warnings.warn(
                     f"{date} is not a valid date format. Must be 'YYYY-MM-DD'. Setting to {self.ephemeris_date}",
@@ -3601,15 +3608,13 @@ class Simulation:
                 dsnew["j2rp2"] = xr.full_like(dsnew["j2rp2"], np.nan)
             if "j4rp4" in dsnew:
                 dsnew["j4rp4"] = xr.full_like(dsnew["j4rp4"], np.nan)
-        if arguments["j2rp2"] is not None or arguments["j4rp4"] is not None:
-            if "c_lm" in dsnew:
-                dsnew["c_lm"] = xr.full_like(dsnew["c_lm"], np.nan)
+        if arguments["j2rp2"] is not None or arguments["j4rp4"] is not None and "c_lm" in dsnew:
+            dsnew["c_lm"] = xr.full_like(dsnew["c_lm"], np.nan)
 
         dsmod = self._vec2xr(**arguments)
-        if "Gmass" in dsnew:
-            if arguments["Gmass"] is None and arguments["mass"] is None:
-                dsmod["Gmass"] = dsnew["Gmass"]
-                dsmod["mass"] = dsnew["mass"]
+        if "Gmass" in dsnew and arguments["Gmass"] is None and arguments["mass"] is None:
+            dsmod["Gmass"] = dsnew["Gmass"]
+            dsmod["mass"] = dsnew["mass"]
         dsnew.update(dsmod)
         if arguments["mass"] is not None or arguments["Gmass"] is not None:
             dsnew = self._set_particle_type(dsnew)
@@ -3673,49 +3678,51 @@ class Simulation:
         if not isinstance(dsnew, SwiftestDataset):
             dsnew = SwiftestDataset(dsnew)
 
-        if "id" not in self.data.dims and verbose:
-            if not len(np.unique(dsnew["name"])) == len(dsnew["name"]):
-                msg = "Non-unique names detected for bodies. The Dataset will be dimensioned by integer id instead of name."
-                msg += "\nConsider using unique names instead."
-                print(msg)
+        if verbose and "id" not in self.data.dims and len(np.unique(dsnew["name"])) != len(dsnew["name"]):
+            msg = "Non-unique names detected for bodies. The Dataset will be dimensioned by integer id instead of name."
+            msg += "\nConsider using unique names instead."
+            print(msg)
         dsnew["status"] = xr.zeros_like(dsnew["id"]).expand_dims(dim={"time": dsnew.time.values}, axis=0)
 
-        if "name" in self.data:
-            for name in dsnew.coords["name"].values:
-                for time in dsnew.coords["time"].values:
-                    # Create a selector for the combination of name and time
-                    selector_name_time = dict(name=name, time=time)
-                    selector_name = dict(name=name)
+        if "name" in self.data.coords and "name" in dsnew.coords:
+            names_new = dsnew.coords["name"].to_numpy()
+            names_old = self.data.coords["name"].to_numpy() if "name" in self.data.coords else np.array([])
+            overlap = np.intersect1d(names_new, names_old)
 
-                    # Check if this combination exists in the old dataset
-                    if ((self.data.coords["name"] == name) & (self.data.coords["time"] == time)).any():
-                        # If it exists, update the corresponding values
-                        for var in dsnew.data_vars:
-                            if "name" in dsnew[var].dims:
-                                if var in self.data:
-                                    if "name" not in self.data[var].dims:
-                                        self.data[var] = (
-                                            self.data[var]
-                                            .expand_dims(
-                                                dim={"name": self.data.name.values},
-                                                axis=1,
+            if overlap.size == 0:  # No overlapping names, so we can concat
+                self.data = xr.concat([self.data, dsnew], dim="name")
+            else:  # Modify the values corresponding to the overlapping names.
+                for name in overlap:
+                    for time in dsnew.coords["time"].values:
+                        # Create a selector for the combination of name and time
+                        selector_name_time = {"name": name, "time": time}
+                        selector_name = {"name": name}
+                        # Check if this combination exists in the old dataset
+                        if ((self.data.coords["name"] == name) & (self.data.coords["time"] == time)).any():
+                            # If it exists, update the corresponding values
+                            for var in dsnew.data_vars:
+                                if "name" in dsnew[var].dims:
+                                    if var in self.data:
+                                        if "name" not in self.data[var].dims:
+                                            self.data[var] = (
+                                                self.data[var]
+                                                .expand_dims(
+                                                    dim={"name": self.data.name.values},
+                                                    axis=1,
+                                                )
+                                                .copy(deep=True)
                                             )
-                                            .copy(deep=True)
-                                        )
-                                    # Check if the variable depends on both name and time
-                                    if "time" in self.data[var].dims:
-                                        self.data[var].loc[selector_name_time] = dsnew[var].loc[selector_name_time].values
+                                        # Check if the variable depends on both name and time
+                                        if "time" in self.data[var].dims:
+                                            self.data[var].loc[selector_name_time] = dsnew[var].loc[selector_name_time].values
+                                        else:
+                                            # Update based only on name if time is not a dimension
+                                            self.data[var].loc[selector_name] = dsnew[var].loc[selector_name].values
                                     else:
-                                        # Update based only on name if time is not a dimension
-                                        self.data[var].loc[selector_name] = dsnew[var].loc[selector_name].values
-                                else:
-                                    self.data[var] = dsnew[var]
-                    else:
-                        # If it doesn't exist, concatenate the new data
-                        to_concat = dsnew.sel(selector_name)
-                        self.data = xr.concat([self.data, to_concat], dim="name")
+                                        self.data[var] = dsnew[var]
         else:
-            self.data = xr.combine_by_coords([self.data, dsnew])
+            # If `name` is not a coord in either dataset, fall back to a safe outer-merge.
+            self.data = xr.merge([self.data, dsnew], compat="override", join="outer")
 
         if not isinstance(self.data, SwiftestDataset):
             self.data = SwiftestDataset(self.data)

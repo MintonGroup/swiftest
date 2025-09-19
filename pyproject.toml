@@ -170,8 +170,8 @@ OMPI_FC="$(buildscripts/get_fortran_path.sh)"
 
 [tool.cibuildwheel.macos]
 before-all = [
-    "brew install coreutils fftw vecLibFort opencoarrays open-mpi cmake netcdf-fortran",
-    "buildscripts/build_shtools.sh"
+    "brew install coreutils fftw vecLibFort opencoarrays open-mpi cmake",
+    "buildscripts/build_dependencies.sh"
 ]
 repair-wheel-command = """\
 DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel \
@@ -262,7 +262,10 @@ ignore = [
     "E501",
     "F401",
     "TRY003",  # Avoid specifying messages outside exception class; overly strict, especially for ValueError
-    "SIM108"
+    "SIM108", # Don't suggest if else block instead of expression, as it can reduce readability
+    "N802", # Allow uppercase functions 
+    "N803", # Allow uppercase arguments 
+    "N806", # Allow uppercase variable names
 ]
 
 [tool.ruff.lint.flake8-bugbear]
