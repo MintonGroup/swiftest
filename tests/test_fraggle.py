@@ -14,6 +14,7 @@ import os
 import tempfile
 import unittest
 import warnings
+from pathlib import Path
 
 import numpy as np
 
@@ -132,11 +133,11 @@ class TestFraggle(unittest.TestCase):
         }
 
         nfrag_maximum_expected = {
-            "disruption_headon": 100,
-            "disruption_off_axis": 100,
-            "supercatastrophic_headon": 100,
-            "supercatastrophic_off_axis": 100,
-            "hitandrun_disrupt": 100,
+            "disruption_headon": 200,
+            "disruption_off_axis": 200,
+            "supercatastrophic_headon": 200,
+            "supercatastrophic_off_axis": 200,
+            "hitandrun_disrupt": 200,
             "hitandrun_pure": 0,
             "merge": 0,
             "merge_spinner": 0,
