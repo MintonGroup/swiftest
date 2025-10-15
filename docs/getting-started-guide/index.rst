@@ -176,7 +176,7 @@ Then run the tests from the topmost directory in your Swiftest repository:
 
    python -m pytest tests
 
-Building the exectuable using CMake
+Building the executable using CMake
 -----------------------------------
 
 Although Swiftest is designed to be run from Python, it is also possible to run Swiftest simulations from the command line using the ``swiftest`` executable, provided it has 
@@ -278,7 +278,7 @@ depending on your platform, should now be created in the ``build/bin/`` director
 You may need to run the above command as root or with sudo if you are installing into a system directory.
 
 
-Building the exectuable using Docker
+Building the executable using Docker
 ------------------------------------
 
 TBD
