@@ -18,7 +18,9 @@ Internal Changes
   
   Failed to read in data with dask: Unspecified error in H5DSget_num_scales (return value <0)
 
-
+Bug Fixes
+~~~~~~~~~
+- Fixed lingering issues with locked collisions.nc and encounters.nc files. `David Minton`_ in :pull:`84`
 
 .. _whats-new.2025.9.1:
 
