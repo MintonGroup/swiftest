@@ -348,7 +348,7 @@ class Simulation:
         -------
         None
         """
-        verbose = kwargs.pop("verbose")
+        verbose = kwargs.pop("verbose", self.verbose)
 
         if len(kwargs) > 0:
             old_verbose = self.verbose
