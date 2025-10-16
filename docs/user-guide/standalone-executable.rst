@@ -42,7 +42,7 @@ from the terminal, simply navigated to the ``simdata`` directory and run the exe
   cd simdata
   swiftest whm param.in classic
 
-This will exectute the simulation using the basic Wisdom-Holman symplectic map integrator and report the progress to the terminal. 
+This will execute the simulation using the basic Wisdom-Holman symplectic map integrator and report the progress to the terminal. 
 For a more streamlined output that shows a progress bar and saves the terminal output to a file called ``swiftest.log`` you can instead run
 
 .. ipython:: python

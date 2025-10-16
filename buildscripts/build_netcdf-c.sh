@@ -35,8 +35,7 @@ if [ ! -d "${DEPENDENCY_DIR}"/netcdf-c-${NC_VER} ]; then
     [ -d "${DEPENDENCY_DIR}"/netcdf-c-* ] && rm -rf "${DEPENDENCY_DIR}"/netcdf-c-*
     curl -s -L https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NC_VER}.tar.gz | tar xvz -C "${DEPENDENCY_DIR}"
 fi
-#LIBS="-lhdf5_hl -lhdf5 -lm -lz -lzstd -lbz2 -lcurl -lsz ${LIBS}"
-#LDFLAGS="${LDFLAGS} ${LIBS}"
+
 printf "\n"
 printf "*********************************************************\n"
 printf "*              BUILDING NETCDF-C LIBRARY                *\n"
@@ -71,7 +70,7 @@ cmake -B build -S . -G Ninja  \
     -DNETCDF_ENABLE_TESTS:BOOL=OFF \
     -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON \
     -DNC_EXTRA_DEPS:STRING="${LIBS}" \
-    -DNETCDF_ENABLE_PARALLEL4:BOOL=ON
+    -DNETCDF_ENABLE_PARALLEL4:BOOL=OFF
 
 cmake --build build -j${NPROC} 
 if [ -w "${NCDIR}" ]; then

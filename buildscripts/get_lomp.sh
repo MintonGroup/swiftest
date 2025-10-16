@@ -85,20 +85,30 @@ case $TARGET_MAJOR in
             ;;
       esac
       ;;
+   *)
+      OMPVER="19.1.0"
+      DVER="20"
+      ;;
 esac
 
 printf "*********************************************************\n"
 printf "*             FETCHING OPENMP LIBRARY                   *\n"
 printf "*********************************************************\n"
-LOMP_DIR="${PREFIX}/../.."
+LOMP_DIR="${PREFIX}"
 printf "Copying files to ${LOMP_DIR}\n"
 mkdir -p "${DEPENDENCY_DIR}"
 
 filename="openmp-${OMPVER}-darwin${DVER}-Release.tar.gz"
 #Download and install the libraries
 printf "Downloading ${filename}\n"
-if [ -w "${LOMP_DIR}" ]; then
-   curl -L https://mac.r-project.org/openmp/${filename} | tar xvz -C ${LOMP_DIR}
+if [ -w "${DEPENDENCY_DIR}" ]; then
+   curl -L https://mac.r-project.org/openmp/${filename} | tar xvz -C ${DEPENDENCY_DIR}
 else
-   sudo curl -L https://mac.r-project.org/openmp/${filename} | tar xvz -C ${LOMP_DIR}
+   sudo curl -L https://mac.r-project.org/openmp/${filename} | tar xvz -C ${DEPENDENCY_DIR}
+fi
+
+if [ -w "${LOMP_DIR}" ]; then
+   rsync -a ${DEPENDENCY_DIR}/usr/local/* ${LOMP_DIR}
+else
+   sudo rsync -a ${DEPENDENCY_DIR}/usr/local/* ${LOMP_DIR}
 fi
