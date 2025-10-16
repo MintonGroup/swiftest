@@ -114,7 +114,7 @@ Additional Capabilities of Swiftest's Coefficient Generator Functions
 ===========================================================================================
 
 The output from :func:`~swiftest.shgrav.clm_from_ellipsoid` and :func:`~swiftest.shgrav.clm_from_relief`
-can be customised to the user's needs. Here we show some of the additional capabilities of these functions.
+can be customized to the user's needs. Here we show some of the additional capabilities of these functions.
 
 Setting a Reference Radius for the Coefficients
 -------------------------------------------------
