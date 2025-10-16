@@ -16,10 +16,14 @@ contains
       !! Add user-supplied heliocentric accelerations to planets.
       !!
       !! Adapted from David E. Kaufmann's Swifter routine whm_user_kick_getacch.f90
+      !! 
+      !! The arguments to this subroutine give you access to the current state of the simulation.
+      !! You use this to apply additional accelrations to a single body in the system, but you can used the state of all other 
+      !! bodies via the nbody_system argument, which contains the cb, pl, and tp objects.
       implicit none
       ! Arguments
       class(swiftest_body),         intent(inout) :: self   
-         !! Swiftest massive body particle data structure
+         !! Swiftest particle data structure
       class(swiftest_nbody_system), intent(inout) :: nbody_system 
          !! Swiftest nbody_system_object
       class(swiftest_parameters),   intent(inout) :: param  
