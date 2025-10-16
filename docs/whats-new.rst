@@ -3,6 +3,23 @@
 What's New
 ==========
 
+.. _whats-new.2025.10.0:
+
+:release:`v2025.10.0`
+---------------------
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Updated the HDF5 build to not use parallel in order to prevent an incompatibility on MacOS systems with Homebrew. `David Minton`_ in :pull:`84`
+- Restricted ``h5py`` to be less than version 3.15 because version 3.15 breaks in Linux aarch64 when using ``open_mfdataset`` in Xarray using the h5netcdf engine with the error below. `David Minton`_ in :pull:`84`
+- Disabled the Windows GitHub action when deploying until it can be fixed. `David Minton`_ in :pull:`84`
+
+:: 
+  
+  Failed to read in data with dask: Unspecified error in H5DSget_num_scales (return value <0)
+
+
+
 .. _whats-new.2025.9.1:
 
 :release:`v2025.9.1`
@@ -21,7 +38,7 @@ Bug Fixes
 
 Bug Fixes
 ~~~~~~~~~
-- Fix bugs related to initializing fragments in Fraggle. When a fragment was ever put on a position that overlapped an existing massive body, this bug could result in placing the fragment onto unphysically large distances, which resulted in an anomolous jump in the orbit of the target body. by `David Minton`_ in :pull:`80`.
+- Fix bugs related to initializing fragments in Fraggle. When a fragment was ever put on a position that overlapped an existing massive body, this bug could result in placing the fragment onto unphysically large distances, which resulted in an anomalous jump in the orbit of the target body. by `David Minton`_ in :pull:`80`.
 
 Internal Changes
 ~~~~~~~~~~~~~~~~
@@ -96,7 +113,7 @@ Contributors
 Internal Changes
 ~~~~~~~~~~~~~~~~
 - Cleaned out lots of cruft from the repository, including obsolete Docker and Apptainer/Singularity files and folders.  
-- Adjusted project files so that the complete repository, including documenatation and build scripts, gets packaged into the sdist. This is necessary for the conda build process to be able to rely on the sdist tarball rather than getting it GitHub.
+- Adjusted project files so that the complete repository, including documentation and build scripts, gets packaged into the sdist. This is necessary for the conda build process to be able to rely on the sdist tarball rather than getting it GitHub.
 
 Contributors
 ~~~~~~~~~~~~
@@ -353,7 +370,7 @@ Bug Fixes
 
 Internal Changes
 ~~~~~~~~~~~~~~~~
-- In preparation for a planned release that will use `Coarray Fortran`_ to parallelize RMVS runs, we have incorporated the `OpenMPI`_ library into the build process. All of the build scipts were overhauled in order to compile with the MPI wrappers.
+- In preparation for a planned release that will use `Coarray Fortran`_ to parallelize RMVS runs, we have incorporated the `OpenMPI`_ library into the build process. All of the build scripts were overhauled in order to compile with the MPI wrappers.
 - A slew of new tests were added to test that collisions were being recorded correctly.
 
 Breaking Changes
@@ -613,7 +630,7 @@ Official release for the Journal of Open Source Software.
 Bug fixes to Fraggle and improvements to the fragmentation test movie scripts.
 
 - Fixed issue that caused momentum convergence to be unstable due to floating point precision.
-- Tweaked the fraggle convergence loop limits to get a higher success rate in fitting angular momentum and energy constraints.
+- Tweaked the Fraggle convergence loop limits to get a higher success rate in fitting angular momentum and energy constraints.
 - Fixed a typo in an OpenMP reduction declaration in the subroutine swiftest_kick_getacch_int_all_tri_rad_pl
 
 .. _whats-new.2023.10.0:
@@ -625,7 +642,7 @@ Bug fixes to Fraggle and improvements to the fragmentation test movie scripts.
 Minor changes and one bugfix.
 
 - Changed the dependency build scripts from using Automake to CMake for performance and robustness.
-- Fixed bug that was preventing initial conditions file from being saved when new bodys are added in multiple add_solar_system_body calls
+- Fixed bug that was preventing initial conditions file from being saved when new bodies are added in multiple add_solar_system_body calls
 
 .. _whats-new.2023.09.3:
 

@@ -78,7 +78,7 @@ for more details and installation instructions.
 
 Central body gravity is modeled using the `SHTOOLS library <https://shtools.github.io/SHTOOLS/>`. 
 It is necessary to build and install SHTOOLS before building Swiftest. Optionally the ``pySHTOOLS`` package may also be installed
-in order to use the tools to compute spherical harmonics cofficients for the central body when generating initial conditions, but is not required.
+in order to use the tools to compute spherical harmonics coefficients for the central body when generating initial conditions, but is not required.
 
 Swiftest is written in Modern Fortran and must be compiled using an
 appropriate compiler. We recommend the Intel Fortran Compiler Classic
@@ -130,18 +130,20 @@ On a MacOS system, be sure homebrew is installed.
    
    brew install coreutils
 
-Then install the following dependencies by running the following command from the command line
+The most critical dependency needed by Swiftest is netcdf-fortran. However, netcdf-fortran requires netcdf (which requires HDF5, and so on). netcdf-fortran must be compiled using the same compiler that builds Swiftest in order that the `.mod` files are compatible. On MacOS systems, the version of netcdf-fortran available in Homebrew satisfies this condition, as long as you also use `gfortran` from homebrew. Therefore on MacOS systems, you can simply use the Homebrew versions of things:
 
-We provide a script that can be used to set environment variables prior to building the dependencies called ``set_environment.sh``. 
-Building the dependencies can be done by running the following command from the command line
+.. code-block:: bash
+
+   brew install gfortran netcdf-fortran
+
+However, if you need to build netcdf-fortran (and its chain of dependencies) manually, we provide a comprehensive dependency-building script called `build_dependencies.sh`. We also provide a script that can be used to set environment variables prior to building the dependencies called `set_environment.sh`. Building the dependencies can be done by running the following command from the command line
 
 .. code-block:: bash
 
    . buildscripts/set_environment.sh
    buildscripts/build_dependencies.sh
 
-Note that the above scripts will use gfortran to build the dependencies. If you wish to use the Intel Fortran Compiler, you will need to modify the build scripts to use the Intel Fortran Compiler.
-
+Note that the above scripts will use gfortran to build the dependencies.  If you wish to use the Intel Fortran Compiler, you will need to modify the build scripts to use the Intel Fortran Compiler.
 
 Building the Swiftest Python Package and Executable
 ---------------------------------------------------
