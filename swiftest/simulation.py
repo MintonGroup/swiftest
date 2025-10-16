@@ -312,10 +312,7 @@ class Simulation:
         """
         from .core import driver
 
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         if "display_style" in kwargs:
             display_style = kwargs.pop("display_style")
@@ -351,10 +348,7 @@ class Simulation:
         -------
         None
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose")
 
         if len(kwargs) > 0:
             old_verbose = self.verbose
@@ -644,10 +638,7 @@ class Simulation:
             "dump_cadence",
         ]
         valid_var = self._create_valid_var(valid_arg)
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         units = {
             "t0": self.TU_name,
@@ -1061,10 +1052,7 @@ class Simulation:
             A dictionary containing the subset of the parameter dictonary that was updated by this setter
 
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
         update_list = []
 
         if codename is not None:
@@ -1118,10 +1106,7 @@ class Simulation:
         integrator_dict : dict
             The subset of the dictionary containing the code name if codename is selected
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         valid_arg = ["gmtiny"]
         valid_var = self._create_valid_var(valid_arg)
@@ -1282,10 +1267,7 @@ class Simulation:
         feature_dict : dict
             A dictionary containing the requested features.
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         update_list = []
         if close_encounter_check is not None:
@@ -1474,10 +1456,7 @@ class Simulation:
         feature_dict : dict
            A dictionary containing the requested features.
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         valid_arg = [
             "close_encounter_check",
@@ -1565,10 +1544,8 @@ class Simulation:
         init_cond_file_dict : dict
            A dictionary containing the requested parameters
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
+
         update_list = []
         if init_cond_file_name is not None:
             update_list.append("init_cond_file_name")
@@ -1697,10 +1674,7 @@ class Simulation:
         init_cond_file_dict : dict
            A dictionary containing the requested parameters
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         valid_arg = [
             "init_cond_file_type",
@@ -1792,10 +1766,7 @@ class Simulation:
         output_file_dict : dict
            A dictionary containing the requested parameters
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         update_list = []
         if output_file_type is not None:
@@ -1900,10 +1871,7 @@ class Simulation:
            A dictionary containing the requested parameters
 
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         valid_arg = [
             "output_file_type",
@@ -2013,10 +1981,7 @@ class Simulation:
         unit_dict : dict
            A dictionary containing the requested unit conversion parameters
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         MU2KG_old = None
         DU2M_old = None
@@ -2162,10 +2127,7 @@ class Simulation:
            A dictionary containing the requested unit conversion parameters
 
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         valid_arg = ["MU", "DU", "TU"]
         valid_var = self._create_valid_var(valid_arg)
@@ -2273,10 +2235,7 @@ class Simulation:
         range_dict : dict
            A dictionary containing the requested parameters.
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         if rmax is None and rmin is None and qmin_coord is None:
             return {}
@@ -2336,10 +2295,7 @@ class Simulation:
         range_dict : dict
            A dictionary containing the requested parameters.
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         valid_var = {
             "rmin": "CHK_RMIN",
@@ -2420,10 +2376,7 @@ class Simulation:
         """
         from .constants import CB_TYPE_NAME
 
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         if name is None and ephemeris_id is None:
             if verbose:
@@ -2616,10 +2569,7 @@ class Simulation:
         ephemeris_date : str
             The ISO-formatted date string for the ephemeris computation
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         try:
             self.ephemeris_date
@@ -2658,10 +2608,7 @@ class Simulation:
         Tuple[Any, ...]
             Instance variable values given by the arg_list
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         arg_vals = []
         if verbose:
@@ -2952,10 +2899,7 @@ class Simulation:
         """
         from .constants import CB_TYPE_NAME
 
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         # This allows us to re-use the same validation function for both add_body and modify_body
         arguments = locals().copy()
@@ -3584,10 +3528,7 @@ class Simulation:
         """
         from .constants import CB_TYPE_NAME
 
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         # This allows us to re-use the same validation function for both add_body and modify_body
         arguments = locals().copy()
@@ -3670,10 +3611,7 @@ class Simulation:
         dsnew : SwiftestDataset
             Updated Dataset with ntp, npl values and types fixed.
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         if not isinstance(dsnew, SwiftestDataset):
             dsnew = SwiftestDataset(dsnew)
@@ -3762,10 +3700,7 @@ class Simulation:
         -------
         None
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         if param_file is None:
             param_file = self.simdir / self.param_file
@@ -3846,10 +3781,7 @@ class Simulation:
         -------
         None
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         if init_cond_file_name is None:
             init_cond_file_name = self.param["NC_IN"]
@@ -3902,10 +3834,7 @@ class Simulation:
         -------
         None
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         if codename is None:
             codename = self.codename
@@ -4035,10 +3964,7 @@ class Simulation:
         None
             Sets the data instance variable xarray dataset
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
         # Make a temporary copy of the parameter dictionary so we can supply the absolute path of the binary file
         # This is done to handle cases where the method is called from a different working directory than the simulation
         # results
@@ -4103,20 +4029,22 @@ class Simulation:
         None
             Sets the encounters instance variable SwiftestDataset
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         enc_file = self.simdir / "encounters.nc"
-        if not os.path.exists(enc_file):
+        if not enc_file.exists():
             return
 
+        if verbose:
+            print("Reading encounter history file as .encounters")
+
         if dask:
-            self.encounters = xr.open_mfdataset(enc_file, engine="h5netcdf", mask_and_scale=False)
+            ds = xr.open_mfdataset(enc_file, engine="h5netcdf", mask_and_scale=False)
         else:
-            self.encounters = xr.open_dataset(enc_file, mask_and_scale=False)
-        self.encounters = io.process_netcdf_input(self.encounters, self.param)
+            with xr.open_dataset(enc_file, mask_and_scale=False) as ds:
+                ds.load()
+        self.encounters = io.process_netcdf_input(ds, self.param)
+        ds.close()
 
         # Remove any overlapping time values
         tgood, tid = np.unique(self.encounters.time, return_index=True)
@@ -4143,24 +4071,23 @@ class Simulation:
         None
             Sets the collisions instance variable xarray dataset
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         col_file = self.simdir / "collisions.nc"
-        if not os.path.exists(col_file):
+        if not col_file.exists():
             return
 
         if verbose:
             print("Reading collisions history file as .collisions")
 
         if dask:
-            self.collisions = xr.open_mfdataset(col_file, engine="h5netcdf", mask_and_scale=False, combine="nested")
+            ds = xr.open_mfdataset(col_file, engine="h5netcdf", mask_and_scale=False, combine="nested")
         else:
-            self.collisions = xr.open_dataset(col_file, mask_and_scale=False)
+            with xr.open_dataset(col_file, mask_and_scale=False) as ds:
+                ds.load()
 
-        self.collisions = io.process_netcdf_input(self.collisions, self.param)
+        self.collisions = io.process_netcdf_input(ds, self.param)
+        ds.close()
 
         return
 
@@ -4182,10 +4109,7 @@ class Simulation:
         xarray dataset
             Dataset containing the variables retrieved from the follow algorithm
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         if self.data is None:
             self.read_output_file(dask=dask, verbose=verbose)
@@ -4355,10 +4279,7 @@ class Simulation:
         -------
         None
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         if codename is None:
             codename = self.codename
@@ -4419,10 +4340,7 @@ class Simulation:
         -------
         None
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
         self.encounters = SwiftestDataset()
         self.collisions = SwiftestDataset()
         if deep:
@@ -4477,10 +4395,7 @@ class Simulation:
         None
 
         """
-        if "verbose" in kwargs:
-            verbose = kwargs.pop("verbose")
-        else:
-            verbose = self.verbose
+        verbose = kwargs.pop("verbose", self.verbose)
 
         if "Gmass" not in self.data:
             if verbose:

@@ -350,6 +350,7 @@ class TestSwiftestRestart(unittest.TestCase):
         restart_iout = 500
         param_restart = f"param.{restart_iout:020d}.in"
         for i in integrators:
+            print(f"Testing integrator: {i}")
             sim = swiftest.Simulation(simdir=self.simdir, integrator=i, **run_args, clean=True)
             sim.add_solar_system_body(bodies)
             try:
@@ -357,6 +358,7 @@ class TestSwiftestRestart(unittest.TestCase):
             except Exception as e:
                 self.fail(f"Failed initial run with Exception: {e}")
 
+            print("Repeat")
             # repeat run with exact same parameters
             sim_repeat = swiftest.Simulation(simdir=self.simdir_repeat, integrator=i, **run_args, clean=True)
             sim_repeat.add_solar_system_body(bodies)
