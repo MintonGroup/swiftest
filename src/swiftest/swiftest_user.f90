@@ -27,7 +27,7 @@ contains
       real(DP),                     intent(in)    :: t      
          !! Current time
       logical,                      intent(in)    :: lbeg   
-         !! Logical flag that determines whether or not this is the beginning or end of the ste
+         !! Logical flag that determines whether or not this is the beginning or end of the step
 
       return
    end subroutine swiftest_user_kick_getacch_body
