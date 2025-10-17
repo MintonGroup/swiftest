@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script will build the OpenCoarrays libraries from source
 # 
-# Copyright 2024 - The Minton Group at Purdue University
+# Copyright 2025 - David Minton
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -9,7 +9,7 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
-OpenCoarrays_VER="2.10.2"
+OpenCoarrays_VER="2.10.3"
 
 SCRIPT_DIR=$(realpath "$(dirname "$0")")
 ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
@@ -25,7 +25,7 @@ printf "Copying files to ${DEPENDENCY_DIR}\n"
 mkdir -p "${DEPENDENCY_DIR}"
 if [ ! -d "${DEPENDENCY_DIR}"/OpenCoarrays-${OpenCoarrays_VER} ]; then
     [ -d "${DEPENDENCY_DIR}"/OpenCoarrays-* ] && rm -rf "${DEPENDENCY_DIR}"/OpenCoarrays-*
-    curl -L https://github.com/sourceryinstitute/OpenCoarrays/releases/download/${OpenCoarrays_VER}/OpenCoarrays-${OpenCoarrays_VER}.tar.gz | tar xvz -C "${DEPENDENCY_DIR}"
+    curl -L https://github.com/sourceryinstitute/OpenCoarrays/archive/refs/tags/${OpenCoarrays_VER}.tar.gz ${OpenCoarrays_VER}.tar.gz | tar xvz -C "${DEPENDENCY_DIR}"
 fi
 
 printf "*********************************************************\n"
@@ -34,7 +34,6 @@ printf "*********************************************************\n"
 printf "LIBS: ${LIBS}\n"
 printf "FFLAGS: ${FFLAGS}\n"
 printf "CFLAGS: ${CFLAGS}\n"
-printf "CPPFLAGS: ${CPPFLAGS}\n"
 printf "CPATH: ${CPATH}\n"
 printf "LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}\n"
 printf "LDFLAGS: ${LDFLAGS}\n"

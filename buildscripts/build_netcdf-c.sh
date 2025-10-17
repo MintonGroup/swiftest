@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script will build the NetCDF C library from source
 # 
-# Copyright 2024 - The Minton Group at Purdue University
+# Copyright 2025 - David Minton
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -9,7 +9,7 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
-NC_VER="4.9.2"
+NC_VER="4.9.3"
 
 SCRIPT_DIR=$(realpath "$(dirname "$0")")
 ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
@@ -35,8 +35,7 @@ if [ ! -d "${DEPENDENCY_DIR}"/netcdf-c-${NC_VER} ]; then
     [ -d "${DEPENDENCY_DIR}"/netcdf-c-* ] && rm -rf "${DEPENDENCY_DIR}"/netcdf-c-*
     curl -s -L https://github.com/Unidata/netcdf-c/archive/refs/tags/v${NC_VER}.tar.gz | tar xvz -C "${DEPENDENCY_DIR}"
 fi
-#LIBS="-lhdf5_hl -lhdf5 -lm -lz -lzstd -lbz2 -lcurl -lsz ${LIBS}"
-#LDFLAGS="${LDFLAGS} ${LIBS}"
+
 printf "\n"
 printf "*********************************************************\n"
 printf "*              BUILDING NETCDF-C LIBRARY                *\n"
@@ -58,24 +57,20 @@ cmake -B build -S . -G Ninja  \
     -DHDF5_ROOT:PATH=${HDF5_ROOT} \
     -DCMAKE_FIND_ROOT_PATH:PATH="${NCDIR}" \
     -DCMAKE_INSTALL_PREFIX:STRING="${NCDIR}" \
-    -DENABLE_DAP:BOOL=OFF \
-    -DENABLE_BYTERANGE:BOOL=OFF \
-    -DENABLE_NCZARR:BOOL=OFF \
-    -DENABLE_NCZARR_FILTERS:BOOL=OFF \
-    -DENABLE_LIBXML2:BOOL=OFF \
+    -DNETCDF_ENABLE_DAP:BOOL=OFF \
+    -DNETCDF_ENABLE_BYTERANGE:BOOL=OFF \
+    -DNETCDF_ENABLE_NCZARR:BOOL=OFF \
+    -DNETCDF_ENABLE_NCZARR_FILTERS:BOOL=OFF \
+    -DNETCDF_ENABLE_LIBXML2:BOOL=OFF \
     -DCMAKE_INSTALL_LIBDIR="lib" \
-    -DENABLE_REMOTE_FORTRAN_BOOTSTRAP:BOOL=OFF \
-    -DENABLE_PLUGINS:BOOL=OFF \
-    -DBUILD_UTILITIES:BOOL=OFF \
+    -DNETCDF_ENABLE_PLUGINS:BOOL=OFF \
+    -DNETCDF_BUILD_UTILITIES:BOOL=OFF \
     -DBUILD_TESTING:BOOL=OFF \
-    -DENABLE_DAP_REMOTE_TESTS:BOOL=OFF \
-    -DENABLE_SHARED_LIBRARY_VERSION:BOOL=ON \
     -DBUILD_SHARED_LIBS:BOOL=ON \
-    -DENABLE_TESTS:BOOL=OFF \
-    -DENABLE_EXTRA_TESTS:BOOL=OFF \
+    -DNETCDF_ENABLE_TESTS:BOOL=OFF \
     -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON \
     -DNC_EXTRA_DEPS:STRING="${LIBS}" \
-    -DENABLE_PARALLEL4:BOOL=ON
+    -DNETCDF_ENABLE_PARALLEL4:BOOL=OFF
 
 cmake --build build -j${NPROC} 
 if [ -w "${NCDIR}" ]; then

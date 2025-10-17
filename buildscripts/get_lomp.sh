@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script will download the correct OpenMP library for a given MacOS deployment target
 # 
-# Copyright 2024 - The Minton Group at Purdue University
+# Copyright 2025 - David Minton
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -31,8 +31,8 @@ TARGET_REV=`echo $MACOSX_DEPLOYMENT_TARGET | cut -d. -f3`
 
 #Figure out which version to get
 case $TARGET_MAJOR in
-   14|15)
-      OMPVER="16.0.4"
+   15)
+      OMPVER="19.1.0"
       DVER="20"
       ;;
    13)
@@ -85,20 +85,30 @@ case $TARGET_MAJOR in
             ;;
       esac
       ;;
+   *)
+      OMPVER="19.1.0"
+      DVER="20"
+      ;;
 esac
 
 printf "*********************************************************\n"
 printf "*             FETCHING OPENMP LIBRARY                   *\n"
 printf "*********************************************************\n"
-LOMP_DIR="${PREFIX}/../.."
+LOMP_DIR="${PREFIX}"
 printf "Copying files to ${LOMP_DIR}\n"
 mkdir -p "${DEPENDENCY_DIR}"
 
 filename="openmp-${OMPVER}-darwin${DVER}-Release.tar.gz"
 #Download and install the libraries
 printf "Downloading ${filename}\n"
-if [ -w "${LOMP_DIR}" ]; then
-   curl -L https://mac.r-project.org/openmp/${filename} | tar xvz -C ${LOMP_DIR}
+if [ -w "${DEPENDENCY_DIR}" ]; then
+   curl -L https://mac.r-project.org/openmp/${filename} | tar xvz -C ${DEPENDENCY_DIR}
 else
-   sudo curl -L https://mac.r-project.org/openmp/${filename} | tar xvz -C ${LOMP_DIR}
+   sudo curl -L https://mac.r-project.org/openmp/${filename} | tar xvz -C ${DEPENDENCY_DIR}
+fi
+
+if [ -w "${LOMP_DIR}" ]; then
+   rsync -a ${DEPENDENCY_DIR}/usr/local/* ${LOMP_DIR}
+else
+   sudo rsync -a ${DEPENDENCY_DIR}/usr/local/* ${LOMP_DIR}
 fi

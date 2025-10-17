@@ -1,4 +1,4 @@
-! Copyright 2024 - The Minton Group at Purdue University
+! Copyright 2025 - David Minton
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -1426,7 +1426,7 @@ contains
       end where
 
 #ifdef DOCONLOC
-      do concurrent(i = 1:npl, lmask(i)) shared(lmask, pecb, GMcb, mass, rb, lmask)
+      do concurrent(i = 1:npl, lmask(i)) shared(lmask, pecb, GMcb, mass, rb)
 #else
       do concurrent(i = 1:npl, lmask(i))
 #endif
@@ -1441,7 +1441,7 @@ contains
       do i = 1, npl
          if (lmask(i)) then
 #ifdef DOCONLOC
-            do concurrent(j = i+1:npl, lmask(i) .and. lmask(j)) shared(lmask, pepl, rb, mass, Gmass, lmask) 
+            do concurrent(j = i+1:npl, lmask(i) .and. lmask(j)) shared(lmask, pepl, rb, mass, Gmass) 
 #else
             do concurrent(j = i+1:npl, lmask(i) .and. lmask(j))
 #endif
