@@ -3,6 +3,22 @@
 What's New
 ==========
 
+.. _whats-new.2025.10.1:
+
+:release:`v2025.10.1`
+---------------------
+
+New Features
+~~~~~~~~~~~~
+- Improved the handling of user-defined force functions. `David Minton`_ in :pull:`85`
+  - Added documentation on how to set up user-defined forces in the :doc:`user-guide/custom-forces` page.
+  - Added a new structure that allows users to include untracked custom swiftest_user.f90 files into a new user folder, with the option to select a folder of their choosing.
+
+Internal Changes
+~~~~~~~~~~~~~~~~
+- Moved the ``OMP_NUM_THREADS`` limiter to the Fortran side. OpenMP is now only called when the number of massive bodies is larger than 100.
+- Reduced the basic-simulation time to make compiling documentation faster
+
 .. _whats-new.2025.10.0:
 
 :release:`v2025.10.0`
