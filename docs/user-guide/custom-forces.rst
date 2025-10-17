@@ -4,7 +4,7 @@ Including custom forces
 
 .. rubric:: by David A. Minton
 
-Swiftest includes a mechanism that allows users to add their own custom forces to act on bodies in their simulations. This will require writing a Fortran function and compiling a local copy of the Swiftest executable. Be sure to review instructions on how to compile from the :doc:`Getting Started Guide <getting-started-guide/index>`.
+Swiftest includes a mechanism that allows users to add their own custom forces to act on bodies in their simulations. This will require writing a Fortran function and compiling a local copy of the Swiftest executable. Be sure to review instructions on how to compile from the :doc:`Getting Started Guide <../getting-started-guide/index>`.
 
 First, create a file called ``swiftest_user.f90`` using the following template:
 
