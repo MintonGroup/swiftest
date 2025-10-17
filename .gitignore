@@ -32,6 +32,7 @@ swiftest/_version.py
 !pyproject.toml
 !src/
 !src/**/*.f90
+!src/user/
 src/globals/globals_module.f90
 !environments/
 !environments/*.yml
@@ -41,6 +42,7 @@ src/globals/globals_module.f90
 !environments/swiftest-dev.yml
 !examples/
 !examples/** 
+
 
 #Documentation
 !.readthedocs.yaml

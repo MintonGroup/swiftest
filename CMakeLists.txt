@@ -240,6 +240,8 @@ INCLUDE(SetParallelizationLibrary)
 
 INCLUDE(SetSwiftestFlags) 
 
+SET(SWIFTEST_USER_DIR "${CMAKE_SOURCE_DIR}/src/user" CACHE PATH "Path to user-defined source directory")
+
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${CMAKE_INSTALL_BINDIR})
 ADD_SUBDIRECTORY(${PY})
