@@ -3,8 +3,7 @@
 Swiftest
 ========
 
-Swiftest is a software packaged designed to model the long-term dynamical dynamics of n-body systems with a dominant central body, 
-like the solar system. 
+Swiftest is a software packaged designed to model the long-term dynamical dynamics of n-body systems with a dominant central body, like the solar system. 
 
 
 **Useful links**:
@@ -67,7 +66,7 @@ like the solar system.
    :caption: For developers/contributors
 
    Contributing Guide <contributing>
-   What’s New <whats-new>
+   What's New <whats-new>
    GitHub repository <https://github.com/MintonGroup/swiftest>
 
 .. toctree::

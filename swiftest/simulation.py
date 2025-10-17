@@ -322,6 +322,9 @@ class Simulation:
             else:
                 display_style = "quiet"
 
+        # Prevent NetCDF file locking
+        os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
+
         # Set up signal handling to catch termination signals
         try:
             with _cwd(self.simdir):
@@ -380,23 +383,9 @@ class Simulation:
                 f"Running a {self.codename} {self.integrator} run from tstart={self.param['TSTART']} {self.TU_name} to tstop={self.param['TSTOP']} {self.TU_name}"
             )
 
-        # This is temporary until a better algorithm for setting OMP_NUM_THREADS is implemented
-        omp_num_threads_old = None
-        if self.init_cond.isel(time=0).npl.values[()] < 100:
-            if "OMP_NUM_THREADS" in os.environ:
-                omp_num_threads_old = os.environ["OMP_NUM_THREADS"]
-            os.environ["OMP_NUM_THREADS"] = "1"
-
-        # Prevent NetCDF file locking
-        os.environ["HDF5_USE_FILE_LOCKING"] = "FALSE"
-
         self._run_swiftest_driver(verbose=verbose)
         if verbose:
             print("\nRun complete.")
-        if omp_num_threads_old:
-            os.environ["OMP_NUM_THREADS"] = omp_num_threads_old
-        else:
-            del os.environ["OMP_NUM_THREADS"]
 
         # Read in new data
         self.read_output_file(dask=dask, read_encounters=True, read_collisions=True, verbose=verbose)
