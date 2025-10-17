@@ -78,7 +78,7 @@ for more details and installation instructions.
 
 Central body gravity is modeled using the `SHTOOLS library <https://shtools.github.io/SHTOOLS/>`. 
 It is necessary to build and install SHTOOLS before building Swiftest. Optionally the ``pySHTOOLS`` package may also be installed
-in order to use the tools to compute spherical harmonics cofficients for the central body when generating initial conditions, but is not required.
+in order to use the tools to compute spherical harmonics coefficients for the central body when generating initial conditions, but is not required.
 
 Swiftest is written in Modern Fortran and must be compiled using an
 appropriate compiler. We recommend the Intel Fortran Compiler Classic
@@ -116,13 +116,13 @@ These dependencies can be installed on a RedHat based system by running the foll
 .. code-block:: bash
 
    sudo yum install epel-release 
-   sudo yum install doxygen libxml2-devel libcurl-devel fftw-static openblas-devel lapack-devel cmake ninja-build gcc-gfortran graphviz
+   sudo yum install doxygen libxml2-devel libcurl-devel fftw-static openblas-static openmpi-devel lapack-devel cmake ninja-build gcc-gfortran openmpi-devel graphviz
 
 On a Debian based system, the dependencies can be installed by running the following commands from the command line
 
 .. code-block:: bash
 
-   sudo apt-get install doxygen libxml2-dev libcurl4-openssl-dev libfftw3-dev libopenblas-dev liblapack-dev cmake ninja-build gfortran graphviz
+   sudo apt-get install doxygen libxml2-dev libcurl4-openssl-dev libfftw3-dev libopenblas-dev liblapack-dev cmake ninja-build gfortran libopenmpi-dev graphviz
 
 On a MacOS system, be sure homebrew is installed.
 
@@ -130,34 +130,55 @@ On a MacOS system, be sure homebrew is installed.
    
    brew install coreutils
 
-We provide a script that can be used to set environment variables prior to building the dependencies called ``set_environment.sh``. 
-Building the dependencies can be done by running the following command from the command line
+The most critical dependency needed by Swiftest is netcdf-fortran. However, netcdf-fortran requires netcdf (which requires HDF5, and so on). netcdf-fortran must be compiled using the same compiler that builds Swiftest in order that the `.mod` files are compatible. On MacOS systems, the version of netcdf-fortran available in Homebrew satisfies this condition, as long as you also use `gfortran` from homebrew. Therefore on MacOS systems, you can simply use the Homebrew versions of things:
+
+.. code-block:: bash
+
+   brew install gfortran netcdf-fortran
+
+However, if you need to build netcdf-fortran (and its chain of dependencies) manually, we provide a comprehensive dependency-building script called `build_dependencies.sh`. We also provide a script that can be used to set environment variables prior to building the dependencies called `set_environment.sh`. Building the dependencies can be done by running the following command from the command line
 
 .. code-block:: bash
 
    . buildscripts/set_environment.sh
    buildscripts/build_dependencies.sh
 
-Note that the above scripts will use gfortran to build the dependencies. If you wish to use the Intel Fortran Compiler, you will need to modify the build scripts to use the Intel Fortran Compiler.
-
+Note that the above scripts will use gfortran to build the dependencies.  If you wish to use the Intel Fortran Compiler, you will need to modify the build scripts to use the Intel Fortran Compiler.
 
 Building the Swiftest Python Package and Executable
 ---------------------------------------------------
 
-Once dependencies are installed, you can install the Swiftest Python package and the Swiftest executable by running the following command from the command line
+Once dependencies are installed, you can install the Swiftest Python package and the Swiftest executable into an active Python environment by running the following command from the command line:
 
 .. code-block:: bash
 
    pip install .
 
-Or, alternatively, if you wish to install an editable version
+Or, alternatively, if you wish to install an editable version, be sure that you have the build dependencies installed in your Python environment:
+
+.. code-block:: bash
+
+   pip install scikit-build-core cython numpy setuptools setuptools_scm
+
+Then build and install the editable version:
 
 .. code-block:: bash
 
    pip install --no-build-isolation -ve .
 
+You can test your installation using pytest. Be sure it is first installed into your Python environment:
 
-Building the exectuable using CMake
+.. code-block:: bash
+
+   pip install pytest
+
+Then run the tests from the topmost directory in your Swiftest repository:
+
+.. code-block:: bash
+
+   python -m pytest tests
+
+Building the executable using CMake
 -----------------------------------
 
 Although Swiftest is designed to be run from Python, it is also possible to run Swiftest simulations from the command line using the ``swiftest`` executable, provided it has 
@@ -259,10 +280,14 @@ depending on your platform, should now be created in the ``build/bin/`` director
 You may need to run the above command as root or with sudo if you are installing into a system directory.
 
 
-Building the exectuable using Docker
-------------------------------------
+Passing CMake arguments to pip
+------------------------------
 
-TBD
+If you are installing Swiftest using pip and wish to pass CMake arguments, you can do so by using the ``--config-settings=cmake.args`` option. For example, to set a custom directory location for user-defined forces in an editable install in debug mode, you could do this:
+
+.. code-block:: bash
+
+   pip install --config-settings=cmake.build-type="DEBUG" --config-settings=cmake.args="-DSWIFTEST_USER_DIR='/full/path/to/folder'" --no-build-isolation -ve .
 
 
 .. toctree::

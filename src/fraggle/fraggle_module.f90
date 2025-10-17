@@ -24,7 +24,6 @@ module fraggle
    real(DP) :: Mslr, Mrat
 
    type, extends(collision_basic) :: collision_fraggle
-      real(DP) :: fail_scale !! Scale factor to apply to distance values in the position model when overlaps occur. 
    contains
       procedure :: generate      => fraggle_generate           
          !! A simple disruption models that does not constrain energy loss in collisions

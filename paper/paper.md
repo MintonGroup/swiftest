@@ -19,18 +19,18 @@ authors:
   - name: Dana Singh
     affiliation: "5"
   - name: Kaustub Anand
-    affiliation: "1, 2"
+    affiliation: "1,2"
   - name: David Minton
-    affiliation: "1"
+    affiliation: "1,2,3"
     orcid: 0000-0003-1656-9704
     equal-contrib: true 
     corresponding: true 
 affiliations:
   - name: Department of Earth, Atmospheric, and Planetary Sciences, Purdue University, USA
     index: 1
-  - name: School of Aeronautics and Astronautics, Purdue University, USA
-    index: 2
   - name: Department of Physics and Astronomy, Purdue University, USA
+    index: 2
+  - name: School of Aeronautics and Astronautics, Purdue University, USA
     index: 3
   - name: Evansville Museum of Arts, History & Science, USA
     index: 4

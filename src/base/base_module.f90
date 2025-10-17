@@ -754,7 +754,7 @@ module base
          case default
             write(iu, FAIL_MSG) VERSION
             write(iu, BAR)
-            stop 
+            error stop FAIL_MSG
          end select
 #ifdef COARRAY
          end if
