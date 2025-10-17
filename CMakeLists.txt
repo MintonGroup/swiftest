@@ -1,4 +1,4 @@
-# Copyright 2024 - The Minton Group at Purdue University
+# Copyright 2025 - David Minton
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -40,7 +40,7 @@ IF(DEFINED ENV{FC})
 ELSE()
     # If FC is not set, search for the Fortran compilers in the specified order.
     FIND_PROGRAM(Fortran_COMPILER
-               NAMES gfortran-14 gfortran-13 gfortran-12 gfortran ifort mpiifort
+               NAMES gfortran-15 gfortran-14 gfortran-13 gfortran-12 gfortran ifort mpiifort
                DOC "Fortran compiler")
 
     # If a compiler is found, set it as the Fortran compiler.
@@ -239,6 +239,8 @@ ENDIF()
 INCLUDE(SetParallelizationLibrary)
 
 INCLUDE(SetSwiftestFlags) 
+
+SET(SWIFTEST_USER_DIR "${CMAKE_SOURCE_DIR}/src/user" CACHE PATH "Path to user-defined source directory")
 
 # The source for the SWIFTEST binary and have it placed in the bin folder
 ADD_SUBDIRECTORY(${SRC} ${CMAKE_INSTALL_BINDIR})

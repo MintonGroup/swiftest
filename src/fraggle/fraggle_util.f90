@@ -82,9 +82,6 @@ contains
       if (lfailure) return
       call fraggle_generate_rot_vec(self, nbody_system, param)
 
-      ! Increase the spatial size factor to get a less dense cloud
-      self%fail_scale = self%fail_scale * 1.001_DP
-
    end subroutine fraggle_util_restructure
 
    module subroutine fraggle_util_set_mass_dist(self, param)

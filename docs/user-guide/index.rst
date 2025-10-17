@@ -14,6 +14,8 @@ In this user guide, you will find detailed descriptions and examples that descri
 
 - Understanding the :doc:`Gravitational Harmonics capabilities <gravitational-harmonics>`
 
+- Adding custom forces with :doc:`Including Custom Forces <custom-forces>`
+
 .. toctree::
    :maxdepth: 2
    :hidden:
@@ -23,3 +25,4 @@ In this user guide, you will find detailed descriptions and examples that descri
    Planetocentric Initial Conditions <planetocentric-init_cond>
    Using the standalone executable <standalone-executable>
    Using SHTOOLS to model non-spherical central bodies <gravitational-harmonics>
+   Including custom forces <custom-forces>
