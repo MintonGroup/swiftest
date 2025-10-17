@@ -52,8 +52,8 @@ contains
             !    end if
             ! end if
          end if
-         if (param%lextra_force) call pl%accel_user(nbody_system, param, t, lbeg)
          if (param%lgr) call pl%accel_gr(param)
+         if (param%lextra_force) call pl%accel_user(nbody_system, param, t, lbeg)
       end associate
 
       return
@@ -92,8 +92,8 @@ contains
             end if
          end if
          if (param%lnon_spherical_cb) call tp%accel_non_spherical_cb(nbody_system)
-         if (param%lextra_force) call tp%accel_user(nbody_system, param, t, lbeg)
          if (param%lgr) call tp%accel_gr(param)
+         if (param%lextra_force) call tp%accel_user(nbody_system, param, t, lbeg)
       end associate
 
       return

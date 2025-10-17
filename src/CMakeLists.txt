@@ -1,4 +1,4 @@
-# Copyright 2024 - The Minton Group at Purdue University
+# Copyright 2025 - David Minton
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -39,7 +39,6 @@ SET(STRICT_MATH_FILES
             ${SRC}/swiftest/swiftest_gr.f90       
             ${SRC}/swiftest/swiftest_io.f90         
             ${SRC}/swiftest/swiftest_kick.f90 
-            ${SRC}/swiftest/swiftest_user.f90
             ${SRC}/swiftest/swiftest_obl.f90    
             ${SRC}/swiftest/swiftest_orbel.f90
             ${SRC}/symba/symba_drift.f90
@@ -96,6 +95,17 @@ SET(COARRAY_FILES
 )
 
 SET(DRIVER_src ${SRC}/main/main.f90)
+
+# Look for user-defined source file and replace the stub with it if it exists
+SET(SWIFTEST_USER_FILE "${SWIFTEST_USER_DIR}/swiftest_user.f90")
+SET(SWIFTEST_DEFAULT_USER_FILE "${CMAKE_SOURCE_DIR}/src/swiftest/swiftest_user.f90")
+IF(EXISTS "${SWIFTEST_USER_FILE}")
+  MESSAGE(STATUS "Using user-defined ${SWIFTEST_USER_FILE}")
+  LIST(APPEND STRICT_MATH_FILES "${SWIFTEST_USER_FILE}")
+ELSE()
+  MESSAGE(STATUS "Using default ${SWIFTEST_DEFAULT_USER_FILE}")
+  LIST(APPEND STRICT_MATH_FILES "${SWIFTEST_DEFAULT_USER_FILE}")
+ENDIF()
 
 # Combine all source files 
 set(SWIFTEST_src ${FAST_MATH_FILES} ${STRICT_MATH_FILES})
@@ -208,7 +218,13 @@ do concurrent(i = 1:10) shared(a)
 end do
 end program TestDoConcurrentLoc
 ")
-TRY_COMPILE(DOCONLOC_WORKS ${CMAKE_BINARY_DIR} ${TESTFILE} COMPILE_DEFINITIONS "${CMAKE_Fortran_FLAGS}" OUTPUT_VARIABLE OUTPUT)
+# TODO: Fix the locality-spec issues that are causing bugs in the RMVS/WHM integrations with gfortran-15. Locality-spec is disabled for now.
+IF (COMPILER_OPTIONS STREQUAL "GNU")
+    SET(DOCONLOC_WORKS OFF)
+ELSE ()
+    TRY_COMPILE(DOCONLOC_WORKS ${CMAKE_BINARY_DIR} ${TESTFILE} COMPILE_DEFINITIONS "${CMAKE_Fortran_FLAGS}" OUTPUT_VARIABLE OUTPUT)
+ENDIF ()
+
 IF (DOCONLOC_WORKS)
     MESSAGE(STATUS "DO CONCURRENT supports locality-spec")
     TARGET_COMPILE_DEFINITIONS(${SWIFTEST_LIBRARY} PRIVATE -DDOCONLOC)

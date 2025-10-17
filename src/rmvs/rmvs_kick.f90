@@ -98,8 +98,8 @@ contains
 
                         ! If the heliocentric-specifc acceleration terms are requested, compute those now
                         if (param%lnon_spherical_cb) call tp%accel_non_spherical_cb(system_planetocen)
-                        if (param%lextra_force) call tp%accel_user(system_planetocen, param, t, lbeg)
                         if (param%lgr) call tp%accel_gr(param)
+                        if (param%lextra_force) call tp%accel_user(system_planetocen, param, t, lbeg)
 
                         ! Put everything back the way we found it
                         call move_alloc(rh_original, tp%rh)

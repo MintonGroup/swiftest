@@ -2,7 +2,7 @@
 # This script will build all of the dependency libraries needed by Swiftest. Builds the following from source:
 # Ninja, libaec, bzip2, zstd, hdf5, netcdf-c, netcdf-fortran
 # 
-# Copyright 2024 - The Minton Group at Purdue University
+# Copyright 2025 - David Minton
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -21,7 +21,7 @@ cd "${ROOT_DIR}"
 
 echo "Checking for Ninja"
 if ! command -v ninja &> /dev/null; then
-    NINJA_VER="1.11.1"
+    NINJA_VER="1.13.1"
 
     printf "*********************************************************\n"
     printf "*             FETCHING NINJA SOURCE                      *\n"
@@ -62,12 +62,12 @@ ${SCRIPT_DIR}/build_netcdf-fortran.sh
 ${SCRIPT_DIR}/build_shtools.sh 
 ${SCRIPT_DIR}/build_opencoarrays.sh
 
-if [ $OS = "Linux" ]; then
-    FORTNAME="$(basename $OMPI_FC)"
-    if [ $FORTNAME="gfortran" ]; then
-        "${SCRIPT_DIR}"/build_opencoarrays.sh
-    fi
-fi
+#if [ $OS = "Linux" ]; then
+#    FORTNAME="$(basename $OMPI_FC)"
+#    if [ $FORTNAME="gfortran" ]; then
+#        "${SCRIPT_DIR}"/build_opencoarrays.sh
+#    fi
+#fi
 
 printf "\n"
 printf "*********************************************************\n"

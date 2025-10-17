@@ -1,24 +1,18 @@
-! Copyright 2025 - David Minton
-! This file is part of Swiftest.
-! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
-! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
-! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-! You should have received a copy of the GNU General Public License along with Swiftest. 
-! If not, see: https://www.gnu.org/licenses. 
+# Including custom extra acceleration functions
 
+If you wish to include custom user-defined forces, create a file called `swiftest_user.f90` using the following template:
+
+```fortran
 submodule(swiftest) s_swiftest_user
    use swiftest
 contains
    module subroutine swiftest_user_kick_getacch_body(self, nbody_system, param, t, lbeg)
-      !! author: David A. Minton
+      !! author: Your Name
       !!
-      !! Add user-supplied heliocentric accelerations to planets.
+      !! Description of the function
       !!
       !! Adapted from David E. Kaufmann's Swifter routine whm_user_kick_getacch.f90
       !! 
-      !! Do not alter this file. See the instruction in the src/user folder for including custom user accelerations.
-      !!
       implicit none
       ! Arguments
       class(swiftest_body),         intent(inout) :: self   
@@ -32,9 +26,18 @@ contains
       logical,                      intent(in)    :: lbeg   
          !! Logical flag that determines whether or not this is the beginning or end of the step
 
-      ! THIS SUBROUTINE IS INTENTIALLY LEFT BLANK.
+      ! Internals: Add your own variables here
+      integer(I4B) :: i
+
+      ! Your code goes here
+      ! do i = 1, self%nbody
+      ! ...
+      ! end do
 
       return
    end subroutine swiftest_user_kick_getacch_body
 
 end submodule s_swiftest_user
+```
+
+By default, CMake will look for a `swiftest_user.f90` file here and automatically include it into the build if it exists. However, if you wish to you can place this file in a different directory and pass `-DSWIFTEST_USER_DIR=/full/path/to/folder` to CMake (see build instructions [here](https://swiftest.readthedocs.io/en/latest/getting-started-guide/index.html#building-the-executable-using-cmake) for details of how to set CMake options).

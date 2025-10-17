@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script will hdf5 from source
 # 
-# Copyright 2024 - The Minton Group at Purdue University
+# Copyright 2025 - David Minton
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -9,8 +9,7 @@
 # of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with Swiftest. 
 # If not, see: https://www.gnu.org/licenses. 
-HDF5_VER="1.14.4"
-HDF5_SUBVER="2"
+HDF5_VER="1.14.6"
 
 SCRIPT_DIR=$(realpath "$(dirname "$0")")
 ROOT_DIR=$(realpath "${SCRIPT_DIR}/..")
@@ -31,14 +30,14 @@ printf "*             FETCHING HDF5 SOURCE                      *\n"
 printf "*********************************************************\n"
 printf "Copying files to ${DEPENDENCY_DIR}\n"
 
-HDF5_SRC_DIR="${DEPENDENCY_DIR}"/hdf5-${HDF5_VER}-${HDF5_SUBVER}
+HDF5_SRC_DIR="${DEPENDENCY_DIR}"/hdf5-${HDF5_VER}
 
 printf "Checking if HDF5 source directory exists\n"
 if [[ (-d "${HDF5_SRC_DIR}") && (-f "${HDF5_SRC_DIR}"/README.md) ]]; then
     OLDVER=$(grep version "${HDF5_SRC_DIR}"/README.md | awk '{print $3}' | sed 's/\./_/g')
     printf "Existing copy of HDF5 source detected\n"
 else 
-    curl -s -L https://github.com/HDFGroup/hdf5/releases/download/hdf5_${HDF5_VER}.${HDF5_SUBVER}/hdf5-${HDF5_VER}-${HDF5_SUBVER}.tar.gz | tar xvz -C "${DEPENDENCY_DIR}"
+    curl -s -L https://github.com/HDFGroup/hdf5/releases/download/hdf5_${HDF5_VER}/hdf5-${HDF5_VER}.tar.gz | tar xvz -C "${DEPENDENCY_DIR}"
 fi
 printf "\n"
 printf "*********************************************************\n"
@@ -91,9 +90,10 @@ ARGLIST="-DCMAKE_INSTALL_PREFIX:PATH=${HDF5_ROOT} \
     -DHDF5_TEST_SERIAL:BOOL=OFF \
     -DHDF5_TEST_SWMR:BOOL=OFF \
     -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON \
-    -DHDF5_ENABLE_PARALLEL:BOOL:BOOL=ON \
+    -DHDF5_ENABLE_PARALLEL:BOOL=OFF \
     -DHDF5_BUILD_PARALLEL_TOOLS:BOOL=OFF \
-    -DHDF5_ENABLE_THREADSAFE:BOOL=OFF" 
+    -DHDF5_ENABLE_THREADSAFE:BOOL=OFF \
+    -DHDF5_BUILD_HL_LIB:BOOL=ON"
 
 if [ $OS = "Darwin" ]; then
     ARGLIST="${ARGLIST} -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=OFF"
