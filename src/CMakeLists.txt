@@ -39,7 +39,6 @@ SET(STRICT_MATH_FILES
             ${SRC}/swiftest/swiftest_gr.f90       
             ${SRC}/swiftest/swiftest_io.f90         
             ${SRC}/swiftest/swiftest_kick.f90 
-            ${SRC}/swiftest/swiftest_user.f90
             ${SRC}/swiftest/swiftest_obl.f90    
             ${SRC}/swiftest/swiftest_orbel.f90
             ${SRC}/symba/symba_drift.f90
@@ -96,6 +95,17 @@ SET(COARRAY_FILES
 )
 
 SET(DRIVER_src ${SRC}/main/main.f90)
+
+# Look for user-defined source file and replace the stub with it if it exists
+SET(SWIFTEST_USER_FILE "${SWIFTEST_USER_DIR}/swiftest_user.f90")
+SET(SWIFTEST_DEFAULT_USER_FILE "${CMAKE_SOURCE_DIR}/src/swiftest/swiftest_user.f90")
+IF(EXISTS "${SWIFTEST_USER_FILE}")
+  MESSAGE(STATUS "Using user-defined ${SWIFTEST_USER_FILE}")
+  LIST(APPEND STRICT_MATH_FILES "${SWIFTEST_USER_FILE}")
+ELSE()
+  MESSAGE(STATUS "Using default ${SWIFTEST_DEFAULT_USER_FILE}")
+  LIST(APPEND STRICT_MATH_FILES "${SWIFTEST_DEFAULT_USER_FILE}")
+ENDIF()
 
 # Combine all source files 
 set(SWIFTEST_src ${FAST_MATH_FILES} ${STRICT_MATH_FILES})
@@ -209,8 +219,12 @@ end do
 end program TestDoConcurrentLoc
 ")
 # TODO: Fix the locality-spec issues that are causing bugs in the RMVS/WHM integrations with gfortran-15. Locality-spec is disabled for now.
-#TRY_COMPILE(DOCONLOC_WORKS ${CMAKE_BINARY_DIR} ${TESTFILE} COMPILE_DEFINITIONS "${CMAKE_Fortran_FLAGS}" OUTPUT_VARIABLE OUTPUT)
-SET(DOCONLOC_WORKS OFF)
+IF (COMPILER_OPTIONS STREQUAL "GNU")
+    SET(DOCONLOC_WORKS OFF)
+ELSE ()
+    TRY_COMPILE(DOCONLOC_WORKS ${CMAKE_BINARY_DIR} ${TESTFILE} COMPILE_DEFINITIONS "${CMAKE_Fortran_FLAGS}" OUTPUT_VARIABLE OUTPUT)
+ENDIF ()
+
 IF (DOCONLOC_WORKS)
     MESSAGE(STATUS "DO CONCURRENT supports locality-spec")
     TARGET_COMPILE_DEFINITIONS(${SWIFTEST_LIBRARY} PRIVATE -DDOCONLOC)

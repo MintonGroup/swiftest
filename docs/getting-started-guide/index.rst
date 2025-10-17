@@ -280,10 +280,14 @@ depending on your platform, should now be created in the ``build/bin/`` director
 You may need to run the above command as root or with sudo if you are installing into a system directory.
 
 
-Building the executable using Docker
-------------------------------------
+Passing CMake arguments to pip
+------------------------------
 
-TBD
+If you are installing Swiftest using pip and wish to pass CMake arguments, you can do so by using the ``--config-settings=cmake.args`` option. For example, to set a custom directory location for user-defined forces in an editable install in debug mode, you could do this:
+
+.. code-block:: bash
+
+   pip install --config-settings=cmake.build-type="DEBUG" --config-settings=cmake.args="-DSWIFTEST_USER_DIR='/full/path/to/folder'" --no-build-isolation -ve .
 
 
 .. toctree::

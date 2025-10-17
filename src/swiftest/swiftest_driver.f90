@@ -78,23 +78,8 @@ contains
          ! Construct the main n-body nbody_system using the user-input integrator to choose the type of nbody_system
          call swiftest_util_setup_construct_system(nbody_system, param)
 
-         !> Define the maximum number of threads
-         nthreads = 1            ! In the *serial* case
-         !$ nthreads = omp_get_max_threads() ! In the *parallel* case
 #ifdef COARRAY
-         if (this_image() == 1 .or. param%log_output) then
-#endif 
-            !$ write(param%display_unit,'(a)')   ' OpenMP parameters:'
-            !$ write(param%display_unit,'(a)')   ' ------------------'
-            !$ write(param%display_unit,'(a,i3,/)') ' Number of threads = ', nthreads 
-#ifdef COARRAY
-            if (this_image() ==1) then
-#endif
-               !$ if (param%log_output.and.(param%display_style /= "QUIET")) then
-               !$    write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
-               !$ end if
-#ifdef COARRAY
-            end if
+         if (this_image() ==1) then
             if (param%lcoarray) then
                write(param%display_unit,*)   ' Coarray parameters:'
                write(param%display_unit,*)   ' -------------------'
@@ -143,6 +128,27 @@ contains
          call system_history%take_snapshot(param,nbody_system)
          call nbody_system%dump(param, system_history)
 
+         !> Define the maximum number of threads
+         nthreads = 1            ! In the *serial* case
+         ! TODO: This needs a better algorithm for determining when to use OMP
+         !$ if (nbody_system%pl%nbody > 100) then
+         !$    nthreads = omp_get_max_threads() ! In the *parallel* case
+         !$ end if
+#ifdef COARRAY
+         if (this_image() == 1 .or. param%log_output) then
+#endif 
+            !$ write(param%display_unit,'(a)')   ' OpenMP parameters:'
+            !$ write(param%display_unit,'(a)')   ' ------------------'
+            !$ write(param%display_unit,'(a,i3,/)') ' Number of threads = ', nthreads 
+#ifdef COARRAY
+            if (this_image() ==1) then
+#endif
+               !$ if (param%log_output.and.(param%display_style /= "QUIET")) then
+               !$    write(*,'(a,i3)') ' OpenMP: Number of threads = ',nthreads
+               !$ end if
+#ifdef COARRAY
+            end if
+#endif
 
          do iloop = istart, nloops
             !> Step the nbody_system forward in time

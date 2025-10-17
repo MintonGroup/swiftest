@@ -121,7 +121,7 @@ of the simulation to write the simulation data to file using the ``dump_cadence=
 .. ipython:: python
     :okwarning:
 
-    sim.set_parameter(tstop=1.0e5, tstep_out=1e3, dt=0.01, dump_cadence=0)
+    sim.set_parameter(tstop=1.0e4, tstep_out=100.0, dt=0.01, dump_cadence=0)
 
 Once everything is set up, we call the :func:`run <swiftest.Simulation.run>` method to integrate the system forward in time
 
@@ -135,30 +135,27 @@ So the following are all equivalent
 
   .. code-block:: python
 
-    sim = swiftest.Simulation(tstop=1.0e5, tstep_out=1e3, dt=0.01, dump_cadence=0)
+    sim = swiftest.Simulation(tstop=1.0e4, tstep_out=100.0, dt=0.01, dump_cadence=0)
     sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune"])
     sim.run()
 
     sim = swiftest.Simulation()
     sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune"])
-    sim.set_parameter(tstop=1.0e6, tstep_out=1e3, dt=0.01, dump_cadence=0)
+    sim.set_parameter(tstop=1.0e4, tstep_out=100.0, dt=0.01, dump_cadence=0)
     sim.run()
 
     sim = swiftest.Simulation()
     sim.add_solar_system_body(["Sun","Mercury","Venus","Earth","Mars","Jupiter","Saturn","Uranus","Neptune"])
-    sim.run(tstop=1.0e5, tstep_out=1e3, dt=0.01, dump_cadence=0)
+    sim.run(tstop=1.0e4, tstep_out=100.0, dt=0.01, dump_cadence=0)
 
 .. note::
     Swiftest uses OpenMP parallelization to help speed up the integration, however the parallelization is most effective when there
     are large numbers of bodies in the simulation. For small numbers of bodies, the overhead of parallelization can actually slow
-    the simulation down. The number of threads used by Swiftest can be controlled using the ``OMP_NUM_THREADS`` environment
+    the simulation down. Swiftest only apply parallelization if there are more than 100 massive bodies in the system. In that case,
+    The number of threads used by Swiftest can be controlled using the ``OMP_NUM_THREADS`` environment
     variable. For example, to use 4 threads, you can set the environment variable using the following command in a Unix-like shell::
 
         export OMP_NUM_THREADS=4
-
-    For our example simulation, which only includes the solar system, it is best to run the simulation with a single thread. We plan
-    to build in an adaptive thread control in the future, but for now, you must time your simulations and set the number of threads
-    manually.
 
 Analayzing Simulation Output
 =============================
