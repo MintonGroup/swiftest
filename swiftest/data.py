@@ -6,7 +6,10 @@ from scipy.spatial.transform import Rotation as R
 
 from .constants import *
 
-xr.set_options(use_new_combine_kwarg_defaults=True)
+try:
+    xr.set_options(use_new_combine_kwarg_defaults=True)
+except:
+    pass
 
 
 class SwiftestDataArray(xr.DataArray):
