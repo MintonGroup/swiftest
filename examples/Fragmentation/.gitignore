@@ -1,4 +1,5 @@
 *
 !.gitignore
 !Fragmentation_Movie.py
+!visualize_fragmentation.py
 !README.txt

@@ -358,7 +358,7 @@ if __name__ == "__main__":
     print("7. Merge")
     print("8. Merge crossing the spin barrier")
     print("9. All of the above")
-    user_selection = 1  # int(input("? "))
+    user_selection = int(input("? "))
 
     if user_selection > 0 and user_selection < 9:
         movie_styles = [available_movie_styles[user_selection - 1]]
