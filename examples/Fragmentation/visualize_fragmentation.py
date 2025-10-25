@@ -51,7 +51,7 @@ def encounter_combiner(sim):
     return ds
 
 
-sim = swiftest.Simulation(simdir="supercatastrophic_off_axis", read_data=True)
+sim = swiftest.Simulation(simdir="disruption_off_axis", read_data=True)
 ds = encounter_combiner(sim)
 plotter = pv.Plotter()
 params = {"t_index": 0}
@@ -64,26 +64,9 @@ def barycenter(ds):
     return rh.weighted(Gm).mean(dim="name").values, vh.weighted(Gm).mean(dim="name").values
 
 
-ids = ds.isel(time=params["t_index"])
-for n in ids.name:
-    if n == "":
-        continue
-    rb, vb = barycenter(ids)
-    center = ids.sel(name=n).rh.values - rb
-    radius = ids.sel(name=n).radius.values
-    vh = ids.sel(name=n).vh - vb
-    vmag = ids.sel(name=n).vh.magnitude().item()
-    vh = vh.values
-    if np.isnan(radius):
-        continue
-    sphere = pv.Sphere(radius=radius, center=center, theta_resolution=16, phi_resolution=16)
-    arrow = pv.Arrow(start=center, direction=vh, scale=vmag * 1e-6)
-    plotter.add_mesh(sphere, name=n.item())
-    plotter.add_mesh(arrow, name=n.item() + "_vel")
-
-
-def update_time(t_index):
+def plot_frame(t_index):
     plotter.clear()
+    plotter.enable_lightkit()
     ids = ds.isel(time=t_index)
     for n in ids.name:
         if n == "":
@@ -100,6 +83,10 @@ def update_time(t_index):
         arrow = pv.Arrow(start=center, direction=vh, scale=vmag * 1e-6)
         plotter.add_mesh(sphere, name=n.item())
         plotter.add_mesh(arrow, name=n.item() + "_vel")
+
+
+def update_time(t_index):
+    plot_frame(t_index)
     plotter.update()
 
 
@@ -115,6 +102,7 @@ def update_time_minus():
     update_time(params["t_index"])
 
 
+plot_frame(0)
 plotter.add_key_event("n", update_time_plus)
 plotter.add_key_event("b", update_time_minus)
 
