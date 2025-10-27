@@ -19,8 +19,16 @@ class SimulationVisualizer:
 
     def __init__(self, simdir, nframes=1000):
         self.sim = swiftest.Simulation(simdir=simdir, read_data=True)
+
         self.nframes = nframes
         self.ds = self.encounter_combiner()
+        # Set the initial frame to just after the collision
+        tcollision = self.sim.collisions.sel(collision_id=1).time.item()
+        tframe = self.ds.sel(time=tcollision, method="nearest").time.item()
+        self.iframe = np.where(self.ds.time.values == tframe)[0].item()
+        if tframe < tcollision:
+            self.iframe += 1
+
         self.plotter = pv.Plotter()
         self.plotter.clear()
         self.plotter.enable_lightkit()
@@ -29,7 +37,6 @@ class SimulationVisualizer:
         self.arrow_vectors = {}
         self.arrow_base_points = {}
         self.arrow_meshes = {}
-        self.iframe = 0
         self.rb, self.vb = self.barycenter(self.ds.isel(time=self.iframe))
         self.plotter_is_active = False
 
