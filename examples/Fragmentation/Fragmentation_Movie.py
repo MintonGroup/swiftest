@@ -159,8 +159,9 @@ body_radius["hitandrun_pure"] = [7e-6, 3.25e-6]
 
 def encounter_combiner(sim):
     """
-    Combines simulation data with encounter data to produce a dataset that contains the position,
-    mass, radius, etc. of both. It will interpolate over empty time values to fill in gaps.
+    Combines simulation data with encounter data to produce a dataset that contains the position, mass, radius, etc. of both.
+
+    It will interpolate over empty time values to fill in gaps.
     """
     # Only keep a minimal subset of necessary data from the simulation and encounter datasets
     keep_vars = ["name", "rh", "vh", "Gmass", "radius", "rot"]

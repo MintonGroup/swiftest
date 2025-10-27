@@ -65,13 +65,21 @@ class SimulationVisualizer:
             The velocity of the body relative to the barycenter.
         vmag : float
             The magnitude of the velocity of the body.
+        rot : float
+            The rotation vector of the body.
+        rotmag : float
+            The magnitude of the rotation of the body.
         """
         ds = self.ds.isel(time=self.iframe).sel(name=name)
         rcenter = ds.rh.values - self.rb
         radius = ds.radius.values
         vcenter = ds.vh.values - self.vb
         vmag = ds.vh.magnitude().item()
-        return radius, rcenter, vcenter, vmag
+        rot = ds.rot.values
+        rotmag = ds.rot.magnitude().item()
+        if rotmag == 0.0:
+            rot = np.array([0.0, 0.0, 1.0])
+        return radius, rcenter, vcenter, vmag, rot, rotmag
 
     def add_actors(self, name):
         """
@@ -82,11 +90,20 @@ class SimulationVisualizer:
         name : str
             The name of the body.
         """
-        radius, rcenter, vcenter, vmag = self.get_state(name)
+        radius, rcenter, vcenter, vmag, rot, rotmag = self.get_state(name)
         if np.isnan(vmag):
             return
-        sphere = pv.Sphere(radius=radius, center=rcenter)
-        self.plotter.add_mesh(sphere, name=name + "_body")
+
+        sphere = pv.Sphere(radius=radius, center=rcenter, direction=rot, theta_resolution=8)
+
+        # Simple checkerboard pattern for faces so that we can visually track rotation
+        n_cells = sphere.n_cells
+        colors = np.zeros(n_cells)
+        colors[::2] = 1
+        sphere.cell_data["checker"] = colors
+
+        self.plotter.add_mesh(sphere, name=name + "_body", scalars="checker", cmap=["black", "white"])
+        self.plotter.remove_scalar_bar()
         self.sphere_actors[name] = sphere
 
         # Canonical arrow geometry: unit arrow along +X at origin
@@ -148,7 +165,7 @@ class SimulationVisualizer:
         name : str
             The name of the body.
         """
-        radius, rcenter, vcenter, vmag = self.get_state(name)
+        radius, rcenter, vcenter, vmag, rot, rotmag = self.get_state(name)
         if np.isnan(vmag):
             if name in self.sphere_actors:
                 self.plotter.remove_actor(name + "_body")
@@ -162,6 +179,7 @@ class SimulationVisualizer:
         if name in self.sphere_actors and name in self.arrow_actors:
             delta_r = rcenter - self.sphere_actors[name].center
             self.sphere_actors[name].translate(delta_r, inplace=True)
+            self.sphere_actors[name].rotate_vector(vector=rot, angle=rotmag * self.dt, point=rcenter, inplace=True)
 
             # Update the existing arrow geometry in-place using a single transform of the canonical points
             vdir = vcenter / vmag
@@ -238,8 +256,10 @@ class SimulationVisualizer:
         # Add a bit of padding to the time, otherwise there are some issues with the interpolation in the last few frames.
         smooth_time = np.linspace(start=ds.time.values[0], stop=ds.time.values[-1], num=int(1.2 * self.nframes))
         ds = ds.interp(time=smooth_time)
-        ds["rotangle"] = xr.zeros_like(ds["rot"])
-        ds["rot"] = ds["rot"].fillna(0.0)
+        # ds["rot"].loc[{"space": "x"}].fillna(0.0)
+        # ds["rot"].loc[{"space": "y"}].fillna(0.0)
+        # ds["rot"].loc[{"space": "z"}].fillna(1.0)
+        self.dt = smooth_time[1] - smooth_time[0]
 
         return ds
 
@@ -295,4 +315,4 @@ class SimulationVisualizer:
         self.update_time()
 
 
-vis = SimulationVisualizer(simdir="disruption_headon")
+vis = SimulationVisualizer(simdir="disruption_off_axis")
