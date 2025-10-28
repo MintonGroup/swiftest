@@ -95,12 +95,12 @@ class SimulationVisualizer:
         if np.isnan(vmag):
             return
 
-        sphere = pv.Sphere(radius=radius, center=rcenter, direction=rot, theta_resolution=16, phi_resolution=16)
+        sphere = pv.SolidSphere(outer_radius=radius, center=rcenter, direction=rot, theta_resolution=12, phi_resolution=12)
 
         # Simple checkerboard pattern for faces so that we can visually track rotation
         n_cells = sphere.n_cells
         colors = np.zeros(n_cells)
-        colors[::3] = 1
+        colors[::2] = 1
         sphere.cell_data["checker"] = colors
 
         self.plotter.add_mesh(sphere, name=name + "_body", scalars="checker", cmap=["black", "white"])
