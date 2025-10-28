@@ -33,10 +33,12 @@ class SimulationVisualizer:
         self.plotter.clear()
         self.plotter.enable_lightkit()
         self.sphere_actors = {}
+        self.sphere_meshes = {}
         self.arrow_actors = {}
         self.arrow_vectors = {}
         self.arrow_base_points = {}
         self.arrow_meshes = {}
+        self.arrow_visibility = True
         self.rb, self.vb = self.barycenter(self.ds.isel(time=self.iframe))
         self.plotter_is_active = False
 
@@ -45,6 +47,7 @@ class SimulationVisualizer:
         self.plotter.add_key_event("b", self.update_time_minus)
         self.plotter.add_key_event("a", self.velocity_toggle)
         self.plotter_is_active = True
+        self.plotter.set_background(color="black")
         self.plotter.show()
 
     def get_state(self, name):
@@ -103,9 +106,10 @@ class SimulationVisualizer:
         colors[::2] = 1
         sphere.cell_data["checker"] = colors
 
-        self.plotter.add_mesh(sphere, name=name + "_body", scalars="checker", cmap=["black", "white"])
+        actor = self.plotter.add_mesh(sphere, name=name + "_body", scalars="checker", cmap=["dimgray", "snow"])
         self.plotter.remove_scalar_bar()
-        self.sphere_actors[name] = sphere
+        self.sphere_actors[name] = actor
+        self.sphere_meshes[name] = sphere
 
         # Canonical arrow geometry: unit arrow along +X at origin
         base_arrow = pv.Arrow(
@@ -150,7 +154,7 @@ class SimulationVisualizer:
         M[:3, 3] = rcenter
         arrow.transform(M, inplace=True)
 
-        actor = self.plotter.add_mesh(arrow, name=name + "_vel")
+        actor = self.plotter.add_mesh(arrow, name=name + "_vel", color="chocolate", opacity=0.5)
         self.arrow_actors[name] = actor  # store the pyvista Actor for fast transforms if needed
         self.arrow_meshes[name] = arrow  # store the PolyData being displayed
         self.arrow_base_points[name] = base_arrow.points.copy()  # canonical points for rebuild
@@ -169,18 +173,16 @@ class SimulationVisualizer:
         radius, rcenter, vcenter, vmag, rot, rotmag = self.get_state(name)
         if np.isnan(vmag):
             if name in self.sphere_actors:
-                self.plotter.remove_actor(name + "_body")
-                del self.sphere_actors[name]
+                self.sphere_actors[name].visibility = False  # self.plotter.remove_actor(name + "_body")
             if name in self.arrow_actors:
-                self.plotter.remove_actor(name + "_vel")
-                del self.arrow_actors[name]
-                del self.arrow_meshes[name]
-                del self.arrow_base_points[name]
+                self.arrow_actors[name].visibility = False
             return
         if name in self.sphere_actors and name in self.arrow_actors:
+            self.sphere_actors[name].visibility = True
+            self.arrow_actors[name].visibility = self.arrow_visibility
             delta_r = rcenter - self.sphere_actors[name].center
-            self.sphere_actors[name].translate(delta_r, inplace=True)
-            self.sphere_actors[name].rotate_vector(vector=rot, angle=rotmag * self.dt, point=rcenter, inplace=True)
+            self.sphere_meshes[name].translate(delta_r, inplace=True)
+            self.sphere_meshes[name].rotate_vector(vector=rot, angle=rotmag * self.dt, point=rcenter, inplace=True)
 
             # Update the existing arrow geometry in-place using a single transform of the canonical points
             vdir = vcenter / vmag
@@ -316,8 +318,9 @@ class SimulationVisualizer:
         """
         Toggle the visibility of velocity arrows in the visualization.
         """
+        self.arrow_visibility = not self.arrow_visibility
         for name in self.arrow_actors:
-            self.arrow_actors[name].visibility = not self.arrow_actors[name].visibility
+            self.arrow_actors[name].visibility = self.arrow_visibility
         self.plotter.update()
         return
 
