@@ -43,6 +43,7 @@ class SimulationVisualizer:
         self.update_time()
         self.plotter.add_key_event("n", self.update_time_plus)
         self.plotter.add_key_event("b", self.update_time_minus)
+        self.plotter.add_key_event("a", self.velocity_toggle)
         self.plotter_is_active = True
         self.plotter.show()
 
@@ -94,12 +95,12 @@ class SimulationVisualizer:
         if np.isnan(vmag):
             return
 
-        sphere = pv.Sphere(radius=radius, center=rcenter, direction=rot, theta_resolution=8)
+        sphere = pv.Sphere(radius=radius, center=rcenter, direction=rot, theta_resolution=16, phi_resolution=16)
 
         # Simple checkerboard pattern for faces so that we can visually track rotation
         n_cells = sphere.n_cells
         colors = np.zeros(n_cells)
-        colors[::2] = 1
+        colors[::3] = 1
         sphere.cell_data["checker"] = colors
 
         self.plotter.add_mesh(sphere, name=name + "_body", scalars="checker", cmap=["black", "white"])
@@ -256,9 +257,6 @@ class SimulationVisualizer:
         # Add a bit of padding to the time, otherwise there are some issues with the interpolation in the last few frames.
         smooth_time = np.linspace(start=ds.time.values[0], stop=ds.time.values[-1], num=int(1.2 * self.nframes))
         ds = ds.interp(time=smooth_time)
-        # ds["rot"].loc[{"space": "x"}].fillna(0.0)
-        # ds["rot"].loc[{"space": "y"}].fillna(0.0)
-        # ds["rot"].loc[{"space": "z"}].fillna(1.0)
         self.dt = smooth_time[1] - smooth_time[0]
 
         return ds
@@ -313,6 +311,15 @@ class SimulationVisualizer:
         if self.iframe > 0:
             self.iframe -= 1
         self.update_time()
+
+    def velocity_toggle(self):
+        """
+        Toggle the visibility of velocity arrows in the visualization.
+        """
+        for name in self.arrow_actors:
+            self.arrow_actors[name].visibility = not self.arrow_actors[name].visibility
+        self.plotter.update()
+        return
 
 
 vis = SimulationVisualizer(simdir="disruption_off_axis")
