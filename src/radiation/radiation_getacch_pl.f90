@@ -15,7 +15,7 @@ use swiftest
 
 contains
 
-    subroutine radiation_getacch_pl(body, nbody_system)
+    subroutine radiation_getacch_pl(body, nbody_system, param)
         !! author: Kaustub P. Anand and David A. Minton
         !!
         !! Calculate radiation effects on massive bodies.
@@ -25,6 +25,8 @@ contains
             !! Swiftest body object
         class(swiftest_nbody_system), intent(inout) :: nbody_system
             !! Swiftest nbody system object
+        class(swiftest_parameters),   intent(in)    :: param
+            !! Current run configuration parameters
         ! Internals
         integer(I4B)    :: i
             !! looping index
@@ -37,8 +39,13 @@ contains
                 if (body%lmask(i)) then
                     Q_pr = ()
                     rmag = sqrt(dot_product(body%rh(:, i), body%rh(:, i)))
-                    fac1 = L_sun * body%radius(i)**2 / (4 * CONST.c * rmag**2) ! SA/c = L_sun * radius^2 / (4 * c * distance^2)
-                    body%ah(i) = body%ah(i) + fac1 *  
+                    vmag = sqrt(dot_product(body%vh(:, i), body%vh(:, i)))
+                    S_vec(:) = - body%rh(:, i) / rmag * L_sun / (4.0_DP * PI * rmag**2) ! S_hat = - body%rh(:, i)
+                    
+                    fac1 = L_sun * sqrt(param%inv_c2) * body%radius(i)**2 / (4.0_DP * body%mass(i) * rmag**2) ! SA/mc = L_sun * radius^2 / (4 * c * distance^2 * pl_mass)
+
+                    body%ah(i) = body%ah(i) + fac1 * Q_pr * ((vmag * param%inv_c - 1.0_DP) * body%rh(:, i) / rmag - body%vh(:, i) * param%inv_c)
+
                 end if
             end do
         
