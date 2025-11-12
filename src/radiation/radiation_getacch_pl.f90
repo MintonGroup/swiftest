@@ -1,0 +1,52 @@
+!! Copyright 2024 - The Minton Group at Purdue University
+!! This file is part of Swiftest.
+!! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+!! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+!! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+!! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+!! You should have received a copy of the GNU General Public License along with Swiftest. 
+!! If not, see: https://www.gnu.org/licenses. 
+
+
+!! Swiftest submodule to calculate radiation effects on massive bodies
+
+submodule (radiation) s_radiation
+use swiftest
+
+contains
+
+    subroutine radiation_getacch_pl(body, nbody_system)
+        !! author: Kaustub P. Anand and David A. Minton
+        !!
+        !! Calculate radiation effects on massive bodies.
+        implicit none
+        ! Arguments
+        class(swiftest_body),         intent(inout) :: body
+            !! Swiftest body object
+        class(swiftest_nbody_system), intent(inout) :: nbody_system
+            !! Swiftest nbody system object
+        ! Internals
+        integer(I4B)    :: i
+            !! looping index
+        real(DP)        :: L_sun
+            !! Solar luminosity 
+
+        select type(body)
+        class is (swiftest_pl)
+            do i, body%nbody
+                if (body%lmask(i)) then
+                    Q_pr = ()
+                    rmag = sqrt(dot_product(body%rh(:, i), body%rh(:, i)))
+                    fac1 = L_sun * body%radius(i)**2 / (4 * CONST.c * rmag**2) ! SA/c = L_sun * radius^2 / (4 * c * distance^2)
+                    body%ah(i) = body%ah(i) + fac1 *  
+                end if
+            end do
+        
+        class is (swiftest_tp)
+            ! Do nothing for test particles
+        end select
+
+        return
+    end subroutine radiation_getacch_pl
+
+end submodule s_radiation
