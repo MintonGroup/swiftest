@@ -44,7 +44,7 @@ contains
                     
                     fac1 = L_sun * sqrt(param%inv_c2) * body%radius(i)**2 / (4.0_DP * body%mass(i) * rmag**2) ! SA/mc = L_sun * radius^2 / (4 * c * distance^2 * pl_mass)
 
-                    body%ah(i) = body%ah(i) + fac1 * Q_pr * ((vmag * param%inv_c - 1.0_DP) * body%rh(:, i) / rmag - body%vh(:, i) * param%inv_c)
+                    body%ah(:, i) = body%ah(:, i) + fac1 * Q_pr * ((vmag * param%inv_c - 1.0_DP) * body%rh(:, i) / rmag - body%vh(:, i) * param%inv_c)
 
                 end if
             end do
