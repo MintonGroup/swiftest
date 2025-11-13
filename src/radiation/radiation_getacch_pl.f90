@@ -15,7 +15,7 @@ use swiftest
 
 contains
 
-    subroutine radiation_getacch_pl(body, nbody_system, param)
+    module subroutine radiation_getacch_pl(body, nbody_system, param)
         !! author: Kaustub P. Anand and David A. Minton
         !!
         !! Calculate radiation effects on massive bodies.

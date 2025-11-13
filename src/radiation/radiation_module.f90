@@ -21,8 +21,15 @@ module radiation
     public
 
     interface
-        module subroutine radiation_getacch_pl(body, nbody_system)
+        module subroutine radiation_getacch_pl(body, nbody_system, param)
             implicit none
+            ! Arguments
+        class(swiftest_body),         intent(inout) :: body
+            !! Swiftest body object
+        class(swiftest_nbody_system), intent(inout) :: nbody_system
+            !! Swiftest nbody system object
+        class(swiftest_parameters),   intent(in)    :: param
+            !! Current run configuration parameters
 
         end subroutine radiation_getacch_pl
 
