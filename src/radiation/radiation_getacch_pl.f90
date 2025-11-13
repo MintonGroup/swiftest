@@ -32,12 +32,22 @@ contains
             !! looping index
         real(DP)        :: L_sun
             !! Solar luminosity 
+        real(DP)        :: Q_pr
+            !! Radiation pressure efficiency factor
+            !! assumed to be 1.0; Krivov, et al, 1996 http://dx.doi.org/10.1007/BF00692293 gives a good reasoning
+        real(DP)        :: rmag, vmag
+            !! magnitude of position and velocity vectors
+        real(DP), dimension(NDIM) :: S_vec
+            !! Solar radiation flux vector
+        real(DP)        :: fac1
+            !! combined SA/mc factor for acceleration calculation
+
+        Q_pr = 1.0_DP ! placeholder in case this needs to changed in the future
 
         select type(body)
         class is (swiftest_pl)
             do i, body%nbody
                 if (body%lmask(i)) then
-                    Q_pr = ()
                     rmag = sqrt(dot_product(body%rh(:, i), body%rh(:, i)))
                     vmag = sqrt(dot_product(body%vh(:, i), body%vh(:, i)))
                     S_vec(:) = - body%rh(:, i) / rmag * L_sun / (4.0_DP * PI * rmag**2) ! S_hat = - body%rh(:, i)
