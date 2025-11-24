@@ -1766,7 +1766,7 @@ module swiftest
       end subroutine swiftest_user_kick_getacch_body
    end interface
 
-   interface radiation_getacch_pl
+   interface radiation_getacch
         module subroutine radiation_getacch_pl(self, nbody_system, param)
             implicit none
             ! Arguments

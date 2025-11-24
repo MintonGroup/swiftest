@@ -20,7 +20,7 @@ module radiation
     implicit none
     public
 
-    interface radiation
+    interface radiation_getacch
         module subroutine radiation_getacch_pl(self, nbody_system, param)
             implicit none
             ! Arguments
