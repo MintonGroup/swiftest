@@ -43,6 +43,7 @@ contains
             !! combined SA/mc factor for acceleration calculation
 
         Q_pr = 1.0_DP ! placeholder in case this needs to changed in the future
+        L_sun = 3.828e26_DP * (param%TU2S)**3 / (param%MU2KG * param%DU2M**2) ! 3.828e26 W; Mamajek, et al (2015). IAU 2015 Resolution B3. https://doi.org/10.48550/arXiv.1510.07674
 
         select type(body)
         class is (swiftest_pl)
