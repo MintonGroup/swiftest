@@ -20,11 +20,11 @@ module radiation
     implicit none
     public
 
-    interface
-        module subroutine radiation_getacch_pl(body, nbody_system, param)
+    interface radiation
+        module subroutine radiation_getacch_pl(self, nbody_system, param)
             implicit none
             ! Arguments
-        class(swiftest_body),         intent(inout) :: body
+        class(swiftest_body),         intent(inout) :: self
             !! Swiftest body object
         class(swiftest_nbody_system), intent(inout) :: nbody_system
             !! Swiftest nbody system object

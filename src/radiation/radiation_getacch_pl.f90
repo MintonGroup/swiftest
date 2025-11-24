@@ -15,13 +15,13 @@ use swiftest
 
 contains
 
-    module subroutine radiation_getacch_pl(body, nbody_system, param)
+    module subroutine radiation_getacch_pl(self, nbody_system, param)
         !! author: Kaustub P. Anand and David A. Minton
         !!
         !! Calculate radiation effects on massive bodies.
         implicit none
         ! Arguments
-        class(swiftest_body),         intent(inout) :: body
+        class(swiftest_body),         intent(inout) :: self
             !! Swiftest body object
         class(swiftest_nbody_system), intent(inout) :: nbody_system
             !! Swiftest nbody system object
@@ -45,24 +45,25 @@ contains
         Q_pr = 1.0_DP ! placeholder in case this needs to changed in the future
         ! L_sun = L_SUN * (param%TU2S)**3 / (param%MU2KG * param%DU2M**2) ! 3.828e26 W; Mamajek, et al (2015). IAU 2015 Resolution B3. https://doi.org/10.48550/arXiv.1510.07674
 
-        select type(body)
-        class is (swiftest_pl)
-            do i, body%nbody
-                if (body%lmask(i)) then
-                    rmag = sqrt(dot_product(body%rh(:, i), body%rh(:, i)))
-                    vmag = sqrt(dot_product(body%vh(:, i), body%vh(:, i)))
-                    S_vec(:) = - body%rh(:, i) / rmag * L_sun / (4.0_DP * PI * rmag**2) ! S_hat = - body%rh(:, i)
-                    
-                    fac1 = L_SUN * (param%TU2S)**3 / (param%MU2KG * param%DU2M**2) * sqrt(param%inv_c2) * body%radius(i)**2 / (4.0_DP * body%mass(i) * rmag**2) ! SA/mc = L_sun * radius^2 / (4 * c * distance^2 * pl_mass)
+        associate(body => self)
+            select type(body)
+            class is (swiftest_pl)
+                do i, body%nbody
+                    if (body%lmask(i)) then
+                        rmag = sqrt(dot_product(body%rh(:, i), body%rh(:, i)))
+                        vmag = sqrt(dot_product(body%vh(:, i), body%vh(:, i)))
+                        S_vec(:) = - body%rh(:, i) / rmag * L_sun / (4.0_DP * PI * rmag**2) ! S_hat = - body%rh(:, i)
+                        
+                        fac1 = L_SUN * (param%TU2S)**3 / (param%MU2KG * param%DU2M**2) * sqrt(param%inv_c2) * body%radius(i)**2 / (4.0_DP * body%mass(i) * rmag**2) ! SA/mc = L_sun * radius^2 / (4 * c * distance^2 * pl_mass)
 
-                    body%ah(:, i) = body%ah(:, i) + fac1 * Q_pr * ((vmag * param%inv_c - 1.0_DP) * body%rh(:, i) / rmag - body%vh(:, i) * param%inv_c) ! eqn. 5 in Burns, et al, 1979. https://doi.org/10.1016/0019-1035(79)90050-2; ICARUS 40, 1 - 48 (1979)
+                        body%ah(:, i) = body%ah(:, i) + fac1 * Q_pr * ((vmag * param%inv_c - 1.0_DP) * body%rh(:, i) / rmag - body%vh(:, i) * param%inv_c) ! eqn. 5 in Burns, et al, 1979. https://doi.org/10.1016/0019-1035(79)90050-2; ICARUS 40, 1 - 48 (1979)
 
-                end if
-            end do
-        
-        class is (swiftest_tp)
-            ! Do nothing for test particles
-        end select
+                    end if
+                end do
+            
+            class is (swiftest_tp)
+                ! Do nothing for test particles
+            end select
 
         return
     end subroutine radiation_getacch_pl

@@ -47,6 +47,7 @@ module swiftest
    use io_progress_bar
    use netcdf_io
    use solver
+   use radiation
    !use advisor_annotate
    !$ use omp_lib
    implicit none
@@ -1764,6 +1765,21 @@ module swiftest
             !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine swiftest_user_kick_getacch_body
    end interface
+
+   interface radiation_getacch_pl
+        module subroutine radiation_getacch_pl(self, nbody_system, param)
+            implicit none
+            ! Arguments
+        class(swiftest_body),         intent(inout) :: self
+            !! Swiftest body object
+        class(swiftest_nbody_system), intent(inout) :: nbody_system
+            !! Swiftest nbody system object
+        class(swiftest_parameters),   intent(in)    :: param
+            !! Current run configuration parameters
+
+        end subroutine radiation_getacch_pl
+
+    end interface
 
    interface util_append
       module subroutine swiftest_util_append_arr_info(arr, source, nold, lsource_mask)
