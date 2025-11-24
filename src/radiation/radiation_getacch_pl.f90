@@ -30,11 +30,11 @@ contains
         ! Internals
         integer(I4B)    :: i
             !! looping index
-        real(DP)        :: L_sun
-            !! Solar luminosity 
+        ! real(DP)        :: L_sun
+        !     !! Solar luminosity 
         real(DP)        :: Q_pr
             !! Radiation pressure efficiency factor
-            !! assumed to be 1.0; Krivov, et al, 1996 http://dx.doi.org/10.1007/BF00692293 gives a good reasoning
+            !! assumed to be 1.0; Krivov, et al, 1996. http://dx.doi.org/10.1007/BF00692293 gives a good reasoning
         real(DP)        :: rmag, vmag
             !! magnitude of position and velocity vectors
         real(DP), dimension(NDIM) :: S_vec
@@ -43,7 +43,7 @@ contains
             !! combined SA/mc factor for acceleration calculation
 
         Q_pr = 1.0_DP ! placeholder in case this needs to changed in the future
-        L_sun = 3.828e26_DP * (param%TU2S)**3 / (param%MU2KG * param%DU2M**2) ! 3.828e26 W; Mamajek, et al (2015). IAU 2015 Resolution B3. https://doi.org/10.48550/arXiv.1510.07674
+        ! L_sun = L_SUN * (param%TU2S)**3 / (param%MU2KG * param%DU2M**2) ! 3.828e26 W; Mamajek, et al (2015). IAU 2015 Resolution B3. https://doi.org/10.48550/arXiv.1510.07674
 
         select type(body)
         class is (swiftest_pl)
@@ -53,9 +53,9 @@ contains
                     vmag = sqrt(dot_product(body%vh(:, i), body%vh(:, i)))
                     S_vec(:) = - body%rh(:, i) / rmag * L_sun / (4.0_DP * PI * rmag**2) ! S_hat = - body%rh(:, i)
                     
-                    fac1 = L_sun * sqrt(param%inv_c2) * body%radius(i)**2 / (4.0_DP * body%mass(i) * rmag**2) ! SA/mc = L_sun * radius^2 / (4 * c * distance^2 * pl_mass)
+                    fac1 = L_SUN * (param%TU2S)**3 / (param%MU2KG * param%DU2M**2) * sqrt(param%inv_c2) * body%radius(i)**2 / (4.0_DP * body%mass(i) * rmag**2) ! SA/mc = L_sun * radius^2 / (4 * c * distance^2 * pl_mass)
 
-                    body%ah(:, i) = body%ah(:, i) + fac1 * Q_pr * ((vmag * param%inv_c - 1.0_DP) * body%rh(:, i) / rmag - body%vh(:, i) * param%inv_c)
+                    body%ah(:, i) = body%ah(:, i) + fac1 * Q_pr * ((vmag * param%inv_c - 1.0_DP) * body%rh(:, i) / rmag - body%vh(:, i) * param%inv_c) ! eqn. 5 in Burns, et al, 1979. https://doi.org/10.1016/0019-1035(79)90050-2; ICARUS 40, 1 - 48 (1979)
 
                 end if
             end do
