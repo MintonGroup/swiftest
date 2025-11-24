@@ -299,7 +299,7 @@ contains
       !! author: David A. Minton
       !!
       !! Compute the contribution to the total gravitational potential due solely to the oblateness of the central body
-      !!    Returned value does not include monopole term or terms higher than J4
+      !!    Returned value does not include monopole term
       !!
       !!    Reference: MacMillan, W. D. 1958. The Theory of the Potential, (Dover Publications), 363.
       !!
