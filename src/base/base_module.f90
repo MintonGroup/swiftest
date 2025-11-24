@@ -158,6 +158,8 @@ module base
          !! Include rotation states of big bodies 
       logical :: ltides         = .false. 
          !! Include tidal dissipation  
+      logical :: lradiation     = .false. 
+         !! Include radiation effects on massive bodies
 
       ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be 
       ! updated with initial conditions values)

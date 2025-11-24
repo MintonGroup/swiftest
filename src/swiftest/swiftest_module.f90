@@ -396,6 +396,8 @@ module swiftest
          !! Compute direct cross (third) term heliocentric accelerations of massive bodies
       procedure :: accel_non_spherical_cb => swiftest_non_spherical_cb_acc_pl             
          !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
+      procedure :: accel_radiation => radiation_getacch_pl
+         !! Compute the heliocentric accelerations of bodies due to radiation pressure and Poynting-Robertson drag
       procedure :: setup => swiftest_util_setup_pl          
          !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
       ! procedure :: accel_tides    => tides_kick_getacch_pl           

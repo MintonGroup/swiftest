@@ -2574,6 +2574,9 @@ contains
                case ("TIDES")
                   call swiftest_io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%ltides = .true. 
+               case("RADIATION")
+                  call swiftest_io_toupper(param_value)
+                  if (param_value == "YES" .or. param_value == 'T') param%lradiation = .true.
                case ("INTERACTION_LOOPS")
                   call swiftest_io_toupper(param_value)
                   param%interaction_loops = param_value
@@ -3044,6 +3047,7 @@ contains
          call io_param_writer_one("GR", param%lgr, unit)
          call io_param_writer_one("ROTATION", param%lrotation, unit)
          call io_param_writer_one("TIDES", param%ltides, unit)
+         call io_param_writer_one("RADIATION", param%lradiation, unit)
          call io_param_writer_one("INTERACTION_LOOPS", param%interaction_loops, unit)
          call io_param_writer_one("ENCOUNTER_CHECK_PLPL", param%encounter_check_plpl, unit)
          call io_param_writer_one("ENCOUNTER_CHECK_PLTP", param%encounter_check_pltp, unit)
