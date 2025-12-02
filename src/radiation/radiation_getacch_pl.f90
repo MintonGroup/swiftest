@@ -21,11 +21,11 @@ contains
         !! Calculate radiation effects on massive bodies.
         implicit none
         ! Arguments
-        class(swiftest_body),         intent(inout) :: self
+        class(base_object),         intent(inout) :: self
             !! Swiftest body object
-        class(swiftest_nbody_system), intent(inout) :: nbody_system
+        class(base_nbody_system), intent(inout) :: nbody_system
             !! Swiftest nbody system object
-        class(swiftest_parameters),   intent(in)    :: param
+        class(base_parameters),   intent(in)    :: param
             !! Current run configuration parameters
         ! Internals
         integer(I4B)    :: i
@@ -48,7 +48,11 @@ contains
         associate(body => self)
             select type(body)
             class is (swiftest_pl)
-                do i, body%nbody
+            select type(nbody_system)
+            class is (swiftest_nbody_system)
+            select type(param)
+            class is (swiftest_parameters)
+                do i=1, body%nbody
                     if (body%lmask(i)) then
                         rmag = sqrt(dot_product(body%rh(:, i), body%rh(:, i)))
                         vmag = sqrt(dot_product(body%vh(:, i), body%vh(:, i)))

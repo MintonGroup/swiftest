@@ -1766,20 +1766,20 @@ module swiftest
       end subroutine swiftest_user_kick_getacch_body
    end interface
 
-   interface radiation_getacch
+   interface 
         module subroutine radiation_getacch_pl(self, nbody_system, param)
             implicit none
             ! Arguments
-        class(swiftest_body),         intent(inout) :: self
+        class(base_object),         intent(inout) :: self
             !! Swiftest body object
-        class(swiftest_nbody_system), intent(inout) :: nbody_system
+        class(base_nbody_system), intent(inout) :: nbody_system
             !! Swiftest nbody system object
-        class(swiftest_parameters),   intent(in)    :: param
+        class(base_parameters),   intent(in)    :: param
             !! Current run configuration parameters
 
         end subroutine radiation_getacch_pl
 
-    end interface
+   end interface
 
    interface util_append
       module subroutine swiftest_util_append_arr_info(arr, source, nold, lsource_mask)
