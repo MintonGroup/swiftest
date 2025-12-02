@@ -16,7 +16,7 @@ module radiation
     !! This module defines functions used for the computation of radiation effects on massive bodies.
     !! Equations taken from Burns, Lamy & Soter (1979) Icarus 40, 1-48.
 
-    use swiftest
+    use base
     implicit none
     public
 
