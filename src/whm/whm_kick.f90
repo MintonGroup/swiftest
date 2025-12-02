@@ -64,8 +64,8 @@ contains
          end if
 
          if (param%lgr) call pl%accel_gr(param) 
-         if (param%lextra_force) call pl%accel_user(nbody_system, param, t, lbeg)
          if (param%lradiation) call pl%accel_radiation(nbody_system, param)
+         if (param%lextra_force) call pl%accel_user(nbody_system, param, t, lbeg)
       end associate
 
       return
