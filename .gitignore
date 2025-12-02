@@ -33,7 +33,7 @@ swiftest/_version.py
 !src/
 !src/**/*.f90
 !src/user/
-!src/radiation/
+!src/dust/
 src/globals/globals_module.f90
 !environments/
 !environments/*.yml

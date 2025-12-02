@@ -9,7 +9,6 @@
 
 submodule(helio) s_helio_kick
    use swiftest
-   use radiation
 contains
 
    module subroutine helio_kick_getacch_pl(self, nbody_system, param, t, lbeg)
