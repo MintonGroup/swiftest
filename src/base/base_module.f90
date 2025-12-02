@@ -20,7 +20,7 @@ module base
    public
 
    !> User defined parameters that are read in from the parameters input file. 
-   !>    Each paramter is initialized to a default values. 
+   !>    Each parameter is initialized to a default values. 
    type, abstract :: base_parameters
       character(STRMAX) :: integrator 
          !! Name of the nbody integrator used  
