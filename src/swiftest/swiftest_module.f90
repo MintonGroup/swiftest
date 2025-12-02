@@ -236,6 +236,8 @@ module swiftest
          !! A constructor that sets the number of bodies and allocates all allocatable arrays
       procedure :: accel_user      => swiftest_user_kick_getacch_body       
          !! Add user-supplied heliocentric accelerations to planets
+      ! procedure :: accel_radiation => radiation_getacch_pl
+      !    !! Compute the heliocentric accelerations of bodies due to radiation pressure and Poynting-Robertson drag
       procedure :: append          => swiftest_util_append_body             
          !! Appends elements from one structure to another
       procedure :: dealloc         => swiftest_util_dealloc_body            
@@ -398,7 +400,7 @@ module swiftest
       procedure :: accel_non_spherical_cb => swiftest_non_spherical_cb_acc_pl             
          !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure :: accel_radiation => radiation_getacch_pl
-         !! Compute the heliocentric accelerations of bodies due to radiation pressure and Poynting-Robertson drag
+      !    !! Compute the heliocentric accelerations of bodies due to radiation pressure and Poynting-Robertson drag
       procedure :: setup => swiftest_util_setup_pl          
          !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
       ! procedure :: accel_tides    => tides_kick_getacch_pl           
@@ -1766,20 +1768,20 @@ module swiftest
       end subroutine swiftest_user_kick_getacch_body
    end interface
 
-   interface 
-        module subroutine radiation_getacch_pl(self, nbody_system, param)
-            implicit none
-            ! Arguments
-        class(base_object),         intent(inout) :: self
-            !! Swiftest body object
-        class(base_nbody_system), intent(inout) :: nbody_system
-            !! Swiftest nbody system object
-        class(base_parameters),   intent(in)    :: param
-            !! Current run configuration parameters
+   ! interface 
+   !      module subroutine radiation_getacch_pl(self, nbody_system, param)
+   !          implicit none
+   !          ! Arguments
+   !      class(base_object),         intent(inout) :: self
+   !          !! Swiftest body object
+   !      class(base_nbody_system), intent(inout) :: nbody_system
+   !          !! Swiftest nbody system object
+   !      class(base_parameters),   intent(in)    :: param
+   !          !! Current run configuration parameters
 
-        end subroutine radiation_getacch_pl
+   !      end subroutine radiation_getacch_pl
 
-   end interface
+   ! end interface
 
    interface util_append
       module subroutine swiftest_util_append_arr_info(arr, source, nold, lsource_mask)

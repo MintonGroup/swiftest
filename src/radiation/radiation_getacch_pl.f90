@@ -11,7 +11,7 @@
 !! Swiftest submodule to calculate radiation effects on massive bodies
 
 submodule (radiation) s_radiation
-use swiftest
+    use swiftest
 
 contains
 
@@ -46,12 +46,13 @@ contains
         ! L_sun = L_SUN * (param%TU2S)**3 / (param%MU2KG * param%DU2M**2) ! 3.828e26 W; Mamajek, et al (2015). IAU 2015 Resolution B3. https://doi.org/10.48550/arXiv.1510.07674
 
         associate(body => self)
-            select type(body)
-            class is (swiftest_pl)
             select type(nbody_system)
             class is (swiftest_nbody_system)
             select type(param)
             class is (swiftest_parameters)
+
+            select type(body)
+            class is (swiftest_pl)
                 do i=1, body%nbody
                     if (body%lmask(i)) then
                         rmag = sqrt(dot_product(body%rh(:, i), body%rh(:, i)))
