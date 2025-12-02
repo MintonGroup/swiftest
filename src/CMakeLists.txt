@@ -35,6 +35,8 @@ SET(STRICT_MATH_FILES
             ${SRC}/rmvs/rmvs_step.f90
             ${SRC}/shgrav/shgrav_accel.f90
             ${SRC}/shgrav/shgrav_pot.f90
+            ${SRC}/radiation/radiation_getacch_pl.f90
+            ${SRC}/radiation/radiation_module.f90
             ${SRC}/swiftest/swiftest_drift.f90    
             ${SRC}/swiftest/swiftest_gr.f90       
             ${SRC}/swiftest/swiftest_io.f90         
