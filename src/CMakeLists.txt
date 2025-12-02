@@ -35,14 +35,13 @@ SET(STRICT_MATH_FILES
             ${SRC}/rmvs/rmvs_step.f90
             ${SRC}/shgrav/shgrav_accel.f90
             ${SRC}/shgrav/shgrav_pot.f90
-            ${SRC}/radiation/radiation_module.f90
-            ${SRC}/radiation/radiation_getacch_pl.f90
             ${SRC}/swiftest/swiftest_drift.f90    
             ${SRC}/swiftest/swiftest_gr.f90       
             ${SRC}/swiftest/swiftest_io.f90         
             ${SRC}/swiftest/swiftest_kick.f90 
             ${SRC}/swiftest/swiftest_obl.f90    
             ${SRC}/swiftest/swiftest_orbel.f90
+            ${SRC}/swiftest/swiftest_radiation.f90
             ${SRC}/symba/symba_drift.f90
             ${SRC}/symba/symba_gr.f90
             ${SRC}/symba/symba_kick.f90
