@@ -191,7 +191,7 @@ def encounter_combiner(sim):
 
     # Interpolate in time to make a smooth, constant time step dataset
     # Add a bit of padding to the time, otherwise there are some issues with the interpolation in the last few frames.
-    smooth_time = np.linspace(start=ds.time[0], stop=ds.time[-1], num=int(1.2 * num_movie_frames))
+    smooth_time = np.linspace(start=ds.time.values[0], stop=ds.time.values[-1], num=int(1.2 * num_movie_frames))
     ds = ds.interp(time=smooth_time)
     ds["rotangle"] = xr.zeros_like(ds["rot"])
     ds["rot"] = ds["rot"].fillna(0.0)
@@ -358,7 +358,7 @@ if __name__ == "__main__":
     print("7. Merge")
     print("8. Merge crossing the spin barrier")
     print("9. All of the above")
-    user_selection = int(input("? "))
+    user_selection = 1  # int(input("? "))
 
     if user_selection > 0 and user_selection < 9:
         movie_styles = [available_movie_styles[user_selection - 1]]
