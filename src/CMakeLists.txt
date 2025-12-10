@@ -67,6 +67,7 @@ SET(FAST_MATH_FILES
             ${SRC}/helio/helio_module.f90
             ${SRC}/symba/symba_module.f90
             ${SRC}/shgrav/shgrav_module.f90
+            ${SRC}/ringmoons/ringmoons_module.f90
             ${SRC}/collision/collision_check.f90  
             ${SRC}/collision/collision_regime.f90   
             ${SRC}/collision/collision_resolve.f90  
@@ -85,6 +86,7 @@ SET(FAST_MATH_FILES
             ${SRC}/symba/symba_util.f90
             ${SRC}/walltime/walltime_implementations.f90
             ${SRC}/whm/whm_util.f90
+            ${SRC}/ringmoons/ringmoons_util.f90
 )
 
 SET(COARRAY_FILES
