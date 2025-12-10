@@ -42,6 +42,10 @@ module ringmoons
    end type ringmoons_seeds
 
    type, extends(symba_nbody_system) :: ringmoons_nbody_system
+      class(ringmoons_ring),         allocatable :: ring
+         !! Ringmoons ring object
+      class(ringmoons_seeds),        allocatable :: seeds
+         !! Ringmoons seeds object
    end type ringmoons_nbody_system
 
    interface

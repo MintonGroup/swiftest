@@ -13,6 +13,7 @@ submodule (swiftest) s_swiftest_util
    use helio
    use symba
    use fraggle
+   use ringmoons
 contains
 
 
@@ -2583,7 +2584,24 @@ contains
             allocate(collision_list_pltp :: nbody_system%pltp_collision)
          end select
       case (INT_RINGMOONS)
-         write(*,*) 'RINGMOONS-SyMBA integrator not yet enabled'
+         allocate(ringmoons_nbody_system :: nbody_system)
+         select type(nbody_system)
+         class is (ringmoons_nbody_system)
+            allocate(ringmoons_cb :: nbody_system%cb)
+            allocate(ringmoons_pl :: nbody_system%pl)
+            allocate(ringmoons_tp :: nbody_system%tp)
+            allocate(ringmoons_ring :: nbody_system%ring)
+            allocate(ringmoons_seeds :: nbody_system%seeds)
+
+            allocate(ringmoons_tp :: nbody_system%tp_discards)
+            allocate(ringmoons_pl :: nbody_system%pl_adds)
+            allocate(ringmoons_pl :: nbody_system%pl_discards)
+
+            allocate(symba_list_pltp     :: nbody_system%pltp_encounter)
+            allocate(symba_list_plpl     :: nbody_system%plpl_encounter)
+            allocate(collision_list_plpl :: nbody_system%plpl_collision)
+            allocate(collision_list_pltp :: nbody_system%pltp_collision)
+         end select
       case default
          write(*,*) 'Unkown integrator',param%integrator
          call base_util_exit(FAILURE,param%display_unit)
