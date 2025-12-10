@@ -36,6 +36,11 @@ module ringmoons
       procedure:: dealloc  => ringmoons_util_dealloc_ring
    end type ringmoons_ring
 
+   type, extends(base_object) :: ringmoons_seeds
+   contains
+      procedure:: dealloc  => ringmoons_util_dealloc_seeds
+   end type ringmoons_seeds
+
    type, extends(symba_nbody_system) :: ringmoons_nbody_system
    end type ringmoons_nbody_system
 
@@ -49,6 +54,16 @@ module ringmoons
          class(ringmoons_ring),  intent(inout) :: self 
             !! Ringmoons ring object
       end subroutine ringmoons_util_dealloc_ring
+
+      module subroutine ringmoons_util_dealloc_seeds(self)
+         !! author: David A. Minton
+         !!
+         !! Deallocates all allocatabale arrays
+         implicit none
+         ! Arguments
+         class(ringmoons_seeds),  intent(inout) :: self 
+            !! Ringmoons ring object
+      end subroutine ringmoons_util_dealloc_seeds
    end interface
 
 end module ringmoons
