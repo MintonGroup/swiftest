@@ -41,26 +41,41 @@ contains
         return
     end subroutine ringmoons_util_dealloc_ring
 
-    module subroutine ringmoons_util_dealloc_seeds(self)
+    module subroutine ringmoons_util_dealloc_pl(self)
         !! author: David A. Minton
         !!
         !! Deallocates all allocatabale arrays
         implicit none
         ! Arguments
-        class(ringmoons_seeds),  intent(inout) :: self 
+        class(ringmoons_pl),  intent(inout) :: self 
             !! Ringmoons ring object
 
-        self%nbody = 0
-        if (allocated(self%active))    deallocate(self%active)
-        if (allocated(self%a))         deallocate(self%a)
-        if (allocated(self%mass))      deallocate(self%mass)
-        if (allocated(self%Rhill))     deallocate(self%Rhill)
-        if (allocated(self%rbin))      deallocate(self%rbin)
+        if (allocated(self%is_seed))      deallocate(self%is_seed)
+        if (allocated(self%ringbin))      deallocate(self%ringbin)
         if (allocated(self%Torque))    deallocate(self%Torque)
         if (allocated(self%Ttide))     deallocate(self%Ttide)
 
+        call self%symba_pl%dealloc()
+
         return
-    end subroutine ringmoons_util_dealloc_seeds
+    end subroutine ringmoons_util_dealloc_pl
+
+    module subroutine ringmoons_util_dealloc_storage(self)
+        !! author: David A. Minton
+        !!
+        !! Resets a storage object by deallocating all items and resetting the frame counter to 0
+        use base, only : base_util_dealloc_storage
+        implicit none
+        ! Arguments
+        class(ringmoons_storage), intent(inout) :: self 
+            !! Swiftest storage object
+
+        if (allocated(self%nc)) deallocate(self%nc)
+
+        call base_util_dealloc_storage(self)
+
+        return
+    end subroutine ringmoons_util_dealloc_storage
 
 
     module subroutine ringmoons_util_setup_ring(self, n, param)
@@ -120,43 +135,84 @@ contains
         return
     end subroutine ringmoons_util_setup_ring
 
-    module subroutine ringmoons_util_setup_seeds(self, n, param)
+
+    module subroutine ringmoons_util_setup_pl(self, n, param)
         !! author: David A. Minton
         !!
-        !! Constructor for the ringmoons_seeds class. 
+        !! Constructor for the ringmoons_pl class. 
         !! Allocates space for all bins and initializes all components with a value. 
         implicit none
-        class(ringmoons_seeds),     intent(inout) :: self  
+        class(ringmoons_pl),     intent(inout) :: self  
             !! Ringmoons seeds object
         integer(I4B),               intent(in)    :: n     
             !! Number of bins to allocate space for
         class(swiftest_parameters), intent(in)    :: param 
             !! Current run configuration parameters
 
-        if (n < 0) return
-
-        call self%dealloc()
-        self%nbody = n
-
+        call self%symba_pl%setup(n, param)
         if (n == 0) return
 
-        allocate(self%active(n))
-        allocate(self%a(n))
-        allocate(self%mass(n))
-        allocate(self%Rhill(n))
-        allocate(self%rbin(n))
+        allocate(self%is_seed(n))
+        allocate(self%ringbin(n))
         allocate(self%Torque(n))
         allocate(self%Ttide(n))
 
-        self%active(:) = .false.
-        self%a(:) = 0.0_DP
-        self%mass(:) = 0.0_DP
-        self%Rhill(:) = 0.0_DP
-        self%rbin(:) = 0
+        self%is_seed(:) = .false.
+        self%ringbin(:) = 0
         self%Torque(:) = 0.0_DP
         self%Ttide(:) = 0.0_DP
 
         return
-    end subroutine ringmoons_util_setup_seeds
+    end subroutine ringmoons_util_setup_pl
+
+
+    module subroutine ringmoons_util_setup_initialize_system(self, system_history, param)
+        !! author: David A. Minton
+        !!
+        !! Initialize a Ringmoons nbody system from files
+        !!
+        implicit none
+        ! Arguments
+        class(ringmoons_nbody_system),                 intent(inout) :: self            
+            !! Ringmoons nbody system object
+        class(swiftest_storage),    allocatable, intent(inout) :: system_history  
+            !! Stores the system history between output dumps
+        class(swiftest_parameters),              intent(inout) :: param           
+            !! Current run configuration parameters 
+    
+        call symba_util_setup_initialize_system(self, system_history, param)
+
+      return
+    end subroutine ringmoons_util_setup_initialize_system
+
+    module subroutine ringmoons_util_snapshot(self, param, nbody_system, t, arg)
+        !! author: David A. Minton
+        !!
+        !! Takes a minimal snapshot of the state of the system during an ringmoons so that the trajectories
+        !! can be played back through the ringmoons
+        implicit none
+        ! Internals
+        class(ringmoons_storage),  intent(inout)        :: self         
+            !! Swiftest storage object
+        class(swiftest_parameters),    intent(inout)        :: param        
+            !! Current run configuration parameters
+        class(swiftest_nbody_system),  intent(inout)        :: nbody_system 
+            !! Swiftest nbody system object to store
+        real(DP),                  intent(in), optional :: t            
+            !! Time of snapshot if different from system time
+        character(*),              intent(in), optional :: arg          
+            !! Optional argument (needed for extended storage type used in collision snapshots)
+        ! Arguments
+
+        if (.not.present(t)) then
+            write(*,*) "ringmoons_util_snapshot_ringmoons requires `t` to be passed"
+            return
+        end if
+
+        ! if (.not.present(arg)) then
+        !     write(*,*) "ringmoons_util_snapshot_ringmoons requires `arg` to be passed"
+        !     return
+        ! end if
+    end subroutine ringmoons_util_snapshot
 
 end submodule s_ringmoons_util

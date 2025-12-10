@@ -21,8 +21,25 @@ module ringmoons
     end type ringmoons_cb
 
 
-    !> Ringmoons massive body class
+    !> Ringmoons massive body class, which is also used for seeds
     type, extends(symba_pl) :: ringmoons_pl
+        real(DP)                                  :: feeding_zone_factor 
+            !! Width of feeding zone for seed mergers in units of mutual Hill's sphere
+        real(DP)                                  :: rkf_tol      
+            !! Error tolerance for Runge-Kutta-Fehlberg integrator for seed evolution
+        real(DP)                                  :: mass_init       
+            !! initial mass of seeds
+        logical, dimension(:), allocatable        :: is_seed
+            !! Flag for whether body is a seed
+        integer(I4B), dimension(:), allocatable   :: ringbin         
+            !! Ring bin location of seed
+        real(DP), dimension(:), allocatable       :: Torque       
+            !! Total torque acting on the seed
+        real(DP), dimension(:), allocatable       :: Ttide        
+            !! Tidal torque acting on the seed
+    contains
+        procedure :: setup    => ringmoons_util_setup_pl
+        procedure :: dealloc  => ringmoons_util_dealloc_pl
     end type ringmoons_pl
 
 
@@ -91,44 +108,64 @@ module ringmoons
             !! Finalizes the ringmoons ring object - deallocates all allocatables
     end type ringmoons_ring
 
-    type, extends(base_object) :: ringmoons_seeds
-        integer(I4B)                              :: nbody            
-            !! Number of satellite seeds
-        real(DP)                                  :: feeding_zone_factor 
-            !! Width of feeding zone for seed mergers in units of mutual Hill's sphere
-        real(DP)                                  :: rkf_tol      
-            !! Error tolerance for Runge-Kutta-Fehlberg integrator for seed evolution
-        real(DP)                                  :: mass_init       
-            !! initial mass of seeds
-        logical, dimension(:), allocatable   :: active       
-            !! Flag to determine whether this body is active or not
-        real(DP), dimension(:), allocatable       :: a            
-            !! Semimajor axis of seed
-        real(DP), dimension(:), allocatable       :: mass           
-            !! Mass of seed
-        real(DP), dimension(:), allocatable       :: Rhill        
-            !! Hill's sphere radius of seed
-        integer(I4B), dimension(:), allocatable   :: rbin         
-            !! Ring bin location of seed
-        real(DP), dimension(:), allocatable       :: Torque       
-            !! Total torque acting on the seed
-        real(DP), dimension(:), allocatable       :: Ttide        
-            !! Tidal torque acting on the seed
-    contains
-        procedure :: setup    => ringmoons_util_setup_seeds
-        procedure :: dealloc  => ringmoons_util_dealloc_seeds
-        final     ::             ringmoons_final_seeds
-            !! Finalizes the ringmoons seeds object - deallocates all allocatables
-    end type ringmoons_seeds
 
     type, extends(symba_nbody_system) :: ringmoons_nbody_system
         class(ringmoons_ring),         allocatable :: ring
             !! Ringmoons ring object
-        class(ringmoons_seeds),        allocatable :: seeds
-            !! Ringmoons seeds object
     end type ringmoons_nbody_system
 
+
+    !> NetCDF dimension and variable names for the ringmoons objects
+    type, extends(netcdf_parameters) :: ringmoons_netcdf_parameters
+    contains
+        procedure :: initialize => ringmoons_io_netcdf_initialize_output 
+            !! Initialize a set of parameters used to identify a NetCDF output object
+        procedure :: open       => ringmoons_io_netcdf_open              
+            !! Open an ringmoons NetCDF file
+        final     ::               ringmoons_final_netcdf_parameters 
+            !! Finalizer will close the NetCDF file
+    end type ringmoons_netcdf_parameters 
+
+    type, extends(base_storage) :: ringmoons_storage
+        class(ringmoons_netcdf_parameters), allocatable :: nc             
+            !! NetCDF object attached to this storage object
+    contains
+        procedure :: dump             => ringmoons_io_netcdf_dump        
+            !! Dumps contents of ringmoons history to file
+        procedure :: dealloc          => ringmoons_util_dealloc_storage  
+            !! Deallocates all allocatables
+        procedure :: take_snapshot => ringmoons_util_snapshot
+            !! Take a snapshot of the ring to save to file
+        final     ::                     ringmoons_final_storage
+    end type ringmoons_storage
+
+
     interface
+        module subroutine ringmoons_io_netcdf_dump(self, param)
+            implicit none
+            class(ringmoons_storage), intent(inout)        :: self   
+                !! ringmoons storage object
+            class(base_parameters),   intent(inout)        :: param  
+                !! Current run configuration parameters 
+        end subroutine ringmoons_io_netcdf_dump
+
+        module subroutine ringmoons_io_netcdf_initialize_output(self, param)
+            implicit none
+            class(ringmoons_netcdf_parameters), intent(inout) :: self    
+                !! Parameters used to identify a particular NetCDF dataset
+            class(base_parameters),             intent(in)    :: param   
+        end subroutine ringmoons_io_netcdf_initialize_output
+
+        module subroutine ringmoons_io_netcdf_open(self, param, readonly)
+            implicit none
+            class(ringmoons_netcdf_parameters), intent(inout) :: self     
+                !! Parameters used to identify a particular NetCDF dataset
+            class(base_parameters),             intent(in)    :: param    
+                !! Current run configuration parameters
+            logical, optional,                  intent(in)    :: readonly 
+                !! Logical flag indicating that this should be open read only
+        end subroutine ringmoons_io_netcdf_open
+
         module subroutine ringmoons_util_dealloc_ring(self)
             !! author: David A. Minton
             !!
@@ -139,15 +176,21 @@ module ringmoons
                 !! Ringmoons ring object
         end subroutine ringmoons_util_dealloc_ring
 
-        module subroutine ringmoons_util_dealloc_seeds(self)
+        module subroutine ringmoons_util_dealloc_pl(self)
             !! author: David A. Minton
             !!
             !! Deallocates all allocatabale arrays
             implicit none
             ! Arguments
-            class(ringmoons_seeds),  intent(inout) :: self 
+            class(ringmoons_pl),  intent(inout) :: self 
                 !! Ringmoons ring object
-            end subroutine ringmoons_util_dealloc_seeds
+        end subroutine ringmoons_util_dealloc_pl
+
+        module subroutine ringmoons_util_dealloc_storage(self)
+            implicit none
+            class(ringmoons_storage), intent(inout) :: self 
+                !! Ringmoons storage object
+        end subroutine ringmoons_util_dealloc_storage
 
         module subroutine ringmoons_util_setup_ring(self, n, param)
             implicit none
@@ -159,15 +202,31 @@ module ringmoons
                 !! Current run configuration parameters
         end subroutine ringmoons_util_setup_ring
 
-        module subroutine ringmoons_util_setup_seeds(self, n, param)
+        module subroutine ringmoons_util_setup_pl(self, n, param)
             implicit none
-            class(ringmoons_seeds),     intent(inout) :: self  
+            class(ringmoons_pl),     intent(inout) :: self  
                 !! Ringmoons seeds object
             integer(I4B),               intent(in)    :: n     
                 !! Number of bins to allocate space for
             class(swiftest_parameters), intent(in)    :: param 
                 !! Current run configuration parameters
-        end subroutine ringmoons_util_setup_seeds
+        end subroutine ringmoons_util_setup_pl
+
+        module subroutine ringmoons_util_snapshot(self, param, nbody_system, t, arg)
+            implicit none
+            class(ringmoons_storage),      intent(inout)        :: self            
+                !! Swiftest storage object
+            class(swiftest_parameters),   intent(inout)        :: param           
+                !! Current run configuration parameters
+            class(swiftest_nbody_system), intent(inout)        :: nbody_system    
+                !! Swiftest nbody system object to store
+            real(DP),                     intent(in), optional :: t               
+                !! Time of snapshot if different from nbody_system time
+            character(*),                 intent(in), optional :: arg             
+                !! Optional argument 
+        end subroutine ringmoons_util_snapshot
+
+
     end interface
 
     contains
@@ -183,16 +242,29 @@ module ringmoons
             return
         end subroutine ringmoons_final_ring
 
-        subroutine ringmoons_final_seeds(self)
+        subroutine ringmoons_final_netcdf_parameters(self)
             !! author: David A. Minton
             !!
-            !! Finalize the ringmoons seeds object - deallocates all allocatables
+            !! Finalize the NetCDF by closing the file
             implicit none
-            ! Argument
-            type(ringmoons_seeds),  intent(inout) :: self
-                !! Ringmoons seeds object
+            ! Arguments
+            type(ringmoons_netcdf_parameters), intent(inout) :: self
+
+            call self%close()
+
+            return
+        end subroutine ringmoons_final_netcdf_parameters
+
+        subroutine ringmoons_final_storage(self)
+            !! author: David A. Minton
+            !!
+            !! Deallocates allocatable arrays in an ringmoons ring snapshot
+            implicit none
+            ! Arguments
+            type(ringmoons_storage),  intent(inout) :: self 
+                !! Ringmoons storage object
             call self%dealloc()
             return
-        end subroutine ringmoons_final_seeds
+        end subroutine ringmoons_final_storage
 
 end module ringmoons

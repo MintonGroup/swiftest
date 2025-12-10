@@ -87,6 +87,7 @@ SET(FAST_MATH_FILES
             ${SRC}/walltime/walltime_implementations.f90
             ${SRC}/whm/whm_util.f90
             ${SRC}/ringmoons/ringmoons_util.f90
+            ${SRC}/ringmoons/ringmoons_io.f90
 )
 
 SET(COARRAY_FILES

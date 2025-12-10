@@ -427,7 +427,7 @@ module encounter
       module subroutine encounter_util_dealloc_list(self)
          implicit none
          class(encounter_list), intent(inout) :: self 
-            !! Swiftest encounter list object
+            !! Encounter list object
       end subroutine encounter_util_dealloc_list
 
       module subroutine encounter_util_dealloc_snapshot(self)
@@ -439,7 +439,7 @@ module encounter
       module subroutine encounter_util_dealloc_storage(self)
          implicit none
          class(encounter_storage), intent(inout) :: self 
-            !! Swiftest storage object
+            !! Encounter storage object
       end subroutine encounter_util_dealloc_storage
 
       module subroutine encounter_util_get_idvalues_snapshot(self, idvals)
