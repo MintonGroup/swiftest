@@ -120,8 +120,6 @@ module ringmoons
     contains
         procedure :: initialize => ringmoons_io_netcdf_initialize_output 
             !! Initialize a set of parameters used to identify a NetCDF output object
-        procedure :: open       => ringmoons_io_netcdf_open              
-            !! Open an ringmoons NetCDF file
         final     ::               ringmoons_final_netcdf_parameters 
             !! Finalizer will close the NetCDF file
     end type ringmoons_netcdf_parameters 
@@ -156,15 +154,6 @@ module ringmoons
             class(base_parameters),             intent(in)    :: param   
         end subroutine ringmoons_io_netcdf_initialize_output
 
-        module subroutine ringmoons_io_netcdf_open(self, param, readonly)
-            implicit none
-            class(ringmoons_netcdf_parameters), intent(inout) :: self     
-                !! Parameters used to identify a particular NetCDF dataset
-            class(base_parameters),             intent(in)    :: param    
-                !! Current run configuration parameters
-            logical, optional,                  intent(in)    :: readonly 
-                !! Logical flag indicating that this should be open read only
-        end subroutine ringmoons_io_netcdf_open
 
         module subroutine ringmoons_util_dealloc_ring(self)
             !! author: David A. Minton
