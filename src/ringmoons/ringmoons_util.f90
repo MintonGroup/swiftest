@@ -166,24 +166,24 @@ contains
     end subroutine ringmoons_util_setup_pl
 
 
-    module subroutine ringmoons_util_setup_initialize_system(self, system_history, param)
-        !! author: David A. Minton
-        !!
-        !! Initialize a Ringmoons nbody system from files
-        !!
-        implicit none
-        ! Arguments
-        class(ringmoons_nbody_system),                 intent(inout) :: self            
-            !! Ringmoons nbody system object
-        class(swiftest_storage),    allocatable, intent(inout) :: system_history  
-            !! Stores the system history between output dumps
-        class(swiftest_parameters),              intent(inout) :: param           
-            !! Current run configuration parameters 
+    ! module subroutine ringmoons_util_setup_initialize_system(self, system_history, param)
+    !     !! author: David A. Minton
+    !     !!
+    !     !! Initialize a Ringmoons nbody system from files
+    !     !!
+    !     implicit none
+    !     ! Arguments
+    !     class(ringmoons_nbody_system),                 intent(inout) :: self            
+    !         !! Ringmoons nbody system object
+    !     class(swiftest_storage),    allocatable, intent(inout) :: system_history  
+    !         !! Stores the system history between output dumps
+    !     class(swiftest_parameters),              intent(inout) :: param           
+    !         !! Current run configuration parameters 
     
-        call symba_util_setup_initialize_system(self, system_history, param)
+    !     call symba_util_setup_initialize_system(self, system_history, param)
 
-      return
-    end subroutine ringmoons_util_setup_initialize_system
+    !   return
+    ! end subroutine ringmoons_util_setup_initialize_system
 
     module subroutine ringmoons_util_snapshot(self, param, nbody_system, t, arg)
         !! author: David A. Minton

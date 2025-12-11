@@ -154,6 +154,15 @@ module ringmoons
             class(base_parameters),             intent(in)    :: param   
         end subroutine ringmoons_io_netcdf_initialize_output
 
+        module subroutine ringmoons_io_netcdf_open(self, param, readonly)
+            implicit none
+            class(ringmoons_netcdf_parameters), intent(inout) :: self     
+                !! Parameters used to identify a particular NetCDF dataset
+            class(base_parameters),             intent(in)    :: param    
+                !! Current run configuration parameters
+            logical, optional,                  intent(in)    :: readonly 
+                !! Logical flag indicating that this should be open read only
+        end subroutine ringmoons_io_netcdf_open
 
         module subroutine ringmoons_util_dealloc_ring(self)
             !! author: David A. Minton
