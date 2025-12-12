@@ -58,7 +58,7 @@ class Simulation:
         clean: bool = False,
         dask: bool = False,
         codename: Literal["Swiftest", "Swifter", "Swift"] = "Swiftest",
-        integrator: Literal["symba", "rmvs", "whm", "helio"] = "symba",
+        integrator: Literal["symba", "rmvs", "whm", "helio", "ringmoons"] = "symba",
         coarray: bool = False,
         verbose: bool = True,
         **kwargs: Any,
@@ -117,7 +117,7 @@ class Simulation:
         coarray : bool, default False
             If true, will employ Coarrays on test particle structures to run in single program/multiple data parallel mode.
             In order to use this capability, Swiftest must be compiled for Coarray support. Only certain integrators can use
-            Coarrays. RMVS, WHM, Helio are all compatible, but SyMBA is not, due to the way tp-pl close encounters are handeled.
+            Coarrays. RMVS, WHM, Helio are all compatible, but SyMBA and Ringmoons are not, due to the way tp-pl close encounters are handeled.
         verbose : bool, default False
             If set to True, then more information is printed by Simulation methods as they are executed. Setting to
             False suppresses most messages other than errors and some warnings.
@@ -681,7 +681,7 @@ class Simulation:
         codename : {"Swiftest", "Swifter", "Swift"}, default "Swiftest"
             Name of the n-body code that will be used.
             Parameter input file equivalent is None
-        integrator : {"symba","rmvs","whm","helio"}, default "symba"
+        integrator : {"symba","rmvs","whm","helio","ringmoons"}, default "symba"
             Name of the n-body integrator that will be used when executing a run.
             Parameter input file equivalent is None
         t0 : float, default 0.0
@@ -1010,7 +1010,7 @@ class Simulation:
     def set_integrator(
         self,
         codename: None | Literal["Swiftest", "Swifter", "Swift"] = "Swiftest",
-        integrator: Literal["symba", "rmvs", "whm", "helio"] | None = None,
+        integrator: Literal["symba", "rmvs", "whm", "helio", "ringmoons"] | None = None,
         mtiny: float | None = None,
         gmtiny: float | None = None,
         **kwargs: Any,
@@ -1023,7 +1023,7 @@ class Simulation:
         codename : {"swiftest", "swifter", "swift"}, optional
             The name of the code to use. Case-insensitive valid options are swiftest, swifter, and swift. Currently only swiftest is
             is supported for excuting runs with the run() method.
-        integrator : {"symba","rmvs","whm","helio"}, optional
+        integrator : {"symba","rmvs","whm","helio","ringmoons"}, optional
             Name of the n-body integrator that will be used when executing a run.
         mtiny : float, optional
             The minimum mass of fully interacting bodies. Bodies below this mass interact with the larger bodies,
@@ -1134,7 +1134,7 @@ class Simulation:
                 key = valid_var[arg]
                 if key in integrator_dict:
                     if arg == "gmtiny":
-                        if self.integrator == "symba":
+                        if self.integrator == "symba" or self.integrator == "ringmoons":
                             print(f"{arg:<{self._getter_column_width}} {integrator_dict[key]} {self.DU_name}^3 / {self.TU_name}^2 ")
                             print(f"{'mtiny':<{self._getter_column_width}} {integrator_dict[key] / self.GU} {self.MU_name}")
                     else:
@@ -1290,10 +1290,10 @@ class Simulation:
             if collision_model is not None:
                 collision_model = collision_model.upper()
                 fragmentation = collision_model in fragmentation_models
-                if self.codename != "Swiftest" and self.integrator != "symba" and fragmentation:
+                if self.codename != "Swiftest" and self.integrator != "symba" and self.integrator != "ringmoons" and fragmentation:
                     if verbose:
                         warnings.warn(
-                            "Fragmentation is only available on Swiftest SyMBA.",
+                            "Fragmentation is only available on Swiftest SyMBA and its Ringmoons variant.",
                             stacklevel=2,
                         )
                     self.param["COLLISION_MODEL"] = "MERGE"
@@ -1331,11 +1331,11 @@ class Simulation:
                 update_list.append("nfrag_reduction")
 
             if rotation is not None:
-                if self.integrator == "symba":
+                if self.integrator == "symba" or self.integrator == "ringmoons":
                     if not rotation:
                         if verbose:
                             warnings.warn(
-                                "Rotation is on by default for SyMBA. This option is ignored",
+                                "Rotation is on by default for SyMBA and its Ringmoons variant. This option is ignored",
                                 stacklevel=2,
                             )
                     self.param["ROTATION"] = True
@@ -1347,17 +1347,17 @@ class Simulation:
                 self.param["ROTATION"] = True
                 update_list.append("rotation")
 
-            if self.integrator == "symba":
+            if self.integrator == "symba" or self.integrator == "ringmoons":
                 self.param["ENERGY"] = True
             else:
                 self.param["ENERGY"] = False
 
             if compute_conservation_values is not None:
-                if self.integrator == "symba":
+                if self.integrator == "symba" or self.integrator == "ringmoons":
                     if not compute_conservation_values:
                         if verbose:
                             warnings.warn(
-                                "Energy, angular momentum, and mass conservation values are computed by default for SyMBA. This option is ignored",
+                                "Energy, angular momentum, and mass conservation values are computed by default for SyMBA and Ringmoons. This option is ignored",
                                 stacklevel=2,
                             )
                     self.param["ENERGY"] = True
@@ -3016,6 +3016,120 @@ class Simulation:
 
         return
 
+    def add_ring(
+        self,
+        r_p: float | list[float] | npt.NDArray[np.float_],
+        m_p: float | list[float] | npt.NDArray[np.float_],
+        mass_distribution: dict,
+        **kwargs,
+    ) -> None:
+        """
+        Add a 1D eulerian ring to a simulation.
+
+        Parameters
+        ----------
+        r_p: float
+            Radius of ring particles  (DU)
+        m_p: float
+            Mass of ring particles in each bin (MU).
+        mass_distribution: dict
+            Dictionary describing the mass distribution of the ring. Options are:
+            - "powerlaw": Power-law mass distribution. Must also contain keys "nbins", "alpha", and "sigma0".
+            - "gaussian": Gaussian mass distribution. Must also contain keys "nbins", "sigma0", "mu" and "dev".
+            - "arbitrary": Arbitrary mass distribution. Must also contain keys "sigma" (an array of surface mass densities), "r_inner" and "r_outer" (the inner and outer radii of the ring).
+        **kwargs: Any
+            Additional keyword arguments. These are ignored.
+        """
+        verbose = kwargs.pop("verbose", self.verbose)
+
+        # check if the simulation has a central body
+        if not isinstance(self.data, SwiftestDataset) or len(self.data) == 0 or "Gmass" not in self.data:
+            raise ValueError("Simulation must have a central body to add a ring.")
+
+        # check if the mass distribution type is valid
+        if mass_distribution["type"] not in ["powerlaw", "gaussian", "arbitrary"]:
+            raise ValueError("mass_distribution['type'] must be one of 'powerlaw', 'gaussian', or 'arbitrary'.")
+
+        if mass_distribution["type"] == "arbitrary":
+            if "sigma" not in mass_distribution or "r_inner" not in mass_distribution or "r_outer" not in mass_distribution:
+                raise ValueError("mass_distribution must contain key 'sigma' with an array of surface mass densities.")
+            sigma = np.asarray(mass_distribution["sigma"])
+            nbins = sigma.size
+            r_inner = mass_distribution["r_inner"]
+            r_outer = mass_distribution["r_outer"]
+        else:
+            nbins = mass_distribution["nbins"]
+            r_planet = self.data.isel(name=0).radius.values.item()
+            m_planet = self.data.isel(name=0).mass.values.item()
+            rho_planet = m_planet / (4.0 / 3.0 * np.pi * r_planet**3)
+            rho_p = m_p / (4.0 / 3.0 * np.pi * r_p**3)
+            frl = 2.456 * r_planet * (rho_planet / rho_p) ** (1.0 / 3.0)
+            r_inner = 0.99 * r_planet
+            r_outer = 1.1 * frl
+
+        x = []
+        r = []
+        delta_x = (2 * np.sqrt(r_outer) - 2 * np.sqrt(r_inner)) / nbins
+        for a in range(int(nbins)):
+            x.append(2 * np.sqrt(r_inner) + delta_x * (a + 0.5))
+            r.append((0.5 * x[a]) ** 2)
+
+        if mass_distribution["type"] != "arbitrary":
+            sigma = []
+            if mass_distribution["type"] == "powerlaw":
+                alpha = mass_distribution["alpha"]
+                sigma0 = mass_distribution["sigma0"]
+                for a in range(int(nbins)):
+                    if r[a] <= r_planet:
+                        sigma.append(0.0)
+                    else:
+                        sigma.append(sigma0 * (r[a] / r_planet) ** alpha)
+            elif mass_distribution["type"] == "gaussian":
+                mu = mass_distribution["mu"]
+                dev = mass_distribution["dev"]
+                sigma0 = mass_distribution["sigma0"]
+                for a in range(int(nbins)):
+                    if r[a] <= r_planet:
+                        sigma.append(0.0)
+                    else:
+                        sigma.append(sigma0 * np.exp(-((r[a] - mu) ** 2) / (2 * dev**2)))
+            sigma = np.array(sigma)
+
+        # check if r_p and m_p are scalars, and if so, make them arrays, if not, convert them to arrays
+        r_p = np.full_like(sigma, r_p)
+        m_p = np.full_like(sigma, m_p)
+
+        # Add the ring to the simulation
+        dsnew = xr.Dataset(
+            {
+                "ring_r": (["ringbin"], r),
+                "ring_x": (["ringbin"], x),
+                "ring_sigma": (["ringbin"], sigma),
+                "ring_rp": (["ringbin"], r_p),
+                "ring_mp": (["ringbin"], m_p),
+            },
+            coords={"ringbin": np.arange(nbins)},
+        )
+        if not isinstance(dsnew, SwiftestDataset):
+            dsnew = SwiftestDataset(dsnew)
+        if self.param["OUT_TYPE"] == "NETCDF_DOUBLE":
+            dsnew = io.fix_types(dsnew, ftype=np.float64)
+        elif self.param["OUT_TYPE"] == "NETCDF_FLOAT":
+            dsnew = io.fix_types(dsnew, ftype=np.float32)
+        if "time" in self.data:
+            time = self.data["time"].values[-1:]
+        else:
+            time = np.array([0.0])
+
+        for v in ["ring_r", "ring_x", "ring_sigma", "ring_rp", "ring_mp"]:
+            dsnew[v] = dsnew[v].expand_dims(dim={"time": 1}, axis=0).assign_coords({"time": time})
+
+        self.data = xr.merge([self.data, dsnew], compat="override", join="outer")
+        if verbose:
+            print(f"Added a 1D eulerian ring with {nbins} bins to the simulation.")
+
+        return
+
     def _vec2xr(
         self,
         name: str | npt.ArrayLike[str],
@@ -3308,7 +3422,11 @@ class Simulation:
                 CB_TYPE_NAME,
                 xr.where(np.isnan(Gmass) | (Gmass == 0.0), TP_TYPE_NAME, PL_TYPE_NAME),
             )
-            if self.integrator == "symba" and "GMTINY" in self.param and self.param["GMTINY"] is not None:
+            if (
+                (self.integrator == "symba" or self.integrator == "ringmoons")
+                and "GMTINY" in self.param
+                and self.param["GMTINY"] is not None
+            ):
                 ds["particle_type"] = xr.where(
                     (ds["particle_type"] == PL_TYPE_NAME) & (Gmass < self.param["GMTINY"]),
                     PL_TINY_TYPE_NAME,
@@ -3344,12 +3462,21 @@ class Simulation:
             Gmass = ds.Gmass
             ds["ntp"] = Gmass.where((ds.id != 0) & (~np.isnan(Gmass) & (Gmass == 0.0))).count(dim=[count_dim])
             ds["npl"] = Gmass.where((ds.id != 0) & (~np.isnan(Gmass) & (Gmass > 0.0))).count(dim=[count_dim])
-            if self.integrator == "symba" and "GMTINY" in self.param and self.param["GMTINY"] is not None:
+            if (
+                (self.integrator == "symba" or self.integrator == "ringmoons")
+                and "GMTINY" in self.param
+                and self.param["GMTINY"] is not None
+            ):
                 ds["nplm"] = Gmass.where((ds.id != 0) & (~np.isnan(Gmass) & (Gmass > self.param["GMTINY"]))).count(dim=[count_dim])
         else:
             ds["ntp"] = ds.id.where(ds.id != 0).count(dim=[count_dim])
             ds["npl"] = xr.zeros_like(ds["ntp"])
-            if self.integrator == "symba" and "GMTINY" in self.param and self.param["GMTINY"] is not None:
+            if (
+                self.integrator == "symba"
+                or self.integrator == "ringmoons"
+                and "GMTINY" in self.param
+                and self.param["GMTINY"] is not None
+            ):
                 ds["nplm"] = xr.zeros_like(ds["ntp"])
         return ds
 
@@ -4165,6 +4292,11 @@ class Simulation:
             "ntp",
             "npl",
             "nplm",
+            "ring_sigma",
+            "ring_r",
+            "ring_x",
+            "ring_rp",
+            "ring_mp",
         ]
 
         vars = [k for k in ic_vars if k in ds]
@@ -4723,7 +4855,7 @@ class Simulation:
     @property
     def integrator(self) -> str:
         """
-        Literal["symba","rmvs","whm","helio"]: The name of the integrator used in the simulation. Currently supports "symba", "rmvs", "whm", and "helio".
+        Literal["symba","rmvs","whm","helio","ringmoons"]: The name of the integrator used in the simulation. Currently supports "symba", "rmvs", "whm", "helio", and "ringmoons".
         """
         return self._integrator
 
@@ -4732,7 +4864,7 @@ class Simulation:
         if not isinstance(value, str):
             raise TypeError("Integrator value must be a string")
 
-        valid_integrator = ["symba", "rmvs", "whm", "helio"]
+        valid_integrator = ["symba", "rmvs", "whm", "helio", "ringmoons"]
         if value.lower() not in valid_integrator:
             raise ValueError(
                 f"{value} is not a valid integrator. Valid options are ",

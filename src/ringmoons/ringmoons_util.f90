@@ -21,22 +21,22 @@ contains
             !! Ringmoons ring object
 
         self%nbins = 0
-        if (allocated(self%r))          deallocate(self%r)
-        if (allocated(self%X))          deallocate(self%X)
-        if (allocated(self%X2))         deallocate(self%X2)
-        if (allocated(self%r_hstar))    deallocate(self%r_hstar)
-        if (allocated(self%deltaA))     deallocate(self%deltaA)
-        if (allocated(self%sigma))      deallocate(self%sigma)
-        if (allocated(self%tau))        deallocate(self%tau)
-        if (allocated(self%nu))         deallocate(self%nu)
-        if (allocated(self%Q))          deallocate(self%Q)
-        if (allocated(self%Iz))         deallocate(self%Iz)
-        if (allocated(self%w))          deallocate(self%w)
-        if (allocated(self%Torque))     deallocate(self%Torque)
-        if (allocated(self%r_p))       deallocate(self%r_p)
-        if (allocated(self%m_p))       deallocate(self%m_p)
-        if (allocated(self%rho_p))     deallocate(self%rho_p)
-        if (allocated(self%vrel_p))    deallocate(self%vrel_p)
+        if (allocated(self%r))       deallocate(self%r)
+        if (allocated(self%X))       deallocate(self%X)
+        if (allocated(self%X2))      deallocate(self%X2)
+        if (allocated(self%r_hstar)) deallocate(self%r_hstar)
+        if (allocated(self%deltaA))  deallocate(self%deltaA)
+        if (allocated(self%sigma))   deallocate(self%sigma)
+        if (allocated(self%tau))     deallocate(self%tau)
+        if (allocated(self%nu))      deallocate(self%nu)
+        if (allocated(self%Q))       deallocate(self%Q)
+        if (allocated(self%Iz))      deallocate(self%Iz)
+        if (allocated(self%vkep))    deallocate(self%vkep)
+        if (allocated(self%Torque))  deallocate(self%Torque)
+        if (allocated(self%r_p))     deallocate(self%r_p)
+        if (allocated(self%m_p))     deallocate(self%m_p)
+        if (allocated(self%rho_p))   deallocate(self%rho_p)
+        if (allocated(self%vrel_p))  deallocate(self%vrel_p)
 
         return
     end subroutine ringmoons_util_dealloc_ring
@@ -108,7 +108,7 @@ contains
         allocate(self%nu(n))
         allocate(self%Q(n))
         allocate(self%Iz(n))
-        allocate(self%w(n))
+        allocate(self%vkep(n))
         allocate(self%Torque(n))
         allocate(self%r_p(n))
         allocate(self%m_p(n))
@@ -125,7 +125,7 @@ contains
         self%nu(:) = 0.0_DP
         self%Q(:) = 0.0_DP
         self%Iz(:) = 0.0_DP
-        self%w(:) = 0.0_DP
+        self%vkep(:) = 0.0_DP
         self%Torque(:) = 0.0_DP
         self%r_p(:) = 0.0_DP
         self%m_p(:) = 0.0_DP

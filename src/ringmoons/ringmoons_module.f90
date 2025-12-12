@@ -53,13 +53,13 @@ module ringmoons
             !! number of bins in ring
         integer(I4B) :: inside = 1          
             !! bin id of innermost ring bin (can increase if primary accretes a lot mass through updates)
-        real(DP)     :: r_F                 
+        real(DP)     :: r_outer             
             !! outside radius of ring in simulation length units
-        real(DP)     :: X_F                 
+        real(DP)     :: X_outer             
             !! outside radius of ring in X units (see Bath & Pringle 1981)
-        real(DP)     :: r_I                 
+        real(DP)     :: r_inner             
             !! inside radius of ring in simulation length units
-        real(DP)     :: X_I                 
+        real(DP)     :: X_inner            
             !! inside radius of ring in X units (see Bath & Pringle 1981)
         real(DP)     :: deltaX              
             !! variable changed bin width used for viscosity calculations in X units
@@ -89,18 +89,18 @@ module ringmoons
             !! Toomre parameter of the ring bin
         real(DP), dimension(:), allocatable :: Iz                
             !! polar moment of inertia of ring bin
-        real(DP), dimension(:), allocatable :: w                 
+        real(DP), dimension(:), allocatable :: vkep             
             !! Keplerian angular velocity of ring bin
         real(DP), dimension(:), allocatable :: Torque            
             !! total satellite torque density acting on the ring bin
         real(DP), dimension(:), allocatable :: r_p
-            !! ring particle radius
+            !! ring particle radius per bin 
         real(DP), dimension(:), allocatable :: m_p
-            !! ring particle mass
+            !! ring particle mass per bin
         real(DP), dimension(:), allocatable :: rho_p
-            !! ring particle mass density
+            !! ring particle mass density per bin
         real(DP), dimension(:), allocatable :: vrel_p
-            !! ring particle relative velocity
+            !! ring particle relative velocity per bin
     contains
         procedure :: setup    => ringmoons_util_setup_ring
         procedure :: dealloc  => ringmoons_util_dealloc_ring
