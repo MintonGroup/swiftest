@@ -156,10 +156,15 @@ module base
          !! Calculate acceleration from oblate central body (automatically turns true if nonzero J2, J4, or c_lm is input) 
       logical :: lrotation      = .false. 
          !! Include rotation states of big bodies 
+      logical :: lgr            = .false. 
+         !! Turn on GR 
       logical :: ltides         = .false. 
          !! Include tidal dissipation  
       logical :: lradiation     = .false. 
-         !! Include radiation effects on massive bodies
+         !! Include radiation effects (PR-drag + radiation pressure) on massive bodies
+      logical :: lyarkovsky = .false. 
+         !! Turn on Yarkovsky effect 
+
 
       ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be 
       ! updated with initial conditions values)
@@ -195,12 +200,10 @@ module base
          !! Logs the output to file instead of displaying it on the terminal 
 
       ! Future features not implemented or in development
-      logical :: lgr        = .false. 
-         !! Turn on GR 
-      logical :: lyarkovsky = .false. 
-         !! Turn on Yarkovsky effect 
       logical :: lyorp      = .false. 
          !! Turn on YORP effect 
+      logical :: lyarkovsky_pl = .false.
+         !! Turn on Yarkovsky effect for planetary systems (planetary IR emission + Yarkovsky-Schach (YS) effect)
    contains
       procedure :: dealloc => base_util_dealloc_param
       procedure(abstract_io_dump_param),      deferred :: dump

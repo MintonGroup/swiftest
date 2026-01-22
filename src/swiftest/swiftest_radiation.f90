@@ -16,7 +16,7 @@ contains
     module subroutine swiftest_radiation_getacch_pl(self, nbody_system, param)
         !! author: Kaustub P. Anand and David A. Minton
         !!
-        !! Calculate radiation effects on massive bodies.
+        !! Calculate radiation effects (PR-drag + radiation pressure) on massive bodies.
         implicit none
         ! Arguments
         class(swiftest_pl),         intent(inout) :: self
