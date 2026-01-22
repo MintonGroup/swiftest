@@ -9,9 +9,60 @@
 
 
 !! Swiftest submodule to calculate radiation effects on massive bodies
+!! Effects include:
+!!  - PR drag + Radiation Pressure
+!!  - Yarkovsky effect
+!!  - Planetary Yarkovsky + Yarkovsky-Schach effects
+!!  - YORP effect
 
 submodule (swiftest) s_swiftest_radiation
 contains
+
+    module subroutine swiftest_yarkovsky_getacch_pl(self, nbody_system, param)
+        !! author: Kaustub P. Anand and David A. Minton
+        !!
+        !! Calculate the Yarkovsky effect on massive bodies. 
+        !! Based on Ferich, et al, 2022 (https://iopscience.iop.org/article/10.3847/1538-4365/ac8d60) and Veras, et al, 2015 (https://academic.oup.com/mnras/article/451/3/2814/1180328)
+        implicit none
+        ! Arguments
+        class(swiftest_pl),         intent(inout) :: self
+            !! Swiftest body object
+        class(swiftest_nbody_system), intent(inout) :: nbody_system
+            !! Swiftest nbody system object
+        class(swiftest_parameters),   intent(in)    :: param
+            !! Current run configuration parameters
+        ! Internals
+
+
+        associate(pl => self)
+
+        end associate
+
+        return
+    end subroutine swiftest_yarkovsky_getacch_pl
+
+    module subroutine swiftest_yarkovsky_schach_getacch_pl(self, nbody_system, param)
+        !! author: Kaustub P. Anand and David A. Minton
+        !!
+        !! Calculate the Yarkovsky-Schach + Planetary Yarkovsky effect on massive bodies. 
+        !! Based on << >>
+        implicit none
+        ! Arguments
+        class(swiftest_pl),         intent(inout) :: self
+            !! Swiftest body object
+        class(swiftest_nbody_system), intent(inout) :: nbody_system
+            !! Swiftest nbody system object
+        class(swiftest_parameters),   intent(in)    :: param
+            !! Current run configuration parameters
+        ! Internals
+
+
+        associate(pl => self)
+
+        end associate
+
+        return
+    end subroutine swiftest_yarkovsky_schach_getacch_pl
 
     module subroutine swiftest_radiation_getacch_pl(self, nbody_system, param)
         !! author: Kaustub P. Anand and David A. Minton
@@ -28,8 +79,6 @@ contains
         ! Internals
         integer(I4B)    :: i
             !! looping index
-        ! real(DP)        :: L_sun
-        !     !! Solar luminosity 
         real(DP)        :: Q_pr
             !! Radiation pressure efficiency factor
             !! assumed to be 1.0; Krivov, et al, 1996. http://dx.doi.org/10.1007/BF00692293 gives a good reasoning
@@ -61,5 +110,28 @@ contains
 
         return
     end subroutine swiftest_radiation_getacch_pl
+
+    module subroutine swiftest_yorp_getacch_pl(self, nbody_system, param)
+        !! author: Kaustub P. Anand and David A. Minton
+        !!
+        !! Calculate the Yorp effect on massive bodies. 
+        !! Based on << >>
+        implicit none
+        ! Arguments
+        class(swiftest_pl),         intent(inout) :: self
+            !! Swiftest body object
+        class(swiftest_nbody_system), intent(inout) :: nbody_system
+            !! Swiftest nbody system object
+        class(swiftest_parameters),   intent(in)    :: param
+            !! Current run configuration parameters
+        ! Internals
+
+
+        associate(pl => self)
+
+        end associate
+
+        return
+    end subroutine swiftest_yorp_getacch_pl
 
 end submodule s_swiftest_radiation
