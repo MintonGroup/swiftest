@@ -25,21 +25,42 @@ contains
         !! Based on Ferich, et al, 2022 (https://iopscience.iop.org/article/10.3847/1538-4365/ac8d60) and Veras, et al, 2015 (https://academic.oup.com/mnras/article/451/3/2814/1180328)
         implicit none
         ! Arguments
-        class(swiftest_pl),         intent(inout) :: self
+        class(swiftest_pl),           intent(inout) :: self
             !! Swiftest body object
         class(swiftest_nbody_system), intent(inout) :: nbody_system
             !! Swiftest nbody system object
         class(swiftest_parameters),   intent(in)    :: param
             !! Current run configuration parameters
         ! Internals
+        integer(I4B)                    :: i
+            !! looping index
+        real(DP)                        :: phi, zeta
+            !! thermal lag angles in the rotational plane and orbital plane respectively
+        real(DP)                        :: rmag, vmag, h_mag, s_mag
+            !! magnitude values for respective vectors
+        real(DP), dimension(NDIM)       :: h
+            !! Specific angular mometnum vector
 
+        ! calculate constants
+        lag_angle_constants = 0.5_DP * (sigma * PI**5)**(0.25_DP) / (C * K * rho)**(0.5_DP) * L_SUN**(0.75_DP)
 
         associate(pl => self)
             do i=1, pl%nbody
                 if (pl%lmask(i)) then
-                    rmag = sqrt(dot_product(pl%rh(:, i), pl%rh(:, i)))
-                    vmag = sqrt(dot_product(pl%vh(:, i), pl%vh(:, i)))
+                    rmag = .mag. pl%rh(:, i)
+                    vmag = .mag. pl%vh(:, i) 
                     
+                    !! vb vs vh AND/OR rh vs rb; See 1255-1257 in swiftest_util.f90
+                    !! should h be made into a variable to store per body
+                    h(:) = pl%rh(:, i) .cross. pl%vh(:, i) 
+                    h_mag = .mag. h(:)
+                    s_mag = .mag. rot(:, i)
+                    n = 2*PI*pl%a(i)**(1.5_DP) / pl%mu(i) ! mean motion
+                    
+                    ! calculate thermal lag angles from eqn. 19 and 20 in Veras, et. al. (2022)
+                    phi = atan2(1.0_DP, 1 + lag_angle_constants * epsilon**(0.25_DP) * s_mag**(0.5_DP) * (1 - A)**(0.75_DP) / rmag(:, i)**(1.5_DP))
+                    zeta = atan2(1.0_DP, 1 + lag_angle_constants * epsilon**(0.25_DP) * n**(0.5_DP) * (1 - A)**(0.75_DP) / rmag(:, i)**(1.5_DP))
+
                 end if
             end do
 
