@@ -61,6 +61,12 @@ contains
                     phi = atan2(1.0_DP, 1 + lag_angle_constants * epsilon**(0.25_DP) * s_mag**(0.5_DP) * (1 - A)**(0.75_DP) / rmag(:, i)**(1.5_DP))
                     zeta = atan2(1.0_DP, 1 + lag_angle_constants * epsilon**(0.25_DP) * n**(0.5_DP) * (1 - A)**(0.75_DP) / rmag(:, i)**(1.5_DP))
 
+                    ! rotation matrices
+
+                    ! yark force magnitude
+
+                    ! add to acceleration
+                    
                 end if
             end do
 
