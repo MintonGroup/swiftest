@@ -36,19 +36,27 @@ contains
             !! looping index
         real(DP)                        :: phi, zeta
             !! thermal lag angles in the rotational plane and orbital plane respectively
-        real(DP)                        :: rmag, vmag, h_mag, s_mag
+        real(DP)                        :: rmag, vmag, h_mag, s_mag, a_yark_mag
             !! magnitude values for respective vectors
+        real(DP)                        :: lag_angle_constants
+            !! constant terms in lag angle calculations
+        real(DP)                        :: n
+            !! mean motion
         real(DP), dimension(NDIM)       :: h
-            !! Specific angular mometnum vector
-        real(DP), dimension(NDIM, NDIM) :: I, R1_s, R2_s, R1_h, R2_h
+            !! Specific angular momentum vector
+        real(DP), dimension(NDIM)       :: i_rad
+            !! radiation direction vector
+        real(DP), dimension(NDIM)       :: a_yark
+            !! Yarkovsky acceleration vector
+        real(DP), dimension(NDIM, NDIM) :: UM, R_s, R1_s, R2_s, R_h, R1_h, R2_h
             !! rotation matrices
 
         ! calculate constants
         lag_angle_constants = 0.5_DP * sigma**(0.25_DP) * (4.0_DP / (C * K * 3))**(0.5_DP) * (L_SUN / PI)**(0.75_DP)
-        I(:, :) = 0.0_DP
-        I(1, 1) = 1.0_DP
-        I(2, 2) = 1.0_DP
-        I(3, 3) = 1.0_DP
+        UM(:, :) = 0.0_DP
+        UM(1, 1) = 1.0_DP
+        UM(2, 2) = 1.0_DP
+        UM(3, 3) = 1.0_DP
 
         associate(pl => self)
             do i=1, pl%nbody
@@ -79,13 +87,24 @@ contains
                     R1_h(2, :) = [h(3), 0.0_DP, -h(1)] / h_mag
                     R1_h(3, :) = [-h(2), h(1), 0.0_DP] / h_mag
 
-                    ! yark force magnitude from eqn. 1 in Ferich, et al (2022) / eqn. 26 in Veras, et al (2015)
-                    F_yark_mag = pl%k(i) * pl%radius(i)**2 * (1.0_DP - pl%A(i)) * L_SUN * sqrt(param%inv_c2) / (4.0_DP * PI * pl%mass(i) * rmag**2)
+                    R_s(:, :) = cos(phi) * UM(:, :) + sin(phi) * R1_s(:, :) + (1.0_DP - cos(phi)) * R2_s(:, :)
+                    R_h(:, :) = cos(zeta) * UM(:, :) - sin(zeta) * R1_h(:, :) + (1.0_DP - cos(zeta)) * R2_h(:, :)
+
+                    !! We will assume that v << c, so radiation direction vector is r_hat
+                    ! if vmag**2 * param%inv_c2 > 0.01_DP then
+                    !     i_rad(:) = (1 - dot_product(pl%vh(:, i), pl%rh(:, i)) * sqrt(param%inv_c2) / rmag) * pl%rh(:, i) / rmag - pl%vh(:, i) * sqrt(param%inv_c2) ! radiation direction vector
+                    ! end if
+
+                    i_rad(:) = pl%rh(:, i) / rmag ! radiation direction vector
+
+                    ! yark acceleration magnitude from eqn. 1 in Ferich, et al (2022) / eqn. 26 in Veras, et al (2015)
+                    a_yark_mag = pl%k(i) * pl%radius(i)**2 * (1.0_DP - pl%A(i)) * L_SUN * sqrt(param%inv_c2) / (4.0_DP * PI * pl%mass(i) * rmag**2)
 
                     ! calculate acceleration
-                    
+                    a_yark(i) = a_yark_mag * matmul(matmul(R_s(:, :), R_h(:, :)), i_rad(:))
 
-                    ! add to acceletaration
+                    ! add to acceleration
+                    pl%ah(:, i) = pl%ah(:, i) + a_yark(i)
                     
                 end if
             end do
