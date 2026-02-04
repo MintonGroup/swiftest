@@ -102,6 +102,8 @@ module base
          !! Universal gravitational constant in the system units 
       real(DP)          :: inv_c2               = -1.0_DP         
          !! Inverse speed of light squared in the system units 
+      real(DP)         :: L_SUN_sys            = -1.0_DP         
+         !! Solar luminosity in system units (L_SUN converted to system units)
       real(DP)          :: GMTINY               = -1.0_DP         
          !! Smallest G*mass that is fully gravitating 
       real(DP)          :: min_GMfrag           = -1.0_DP         

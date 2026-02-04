@@ -2577,6 +2577,9 @@ contains
                case("RADIATION")
                   call swiftest_io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%lradiation = .true.
+               case("YARKOVSKY")
+                  call swiftest_io_toupper(param_value)
+                  if (param_value == "YES" .or. param_value == 'T') param%lyarkovsky = .true.
                case ("INTERACTION_LOOPS")
                   call swiftest_io_toupper(param_value)
                   param%interaction_loops = param_value
@@ -2837,6 +2840,12 @@ contains
                write(iomsg,*) "Warning: NFRAG_REDUCTION value invalid. Setting to 1.0" 
                param%nfrag_reduction = 1.0_DP
             end if
+         end if
+
+         ! Calculate Solar Luminosity in system units and turn on gr for inv_c2 calculation if radiation forces are enabled
+         if (param%lradiation .or. param%lyarkovsky) then
+            param%L_SUN_sys = L_SUN / param%MU2KG / param%DU2M**2 * param%TU2S**3
+            param%lgr = .true.
          end if
 
          ! Determine if the GR flag is set correctly for this integrator

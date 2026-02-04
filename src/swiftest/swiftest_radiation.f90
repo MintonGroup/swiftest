@@ -52,7 +52,7 @@ contains
             !! rotation matrices
 
         ! calculate constants
-        lag_angle_constants = 0.5_DP * sigma**(0.25_DP) * (4.0_DP / (C * K * 3))**(0.5_DP) * (L_SUN / PI)**(0.75_DP)
+        lag_angle_constants = 0.5_DP * sigma**(0.25_DP) * (4.0_DP / (C * K * 3))**(0.5_DP) * (param%L_SUN_sys / PI)**(0.75_DP)
         UM(:, :) = 0.0_DP
         UM(1, 1) = 1.0_DP
         UM(2, 2) = 1.0_DP
@@ -91,14 +91,14 @@ contains
                     R_h(:, :) = cos(zeta) * UM(:, :) - sin(zeta) * R1_h(:, :) + (1.0_DP - cos(zeta)) * R2_h(:, :)
 
                     !! We will assume that v << c, so radiation direction vector is r_hat
-                    ! if vmag**2 * param%inv_c2 > 0.01_DP then
+                    ! if vmag**2 * param%inv_c2 > 1e-3 then
                     !     i_rad(:) = (1 - dot_product(pl%vh(:, i), pl%rh(:, i)) * sqrt(param%inv_c2) / rmag) * pl%rh(:, i) / rmag - pl%vh(:, i) * sqrt(param%inv_c2) ! radiation direction vector
                     ! end if
 
                     i_rad(:) = pl%rh(:, i) / rmag ! radiation direction vector
 
                     ! yark acceleration magnitude from eqn. 1 in Ferich, et al (2022) / eqn. 26 in Veras, et al (2015)
-                    a_yark_mag = pl%k(i) * pl%radius(i)**2 * (1.0_DP - pl%A(i)) * L_SUN * sqrt(param%inv_c2) / (4.0_DP * PI * pl%mass(i) * rmag**2)
+                    a_yark_mag = pl%k(i) * pl%radius(i)**2 * (1.0_DP - pl%A(i)) * param%L_SUN_sys * sqrt(param%inv_c2) / (4.0_DP * PI * pl%mass(i) * rmag**2)
 
                     ! calculate acceleration
                     a_yark(i) = a_yark_mag * matmul(matmul(R_s(:, :), R_h(:, :)), i_rad(:))
@@ -163,16 +163,15 @@ contains
     !         !! combined SA/mc factor for acceleration calculation
 
     !     Q_pr = 1.0_DP ! placeholder in case this needs to changed in the future
-    !     ! L_sun = L_SUN * (param%TU2S)**3 / (param%MU2KG * param%DU2M**2) ! 3.828e26 W; Mamajek, et al (2015). IAU 2015 Resolution B3. https://doi.org/10.48550/arXiv.1510.07674
 
     !     associate(pl => self)
     !         do i=1, pl%nbody
     !             if (pl%lmask(i)) then
     !                 rmag = sqrt(dot_product(pl%rh(:, i), pl%rh(:, i)))
     !                 vmag = sqrt(dot_product(pl%vh(:, i), pl%vh(:, i)))
-    !                 S_vec(:) = - pl%rh(:, i) / rmag * L_sun / (4.0_DP * PI * rmag**2) ! S_hat = - pl%rh(:, i)
+    !                 S_vec(:) = - pl%rh(:, i) / rmag * param%L_SUN_sys / (4.0_DP * PI * rmag**2) ! S_hat = - pl%rh(:, i)
                     
-    !                 fac1 = L_SUN * (param%TU2S)**3 / (param%MU2KG * param%DU2M**2) * sqrt(param%inv_c2) * pl%radius(i)**2 / (4.0_DP * pl%mass(i) * rmag**2) ! SA/mc = L_sun * radius^2 / (4 * c * distance^2 * pl_mass)
+    !                 fac1 = param%L_SUN_sys * (param%TU2S)**3 / (param%MU2KG * param%DU2M**2) * sqrt(param%inv_c2) * pl%radius(i)**2 / (4.0_DP * pl%mass(i) * rmag**2) ! SA/mc = L_sun * radius^2 / (4 * c * distance^2 * pl_mass)
 
     !                 pl%ah(:, i) = pl%ah(:, i) + fac1 * Q_pr * ((vmag * param%inv_c - 1.0_DP) * pl%rh(:, i) / rmag - pl%vh(:, i) * param%inv_c) ! eqn. 5 in Burns, et al, 1979. https://doi.org/10.1016/0019-1035(79)90050-2; ICARUS 40, 1 - 48 (1979)
 
