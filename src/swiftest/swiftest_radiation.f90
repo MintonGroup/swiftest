@@ -79,9 +79,13 @@ contains
                     R1_h(2, :) = [h(3), 0.0_DP, -h(1)] / h_mag
                     R1_h(3, :) = [-h(2), h(1), 0.0_DP] / h_mag
 
-                    ! yark force magnitude
+                    ! yark force magnitude from eqn. 1 in Ferich, et al (2022) / eqn. 26 in Veras, et al (2015)
+                    F_yark_mag = pl%k(i) * pl%radius(i)**2 * (1.0_DP - pl%A(i)) * L_SUN * sqrt(param%inv_c2) / (4.0_DP * PI * pl%mass(i) * rmag**2)
 
-                    ! add to acceleration
+                    ! calculate acceleration
+                    
+
+                    ! add to acceletaration
                     
                 end if
             end do
