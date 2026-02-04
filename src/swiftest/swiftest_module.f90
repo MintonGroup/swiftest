@@ -352,6 +352,10 @@ module swiftest
          !! Body radius (units DU)
       real(DP),                dimension(:),   allocatable :: density 
          !! Body mass density - calculated internally (units MU / DU**3)
+      real(DP),                dimension(:), allocatable   :: A
+         !! Bond albedo for radiation acceleration calculations
+      real(DP),                dimension(:), allocatable   :: epsilon
+         !! Emissivity for Yarkovsky acceleration calculations
       real(DP),                dimension(:,:), allocatable :: rbeg    
          !! Position at beginning of step
       real(DP),                dimension(:,:), allocatable :: rend    
@@ -361,7 +365,7 @@ module swiftest
       real(DP),                dimension(:,:), allocatable :: Ip      
          !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
       real(DP),                dimension(:,:), allocatable :: rot     
-         !! Body rotation vector in inertial coordinate frame (units rad / TU)
+         !! Body rotation vector in inertial coordinate frame (units deg / TU)
       real(DP),                dimension(:),   allocatable :: k2      
          !! Tidal Love number
       real(DP),                dimension(:),   allocatable :: Q       

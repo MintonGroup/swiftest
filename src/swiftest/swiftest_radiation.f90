@@ -68,7 +68,7 @@ contains
                     !! should h be made into a variable to store per body?
                     h(:) = pl%rh(:, i) .cross. pl%vh(:, i) 
                     h_mag = .mag. h(:)
-                    s_mag = .mag. rot(:, i)
+                    s_mag = .mag. rot(:, i) ! CHECK IF RAD/TU OR DEG/TU
                     n = 2*PI*pl%a(i)**(1.5_DP) / pl%mu(i) ! mean motion
                     
                     ! calculate thermal lag angles from eqn. 19 and 20 in Veras, et. al. (2022)
