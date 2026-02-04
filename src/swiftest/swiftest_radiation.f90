@@ -40,9 +40,15 @@ contains
             !! magnitude values for respective vectors
         real(DP), dimension(NDIM)       :: h
             !! Specific angular mometnum vector
+        real(DP), dimension(NDIM, NDIM) :: I, R1_s, R2_s, R1_h, R2_h
+            !! rotation matrices
 
         ! calculate constants
-        lag_angle_constants = 0.5_DP * (sigma * PI**5)**(0.25_DP) / (C * K * rho)**(0.5_DP) * L_SUN**(0.75_DP)
+        lag_angle_constants = 0.5_DP * sigma**(0.25_DP) * (4.0_DP / (C * K * 3))**(0.5_DP) * (L_SUN / PI)**(0.75_DP)
+        I(:, :) = 0.0_DP
+        I(1, 1) = 1.0_DP
+        I(2, 2) = 1.0_DP
+        I(3, 3) = 1.0_DP
 
         associate(pl => self)
             do i=1, pl%nbody
@@ -51,17 +57,27 @@ contains
                     vmag = .mag. pl%vh(:, i) 
                     
                     !! vb vs vh AND/OR rh vs rb; See 1255-1257 in swiftest_util.f90
-                    !! should h be made into a variable to store per body
+                    !! should h be made into a variable to store per body?
                     h(:) = pl%rh(:, i) .cross. pl%vh(:, i) 
                     h_mag = .mag. h(:)
                     s_mag = .mag. rot(:, i)
                     n = 2*PI*pl%a(i)**(1.5_DP) / pl%mu(i) ! mean motion
                     
                     ! calculate thermal lag angles from eqn. 19 and 20 in Veras, et. al. (2022)
-                    phi = atan2(1.0_DP, 1 + lag_angle_constants * epsilon**(0.25_DP) * s_mag**(0.5_DP) * (1 - A)**(0.75_DP) / rmag(:, i)**(1.5_DP))
-                    zeta = atan2(1.0_DP, 1 + lag_angle_constants * epsilon**(0.25_DP) * n**(0.5_DP) * (1 - A)**(0.75_DP) / rmag(:, i)**(1.5_DP))
+                    phi = atan2(1.0_DP, 1.0_DP + lag_angle_constants * pl%epsilon(i)**(0.25_DP) * (s_mag * pl%mass(i) / pl%radius(i)**3)**(0.5_DP) * (1 - pl%A(i))**(0.75_DP) / rmag(:, i)**(1.5_DP))
+                    zeta = atan2(1.0_DP, 1.0_DP + lag_angle_constants * pl%epsilon(i)**(0.25_DP) * (n * pl%mass(i) / pl%radius(i)**3)**(0.5_DP) * (1 - pl%A(i))**(0.75_DP) / rmag(:, i)**(1.5_DP))
 
                     ! rotation matrices
+                    R2_s(:, :) = rot(:, i) .cross. rot(:, i) / s_mag**2
+                    R2_h(:, :) = h(:) .cross. h(:) / h_mag**2
+
+                    R1_s(1, :) = [0.0_DP, -rot(3, i), rot(2, i)] / s_mag !! CHECK row vs column ordering
+                    R1_s(2, :) = [rot(3, i), 0.0_DP, -rot(1, i)] / s_mag
+                    R1_s(3, :) = [-rot(2, i), rot(1, i), 0.0_DP] / s_mag
+
+                    R1_h(1, :) = [0.0_DP, -h(3), h(2)] / h_mag
+                    R1_h(2, :) = [h(3), 0.0_DP, -h(1)] / h_mag
+                    R1_h(3, :) = [-h(2), h(1), 0.0_DP] / h_mag
 
                     ! yark force magnitude
 
