@@ -68,7 +68,7 @@ SET(FAST_MATH_FILES
             ${SRC}/helio/helio_module.f90
             ${SRC}/symba/symba_module.f90
             ${SRC}/shgrav/shgrav_module.f90
-            ${SRC}/dust/dust_module.f90
+            # ${SRC}/dust/dust_module.f90
             ${SRC}/collision/collision_check.f90  
             ${SRC}/collision/collision_regime.f90   
             ${SRC}/collision/collision_resolve.f90  
