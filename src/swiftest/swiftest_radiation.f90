@@ -72,8 +72,8 @@ contains
                     n = 2*PI*pl%a(i)**(1.5_DP) / pl%mu(i) ! mean motion
                     
                     ! calculate thermal lag angles from eqn. 19 and 20 in Veras, et. al. (2022)
-                    phi = atan2(1.0_DP, 1.0_DP + lag_angle_constants * pl%epsilon(i)**(0.25_DP) * (s_mag * pl%mass(i) / pl%radius(i)**3)**(0.5_DP) * (1 - pl%A(i))**(0.75_DP) / rmag(:, i)**(1.5_DP))
-                    zeta = atan2(1.0_DP, 1.0_DP + lag_angle_constants * pl%epsilon(i)**(0.25_DP) * (n * pl%mass(i) / pl%radius(i)**3)**(0.5_DP) * (1 - pl%A(i))**(0.75_DP) / rmag(:, i)**(1.5_DP))
+                    phi = atan2(1.0_DP, 1.0_DP + lag_angle_constants * pl%epsilon(i)**(0.25_DP) * (s_mag * pl%mass(i) / pl%radius(i)**3)**(0.5_DP) * (1 - pl%albedo(i))**(0.75_DP) / rmag(:, i)**(1.5_DP))
+                    zeta = atan2(1.0_DP, 1.0_DP + lag_angle_constants * pl%epsilon(i)**(0.25_DP) * (n * pl%mass(i) / pl%radius(i)**3)**(0.5_DP) * (1 - pl%albedo(i))**(0.75_DP) / rmag(:, i)**(1.5_DP))
 
                     ! rotation matrices
                     R2_s(:, :) = rot(:, i) .cross. rot(:, i) / s_mag**2
@@ -98,7 +98,7 @@ contains
                     i_rad(:) = pl%rh(:, i) / rmag ! radiation direction vector
 
                     ! yark acceleration magnitude from eqn. 1 in Ferich, et al (2022) / eqn. 26 in Veras, et al (2015)
-                    a_yark_mag = pl%k(i) * pl%radius(i)**2 * (1.0_DP - pl%A(i)) * param%L_SUN_sys * sqrt(param%inv_c2) / (4.0_DP * PI * pl%mass(i) * rmag**2) !! calculate k from rot_mag 
+                    a_yark_mag = pl%k(i) * pl%radius(i)**2 * (1.0_DP - pl%albedo(i)) * param%L_SUN_sys * sqrt(param%inv_c2) / (4.0_DP * PI * pl%mass(i) * rmag**2) !! calculate k from rot_mag 
 
                     ! calculate acceleration
                     a_yark(i) = a_yark_mag * matmul(matmul(R_s(:, :), R_h(:, :)), i_rad(:))

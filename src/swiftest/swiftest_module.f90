@@ -352,7 +352,7 @@ module swiftest
          !! Body radius (units DU)
       real(DP),                dimension(:),   allocatable :: density 
          !! Body mass density - calculated internally (units MU / DU**3)
-      real(DP),                dimension(:), allocatable   :: A
+      real(DP),                dimension(:), allocatable   :: albedo
          !! Bond albedo for radiation acceleration calculations
       real(DP),                dimension(:), allocatable   :: epsilon
          !! Emissivity for Yarkovsky acceleration calculations
