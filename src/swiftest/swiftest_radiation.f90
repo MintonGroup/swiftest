@@ -16,6 +16,7 @@
 !!  - YORP effect
 
 submodule (swiftest) s_swiftest_radiation
+
 contains
 
     module subroutine swiftest_yarkovsky_getacch_pl(self, nbody_system, param)
@@ -42,6 +43,8 @@ contains
             !! constant terms in lag angle calculations
         real(DP)                        :: n
             !! mean motion
+        real(DP)                        :: sigma, C, K
+            !! Stefan-Boltzmann constant, specific heat capacity, and thermal conductivity for lag angle calculations
         real(DP), dimension(NDIM)       :: h
             !! Specific angular momentum vector
         real(DP), dimension(NDIM)       :: i_rad

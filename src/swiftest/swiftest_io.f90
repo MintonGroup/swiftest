@@ -2684,7 +2684,7 @@ contains
                      param%lrestart = .true.
                   end if 
                ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
-               case ("NPLMAX", "NTPMAX", "YARKOVSKY", "YORP")
+               case ("NPLMAX", "NTPMAX", "YORP")
                case default
                   write(*,*) "Ignoring unknown parameter -> ",param_name
                end select
