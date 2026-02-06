@@ -79,8 +79,8 @@ contains
                     zeta = atan2(1.0_DP, 1.0_DP + lag_angle_constants * pl%epsilon(i)**(0.25_DP) * (n * pl%mass(i) / pl%radius(i)**3)**(0.5_DP) * (1 - pl%albedo(i))**(0.75_DP) / rmag**(1.5_DP))
 
                     ! rotation matrices
-                    R2_s(:, :) = pl%rot(:, i) .cross. pl%rot(:, i) / s_mag**2
-                    R2_h(:, :) = h(:) .cross. h(:) / h_mag**2
+                    R2_s(:, :) = matmul(pl%rot(:, i), pl%rot(:, i)) / s_mag**2! pl%rot(:, i) .cross. pl%rot(:, i) / s_mag**2
+                    R2_h(:, :) = matmul(h(:), h(:)) / h_mag**2 !h(:) .cross. h(:) / h_mag**2
 
                     R1_s(1, :) = [0.0_DP, -pl%rot(3, i), pl%rot(2, i)] / s_mag !! CHECK row vs column ordering
                     R1_s(2, :) = [pl%rot(3, i), 0.0_DP, -pl%rot(1, i)] / s_mag
