@@ -356,6 +356,8 @@ module swiftest
          !! Bond albedo for radiation acceleration calculations
       real(DP),                dimension(:), allocatable   :: epsilon
          !! Emissivity for Yarkovsky acceleration calculations
+      real(DP),                dimension(:), allocatable   :: k
+         !! Constant based on rotation rate for yarkovsky calculations
       real(DP),                dimension(:,:), allocatable :: rbeg    
          !! Position at beginning of step
       real(DP),                dimension(:,:), allocatable :: rend    
