@@ -71,20 +71,20 @@ contains
                     !! should h be made into a variable to store per body?
                     h(:) = pl%rh(:, i) .cross. pl%vh(:, i) 
                     h_mag = .mag. h(:)
-                    s_mag = .mag. rot(:, i) ! CHECK IF RAD/TU OR DEG/TU
+                    s_mag = .mag. pl%rot(:, i) ! CHECK IF RAD/TU OR DEG/TU
                     n = 2*PI*pl%a(i)**(1.5_DP) / pl%mu(i) ! mean motion
                     
                     ! calculate thermal lag angles from eqn. 19 and 20 in Veras, et. al. (2022)
-                    phi = atan2(1.0_DP, 1.0_DP + lag_angle_constants * pl%epsilon(i)**(0.25_DP) * (s_mag * pl%mass(i) / pl%radius(i)**3)**(0.5_DP) * (1 - pl%albedo(i))**(0.75_DP) / rmag(:, i)**(1.5_DP))
-                    zeta = atan2(1.0_DP, 1.0_DP + lag_angle_constants * pl%epsilon(i)**(0.25_DP) * (n * pl%mass(i) / pl%radius(i)**3)**(0.5_DP) * (1 - pl%albedo(i))**(0.75_DP) / rmag(:, i)**(1.5_DP))
+                    phi = atan2(1.0_DP, 1.0_DP + lag_angle_constants * pl%epsilon(i)**(0.25_DP) * (s_mag * pl%mass(i) / pl%radius(i)**3)**(0.5_DP) * (1 - pl%albedo(i))**(0.75_DP) / rmag**(1.5_DP))
+                    zeta = atan2(1.0_DP, 1.0_DP + lag_angle_constants * pl%epsilon(i)**(0.25_DP) * (n * pl%mass(i) / pl%radius(i)**3)**(0.5_DP) * (1 - pl%albedo(i))**(0.75_DP) / rmag**(1.5_DP))
 
                     ! rotation matrices
-                    R2_s(:, :) = rot(:, i) .cross. rot(:, i) / s_mag**2
+                    R2_s(:, :) = pl%rot(:, i) .cross. pl%rot(:, i) / s_mag**2
                     R2_h(:, :) = h(:) .cross. h(:) / h_mag**2
 
-                    R1_s(1, :) = [0.0_DP, -rot(3, i), rot(2, i)] / s_mag !! CHECK row vs column ordering
-                    R1_s(2, :) = [rot(3, i), 0.0_DP, -rot(1, i)] / s_mag
-                    R1_s(3, :) = [-rot(2, i), rot(1, i), 0.0_DP] / s_mag
+                    R1_s(1, :) = [0.0_DP, -pl%rot(3, i), pl%rot(2, i)] / s_mag !! CHECK row vs column ordering
+                    R1_s(2, :) = [pl%rot(3, i), 0.0_DP, -pl%rot(1, i)] / s_mag
+                    R1_s(3, :) = [-pl%rot(2, i), pl%rot(1, i), 0.0_DP] / s_mag
 
                     R1_h(1, :) = [0.0_DP, -h(3), h(2)] / h_mag
                     R1_h(2, :) = [h(3), 0.0_DP, -h(1)] / h_mag
