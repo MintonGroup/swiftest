@@ -2845,6 +2845,7 @@ contains
          ! Calculate Solar Luminosity in system units and turn on gr for inv_c2 calculation if radiation forces are enabled
          if (param%lradiation .or. param%lyarkovsky) then
             param%L_SUN_sys = L_SUN / param%MU2KG / param%DU2M**2 * param%TU2S**3
+            param%sigma_sys = SIGMA /param%MU2KG * param%TU2S**3 ! system units / K^4
             param%lgr = .true.
          end if
 

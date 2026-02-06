@@ -43,8 +43,8 @@ contains
             !! constant terms in lag angle calculations
         real(DP)                        :: n
             !! mean motion
-        real(DP)                        :: sigma, C, K
-            !! Stefan-Boltzmann constant, specific heat capacity, and thermal conductivity for lag angle calculations
+        real(DP)                        :: C, K
+            !! specific heat capacity, and thermal conductivity for lag angle calculations
         real(DP), dimension(NDIM)       :: h
             !! Specific angular momentum vector
         real(DP), dimension(NDIM)       :: i_rad
@@ -55,7 +55,7 @@ contains
             !! rotation matrices
 
         ! calculate constants
-        lag_angle_constants = 0.5_DP * sigma**(0.25_DP) * (4.0_DP / (C * K * 3))**(0.5_DP) * (param%L_SUN_sys / PI)**(0.75_DP)
+        lag_angle_constants = 0.5_DP * param%sigma_sys**(0.25_DP) * (4.0_DP / (C * K * 3))**(0.5_DP) * (param%L_SUN_sys / PI)**(0.75_DP)
         UM(:, :) = 0.0_DP
         UM(1, 1) = 1.0_DP
         UM(2, 2) = 1.0_DP

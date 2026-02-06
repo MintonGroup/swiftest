@@ -102,8 +102,16 @@ module base
          !! Universal gravitational constant in the system units 
       real(DP)          :: inv_c2               = -1.0_DP         
          !! Inverse speed of light squared in the system units 
-      real(DP)         :: L_SUN_sys            = -1.0_DP         
+      real(DP)          :: L_SUN_sys            = -1.0_DP         
          !! Solar luminosity in system units (L_SUN converted to system units)
+      real(DP)          :: sigma_sys            = -1.0_DP         
+         !! Stefan-Boltzmann constant in system units (SIGMA converted to system units) 
+       real(DP)         :: lag_angle_constants  = -1.0_DP         
+         !! Constant terms in lag angle calculations 
+       real(DP)         :: C                    = -1.0_DP         
+         !! Specific heat capacity for lag angle calculations 
+       real(DP)         :: K                    = -1.0_DP         
+         !! Thermal conductivity for lag angle calculations 
       real(DP)          :: GMTINY               = -1.0_DP         
          !! Smallest G*mass that is fully gravitating 
       real(DP)          :: min_GMfrag           = -1.0_DP         
