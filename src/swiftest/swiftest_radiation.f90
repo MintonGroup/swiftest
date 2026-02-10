@@ -47,7 +47,7 @@ contains
             !! Specific angular momentum vector
         real(DP), dimension(NDIM)       :: i_rad
             !! radiation direction vector
-        real(DP), dimension(NDIM)       :: a_yark
+        real(DP), dimension(NDIM, 1)       :: a_yark
             !! Yarkovsky acceleration vector
         real(DP), dimension(NDIM, NDIM) :: UM, R_s, R1_s, R2_s, R_h, R1_h, R2_h
             !! rotation matrices
@@ -113,10 +113,11 @@ contains
                     a_yark_mag = pl%k(i) * pl%radius(i)**2 * (1.0_DP - pl%albedo(i)) * param%L_SUN_sys * sqrt(param%inv_c2) / (4.0_DP * PI * pl%mass(i) * rmag**2) !! calculate k from rot_mag 
 
                     ! calculate acceleration
-                    a_yark(i) = a_yark_mag * matmul(matmul(R_s(:, :), R_h(:, :)), i_rad(:))
+                    a_yark(:, 1) = a_yark_mag * matmul(matmul(R_s(:, :), R_h(:, :)), i_rad(:))
+                    ! a_yark(i) = a_yark_mag * matmul(R_s(:, :), R_h(:, :))
 
                     ! add to acceleration
-                    pl%ah(:, i) = pl%ah(:, i) + a_yark(i)
+                    pl%ah(:, i) = pl%ah(:, i) + a_yark(:, 1)
                     
                 end if
             end do
