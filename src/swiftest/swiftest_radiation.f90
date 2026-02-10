@@ -77,9 +77,10 @@ contains
                     zeta = atan2(1.0_DP, 1.0_DP + lag_angle_constants * pl%epsilon(i)**(0.25_DP) * n**(0.5_DP) / pl%gamma(i) * (1 - pl%albedo(i))**(0.75_DP) / rmag**(1.5_DP))
 
                     ! rotation matrices
-                    R2_s(:, :) = matmul(pl%rot(:, i), pl%rot(:, i)) / s_mag**2! pl%rot(:, i) .cross. pl%rot(:, i) / s_mag**2
-                    R2_h(:, :) = matmul(h(:), h(:)) / h_mag**2 !h(:) .cross. h(:) / h_mag**2
+                    ! R2_s(:, :) = matmul(pl%rot(:, i), pl%rot(:, i)) / s_mag**2! pl%rot(:, i) .cross. pl%rot(:, i) / s_mag**2
+                    ! R2_h(:, :) = matmul(h(:), h(:)) / h_mag**2 !h(:) .cross. h(:) / h_mag**2
 
+                    ! Calculate R_1 matrices from eqn. 15 and 17 in Veras, et. al. (2022)
                     R1_s(1, :) = [0.0_DP, -pl%rot(3, i), pl%rot(2, i)] / s_mag !! CHECK row vs column ordering
                     R1_s(2, :) = [pl%rot(3, i), 0.0_DP, -pl%rot(1, i)] / s_mag
                     R1_s(3, :) = [-pl%rot(2, i), pl%rot(1, i), 0.0_DP] / s_mag
@@ -88,6 +89,16 @@ contains
                     R1_h(2, :) = [h(3), 0.0_DP, -h(1)] / h_mag
                     R1_h(3, :) = [-h(2), h(1), 0.0_DP] / h_mag
 
+                    ! Calculate R_2 matrices from eqn. 16 and 18 in Veras, et. al. (2022)
+                    R2_s(1, :) = [pl%rot(1, i)**2, pl%rot(1, i)*pl%rot(2, i), pl%rot(1, i)*pl%rot(3, i)] / s_mag**2
+                    R2_s(2, :) = [pl%rot(1, i)*pl%rot(2, i), pl%rot(2, i)**2, pl%rot(2, i)*pl%rot(3, i)] / s_mag**2
+                    R2_s(3, :) = [pl%rot(1, i)*pl%rot(3, i), pl%rot(2, i)*pl%rot(3, i), pl%rot(3, i)**2] / s_mag**2
+
+                    R2_h(1, :) = [h(1)**2, h(1)*h(2), h(1)*h(3)] / h_mag**2
+                    R2_h(2, :) = [h(1)*h(2), h(2)**2, h(2)*h(3)] / h_mag**2
+                    R2_h(3, :) = [h(1)*h(3), h(2)*h(3), h(3)**2] / h_mag**2
+
+                    ! Combined rotation matrices
                     R_s(:, :) = cos(phi) * UM(:, :) + sin(phi) * R1_s(:, :) + (1.0_DP - cos(phi)) * R2_s(:, :)
                     R_h(:, :) = cos(zeta) * UM(:, :) - sin(zeta) * R1_h(:, :) + (1.0_DP - cos(zeta)) * R2_h(:, :)
 
@@ -96,7 +107,7 @@ contains
                     !     i_rad(:) = (1 - dot_product(pl%vh(:, i), pl%rh(:, i)) * sqrt(param%inv_c2) / rmag) * pl%rh(:, i) / rmag - pl%vh(:, i) * sqrt(param%inv_c2) ! radiation direction vector
                     ! end if
 
-                    i_rad(:) = pl%rh(:, i) / rmag ! radiation direction vector
+                    i_rad(:) = .unit. pl%rh(:, i)! radiation direction vector
 
                     ! yark acceleration magnitude from eqn. 1 in Ferich, et al (2022) / eqn. 26 in Veras, et al (2015)
                     a_yark_mag = pl%k(i) * pl%radius(i)**2 * (1.0_DP - pl%albedo(i)) * param%L_SUN_sys * sqrt(param%inv_c2) / (4.0_DP * PI * pl%mass(i) * rmag**2) !! calculate k from rot_mag 
