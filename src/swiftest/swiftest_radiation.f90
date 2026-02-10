@@ -43,8 +43,6 @@ contains
             !! constant terms in lag angle calculations
         real(DP)                        :: n
             !! mean motion
-        real(DP)                        :: C, K
-            !! specific heat capacity, and thermal conductivity for lag angle calculations
         real(DP), dimension(NDIM)       :: h
             !! Specific angular momentum vector
         real(DP), dimension(NDIM)       :: i_rad
@@ -55,7 +53,7 @@ contains
             !! rotation matrices
 
         ! calculate constants
-        lag_angle_constants = 0.5_DP * param%sigma_sys**(0.25_DP) * (4.0_DP / (C * K * 3))**(0.5_DP) * (param%L_SUN_sys / PI)**(0.75_DP)
+        lag_angle_constants = 0.5_DP * (param%sigma_sys / PI**5)**(0.25_DP) * (param%L_SUN_sys)**(0.75_DP)
         UM(:, :) = 0.0_DP
         UM(1, 1) = 1.0_DP
         UM(2, 2) = 1.0_DP
@@ -75,8 +73,8 @@ contains
                     n = 2*PI*pl%a(i)**(1.5_DP) / pl%mu(i) ! mean motion
                     
                     ! calculate thermal lag angles from eqn. 19 and 20 in Veras, et. al. (2022)
-                    phi = atan2(1.0_DP, 1.0_DP + lag_angle_constants * pl%epsilon(i)**(0.25_DP) * (s_mag * pl%mass(i) / pl%radius(i)**3)**(0.5_DP) * (1 - pl%albedo(i))**(0.75_DP) / rmag**(1.5_DP))
-                    zeta = atan2(1.0_DP, 1.0_DP + lag_angle_constants * pl%epsilon(i)**(0.25_DP) * (n * pl%mass(i) / pl%radius(i)**3)**(0.5_DP) * (1 - pl%albedo(i))**(0.75_DP) / rmag**(1.5_DP))
+                    phi = atan2(1.0_DP, 1.0_DP + lag_angle_constants * pl%epsilon(i)**(0.25_DP) * s_mag**(0.5_DP) / pl%gamma(i) * (1 - pl%albedo(i))**(0.75_DP) / rmag**(1.5_DP))
+                    zeta = atan2(1.0_DP, 1.0_DP + lag_angle_constants * pl%epsilon(i)**(0.25_DP) * n**(0.5_DP) / pl%gamma(i) * (1 - pl%albedo(i))**(0.75_DP) / rmag**(1.5_DP))
 
                     ! rotation matrices
                     R2_s(:, :) = matmul(pl%rot(:, i), pl%rot(:, i)) / s_mag**2! pl%rot(:, i) .cross. pl%rot(:, i) / s_mag**2

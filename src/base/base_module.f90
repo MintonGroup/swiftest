@@ -108,10 +108,6 @@ module base
          !! Stefan-Boltzmann constant in system units (SIGMA converted to system units) 
        real(DP)         :: lag_angle_constants  = -1.0_DP         
          !! Constant terms in lag angle calculations 
-       real(DP)         :: C                    = -1.0_DP         
-         !! Specific heat capacity for lag angle calculations 
-       real(DP)         :: K                    = -1.0_DP         
-         !! Thermal conductivity for lag angle calculations 
       real(DP)          :: GMTINY               = -1.0_DP         
          !! Smallest G*mass that is fully gravitating 
       real(DP)          :: min_GMfrag           = -1.0_DP         
