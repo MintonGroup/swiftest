@@ -3517,6 +3517,10 @@ class Simulation:
         j2rp2: float | list[float] | npt.NDArray[np.float_] | None = None,
         j4rp4: float | list[float] | npt.NDArray[np.float_] | None = None,
         c_lm: list[float] | list[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+        albedo: float | list[float] | npt.NDArray[np.float_] | None = None,
+        emissivity: float | list[float] | npt.NDArray[np.float_] | None = None,
+        rot_k: float | list[float] | npt.NDArray[np.float_] | None = None,
+        gamma: float | list[float] | npt.NDArray[np.float_] | None = None,
         align_to_central_body_rotation: bool = False,
         framenum: int = -1,
         **kwargs: Any,
@@ -3568,6 +3572,14 @@ class Simulation:
             Non-normalized J4 values (e.g. J4*R**4, where R is the body radius) if this is a central body (only one of J4 or c_lm can be passed)
         c_lm : (2,l_max+1,l_max+1) array-like of float, optional
             Spherical harmonics coefficients if this is a central body (only one of J2/J4 or c_lm can be passed)
+            albedo : float or array-like of float, optional
+            Albedo values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        emissivity : float or array-like of float, optional
+            Emissivity values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        rot_k : float or array-like of float, optional
+            Rotational constant K values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        gamma : float or array-like of float, optional
+            Thermal inertia values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
         align_to_central_body_rotation : bool, default False
             If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
             rotation is enabled.
@@ -3596,6 +3608,16 @@ class Simulation:
         if verbose:
             print(f"Modifying bodies: {name_str}")
         dsnew = self.data.sel(name=modnames).isel(time=[framenum])
+
+        if self.param["YARKOVSKY"]:
+            if arguments["albedo"] is None:
+                raise ValueError("Yarkovsky effect modeling requires albedo values for all bodies")
+            if arguments["emissivity"] is None:
+                raise ValueError("Yarkovsky effect modeling requires emissivity values for all bodies")
+            if arguments["rot_k"] is None:
+                raise ValueError("Yarkovsky effect modeling requires rot_k values for all bodies")
+            if arguments["gamma"] is None:
+                raise ValueError("Yarkovsky effect modeling requires thermal inertia (gamma) values for all bodies")
 
         if arguments["c_lm"] is not None:
             if "j2rp2" in dsnew:
