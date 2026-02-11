@@ -2788,6 +2788,11 @@ class Simulation:
         j4rp4, nbodies = input_to_array(j4rp4, "f", nbodies)
         c_lm, nbodies = input_to_clm_array(c_lm, nbodies)
 
+        albedo, nbodies = input_to_array(albedo, "f", nbodies)
+        emissivity, nbodies = input_to_array(emissivity, "f", nbodies)
+        rot_k, nbodies = input_to_array(rot_k, "f", nbodies)
+        gamma, nbodies = input_to_array(gamma, "f", nbodies)
+
         if mass is not None and Gmass is not None:
             raise ValueError("Cannot use mass and Gmass inputs simultaneously!")
 

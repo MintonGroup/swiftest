@@ -354,9 +354,9 @@ module swiftest
          !! Body mass density - calculated internally (units MU / DU**3)
       real(DP),                dimension(:), allocatable   :: albedo
          !! Bond albedo for radiation acceleration calculations
-      real(DP),                dimension(:), allocatable   :: epsilon
+      real(DP),                dimension(:), allocatable   :: emissivity
          !! Emissivity for Yarkovsky acceleration calculations
-      real(DP),                dimension(:), allocatable   :: k
+      real(DP),                dimension(:), allocatable   :: rot_k
          !! Constant based on rotation rate for yarkovsky calculations
       real(DP),                dimension(:), allocatable   :: gamma
          !! Thermal inertia for Yarkovsky calculations
