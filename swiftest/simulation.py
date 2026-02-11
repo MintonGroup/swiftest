@@ -2632,6 +2632,10 @@ class Simulation:
         j2rp2: float | list[float] | npt.NDArray[np.float_] | None = None,
         j4rp4: float | list[float] | npt.NDArray[np.float_] | None = None,
         c_lm: list[float] | list[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+        albedo: float | list[float] | npt.NDArray[np.float_] | None = None,
+        emissivity: float | list[float] | npt.NDArray[np.float_] | None = None,
+        rot_k: float | list[float] | npt.NDArray[np.float_] | None = None,
+        gamma: float | list[float] | npt.NDArray[np.float_] | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -2682,6 +2686,14 @@ class Simulation:
         align_to_central_body_rotation : bool, default False
             If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
             rotation is enabled.
+        albedo : float or array-like of float, optional
+            Albedo values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        emissivity : float or array-like of float, optional
+            Emissivity values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        rot_k : float or array-like of float, optional
+            Rotational constant K values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        gamma : float or array-like of float, optional
+            Thermal inertia values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
 
         Returns
         -------
@@ -2833,6 +2845,10 @@ class Simulation:
         j4rp4: float | list[float] | npt.NDArray[np.float_] | None = None,
         c_lm: list[float] | list[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
         align_to_central_body_rotation: bool = False,
+        albedo: float | list[float] | npt.NDArray[np.float_] | None = None,
+        emissivity: float | list[float] | npt.NDArray[np.float_] | None = None,
+        rot_k: float | list[float] | npt.NDArray[np.float_] | None = None,
+        gamma: float | list[float] | npt.NDArray[np.float_] | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -2885,6 +2901,15 @@ class Simulation:
         align_to_central_body_rotation : bool, default False
             If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
             rotation is enabled.
+        albedo : float or array-like of float, optional
+            Albedo values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        emissivity : float or array-like of float, optional
+            Emissivity values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        rot_k : float or array-like of float, optional
+            Rotational constant K values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        gamma : float or array-like of float, optional
+            Thermal inertia values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+
 
         Returns
         -------
@@ -2919,6 +2944,10 @@ class Simulation:
         j4rp4 = arguments["j4rp4"]
         c_lm = arguments["c_lm"]
         nbodies = arguments["nbodies"]
+        albedo = arguments["albedo"]
+        emissivity = arguments["emissivity"]
+        rot_k = arguments["rot_k"]
+        gamma = arguments["gamma"]
 
         # Adding new bodies imposes additional constraints on arguments that are not present when modifying existing bodies
         if rh is not None and vh is None:
@@ -2951,6 +2980,16 @@ class Simulation:
                 maxid = self.data.id.max().values[()]
             id = np.arange(start=maxid + 1, stop=maxid + 1 + nbodies, dtype=int)
             name = np.char.mod("Body%d", id)
+        
+        if self.param["YARKOVSKY"]:
+            if albedo is None:
+                raise ValueError("Yarkovsky effect modeling requires albedo values for all bodies")
+            if emissivity is None:
+                raise ValueError("Yarkovsky effect modeling requires emissivity values for all bodies")
+            if rot_k is None:
+                raise ValueError("Yarkovsky effect modeling requires rot_k values for all bodies")
+            if gamma is None:
+                raise ValueError("Yarkovsky effect modeling requires thermal inertia (gamma) values for all bodies")
 
         time = [self.param["TSTART"]]
 
@@ -2992,6 +3031,10 @@ class Simulation:
             c_lm=c_lm,
             rotphase=rotphase,
             time=time,
+            albedo=albedo,
+            emissivity=emissivity,
+            rot_k=rot_k,
+            gamma=gamma
         )
 
         dsnew = self._set_id_number(dsnew)
@@ -3044,6 +3087,10 @@ class Simulation:
         j4rp4: float | npt.ArrayLike[float] | None = None,
         c_lm: npt.ArrayLike[float] | None = None,
         time: npt.ArrayLike[float] | None = None,
+        albedo: float | list[float] | npt.NDArray[np.float_] | None = None,
+        emissivity: float | list[float] | npt.NDArray[np.float_] | None = None,
+        rot_k: float | list[float] | npt.NDArray[np.float_] | None = None,
+        gamma: float | list[float] | npt.NDArray[np.float_] | None = None,
         **kwargs: Any,
     ) -> SwiftestDataset:
         """
@@ -3094,6 +3141,14 @@ class Simulation:
             J_4R^4 value for the body
         c_lm : (2, lmax + 1, lmax + 1) array of floats, optional
             Spherical Harmonics coefficients; lmax = max spherical harmonics order
+        albedo : float or array-like of float, optional
+            Albedo values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        emissivity : float or array-like of float, optional
+            Emissivity values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        rot_k : float or array-like of float, optional
+            Rotational constant K values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        gamma : float or array-like of float, optional
+            Thermal inertia values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
         time : array of floats
             Time at start of simulation
         **kwargs : Any
@@ -3133,6 +3188,10 @@ class Simulation:
             "j2rp2",
             "j4rp4",
             "rotphase",
+            "albedo",
+            "emissivity",
+            "rot_k",
+            "gamma"
         ]
         sph_vars = ["c_lm"]
         time_vars = [
