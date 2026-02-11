@@ -1157,6 +1157,8 @@ class Simulation:
         extra_force: bool | None = None,
         big_discard: bool | None = None,
         rhill_present: bool | None = None,
+        yarkovsky: bool | None = None,
+        radiation: bool | None = None,
         tides: bool | None = None,
         interaction_loops: Literal["TRIANGULAR", "FLAT"] | None = None,
         encounter_check_loops: Literal["TRIANGULAR", "SORTSWEEP"] | None = None,
@@ -1237,8 +1239,10 @@ class Simulation:
             are handeled.
         tides : bool, optional
             Turns on tidal model (IN DEVELOPMENT - IGNORED)
-        Yarkovsky : bool, optional
-            Turns on Yarkovsky model (IN DEVELOPMENT - IGNORED)
+        yarkovsky : bool, optional
+            Turns on Yarkovsky model
+        radiation : bool, optional
+            Turns on radiation pressure + PR drag model (IN DEVELOPMENT - IGNORED)
         YORP : bool, optional
             Turns on YORP model (IN DEVELOPMENT - IGNORED)
         simdir : PathLike, optional
@@ -1346,6 +1350,14 @@ class Simulation:
             if self.param["COLLISION_MODEL"] == "FRAGGLE" and not self.param["ROTATION"]:
                 self.param["ROTATION"] = True
                 update_list.append("rotation")
+            
+            if yarkovsky is not None:
+                self.param["YARKOVSKY"] = yarkovsky
+                update_list.append("yarkovsky")
+
+            if radiation is not None:
+                self.param["RADIATION"] = radiation
+                update_list.append("radiation")
 
             if self.integrator == "symba":
                 self.param["ENERGY"] = True
