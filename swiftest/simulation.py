@@ -1333,6 +1333,15 @@ class Simulation:
             if nfrag_reduction is not None:
                 self.param["NFRAG_REDUCTION"] = nfrag_reduction
                 update_list.append("nfrag_reduction")
+            
+            if yarkovsky is not None:
+                self.param["YARKOVSKY"] = yarkovsky
+                update_list.append("yarkovsky")
+                self.param["ROTATION"] = True # rotation needed for yarkovsky model
+
+            if radiation is not None:
+                self.param["RADIATION"] = radiation
+                update_list.append("radiation")
 
             if rotation is not None:
                 if self.integrator == "symba":
@@ -1350,14 +1359,6 @@ class Simulation:
             if self.param["COLLISION_MODEL"] == "FRAGGLE" and not self.param["ROTATION"]:
                 self.param["ROTATION"] = True
                 update_list.append("rotation")
-            
-            if yarkovsky is not None:
-                self.param["YARKOVSKY"] = yarkovsky
-                update_list.append("yarkovsky")
-
-            if radiation is not None:
-                self.param["RADIATION"] = radiation
-                update_list.append("radiation")
 
             if self.integrator == "symba":
                 self.param["ENERGY"] = True
