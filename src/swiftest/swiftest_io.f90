@@ -2125,6 +2125,18 @@ contains
                                                         count=[NDIM,1,1]), &
                                   "netcdf_io_write_frame_body nf90_put_var body rotx_varid"  )
                   end if
+                  
+                  if (param%lyarkovsky) then
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%albedo_varname, self%albedo(j), start=[idslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body albedo_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%emissivity_varname, self%emissivity(j), start=[idslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body emissivity_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%rot_k_varname, self%rot_k(j), start=[idslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body rot_k_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%gamma_varname, self%gamma(j), start=[idslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body gamma_varid"  )
+                  end if
+
                   ! if (param%ltides) then
                   !    call netcdf_io_check( nf90_put_var(nc%id, nc%k2_varid, self%k2(j), start=[idslot, tslot]), &
                   !                "netcdf_io_write_frame_body nf90_put_var body k2_varid"  )
@@ -2822,6 +2834,12 @@ contains
          end if
          if (param%ltides .and. .not. param%lrotation) then
             write(iomsg,*) 'Tides require rotation to be turned on'
+            iostat = -1
+            return
+         end if
+
+         if (param%lyarkovsky .and. .not. param%lrotation) then
+            write(iomsg,*) 'Yarkovsky forces require rotation to be turned on'
             iostat = -1
             return
          end if
