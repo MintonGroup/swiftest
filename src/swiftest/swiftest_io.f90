@@ -3058,6 +3058,7 @@ contains
          call io_param_writer_one("ROTATION", param%lrotation, unit)
          call io_param_writer_one("TIDES", param%ltides, unit)
          call io_param_writer_one("RADIATION", param%lradiation, unit)
+         call io_param_writer_one("YARKOVSKY", param%lyarkovsky, unit)
          call io_param_writer_one("INTERACTION_LOOPS", param%interaction_loops, unit)
          call io_param_writer_one("ENCOUNTER_CHECK_PLPL", param%encounter_check_plpl, unit)
          call io_param_writer_one("ENCOUNTER_CHECK_PLTP", param%encounter_check_pltp, unit)
