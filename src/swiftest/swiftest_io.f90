@@ -2014,7 +2014,7 @@ contains
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
       !! Write a frame of output of either test particle or massive body data to the binary output file
-      !!    Note: If outputting to orbital elements, but sure that the conversion is done prior to calling this method
+      !!    Note: If outputting to orbital elements, make sure that the conversion is done prior to calling this method
       implicit none
       ! Arguments
       class(swiftest_body),              intent(in)    :: self  !! Swiftest base object
