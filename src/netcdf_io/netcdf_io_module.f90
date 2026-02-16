@@ -182,6 +182,22 @@ module netcdf_io
          !! name for the c_lm array
       integer(I4B) :: c_lm_varid 
          !! ID for the c_lm aqrray
+      character(NAMELEN) :: albedo_varname = "albedo"
+         !! name of the albedo variable
+      integer(I4B) :: albedo_varid 
+         !! ID for the albedo variable
+      character(NAMELEN) :: emissivity_varname = "emissivity"
+         !! name of the emissivity variable
+      integer(I4B) :: emissivity_varid 
+         !! ID for the emissivity variable
+      character(NAMELEN) :: rot_k_varname = "rot_k"
+         !! name of the rotational constant k for yarkovsky effects
+      integer(I4B) :: rot_k_varid
+         !! ID for the rotational constant k for yarkovsky effects
+      character(NAMELEN) :: gamma_varname = "gamma"
+         !! name of the thermal inertia parameter for yarkovsky effects
+      integer(I4B) :: gamma_varid
+         !! ID for the thermal inertia parameter for yarkovsky effects
       character(NAMELEN) :: k2_varname = "k2"
          !! name of the Love number variable
       integer(I4B) :: k2_varid 
