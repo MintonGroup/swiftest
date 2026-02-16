@@ -1476,6 +1476,8 @@ class Simulation:
             "encounter_check_loops",
             "coarray",
             "seed",
+            "yarkovsky",
+            "radiation"
         ]
 
         valid_var = self._create_valid_var(valid_arg)
