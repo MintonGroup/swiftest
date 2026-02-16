@@ -1636,6 +1636,28 @@ contains
 
          end if
 
+         if (param%lyarkovsky) then
+            call netcdf_io_check( nf90_get_var(nc%id, nc%albedo_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar albedo_varid"  )
+            cb%albedo = rtemp(1)
+            if (npl > 0) pl%albedo(:) = pack(rtemp, plmask)
+
+            call netcdf_io_check( nf90_get_var(nc%id, nc%emissivity_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar emissivity_varid"  )
+            cb%emissivity = rtemp(1)
+            if (npl > 0) pl%emissivity(:) = pack(rtemp, plmask)
+
+            call netcdf_io_check( nf90_get_var(nc%id, nc%rot_k_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar rot_k_varid"  )
+            cb%rot_k = rtemp(1)
+            if (npl > 0) pl%rot_k(:) = pack(rtemp, plmask)
+
+            call netcdf_io_check( nf90_get_var(nc%id, nc%gamma_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar gamma_varid"  )
+            cb%gamma = rtemp(1)
+            if (npl > 0) pl%gamma(:) = pack(rtemp, plmask)
+         end if
+
          ! if (param%ltides) then
          !    call netcdf_io_check( nf90_get_var(nc%id, nc%k2_varid, rtemp, start=[1, tslot]), &
          !                        "netcdf_io_read_frame_system nf90_getvar k2_varid"  )
