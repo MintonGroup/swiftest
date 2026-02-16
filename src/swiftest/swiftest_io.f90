@@ -994,6 +994,17 @@ contains
                         
          end if
 
+         if (param%lyarkovsky) then
+            call netcdf_io_check( nf90_def_var(nc%id, nc%albedo_varname, nc%out_type, nc%name_dimid, nc%albedo_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var albedo_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%emissivity_varname, nc%out_type, nc%name_dimid, nc%emissivity_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var emissivity_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%rot_k_varname, nc%out_type, nc%name_dimid, nc%rot_k_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var rot_k_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%gamma_varname, nc%out_type, nc%name_dimid, nc%gamma_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var gamma_varid"  )
+         end if
+
          ! if (param%ltides) then
          !    call netcdf_io_check( nf90_def_var(nc%id, nc%k2_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%k2_varid), &
          !                        "netcdf_io_initialize_output nf90_def_var k2_varid"  )
@@ -1213,6 +1224,17 @@ contains
             ! call netcdf_io_check( nf90_inq_varid(nc%id, nc%rotphase_varname, nc%rotphase_varid), &
             !                       "swiftest_io_netcdf_open nf90_inq_varid rotphase_varid")
                                    
+         end if
+
+         if (param%lyarkovsky) then
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%albedo_varname, nc%albedo_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid albedo_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%emissivity_varname, nc%emissivity_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid emissivity_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%rot_k_varname, nc%rot_k_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid rot_k_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%gamma_varname, nc%gamma_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid gamma_varid" )
          end if
 
          ! if (param%ltides) then
