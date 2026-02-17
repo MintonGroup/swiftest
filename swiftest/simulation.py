@@ -193,6 +193,7 @@ class Simulation:
             "CHK_QMIN": "qmin",
             "CHK_QMIN_RANGE": "qminR",
             "SEED": "seed",
+            "YARKOVSKY": "yarkovsky"
         }
 
         # Define default parameters
@@ -238,6 +239,7 @@ class Simulation:
             "RESTART": False,
             "ENCOUNTER_SAVE": "NONE",
             "TIDES": False,
+            "YARKOVSKY": False
         }
 
         self.codename = codename
