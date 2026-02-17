@@ -1639,22 +1639,18 @@ contains
          if (param%lyarkovsky) then
             call netcdf_io_check( nf90_get_var(nc%id, nc%albedo_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
                                   "netcdf_io_read_frame_system nf90_getvar albedo_varid"  )
-            cb%albedo = rtemp(1)
             if (npl > 0) pl%albedo(:) = pack(rtemp, plmask)
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%emissivity_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
                                   "netcdf_io_read_frame_system nf90_getvar emissivity_varid"  )
-            cb%emissivity = rtemp(1)
             if (npl > 0) pl%emissivity(:) = pack(rtemp, plmask)
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%rot_k_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
                                   "netcdf_io_read_frame_system nf90_getvar rot_k_varid"  )
-            cb%rot_k = rtemp(1)
             if (npl > 0) pl%rot_k(:) = pack(rtemp, plmask)
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%gamma_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
                                   "netcdf_io_read_frame_system nf90_getvar gamma_varid"  )
-            cb%gamma = rtemp(1)
             if (npl > 0) pl%gamma(:) = pack(rtemp, plmask)
          end if
 
@@ -2127,13 +2123,13 @@ contains
                   end if
                   
                   if (param%lyarkovsky) then
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%albedo_varname, self%albedo(j), start=[idslot]), &
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%albedo_varid, self%albedo(j), start=[idslot, tslot]), &
                                   "netcdf_io_write_frame_body nf90_put_var body albedo_varid"  )
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%emissivity_varname, self%emissivity(j), start=[idslot]), &
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%emissivity_varid, self%emissivity(j), start=[idslot, tslot]), &
                                   "netcdf_io_write_frame_body nf90_put_var body emissivity_varid"  )
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%rot_k_varname, self%rot_k(j), start=[idslot]), &
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%rot_k_varid, self%rot_k(j), start=[idslot, tslot]), &
                                   "netcdf_io_write_frame_body nf90_put_var body rot_k_varid"  )
-                     call netcdf_io_check( nf90_put_var(nc%id, nc%gamma_varname, self%gamma(j), start=[idslot]), &
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%gamma_varid, self%gamma(j), start=[idslot, tslot]), &
                                   "netcdf_io_write_frame_body nf90_put_var body gamma_varid"  )
                   end if
 
