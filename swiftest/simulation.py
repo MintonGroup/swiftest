@@ -4268,6 +4268,10 @@ class Simulation:
             "ntp",
             "npl",
             "nplm",
+            "albedo",
+            "emissivity",
+            "rot_k",
+            "gamma"
         ]
 
         vars = [k for k in ic_vars if k in ds]
