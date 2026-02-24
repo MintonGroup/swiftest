@@ -1639,18 +1639,22 @@ contains
          if (param%lyarkovsky) then
             call netcdf_io_check( nf90_get_var(nc%id, nc%albedo_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
                                   "netcdf_io_read_frame_system nf90_getvar albedo_varid"  )
+            if (.not.allocated(pl%albedo)) allocate(pl%albedo(npl))
             if (npl > 0) pl%albedo(:) = pack(rtemp, plmask)
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%emissivity_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
                                   "netcdf_io_read_frame_system nf90_getvar emissivity_varid"  )
+            if (.not.allocated(pl%emissivity)) allocate(pl%emissivity(npl))
             if (npl > 0) pl%emissivity(:) = pack(rtemp, plmask)
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%rot_k_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
                                   "netcdf_io_read_frame_system nf90_getvar rot_k_varid"  )
+            if (.not.allocated(pl%rot_k)) allocate(pl%rot_k(npl))
             if (npl > 0) pl%rot_k(:) = pack(rtemp, plmask)
 
             call netcdf_io_check( nf90_get_var(nc%id, nc%gamma_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
                                   "netcdf_io_read_frame_system nf90_getvar gamma_varid"  )
+            if (.not.allocated(pl%gamma)) allocate(pl%gamma(npl))
             if (npl > 0) pl%gamma(:) = pack(rtemp, plmask)
          end if
 
