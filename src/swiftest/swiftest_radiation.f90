@@ -110,7 +110,7 @@ contains
                     i_rad(:) = .unit. pl%rh(:, i)! radiation direction vector
 
                     ! yark acceleration magnitude from eqn. 1 in Ferich, et al (2022) / eqn. 26 in Veras, et al (2015)
-                    a_yark_mag = pl%rot_k(i) * pl%radius(i)**2 * (1.0_DP - pl%albedo(i)) * param%L_SUN_sys * sqrt(param%inv_c2) / (4.0_DP * PI * pl%mass(i) * rmag**2) !! calculate k from rot_mag?
+                    a_yark_mag = pl%rot_k(i) * pl%radius(i)**2 * (1.0_DP - pl%albedo(i)) * param%L_SUN_sys * sqrt(param%inv_c2) / (4.0_DP * pl%mass(i) * rmag**2) !! calculate k from rot_mag?
 
                     ! calculate acceleration
                     ! a_yark(:, 1) = a_yark_mag * matmul(matmul(R_s(:, :), R_h(:, :)), i_rad(:))
