@@ -71,7 +71,7 @@ contains
                     h_mag = .mag. h(:)
                     s_mag = .mag. pl%rot(:, i) ! DEG/TU
                     T_rot = 360.0_DP / s_mag ! TU
-                    T_orbit = 2*PI*pl%a(i)**(1.5_DP) / pl%mu(i) ! orbital period
+                    T_orbit = 2*PI*pl%a(i)**(1.5_DP) / sqrt(pl%mu(i)) ! orbital period
                     
                     ! calculate thermal lag angles from eqn. 19 and 20 in Veras, et. al. (2022)
                     phi = atan2(1.0_DP, 1.0_DP + lag_angle_constants * pl%emissivity(i)**(0.25_DP) * T_rot**(0.5_DP) / pl%gamma(i) * (1 - pl%albedo(i))**(0.75_DP) / rmag**(1.5_DP))
