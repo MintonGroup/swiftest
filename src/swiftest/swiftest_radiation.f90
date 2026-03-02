@@ -41,8 +41,8 @@ contains
             !! magnitude values for respective vectors
         real(DP)                        :: lag_angle_constants
             !! constant terms in lag angle calculations
-        real(DP)                        :: n
-            !! mean motion
+        real(DP)                        :: T_orbit, T_rot
+            !! orbital and rotation periods
         real(DP), dimension(NDIM)       :: h
             !! Specific angular momentum vector
         real(DP), dimension(NDIM)       :: i_rad
@@ -69,12 +69,13 @@ contains
                     !! should h be made into a variable to store per body?
                     h(:) = pl%rh(:, i) .cross. pl%vh(:, i) 
                     h_mag = .mag. h(:)
-                    s_mag = .mag. pl%rot(:, i) ! CHECK IF RAD/TU OR DEG/TU
-                    n = 2*PI*pl%a(i)**(1.5_DP) / pl%mu(i) ! mean motion
+                    s_mag = .mag. pl%rot(:, i) ! DEG/TU
+                    T_rot = 360.0_DP / s_mag ! TU
+                    T_orbit = 2*PI*pl%a(i)**(1.5_DP) / pl%mu(i) ! orbital period
                     
                     ! calculate thermal lag angles from eqn. 19 and 20 in Veras, et. al. (2022)
-                    phi = atan2(1.0_DP, 1.0_DP + lag_angle_constants * pl%emissivity(i)**(0.25_DP) * s_mag**(0.5_DP) / pl%gamma(i) * (1 - pl%albedo(i))**(0.75_DP) / rmag**(1.5_DP))
-                    zeta = atan2(1.0_DP, 1.0_DP + lag_angle_constants * pl%emissivity(i)**(0.25_DP) * n**(0.5_DP) / pl%gamma(i) * (1 - pl%albedo(i))**(0.75_DP) / rmag**(1.5_DP))
+                    phi = atan2(1.0_DP, 1.0_DP + lag_angle_constants * pl%emissivity(i)**(0.25_DP) * T_rot**(0.5_DP) / pl%gamma(i) * (1 - pl%albedo(i))**(0.75_DP) / rmag**(1.5_DP))
+                    zeta = atan2(1.0_DP, 1.0_DP + lag_angle_constants * pl%emissivity(i)**(0.25_DP) * T_orbit**(0.5_DP) / pl%gamma(i) * (1 - pl%albedo(i))**(0.75_DP) / rmag**(1.5_DP))
 
                     ! rotation matrices
                     ! R2_s(:, :) = matmul(pl%rot(:, i), pl%rot(:, i)) / s_mag**2! pl%rot(:, i) .cross. pl%rot(:, i) / s_mag**2
@@ -114,7 +115,7 @@ contains
 
                     ! calculate acceleration
                     ! a_yark(:, 1) = a_yark_mag * matmul(matmul(R_s(:, :), R_h(:, :)), i_rad(:))
-                    a_yark(:, 1) = matmul(matmul(R_s(:, :), R_h(:, :)), i_rad(:))
+                    a_yark(:, 1) = matmul(matmul(R_s(:, :), R_h(:, :)), i_rad(:)) ! CHECK WITH a_yark(:) though i dont think it matters
                     a_yark(:, 1) = a_yark_mag * a_yark(:, 1) 
                     ! a_yark(i) = a_yark_mag * matmul(R_s(:, :), R_h(:, :))
 
