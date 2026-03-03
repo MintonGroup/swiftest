@@ -100,7 +100,7 @@ contains
                     R2_h(3, :) = [h(1)*h(3), h(2)*h(3), h(3)**2] / h_mag**2
 
                     ! check for and remove very small numbers to 0 to avoid floating underflow errors in rotation matrix calculations
-                    for j=1, NDIM
+                    do j=1, NDIM
                         do k=1, NDIM
                             if (abs(R1_s(j, k)) <= EPSILON(0.0_DP)) then
                                 R1_s(j, k) = 0.0_DP
