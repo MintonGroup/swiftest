@@ -33,7 +33,7 @@ contains
         class(swiftest_parameters),   intent(in)    :: param
             !! Current run configuration parameters
         ! Internals
-        integer(I4B)                    :: i
+        integer(I4B)                    :: i, j, k
             !! looping index
         real(DP)                        :: phi, zeta
             !! thermal lag angles in the rotational plane and orbital plane respectively
@@ -99,6 +99,24 @@ contains
                     R2_h(2, :) = [h(1)*h(2), h(2)**2, h(2)*h(3)] / h_mag**2
                     R2_h(3, :) = [h(1)*h(3), h(2)*h(3), h(3)**2] / h_mag**2
 
+                    ! check for and remove very small numbers to 0 to avoid floating underflow errors in rotation matrix calculations
+                    for j=1, NDIM
+                        do k=1, NDIM
+                            if (abs(R1_s(j, k)) <= EPSILON(0.0_DP)) then
+                                R1_s(j, k) = 0.0_DP
+                            end if
+                            if (abs(R1_h(j, k)) <= EPSILON(0.0_DP)) then
+                                R1_h(j, k) = 0.0_DP
+                            end if
+                            if (abs(R2_s(j, k)) <= EPSILON(0.0_DP)) then
+                                R2_s(j, k) = 0.0_DP
+                            end if
+                            if (abs(R2_h(j, k)) <= EPSILON(0.0_DP)) then
+                                R2_h(j, k) = 0.0_DP
+                            end if
+                        end do
+                    end do
+
                     ! Combined rotation matrices
                     R_s(:, :) = cos(phi) * UM(:, :) + sin(phi) * R1_s(:, :) + (1.0_DP - cos(phi)) * R2_s(:, :)
                     R_h(:, :) = cos(zeta) * UM(:, :) - sin(zeta) * R1_h(:, :) + (1.0_DP - cos(zeta)) * R2_h(:, :)
@@ -115,8 +133,8 @@ contains
 
                     ! calculate acceleration
                     ! a_yark(:, 1) = a_yark_mag * matmul(matmul(R_s(:, :), R_h(:, :)), i_rad(:))
-                    ! a_yark(:, 1) = matmul(matmul(R_s(:, :), R_h(:, :)), i_rad(:))
-                    a_yark(:, 1) = matmul(matmul(R_s(:, :)), i_rad(:))
+                    a_yark(:, 1) = matmul(matmul(R_s(:, :), R_h(:, :)), i_rad(:))
+                    ! a_yark(:, 1) = matmul(R_s(:, :), i_rad(:))
                     a_yark(:, 1) = a_yark_mag * a_yark(:, 1) 
                     ! a_yark(i) = a_yark_mag * matmul(R_s(:, :), R_h(:, :))
 
