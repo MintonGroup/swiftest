@@ -115,7 +115,8 @@ contains
 
                     ! calculate acceleration
                     ! a_yark(:, 1) = a_yark_mag * matmul(matmul(R_s(:, :), R_h(:, :)), i_rad(:))
-                    a_yark(:, 1) = matmul(matmul(R_s(:, :), R_h(:, :)), i_rad(:)) ! CHECK WITH a_yark(:) though i dont think it matters
+                    ! a_yark(:, 1) = matmul(matmul(R_s(:, :), R_h(:, :)), i_rad(:))
+                    a_yark(:, 1) = matmul(matmul(R_s(:, :)), i_rad(:))
                     a_yark(:, 1) = a_yark_mag * a_yark(:, 1) 
                     ! a_yark(i) = a_yark_mag * matmul(R_s(:, :), R_h(:, :))
 
