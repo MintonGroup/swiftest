@@ -47,9 +47,9 @@ contains
             !! Specific angular momentum vector
         real(DP), dimension(NDIM)       :: i_rad
             !! radiation direction vector
-        real(DP), dimension(NDIM, 1)       :: a_yark
+        real(DP), dimension(NDIM)       :: a_yark 
             !! Yarkovsky acceleration vector
-        real(DP), dimension(NDIM, NDIM) :: UM, R_s, R1_s, R2_s, R_h, R1_h, R2_h
+        real(DP), dimension(NDIM, NDIM) :: UM, R_s, R1_s, R2_s, R_h, R1_h, R2_h, R_s_TMP, R_h_TMP, Y_tmp
             !! rotation matrices
 
         ! calculate constants
@@ -121,6 +121,15 @@ contains
                     R_s(:, :) = cos(phi) * UM(:, :) + sin(phi) * R1_s(:, :) + (1.0_DP - cos(phi)) * R2_s(:, :)
                     R_h(:, :) = cos(zeta) * UM(:, :) - sin(zeta) * R1_h(:, :) + (1.0_DP - cos(zeta)) * R2_h(:, :)
 
+                    ! manually compute R_s and R_h and compare
+                    do j=1, NDIM 
+                        do k = 1, NDIM
+                            R_s_TMP(j, k) = cos(phi) * UM(j, k) + sin(phi) * R1_s(j, k) + (1.0_DP - cos(phi)) * R2_s(j, k)
+                            R_h_TMP(j, k) = cos(zeta) * UM(j, k) - sin(zeta) * R1_h(j, k) + (1.0_DP - cos(zeta)) * R2_h(j, k)
+                        end do  
+                            
+                    end do
+
                     !! We will assume that v << c, so radiation direction vector is r_hat
                     ! if vmag**2 * param%inv_c2 > 1e-3 then
                     !     i_rad(:) = (1 - dot_product(pl%vh(:, i), pl%rh(:, i)) * sqrt(param%inv_c2) / rmag) * pl%rh(:, i) / rmag - pl%vh(:, i) * sqrt(param%inv_c2) ! radiation direction vector
@@ -131,15 +140,18 @@ contains
                     ! yark acceleration magnitude from eqn. 1 in Ferich, et al (2022) / eqn. 26 in Veras, et al (2015)
                     a_yark_mag = pl%rot_k(i) * pl%radius(i)**2 * (1.0_DP - pl%albedo(i)) * param%L_SUN_sys * sqrt(param%inv_c2) / (4.0_DP * pl%mass(i) * rmag**2)
 
-                    ! calculate acceleration
-                    ! a_yark(:, 1) = a_yark_mag * matmul(matmul(R_s(:, :), R_h(:, :)), i_rad(:))
-                    a_yark(:, 1) = matmul(matmul(R_s(:, :), R_h(:, :)), i_rad(:))
-                    ! a_yark(:, 1) = matmul(R_s(:, :), i_rad(:))
-                    a_yark(:, 1) = a_yark_mag * a_yark(:, 1) 
-                    ! a_yark(i) = a_yark_mag * matmul(R_s(:, :), R_h(:, :))
+                    ! calculate yarkovsky direction matrix
+                    Y_tmp = matmul(R_s(:, :), R_h(:, :))
+
+                    ! Multiply yarkovsky direction matrix with radiation direction vector
+                    do j = 1, NDIM
+                        a_yark(j) = Y_tmp(j, 1) * i_rad(1) + Y_tmp(j, 2) * i_rad(2) + Y_tmp(j, 3) * i_rad(3)
+                    end do
+
+                    a_yark(:) = a_yark_mag * a_yark(:) 
 
                     ! add to acceleration
-                    pl%ah(:, i) = pl%ah(:, i) + a_yark(:, 1)
+                    pl%ah(:, i) = pl%ah(:, i) + a_yark(:)
                     
                 end if
             end do
