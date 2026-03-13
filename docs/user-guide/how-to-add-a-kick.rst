@@ -18,6 +18,7 @@ Important nomenclature:
     - Massive Particles = ``pl`` = type ``body`` of class ``swiftest_pl``
     - Test particles = ``tp`` = type ``body`` of class ``swiftest_tp``
 - Input parameters = ``param`` = simulation paramters object
+- NetCDF file object = ``nc``
 
 - *file.f90* is a file or folder.
 - ``code`` is a block of code.
@@ -95,9 +96,10 @@ The Fortran side of Swiftest is where all the calculations for the simulation ar
 
 - Add the kick and necessary particle parmeters to *swiftest_module.f90*:
     
-    - Define and add any new particle parameters required by the kick to the appropriate particle type(s) (``swiftest_pl``, ``swiftest_tp``, or ``swiftest_body`` for both particles). The variables should be defiend as ``allocatable``.
+    - Define and add any new particle parameters required by the kick to the appropriate particle type(s) (``swiftest_pl``, ``swiftest_tp``, or ``swiftest_body`` for both particles). 
+    - The variables should be defiend as ``allocatable`` with the right dimensions. The dimension variables in Swiftest are ``time``, ``name``, and ``space``. ``space`` is split up into ``x``, ``y``, and ``z`` and is for vector variables in 3D.
 
-        - For example, we can add emissivity and albedo to massive particles (``pl``) for the Yarkovsky kicks.
+        - For example, we can add emissivity and albedo to massive particles (``pl``) for the Yarkovsky kicks. They do not change with time or space, and only vary per particle . Their dimension is thus only ``name``. 
 
         .. code-block:: Fortran
 
@@ -220,7 +222,7 @@ Swiftest uses hdf5 and NetCDF files for data handling. This is handled by Xarray
             .
             .
 
-- General I/O checks in *swiftest_io.f90*:
+- General ``param`` I/O checks in *swiftest_io.f90*:
 
     - Here we will add in checks for inputting and outputting the data variables. This will ensure that variables are defined, read in, and printed out correctly.
     - We will start with reading the ``param`` object in ``subroutine swiftest_io_param_reader()``.
@@ -260,9 +262,69 @@ Swiftest uses hdf5 and NetCDF files for data handling. This is handled by Xarray
             .   
         end subroutine swiftest_io_param_writer
 
-- NetCDF data handling checks in *swiftest_io.f90*
+- NetCDF data handling checks for new parameter variables in *swiftest_io.f90*:
+
+    - We will define the NetCDF variables and add checks when initalizing the output file in ``swiftest_io_netcdf_initialize_output()``.
+    - The general format for adding the parameter definition and NetCDF check is as below. Other NetCDF functions (ex: ``nf90_def_var``, ``nf90_inq_varid``, etc.) follow a similar structure.
+
+    .. code-block:: fortran
+
+        call netcdf_io_check( nf90_def_var(NetCDF ID, new parameter variable name, NetCDF output type, [New parmeter dimension IDs], new parameter variable ID), &
+                                "error message"  )
+    
+    - The dimension IDs are ``nc%space_dimid``, ``nc%name_dimid``, and ``nc%time_dimid``. The ``[]`` are only necessary with variables of more than 1 dimension and should follow the given order.
+    - For a new parameter called ``newparameter`` that varies with ``space``, ``name``, and ``time``, this addition would look like this:
+                            
+    .. code-block:: fortran
+
+        call netcdf_io_check( nf90_def_var(nc%id, nc%newparameter_varname, nc%out_type, [nc%space_dimid, nc%name_dimid, nc%time_dimid], nc%newparameter_varid), &
+                            "netcdf_io_initialize_output nf90_def_var newparameter_varid"  )
+    
+    - For a new parameter called ``newparameter2`` that varies with ``name``, and ``time``, this addition would look like this:
+                            
+    .. code-block:: fortran
+
+        call netcdf_io_check( nf90_def_var(nc%id, nc%newparameter2_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%newparameter2_varid), &
+                            "netcdf_io_initialize_output nf90_def_var newparameter2_varid"  )
 
 
+    - It is also important to only define the new variables if the user sets the appropriate ``param`` flag. 
+    - Continuing with the Yarkovsky code example, we add ``albedo`` and ``emissivity`` that only vary with the ``name`` dimension:
+
+    .. code-block:: fortran
+
+        module subroutine swiftest_io_netcdf_initialize_output(self, param)
+            .
+            .
+            associate(nc => self)
+                .
+                .
+                if (param%lyarkovsky) then
+                    call netcdf_io_check( nf90_def_var(nc%id, nc%albedo_varname, nc%out_type, nc%name_dimid, nc%albedo_varid), &
+                                        "netcdf_io_initialize_output nf90_def_var albedo_varid"  )
+                    call netcdf_io_check( nf90_def_var(nc%id, nc%emissivity_varname, nc%out_type, nc%name_dimid, nc%emissivity_varid), &
+                                        "netcdf_io_initialize_output nf90_def_var emissivity_varid"  )
+                .
+                .
+            .
+            .
+        end subroutine swiftest_io_netcdf_initialize_output
+
+    - Next, we handle the checks when opening the NetCDF file in ``swiftest_io_netcdf_open(self, param, readonly)``
+
+    .. code-block:: fortran
+
+        module subroutine swiftest_io_netcdf_open(self, param, readonly)
+            .
+            .
+            associate(nc => self)
+                .
+                .
+                if (param%lyarkovsky) then
+                    call netcdf_io_check( nf90_inq_varid(nc%id, nc%albedo_varname, nc%albedo_varid), &
+                                        "swiftest_io_netcdf_open nf90_inq_varid albedo_varid" )
+                    call netcdf_io_check( nf90_inq_varid(nc%id, nc%emissivity_varname, nc%emissivity_varid), &
+                                        "swiftest_io_netcdf_open nf90_inq_varid emissivity_varid" )
 
 Python
 =======
