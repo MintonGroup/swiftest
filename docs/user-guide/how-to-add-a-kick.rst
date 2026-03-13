@@ -225,7 +225,7 @@ Swiftest uses hdf5 and NetCDF files for data handling. This is handled by Xarray
 - General ``param`` I/O checks in *swiftest_io.f90*:
 
     - Here we will add in checks for inputting and outputting the data variables. This will ensure that variables are defined, read in, and printed out correctly.
-    - We will start with reading the ``param`` object in ``subroutine swiftest_io_param_reader()``.
+    - We will start with reading the ``param`` object in ``swiftest_io_param_reader()``.
     - Define a simple name for the effect, ex: ``"YARKOVSKY"``. This will be used and defined later on the Python side.
 
     .. code-block:: fortran
@@ -280,7 +280,7 @@ Swiftest uses hdf5 and NetCDF files for data handling. This is handled by Xarray
             .
         end subroutine swiftest_io_param_reader
                 
-    - We will ensure the flag is correct when writing an updated ``param`` object in ``module subroutine swiftest_io_param_writer()``.
+    - We will ensure the flag is correct when writing an updated ``param`` object in ``swiftest_io_param_writer()``.
 
     .. code-block:: fortran
 
@@ -384,7 +384,7 @@ Swiftest uses hdf5 and NetCDF files for data handling. This is handled by Xarray
 
     - Lastly, we also check if the variable is allocated or not and then ``pack`` the values into the parameter for the appropriate bodies using ``plmask`` or ``tpmask``.
 
-    .. code-block:: fortan
+    .. code-block:: fortran
 
         module function swiftest_io_netcdf_read_frame_system(self, nc, param) result(ierr)
             .
