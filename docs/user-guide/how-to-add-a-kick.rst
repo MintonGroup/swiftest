@@ -95,7 +95,8 @@ The Fortran side of Swiftest is where all the calculations for the simulation ar
 
 - Add the kick and necessary particle parmeters to *swiftest_module.f90*:
     
-    - Define and add any new particle parameters required by the kick to the appropriate particle type(s) (``swiftest_pl``, ``swiftest_tp``, or ``swiftest_body`` for both particles).
+    - Define and add any new particle parameters required by the kick to the appropriate particle type(s) (``swiftest_pl``, ``swiftest_tp``, or ``swiftest_body`` for both particles). The variables should be defiend as ``allocatable``.
+
         - For example, we can add emissivity and albedo to massive particles (``pl``) for the Yarkovsky kicks.
 
         .. code-block:: Fortran
