@@ -264,12 +264,14 @@ Swiftest uses hdf5 and NetCDF files for data handling. This is handled by Xarray
 
 - NetCDF data handling checks for new parameter variables in *swiftest_io.f90*:
 
+    - A good resource for the NetCDF functions is here: https://docs.unidata.ucar.edu/netcdf-fortran/current/f90-variables.html
+
     - We will define the NetCDF variables and add checks when initalizing the output file in ``swiftest_io_netcdf_initialize_output()``.
     - The general format for adding the parameter definition and NetCDF check is as below. Other NetCDF functions (ex: ``nf90_def_var``, ``nf90_inq_varid``, etc.) follow a similar structure.
 
     .. code-block:: fortran
 
-        call netcdf_io_check( nf90_def_var(NetCDF ID, new parameter variable name, NetCDF output type, [New parmeter dimension IDs], new parameter variable ID), &
+        call netcdf_io_check( nf90_def_var(NetCDF ID, new parameter variable name, NetCDF output type, [new parmeter dimension IDs], new parameter variable ID), &
                                 "error message"  )
     
     - The dimension IDs are ``nc%space_dimid``, ``nc%name_dimid``, and ``nc%time_dimid``. The ``[]`` are only necessary with variables of more than 1 dimension and should follow the given order.
@@ -310,7 +312,7 @@ Swiftest uses hdf5 and NetCDF files for data handling. This is handled by Xarray
             .
         end subroutine swiftest_io_netcdf_initialize_output
 
-    - Next, we handle the checks when opening the NetCDF file in ``swiftest_io_netcdf_open(self, param, readonly)``
+    - Next, we handle the checks when opening the NetCDF file in ``swiftest_io_netcdf_open()``. Here we are reading in the variable IDs.
 
     .. code-block:: fortran
 
@@ -325,6 +327,49 @@ Swiftest uses hdf5 and NetCDF files for data handling. This is handled by Xarray
                                         "swiftest_io_netcdf_open nf90_inq_varid albedo_varid" )
                     call netcdf_io_check( nf90_inq_varid(nc%id, nc%emissivity_varname, nc%emissivity_varid), &
                                         "swiftest_io_netcdf_open nf90_inq_varid emissivity_varid" )
+                .
+                .
+        end subroutine swiftest_io_netcdf_open
+    
+    - After initialization, we can now read in the data in ``swiftest_read_frame_system()``. 
+    - We will use ``nf90_get_var()`` that follows a similar but slightly different format with the ``start`` and ``count`` arguments. 
+    - ``start`` defines the index of value to read per dimension and ``count`` defines the amount of indices along each dimension.
+    - The general format is as so:
+
+    .. code-block:: fortran
+
+        call netcdf_io_check( nf90_get_var(NetCDF ID, new parameter variable ID, temporary_variable, start=[...], count=[...]), &
+                                        "error message"  )
+    
+    - The temporary variable in Swiftest is ``rtemp`` for scalar variables and ``vectemp`` for vector variables. 
+    - For vector variables that vary with ``space``, ``name``, and ``time``, you can define ``start = [1, 1, tslot], count = [NDIM, idmax, 1]``.
+        - ``NDIM`` is the pre-defined umber of space dimensions = 3.
+        - ``idmax`` is the highest id of the bodies, i.e., the total number of bodies in the data.
+    - For scale variables that vary with ``name`` or ``time`` or both, you can define ``start = [1, tslot], count = [idmax, 1]``.
+
+    - Lastly, we also check if the variable is allocated or not and then ``pack`` the values into the parameter for the appropriate bodies using ``plmask`` or ``tpmask``.
+
+    .. code-block:: fortan
+
+        module function swiftest_io_netcdf_read_frame_system(self, nc, param) result(ierr)
+            .
+            .
+            associate(cb => self%cb, pl => self%pl, tp => self%tp, tslot => nc%tslot)
+                .
+                .
+                if (param%lyarkovsky) then
+                    call netcdf_io_check( nf90_get_var(nc%id, nc%albedo_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                        "netcdf_io_read_frame_system nf90_getvar albedo_varid"  )
+                    if (.not.allocated(pl%albedo)) allocate(pl%albedo(npl))
+                    if (npl > 0) pl%albedo(:) = pack(rtemp, plmask)
+
+                    call netcdf_io_check( nf90_get_var(nc%id, nc%emissivity_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                        "netcdf_io_read_frame_system nf90_getvar emissivity_varid"  )
+                    if (.not.allocated(pl%emissivity)) allocate(pl%emissivity(npl))
+                    if (npl > 0) pl%emissivity(:) = pack(rtemp, plmask)
+                .
+                .
+            end subroutine swiftest_io_read_frame_system
 
 Python
 =======
