@@ -371,6 +371,39 @@ Swiftest uses hdf5 and NetCDF files for data handling. This is handled by Xarray
                 .
             end subroutine swiftest_io_read_frame_system
 
+    - We can write out the values to the NetCDF data file in ``swiftest_io_write_frame_body()``:
+
+        - Looping through all the bodies, we put in the necessary data for the ``j``-th using ``nf90_put_var()``. This function is akin to ``nf90_get_var()`` and uses ``start`` and ``count``.
+        - For a vector variable, you can define ``start = [1, idslot, tslot], count = [NDIM, 1, 1]``
+        - For a scalar variable, you can define ``start = [idslot, tslot]`` (``count`` is not needed).
+
+        - For writing out our the ``albedo`` and ``emissivity`` variables in the Yarkovsky kick for only ``pl`` particles:
+
+        .. code-block:: fortran
+
+            module subroutine swiftest_io_netcdf_write_frame_body(self, nc, param)
+                .
+                .
+                associate(n => self%nbody, tslot => nc%tslot)
+                    .
+                    .
+                    do i = 1, n
+                        j = ind(i)
+                        .
+                        .
+                        select type(self)  
+                        class is (swiftest_pl)  ! Additional output if the passed polymorphic object is a massive body
+                            .
+                            .
+                            if (param%lyarkovsky) then
+                                call netcdf_io_check( nf90_put_var(nc%id, nc%albedo_varid, self%albedo(j), start=[idslot, tslot]), &
+                                            "netcdf_io_write_frame_body nf90_put_var body albedo_varid"  )
+                                call netcdf_io_check( nf90_put_var(nc%id, nc%emissivity_varid, self%emissivity(j), start=[idslot, tslot]), &
+                                            "netcdf_io_write_frame_body nf90_put_var body emissivity_varid"  )
+                            .
+                            .
+            end subroutine swiftest_io_netcdf_write_frame_body
+
 Python
 =======
 
