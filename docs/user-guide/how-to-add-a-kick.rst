@@ -196,9 +196,18 @@ The Fortran side of Swiftest is where all the calculations for the simulation ar
 Now we can tackle the data and parameter I/O. If you have not added any new particle parameters/features (In our example, ``albedo`` and ``emissivity``) or new variables to the data, you can ignore this section.
 Swiftest uses hdf5 and NetCDF files for data handling. We will split the I/O section into general Swiftest data checks and then NetCDF I/O checks.
 
-- Initial I/O checks
+- General I/O checks in *swiftest_io.f90*
 
-- NetCDF I/O checks
+- NetCDF data handling I/O checks in *swiftest_io.f90* and *netcdf_io_module.f90*
+
+
 
 Python
 =======
+
+Now we will navigate to the Python side of Swiftest. The relevant directory is *swiftest/swiftest/*
+
+- Add variables to *simulation.py*
+
+- Add and check param flags in *simulation.py* and *io.py*
+
