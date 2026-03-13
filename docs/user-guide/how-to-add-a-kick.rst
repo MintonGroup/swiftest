@@ -244,6 +244,41 @@ Swiftest uses hdf5 and NetCDF files for data handling. This is handled by Xarray
             .
             .
         end subroutine swiftest_io_param_reader
+    
+    - In the same ``subroutine``, you can add other ``param`` flag checks. For example, the Yarkovsky kick also requires rotation of particles. 
+    - We can add a check to ensure that they are both turned on outside the ``do`` loop and/or do any other required unit coversions for constants.
+
+    .. code-block:: fortran
+
+        module subroutine swiftest_io_param_reader(self, unit, iotype, v_list, iostat, iomsg) 
+            .
+            .
+            associate(param => self) 
+                .
+                .
+                case("YARKOVSKY")
+                    call swiftest_io_toupper(param_value)
+                    if (param_value == "YES" .or. param_value == 'T') param%lyarkovsky = .true.
+                .
+                .
+            .
+            .
+            if (param%lyarkovsky .and. .not. param%lrotation) then
+                write(iomsg,*) 'Yarkovsky forces require rotation to be turned on'
+                iostat = -1
+                return
+            end if
+            .
+            .
+            ! Calculate Solar Luminosity in system units and turn on gr for inv_c2 calculation if radiation forces are enabled
+            if (param%lradiation .or. param%lyarkovsky) then
+                param%L_SUN_sys = L_SUN / param%MU2KG / param%DU2M**2 * param%TU2S**3
+                param%sigma_sys = SIGMA /param%MU2KG * param%TU2S**3 ! system units / K^4
+                param%lgr = .true.
+            end if
+            .
+            .
+        end subroutine swiftest_io_param_reader
                 
     - We will ensure the flag is correct when writing an updated ``param`` object in ``module subroutine swiftest_io_param_writer()``.
 
@@ -341,7 +376,7 @@ Swiftest uses hdf5 and NetCDF files for data handling. This is handled by Xarray
         call netcdf_io_check( nf90_get_var(NetCDF ID, new parameter variable ID, temporary_variable, start=[...], count=[...]), &
                                         "error message"  )
     
-    - The temporary variable in Swiftest is ``rtemp`` for scalar variables and ``vectemp`` for vector variables. 
+    - The temporary variable in Swiftest is ``rtemp`` for scalar variables and ``vectemp`` for vector variables. The actual values are read in later automatically.
     - For vector variables that vary with ``space``, ``name``, and ``time``, you can define ``start = [1, 1, tslot], count = [NDIM, idmax, 1]``.
         - ``NDIM`` is the pre-defined umber of space dimensions = 3.
         - ``idmax`` is the highest id of the bodies, i.e., the total number of bodies in the data.
@@ -371,7 +406,7 @@ Swiftest uses hdf5 and NetCDF files for data handling. This is handled by Xarray
                 .
             end subroutine swiftest_io_read_frame_system
 
-    - We can write out the values to the NetCDF data file in ``swiftest_io_write_frame_body()``:
+    - We then write out the values to the NetCDF data file in ``swiftest_io_write_frame_body()``:
 
         - Looping through all the bodies, we put in the necessary data for the ``j``-th using ``nf90_put_var()``. This function is akin to ``nf90_get_var()`` and uses ``start`` and ``count``.
         - For a vector variable, you can define ``start = [1, idslot, tslot], count = [NDIM, 1, 1]``
@@ -403,6 +438,9 @@ Swiftest uses hdf5 and NetCDF files for data handling. This is handled by Xarray
                             .
                             .
             end subroutine swiftest_io_netcdf_write_frame_body
+    
+    - Depending on the properties and dimensions of the new variables, you may have to define it in other subroutines in *swiftest_io.f90* too. Please read the descriptions of each function and use test runs to check.
+    - Some potential subroutines include ``swiftest_io_netcdf_read_in_system()``, ``swiftest_io_netcdf_write_frame_cb()``, ``swiftest_io_netcdf_read_hdr_system()``, etc.
 
 Python
 =======
