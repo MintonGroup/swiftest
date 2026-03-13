@@ -194,11 +194,35 @@ The Fortran side of Swiftest is where all the calculations for the simulation ar
         ) 
 
 Now we can tackle the data and parameter I/O. If you have not added any new particle parameters/features (In our example, ``albedo`` and ``emissivity``) or new variables to the data, you can ignore this section.
-Swiftest uses hdf5 and NetCDF files for data handling. We will split the I/O section into general Swiftest data checks and then NetCDF I/O checks.
+Swiftest uses hdf5 and NetCDF files for data handling. This is handled by Xarray in Python. We will split the I/O section into general Swiftest data checks and then NetCDF I/O checks.
+
+- NetCDF data handling I/O checks in *netcdf_io_module.f90*
+
+    - We assume the additions are not a new dimension variable.
+    - Add new parameters' and variables' to the ``netcdf_parameters`` class. We will define a name of type ``character(NAMELEN)`` and a variable ID of type ``integer(I4B)``.
+
+    .. code-block:: fortran
+
+        !! This derived datatype stores the NetCDF ID values for each of the variables included in the NetCDF data file. This is used as
+        !! the base class defined in base
+        type, abstract :: netcdf_parameters
+            .
+            .
+            character(NAMELEN) :: albedo_varname = "albedo"
+                !! name of the albedo variable
+            integer(I4B) :: albedo_varid 
+                !! ID for the albedo variable
+            character(NAMELEN) :: emissivity_varname = "emissivity"
+                !! name of the emissivity variable
+            integer(I4B) :: emissivity_varid 
+                !! ID for the emissivity variable
+            .
+            .
 
 - General I/O checks in *swiftest_io.f90*
 
-- NetCDF data handling I/O checks in *swiftest_io.f90* and *netcdf_io_module.f90*
+        
+- NetCDF data handling checks in *swiftest_io.f90*
 
 
 
