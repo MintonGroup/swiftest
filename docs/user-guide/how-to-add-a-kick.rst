@@ -196,37 +196,11 @@ The Fortran side of Swiftest is where all the calculations for the simulation ar
             .
         ) 
 
-Now we can tackle the data and parameter I/O. If you have not added any new particle parameters/features (In our example, ``albedo`` and ``emissivity``) or new variables to the data, you can ignore this section.
-Swiftest uses hdf5 and NetCDF files for data handling. This is handled by Xarray in Python. We will split the I/O section into general Swiftest data checks and then NetCDF I/O checks.
-
-- NetCDF data handling I/O checks in *netcdf_io_module.f90*
-
-    - We assume the additions are not a new dimension variable.
-    - Add new parameters' and variables' to the ``netcdf_parameters`` class. We will define a name of type ``character(NAMELEN)`` and a variable ID of type ``integer(I4B)``.
-
-    .. code-block:: fortran
-
-        !! This derived datatype stores the NetCDF ID values for each of the variables included in the NetCDF data file. This is used as
-        !! the base class defined in base
-        type, abstract :: netcdf_parameters
-            .
-            .
-            character(NAMELEN) :: albedo_varname = "albedo"
-                !! name of the albedo variable
-            integer(I4B) :: albedo_varid 
-                !! ID for the albedo variable
-            character(NAMELEN) :: emissivity_varname = "emissivity"
-                !! name of the emissivity variable
-            integer(I4B) :: emissivity_varid 
-                !! ID for the emissivity variable
-            .
-            .
-
 - General ``param`` I/O checks in *swiftest_io.f90*:
 
     - Here we will add in checks for inputting and outputting the data variables. This will ensure that variables are defined, read in, and printed out correctly.
     - We will start with reading the ``param`` object in ``swiftest_io_param_reader()``.
-    - Define a simple name for the effect, ex: ``"YARKOVSKY"``. This will be used and defined later on the Python side.
+    - Define a simple name for the effect, ex: ``"YARKOVSKY"``. This will be used for reading the ``param`` file from Python and defined again later on the Python side.
 
     .. code-block:: fortran
 
@@ -296,6 +270,33 @@ Swiftest uses hdf5 and NetCDF files for data handling. This is handled by Xarray
             .
             .   
         end subroutine swiftest_io_param_writer
+
+
+Now we can tackle the data and particle parameter I/O. If you have not added any new particle parameters/features (in our example, ``albedo`` and ``emissivity``) or new variables to the data, you can ignore this section.
+Swiftest uses hdf5 and NetCDF files for data handling. This is handled by Xarray in Python. We will split the I/O section into general Swiftest data checks and then NetCDF I/O checks.
+
+- NetCDF data handling I/O checks in *netcdf_io_module.f90*
+
+    - We assume the additions are not a new dimension variable.
+    - Add new parameters' and variables' to the ``netcdf_parameters`` class. We will define a name of type ``character(NAMELEN)`` and a variable ID of type ``integer(I4B)``.
+
+    .. code-block:: fortran
+
+        !! This derived datatype stores the NetCDF ID values for each of the variables included in the NetCDF data file. This is used as
+        !! the base class defined in base
+        type, abstract :: netcdf_parameters
+            .
+            .
+            character(NAMELEN) :: albedo_varname = "albedo"
+                !! name of the albedo variable
+            integer(I4B) :: albedo_varid 
+                !! ID for the albedo variable
+            character(NAMELEN) :: emissivity_varname = "emissivity"
+                !! name of the emissivity variable
+            integer(I4B) :: emissivity_varid 
+                !! ID for the emissivity variable
+            .
+            .
 
 - NetCDF data handling checks for new parameter variables in *swiftest_io.f90*:
 
@@ -447,7 +448,30 @@ Python
 
 Now we will navigate to the Python side of Swiftest. The relevant directory is *swiftest/swiftest/*
 
-- Add variables to *simulation.py*
+- Add the new feature as a valid parameter flag in *io.py*
 
-- Add and check param flags in *simulation.py* and *io.py*
+    - We will add the previously defined name of this to ``newfeaturelist``. Also add it to ``bool_param`` if it is a boolean argument.
+    - We defined this as "YARKOVSKY" earlier.
+
+    .. code-block:: python
+
+        newfeaturelist = (
+            .
+            .
+            "YARKOVSKY",
+            .
+            .
+            )
+        
+        bool_param = [
+            .
+            .
+            "YARKVOSKY",
+            .
+            .
+            ]
+
+- Add and check param flags in *simulation.py*.
+
+- Add variables to *simulation.py*
 
