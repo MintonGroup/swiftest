@@ -473,5 +473,86 @@ Now we will navigate to the Python side of Swiftest. The relevant directory is *
 
 - Add and check param flags in *simulation.py*.
 
+    - In ``__init__()`` add the above parameter flag name and a name for user interaction (typically the flag name in lowercase) to the dictionary of ``self._param_to_argument``.
+    - Then, define the default value of the flag below the dictionary in ``self.param``.
+
+    .. code-block:: python
+
+        def __init__(...):
+            .
+            .
+            self._param_to_argument = {
+                .
+                .
+                "YARKOVSKY" : "yarkovsky"
+                .
+                .
+                }
+            .
+            .
+            self.param = {
+                .
+                .
+                "YARKOVSKY" : False
+                .
+                .
+                }
+
+    
+    - We will add the name as a valid body argument in ``get_feature()``.
+
+    ..code-block:: python
+
+        def get_feature(...):
+            .
+            .
+            valid_arg = [
+                .
+                .
+                "yarkovsky",
+                .
+                .
+            ]
+
+    - Next, we can define how to handle the user input in ``set_feature()``.
+    - First, we define it as a passable argument of ``set_feature()`` with it's data type and describe it in the description.
+
+    ..code-block:: python
+
+        def set_feature(
+            self, 
+            .
+            .
+            yarkovsky: bool | None = None
+            .
+            .
+            )
+            """
+            Turns on or off various features of a simulation.
+
+            Parameters
+            ----------
+            .
+            .
+            yarkovsky : bool, optional
+                Turns on Yarkovsky model
+            .
+            .
+    
+    - Now we can read in and handle the parameter flag for the new feature in ``set_feature()``. We check if the parameter has been set by the user and accordingly set any dependent flags.
+    - In our example, rotation is needed by the Yarkovsky effect.
+
+    ..code-block:: python
+
+        .
+        .
+        if yarkovsky is not None:
+                self.param["YARKOVSKY"] = yarkovsky
+                update_list.append("yarkovsky")
+                self.param["ROTATION"] = True # rotation needed for yarkovsky model
+        .
+        .
+    
+
 - Add variables to *simulation.py*
 
