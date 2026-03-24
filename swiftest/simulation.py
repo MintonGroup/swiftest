@@ -3589,7 +3589,7 @@ class Simulation:
             Non-normalized J4 values (e.g. J4*R**4, where R is the body radius) if this is a central body (only one of J4 or c_lm can be passed)
         c_lm : (2,l_max+1,l_max+1) array-like of float, optional
             Spherical harmonics coefficients if this is a central body (only one of J2/J4 or c_lm can be passed)
-            albedo : float or array-like of float, optional
+        albedo : float or array-like of float, optional
             Albedo values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
         emissivity : float or array-like of float, optional
             Emissivity values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
