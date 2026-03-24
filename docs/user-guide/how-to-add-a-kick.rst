@@ -473,7 +473,7 @@ Now we will navigate to the Python side of Swiftest. The relevant directory is *
 
 - Add and check param flags in *simulation.py*.
 
-    - In ``__init__()`` add the above parameter flag name and a name for user interaction (typically the flag name in lowercase) to the dictionary of ``self._param_to_argument``.
+    - In ``__init__()``, add the above parameter flag name and a name for user interaction (typically the flag name in lowercase) to the dictionary of ``self._param_to_argument``.
     - Then, define the default value of the flag below the dictionary in ``self.param``.
 
     .. code-block:: python
@@ -499,7 +499,7 @@ Now we will navigate to the Python side of Swiftest. The relevant directory is *
                 }
 
     
-    - We will add the name as a valid body argument in ``get_feature()``.
+    - We will add the name we chose above (typically the flag name in lowercase) as a valid body argument in ``get_feature()``.
 
     .. code-block:: python
 
@@ -540,7 +540,7 @@ Now we will navigate to the Python side of Swiftest. The relevant directory is *
             .
     
     - Now we can read in and handle the parameter flag for the new feature in ``set_feature()``. We check if the parameter has been set by the user and accordingly set any dependent flags.
-    - In our example, rotation is needed by the Yarkovsky effect.
+    - In our example, rotation is also needed by the Yarkovsky effect and will be set accordingly.
 
     .. code-block:: python
 
@@ -554,5 +554,61 @@ Now we will navigate to the Python side of Swiftest. The relevant directory is *
         .
     
 
-- Add variables to *simulation.py*
+- We will now add the new particle features and related checks to *simulation.py* 
+
+    - Add the variables for the new features to ``_validate_body_arguments()`` as a passable parameter, their default types, and the description.
+    - Following our example, we will add ``albedo`` and ``emissivity``.
+
+    .. code-block:: python
+
+        def _validate_body_arguments(
+            self,
+            .
+            .
+            albedo: float | list[float] | npt.NDArray[np.float_] | None = None,
+            emissivity: float | list[float] | npt.NDArray[np.float_] | None = None,
+            .
+            .
+        ) -> None:
+            """
+            Validates and formats the input the add_body and modify_body methods.
+
+            Parameters
+            ----------
+            .
+            .
+            albedo : float or array-like of float, optional
+                Albedo values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+            emissivity : float or array-like of float, optional
+                Emissivity values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+
+            .
+            .
+
+    - Staying in ``_validate_body_arguments()``, we can now check if the inputs for these features are in the right format and convert them to NumPy arrays.
+    - For scalar variables, we will use ``input_to_array(val, t, n = None)`` where ``val`` is the associated variable, ``t`` is the data type flag, and ``n`` is the length of the feature.
+        - ``t`` has 3 valid values:
+            - ``f`` for float.
+            - ``i`` for int.
+            - ``s`` for string.
+    - Similarly, for vector variables we will use ``input_to_array_3d(val, n = None)`` wehere ``val`` and ``n`` are the same as above. For vector variables, the implied datatype is float.
+    - In our example, ``albedo`` and ``emissivity`` are scalar variables of type float that are defined for each particle, i.e., the length of input values is equal to the number of bodies.
+
+    .. code-block:: python
+
+        def _validate_body_arguments(
+            .
+            .
+        ) -> None:
+            .
+            .
+            .
+            albedo, nbodies = input_to_array(albedo, "f", nbodies)
+            emissivity, nbodies = input_to_array(emissivity, "f", nbodies)
+            .
+            .
+    
+    - We now move to ``add_body()`` which takes in the user input and adds new particles to the simulation.
+
+
 
