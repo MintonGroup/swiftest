@@ -664,8 +664,142 @@ Now we will navigate to the Python side of Swiftest. The relevant directory is *
         .
         .
     
-    - We then convert the variables to xarray format.
+    - We then convert the variables to xarray format and add it to the dataset variable ``dsnew``.
 
+    .. code-block:: python
+
+     .
+     .
+     dsnew = self._vec2xr(
+        .
+        .
+        albedo = albedo,
+        emissivity = emissivity,
+        .
+        .
+    )
+
+    - Next, we move to ``modify_body()`` which modifies any existing particles.
+    - The steps are almost the same as those for ``add_body()``. We start with adding them as passable arguments and their descriptions.
+
+    .. code-block:: python
+
+        def modify_body(
+            self,
+            .
+            .
+            albedo: float | list[float] | npt.NDArray[np.float_] | None = None,
+            emissivity: float | list[float] | npt.NDArray[np.float_] | None = None,
+            .
+            .
+        ) -> None:
+        """
+        Modifies an existing body in the internal Dataset given a new value of either the orbital elements or cartesian state vectors, or the physical property of the body (mass, radius, etc).
+
+        Input all angles in degrees and dimensions in the units defined in the current Simulation instance. Currently, this will only modify the last entry of the body in the time dimension.  This method will update the data attribute with the modified body or bodies added to the existing Dataset.
+
+        Parameters
+        ----------
+        .
+        .
+        albedo : float or array-like of float, optional
+            Albedo values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        emissivity : float or array-like of float, optional
+            Emissivity values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        .
+        .
+    - Instead of defining and extracting a separate variable from the validated arguments list, we use the arguments list directly.
+    - We can now conduct the same parameter checks as above. The modified xarray dataset is handled in a general way and does not need any explicit call.
+
+        .. code-block:: python
+
+            .
+            .
+            if self.param["YARKOVSKY"]:
+                if arguments["albedo"] is None:
+                    raise ValueError("Yarkovsky effect modeling requires albedo values for all bodies")
+                if arguments["emissivity"] is None:
+                    raise ValueError("Yarkovsky effect modeling requires emissivity values for all bodies")
+            .
+            .
+            dsmod = self._vec2xr(**arguments)
+            .
+            .
+            
+
+    - Moving to ``_vec2xr()``, we need to ensure that the conversion to xarray is done correctly.
+    - Similar to the previous functions, we will start by adding the variables as passable parameter, their datatype, and their description.
+
+    .. code-block:: python
+
+        def _vec2xr(
+            self,
+            .
+            .
+            albedo: float | list[float] | npt.NDArray[np.float_] | None = None,
+            emissivity: float | list[float] | npt.NDArray[np.float_] | None = None,
+            .
+            .
+        ) -> None:
+            """
+            Converts and stores the variables of all bodies in an xarray dataset.
+
+            Parameters
+            ----------
+            .
+            .
+            albedo : float or array-like of float, optional
+                Albedo values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+            emissivity : float or array-like of float, optional
+                Emissivity values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+
+            .
+            .
+
+    - Next, we add the feature variables to the appropriate list depending on it's behavior. For variables, the three lists are:
+        - ``scalar_vars`` for scalar variables
+        - ``vector_vars`` for vector variables
+        - ``time_vars`` for variables that vary with time.
+    - All variables are assumed to vary per particle, i.e., have a dimension of ``name`` and vector variables to vary by space, i.e., dimension of ``space``.
+    - Since ``albedo`` and ``emissivity`` are scalar variables that do **not** vary with time, we add them **only** to ``scalar_vars``.
+
+    .. code-block:: python
+
+        def _vec2xr(
+            .
+            .
+            scalar_vars = [
+                .
+                .
+                "albedo",
+                "emissivity",
+                .
+                .
+            ]
+            .
+            .
     
+    - Any necessary checks to the variable can be added after the lists. However, that is unlikely for most variables.
+
+    - Lastly, we add these variables to the list of valid initial condition file variables in ``_scrub_init_cond()``.
+    - For ``albedo`` and ``emissivity`` we add it to the list (``ic_vars``) as so:
+    
+    .. code-block:: python
+
+        def _scrub_init_cond(self):
+            .
+            .
+            ic_vars = [
+                .
+                .
+                "albedo",
+                "emissivity",
+                .
+                .
+            ]
+
+
+
+
 
 
