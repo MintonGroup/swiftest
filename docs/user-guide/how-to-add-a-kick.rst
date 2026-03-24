@@ -501,7 +501,7 @@ Now we will navigate to the Python side of Swiftest. The relevant directory is *
     
     - We will add the name as a valid body argument in ``get_feature()``.
 
-    ..code-block:: python
+    .. code-block:: python
 
         def get_feature(...):
             .
@@ -517,7 +517,7 @@ Now we will navigate to the Python side of Swiftest. The relevant directory is *
     - Next, we can define how to handle the user input in ``set_feature()``.
     - First, we define it as a passable argument of ``set_feature()`` with it's data type and describe it in the description.
 
-    ..code-block:: python
+    .. code-block:: python
 
         def set_feature(
             self, 
@@ -542,7 +542,7 @@ Now we will navigate to the Python side of Swiftest. The relevant directory is *
     - Now we can read in and handle the parameter flag for the new feature in ``set_feature()``. We check if the parameter has been set by the user and accordingly set any dependent flags.
     - In our example, rotation is needed by the Yarkovsky effect.
 
-    ..code-block:: python
+    .. code-block:: python
 
         .
         .
