@@ -556,7 +556,7 @@ Now we will navigate to the Python side of Swiftest. The relevant directory is *
 
 - We will now add the new particle features and related checks to *simulation.py* 
 
-    - Add the variables for the new features to ``_validate_body_arguments()`` as a passable parameter, their default types, and the description.
+    - Add the variables for the new features to ``_validate_body_arguments()`` as a passable parameter, their data types, and the description.
     - Following our example, we will add ``albedo`` and ``emissivity``.
 
     .. code-block:: python
@@ -609,6 +609,63 @@ Now we will navigate to the Python side of Swiftest. The relevant directory is *
             .
     
     - We now move to ``add_body()`` which takes in the user input and adds new particles to the simulation.
+    - Similar to ``_validate_body_arguments()``, we will add the features as a passable parameter, define their data types, and the description.
 
+    .. code-block:: python
+
+        def add_body(
+            self,
+            .
+            .
+            albedo: float | list[float] | npt.NDArray[np.float_] | None = None,
+            emissivity: float | list[float] | npt.NDArray[np.float_] | None = None,
+            .
+            .
+        ) -> None:
+            """
+            Adds a body (test particle or massive body) to the internal Dataset given a set of either orbital elements or cartesian state vectors.
+
+            If orbital elements are passed, cartesian state vectors are computed and vice versa, using the currently-assigned central body, so cannot both be passed. Input all angles in degrees and dimensional quantities in the unit system defined in the current Simulation instance.
+
+            This method will update the data attribute with the new body or bodies added to the existing Dataset.
+
+            Parameters
+            ----------
+            .
+            .
+            albedo : float or array-like of float, optional
+                Albedo values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+            emissivity : float or array-like of float, optional
+                Emissivity values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+
+            .
+            .
+
+
+    - Staying in ``add_body()``, we extract the validated argument and conduct any parameter flag based checks.
+    - For example, if the user has set the flag for the Yarkovsky effect as ``True``, we want to ensure that all necessary variables are defined.
+
+    .. code-block:: python
+
+        .
+        .
+        # This allows us to re-use the same validation function for both add_body and modify_body
+        .
+        .
+        albedo = arguments["albedo"]
+        emissivity = arguments["emissivity"]
+        .
+        .
+        if self.param["YARKOVSKY"]:
+            if albedo is None:
+                raise ValueError("Yarkovsky effect modeling requires albedo values for all bodies")
+            if emissivity is None:
+                raise ValueError("Yarkovsky effect modeling requires emissivity values for all bodies")
+        .
+        .
+    
+    - We then convert the variables to xarray format.
+
+    
 
 
