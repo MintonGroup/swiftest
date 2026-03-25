@@ -3626,7 +3626,7 @@ class Simulation:
             print(f"Modifying bodies: {name_str}")
         dsnew = self.data.sel(name=modnames).isel(time=[framenum])
 
-        if self.param["YARKOVSKY"]:
+        if self.param["YARKOVSKY"]: # ADD FLAG TO NOT BE RAISED FOR CENTRAL BODY/SUN    
             if arguments["albedo"] is None:
                 raise ValueError("Yarkovsky effect modeling requires albedo values for all bodies")
             if arguments["emissivity"] is None:
@@ -3641,7 +3641,7 @@ class Simulation:
                 dsnew["j2rp2"] = xr.full_like(dsnew["j2rp2"], np.nan)
             if "j4rp4" in dsnew:
                 dsnew["j4rp4"] = xr.full_like(dsnew["j4rp4"], np.nan)
-        if arguments["j2rp2"] is not None or arguments["j4rp4"] is not None and "c_lm" in dsnew:
+        if (arguments["j2rp2"] is not None or arguments["j4rp4"] is not None) and "c_lm" in dsnew:
             dsnew["c_lm"] = xr.full_like(dsnew["c_lm"], np.nan)
 
         dsmod = self._vec2xr(**arguments)
