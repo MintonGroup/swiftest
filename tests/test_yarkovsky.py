@@ -34,9 +34,11 @@ class TestCollisions(unittest.TestCase):
         Tests that Yarkovsky forces are handles correctly.
         """
 
-        # check lack of inputted required variables
+        # check that data inputs are handled correctly 
+        # errors thrown for missing inputs, etc.
         albedo = 0
-        
+
+        # check da/dt has the correct direction and value for various obliquities and sizes
     
         return
 
