@@ -71,7 +71,7 @@ class TestCollisions(unittest.TestCase):
 
         # missing albedo
 
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValueError):
             sim.add_body(name = 'Veritas', radius = radius / sim.DU2M, mass = mass / sim.MU2KG,
                             rot = rot * rot_mag * sim.TU2S,
                             a = a, # already in AU
@@ -81,7 +81,7 @@ class TestCollisions(unittest.TestCase):
                             rot_k = rot_k)
 
         # missing emissivity
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValueError):
             sim.add_body(name = 'Veritas', radius = radius / sim.DU2M, mass = mass / sim.MU2KG,
                             rot = rot * rot_mag * sim.TU2S,
                             a = a, # already in AU
@@ -91,7 +91,7 @@ class TestCollisions(unittest.TestCase):
                             rot_k = rot_k)
 
         # missing rotational k constant
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValueError):
             sim.add_body(name = 'Veritas', radius = radius / sim.DU2M, mass = mass / sim.MU2KG,
                             rot = rot * rot_mag * sim.TU2S,
                             a = a, # already in AU
@@ -101,7 +101,7 @@ class TestCollisions(unittest.TestCase):
                             gamma = gamma * (sim.TU2S**(5.0/2)) / sim.MU2KG) 
 
         # missing thermal inertia (gamma)
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValueError):
             sim.add_body(name = 'Veritas', radius = radius / sim.DU2M, mass = mass / sim.MU2KG,
                             rot = rot * rot_mag * sim.TU2S,
                             a = a, # already in AU
