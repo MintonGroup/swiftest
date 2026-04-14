@@ -26,8 +26,12 @@ build:
     - libopenmpi-dev
 
   jobs:
+    post_create_environment:
+      - source buildscripts/set_environment.sh
+      - ./buildscripts/build_shtools.sh
+      - pip install .
+
     pre_build:
-      - pip install swiftest 
       - ford docs/fortran_docs.md 
 
 python:
