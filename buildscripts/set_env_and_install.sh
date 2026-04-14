@@ -156,6 +156,8 @@ elif [[ $OS == *"MINGW64"* ]]; then
     LD_LIBRARY_PATH="${PREFIX}/lib:${MINGW_PREFIX}/lib:${LD_LIBRARY_PATH}"
 fi
 
+sh ${SCRIPT_DIR}/build_dependencies.sh
+
 pip install .
 
 set +a
