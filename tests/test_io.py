@@ -300,7 +300,7 @@ class TestSwiftestIO(unittest.TestCase):
         self.assertEqual(sim.data.isel(name=-1).capm.values[0], 0.0, msg="Failed to initialize body with only semimajor axis")
 
         # Test that we can input cartesian coordinates
-        sim.add_body(mass=1.0, radius=1.0, rh=[1.0, 0.0, 0.0], vh=[0.0, 1.0, 0.0])
+        sim.add_body(mass=1.0e-8, radius=1.0, rh=[1.0, 0.0, 0.0], vh=[0.0, 1.0, 0.0])
 
         # orbital elements without semimajor axis
         with self.assertRaises(ValueError):
@@ -319,13 +319,20 @@ class TestSwiftestIO(unittest.TestCase):
             sim.add_body(vh=[0.0, 1.0, 0.0])
 
         # Add J2 and c_lm values
+        del sim
+        sim = swiftest.Simulation(simdir=self.simdir)
         with self.assertRaises(ValueError):
             sim.add_body(mass=1.0, radius=1.0, j2rp2=1.0e-6, c_lm=np.ones([2, 7]))
 
         # Wrong shape of c_lm
+        del sim
+        sim = swiftest.Simulation(simdir=self.simdir)
         with self.assertRaises(ValueError):
             sim.add_body(mass=1.0, radius=1.0, c_lm=[1.0, 0.0, 0.0])
 
+        del sim
+        sim = swiftest.Simulation(simdir=self.simdir)
+        sim.add_solar_system_body(name="Sun")
         # Mismatched lengths of input arguments
         with self.assertRaises(ValueError):
             sim.add_solar_system_body(name=["Mercury", "Venus", "Earth"], ephemeris_id=["Mars", "500"])
@@ -338,11 +345,11 @@ class TestSwiftestIO(unittest.TestCase):
 
         # mass and Gmass at the same time
         with self.assertRaises(ValueError):
-            sim.add_body(a=1.0, mass=1.0, radius=1.0, Gmass=4 * np.pi**2)
+            sim.add_body(a=1.0, mass=1.0e-8, radius=1.0, Gmass=4 * np.pi**2 * 1e-8)
 
         # mass without radius
         with self.assertRaises(ValueError):
-            sim.add_body(a=1.0, mass=1.0)
+            sim.add_body(a=1.0, mass=1.0e-6)
 
         return
 
