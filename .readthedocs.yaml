@@ -26,13 +26,11 @@ build:
     - libopenmpi-dev
 
   jobs:
-    pre_build:
+    post_create_environment:
       - ford docs/fortran_docs.md 
-      - ./buildscripts/build_dependencies.sh
     
     install:
-      - . buildscripts/set_environment.sh 
-      - pip install .
+      - ./buildscripts/set_env_and_install.sh 
 
 python:
   install: 
