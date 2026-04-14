@@ -27,9 +27,8 @@ build:
 
   jobs:
     post_create_environment:
-      - pip install cibuildwheel
-      - cibuildwheel --only cp313-manylinux_x86_64 
-      - pip install wheelhouse/*.whl
+      - ./buildscripts/build_dependencies.sh
+      - pip install .
 
     pre_build:
       - ford docs/fortran_docs.md 
