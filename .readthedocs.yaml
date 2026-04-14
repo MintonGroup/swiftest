@@ -28,7 +28,7 @@ build:
   jobs:
     post_create_environment:
       - . buildscripts/set_environment.sh
-      - ./buildscripts/build_shtools.sh
+      - ./buildscripts/build_dependencies.sh
       - pip install .
 
     pre_build:
