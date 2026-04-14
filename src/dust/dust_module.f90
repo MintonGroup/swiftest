@@ -23,8 +23,6 @@ module dust
     implicit none
     public
 
-    type, extends()
-
     type, extends(whm_tp) :: whm_dust
        real(DP),                dimension(:),   allocatable :: mass    
           !! Body mass (units MU)
