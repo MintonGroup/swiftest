@@ -891,7 +891,7 @@ class TestSwiftestIO(unittest.TestCase):
         with chdir(self.simdir):
             res = subprocess.run(["swiftest", "symba", "param.in", "quiet"], capture_output=True).stdout.decode()
             if "error" not in res:
-                self.fail('Failed to throw error when setting ENERGY to "NO" param.in')
+                self.fail(f'Failed to throw error when setting ENERGY to "NO" param.in\n{res}')
 
         sim.param["ENERGY"] = True
         sim.param["ROTATION"] = False
@@ -899,7 +899,7 @@ class TestSwiftestIO(unittest.TestCase):
         with chdir(self.simdir):
             res = subprocess.run(["swiftest", "symba", "param.in", "quiet"], capture_output=True).stdout.decode()
             if "error" not in res:
-                self.fail('Failed to throw error when setting ROTATION to "NO" param.in')
+                self.fail(f'Failed to throw error when setting ROTATION to "NO" param.in\n{res}')
 
 
 if __name__ == "__main__":
