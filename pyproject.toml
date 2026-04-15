@@ -165,7 +165,8 @@ OMP_NUM_THREADS=1
 
 [tool.cibuildwheel.macos]
 before-all = [
-    "brew install coreutils fftw vecLibFort opencoarrays open-mpi cmake zlib netcdf-fortran"
+    "brew install coreutils fftw vecLibFort opencoarrays open-mpi cmake zlib netcdf-fortran",
+    "buildscripts/build_shtools.sh"
 ]
 repair-wheel-command = """\
 DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel \
@@ -175,7 +176,8 @@ DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel \
 [tool.cibuildwheel.linux]
 before-all = [
     'dnf group install "Development Tools" -y',
-    "dnf install doxygen libxml2-devel libcurl-devel fftw-static openblas-static openmpi-devel netcdf-fortran-devel -y"
+    "dnf install doxygen libxml2-devel libcurl-devel fftw-static openblas-static openmpi-devel netcdf-fortran-devel -y",
+    "buildscripts/build_shtools.sh"
 ]
 
 [tool.cibuildwheel.windows.environment]
