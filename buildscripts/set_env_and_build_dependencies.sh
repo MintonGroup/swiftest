@@ -213,6 +213,4 @@ printf "*             DEPENDENCIES ARE BUILT                    *\n"
 printf "*********************************************************\n"
 printf "Dependencys are installed to: ${PREFIX}\n\n"
 
-pip install .
-
 set +a
