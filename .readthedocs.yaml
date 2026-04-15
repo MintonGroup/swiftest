@@ -22,12 +22,12 @@ build:
     - build-essential
     - cmake
     - ninja-build
-    - gfortran-12
+    - gfortran-13
     - libopenmpi-dev
     - libnetcdff-dev
 
   jobs:
-    post_create_environment:
+    pre_build:
       - git fetch --prune --unshallow
       - git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - pip install -v .
