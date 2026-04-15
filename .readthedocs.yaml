@@ -30,7 +30,7 @@ build:
     pre_build:
       - git fetch --prune --unshallow
       - git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-      - pip install -v .
+      - FC=/usr/bin/gfortran-13 pip install -v .
       - ford docs/fortran_docs.md 
 
 python:
