@@ -19,7 +19,7 @@ import numpy as np
 import swiftest
 
 
-class TestCollisions(unittest.TestCase):
+class TestRadiation(unittest.TestCase):
     def setUp(self):
         # Initialize a target and surface for testing
         self.tmpdir = tempfile.TemporaryDirectory()
@@ -29,7 +29,7 @@ class TestCollisions(unittest.TestCase):
         # Clean up temporary directory
         self.tmpdir.cleanup()
 
-    def test_yarkovsky(self):
+    def test_yarkovsky_forces(self):
         """
         Tests that Yarkovsky forces are handles correctly.
         """
