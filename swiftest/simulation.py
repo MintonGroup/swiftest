@@ -4028,7 +4028,7 @@ class Simulation:
             print("Reading encounter history file as .encounters")
 
         if dask:
-            ds = xr.open_mfdataset(enc_file, engine="h5netcdf", mask_and_scale=False)
+            ds = xr.open_dataset(enc_file, engine="h5netcdf", mask_and_scale=False, chunks={"time": "auto"})
         else:
             with xr.open_dataset(enc_file, mask_and_scale=False) as ds:
                 ds.load()

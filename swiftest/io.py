@@ -723,7 +723,7 @@ def swiftest2xr(param: dict, verbose: bool = True, dask: bool = False) -> Swifte
         if verbose:
             print("\nCreating Dataset from NetCDF file")
         if dask:
-            ds = xr.open_mfdataset(param["BIN_OUT"], engine="h5netcdf", mask_and_scale=False)
+            ds = xr.open_dataset(param["BIN_OUT"], engine="h5netcdf", mask_and_scale=False, chunks={"time": "auto"})
         else:
             with xr.open_dataset(param["BIN_OUT"], mask_and_scale=False) as ds:
                 ds.load()
