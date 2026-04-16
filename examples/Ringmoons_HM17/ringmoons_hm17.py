@@ -10,7 +10,7 @@ gm_cb = cb["Gmass"]
 rho_cb = m_cb / (4.0 / 3.0 * np.pi * r_cb**3)
 rot_cb = np.sqrt(cb["rot"][0] ** 2 + cb["rot"][1] ** 2 + cb["rot"][2] ** 2)
 sim = swiftest.Simulation(integrator="ringmoons", MU2KG=m_cb, DU2M=r_cb, TU="yr")
-sim.add_solar_system_body(["Mars", "Phobos", "Deimos"], align_to_central_body_rotation=True)
+sim.add_solar_system_body(["Mars"], align_to_central_body_rotation=True)
 
 r_p = 25.0e-2 * sim.M2DU  # disk particle size
 rho_p = 1500.0 * sim.KG2MU / sim.M2DU**3  # disk particle density
@@ -68,6 +68,8 @@ ax.set_xlabel("Distance to Mars ($R_p$)", fontsize=tsize)
 ax.set_ylabel(r"Ring surface mass density (g$\cdot$cm$^{-2}$)", fontsize=tsize)
 ax.set_yscale("log")
 
+
+
 secax = ax.twinx()
 secax.set_yscale("log")
 secax.set_ylabel("Mass of satellite (g)", fontsize=tsize)
@@ -80,8 +82,17 @@ ids = sim.data.isel(time=0)
 r = ids.ring_r.values / r_cb
 s = ids.ring_sigma.values * sim.MU2KG / sim.DU2M**2 * 1000.0 / 100.0
 
-rs = ids.a.values[1:] / r_cb
-ms = ids.mass.values[1:] * sim.MU2KG * 1000.0
+mars = swiftest.get_solar_system_body("Mars")
+phobos = swiftest.get_solar_system_body("Phobos")
+deimos = swiftest.get_solar_system_body("Deimos")
+mu = np.array([mars["Gmass"] + phobos["Gmass"], mars["Gmass"] + deimos["Gmass"]], dtype=np.float64)
+rh = np.array([phobos["rh"] - mars["rh"], deimos["rh"] - mars["rh"]], dtype=np.float64)
+vh = np.array([phobos["vh"] - mars["vh"], deimos["vh"] - mars["vh"]], dtype=np.float64)
+elem = swiftest.core.xv2el(mu=mu, rh=rh, vh=vh)
+
+
+rs = elem[0] * sim.M2DU / r_cb
+ms = np.array([phobos["mass"], deimos["mass"]]) * 1000.0
 
 frl = 2.456 * r_cb * (rho_cb / rho_p) ** (1.0 / 3.0)
 rrl = 1.44 * r_cb * (rho_cb / rho_p) ** (1.0 / 3.0)
