@@ -51,6 +51,7 @@ SET(STRICT_MATH_FILES
             ${SRC}/whm/whm_gr.f90
             ${SRC}/whm/whm_kick.f90
             ${SRC}/whm/whm_step.f90
+            ${SRC}/ringmoons/ringmoons_step.f90
             ${SRC}/bindings/bindings_module.f90
 )
 

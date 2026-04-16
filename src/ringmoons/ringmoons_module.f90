@@ -18,19 +18,27 @@ module ringmoons
 
     !> Ringmoons central body particle class
     type, extends(symba_cb) :: ringmoons_cb
+        real(DP) :: mass_init
+            !! initial mass of central body
+        real(DP) :: mass_accreted
+            !! mass accreted by central body through ring updates
     end type ringmoons_cb
 
 
-    !> Ringmoons massive body class, which is also used for seeds
+    !> Ringmoons massive body class
     type, extends(symba_pl) :: ringmoons_pl
+    contains
+        procedure :: setup    => ringmoons_util_setup_pl
+        procedure :: dealloc  => ringmoons_util_dealloc_pl
+    end type ringmoons_pl
+
+    type, extends(ringmoons_pl) :: ringmoons_seed
         real(DP)                                  :: feeding_zone_factor 
             !! Width of feeding zone for seed mergers in units of mutual Hill's sphere
         real(DP)                                  :: rkf_tol      
             !! Error tolerance for Runge-Kutta-Fehlberg integrator for seed evolution
         real(DP)                                  :: mass_init       
             !! initial mass of seeds
-        logical, dimension(:), allocatable        :: is_seed
-            !! Flag for whether body is a seed
         integer(I4B), dimension(:), allocatable   :: ringbin         
             !! Ring bin location of seed
         real(DP), dimension(:), allocatable       :: Torque       
@@ -38,9 +46,9 @@ module ringmoons
         real(DP), dimension(:), allocatable       :: Ttide        
             !! Tidal torque acting on the seed
     contains
-        procedure :: setup    => ringmoons_util_setup_pl
-        procedure :: dealloc  => ringmoons_util_dealloc_pl
-    end type ringmoons_pl
+        procedure :: setup    => ringmoons_util_setup_seed
+        procedure :: dealloc  => ringmoons_util_dealloc_seed
+    end type ringmoons_seed
 
 
     !> Ringmoons test particle class
@@ -112,6 +120,10 @@ module ringmoons
     type, extends(symba_nbody_system) :: ringmoons_nbody_system
         class(ringmoons_ring),         allocatable :: ring
             !! Ringmoons ring object
+        class(ringmoons_pl),           allocatable :: seeds
+            !! Ringmoons seeds object
+    contains
+        procedure :: step             => ringmoons_step_system      
     end type ringmoons_nbody_system
 
 
@@ -164,6 +176,19 @@ module ringmoons
                 !! Logical flag indicating that this should be open read only
         end subroutine ringmoons_io_netcdf_open
 
+
+        module subroutine ringmoons_step_system(self, param, t, dt)
+            implicit none
+            class(ringmoons_nbody_system),  intent(inout) :: self   
+                !! Ringmoons nbody system object
+            class(swiftest_parameters), intent(inout) :: param  
+                !! Current run configuration parameters
+            real(DP),                   intent(in)    :: t      
+                !! Simulation time
+            real(DP),                   intent(in)    :: dt   
+        end subroutine ringmoons_step_system
+
+
         module subroutine ringmoons_util_dealloc_ring(self)
             !! author: David A. Minton
             !!
@@ -174,15 +199,15 @@ module ringmoons
                 !! Ringmoons ring object
         end subroutine ringmoons_util_dealloc_ring
 
-        module subroutine ringmoons_util_dealloc_pl(self)
+        module subroutine ringmoons_util_dealloc_seed(self)
             !! author: David A. Minton
             !!
             !! Deallocates all allocatabale arrays
             implicit none
             ! Arguments
-            class(ringmoons_pl),  intent(inout) :: self 
-                !! Ringmoons ring object
-        end subroutine ringmoons_util_dealloc_pl
+            class(ringmoons_seed),  intent(inout) :: self 
+                !! Ringmoons seed object
+        end subroutine ringmoons_util_dealloc_seed
 
         module subroutine ringmoons_util_dealloc_storage(self)
             implicit none
@@ -203,12 +228,22 @@ module ringmoons
         module subroutine ringmoons_util_setup_pl(self, n, param)
             implicit none
             class(ringmoons_pl),     intent(inout) :: self  
-                !! Ringmoons seeds object
+                !! Ringmoons massive body object
             integer(I4B),               intent(in)    :: n     
                 !! Number of bins to allocate space for
             class(swiftest_parameters), intent(in)    :: param 
                 !! Current run configuration parameters
         end subroutine ringmoons_util_setup_pl
+
+        module subroutine ringmoons_util_setup_seed(self, n, param)
+            implicit none
+            class(ringmoons_seed),     intent(inout) :: self  
+                !! Ringmoons seed object
+            integer(I4B),               intent(in)    :: n     
+                !! Number of bins to allocate space for
+            class(swiftest_parameters), intent(in)    :: param 
+                !! Current run configuration parameters
+        end subroutine ringmoons_util_setup_seed
 
         module subroutine ringmoons_util_snapshot(self, param, nbody_system, t, arg)
             implicit none
