@@ -9,7 +9,7 @@ m_cb = cb["mass"]
 gm_cb = cb["Gmass"]
 rho_cb = m_cb / (4.0 / 3.0 * np.pi * r_cb**3)
 rot_cb = np.sqrt(cb["rot"][0] ** 2 + cb["rot"][1] ** 2 + cb["rot"][2] ** 2)
-sim = swiftest.Simulation(integrator="ringmoons", MU2KG=m_cb, DU2M=r_cb, TU="day")
+sim = swiftest.Simulation(integrator="ringmoons", MU2KG=m_cb, DU2M=r_cb, TU="yr")
 sim.add_solar_system_body(["Mars", "Phobos", "Deimos"], align_to_central_body_rotation=True)
 
 r_p = 25.0e-2 * sim.M2DU  # disk particle size
@@ -17,10 +17,10 @@ rho_p = 1500.0 * sim.KG2MU / sim.M2DU**3  # disk particle density
 m_p = 4.0 / 3.0 * np.pi * r_p**3 * rho_p  # disk particle mass
 
 # Convert to simualtion units
-r_cb = r_cb * sim.M2DU
-m_cb = m_cb * sim.KG2MU
-gm_cb = gm_cb * sim.M2DU**3 / sim.S2TU**2
-rho_cb = rho_cb * sim.KG2MU / sim.M2DU**3
+r_cb *= sim.M2DU
+m_cb *= sim.KG2MU
+gm_cb *= sim.M2DU**3 / sim.S2TU**2
+rho_cb *= sim.KG2MU / sim.M2DU**3
 rot_cb = 360.0 / rot_cb * sim.S2TU
 
 sim.add_ring(
@@ -33,6 +33,13 @@ sim.add_ring(
         "nbins": 256,
     },
 )
+
+tstep_out = 1.0e6
+dt = 1.0
+tstop = 1.0e10
+
+
+sim.set_parameter(tstop=tstop, dt=dt, tstep_out=tstep_out, dump_cadence=1)
 sim.save()
 
 xmin = 1.0
