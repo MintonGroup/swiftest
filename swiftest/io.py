@@ -32,6 +32,7 @@ newfeaturelist = (
     "ENERGY",
     "GR",
     "YARKOVSKY",
+    "RADIATION",
     "YORP",
     "IN_FORM",
     "NC_IN",
@@ -62,6 +63,7 @@ bool_param = [
     "ENERGY",
     "GR",
     "YARKOVSKY",
+    "RADIATION",
     "YORP",
     "COARRAY",
 ]

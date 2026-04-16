@@ -41,6 +41,7 @@ SET(STRICT_MATH_FILES
             ${SRC}/swiftest/swiftest_kick.f90 
             ${SRC}/swiftest/swiftest_obl.f90    
             ${SRC}/swiftest/swiftest_orbel.f90
+            ${SRC}/swiftest/swiftest_radiation.f90
             ${SRC}/symba/symba_drift.f90
             ${SRC}/symba/symba_gr.f90
             ${SRC}/symba/symba_kick.f90
@@ -67,6 +68,7 @@ SET(FAST_MATH_FILES
             ${SRC}/helio/helio_module.f90
             ${SRC}/symba/symba_module.f90
             ${SRC}/shgrav/shgrav_module.f90
+            # ${SRC}/dust/dust_module.f90
             ${SRC}/ringmoons/ringmoons_module.f90
             ${SRC}/collision/collision_check.f90  
             ${SRC}/collision/collision_regime.f90   

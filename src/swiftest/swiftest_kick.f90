@@ -8,6 +8,8 @@
 ! If not, see: https://www.gnu.org/licenses. 
 
 submodule(swiftest) s_swiftest_kick
+use swiftest
+
 contains
    module subroutine swiftest_kick_getacch_int_pl(self, param)
       !! author: David A. Minton

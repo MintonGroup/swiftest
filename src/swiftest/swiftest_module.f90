@@ -235,6 +235,8 @@ module swiftest
          !! A constructor that sets the number of bodies and allocates all allocatable arrays
       procedure :: accel_user      => swiftest_user_kick_getacch_body       
          !! Add user-supplied heliocentric accelerations to planets
+      ! procedure :: accel_radiation => radiation_getacch_pl
+      !    !! Compute the heliocentric accelerations of bodies due to radiation pressure and Poynting-Robertson drag
       procedure :: append          => swiftest_util_append_body             
          !! Appends elements from one structure to another
       procedure :: dealloc         => swiftest_util_dealloc_body            
@@ -350,6 +352,14 @@ module swiftest
          !! Body radius (units DU)
       real(DP),                dimension(:),   allocatable :: density 
          !! Body mass density - calculated internally (units MU / DU**3)
+      real(DP),                dimension(:), allocatable   :: albedo
+         !! Bond albedo for radiation acceleration calculations
+      real(DP),                dimension(:), allocatable   :: emissivity
+         !! Emissivity for Yarkovsky acceleration calculations
+      real(DP),                dimension(:), allocatable   :: rot_k
+         !! Constant based on rotation rate for yarkovsky calculations
+      real(DP),                dimension(:), allocatable   :: gamma
+         !! Thermal inertia for Yarkovsky calculations
       real(DP),                dimension(:,:), allocatable :: rbeg    
          !! Position at beginning of step
       real(DP),                dimension(:,:), allocatable :: rend    
@@ -359,7 +369,7 @@ module swiftest
       real(DP),                dimension(:,:), allocatable :: Ip      
          !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
       real(DP),                dimension(:,:), allocatable :: rot     
-         !! Body rotation vector in inertial coordinate frame (units rad / TU)
+         !! Body rotation vector in inertial coordinate frame (units deg / TU)
       real(DP),                dimension(:),   allocatable :: k2      
          !! Tidal Love number
       real(DP),                dimension(:),   allocatable :: Q       
@@ -396,6 +406,10 @@ module swiftest
          !! Compute direct cross (third) term heliocentric accelerations of massive bodies
       procedure :: accel_non_spherical_cb => swiftest_non_spherical_cb_acc_pl             
          !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
+      procedure :: accel_radiation => swiftest_radiation_getacch_pl
+      !    !! Compute the heliocentric accelerations of bodies due to radiation pressure and Poynting-Robertson drag
+      procedure :: accel_yarkovsky => swiftest_yarkovsky_getacch_pl
+         !! Compute the heliocentric accelerations of bodies due to the Yarkovsky effect
       procedure :: setup => swiftest_util_setup_pl          
          !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
       ! procedure :: accel_tides    => tides_kick_getacch_pl           
@@ -1761,6 +1775,36 @@ module swiftest
          logical,                           intent(in)    :: lbeg   
             !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine swiftest_user_kick_getacch_body
+   end interface
+
+   interface 
+      module subroutine swiftest_yarkovsky_getacch_pl(self, nbody_system, param)
+        !! author: Kaustub P. Anand and David A. Minton
+        !!
+        !! Calculate the Yarkovsky effect on massive bodies. 
+        !! Based on Ferich, et al, 2022 (https://iopscience.iop.org/article/10.3847/1538-4365/ac8d60) and Veras, et al, 2015 (https://academic.oup.com/mnras/article/451/3/2814/1180328)
+        implicit none
+        ! Arguments
+        class(swiftest_pl),           intent(inout) :: self
+            !! Swiftest body object
+        class(swiftest_nbody_system), intent(inout) :: nbody_system
+            !! Swiftest nbody system object
+        class(swiftest_parameters),   intent(in)    :: param
+            !! Current run configuration parameters
+      end subroutine swiftest_yarkovsky_getacch_pl
+
+      module subroutine swiftest_radiation_getacch_pl(self, nbody_system, param)
+         implicit none
+         ! Arguments
+      class(swiftest_pl),         intent(inout) :: self
+         !! Swiftest body object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param
+         !! Current run configuration parameters
+
+      end subroutine swiftest_radiation_getacch_pl
+
    end interface
 
    interface util_append

@@ -53,6 +53,8 @@ swiftest/_version.py
 !src/walltime/
 !src/whm/
 !src/**/*.f90
+!src/user/
+!src/dust/
 src/globals/globals_module.f90
 !environments/
 !environments/*.yml

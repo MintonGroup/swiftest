@@ -994,6 +994,17 @@ contains
                         
          end if
 
+         if (param%lyarkovsky) then
+            call netcdf_io_check( nf90_def_var(nc%id, nc%albedo_varname, nc%out_type, nc%name_dimid, nc%albedo_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var albedo_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%emissivity_varname, nc%out_type, nc%name_dimid, nc%emissivity_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var emissivity_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%rot_k_varname, nc%out_type, nc%name_dimid, nc%rot_k_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var rot_k_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%gamma_varname, nc%out_type, nc%name_dimid, nc%gamma_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var gamma_varid"  )
+         end if
+
          ! if (param%ltides) then
          !    call netcdf_io_check( nf90_def_var(nc%id, nc%k2_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%k2_varid), &
          !                        "netcdf_io_initialize_output nf90_def_var k2_varid"  )
@@ -1213,6 +1224,17 @@ contains
             ! call netcdf_io_check( nf90_inq_varid(nc%id, nc%rotphase_varname, nc%rotphase_varid), &
             !                       "swiftest_io_netcdf_open nf90_inq_varid rotphase_varid")
                                    
+         end if
+
+         if (param%lyarkovsky) then
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%albedo_varname, nc%albedo_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid albedo_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%emissivity_varname, nc%emissivity_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid emissivity_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%rot_k_varname, nc%rot_k_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid rot_k_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%gamma_varname, nc%gamma_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid gamma_varid" )
          end if
 
          ! if (param%ltides) then
@@ -1614,6 +1636,28 @@ contains
 
          end if
 
+         if (param%lyarkovsky) then
+            call netcdf_io_check( nf90_get_var(nc%id, nc%albedo_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar albedo_varid"  )
+            if (.not.allocated(pl%albedo)) allocate(pl%albedo(npl))
+            if (npl > 0) pl%albedo(:) = pack(rtemp, plmask)
+
+            call netcdf_io_check( nf90_get_var(nc%id, nc%emissivity_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar emissivity_varid"  )
+            if (.not.allocated(pl%emissivity)) allocate(pl%emissivity(npl))
+            if (npl > 0) pl%emissivity(:) = pack(rtemp, plmask)
+
+            call netcdf_io_check( nf90_get_var(nc%id, nc%rot_k_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar rot_k_varid"  )
+            if (.not.allocated(pl%rot_k)) allocate(pl%rot_k(npl))
+            if (npl > 0) pl%rot_k(:) = pack(rtemp, plmask)
+
+            call netcdf_io_check( nf90_get_var(nc%id, nc%gamma_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar gamma_varid"  )
+            if (.not.allocated(pl%gamma)) allocate(pl%gamma(npl))
+            if (npl > 0) pl%gamma(:) = pack(rtemp, plmask)
+         end if
+
          ! if (param%ltides) then
          !    call netcdf_io_check( nf90_get_var(nc%id, nc%k2_varid, rtemp, start=[1, tslot]), &
          !                        "netcdf_io_read_frame_system nf90_getvar k2_varid"  )
@@ -1970,7 +2014,7 @@ contains
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
       !! Write a frame of output of either test particle or massive body data to the binary output file
-      !!    Note: If outputting to orbital elements, but sure that the conversion is done prior to calling this method
+      !!    Note: If outputting to orbital elements, make sure that the conversion is done prior to calling this method
       implicit none
       ! Arguments
       class(swiftest_body),              intent(in)    :: self  !! Swiftest base object
@@ -2081,6 +2125,18 @@ contains
                                                         count=[NDIM,1,1]), &
                                   "netcdf_io_write_frame_body nf90_put_var body rotx_varid"  )
                   end if
+                  
+                  if (param%lyarkovsky) then
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%albedo_varid, self%albedo(j), start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body albedo_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%emissivity_varid, self%emissivity(j), start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body emissivity_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%rot_k_varid, self%rot_k(j), start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body rot_k_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%gamma_varid, self%gamma(j), start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body gamma_varid"  )
+                  end if
+
                   ! if (param%ltides) then
                   !    call netcdf_io_check( nf90_put_var(nc%id, nc%k2_varid, self%k2(j), start=[idslot, tslot]), &
                   !                "netcdf_io_write_frame_body nf90_put_var body k2_varid"  )
@@ -2574,6 +2630,12 @@ contains
                case ("TIDES")
                   call swiftest_io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%ltides = .true. 
+               case("RADIATION")
+                  call swiftest_io_toupper(param_value)
+                  if (param_value == "YES" .or. param_value == 'T') param%lradiation = .true.
+               case("YARKOVSKY")
+                  call swiftest_io_toupper(param_value)
+                  if (param_value == "YES" .or. param_value == 'T') param%lyarkovsky = .true.
                case ("INTERACTION_LOOPS")
                   call swiftest_io_toupper(param_value)
                   param%interaction_loops = param_value
@@ -2678,7 +2740,7 @@ contains
                      param%lrestart = .true.
                   end if 
                ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
-               case ("NPLMAX", "NTPMAX", "YARKOVSKY", "YORP")
+               case ("NPLMAX", "NTPMAX", "YORP")
                case default
                   write(*,*) "Ignoring unknown parameter -> ",param_name
                end select
@@ -2776,6 +2838,12 @@ contains
             return
          end if
 
+         if (param%lyarkovsky .and. .not. param%lrotation) then
+            write(iomsg,*) 'Yarkovsky forces require rotation to be turned on'
+            iostat = -1
+            return
+         end if
+
          if ((param%MU2KG < 0.0_DP) .or. (param%TU2S < 0.0_DP) .or. (param%DU2M < 0.0_DP)) then
             write(iomsg,*) 'Invalid unit conversion factor'
             iostat = -1
@@ -2834,6 +2902,13 @@ contains
                write(iomsg,*) "Warning: NFRAG_REDUCTION value invalid. Setting to 1.0" 
                param%nfrag_reduction = 1.0_DP
             end if
+         end if
+
+         ! Calculate Solar Luminosity in system units and turn on gr for inv_c2 calculation if radiation forces are enabled
+         if (param%lradiation .or. param%lyarkovsky) then
+            param%L_SUN_sys = L_SUN / param%MU2KG / param%DU2M**2 * param%TU2S**3
+            param%sigma_sys = SIGMA /param%MU2KG * param%TU2S**3 ! system units / K^4
+            param%lgr = .true.
          end if
 
          ! Determine if the GR flag is set correctly for this integrator
@@ -3044,6 +3119,8 @@ contains
          call io_param_writer_one("GR", param%lgr, unit)
          call io_param_writer_one("ROTATION", param%lrotation, unit)
          call io_param_writer_one("TIDES", param%ltides, unit)
+         call io_param_writer_one("RADIATION", param%lradiation, unit)
+         call io_param_writer_one("YARKOVSKY", param%lyarkovsky, unit)
          call io_param_writer_one("INTERACTION_LOOPS", param%interaction_loops, unit)
          call io_param_writer_one("ENCOUNTER_CHECK_PLPL", param%encounter_check_plpl, unit)
          call io_param_writer_one("ENCOUNTER_CHECK_PLTP", param%encounter_check_pltp, unit)

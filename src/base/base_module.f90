@@ -20,7 +20,7 @@ module base
    public
 
    !> User defined parameters that are read in from the parameters input file. 
-   !>    Each paramter is initialized to a default values. 
+   !>    Each parameter is initialized to a default values. 
    type, abstract :: base_parameters
       character(STRMAX) :: integrator 
          !! Name of the nbody integrator used  
@@ -102,6 +102,12 @@ module base
          !! Universal gravitational constant in the system units 
       real(DP)          :: inv_c2               = -1.0_DP         
          !! Inverse speed of light squared in the system units 
+      real(DP)          :: L_SUN_sys            = -1.0_DP         
+         !! Solar luminosity in system units (L_SUN converted to system units)
+      real(DP)          :: sigma_sys            = -1.0_DP         
+         !! Stefan-Boltzmann constant in system units (SIGMA converted to system units) 
+       real(DP)         :: lag_angle_constants  = -1.0_DP         
+         !! Constant terms in lag angle calculations 
       real(DP)          :: GMTINY               = -1.0_DP         
          !! Smallest G*mass that is fully gravitating 
       real(DP)          :: min_GMfrag           = -1.0_DP         
@@ -156,8 +162,15 @@ module base
          !! Calculate acceleration from oblate central body (automatically turns true if nonzero J2, J4, or c_lm is input) 
       logical :: lrotation      = .false. 
          !! Include rotation states of big bodies 
+      logical :: lgr            = .false. 
+         !! Turn on GR 
       logical :: ltides         = .false. 
          !! Include tidal dissipation  
+      logical :: lradiation     = .false. 
+         !! Include radiation effects (PR-drag + radiation pressure) on massive bodies
+      logical :: lyarkovsky = .false. 
+         !! Turn on Yarkovsky effect 
+
 
       ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be 
       ! updated with initial conditions values)
@@ -193,12 +206,10 @@ module base
          !! Logs the output to file instead of displaying it on the terminal 
 
       ! Future features not implemented or in development
-      logical :: lgr        = .false. 
-         !! Turn on GR 
-      logical :: lyarkovsky = .false. 
-         !! Turn on Yarkovsky effect 
       logical :: lyorp      = .false. 
          !! Turn on YORP effect 
+      logical :: lyarkovsky_pl = .false.
+         !! Turn on Yarkovsky effect for planetary systems (planetary IR emission + Yarkovsky-Schach (YS) effect)
    contains
       procedure :: dealloc => base_util_dealloc_param
       procedure(abstract_io_dump_param),      deferred :: dump

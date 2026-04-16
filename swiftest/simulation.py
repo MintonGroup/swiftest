@@ -193,6 +193,7 @@ class Simulation:
             "CHK_QMIN": "qmin",
             "CHK_QMIN_RANGE": "qminR",
             "SEED": "seed",
+            "YARKOVSKY": "yarkovsky",
         }
 
         # Define default parameters
@@ -238,6 +239,7 @@ class Simulation:
             "RESTART": False,
             "ENCOUNTER_SAVE": "NONE",
             "TIDES": False,
+            "YARKOVSKY": False,
         }
 
         self.codename = codename
@@ -1106,23 +1108,19 @@ class Simulation:
             "param_file": str(self.param_file),
         }
 
-        try:
-            self.integrator
-        except:
+        if not hasattr(self, "integrator") or self.integrator is None:
             if verbose:
                 warnings.warn("integrator is not set", stacklevel=2)
             return {}
 
-        try:
-            self.codename
-        except:
+        if not hasattr(self, "codename") or self.codename is None:
             if verbose:
                 warnings.warn("codename is not set", stacklevel=2)
             return {}
 
         if not bool(kwargs) and arg_list is None:
             arg_list = list(valid_instance_vars.keys())
-            arg_list.append(*[a for a in valid_var.keys() if a not in valid_instance_vars])
+            arg_list.append(*[a for a in valid_var if a not in valid_instance_vars])
 
         valid_arg, integrator_dict = self._get_valid_arg_list(arg_list, valid_var)
 
@@ -1157,6 +1155,8 @@ class Simulation:
         extra_force: bool | None = None,
         big_discard: bool | None = None,
         rhill_present: bool | None = None,
+        yarkovsky: bool | None = None,
+        radiation: bool | None = None,
         tides: bool | None = None,
         interaction_loops: Literal["TRIANGULAR", "FLAT"] | None = None,
         encounter_check_loops: Literal["TRIANGULAR", "SORTSWEEP"] | None = None,
@@ -1237,8 +1237,10 @@ class Simulation:
             are handeled.
         tides : bool, optional
             Turns on tidal model (IN DEVELOPMENT - IGNORED)
-        Yarkovsky : bool, optional
-            Turns on Yarkovsky model (IN DEVELOPMENT - IGNORED)
+        yarkovsky : bool, optional
+            Turns on Yarkovsky model
+        radiation : bool, optional
+            Turns on radiation pressure + PR drag model (IN DEVELOPMENT - IGNORED)
         YORP : bool, optional
             Turns on YORP model (IN DEVELOPMENT - IGNORED)
         simdir : PathLike, optional
@@ -1310,12 +1312,11 @@ class Simulation:
                         else:
                             update_list.append("minimum_fragment_gmass")
 
-            if verbose:
-                if minimum_fragment_gmass is not None and minimum_fragment_mass is not None:
-                    warnings.warn(
-                        "Only set either minimum_fragment_mass or minimum_fragment_gmass, but not both!",
-                        stacklevel=2,
-                    )
+            if verbose and minimum_fragment_gmass is not None and minimum_fragment_mass is not None:
+                warnings.warn(
+                    "Only set either minimum_fragment_mass or minimum_fragment_gmass, but not both!",
+                    stacklevel=2,
+                )
 
             if minimum_fragment_gmass is not None:
                 self.param["MIN_GMFRAG"] = minimum_fragment_gmass
@@ -1330,14 +1331,22 @@ class Simulation:
                 self.param["NFRAG_REDUCTION"] = nfrag_reduction
                 update_list.append("nfrag_reduction")
 
+            if yarkovsky is not None:
+                self.param["YARKOVSKY"] = yarkovsky
+                update_list.append("yarkovsky")
+                self.param["ROTATION"] = True  # rotation needed for yarkovsky model
+
+            if radiation is not None:
+                self.param["RADIATION"] = radiation
+                update_list.append("radiation")
+
             if rotation is not None:
                 if self.integrator == "symba" or self.integrator == "ringmoons":
-                    if not rotation:
-                        if verbose:
-                            warnings.warn(
-                                "Rotation is on by default for SyMBA and its Ringmoons variant. This option is ignored",
-                                stacklevel=2,
-                            )
+                    if not rotation and verbose:
+                        warnings.warn(
+                            "Rotation is on by default for SyMBA. This option is ignored",
+                            stacklevel=2,
+                        )
                     self.param["ROTATION"] = True
                 else:
                     self.param["ROTATION"] = rotation
@@ -1353,11 +1362,11 @@ class Simulation:
                 self.param["ENERGY"] = False
 
             if compute_conservation_values is not None:
-                if self.integrator == "symba" or self.integrator == "ringmoons":
+                if self.integrator == "symba":
                     if not compute_conservation_values:
                         if verbose:
                             warnings.warn(
-                                "Energy, angular momentum, and mass conservation values are computed by default for SyMBA and Ringmoons. This option is ignored",
+                                "Energy, angular momentum, and mass conservation values are computed by default for SyMBA. This option is ignored",
                                 stacklevel=2,
                             )
                     self.param["ENERGY"] = True
@@ -1407,20 +1416,18 @@ class Simulation:
                     self.param["ENCOUNTER_SAVE"] = encounter_save
                     update_list.append("encounter_save")
 
-            if coarray is not None:
-                if self.codename == "Swiftest":
-                    self.param["COARRAY"] = coarray
-                    update_list.append("coarray")
+            if coarray is not None and self.codename == "Swiftest":
+                self.param["COARRAY"] = coarray
+                update_list.append("coarray")
 
             self.param["TIDES"] = False
 
-            if seed is not None:
-                if self.codename == "Swiftest":
-                    if isinstance(seed, (int, np.integer)):
-                        seed = [seed]
-                    seed = np.array(seed, dtype=np.int64)
-                    self.param["SEED"] = seed
-                    update_list.append("seed")
+            if seed is not None and self.codename == "Swiftest":
+                if isinstance(seed, (int, np.integer)):
+                    seed = [seed]
+                seed = np.array(seed, dtype=np.int64)
+                self.param["SEED"] = seed
+                update_list.append("seed")
 
         feature_dict = self.get_feature(update_list, verbose=verbose)
         return feature_dict
@@ -1463,6 +1470,8 @@ class Simulation:
             "encounter_check_loops",
             "coarray",
             "seed",
+            "yarkovsky",
+            "radiation",
         ]
 
         valid_var = self._create_valid_var(valid_arg)
@@ -1601,7 +1610,7 @@ class Simulation:
         valid_types = {"NETCDF_DOUBLE", "NETCDF_FLOAT", "ASCII"}
         if init_cond_file_type not in valid_types:
             if verbose:
-                warnings.warn(f"{init_cond_file_type} is not a valid input type", stackevel=2)
+                warnings.warn(f"{init_cond_file_type} is not a valid input type", stacklevel=2)
         else:
             self.param["IN_TYPE"] = init_cond_file_type
 
@@ -1875,7 +1884,7 @@ class Simulation:
 
         if not bool(kwargs) and arg_list is None:
             arg_list = list(valid_instance_vars.keys())
-            arg_list += [a for a in valid_var.keys() if a not in valid_instance_vars]
+            arg_list += [a for a in valid_var if a not in valid_instance_vars]
 
         valid_arg, output_file_dict = self._get_valid_arg_list(arg_list, valid_var)
 
@@ -2082,14 +2091,18 @@ class Simulation:
         if all(key in self.param for key in ["MU2KG", "DU2M", "TU2S"]):
             self.GU = constants.GC * self.param["TU2S"] ** 2 * self.param["MU2KG"] / self.param["DU2M"] ** 3
 
-        if "MU2KG" in self.param and "DU2M" in self.param and "TU2S" in self.param:
-            if (
+        if (
+            "MU2KG" in self.param
+            and "DU2M" in self.param
+            and "TU2S" in self.param
+            and (
                 recompute_unit_values
                 and MU2KG_old != self.param["MU2KG"]
                 or DU2M_old != self.param["DU2M"]
                 or TU2S_old != self.param["TU2S"]
-            ):
-                self._update_param_units(MU2KG_old, DU2M_old, TU2S_old)
+            )
+        ):
+            self._update_param_units(MU2KG_old, DU2M_old, TU2S_old)
 
         unit_dict = self.get_unit_system(update_list, verbose=verbose)
 
@@ -2475,7 +2488,7 @@ class Simulation:
         # Unit conversion factors
         for k, v in vec2xr_kwargs.items():
             if k in scalar_ints:
-                v[v == None] = -1
+                v[v is None] = -1
                 vec2xr_kwargs[k] = np.array(v, dtype=int)
             elif k in scalar_floats:
                 vec2xr_kwargs[k] = np.array(v, dtype=np.float64)
@@ -2510,11 +2523,10 @@ class Simulation:
         dsnew = self._vec2xr(**vec2xr_kwargs)
         dsnew = self._set_id_number(dsnew)
         dsnew = self._set_particle_type(dsnew)
-        if "particle_type" in self.data:
-            if CB_TYPE_NAME in self.data["particle_type"] and CB_TYPE_NAME in dsnew["particle_type"]:
-                self.data = self._set_particle_type(
-                    self.data
-                )  # Make sure we update the original dataset if there is going to be a central body change
+        if "particle_type" in self.data and CB_TYPE_NAME in self.data["particle_type"] and CB_TYPE_NAME in dsnew["particle_type"]:
+            self.data = self._set_particle_type(
+                self.data
+            )  # Make sure we update the original dataset if there is going to be a central body change
 
         if CB_TYPE_NAME in dsnew["particle_type"]:
             cbname = dsnew["name"].where(dsnew["particle_type"] == CB_TYPE_NAME, drop=True).values[0]
@@ -2560,9 +2572,7 @@ class Simulation:
         """
         verbose = kwargs.pop("verbose", self.verbose)
 
-        try:
-            self.ephemeris_date
-        except:
+        if not hasattr(self, "ephemeris_date") or self.ephemeris_date is None:
             if verbose:
                 warnings.warn("ephemeris_date is not set", stacklevel=2)
             return
@@ -2632,6 +2642,10 @@ class Simulation:
         j2rp2: float | list[float] | npt.NDArray[np.float_] | None = None,
         j4rp4: float | list[float] | npt.NDArray[np.float_] | None = None,
         c_lm: list[float] | list[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+        albedo: float | list[float] | npt.NDArray[np.float_] | None = None,
+        emissivity: float | list[float] | npt.NDArray[np.float_] | None = None,
+        rot_k: float | list[float] | npt.NDArray[np.float_] | None = None,
+        gamma: float | list[float] | npt.NDArray[np.float_] | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -2682,6 +2696,14 @@ class Simulation:
         align_to_central_body_rotation : bool, default False
             If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
             rotation is enabled.
+        albedo : float or array-like of float, optional
+            Albedo values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        emissivity : float or array-like of float, optional
+            Emissivity values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        rot_k : float or array-like of float, optional
+            Rotational constant K values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        gamma : float or array-like of float, optional
+            Thermal inertia values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
 
         Returns
         -------
@@ -2707,8 +2729,8 @@ class Simulation:
             else:
                 try:
                     val = np.array(val, dtype=t)
-                except:
-                    raise ValueError(f"{val} cannot be converted to a numpy array")
+                except e:
+                    raise ValueError(f"{val} cannot be converted to a numpy array") from e
 
             if n is None:
                 return val, len(val)
@@ -2723,8 +2745,8 @@ class Simulation:
             else:
                 try:
                     val = np.array(val, dtype=np.float64)
-                except:
-                    raise ValueError(f"{val} cannot be converted to a numpy array")
+                except e:
+                    raise ValueError(f"{val} cannot be converted to a numpy array") from e
                 if n is None:
                     ndims = len(val.shape)
                     if ndims > 2 or ndims == 0:
@@ -2757,8 +2779,8 @@ class Simulation:
             else:
                 try:
                     val = np.array(val, dtype=np.float64)
-                except:
-                    raise ValueError(f"{val} cannot be converted to a numpy array")
+                except e:
+                    raise ValueError(f"{val} cannot be converted to a numpy array") from e
                 ndims = len(val.shape)
                 if ndims != 3 or val.shape[0] != 2 or val.shape[1] != val.shape[2]:
                     raise ValueError(f"C_lm is an incorrect shape. Expected (2, l_max + 1, l_max + 1). got {val.shape} instead.")
@@ -2788,16 +2810,21 @@ class Simulation:
         j4rp4, nbodies = input_to_array(j4rp4, "f", nbodies)
         c_lm, nbodies = input_to_clm_array(c_lm, nbodies)
 
+        albedo, nbodies = input_to_array(albedo, "f", nbodies)
+        emissivity, nbodies = input_to_array(emissivity, "f", nbodies)
+        rot_k, nbodies = input_to_array(rot_k, "f", nbodies)
+        gamma, nbodies = input_to_array(gamma, "f", nbodies)
+
         if mass is not None and Gmass is not None:
             raise ValueError("Cannot use mass and Gmass inputs simultaneously!")
 
-        if rh is not None or vh is not None:
-            if a is not None or e is not None or inc is not None or capom is not None or omega is not None or capm is not None:
-                raise ValueError("Only cartesian values or orbital elements may be passed, but not both.")
+        if (rh is not None or vh is not None) and (
+            a is not None or e is not None or inc is not None or capom is not None or omega is not None or capm is not None
+        ):
+            raise ValueError("Only cartesian values or orbital elements may be passed, but not both.")
 
-        if j2rp2 is not None or j4rp4 is not None:
-            if c_lm is not None:
-                raise ValueError("Cannot use J2/J4 and c_lm inputs simultaneously!")
+        if (j2rp2 is not None or j4rp4 is not None) and c_lm is not None:
+            raise ValueError("Cannot use J2/J4 and c_lm inputs simultaneously!")
         if a is not None:
             a = np.abs(a)  # Ensure that the semimajor axis is positive, per Swiftest convention for hyperbolic orbits
 
@@ -2828,6 +2855,10 @@ class Simulation:
         j4rp4: float | list[float] | npt.NDArray[np.float_] | None = None,
         c_lm: list[float] | list[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
         align_to_central_body_rotation: bool = False,
+        albedo: float | list[float] | npt.NDArray[np.float_] | None = None,
+        emissivity: float | list[float] | npt.NDArray[np.float_] | None = None,
+        rot_k: float | list[float] | npt.NDArray[np.float_] | None = None,
+        gamma: float | list[float] | npt.NDArray[np.float_] | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -2880,6 +2911,15 @@ class Simulation:
         align_to_central_body_rotation : bool, default False
             If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
             rotation is enabled.
+        albedo : float or array-like of float, optional
+            Albedo values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        emissivity : float or array-like of float, optional
+            Emissivity values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        rot_k : float or array-like of float, optional
+            Rotational constant K values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        gamma : float or array-like of float, optional
+            Thermal inertia values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+
 
         Returns
         -------
@@ -2914,6 +2954,10 @@ class Simulation:
         j4rp4 = arguments["j4rp4"]
         c_lm = arguments["c_lm"]
         nbodies = arguments["nbodies"]
+        albedo = arguments["albedo"]
+        emissivity = arguments["emissivity"]
+        rot_k = arguments["rot_k"]
+        gamma = arguments["gamma"]
 
         # Adding new bodies imposes additional constraints on arguments that are not present when modifying existing bodies
         if rh is not None and vh is None:
@@ -2946,6 +2990,16 @@ class Simulation:
                 maxid = self.data.id.max().values[()]
             id = np.arange(start=maxid + 1, stop=maxid + 1 + nbodies, dtype=int)
             name = np.char.mod("Body%d", id)
+
+        if self.param["YARKOVSKY"]:
+            if albedo is None:
+                raise ValueError("Yarkovsky effect modeling requires albedo values for all bodies")
+            if emissivity is None:
+                raise ValueError("Yarkovsky effect modeling requires emissivity values for all bodies")
+            if rot_k is None:
+                raise ValueError("Yarkovsky effect modeling requires rot_k values for all bodies")
+            if gamma is None:
+                raise ValueError("Yarkovsky effect modeling requires thermal inertia (gamma) values for all bodies")
 
         time = [self.param["TSTART"]]
 
@@ -2987,15 +3041,18 @@ class Simulation:
             c_lm=c_lm,
             rotphase=rotphase,
             time=time,
+            albedo=albedo,
+            emissivity=emissivity,
+            rot_k=rot_k,
+            gamma=gamma,
         )
 
         dsnew = self._set_id_number(dsnew)
         dsnew = self._set_particle_type(dsnew)
-        if "particle_type" in self.data:
-            if CB_TYPE_NAME in self.data["particle_type"] and CB_TYPE_NAME in dsnew["particle_type"]:
-                self.data = self._set_particle_type(
-                    self.data
-                )  # Make sure we update the original dataset if there is going to be a central body change
+        if "particle_type" in self.data and CB_TYPE_NAME in self.data["particle_type"] and CB_TYPE_NAME in dsnew["particle_type"]:
+            self.data = self._set_particle_type(
+                self.data
+            )  # Make sure we update the original dataset if there is going to be a central body change
 
         if CB_TYPE_NAME in dsnew["particle_type"]:
             cbname = dsnew["name"].where(dsnew["particle_type"] == CB_TYPE_NAME, drop=True).values[0]
@@ -3153,6 +3210,10 @@ class Simulation:
         j4rp4: float | npt.ArrayLike[float] | None = None,
         c_lm: npt.ArrayLike[float] | None = None,
         time: npt.ArrayLike[float] | None = None,
+        albedo: float | list[float] | npt.NDArray[np.float_] | None = None,
+        emissivity: float | list[float] | npt.NDArray[np.float_] | None = None,
+        rot_k: float | list[float] | npt.NDArray[np.float_] | None = None,
+        gamma: float | list[float] | npt.NDArray[np.float_] | None = None,
         **kwargs: Any,
     ) -> SwiftestDataset:
         """
@@ -3203,6 +3264,14 @@ class Simulation:
             J_4R^4 value for the body
         c_lm : (2, lmax + 1, lmax + 1) array of floats, optional
             Spherical Harmonics coefficients; lmax = max spherical harmonics order
+        albedo : float or array-like of float, optional
+            Albedo values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        emissivity : float or array-like of float, optional
+            Emissivity values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        rot_k : float or array-like of float, optional
+            Rotational constant K values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        gamma : float or array-like of float, optional
+            Thermal inertia values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
         time : array of floats
             Time at start of simulation
         **kwargs : Any
@@ -3242,6 +3311,10 @@ class Simulation:
             "j2rp2",
             "j4rp4",
             "rotphase",
+            "albedo",
+            "emissivity",
+            "rot_k",
+            "gamma",
         ]
         sph_vars = ["c_lm"]
         time_vars = [
@@ -3266,7 +3339,7 @@ class Simulation:
             "c_lm",
         ]
 
-        if "ROTATION" in self.param and self.param["ROTATION"] == True:
+        if "ROTATION" in self.param and self.param["ROTATION"]:
             if rot is None and Gmass is not None:
                 rot = np.zeros((nbody, 3))
             if Ip is None and Gmass is not None:
@@ -3280,9 +3353,8 @@ class Simulation:
             else:
                 time = np.array([0.0])
 
-        if self.param["CHK_CLOSE"]:
-            if Gmass is not None and radius is None:
-                raise ValueError("If Gmass is passed, then radius must also be passed when CHK_CLOSE is True")
+        if self.param["CHK_CLOSE"] and Gmass is not None and radius is None:
+            raise ValueError("If Gmass is passed, then radius must also be passed when CHK_CLOSE is True")
 
         if Gmass is not None:
             Gmass[np.isnan(Gmass)] = 0.0
@@ -3510,13 +3582,15 @@ class Simulation:
                 name = [name]
             invalid_names = ", ".join([n for n in name if n not in self.data.name.values])
             if len(invalid_names) > 0:
-                warnings.warn(f"{invalid_names} not found in the Dataset. remove_body is ignoring these names.")
+                warnings.warn(f"{invalid_names} not found in the Dataset. remove_body is ignoring these names.", stacklevel=2)
         else:
             if type(id) is int or type(id) is name:
                 id = [id]
             invalid_ids = ", ".join([f"{i}" for i in id if i not in self.data.id.values])
             if len(invalid_ids) > 0:
-                warnings.warn(f"id number(s) {invalid_ids} not found in the Dataset. remove_body is ignoring these ids.")
+                warnings.warn(
+                    f"id number(s) {invalid_ids} not found in the Dataset. remove_body is ignoring these ids.", stacklevel=2
+                )
             name = self.data.name.where(self.data.id == id, drop=True).values.tolist()
 
         return name
@@ -3547,9 +3621,9 @@ class Simulation:
         names = self._get_valid_body_list(name=name, id=id)
         keepnames = [n for n in self.data.name.values if n not in names]
         if len(keepnames) == 0:
-            warnings.warn("No bodies left in the Dataset after remove_body")
+            warnings.warn("No bodies left in the Dataset after remove_body", stacklevel=2)
         if len(keepnames) == len(self.data.name):
-            warnings.warn("No bodies found that can be removed from the Dataset.")
+            warnings.warn("No bodies found that can be removed from the Dataset.", stacklevel=2)
             return
 
         self.data = self.data.sel(name=keepnames)
@@ -3580,6 +3654,10 @@ class Simulation:
         j2rp2: float | list[float] | npt.NDArray[np.float_] | None = None,
         j4rp4: float | list[float] | npt.NDArray[np.float_] | None = None,
         c_lm: list[float] | list[npt.NDArray[np.float_]] | npt.NDArray[np.float_] | None = None,
+        albedo: float | list[float] | npt.NDArray[np.float_] | None = None,
+        emissivity: float | list[float] | npt.NDArray[np.float_] | None = None,
+        rot_k: float | list[float] | npt.NDArray[np.float_] | None = None,
+        gamma: float | list[float] | npt.NDArray[np.float_] | None = None,
         align_to_central_body_rotation: bool = False,
         framenum: int = -1,
         **kwargs: Any,
@@ -3631,6 +3709,14 @@ class Simulation:
             Non-normalized J4 values (e.g. J4*R**4, where R is the body radius) if this is a central body (only one of J4 or c_lm can be passed)
         c_lm : (2,l_max+1,l_max+1) array-like of float, optional
             Spherical harmonics coefficients if this is a central body (only one of J2/J4 or c_lm can be passed)
+        albedo : float or array-like of float, optional
+            Albedo values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        emissivity : float or array-like of float, optional
+            Emissivity values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        rot_k : float or array-like of float, optional
+            Rotational constant K values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        gamma : float or array-like of float, optional
+            Thermal inertia values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
         align_to_central_body_rotation : bool, default False
             If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
             rotation is enabled.
@@ -3660,12 +3746,22 @@ class Simulation:
             print(f"Modifying bodies: {name_str}")
         dsnew = self.data.sel(name=modnames).isel(time=[framenum])
 
+        if self.param["YARKOVSKY"]:  # ADD FLAG TO NOT BE RAISED FOR CENTRAL BODY/SUN
+            if arguments["albedo"] is None:
+                raise ValueError("Yarkovsky effect modeling requires albedo values for all bodies")
+            if arguments["emissivity"] is None:
+                raise ValueError("Yarkovsky effect modeling requires emissivity values for all bodies")
+            if arguments["rot_k"] is None:
+                raise ValueError("Yarkovsky effect modeling requires rot_k values for all bodies")
+            if arguments["gamma"] is None:
+                raise ValueError("Yarkovsky effect modeling requires thermal inertia (gamma) values for all bodies")
+
         if arguments["c_lm"] is not None:
             if "j2rp2" in dsnew:
                 dsnew["j2rp2"] = xr.full_like(dsnew["j2rp2"], np.nan)
             if "j4rp4" in dsnew:
                 dsnew["j4rp4"] = xr.full_like(dsnew["j4rp4"], np.nan)
-        if arguments["j2rp2"] is not None or arguments["j4rp4"] is not None and "c_lm" in dsnew:
+        if (arguments["j2rp2"] is not None or arguments["j4rp4"] is not None) and "c_lm" in dsnew:
             dsnew["c_lm"] = xr.full_like(dsnew["c_lm"], np.nan)
 
         dsmod = self._vec2xr(**arguments)
@@ -3675,11 +3771,14 @@ class Simulation:
         dsnew.update(dsmod)
         if arguments["mass"] is not None or arguments["Gmass"] is not None:
             dsnew = self._set_particle_type(dsnew)
-            if "particle_type" in self.data:
-                if CB_TYPE_NAME in self.data["particle_type"] and CB_TYPE_NAME in dsnew["particle_type"]:
-                    self.data = self._set_particle_type(
-                        self.data
-                    )  # Make sure we update the original dataset if there is going to be a central body change
+            if (
+                "particle_type" in self.data
+                and CB_TYPE_NAME in self.data["particle_type"]
+                and CB_TYPE_NAME in dsnew["particle_type"]
+            ):
+                self.data = self._set_particle_type(
+                    self.data
+                )  # Make sure we update the original dataset if there is going to be a central body change
 
             if CB_TYPE_NAME in dsnew["particle_type"]:
                 cbname = dsnew["name"].where(dsnew["particle_type"] == CB_TYPE_NAME, drop=True).values[0]
@@ -3744,7 +3843,8 @@ class Simulation:
             overlap = np.intersect1d(names_new, names_old)
 
             if overlap.size == 0:  # No overlapping names, so we can concat
-                self.data = xr.concat([self.data, dsnew], dim="name")
+                # newdata = xr.concat([self.data, dsnew], dim="name", data_vars="all", coords="all", join="outer")q
+                self.data = xr.merge([self.data, dsnew], compat="no_conflicts", join="outer")
             else:  # Modify the values corresponding to the overlapping names.
                 for name in overlap:
                     for time in dsnew.coords["time"].values:
@@ -3776,7 +3876,7 @@ class Simulation:
                                         self.data[var] = dsnew[var]
         else:
             # If `name` is not a coord in either dataset, fall back to a safe outer-merge.
-            self.data = xr.merge([self.data, dsnew], compat="override", join="outer")
+            self.data = xr.merge([self.data, dsnew], compat="no_conflicts", join="outer")
 
         if not isinstance(self.data, SwiftestDataset):
             self.data = SwiftestDataset(self.data)
@@ -3823,7 +3923,7 @@ class Simulation:
         if codename is None:
             codename = self.codename
 
-        if not os.path.exists(param_file):
+        if not Path(param_file).exists():
             raise FileNotFoundError(f"Parameter file {param_file} not found.")
 
         if codename == "Swiftest":
@@ -3902,7 +4002,7 @@ class Simulation:
         if init_cond_file_name is None:
             init_cond_file_name = self.param["NC_IN"]
         init_cond_file = self.simdir / self.param["NC_IN"]
-        if not os.path.exists(init_cond_file):
+        if not Path(init_cond_file).exists():
             raise FileNotFoundError(f"Initial conditions file {init_cond_file} not found.")
         if verbose:
             print("Reading initial conditions file as .init_cond")
@@ -3990,7 +4090,7 @@ class Simulation:
         plname: str = "pl.swiftest.in",
         tpname: str = "tp.swiftest.in",
         cbname: str = "cb.swiftest.in",
-        conversion_questions: dict = {},
+        conversion_questions: dict | None = None,
         dask: bool = False,
         **kwargs: Any,
     ) -> SwiftestDataset:
@@ -4019,6 +4119,8 @@ class Simulation:
         oldparam : Dict
             The old parameter configuration.
         """
+        if conversion_questions is None:
+            conversion_questions = {}
         oldparam = self.param
         if self.codename == newcodename:
             warnings.warn(
@@ -4100,9 +4202,12 @@ class Simulation:
                     self.read_init_cond(dask=dask, verbose=verbose)
                     if not datafilefound:
                         self.data = self.init_cond.copy(deep=True)
-                except:
+                except Exception as e:
                     if verbose:
-                        print("No initial conditions file found. Generating from the first time step of the output file.")
+                        warnings.warn(
+                            f"{e} No initial conditions file found. Generating from the first time step of the output file.",
+                            stacklevel=2,
+                        )
                     self.init_cond = self.data.isel(time=[0]).copy(deep=True)
                     self._scrub_init_cond()
 
@@ -4231,7 +4336,7 @@ class Simulation:
             self.read_output_file(dask=dask, verbose=verbose)
         if codestyle == "Swift":
             try:
-                with open("follow.in") as f:
+                with Path.open("follow.in") as f:
                     line = f.readline()  # Parameter file (ignored because read_output_file already takes care of it
                     line = f.readline()  # PL file (ignored)
                     line = f.readline()  # TP file (ignored)
@@ -4292,11 +4397,6 @@ class Simulation:
             "ntp",
             "npl",
             "nplm",
-            "ring_sigma",
-            "ring_r",
-            "ring_x",
-            "ring_rp",
-            "ring_mp",
         ]
 
         vars = [k for k in ic_vars if k in ds]
@@ -4488,12 +4588,12 @@ class Simulation:
 
         for f in old_files:
             if f.exists():
-                os.remove(f)
+                f.unlink()
 
         for g in glob_files:
             for f in g:
                 if f.exists():
-                    os.remove(f)
+                    f.unlink()
 
         # Clean out data structure and reset it to initial conditions
         if "time" in self.data:
@@ -4543,14 +4643,14 @@ class Simulation:
             if "name" in self.data.dims:
                 if 0 in self.data.id.values:
                     name_0 = self.data.name.where(self.data.id == 0, drop=True).values[()]
-                    self.data["id"].loc[dict(name=name_0)] = cbid
-                self.data["id"].loc[dict(name=cbname)] = 0
-                self.data["particle_type"].loc[dict(name=cbname)] = constants.CB_TYPE_NAME
+                    self.data["id"].loc[{"name": name_0}] = cbid
+                self.data["id"].loc[{"name": cbname}] = 0
+                self.data["particle_type"].loc[{"name": cbname}] = constants.CB_TYPE_NAME
             else:
                 if 0 in self.data.id.values:
-                    self.data["id"].loc[dict(id=0)] = cbid
-                self.data["id"].loc[dict(id=cbid)] = 0
-                self.data["particle_type"].loc[dict(id=cbid)] = constants.CB_TYPE_NAME
+                    self.data["id"].loc[{"id": 0}] = cbid
+                self.data["id"].loc[{"id": cbid}] = 0
+                self.data["particle_type"].loc[{"id": cbid}] = constants.CB_TYPE_NAME
 
         # Ensure that the central body is at the origin
         if "name" in self.data.dims:
@@ -4560,16 +4660,25 @@ class Simulation:
 
         pos_skip = ["space", "Ip", "rot"]
         for var in self.data.variables:
-            if "space" in self.data[var].dims and var not in pos_skip and not np.isnan(self.data[var].values).any():
-                if np.any(cbda[var].values != 0.0):
-                    recompute_el = True
-                    self.data[var] = self.data[var] - cbda[var]
+            if (
+                "space" in self.data[var].dims
+                and var not in pos_skip
+                and not np.isnan(self.data[var].values).any()
+                and np.any(cbda[var].values != 0.0)
+            ):
+                recompute_el = True
+                self.data[var] = self.data[var] - cbda[var]
 
         # If the central body origin has changed and we expect the system to be aligned with its rotation frame, then rotate the system
         # before computing the orbital elements
-        if align_to_central_body_rotation and "rot" in cbda and recompute_el:
-            if "rot" in cbda and not np.isnan(cbda.rot.isel(time=0).values).any():
-                self.data = self.data.rotate(pole=cbda.rot.isel(time=0).values[()])
+        if (
+            align_to_central_body_rotation
+            and "rot" in cbda
+            and recompute_el
+            and "rot" in cbda
+            and not np.isnan(cbda.rot.isel(time=0).values).any()
+        ):
+            self.data = self.data.rotate(pole=cbda.rot.isel(time=0).values[()])
 
         if recompute_el:
             self.data = self.data.xv2el()
@@ -4629,7 +4738,7 @@ class Simulation:
     @property
     def encounters(self) -> SwiftestDataset:
         """
-        SwiftestDataset: A dataset containing the encounter history
+        SwiftestDataset: A dataset containing the encounter history.
         """
         return self._encounters
 
@@ -4671,14 +4780,13 @@ class Simulation:
     def simdir(self, value: os.PathLike | Path) -> None:
         try:
             value = Path(value).resolve()
-        except:
-            raise TypeError("Simulation directory value must be a a valid path")
+        except Exception as e:
+            raise TypeError("Simulation directory value must be a a valid path") from e
 
-        if value.exists():
-            if not value.is_dir():
-                msg = f"Cannot create the {self.simdir} directory: File exists."
-                msg += "\nDelete the file or change the location of param_file"
-                raise NotADirectoryError(msg)
+        if value.exists() and not value.is_dir():
+            msg = f"Cannot create the {self.simdir} directory: File exists."
+            msg += "\nDelete the file or change the location of param_file"
+            raise NotADirectoryError(msg)
         self._simdir = value
         return
 
@@ -4691,7 +4799,7 @@ class Simulation:
 
     @param_file.setter
     def param_file(self, value: os.PathLike | Path) -> None:
-        if not os.path.exists(self.simdir / value):
+        if not (self.simdir / value).exists():
             self.write_param(param_file=value)
         param_path = self.simdir / value
         if not param_path.exists():
@@ -4954,10 +5062,10 @@ class Simulation:
         else:
             try:
                 datetime.datetime.fromisoformat(value)
-            except:
+            except Exception as e:
                 valid_date_args = ['"MBCL"', '"TODAY"', '"YYYY-MM-DD"']
                 msg = (
-                    f"{value} is not a valid format. Valid options include:",
+                    f"{e}: {value} is not a valid format. Valid options include:",
                     ", ".join(valid_date_args),
                 )
                 msg += "\nUsing MBCL for date."
