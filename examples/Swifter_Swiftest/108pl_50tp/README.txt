@@ -1,4 +1,4 @@
-Copyright 2025 - David Minton.
+Copyright 2026 - David Minton.
 
 This file is part of Swiftest.
 Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
