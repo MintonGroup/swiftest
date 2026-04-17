@@ -79,8 +79,9 @@ ax.tick_params(axis="both", which="major", labelsize=tsize)
 secax.tick_params(axis="both", which="major", labelsize=tsize)
 
 ids = sim.data.isel(time=0)
-r = ids.ring_r.values / r_cb
-s = ids.ring_sigma.values * sim.MU2KG / sim.DU2M**2 * 1000.0 / 100.0
+ring = sim.ring.isel(time=0)
+r = ring.r.values / r_cb
+s = ring.sigma.values * sim.MU2KG / sim.DU2M**2 * 1000.0 / 100.0
 
 mars = swiftest.get_solar_system_body("Mars")
 phobos = swiftest.get_solar_system_body("Phobos")

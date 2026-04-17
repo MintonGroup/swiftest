@@ -48,7 +48,7 @@ module swiftest
    use netcdf_io
    use solver
    !use advisor_annotate
-   !$ use omp_lib
+   !$ use omp_liringbinb
    implicit none
    public
 

@@ -98,6 +98,8 @@ contains
          !! SyMBA nbody_system object
 
       self%irec = -1
+      if (allocated(self%collider)) deallocate(self%collider)
+
       call self%helio_nbody_system%dealloc()
 
       return
@@ -299,8 +301,7 @@ contains
    module subroutine symba_util_setup_initialize_system(self, system_history, param)
       !! author: David A. Minton
       !!
-      !! Initialize an SyMBA nbody system from files and sets up the planetocentric structures.
-      !! This subroutine will also sort the massive bodies in descending order by mass
+      !! Initialize an SyMBA nbody system from files and sets up the encounter and collision structures
       !! 
       implicit none
       ! Arguments

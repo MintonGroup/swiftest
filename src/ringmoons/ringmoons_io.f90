@@ -9,35 +9,151 @@
 
 submodule(ringmoons) s_ringmoons_io
     use swiftest
+    use netcdf
 contains        
     module subroutine ringmoons_io_netcdf_dump(self, param)
         implicit none
         class(ringmoons_storage), intent(inout)        :: self   
             !! ringmoons storage object
-        class(base_parameters),   intent(inout)        :: param  
+        class(swiftest_parameters),   intent(inout)        :: param  
             !! Current run configuration parameters 
 
         return
     end subroutine ringmoons_io_netcdf_dump
 
-    module subroutine ringmoons_io_netcdf_initialize_output(self, param)
+    module subroutine ringmoons_io_netcdf_flush(self, param)
+        !! author: David A. Minton
+        !!
+        !! Flushes the current buffer to disk by closing and re-opening the file.
+        !!    
         implicit none
-        class(ringmoons_netcdf_parameters), intent(inout) :: self    
+        ! Arguments
+        class(ringmoons_netcdf_parameters), intent(inout) :: self 
             !! Parameters used to identify a particular NetCDF dataset
-        class(base_parameters),             intent(in)    :: param   
+        class(swiftest_parameters),         intent(inout) :: param 
+            !! Current run configuration parameters 
+
+        call self%close()
+        call self%open(param,readonly=.false.)
 
         return
+    end subroutine ringmoons_io_netcdf_flush
+
+    module subroutine ringmoons_io_netcdf_initialize_output(self, param)
+        !! author: David A. Minton
+        !!
+        !! Initialize a NetCDF ring history file system. This is a simplified version of the main simulation output NetCDF file, 
+        !! but with fewer variables.
+        use, intrinsic :: ieee_arithmetic
+        use netcdf
+        implicit none
+        ! Arguments
+        class(ringmoons_netcdf_parameters), intent(inout) :: self    
+            !! Parameters used to identify a particular NetCDF dataset
+        class(swiftest_parameters),             intent(in)    :: param   
+            !! Current run configuration parameters 
+        ! Internals
+        integer(I4B) :: nvar, varid, vartype
+        real(DP) :: dfill
+        real(SP) :: sfill
+        integer(I4B), parameter :: NO_FILL = 0
+        logical :: fileExists
+        character(len=STRMAX) :: errmsg
+        integer(I4B) :: ndims
+
+        select type(param)
+        class is (swiftest_parameters)
+            associate(nc => self)
+                dfill = ieee_value(dfill, IEEE_QUIET_NAN)
+                sfill = ieee_value(sfill, IEEE_QUIET_NAN)
+
+                select case (param%out_type)
+                case("NETCDF_FLOAT")
+                    self%out_type = NF90_FLOAT
+                case("NETCDF_DOUBLE")
+                    self%out_type = NF90_DOUBLE
+                case default
+                    write(*,*) trim(adjustl(param%out_type)), " is an invalid OUT_TYPE"
+                end select
+
+                            ! Check if the file exists, and if it does, delete it
+                inquire(file=nc%file_name, exist=fileExists)
+                if (fileExists) then
+                    open(unit=LUN, file=nc%file_name, status="old", err=667, iomsg=errmsg)
+                    close(unit=LUN, status="delete")
+                end if
+
+                call netcdf_io_check( nf90_create(nc%file_name, NF90_NETCDF4, nc%id), &
+                    "ringmoons_io_netcdf_initialize_output nf90_create" )
+                nc%lfile_is_open = .true.
+
+                ! Dimensions
+                call netcdf_io_check( nf90_def_dim(nc%id, nc%time_dimname, NF90_UNLIMITED, nc%time_dimid), &
+                    "ringmoons_io_netcdf_initialize_output nf90_def_dim time_dimid"  ) ! Dimension to store collision events
+            end associate
+        end select
+
+        return
+
+      667 continue
+      write(*,*) "Error creating NetCDF output file. " // trim(adjustl(errmsg))
+      call base_util_exit(FAILURE,param%display_unit)
     end subroutine ringmoons_io_netcdf_initialize_output
 
     module subroutine ringmoons_io_netcdf_open(self, param, readonly)
         implicit none
         class(ringmoons_netcdf_parameters), intent(inout) :: self     
             !! Parameters used to identify a particular NetCDF dataset
-        class(base_parameters),             intent(in)    :: param    
+        class(swiftest_parameters),         intent(in)    :: param    
             !! Current run configuration parameters
         logical, optional,                  intent(in)    :: readonly 
             !! Logical flag indicating that this should be open read only
+        ! Internals
+        integer(I4B) :: mode
+        character(len=STRMAX) :: errmsg
+        logical fileExists
 
+        mode = NF90_WRITE
+        if (present(readonly)) then
+            if (readonly) mode = NF90_NOWRITE
+        end if
+
+        select type(param)
+        class is (swiftest_parameters)
+            associate(nc => self)
+
+                inquire(file=nc%file_name, exist=fileExists)
+                if (.not.fileExists) then
+                    call nc%initialize(param)
+                    return
+                end if
+    
+                write(errmsg,*) "ringmoons_io_netcdf_open nf90_open ",trim(adjustl(nc%file_name))
+                call netcdf_io_check( nf90_open(nc%file_name, mode, nc%id), errmsg)
+                self%lfile_is_open = .true.
+    
+                ! Dimensions
+                call netcdf_io_check( nf90_inq_dimid(nc%id, nc%time_dimname, nc%time_dimid), &
+                                        "ringmoons_io_netcdf_open nf90_inq_dimid time_dimid"  )
+                call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%time_dimid, nc%time_dimname, len=nc%max_tslot), &
+                                        "ringmoons_io_netcdf_open nf90_inquire_dimension max_tslot"  )
+                call netcdf_io_check( nf90_inq_dimid(nc%id, nc%ringbin_dimname, nc%ringbin_dimid), &
+                                        "ringmoons_io_netcdf_open nf90_inq_dimid ringbin_dimid"  )
+
+                ! Dimension coordinates
+                call netcdf_io_check( nf90_inq_varid(nc%id, nc%time_dimname, nc%time_varid), &
+                                        "ringmoons_io_netcdf_open nf90_inq_varid time_varid" )
+                call netcdf_io_check( nf90_inq_varid(nc%id, nc%ringbin_dimname, nc%ringbin_varid), &
+                                        "ringmoons_io_netcdf_open nf90_inq_varid ringbin_varid" )
+
+                ! Required Variables
+                call netcdf_io_check( nf90_inq_varid(nc%id, nc%id_varname, nc%id_varid), &
+                                        "ringmoons_io_netcdf_open nf90_inq_varid name_varid" )
+                call netcdf_io_check( nf90_inq_varid(nc%id, nc%Gmass_varname, nc%Gmass_varid), &
+                                        "ringmoons_io_netcdf_open nf90_inq_varid Gmass_varid" )
+
+            end associate
+        end select 
         return
     end subroutine ringmoons_io_netcdf_open
 

@@ -34,7 +34,7 @@ contains
         real(DP)                           :: dtring,dtleft
         integer(I4B)                       :: i,loop,seedloop,subcount,loopcount
         type(ringmoons_ring), allocatable  :: old_ring
-        type(ringmoons_pl),   allocatable  :: old_seeds
+        type(ringmoons_pl),   allocatable  :: old_seed
         type(ringmoons_cb),   allocatable  :: old_cb 
 
         select type(cb => self%cb)
@@ -44,7 +44,7 @@ contains
             dtleft = dt
             dtring = dtleft
             allocate(old_ring, source=self%ring)
-            allocate(old_seeds, source=self%seeds) 
+            allocate(old_seed, source=self%seed) 
             allocate(old_cb, source=cb)
             do loop = 1, LOOPMAX
                 if (loop == LOOPMAX) then
@@ -53,21 +53,21 @@ contains
                 end if
 
                 self%ring%Torque(:) = 0.0_DP
-                self%seeds%Torque(:) = 0.0_DP
+                self%seed%Torque(:) = 0.0_DP
                 
                 call ringmoons_update_ring(cb,self%ring)
                 
                 dtring = ringmoons_ring_timestep(self%ring,dtring)
 
-                call ringmoons_cb_accrete(cb,self%ring,self%seeds,dtring)
+                call ringmoons_cb_accrete(cb,self%ring,self%seed,dtring)
 
-                call ringmoons_seed_evolve(cb,self%ring,self%seeds,dtring,stepfail)
+                call ringmoons_seed_evolve(cb,self%ring,self%seed,dtring,stepfail)
 
                 if (stepfail) then
                     dtring = dtring / SUBMAX
                     subcount = 0
                     call move_alloc(old_ring, self%ring)
-                    call move_alloc(old_seeds, self%seeds)
+                    call move_alloc(old_seed, self%seed)
                     cb%mass = old_cb%mass
                     cb%Gmass = old_cb%Gmass
                     cb%radius = old_cb%radius
@@ -83,7 +83,7 @@ contains
                         dtring = dtring / submax
                         subcount = 0
                         call move_alloc(old_ring, self%ring)
-                        call move_alloc(old_seeds, self%seeds)
+                        call move_alloc(old_seed, self%seed)
                         cb%mass = old_cb%mass
                         cb%Gmass = old_cb%Gmass
                         cb%radius = old_cb%radius
@@ -94,12 +94,12 @@ contains
 
         !write(*,*) 'seed_construct'
 
-                call ringmoons_seed_construct(cb,self%ring,self%seeds) ! Spawn new seeds in any available bins outside the FRL 
+                call ringmoons_seed_construct(cb,self%ring,self%seed) ! Spawn new seed in any available bins outside the FRL 
                                                                             ! where there is ring material
 
                 subcount = subcount + 1
                 !if (DESTRUCTION_EVENT) then
-                !   call ringmoons_io_write_frame(t + (dtin - dtleft - dtleft), ring, seeds, ring_outfile, out_stat = "APPEND")
+                !   call ringmoons_io_write_frame(t + (dtin - dtleft - dtleft), ring, seed, ring_outfile, out_stat = "APPEND")
                 !   DESTRUCTION_COUNTER = DESTRUCTION_COUNTER + 1
                 !   if (DESTRUCTION_COUNTER > DESTRUCTION_SAVE_FRAMES) then
                 !      DESTRUCTION_EVENT = .false.
@@ -117,9 +117,9 @@ contains
                 end if
                 dtring = min(dtleft,dtring)
 
-                deallocate(old_ring, old_seeds, old_cb)
+                deallocate(old_ring, old_seed, old_cb)
                 allocate(old_ring, source=self%ring)
-                allocate(old_seeds, source=self%seeds) 
+                allocate(old_seed, source=self%seed) 
                 allocate(old_cb, source=cb)
             end do
         end select
@@ -165,59 +165,59 @@ contains
 
 
 
-    subroutine ringmoons_cb_accrete(cb,ring,seeds,dt)
+    subroutine ringmoons_cb_accrete(cb,ring,seed,dt)
         implicit none
 
     ! Arguments
         type(ringmoons_cb),  intent(inout) :: cb
         type(ringmoons_ring),intent(inout) :: ring
-        type(ringmoons_pl),  intent(inout) :: seeds
+        type(ringmoons_pl),  intent(inout) :: seed
         real(DP),intent(in)                :: dt
 
     ! Internals
         integer(I4B) :: i,j,iin
         real(DP) :: rlo,rhi,GMP, RP,rhoP, Mratio, Rratio, Mratiosqrt,MratioHill,rfac
         real(DP) :: Lplanet, Lring, Ltot,Rnew,Mnew, Lorig,Mring,dMtot,Lnow
-        real(DP),dimension(seeds%nbody) :: afac
+        real(DP),dimension(seed%nbody) :: afac
         real(DP),dimension(0:ring%nbins+1)        :: Gmtmp,Lring_orig,Lring_now,dL
         real(DP) :: Lp0,Ls0,Lp1,Ls1,Lr0,Lr1
         
     ! Executable code
-        ! ring%inside = ringmoons_ring_bin_finder(ring,cb%radius)
-        ! GMP = cb%mass_init + cb%mass_accreted
-        ! dMtot = sum(ring%mass(0:ring%inside))
+        ring%inside = ringmoons_ring_bin_finder(ring,cb%radius)
+        GMP = cb%mass_init + cb%mass_accreted
+        dMtot = sum(ring%mass(0:ring%inside))
                 
-        ! !Add ring mass and angular momentum to planet
-        ! Lring_orig(:) = ring%mass(:) * ring%Iz(:) * ring%w(:) 
-        ! Lring = sum(Lring_orig(0:ring%inside))
-        ! ring%dGMP = ring%dGMP + dMtot
-        ! ring%dLP = ring%dLP + Lring
-        ! swifter_pl1P%mass = ring%GMPi + ring%dGMP 
-        ! swifter_pl1P%radius = ring%RPi * (1._DP + ring%dGMP / ring%GMPi)**(1.0_DP / 3.0_DP)
-        ! swifter_pl1P%rot(3) = (ring%LPI + ring%dLP) / (swifter_pl1P%Ip(3) * swifter_pl1P%mass * (swifter_pl1P%radius)**2)
+        !Add ring mass and angular momentum to planet
+        Lring_orig(:) = ring%mass(:) * ring%Iz(:) * ring%w(:) 
+        Lring = sum(Lring_orig(0:ring%inside))
+        ring%dGMP = ring%dGMP + dMtot
+        ring%dLP = ring%dLP + Lring
+        swifter_pl1P%mass = ring%GMPi + ring%dGMP 
+        swifter_pl1P%radius = ring%RPi * (1._DP + ring%dGMP / ring%GMPi)**(1.0_DP / 3.0_DP)
+        swifter_pl1P%rot(3) = (ring%LPI + ring%dLP) / (swifter_pl1P%Ip(3) * swifter_pl1P%mass * (swifter_pl1P%radius)**2)
 
-        ! ring%Gm(0:ring%inside) = 0.0_DP
-        ! ring%Gsigma(0:ring%inside) = 0.0_DP
+        ring%Gm(0:ring%inside) = 0.0_DP
+        ring%Gsigma(0:ring%inside) = 0.0_DP
 
-        ! ! update body-dependent parameters as needed
-        ! rfac = 1._DP - dMtot / GMP
-        ! afac(1:seeds%N) = 1._DP - dMtot / (GMP + seeds%Gm(1:seeds%N))
-        ! seeds%a(1:seeds%N) = seeds%a(1:seeds%N) * afac(1:seeds%N)
-        ! ring%r_F = ring%r_F * rfac
-        ! ring%r_I = ring%r_I * rfac
+        ! update body-dependent parameters as needed
+        rfac = 1._DP - dMtot / GMP
+        afac(1:seed%N) = 1._DP - dMtot / (GMP + seed%Gm(1:seed%N))
+        seed%a(1:seed%N) = seed%a(1:seed%N) * afac(1:seed%N)
+        ring%r_F = ring%r_F * rfac
+        ring%r_I = ring%r_I * rfac
 
-        ! ! Save the mass so that we can correct for the change in geometry
-        ! Gmtmp(:) = ring%Gm
-        ! call ringmoons_ring_construct(swifter_pl1P,ring,seeds)
-        ! ring%Gm(:) = Gmtmp(:)
-        ! ring%Gsigma(:) = ring%Gm(:) / ring%deltaA(:)
+        ! Save the mass so that we can correct for the change in geometry
+        Gmtmp(:) = ring%Gm
+        call ringmoons_ring_construct(swifter_pl1P,ring,seed)
+        ring%Gm(:) = Gmtmp(:)
+        ring%Gsigma(:) = ring%Gm(:) / ring%deltaA(:)
         
-        ! ! Any difference in angular momentum in each ring bin will result in a torque in that bin
-        ! Lring_now(:) = ring%Gm(:) * ring%Iz(:) * ring%w(:) 
-        ! dL(0:ring%inside) = 0.0_DP
-        ! dL(ring%N+1) = 0.0_DP
-        ! dL(ring%inside+1:ring%N) = (Lring_now(ring%inside+1:ring%N) - Lring_orig(ring%inside+1:ring%N)) / dt 
-        ! ring%Torque(:) = ring%Torque(:) - dL(:)
+        ! Any difference in angular momentum in each ring bin will result in a torque in that bin
+        Lring_now(:) = ring%Gm(:) * ring%Iz(:) * ring%w(:) 
+        dL(0:ring%inside) = 0.0_DP
+        dL(ring%N+1) = 0.0_DP
+        dL(ring%inside+1:ring%N) = (Lring_now(ring%inside+1:ring%N) - Lring_orig(ring%inside+1:ring%N)) / dt 
+        ring%Torque(:) = ring%Torque(:) - dL(:)
 
         return
 

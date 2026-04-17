@@ -287,6 +287,9 @@ class Simulation:
         if len(kwargs) > 0:
             self.set_parameter(**kwargs)
 
+        if self.integrator == "ringmoons":
+            self._ring = SwiftestDataset()
+
         # Read in an old simulation file if requested
         if read_init_cond:
             icpath = self.simdir / self.param["NC_IN"]
@@ -3124,12 +3127,11 @@ class Simulation:
             r_inner = 0.99 * r_planet
             r_outer = 1.1 * frl
 
-        x = []
         r = []
         delta_x = (2 * np.sqrt(r_outer) - 2 * np.sqrt(r_inner)) / nbins
         for a in range(int(nbins)):
-            x.append(2 * np.sqrt(r_inner) + delta_x * (a + 0.5))
-            r.append((0.5 * x[a]) ** 2)
+            x = 2 * np.sqrt(r_inner) + delta_x * (a + 0.5)
+            r.append((0.5 * x) ** 2)
 
         if mass_distribution["type"] != "arbitrary":
             sigma = []
@@ -3159,11 +3161,10 @@ class Simulation:
         # Add the ring to the simulation
         dsnew = xr.Dataset(
             {
-                "ring_r": (["ringbin"], r),
-                "ring_x": (["ringbin"], x),
-                "ring_sigma": (["ringbin"], sigma),
-                "ring_rp": (["ringbin"], r_p),
-                "ring_mp": (["ringbin"], m_p),
+                "r": (["ringbin"], r),
+                "sigma": (["ringbin"], sigma),
+                "r_p": (["ringbin"], r_p),
+                "m_p": (["ringbin"], m_p),
             },
             coords={"ringbin": np.arange(nbins)},
         )
@@ -3178,10 +3179,10 @@ class Simulation:
         else:
             time = np.array([0.0])
 
-        for v in ["ring_r", "ring_x", "ring_sigma", "ring_rp", "ring_mp"]:
+        for v in ["r", "sigma", "r_p", "m_p"]:
             dsnew[v] = dsnew[v].expand_dims(dim={"time": 1}, axis=0).assign_coords({"time": time})
 
-        self.data = xr.merge([self.data, dsnew], compat="override", join="outer")
+        self.ring = dsnew
         if verbose:
             print(f"Added a 1D eulerian ring with {nbins} bins to the simulation.")
 
@@ -4312,6 +4313,41 @@ class Simulation:
 
         return
 
+    def read_ring_file(self, dask: bool = False, **kwargs: Any) -> None:
+        """
+        Reads in a Ringmoons history file and stores it as an Xarray Dataset in the `ring` instance variable.
+
+        Parameters
+        ----------
+        dask : bool, default False
+            Use Dask to lazily load data (useful for very large datasets)
+        **kwargs : Any
+            A dictionary of additional keyword arguments.
+
+        Returns
+        -------
+        None
+            Sets the collisions instance variable xarray dataset
+        """
+        verbose = kwargs.pop("verbose", self.verbose)
+
+        if not self.ring_file.exists():
+            return
+
+        if verbose:
+            print("Reading collisions history file as .collisions")
+
+        if dask:
+            ds = xr.open_mfdataset(self.ring_file, engine="h5netcdf", mask_and_scale=False, combine="nested")
+        else:
+            with xr.open_dataset(self.ring_file, mask_and_scale=False) as ds:
+                ds.load()
+
+        self.ring = io.process_netcdf_input(ds, self.param)
+        ds.close()
+
+        return
+
     def follow(self, codestyle: str = "Swifter", dask: bool = False, **kwargs: Any) -> SwiftestDataset:
         """
         An implementation of the Swift tool_follow algorithm. Under development. Currently only for Swift simulations.
@@ -4553,6 +4589,14 @@ class Simulation:
         elif verbose:
             warnings.warn(f"Saving to {codename} not supported", stacklevel=2)
 
+        if self.integrator == "ringmoons" and len(self.ring) > 1:
+            io.swiftest_xr2infile(
+                ds=self.ring,
+                param=param,
+                in_type=self.param["IN_TYPE"],
+                infile_name=self.ring_file,
+                verbose=verbose
+                )
         return
 
     def clean(self, deep: bool = False, **kwargs) -> None:
@@ -4573,6 +4617,8 @@ class Simulation:
         verbose = kwargs.pop("verbose", self.verbose)
         self.encounters = SwiftestDataset()
         self.collisions = SwiftestDataset()
+        if self.integrator == "ringmoons":
+            self.ring = SwiftestDataset()
         if deep:
             if verbose and self.simdir.exists():
                 print(f"Removing simulation directory {self.simdir}")
@@ -4591,6 +4637,7 @@ class Simulation:
             self.simdir / "collisions.log",
             self.simdir / "collisions.nc",
             self.simdir / "encounters.nc",
+            self.simdir / "ring.nc",
         ]
 
         glob_files = [self.simdir.glob("**/param.*.in")]
@@ -4776,6 +4823,23 @@ class Simulation:
             else:
                 raise TypeError("Collisions value must be a SwiftestDataset")
         self._collisions = value
+        return
+
+    @property
+    def ring(self) -> SwiftestDataset:
+        """
+        SwiftestDataset: A dataset containing the ring model in the Ringmoons integrator.
+        """
+        return self._ring
+
+    @ring.setter
+    def ring(self, value: SwiftestDataset) -> None:
+        if not isinstance(value, SwiftestDataset):
+            if isinstance(value, xr.Dataset):
+                value = SwiftestDataset(value)
+            else:
+                raise TypeError("Collisions value must be a SwiftestDataset")
+        self._ring = value
         return
 
     @property
@@ -5084,3 +5148,10 @@ class Simulation:
         self._ephemeris_date = value
 
         return
+
+    @property
+    def ring_file(self) -> Path:
+        """
+        Path to the ring file in a Ringmoons integrator.
+        """
+        return Path(self.simdir) / "ring.nc"

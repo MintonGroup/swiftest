@@ -946,7 +946,9 @@ def select_active_from_frame(ds: SwiftestDataset, param: dict, framenum: int = -
     frame = ds.isel(time=[framenum])
     iframe = frame.isel(time=0).load()
 
-    if "name" in ds.dims:
+    if "ringbin" in ds.dims:
+        return frame
+    elif "name" in ds.dims:
         count_dim = "name"
     elif "id" in ds.dims:
         count_dim = "id"
@@ -1020,7 +1022,9 @@ def swiftest_xr2infile(
         frame = reorder_dims(frame)
 
         idx = ds.indexes
-        if "id" in idx:
+        if "ringbin" in idx:
+            unlimited_dims = ["time"]
+        elif "id" in idx:
             unlimited_dims = ["time", "id"]
         elif "name" in idx:
             unlimited_dims = ["time", "name"]

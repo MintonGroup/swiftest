@@ -28,8 +28,6 @@ module ringmoons
     !> Ringmoons massive body class
     type, extends(symba_pl) :: ringmoons_pl
     contains
-        procedure :: setup    => ringmoons_util_setup_pl
-        procedure :: dealloc  => ringmoons_util_dealloc_pl
     end type ringmoons_pl
 
     type, extends(ringmoons_pl) :: ringmoons_seed
@@ -48,6 +46,7 @@ module ringmoons
     contains
         procedure :: setup    => ringmoons_util_setup_seed
         procedure :: dealloc  => ringmoons_util_dealloc_seed
+        final     ::             ringmoons_final_seed
     end type ringmoons_seed
 
 
@@ -112,6 +111,7 @@ module ringmoons
     contains
         procedure :: setup    => ringmoons_util_setup_ring
         procedure :: dealloc  => ringmoons_util_dealloc_ring
+        procedure :: find_bin => ringmoons_util_find_bin
         final     ::             ringmoons_final_ring
             !! Finalizes the ringmoons ring object - deallocates all allocatables
     end type ringmoons_ring
@@ -120,18 +120,144 @@ module ringmoons
     type, extends(symba_nbody_system) :: ringmoons_nbody_system
         class(ringmoons_ring),         allocatable :: ring
             !! Ringmoons ring object
-        class(ringmoons_pl),           allocatable :: seeds
-            !! Ringmoons seeds object
+        class(ringmoons_pl),           allocatable :: seed
+            !! Ringmoons seed object
     contains
-        procedure :: step             => ringmoons_step_system      
+        procedure :: dealloc    => ringmoons_util_dealloc_system          
+            !! Deallocates all allocatables
+        procedure :: initialize => ringmoons_util_setup_initialize_system 
+            !! Performs ringmoons-specific initilization steps
+        procedure :: step       => ringmoons_step_system                  
+            !! Advance the ringmoons nbody system forward in time by one step
+        procedure :: reset      => ringmoons_step_reset_system            
+            !! Resets pl, tp,and encounter structures at the start of a new step 
     end type ringmoons_nbody_system
 
 
     !> NetCDF dimension and variable names for the ringmoons objects
     type, extends(netcdf_parameters) :: ringmoons_netcdf_parameters
+        character(NAMELEN) :: ringbin_dimname = "ringbin"
+            !! name of the ring bin dimension
+        integer(I4B) :: ringbin_dimid
+            !! ID for the ring bin dimension
+        integer(I4B) :: ringbin_varid
+            !! ID for the ring bin variable
+
+        character(NAMELEN) :: nseed_varname = "nseed"
+            !! name of the number of active seeds variable
+        integer(I4B) :: nseed_varid 
+            !! ID for the number of active seeds variable
+        character(NAMELEN) :: inside_varname = "inside"
+            !! name of the innermost ring bin variable
+        integer(I4B) :: inside_varid
+            !! ID for the innermost ring bin variable
+        character(NAMELEN) :: r_outer_varname = "r_outer"
+            !! name of the outside radius of ring variable
+        integer(I4B) :: r_outer_varid
+            !! ID for the outside radius of ring variable
+        character(NAMELEN) :: X_outer_varname = "X_outer"
+            !! name of the outside radius of ring in X units variable
+        integer(I4B) :: X_outer_varid
+            !! ID for the outside radius of ring in X units variable
+        character(NAMELEN) :: r_inner_varname = "r_inner"
+            !! name of the inside radius of ring variable
+        integer(I4B) :: r_inner_varid
+            !! ID for the inside radius of ring variable
+        character(NAMELEN) :: X_inner_varname = "X_inner"
+            !! name of the inside radius of ring in X units variable
+        integer(I4B) :: X_inner_varid
+            !! ID for the inside radius of ring in X units variable
+        character(NAMELEN) :: deltaX_varname = "deltaX"
+            !! name of the variable bin width in X units variable
+        integer(I4B) :: deltaX_varid
+            !! ID for the variable bin width in X units variable
+        character(NAMELEN) :: RRL_varname = "RRL"
+            !! name of the Rigid Roche limit variable
+        integer(I4B) :: RRL_varid
+            !! ID for the Rigid Roche limit variable
+        character(NAMELEN) :: FRL_varname = "FRL"
+            !! name of the Fluid Roche limit variable
+        integer(I4B) :: FRL_varid
+            !! ID for the Fluid Roche limit variable
+        character(NAMELEN) :: iRRL_varname = "iRRL"
+            !! name of the Rigid Roche limit bin index variable
+        integer(I4B) :: iRRL_varid
+            !! ID for the Rigid Roche limit bin index variable
+        character(NAMELEN) :: iFRL_varname = "iFRL"
+            !! name of the Fluid Roche limit bin index variable
+        integer(I4B) :: iFRL_varid
+            !! ID for the Fluid Roche limit bin index variable
+        character(NAMELEN) :: r_varname = "r"
+            !! name of the radial distance of bin center variable
+        integer(I4B) :: r_varid
+            !! ID for the radial distance of bin center variable
+        character(NAMELEN) :: r_hstar_varname = "r_hstar"
+            !! name of the normalized ring Hill's radius variable
+        integer(I4B) :: r_hstar_varid
+            !! ID for the normalized ring Hill's radius variable
+        character(NAMELEN) :: X_varname = "X"
+            !! name of the distance variable X at bin center variable
+        integer(I4B) :: X_varid
+            !! ID for the distance variable X at bin center variable
+        character(NAMELEN) :: X2_varname = "X2"
+            !! name of the distance variable X**2 at bin center variable
+        integer(I4B) :: X2_varid
+            !! ID for the distance variable X**2 at bin center variable
+        character(NAMELEN) :: deltaA_varname = "deltaA"
+            !! name of the differential surface area of ring variable
+        integer(I4B) :: deltaA_varid
+            !! ID for the differential surface area of ring variable
+        character(NAMELEN) :: sigma_varname = "sigma"
+            !! name of the surface mass density of ring bin variable
+        integer(I4B) :: sigma_varid
+            !! ID for the surface mass density of ring bin variable
+        character(NAMELEN) :: tau_varname = "tau"
+            !! name of the ring optical depth variable
+        integer(I4B) :: tau_varid
+            !! ID for the ring optical depth variable
+        character(NAMELEN) :: nu_varname = "nu"
+            !! name of the viscosity of the ring bin variable
+        integer(I4B) :: nu_varid
+            !! ID for the viscosity of the ring bin variable
+        character(NAMELEN) :: toomre_varname = "Q_toomre"
+            !! name of the Toomre parameter of the ring bin variable
+        integer(I4B) :: toomre_varid
+            !! ID for the Toomre parameter of the ring bin variable
+        character(NAMELEN) :: Iz_varname = "Iz"
+            !! name of the polar moment of inertia of ring bin variable
+        integer(I4B) :: Iz_varid
+            !! ID for the polar moment of inertia of ring bin variable
+        character(NAMELEN) :: vkep_varname = "vkep"
+            !! name of the Keplerian angular velocity of ring bin variable
+        integer(I4B) :: vkep_varid
+            !! ID for the Keplerian angular velocity of ring bin variable
+        character(NAMELEN) :: Torque_varname = "Torque"
+            !! name of the total satellite torque density acting on ring bin variable
+        integer(I4B) :: Torque_varid
+            !! ID for the total satellite torque density acting on ring bin variable
+        character(NAMELEN) :: r_p_varname = "r_p"
+            !! name of the ring particle radius per bin variable
+        integer(I4B) :: r_p_varid
+            !! ID for the ring particle radius per bin variable
+        character(NAMELEN) :: m_p_varname = "m_p"
+            !! name of the ring particle mass per bin variable
+        integer(I4B) :: m_p_varid
+            !! ID for the ring particle mass per bin variable
+        character(NAMELEN) :: rho_p_varname = "rho_p"
+            !! name of the ring particle mass density per bin variable
+        integer(I4B) :: rho_p_varid
+            !! ID for the ring particle mass density per bin variable
+        character(NAMELEN) :: vrel_p_varname = "vrel_p"
+            !! name of the ring particle relative velocity per bin variable
+        integer(I4B) :: vrel_p_varid
+            !! ID for the ring particle relative velocity per bin variable
     contains
         procedure :: initialize => ringmoons_io_netcdf_initialize_output 
             !! Initialize a set of parameters used to identify a NetCDF output object
+        procedure :: open       => ringmoons_io_netcdf_open
+            !! Open a Ringmoons NetCDF file
+        procedure :: flush      => ringmoons_io_netcdf_flush
+            !! Flushes a NetCDF file by closing it then opening it again
         final     ::               ringmoons_final_netcdf_parameters 
             !! Finalizer will close the NetCDF file
     end type ringmoons_netcdf_parameters 
@@ -144,50 +270,82 @@ module ringmoons
             !! Dumps contents of ringmoons history to file
         procedure :: dealloc          => ringmoons_util_dealloc_storage  
             !! Deallocates all allocatables
-        procedure :: take_snapshot => ringmoons_util_snapshot
+        procedure :: take_snapshot    => ringmoons_util_snapshot
             !! Take a snapshot of the ring to save to file
         final     ::                     ringmoons_final_storage
     end type ringmoons_storage
 
 
     interface
+
         module subroutine ringmoons_io_netcdf_dump(self, param)
             implicit none
             class(ringmoons_storage), intent(inout)        :: self   
                 !! ringmoons storage object
-            class(base_parameters),   intent(inout)        :: param  
+            class(swiftest_parameters),   intent(inout)        :: param  
                 !! Current run configuration parameters 
         end subroutine ringmoons_io_netcdf_dump
+
+        module subroutine ringmoons_io_netcdf_flush(self, param)
+            implicit none
+            class(ringmoons_netcdf_parameters), intent(inout) :: self 
+                !! Parameters used to identify a particular NetCDF dataset
+            class(swiftest_parameters),         intent(inout) :: param 
+                !! Current run configuration parameters 
+        end subroutine ringmoons_io_netcdf_flush
 
         module subroutine ringmoons_io_netcdf_initialize_output(self, param)
             implicit none
             class(ringmoons_netcdf_parameters), intent(inout) :: self    
                 !! Parameters used to identify a particular NetCDF dataset
-            class(base_parameters),             intent(in)    :: param   
+            class(swiftest_parameters),         intent(in)    :: param   
         end subroutine ringmoons_io_netcdf_initialize_output
 
         module subroutine ringmoons_io_netcdf_open(self, param, readonly)
             implicit none
             class(ringmoons_netcdf_parameters), intent(inout) :: self     
                 !! Parameters used to identify a particular NetCDF dataset
-            class(base_parameters),             intent(in)    :: param    
+            class(swiftest_parameters),         intent(in)    :: param    
                 !! Current run configuration parameters
             logical, optional,                  intent(in)    :: readonly 
                 !! Logical flag indicating that this should be open read only
         end subroutine ringmoons_io_netcdf_open
 
+        module subroutine ringmoons_step_reset_system(self, param)
+            implicit none
+            class(ringmoons_nbody_system), intent(inout) :: self  
+                !! ringmoons nbody system object
+            class(swiftest_parameters),   intent(in)    :: param 
+                !! Current run configuration parameters 
+        end subroutine ringmoons_step_reset_system
 
         module subroutine ringmoons_step_system(self, param, t, dt)
             implicit none
-            class(ringmoons_nbody_system),  intent(inout) :: self   
+            class(ringmoons_nbody_system), intent(inout) :: self   
                 !! Ringmoons nbody system object
-            class(swiftest_parameters), intent(inout) :: param  
+            class(swiftest_parameters),    intent(inout) :: param  
                 !! Current run configuration parameters
-            real(DP),                   intent(in)    :: t      
+            real(DP),                      intent(in)    :: t      
                 !! Simulation time
-            real(DP),                   intent(in)    :: dt   
+            real(DP),                      intent(in)    :: dt   
         end subroutine ringmoons_step_system
 
+        pure elemental module function ringmoons_util_find_bin(self,r) result(bin)
+            import ringmoons_ring, DP, I4B
+            implicit none
+            class(ringmoons_ring), intent(in)      :: self
+                !! Ringmoons ring object
+            real(DP), intent(in)                   :: r
+                !! Radial distance at which to search for the bin
+            integer(I4B)                           :: bin
+                !! The bin containing radial distance r
+        end function ringmoons_util_find_bin
+
+        module subroutine ringmoons_util_dealloc_system(self)
+            implicit none
+            class(ringmoons_nbody_system), intent(inout) :: self
+                !! Ringmoons nbody system object to deallocate
+        end subroutine ringmoons_util_dealloc_system
 
         module subroutine ringmoons_util_dealloc_ring(self)
             !! author: David A. Minton
@@ -214,6 +372,17 @@ module ringmoons
             class(ringmoons_storage), intent(inout) :: self 
                 !! Ringmoons storage object
         end subroutine ringmoons_util_dealloc_storage
+
+
+        module subroutine ringmoons_util_setup_initialize_system(self, system_history, param)
+            implicit none
+            class(ringmoons_nbody_system), intent(inout) :: self 
+                !! SyMBA nbody_system object
+            class(swiftest_storage),allocatable, intent(inout) :: system_history 
+                !! Stores the system history between output dumps
+            class(swiftest_parameters), intent(inout) :: param 
+                !! Current run configuration parameters 
+        end subroutine ringmoons_util_setup_initialize_system
 
         module subroutine ringmoons_util_setup_ring(self, n, param)
             implicit none
@@ -274,6 +443,18 @@ module ringmoons
             call self%dealloc()
             return
         end subroutine ringmoons_final_ring
+
+        subroutine ringmoons_final_seed(self)
+            !! author: David A. Minton
+            !!
+            !! Finalize the ringmoons seed object - deallocates all allocatables
+            implicit none
+            ! Argument
+            type(ringmoons_seed),  intent(inout) :: self 
+                !! Ringmoons seed object
+            call self%dealloc()
+            return
+        end subroutine ringmoons_final_seed
 
         subroutine ringmoons_final_netcdf_parameters(self)
             !! author: David A. Minton

@@ -10,6 +10,7 @@
 submodule(ringmoons) s_ringmoons_util
     use swiftest
 contains
+
    
     module subroutine ringmoons_util_dealloc_ring(self)
         !! author: David A. Minton
@@ -41,16 +42,15 @@ contains
         return
     end subroutine ringmoons_util_dealloc_ring
 
-    module subroutine ringmoons_util_dealloc_pl(self)
+    module subroutine ringmoons_util_dealloc_seed(self)
         !! author: David A. Minton
         !!
         !! Deallocates all allocatabale arrays
         implicit none
         ! Arguments
-        class(ringmoons_pl),  intent(inout) :: self 
+        class(ringmoons_seed),  intent(inout) :: self 
             !! Ringmoons ring object
 
-        if (allocated(self%is_seed))      deallocate(self%is_seed)
         if (allocated(self%ringbin))      deallocate(self%ringbin)
         if (allocated(self%Torque))    deallocate(self%Torque)
         if (allocated(self%Ttide))     deallocate(self%Ttide)
@@ -58,7 +58,7 @@ contains
         call self%symba_pl%dealloc()
 
         return
-    end subroutine ringmoons_util_dealloc_pl
+    end subroutine ringmoons_util_dealloc_seed
 
     module subroutine ringmoons_util_dealloc_storage(self)
         !! author: David A. Minton
@@ -76,6 +76,30 @@ contains
 
         return
     end subroutine ringmoons_util_dealloc_storage
+
+
+    pure elemental module function ringmoons_util_find_bin(self,r) result(bin)
+        !! author: David A. Minton
+        !!
+        !! Returns the bin containing radius r from the input ring
+        implicit none
+        class(ringmoons_ring), intent(in)      :: self
+            !! Ringmoons ring object
+        real(DP), intent(in)                   :: r
+            !! Radial distance at which to search for the bin
+        integer(I4B)                           :: bin
+            !! The bin containing radial distance r
+
+        if (r > self%r_outer) then
+            bin = self%nbins+1
+        else if (r < self%r_inner) then
+            bin = 0
+        else
+            bin = ceiling(2 * (sqrt(r) - sqrt(self%r_inner)) / self%deltaX) 
+        end if
+        
+        return
+    end function ringmoons_util_find_bin
 
 
     module subroutine ringmoons_util_setup_ring(self, n, param)
@@ -136,16 +160,16 @@ contains
     end subroutine ringmoons_util_setup_ring
 
 
-    module subroutine ringmoons_util_setup_pl(self, n, param)
+    module subroutine ringmoons_util_setup_seed(self, n, param)
         !! author: David A. Minton
         !!
-        !! Constructor for the ringmoons_pl class. 
+        !! Constructor for the ringmoons_seed class. 
         !! Allocates space for all bins and initializes all components with a value. 
         implicit none
-        class(ringmoons_pl),     intent(inout) :: self  
-            !! Ringmoons seeds object
-        integer(I4B),               intent(in)    :: n     
-            !! Number of bins to allocate space for
+        class(ringmoons_seed),     intent(inout) :: self  
+            !! Ringmoons seed object
+        integer(I4B),               intent(in)    :: n
+            !! Number of seeds to allocate space for
         class(swiftest_parameters), intent(in)    :: param 
             !! Current run configuration parameters
 
@@ -157,33 +181,36 @@ contains
         allocate(self%Torque(n))
         allocate(self%Ttide(n))
 
-        self%is_seed(:) = .false.
         self%ringbin(:) = 0
         self%Torque(:) = 0.0_DP
         self%Ttide(:) = 0.0_DP
 
         return
-    end subroutine ringmoons_util_setup_pl
+    end subroutine ringmoons_util_setup_seed
 
+    module subroutine ringmoons_util_setup_initialize_system(self, system_history, param)
+        !! author: David A. Minton
+        !!
+        !! Initialize an SyMBA nbody system from files and sets up the encounter and collision structures
+        !! 
+        implicit none
+        ! Arguments
+        class(ringmoons_nbody_system), intent(inout) :: self 
+            !! SyMBA nbody_system object
+        class(swiftest_storage),allocatable, intent(inout) :: system_history 
+            !! Stores the system history between output dumps
+        class(swiftest_parameters), intent(inout) :: param 
+            !! Current run configuration parameters 
 
-    ! module subroutine ringmoons_util_setup_initialize_system(self, system_history, param)
-    !     !! author: David A. Minton
-    !     !!
-    !     !! Initialize a Ringmoons nbody system from files
-    !     !!
-    !     implicit none
-    !     ! Arguments
-    !     class(ringmoons_nbody_system),                 intent(inout) :: self            
-    !         !! Ringmoons nbody system object
-    !     class(swiftest_storage),    allocatable, intent(inout) :: system_history  
-    !         !! Stores the system history between output dumps
-    !     class(swiftest_parameters),              intent(inout) :: param           
-    !         !! Current run configuration parameters 
-    
-    !     call symba_util_setup_initialize_system(self, system_history, param)
+        ! Call parent method
+        associate(nbody_system => self)
+            call symba_util_setup_initialize_system(nbody_system, system_history, param)
+            call nbody_system%ring%setup(0)
+            call nbody_system%seed%setup(0)
+        end associate
 
-    !   return
-    ! end subroutine ringmoons_util_setup_initialize_system
+        return
+    end subroutine ringmoons_util_setup_initialize_system
 
     module subroutine ringmoons_util_snapshot(self, param, nbody_system, t, arg)
         !! author: David A. Minton

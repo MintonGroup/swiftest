@@ -131,8 +131,10 @@ contains
       use netcdf
       implicit none
       ! Arguments
-      class(collision_netcdf_parameters), intent(inout) :: self    !! Parameters used to identify a particular NetCDF dataset
-      class(base_parameters),     intent(in)    :: param   
+      class(collision_netcdf_parameters), intent(inout) :: self    
+         !! Parameters used to identify a particular NetCDF dataset
+      class(base_parameters),             intent(in)    :: param   
+         !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: nvar, varid, vartype
       real(DP) :: dfill

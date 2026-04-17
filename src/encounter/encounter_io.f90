@@ -187,9 +187,12 @@ contains
       use netcdf
       implicit none
       ! Arguments
-      class(encounter_netcdf_parameters), intent(inout) :: self     !! Parameters used to identify a particular NetCDF dataset
-      class(base_parameters),             intent(in)    :: param    !! Current run configuration parameters
-      logical, optional,                  intent(in)    :: readonly !! Logical flag indicating that this should be open read only
+      class(encounter_netcdf_parameters), intent(inout) :: self     
+         !! Parameters used to identify a particular NetCDF dataset
+      class(base_parameters),             intent(in)    :: param    
+         !! Current run configuration parameters
+      logical, optional,                  intent(in)    :: readonly 
+         !! Logical flag indicating that this should be open read only
       ! Internals
       integer(I4B) :: mode
       character(len=STRMAX) :: errmsg

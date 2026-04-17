@@ -128,7 +128,7 @@ module symba
       integer(I4B)  :: irec = -1 
          !! nbody_system recursion level
    contains
-      procedure :: dealloic         => symba_util_dealloc_system          
+      procedure :: dealloc         => symba_util_dealloc_system          
          !! Deallocates all allocatables
       procedure :: initialize       => symba_util_setup_initialize_system 
          !! Performs SyMBA-specific initilization steps
