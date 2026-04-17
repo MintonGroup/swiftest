@@ -50,7 +50,7 @@ contains
         ! Arguments
         class(ringmoons_netcdf_parameters), intent(inout) :: self    
             !! Parameters used to identify a particular NetCDF dataset
-        class(swiftest_parameters),             intent(in)    :: param   
+        class(swiftest_parameters),         intent(in)    :: param   
             !! Current run configuration parameters 
         ! Internals
         integer(I4B) :: nvar, varid, vartype
@@ -76,7 +76,7 @@ contains
                     write(*,*) trim(adjustl(param%out_type)), " is an invalid OUT_TYPE"
                 end select
 
-                            ! Check if the file exists, and if it does, delete it
+                ! Check if the file exists, and if it does, delete it
                 inquire(file=nc%file_name, exist=fileExists)
                 if (fileExists) then
                     open(unit=LUN, file=nc%file_name, status="old", err=667, iomsg=errmsg)
@@ -90,6 +90,29 @@ contains
                 ! Dimensions
                 call netcdf_io_check( nf90_def_dim(nc%id, nc%time_dimname, NF90_UNLIMITED, nc%time_dimid), &
                     "ringmoons_io_netcdf_initialize_output nf90_def_dim time_dimid"  ) ! Dimension to store collision events
+                call netcdf_io_check( nf90_def_dim(nc%id, nc%ringbin_dimname, nc%nbin, nc%ringbin_dimid), &
+                    "ringmoons_io_netcdf_initialize_output nf90_def_dim ringbin_dimid"  ) ! Dimension to store collision events
+
+                ! Dimension coordinates
+                call netcdf_io_check( nf90_def_var(nc%id, nc%time_dimname, nc%out_type, nc%time_dimid, nc%time_varid), &
+                    "ringmoons_io_netcdf_initialize_output nf90_def_var time_varid" )
+                call netcdf_io_check( nf90_def_var(nc%id, nc%ringbin_dimname, NF90_INT, nc%ringbin_dimid, nc%ringbin_varid), &
+                    "ringmoons_io_netcdf_initialize_output nf90_def_var ringbin_varid" )
+
+                ! Variables
+                call netcdf_io_check( nf90_def_var(nc%id, nc%r_varname, nc%out_type, [nc%ringbin_dimid, nc%time_dimid], &
+                                        nc%r_varid), "ringmoons_io_netcdf_open nf90_inq_varid r_varid" )
+                call netcdf_io_check( nf90_def_var(nc%id, nc%sigma_varname, nc%out_type, [nc%ringbin_dimid, nc%time_dimid], &
+                                        nc%sigma_varid), "ringmoons_io_netcdf_open nf90_inq_varid sigma_varid" )
+                call netcdf_io_check( nf90_def_var(nc%id, nc%r_p_varname, nc%out_type, [nc%ringbin_dimid, nc%time_dimid], &
+                                        nc%r_p_varid), "ringmoons_io_netcdf_open nf90_inq_varid r_p_varid" )
+                call netcdf_io_check( nf90_def_var(nc%id, nc%m_p_varname, nc%out_type, [nc%ringbin_dimid, nc%time_dimid], &
+                                        nc%m_p_varid), "ringmoons_io_netcdf_open nf90_inq_varid m_p_varid" )
+                call netcdf_io_check( nf90_def_var(nc%id, nc%r_inner_varname, nc%out_type, [nc%ringbin_dimid, nc%time_dimid], &
+                                        nc%r_inner_varid), "ringmoons_io_netcdf_open nf90_inq_varid r_inner_varid" )
+                call netcdf_io_check( nf90_def_var(nc%id, nc%r_outer_varname, nc%out_type, [nc%ringbin_dimid, nc%time_dimid], &
+                                        nc%r_outer_varid), "ringmoons_io_netcdf_open nf90_inq_varid r_outer_varid" )
+
             end associate
         end select
 
@@ -139,6 +162,8 @@ contains
                                         "ringmoons_io_netcdf_open nf90_inquire_dimension max_tslot"  )
                 call netcdf_io_check( nf90_inq_dimid(nc%id, nc%ringbin_dimname, nc%ringbin_dimid), &
                                         "ringmoons_io_netcdf_open nf90_inq_dimid ringbin_dimid"  )
+                call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%ringbin_dimid, nc%ringbin_dimname, len=nc%nbin), &
+                                        "ringmoons_io_netcdf_open nf90_inquire_dimension nbin"  )
 
                 ! Dimension coordinates
                 call netcdf_io_check( nf90_inq_varid(nc%id, nc%time_dimname, nc%time_varid), &
@@ -147,10 +172,18 @@ contains
                                         "ringmoons_io_netcdf_open nf90_inq_varid ringbin_varid" )
 
                 ! Required Variables
-                call netcdf_io_check( nf90_inq_varid(nc%id, nc%id_varname, nc%id_varid), &
-                                        "ringmoons_io_netcdf_open nf90_inq_varid name_varid" )
-                call netcdf_io_check( nf90_inq_varid(nc%id, nc%Gmass_varname, nc%Gmass_varid), &
-                                        "ringmoons_io_netcdf_open nf90_inq_varid Gmass_varid" )
+                call netcdf_io_check( nf90_inq_varid(nc%id, nc%r_varname, nc%r_varid), &
+                                        "ringmoons_io_netcdf_open nf90_inq_varid r_varid" )
+                call netcdf_io_check( nf90_inq_varid(nc%id, nc%sigma_varname, nc%sigma_varid), &
+                                        "ringmoons_io_netcdf_open nf90_inq_varid sigma_varid" )
+                call netcdf_io_check( nf90_inq_varid(nc%id, nc%r_p_varname, nc%r_p_varid), &
+                                        "ringmoons_io_netcdf_open nf90_inq_varid r_p_varid" )
+                call netcdf_io_check( nf90_inq_varid(nc%id, nc%m_p_varname, nc%m_p_varid), &
+                                        "ringmoons_io_netcdf_open nf90_inq_varid m_p_varid" )
+                call netcdf_io_check( nf90_inq_varid(nc%id, nc%r_inner_varname, nc%r_inner_varid), &
+                                        "ringmoons_io_netcdf_open nf90_inq_varid r_inner_varid" )
+                call netcdf_io_check( nf90_inq_varid(nc%id, nc%r_outer_varname, nc%r_outer_varid), &
+                                        "ringmoons_io_netcdf_open nf90_inq_varid r_outer_varid" )
 
             end associate
         end select 

@@ -18,10 +18,8 @@ module ringmoons
 
     !> Ringmoons central body particle class
     type, extends(symba_cb) :: ringmoons_cb
-        real(DP) :: mass_init
-            !! initial mass of central body
-        real(DP) :: mass_accreted
-            !! mass accreted by central body through ring updates
+    contains
+        procedure :: accrete => ringmoons_util_accrete_cb
     end type ringmoons_cb
 
 
@@ -30,23 +28,42 @@ module ringmoons
     contains
     end type ringmoons_pl
 
-    type, extends(ringmoons_pl) :: ringmoons_seed
-        real(DP)                                  :: feeding_zone_factor 
-            !! Width of feeding zone for seed mergers in units of mutual Hill's sphere
-        real(DP)                                  :: rkf_tol      
-            !! Error tolerance for Runge-Kutta-Fehlberg integrator for seed evolution
-        real(DP)                                  :: mass_init       
-            !! initial mass of seeds
-        integer(I4B), dimension(:), allocatable   :: ringbin         
+    type, extends(base_object) :: ringmoons_seed
+        integer(I4B)                            :: nbody = 0       
+            !! Number of seed bodies
+        logical,      dimension(:), allocatable :: lactive
+            !! Active or inactive status indicator
+        real(DP),     dimension(:), allocatable :: a               
+            !! Semimajor axis 
+        real(DP),     dimension(:), allocatable :: mass    
+            !! Body mass (units MU)
+        real(DP),     dimension(:), allocatable :: Gmass   
+            !! Mass gravitational term G * mass (units GU * MU)
+        real(DP),     dimension(:), allocatable :: rhill   
+            !! Hill's radius (units DU)
+        real(DP),     dimension(:), allocatable :: radius  
+            !! Body radius (units DU)
+        real(DP),     dimension(:), allocatable :: density 
+            !! Body mass density - calculated internally (units MU / DU**3)
+        integer(I4B), dimension(:), allocatable :: ringbin         
             !! Ring bin location of seed
-        real(DP), dimension(:), allocatable       :: Torque       
+        real(DP),     dimension(:), allocatable :: Torque       
             !! Total torque acting on the seed
-        real(DP), dimension(:), allocatable       :: Ttide        
+        real(DP),     dimension(:), allocatable :: Ttide        
             !! Tidal torque acting on the seed
+        real(DP)                                :: feeding_zone_factor 
+            !! Width of feeding zone for seed mergers in units of mutual Hill's sphere
+        real(DP)                                :: rkf_tol      
+            !! Error tolerance for Runge-Kutta-Fehlberg integrator for seed evolution
+        real(DP)                                :: mass_init       
+            !! initial mass of seeds
     contains
-        procedure :: setup    => ringmoons_util_setup_seed
-        procedure :: dealloc  => ringmoons_util_dealloc_seed
-        final     ::             ringmoons_final_seed
+        procedure :: setup       => ringmoons_util_setup_seed
+        procedure :: dealloc     => ringmoons_util_dealloc_seed
+        procedure :: restructure => ringmoons_step_restructure_seed
+        procedure :: step        => ringmoons_step_seed
+        procedure :: spawn       => ringmoons_util_spawn_seed
+        final     ::                ringmoons_final_seed
     end type ringmoons_seed
 
 
@@ -96,7 +113,7 @@ module ringmoons
             !! Toomre parameter of the ring bin
         real(DP), dimension(:), allocatable :: Iz                
             !! polar moment of inertia of ring bin
-        real(DP), dimension(:), allocatable :: vkep             
+        real(DP), dimension(:), allocatable :: wkep             
             !! Keplerian angular velocity of ring bin
         real(DP), dimension(:), allocatable :: Torque            
             !! total satellite torque density acting on the ring bin
@@ -109,10 +126,19 @@ module ringmoons
         real(DP), dimension(:), allocatable :: vrel_p
             !! ring particle relative velocity per bin
     contains
-        procedure :: setup    => ringmoons_util_setup_ring
-        procedure :: dealloc  => ringmoons_util_dealloc_ring
-        procedure :: find_bin => ringmoons_util_find_bin
-        final     ::             ringmoons_final_ring
+        procedure :: setup        => ringmoons_util_setup_ring
+            !! Sets up a new ring system from an input file
+        procedure :: reset        => ringmoons_util_reset_ring
+            !!  Resets ring torques and recomputes all dimensional quantities, such as ring extent and limits based on the current
+            !! surface mass density and central body properties.
+        procedure :: update       => ringmoons_util_update_ring
+            !! Updates the ring velocity dispersion, Toomre parameter, and viscosity values
+        procedure :: step         => ringmoons_step_ring
+        procedure :: find_bin     => ringmoons_util_find_bin
+        procedure :: get_dt       => ringmoons_util_get_dt_ring
+        procedure :: dealloc      => ringmoons_util_dealloc_ring
+            !! Deallocates allocatable arrays
+        final     ::                 ringmoons_final_ring
             !! Finalizes the ringmoons ring object - deallocates all allocatables
     end type ringmoons_ring
 
@@ -120,7 +146,7 @@ module ringmoons
     type, extends(symba_nbody_system) :: ringmoons_nbody_system
         class(ringmoons_ring),         allocatable :: ring
             !! Ringmoons ring object
-        class(ringmoons_pl),           allocatable :: seed
+        class(ringmoons_seed),         allocatable :: seed
             !! Ringmoons seed object
     contains
         procedure :: dealloc    => ringmoons_util_dealloc_system          
@@ -129,8 +155,6 @@ module ringmoons
             !! Performs ringmoons-specific initilization steps
         procedure :: step       => ringmoons_step_system                  
             !! Advance the ringmoons nbody system forward in time by one step
-        procedure :: reset      => ringmoons_step_reset_system            
-            !! Resets pl, tp,and encounter structures at the start of a new step 
     end type ringmoons_nbody_system
 
 
@@ -142,7 +166,8 @@ module ringmoons
             !! ID for the ring bin dimension
         integer(I4B) :: ringbin_varid
             !! ID for the ring bin variable
-
+        integer(I4B) :: nbin
+            !! Number of elements in the ring bins
         character(NAMELEN) :: nseed_varname = "nseed"
             !! name of the number of active seeds variable
         integer(I4B) :: nseed_varid 
@@ -227,9 +252,9 @@ module ringmoons
             !! name of the polar moment of inertia of ring bin variable
         integer(I4B) :: Iz_varid
             !! ID for the polar moment of inertia of ring bin variable
-        character(NAMELEN) :: vkep_varname = "vkep"
+        character(NAMELEN) :: wkep_varname = "wkep"
             !! name of the Keplerian angular velocity of ring bin variable
-        integer(I4B) :: vkep_varid
+        integer(I4B) :: wkep_varid
             !! ID for the Keplerian angular velocity of ring bin variable
         character(NAMELEN) :: Torque_varname = "Torque"
             !! name of the total satellite torque density acting on ring bin variable
@@ -311,13 +336,30 @@ module ringmoons
                 !! Logical flag indicating that this should be open read only
         end subroutine ringmoons_io_netcdf_open
 
-        module subroutine ringmoons_step_reset_system(self, param)
+        module subroutine ringmoons_step_restructure_seed(self,cb, ring,param)
             implicit none
-            class(ringmoons_nbody_system), intent(inout) :: self  
-                !! ringmoons nbody system object
-            class(swiftest_parameters),   intent(in)    :: param 
-                !! Current run configuration parameters 
-        end subroutine ringmoons_step_reset_system
+            class(ringmoons_seed), intent(inout) :: self
+            class(ringmoons_cb),   intent(inout) :: cb
+            class(ringmoons_ring), intent(inout) :: ring
+            class(swiftest_parameters), intent(in) :: param
+        end subroutine ringmoons_step_restructure_seed
+
+        module subroutine ringmoons_step_ring(self,cb,dt,stepfail)
+            implicit none
+            class(ringmoons_ring), intent(inout) :: self
+            class(ringmoons_cb),   intent(in)    :: cb
+            real(DP),              intent(in)    :: dt
+            logical,               intent(out)   :: stepfail
+        end subroutine ringmoons_step_ring
+
+        module subroutine ringmoons_step_seed(self, cb, ring, dt, stepfail)
+            implicit none
+            class(ringmoons_seed), intent(inout) :: self
+            class(ringmoons_cb),   intent(inout) :: cb
+            class(ringmoons_ring), intent(inout) :: ring
+            real(DP),              intent(in)    :: dt
+            logical,               intent(out)   :: stepfail
+        end subroutine ringmoons_step_seed
 
         module subroutine ringmoons_step_system(self, param, t, dt)
             implicit none
@@ -330,16 +372,19 @@ module ringmoons
             real(DP),                      intent(in)    :: dt   
         end subroutine ringmoons_step_system
 
-        pure elemental module function ringmoons_util_find_bin(self,r) result(bin)
-            import ringmoons_ring, DP, I4B
+        module subroutine ringmoons_util_accrete_cb(self,ring,seed,param,dt)
             implicit none
-            class(ringmoons_ring), intent(in)      :: self
+            class(ringmoons_cb),        intent(inout) :: self
+                !! Ringmoons central body object
+            class(ringmoons_ring),      intent(inout) :: ring
                 !! Ringmoons ring object
-            real(DP), intent(in)                   :: r
-                !! Radial distance at which to search for the bin
-            integer(I4B)                           :: bin
-                !! The bin containing radial distance r
-        end function ringmoons_util_find_bin
+            class(ringmoons_seed),      intent(inout) :: seed
+                !! Ringmoons seed obje3ct
+            class(swiftest_parameters), intent(in)    :: param
+                !! Current run configuration parameters
+            real(DP),intent(in)                       :: dt
+                !! Current time step size
+        end subroutine ringmoons_util_accrete_cb
 
         module subroutine ringmoons_util_dealloc_system(self)
             implicit none
@@ -372,7 +417,39 @@ module ringmoons
             class(ringmoons_storage), intent(inout) :: self 
                 !! Ringmoons storage object
         end subroutine ringmoons_util_dealloc_storage
+        pure elemental module function ringmoons_util_find_bin(self,r) result(bin)
+            import ringmoons_ring, DP, I4B
+            implicit none
+            class(ringmoons_ring), intent(in)      :: self
+                !! Ringmoons ring object
+            real(DP), intent(in)                   :: r
+                !! Radial distance at which to search for the bin
+            integer(I4B)                           :: bin
+                !! The bin containing radial distance r
+        end function ringmoons_util_find_bin
 
+        module function ringmoons_util_get_dt_ring(self,dtin) result(dtout)
+            implicit none
+            class(ringmoons_ring), intent(in)  :: self
+                !! Ringmoons ring object
+            real(DP), intent(in)               :: dtin
+                !! Input time step size, which serves as a maximum for dtout
+            real(DP)                           :: dtout
+                !! Output time step size, where dtout <= dtin
+        end function ringmoons_util_get_dt_ring
+
+        module subroutine ringmoons_util_update_ring(self,cb)
+            implicit none
+            class(ringmoons_ring), intent(inout) :: self
+            class(ringmoons_cb), intent(in) :: cb
+        end subroutine ringmoons_util_update_ring
+
+        module subroutine ringmoons_util_reset_ring(self,seed,cb)
+            implicit none
+            class(ringmoons_ring), intent(inout) :: self
+            class(ringmoons_seed), intent(inout) :: seed
+            class(ringmoons_cb), intent(in) :: cb
+        end subroutine ringmoons_util_reset_ring
 
         module subroutine ringmoons_util_setup_initialize_system(self, system_history, param)
             implicit none
@@ -416,7 +493,7 @@ module ringmoons
 
         module subroutine ringmoons_util_snapshot(self, param, nbody_system, t, arg)
             implicit none
-            class(ringmoons_storage),      intent(inout)        :: self            
+            class(ringmoons_storage),     intent(inout)        :: self            
                 !! Swiftest storage object
             class(swiftest_parameters),   intent(inout)        :: param           
                 !! Current run configuration parameters
@@ -428,6 +505,15 @@ module ringmoons
                 !! Optional argument 
         end subroutine ringmoons_util_snapshot
 
+        module subroutine ringmoons_util_spawn_seed(self, cb, ring, a, delta_mass, param)
+            implicit none
+            class(ringmoons_seed),          intent(inout) :: self
+            class(ringmoons_ring),          intent(inout) :: ring
+            class(ringmoons_cb),            intent(in)    :: cb
+            real(DP),                       intent(in)    :: a
+            real(DP),                       intent(in)    :: delta_mass
+            class(swiftest_parameters),     intent(in)    :: param
+        end subroutine ringmoons_util_spawn_seed
 
     end interface
 

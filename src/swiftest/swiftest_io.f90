@@ -802,12 +802,14 @@ contains
    module subroutine swiftest_io_netcdf_initialize_output(self, param)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
-      !! Initialize a NetCDF file nbody_system and defines all variables.
+      !! Initialize a NetCDF file nbody_system and define all variables.
       use, intrinsic :: ieee_arithmetic
       implicit none
       ! Arguments
-      class(swiftest_netcdf_parameters), intent(inout) :: self  !! Parameters used to for writing a NetCDF dataset to file
-      class(swiftest_parameters),        intent(in)    :: param !! Current run configuration parameters 
+      class(swiftest_netcdf_parameters), intent(inout) :: self 
+         !! Parameters used to for writing a NetCDF dataset to file
+      class(swiftest_parameters),        intent(in)    :: param 
+         !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: nvar, varid, vartype
       real(DP) :: dfill

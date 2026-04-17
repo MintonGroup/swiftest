@@ -82,7 +82,7 @@ contains
             !! Azimuthal/Phase angle (radians) wrt coordinate axes, and central body rotation phase
         real(DP) :: theta 
             !! Inclination/Zenith angle (radians)
-        real(DP) :: plm, plm1 
+        real(DP) :: plm
             !! Associated Legendre polynomials at a given l, m
         real(DP) :: ccss
             !! See definition in source code

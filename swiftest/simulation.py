@@ -3154,6 +3154,11 @@ class Simulation:
                         sigma.append(sigma0 * np.exp(-((r[a] - mu) ** 2) / (2 * dev**2)))
             sigma = np.array(sigma)
 
+        if "time" in self.data:
+            time = self.data["time"].values[-1:]
+        else:
+            time = np.array([0.0])
+
         # check if r_p and m_p are scalars, and if so, make them arrays, if not, convert them to arrays
         r_p = np.full_like(sigma, r_p)
         m_p = np.full_like(sigma, m_p)
@@ -3161,12 +3166,17 @@ class Simulation:
         # Add the ring to the simulation
         dsnew = xr.Dataset(
             {
-                "r": (["ringbin"], r),
-                "sigma": (["ringbin"], sigma),
-                "r_p": (["ringbin"], r_p),
-                "m_p": (["ringbin"], m_p),
+                "r"       : (["time","ringbin"], [r]),
+                "sigma"   : (["time","ringbin"], [sigma]),
+                "r_p"     : (["time","ringbin"], [r_p]),
+                "m_p"     : (["time","ringbin"], [m_p]),
+                "r_inner" : ([], r_inner),
+                "r_outer" : ([], r_outer),
             },
-            coords={"ringbin": np.arange(nbins)},
+            coords={
+                "time": time,
+                "ringbin": np.arange(nbins)
+            },
         )
         if not isinstance(dsnew, SwiftestDataset):
             dsnew = SwiftestDataset(dsnew)
@@ -3174,13 +3184,6 @@ class Simulation:
             dsnew = io.fix_types(dsnew, ftype=np.float64)
         elif self.param["OUT_TYPE"] == "NETCDF_FLOAT":
             dsnew = io.fix_types(dsnew, ftype=np.float32)
-        if "time" in self.data:
-            time = self.data["time"].values[-1:]
-        else:
-            time = np.array([0.0])
-
-        for v in ["r", "sigma", "r_p", "m_p"]:
-            dsnew[v] = dsnew[v].expand_dims(dim={"time": 1}, axis=0).assign_coords({"time": time})
 
         self.ring = dsnew
         if verbose:

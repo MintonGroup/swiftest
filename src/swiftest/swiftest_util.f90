@@ -2591,7 +2591,7 @@ contains
             allocate(ringmoons_pl   :: nbody_system%pl)
             allocate(ringmoons_tp   :: nbody_system%tp)
             allocate(ringmoons_ring :: nbody_system%ring)
-            allocate(ringmoons_pl   :: nbody_system%seeds)
+            allocate(ringmoons_seed :: nbody_system%seed)
 
             allocate(ringmoons_tp :: nbody_system%tp_discards)
             allocate(ringmoons_pl :: nbody_system%pl_adds)

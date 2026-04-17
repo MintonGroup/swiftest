@@ -48,7 +48,7 @@ module swiftest
    use netcdf_io
    use solver
    !use advisor_annotate
-   !$ use omp_liringbinb
+   !$ use omp_lib
    implicit none
    public
 
@@ -345,20 +345,20 @@ module swiftest
       real(DP),                dimension(:),   allocatable :: Gmass   
          !! Mass gravitational term G * mass (units GU * MU)
       real(DP),                dimension(:),   allocatable :: rhill   
-         !! Body mass (units MU)
+         !! Hill's radius (units DU)
       real(DP),                dimension(:),   allocatable :: renc    
          !! Critical radius for close encounters
       real(DP),                dimension(:),   allocatable :: radius  
          !! Body radius (units DU)
       real(DP),                dimension(:),   allocatable :: density 
          !! Body mass density - calculated internally (units MU / DU**3)
-      real(DP),                dimension(:), allocatable   :: albedo
+      real(DP),                dimension(:),   allocatable :: albedo
          !! Bond albedo for radiation acceleration calculations
-      real(DP),                dimension(:), allocatable   :: emissivity
+      real(DP),                dimension(:),   allocatable :: emissivity
          !! Emissivity for Yarkovsky acceleration calculations
-      real(DP),                dimension(:), allocatable   :: rot_k
+      real(DP),                dimension(:),   allocatable :: rot_k
          !! Constant based on rotation rate for yarkovsky calculations
-      real(DP),                dimension(:), allocatable   :: gamma
+      real(DP),                dimension(:),   allocatable :: gamma
          !! Thermal inertia for Yarkovsky calculations
       real(DP),                dimension(:,:), allocatable :: rbeg    
          !! Position at beginning of step
@@ -1782,7 +1782,8 @@ module swiftest
         !! author: Kaustub P. Anand and David A. Minton
         !!
         !! Calculate the Yarkovsky effect on massive bodies. 
-        !! Based on Ferich, et al, 2022 (https://iopscience.iop.org/article/10.3847/1538-4365/ac8d60) and Veras, et al, 2015 (https://academic.oup.com/mnras/article/451/3/2814/1180328)
+        !! Based on Ferich, et al, 2022 (https://iopscience.iop.org/article/10.3847/1538-4365/ac8d60) and Veras, et al, 2015 
+        !! (https://academic.oup.com/mnras/article/451/3/2814/1180328)
         implicit none
         ! Arguments
         class(swiftest_pl),           intent(inout) :: self
