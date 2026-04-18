@@ -1323,6 +1323,7 @@ contains
       logical, dimension(:), allocatable :: lvalid
       integer(I4B) :: idmax, status
       logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
+      character(len=NAMELEN), dimension(:), allocatable :: ctemp
 
       call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
       call ieee_set_halting_mode(IEEE_ALL,.false.)
@@ -1334,6 +1335,9 @@ contains
       allocate(tpmask(idmax))
       allocate(plmask(idmax))
       allocate(lvalid(idmax))
+      tpmask(:) = .false.
+      plmask(:) = .false.
+      lvalid(:) = .false.
       associate(tslot => self%tslot)
 
          call netcdf_io_check( nf90_get_var(self%id, self%Gmass_varid, Gmass, start=[1,tslot], count=[idmax,1]), &
@@ -1365,21 +1369,30 @@ contains
             end if
          end if
 
-         plmask(:) = ieee_is_normal(Gmass(:))
-         where(plmask(:)) plmask(:) = Gmass(:) > 0.0_DP
-         tpmask(:) = .not. plmask(:)
-         plmask(1) = .false. ! This is the central body
-
+         allocate(ctemp(idmax))
+         status = nf90_get_var(self%id, self%ptype_varid, ctemp, count=[NAMELEN, idmax])
+         if (status == NF90_NOERR) then
+            where(ctemp(:) == PL_TYPE_NAME) plmask(:) = .true.
+            where(ctemp(:) == TP_TYPE_NAME) tpmask(:) = .true.
+         else
+            plmask(:) = ieee_is_normal(Gmass(:))
+            where(plmask(:)) plmask(:) = Gmass(:) > 0.0_DP
+            tpmask(:) = .not. plmask(:)
+            plmask(1) = .false. ! This is the central body
+         end if 
          ! Select only active bodies
          plmask(:) = plmask(:) .and. lvalid(:)
          tpmask(:) = tpmask(:) .and. lvalid(:)
 
          if (present(plmmask) .and. present(Gmtiny)) then
             allocate(plmmask, source=plmask)
-            where(plmask(:))
-               plmmask = Gmass(:) > Gmtiny
-            endwhere
+            if (status == NF90_NOERR) then
+               where(ctemp(:) == PL_TINY_TYPE_NAME) plmmask(:) = .true.
+            else
+               where(plmask(:)) plmmask = Gmass(:) > Gmtiny
+            end if
          end if
+         deallocate(ctemp)
 
          call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)
 

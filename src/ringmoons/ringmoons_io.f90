@@ -184,13 +184,17 @@ contains
         class(swiftest_netcdf_parameters), intent(inout) :: nc
         class(swiftest_parameters),        intent(inout) :: param
         ! Internals
-        integer(I4B) :: status, nseed
+        integer(I4B) :: i, nseed, idmax, readstat
+        character(len=NAMELEN), dimension(:), allocatable :: carrtemp
+        logical, dimension(:), allocatable :: lvalid, seedmask
+        integer(I4B), dimension(:), allocatable :: status
+        character(len=NAMELEN) :: ctemp
 
         associate(tslot => nc%tslot)
             call nc%open(param, readonly=.false.) ! Set to False so that we can add any missing variables
             call nc%find_tslot(t, tslot)
-            status = nf90_inq_varid(nc%id, nc%nseed_varname, nc%nseed_varid)
-            if (status == NF90_NOERR) then
+            readstat = nf90_inq_varid(nc%id, nc%nseed_varname, nc%nseed_varid)
+            if (readstat == NF90_NOERR) then
                 call netcdf_io_check( nf90_get_var(nc%id, nc%nseed_varid,  nseed, start=[tslot]), &
                                     "ringmoons_io_read_frame_seed nf90_getvar nseed_varid"  )
             else
@@ -201,6 +205,40 @@ contains
                 call nc%close()
                 return
             end if
+            call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%name_dimid, len=idmax), &
+                                  "ringmoons_io_read_frame_seed  nf90_inquire_dimension name_dimid"  )
+
+            allocate(carrtemp(idmax))
+            allocate(lvalid(idmax))
+            allocate(seedmask(idmax))
+            allocate(status(idmax))
+            seedmask(:) = .false.
+            lvalid(:) = .false.
+            status(:) = INACTIVE
+            call netcdf_io_check( nf90_get_var(nc%id, nc%ptype_varid, carrtemp, count=[NAMELEN, idmax]), &
+                                    "ringmoons_io_read_frame_seed nf90_get_var ptype_varid"  )
+            where(carrtemp(:) == SEED_TYPE_NAME) seedmask(:) = .true.
+
+            call netcdf_io_check( nf90_get_var(nc%id, nc%status_varid, status, count=[tslot, idmax]), &
+                                    "ringmoons_io_read_frame_seed nf90_get_var status_varid"  )
+            where(seedmask(:)) lvalid(:) = status(:) == ACTIVE
+
+            do i = 1, idmax
+                if (lvalid(i)) then
+                    call netcdf_io_check( nf90_get_var(nc%id, nc%id_varid, self%id(i), start=[i]), &
+                                    "ringmoons_io_read_frame_seed nf90_get_var id_varid"  )
+                    call netcdf_io_check( nf90_get_var(nc%id, nc%a_varid, self%a(i), start=[i, tslot]), &
+                                    "ringmoons_io_read_frame_seed nf90_get_var a_varid"  )
+                    call netcdf_io_check( nf90_get_var(nc%id, nc%name_varid, ctemp, start=[1, i], count=[NAMELEN, 1]), &
+                                    "ringmoons_io_read_frame_seed nf90_get_var name_varid"  )
+                    self%info(i)%name = trim(adjustl(ctemp))
+                    call netcdf_io_check( nf90_get_var(nc%id, nc%mass_varid, self%mass(i), start=[i, tslot]), &
+                                    "ringmoons_io_read_frame_seed nf90_get_var mass_varid"  )  
+                    call netcdf_io_check( nf90_get_var(nc%id, nc%ptype_varid, ctemp, start=[1, i], count=[NAMELEN, 1]), &
+                                    "ringmoons_io_read_frame_seed nf90_get_var particle_type_varid"  )
+                    self%info(i)%particle_type = trim(adjustl(ctemp))
+                end if
+            end do
         end associate
         return
     end subroutine ringmoons_io_read_frame_seed

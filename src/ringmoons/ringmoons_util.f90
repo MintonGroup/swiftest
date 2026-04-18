@@ -64,7 +64,7 @@ contains
 
             ! Save the mass so that we can correct for the change in geometry
             mtmp(:) = ring%mass(:)
-            call ring%reset(seed,cb)
+            call ring%reset(seed,cb,param)
             ring%mass(:) = mtmp(:)
             ring%sigma(:) = ring%mass(:) / ring%deltaA(:)
             
@@ -220,7 +220,7 @@ contains
         return
     end subroutine ringmoons_util_update_ring
 
-    module subroutine ringmoons_util_reset_ring(self,seed,cb)
+    module subroutine ringmoons_util_reset_ring(self,seed,cb,param)
         !! author: David A. Minton
         !!
         !!  Resets ring torques and recomputes all dimensional quantities, such as ring extent and limits based on the current
@@ -229,6 +229,7 @@ contains
         class(ringmoons_ring), intent(inout) :: self
         class(ringmoons_seed), intent(inout) :: seed
         class(ringmoons_cb), intent(in) :: cb
+        class(swiftest_parameters), intent(in) :: param
 
         integer(I4B)                        :: i, iFRL, iRRL
         real(DP)                            :: Xlo, rho_p
@@ -285,6 +286,10 @@ contains
             ring%Torque(:) = 0.0_DP
 
             if (seed%nbody > 0) then
+                seed%Gmass(:) = param%GU * seed%mass(:)
+                seed%density(:) = self%mass(:) / (4.0_DP/3.0_DP * pi * seed%radius(:)**3)
+                seed%rhill(:) = seed%a(:) * (seed%mass(:) / cb%mass / 3)**THIRD
+                seed%mu(:) = cb%Gmass + seed%Gmass(:)
                 where (seed%status(:) == ACTIVE)
                     seed%ringbin(:)   = ring%find_bin(seed%a(:))
                 elsewhere
@@ -442,7 +447,7 @@ contains
             ring%nc%file_name = param%ring_file
             call ring%read_frame(self%t,param)
             call seed%read_frame(self%t,system_history%nc,param)
-            call ring%reset(seed,cb)
+            call ring%reset(seed,cb,param)
         end associate
         end select
 

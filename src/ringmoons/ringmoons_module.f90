@@ -398,11 +398,12 @@ module ringmoons
             class(ringmoons_cb), intent(in) :: cb
         end subroutine ringmoons_util_update_ring
 
-        module subroutine ringmoons_util_reset_ring(self,seed,cb)
+        module subroutine ringmoons_util_reset_ring(self,seed,cb,param)
             implicit none
             class(ringmoons_ring), intent(inout) :: self
             class(ringmoons_seed), intent(inout) :: seed
             class(ringmoons_cb), intent(in) :: cb
+            class(swiftest_parameters), intent(in) :: param
         end subroutine ringmoons_util_reset_ring
 
         module subroutine ringmoons_util_setup_initialize_system(self, system_history, param)
