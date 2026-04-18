@@ -1560,6 +1560,7 @@ contains
             if (npl > 0) pl%radius(:) = 0.0_DP
          end if
          cb%R0 = cb%radius
+         cb%density = cb%mass / (4.0_DP / 3.0_DP * PI * cb%radius**3)
 
          if (param%lrotation) then
             call netcdf_io_check( nf90_get_var(nc%id, nc%Ip_varid,  vectemp, start=[1, 1, tslot], count=[NDIM,idmax,1]), &

@@ -3126,7 +3126,7 @@ class Simulation:
             rho_p = m_p / (4.0 / 3.0 * np.pi * r_p**3)
             frl = 2.456 * r_planet * (rho_planet / rho_p) ** (1.0 / 3.0)
             r_inner = 0.99 * r_planet
-            r_outer = 1.1 * frl
+            r_outer = 2.0 * frl
 
         r = []
         delta_x = (2 * np.sqrt(r_outer) - 2 * np.sqrt(r_inner)) / nbins

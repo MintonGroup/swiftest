@@ -238,7 +238,6 @@ contains
                                   "netcdf_io_read_frame_system nf90_getvar r_outer_varid"  )
                 self%r_outer = tmp_scalar(1)
 
-
             end associate
         end if
 

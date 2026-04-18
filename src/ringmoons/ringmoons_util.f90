@@ -96,6 +96,7 @@ contains
         if (allocated(self%r_hstar)) deallocate(self%r_hstar)
         if (allocated(self%deltaA))  deallocate(self%deltaA)
         if (allocated(self%sigma))   deallocate(self%sigma)
+        if (allocated(self%mass))    deallocate(self%mass)
         if (allocated(self%tau))     deallocate(self%tau)
         if (allocated(self%nu))      deallocate(self%nu)
         if (allocated(self%Q))       deallocate(self%Q)
@@ -242,19 +243,38 @@ contains
         class(ringmoons_seed), intent(inout) :: seed
         class(ringmoons_cb), intent(in) :: cb
 
-        integer(I4B)                        :: i
-        real(DP)                            :: Xlo
+        integer(I4B)                        :: i, iFRL, iRRL
+        real(DP)                            :: Xlo, rho_p
 
         associate(ring => self)
             ring%nu = 0.0_DP
             ring%X_inner = 2 * sqrt(ring%r_inner)
             ring%X_outer = 2 * sqrt(ring%r_outer)
             ring%deltaX = (ring%X_outer - ring%X_inner) / ring%nbins
-            ring%rho_p(:) = ring%m_p(:) / ((4.0_DP / 3.0_DP) * PI * ring%r_p(:)**3)
-            ring%FRL = 2.456_DP * cb%radius * (cb%density / ring%rho_p(ring%nbins))**(1._DP / 3._DP)
-            ring%RRL = 1.44_DP  * cb%radius * (cb%density / ring%rho_p(ring%nbins))**(1._DP / 3._DP)
-            ring%iFRL = ring%find_bin(ring%FRL)
-            ring%iRRL = ring%find_bin(ring%RRL)
+            where (ring%r_p(:) > tiny(1.0_DP))
+                ring%rho_p(:) = ring%m_p(:) / ((4.0_DP / 3.0_DP) * PI * ring%r_p(:)**3)
+            end where
+            ring%iFRL = ring%nbins / 2
+            ring%iRRL = ring%nbins / 2
+            do i = 1, 10
+                if (ring%rho_p(ring%iFRL) > tiny(1.0_DP)) then
+                    rho_p = ring%rho_p(ring%iFRL)
+                else
+                    rho_p = ring%rho_p(ring%nbins / 2)
+                end if
+                ring%FRL = 2.456_DP * cb%radius * (cb%density / rho_p)**(1._DP / 3._DP)
+                if (ring%rho_p(ring%iRRL) > tiny(1.0_DP)) then
+                    rho_p = ring%rho_p(ring%iRRL)
+                else
+                    rho_p = ring%rho_p(ring%nbins / 2)
+                end if
+                ring%RRL = 1.44_DP  * cb%radius * (cb%density / rho_p)**(1._DP / 3._DP)
+                iFRL = ring%find_bin(ring%FRL)
+                iRRL = ring%find_bin(ring%RRL)
+                if ((iFRL == ring%iFRL) .and. (iRRL == ring%iRRL)) exit
+                ring%iFRL = iFRL
+                ring%iRRL = iRRL
+            end do
 
             do i = 0,ring%nbins + 1
                 ! Set up X coordinate system (see Bath & Pringle 1981)
@@ -277,11 +297,13 @@ contains
 
             ring%Torque(:) = 0.0_DP
 
-            where (seed%lactive(:))
-                seed%ringbin(:)   = ring%find_bin(seed%a(:))
-            elsewhere
-                seed%ringbin(:)   = 0
-            end where
+            if (seed%nbody > 0) then
+                where (seed%lactive(:))
+                    seed%ringbin(:)   = ring%find_bin(seed%a(:))
+                elsewhere
+                    seed%ringbin(:)   = 0
+                end where
+            end if
 
         end associate
         return
@@ -313,6 +335,7 @@ contains
         allocate(self%r_hstar(0:n+1))
         allocate(self%deltaA(0:n+1))
         allocate(self%sigma(0:n+1))
+        allocate(self%mass(0:n+1))
         allocate(self%tau(0:n+1))
         allocate(self%nu(0:n+1))
         allocate(self%Q(0:n+1))
@@ -330,6 +353,7 @@ contains
         self%r_hstar(:) = 0.0_DP
         self%deltaA(:) = 0.0_DP
         self%sigma(:) = 0.0_DP
+        self%mass(:) = 0.0_DP
         self%tau(:) = 0.0_DP
         self%nu(:) = 0.0_DP
         self%Q(:) = 0.0_DP
@@ -402,12 +426,16 @@ contains
             !! Current run configuration parameters 
 
         ! Call parent method
-        associate(nbody_system => self)
+        select type(cb => self%cb)
+        class is (ringmoons_cb)
+        associate(nbody_system => self, ring=>self%ring, seed=>self%seed)
             call symba_util_setup_initialize_system(nbody_system, system_history, param)
-            nbody_system%ring%nc%file_name = param%ring_file
-            call nbody_system%ring%read_frame(self%t,param)
-            call nbody_system%seed%setup(0, param)
+            ring%nc%file_name = param%ring_file
+            call ring%read_frame(self%t,param)
+            call seed%setup(0, param)
+            call ring%reset(seed,cb)
         end associate
+        end select
 
         return
     end subroutine ringmoons_util_setup_initialize_system
