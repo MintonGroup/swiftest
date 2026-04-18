@@ -177,6 +177,33 @@ contains
         return
     end subroutine ringmoons_io_read_frame_ring
 
+    module subroutine ringmoons_io_read_frame_seed(self, t, nc, param) 
+        implicit none
+        class(ringmoons_seed),             intent(inout) :: self
+        real(DP),                          intent(in)    :: t  
+        class(swiftest_netcdf_parameters), intent(inout) :: nc
+        class(swiftest_parameters),        intent(inout) :: param
+        ! Internals
+        integer(I4B) :: status, nseed
+
+        associate(tslot => nc%tslot)
+            call nc%open(param, readonly=.false.) ! Set to False so that we can add any missing variables
+            call nc%find_tslot(t, tslot)
+            status = nf90_inq_varid(nc%id, nc%nseed_varname, nc%nseed_varid)
+            if (status == NF90_NOERR) then
+                call netcdf_io_check( nf90_get_var(nc%id, nc%nseed_varid,  nseed, start=[tslot]), &
+                                    "ringmoons_io_read_frame_seed nf90_getvar nseed_varid"  )
+            else
+                nseed = 0 
+            end if         
+            call self%setup(nseed, param)
+            if (nseed == 0) then
+                call nc%close()
+                return
+            end if
+        end associate
+        return
+    end subroutine ringmoons_io_read_frame_seed
 
     module subroutine ringmoons_io_write_frame_ring(self, param) 
         !! author: David A. Minton
@@ -221,9 +248,126 @@ contains
 
     module subroutine ringmoons_io_write_frame_seed(self, nc, param) 
         implicit none
+        ! Arguments
         class(ringmoons_seed), intent(inout) :: self
+            !! Ringmoons seed object
         class(swiftest_netcdf_parameters), intent(inout) :: nc
+            !! Parameters used to write a NetCDF dataset to file
         class(swiftest_parameters), intent(in) :: param
+            !! Current run configuration parameters
+        ! Internals
+        integer(I4B) :: i, j, idslot, old_mode, tmp
+        integer(I4B), dimension(:), allocatable   :: ind
+        real(DP), dimension(:), allocatable       :: mu,a, e, inc, capom, omega, capm
+        real(DP), dimension(:,:), allocatable     :: rh, vh, pvh
+        real(DP) :: rtmp
+        character(len=NAMELEN) :: charstring
+
+        call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "ringmoons_io_write_frame_seed nf90_set_fill" )
+        associate(n => self%nbody, tslot => nc%tslot)
+            call nc%add_new_var(nc%nseed_varname, nc%out_type, [nc%time_dimid], nc%nseed_varid, &
+                                 "ringmoons_io_write_frame_seed add_new_var nseed_varid")
+            call netcdf_io_check( nf90_put_var(nc%id, nc%nseed_varid, n, start=[tslot]), &
+                                    "ringmoons_io_write_frame_seed nf90_put_var nseed_varid"  )
+
+            if (n == 0) return
+            ! Seeds have no true orbital elements, but we can fill in the blanks so that we have something to use if we want to 
+            ! convert between cartesian and orbital element
+            allocate(a(n),e(n),inc(n),capom(n),omega(n),capm(n),mu(n))
+            allocate(rh(NDIM,n),vh(NDIM,n))
+            a(1:n) = self%a(1:n)
+            mu(1:n) = self%mu(1:n)
+            e(:) = 0.0_DP
+            inc(:) = 0.0_DP
+            call random_number(capom(:))
+            call random_number(omega(:))
+            call random_number(capm(:))
+            capom(:) = capom(:) * 360.0_DP
+            omega(:) = omega(:) * 360.0_DP
+            capm(:) = capm(:) * 360.0_DP
+#ifdef DOCONLOC
+            do concurrent (i = 1:n) shared(mu, a, e, inc, capom, omega, capm, rh, vh)
+#else
+            do concurrent (i = 1:n)
+#endif
+                call swiftest_orbel_el2xv(mu(i), a(i), e(i), inc(i), capom(i), omega(i), capm(i), & 
+                                            rh(1,i), rh(2,i), rh(3,i), vh(1,i), vh(2,i), vh(3,i)) 
+            end do
+            if (param%lgr) allocate(pvh, source=vh)
+            call util_sort(self%id(1:n), ind)
+            do i = 1, n
+                j = ind(i)
+                call nc%find_idslot(self%id(j), idslot) 
+                call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id(j), start=[idslot]), &
+                                    "ringmoons_io_write_frame_seed nf90_put_var id_varid"  )
+                call netcdf_io_check( nf90_put_var(nc%id, nc%status_varid, self%status(j), start=[idslot,tslot]), &
+                                    "ringmoons_io_write_frame_seed nf90_put_var status_varid"  )
+                call netcdf_io_check( nf90_put_var(nc%id, nc%mass_varid, self%mass(j), start=[idslot,tslot]), &
+                                    "ringmoons_io_write_frame_seed nf90_put_var mass_varid"  )
+                call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid, self%Gmass(j), start=[idslot,tslot]), &
+                                    "ringmoons_io_write_frame_seed nf90_put_var Gmass_varid"  )
+                call netcdf_io_check( nf90_put_var(nc%id, nc%radius_varid, self%radius(j), start=[idslot,tslot]), &
+                                    "ringmoons_io_write_frame_seed nf90_put_var radius_varid"  )
+                call netcdf_io_check( nf90_put_var(nc%id, nc%rhill_varid, self%rhill(j), start=[idslot,tslot]), &
+                                    "ringmoons_io_write_frame_seed nf90_put_var rhill_varid"  )
+                charstring = trim(adjustl(self%info(j)%name))
+                call netcdf_io_check( nf90_put_var(nc%id, nc%name_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), &
+                                    "ringmoons_io_write_frame_seed nf90_put_var name_varid"  )
+
+                charstring = trim(adjustl(self%info(j)%particle_type))
+                call netcdf_io_check( nf90_put_var(nc%id, nc%ptype_varid, charstring, start=[1, idslot], count=[NAMELEN, 1]), &
+                                    "ringmoons_io_write_frame_seed nf90_put_var particle_type_varid"  )
+
+                if (param%lgr) call swiftest_gr_pseudovel2vel(param, mu(j), rh(:, j), pvh(:, j), vh(:,j))
+
+                if ((param%out_form == "XV") .or. (param%out_form == "XVEL")) then
+                    call netcdf_io_check( nf90_put_var(nc%id, nc%rh_varid, rh(:, j), start=[1,idslot, tslot], count=[NDIM,1,1]),&
+                                    "ringmoons_io_write_frame_seed nf90_put_var rh_varid"  )
+                    if (param%lgr) then ! Convert from pseudovelocity to heliocentric without replacing the current value of 
+                                        !  pseudovelocity
+                        call netcdf_io_check( nf90_put_var(nc%id, nc%vh_varid, vh(:,j), start=[1,idslot, tslot], count=[NDIM,1,1]),&
+                                    "ringmoons_io_write_frame_seed nf90_put_var vh_varid"  )
+                        call netcdf_io_check( nf90_put_var(nc%id, nc%gr_pseudo_vh_varid, pvh(:, j), start=[1,idslot, tslot], &
+                                                            count=[NDIM,1,1]), &
+                                    "ringmoons_io_write_frame_seed nf90_put_var gr_pseudo_vhx_varid"  )
+
+                    else
+                        call netcdf_io_check( nf90_put_var(nc%id, nc%vh_varid, vh(:, j), start=[1,idslot, tslot], &
+                                                            count=[NDIM,1,1]), &
+                                    "ringmoons_io_write_frame_seed nf90_put_var vh_varid"  )
+                    end if
+                end if
+
+                if ((param%out_form == "EL") .or. (param%out_form == "XVEL")) then
+                    call netcdf_io_check( nf90_put_var(nc%id, nc%a_varid, a(j), start=[idslot, tslot]), &
+                                    "ringmoons_io_write_frame_seed nf90_put_var body a_varid"  )
+                    call netcdf_io_check( nf90_put_var(nc%id, nc%e_varid, e(j), start=[idslot, tslot]), &
+                                    "ringmoons_io_write_frame_seed nf90_put_var body e_varid"  )
+                    call netcdf_io_check( nf90_put_var(nc%id, nc%inc_varid, inc(j), start=[idslot, tslot]), &
+                                    "ringmoons_io_write_frame_seed nf90_put_var body inc_varid"  )
+                    call netcdf_io_check( nf90_put_var(nc%id, nc%capom_varid, capom(j), start=[idslot, tslot]), &
+                                    "ringmoons_io_write_frame_seed nf90_put_var body capom_varid"  )
+                    call netcdf_io_check( nf90_put_var(nc%id, nc%omega_varid, omega(j), start=[idslot, tslot]), &
+                                    "ringmoons_io_write_frame_seed nf90_put_var body omega_varid"  )
+                    call netcdf_io_check( nf90_put_var(nc%id, nc%capm_varid, capm(j), start=[idslot, tslot]), &
+                                    "ringmoons_io_write_frame_seed nf90_put_var body capm_varid"  ) 
+                    rtmp = mod(omega(j) + capom(j), 360.0_DP)
+                    call netcdf_io_check( nf90_put_var(nc%id, nc%varpi_varid,rtmp, start=[idslot, tslot]), &
+                                    "ringmoons_io_write_frame_seed nf90_put_var body varpi_varid"  ) 
+                    rtmp = mod(capm(j)+rtmp, 360.0_DP)
+                    call netcdf_io_check( nf90_put_var(nc%id, nc%lam_varid, rtmp, start=[idslot, tslot]), &
+                                    "ringmoons_io_write_frame_seed nf90_put_var body lam_varid"  ) 
+                    call netcdf_io_check( nf90_put_var(nc%id, nc%f_varid, capm, start=[idslot, tslot]), &
+                                    "ringmoons_io_write_frame_seed nf90_put_var body f_varid"  ) 
+                end if
+
+            end do
+            deallocate(mu,a,e,inc,capom,omega,capm)
+            deallocate(rh,vh)
+            if (param%lgr) deallocate(pvh)
+
+        end associate
+
         return
     end subroutine ringmoons_io_write_frame_seed
 

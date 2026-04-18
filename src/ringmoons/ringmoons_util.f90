@@ -121,8 +121,11 @@ contains
             !! Ringmoons ring object
 
         self%nbody = 0
-        if (allocated(self%lactive))  deallocate(self%lactive)
+        if (allocated(self%status))  deallocate(self%status)
+        if (allocated(self%id))      deallocate(self%id)
+        if (allocated(self%info))    deallocate(self%info)
         if (allocated(self%a))       deallocate(self%a)
+        if (allocated(self%mu))      deallocate(self%mu)
         if (allocated(self%mass))    deallocate(self%mass)
         if (allocated(self%Gmass))   deallocate(self%Gmass)
         if (allocated(self%rhill))   deallocate(self%rhill)
@@ -282,7 +285,7 @@ contains
             ring%Torque(:) = 0.0_DP
 
             if (seed%nbody > 0) then
-                where (seed%lactive(:))
+                where (seed%status(:) == ACTIVE)
                     seed%ringbin(:)   = ring%find_bin(seed%a(:))
                 elsewhere
                     seed%ringbin(:)   = 0
@@ -364,6 +367,7 @@ contains
             !! Number of seeds to allocate space for
         class(swiftest_parameters), intent(in)    :: param 
             !! Current run configuration parameters
+        integer(I4B) :: i
 
         if (n < 0) return
         call self%dealloc()
@@ -371,10 +375,13 @@ contains
         self%nbody = n
         if (n == 0) return
 
-        allocate(self%lactive(n))
+        allocate(self%id(n))
+        allocate(swiftest_particle_info :: self%info(n))
+        allocate(self%status(n))
         allocate(self%a(n))
         allocate(self%mass(n))
         allocate(self%Gmass(n))
+        allocate(self%mu(n))
         allocate(self%rhill(n))
         allocate(self%radius(n))
         allocate(self%density(n))
@@ -382,10 +389,28 @@ contains
         allocate(self%Torque(n))
         allocate(self%Ttide(n))
 
-        self%lactive(:) = .false.
+        do i = 1, n
+            call self%info(i)%set_value(&
+                name = "UNNAMED", &
+                particle_type = "UNKNOWN", &
+                status = "INACTIVE", & 
+                origin_type = "UNKNOWN", &
+                collision_id = 0, &
+                origin_time = -huge(1.0_DP), & 
+                origin_rh = [0.0_DP, 0.0_DP, 0.0_DP], &
+                origin_vh = [0.0_DP, 0.0_DP, 0.0_DP], &
+                discard_time = huge(1.0_DP), & 
+                discard_rh = [0.0_DP, 0.0_DP, 0.0_DP], &
+                discard_vh = [0.0_DP, 0.0_DP, 0.0_DP], &
+                discard_body_id = -1  &
+            )
+        end do
+        self%id(:) = 0
+        self%status(:) = INACTIVE
         self%a(:) = 0.0_DP
         self%mass(:) = 0.0_DP
         self%Gmass(:) = 0.0_DP
+        self%mu(:) = 0.0_DP
         self%rhill(:) = 0.0_DP
         self%radius(:) = 0.0_DP
         self%ringbin(:) = 0
@@ -416,7 +441,7 @@ contains
             call symba_util_setup_initialize_system(nbody_system, system_history, param)
             ring%nc%file_name = param%ring_file
             call ring%read_frame(self%t,param)
-            call seed%setup(0, param)
+            call seed%read_frame(self%t,system_history%nc,param)
             call ring%reset(seed,cb)
         end associate
         end select
@@ -436,38 +461,60 @@ contains
         ! Internals
         integer(I4B)          :: i,j,seed_bin,nfz
         type(ringmoons_seed)  :: new_seed
+        character(*), parameter :: SEEDFMT = '("Seed",I0.7)'
+        character(NAMELEN) :: newname
 
-        associate(seed => self)
+        associate(seed => self, maxid => self%maxid)
             seed_bin = seed%nbody + 1 
             call new_seed%setup(seed_bin, param)
             if (seed%nbody > 0) then
                 ! Copy over the old seed properties to the new
-                new_seed%lactive(1:seed%nbody) = seed%lactive(1:seed%nbody)
+                new_seed%status(1:seed%nbody) = seed%status(1:seed%nbody)
+                new_seed%id(1:seed%nbody) = seed%id(1:seed%nbody)
+                new_seed%info(1:seed%nbody) = seed%info(1:seed%nbody)
                 new_seed%a(1:seed%nbody) = seed%a(1:seed%nbody)
+                new_seed%mu(1:seed%nbody) = seed%mu(1:seed%nbody)
                 new_seed%mass(1:seed%nbody) = seed%mass(1:seed%nbody)
+                new_seed%Gmass(1:seed%nbody) = seed%Gmass(1:seed%nbody)
+                new_seed%density(1:seed%nbody) = seed%density(1:seed%nbody)
+                new_seed%radius(1:seed%nbody) = seed%radius(1:seed%nbody)
+                new_seed%rhill(1:seed%nbody) = seed%rhill(1:seed%nbody)
                 new_seed%ringbin(1:seed%nbody) = seed%ringbin(1:seed%nbody)
                 new_seed%Torque(1:seed%nbody) = seed%Torque(1:seed%nbody)
                 new_seed%Ttide(1:seed%nbody) = seed%Ttide(1:seed%nbody)
+                new_seed%ringbin(1:seed%nbody) = seed%ringbin(1:seed%nbody)
             end if
             call seed%setup(seed_bin, param)
-            seed%lactive = new_seed%lactive
+            seed%id = new_seed%id
+            seed%status = new_seed%status
+            seed%info = new_seed%info
             seed%a = new_seed%a
             seed%mass = new_seed%mass
+            seed%Gmass = new_seed%Gmass
+            seed%mu = new_seed%mu
+            seed%density = new_seed%density
+            seed%radius = new_seed%radius
+            seed%rhill = new_seed%rhill
             seed%ringbin = new_seed%ringbin
             seed%Torque = new_seed%Torque
             seed%Ttide = new_seed%Ttide
-            seed%nbody = new_seed%nbody
+            seed%ringbin = new_seed%ringbin
 
             i = seed_bin 
-            seed%lactive(i) = .true.
+            maxid = maxid + 1
+            seed%id(i) = maxid
+            seed%status(i) = ACTIVE
             seed%a(i) = a
             j = ring%find_bin(a)
             seed%ringbin(i) = j 
             seed%mass(i) = min(mass,ring%mass(j))
             seed%Gmass(i) = param%GU * seed%mass(i)
+            seed%mu(i) = cb%Gmass + seed%Gmass(i)
             seed%density(i) = ring%rho_p(j)
             seed%radius(i) = (3 * seed%mass(i) / (4 * PI * seed%density(i)))**(1._DP / 3._DP)
             seed%rhill(i) = seed%a(i) * (seed%mass(i) / cb%mass / 3)**THIRD 
+            write(newname, SEEDFMT) seed%id(i)
+            call seed%info(i)%set_value(name=newname, particle_type=SEED_TYPE_NAME, status="ACTIVE")
 
             ! Take away the mass from the ring
             ring%mass(j) = ring%mass(j) - seed%mass(i)

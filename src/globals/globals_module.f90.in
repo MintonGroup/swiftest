@@ -72,6 +72,7 @@ module globals
    character(*), parameter :: PL_TYPE_NAME = "Massive Body"
    character(*), parameter :: TP_TYPE_NAME = "Test Particle"
    character(*), parameter :: PL_TINY_TYPE_NAME = "Semi-Interacting Massive Body"
+   character(*), parameter :: SEED_TYPE_NAME = "Ringmoons Seed"
 
    ! OpenMP Parameters
    integer(I4B)            :: nthreads = 1 !! Number of OpenMP threads

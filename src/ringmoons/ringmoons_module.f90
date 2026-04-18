@@ -90,39 +90,49 @@ module ringmoons
     end type ringmoons_pl
 
     type, extends(base_object) :: ringmoons_seed
-        integer(I4B)                            :: nbody = 0       
+        integer(I4B)                                            :: nbody = 0       
             !! Number of seed bodies
-        logical,      dimension(:), allocatable :: lactive
+        integer(I4B),                 dimension(:), allocatable :: id              
+            !! Identifier 
+        type(swiftest_particle_info), dimension(:), allocatable :: info            
+            !! Particle metadata information
+        integer(I4B),                 dimension(:), allocatable :: status          
             !! Active or inactive status indicator
-        real(DP),     dimension(:), allocatable :: a               
+        real(DP),                     dimension(:), allocatable :: a               
             !! Semimajor axis 
-        real(DP),     dimension(:), allocatable :: mass    
+        real(DP),                     dimension(:), allocatable :: mass    
             !! Body mass (units MU)
-        real(DP),     dimension(:), allocatable :: Gmass   
+        real(DP),                     dimension(:), allocatable :: Gmass   
             !! Mass gravitational term G * mass (units GU * MU)
-        real(DP),     dimension(:), allocatable :: rhill   
+        real(DP),                     dimension(:), allocatable :: mu
+            !! Gravitational cononstant 
+        real(DP),                     dimension(:), allocatable :: rhill   
             !! Hill's radius (units DU)
-        real(DP),     dimension(:), allocatable :: radius  
+        real(DP),                     dimension(:), allocatable :: radius  
             !! Body radius (units DU)
-        real(DP),     dimension(:), allocatable :: density 
+        real(DP),                     dimension(:), allocatable :: density 
             !! Body mass density - calculated internally (units MU / DU**3)
-        integer(I4B), dimension(:), allocatable :: ringbin         
+        integer(I4B),                 dimension(:), allocatable :: ringbin         
             !! Ring bin location of seed
-        real(DP),     dimension(:), allocatable :: Torque       
+        real(DP),                     dimension(:), allocatable :: Torque       
             !! Total torque acting on the seed
-        real(DP),     dimension(:), allocatable :: Ttide        
+        real(DP),                     dimension(:), allocatable :: Ttide        
             !! Tidal torque acting on the seed
-        real(DP)                                :: feeding_zone_factor 
+        real(DP)                                                :: feeding_zone_factor 
             !! Width of feeding zone for seed mergers in units of mutual Hill's sphere
-        real(DP)                                :: rkf_tol      
+        real(DP)                                                :: rkf_tol      
             !! Error tolerance for Runge-Kutta-Fehlberg integrator for seed evolution
-        real(DP)                                :: mass_init       
+        real(DP)                                                :: mass_init       
             !! initial mass of seeds
+        integer(I4B)                                            :: maxid
+            !! Current maximum id of the system, set automatically from the nbody_system object
     contains
         procedure :: setup       => ringmoons_util_setup_seed
             !! Sets up a new seed system from an input file
         procedure :: dealloc     => ringmoons_util_dealloc_seed
             !! Deallocates all allocatable arrays
+        procedure :: read_frame  => ringmoons_io_read_frame_seed
+            !! Read seed data from file
         procedure :: restructure => ringmoons_step_restructure_seed
             !! Restructures the seed system by merging seeds that are within each other's feeding zones and reassigning ring bins 
             !! based on current semimajor axes
@@ -263,6 +273,14 @@ module ringmoons
             real(DP), intent(in)                  :: t  
             class(swiftest_parameters), intent(in) :: param
         end subroutine ringmoons_io_read_frame_ring
+
+        module subroutine ringmoons_io_read_frame_seed(self, t, nc, param) 
+            implicit none
+            class(ringmoons_seed),             intent(inout) :: self
+            real(DP),                          intent(in)    :: t  
+            class(swiftest_netcdf_parameters), intent(inout) :: nc
+            class(swiftest_parameters),        intent(inout) :: param
+        end subroutine ringmoons_io_read_frame_seed
 
         module subroutine ringmoons_io_write_frame_ring(self, param) 
             implicit none

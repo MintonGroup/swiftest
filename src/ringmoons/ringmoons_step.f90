@@ -30,25 +30,25 @@ contains
         real(DP)                            :: mass_min,R_min,dt,dtleft
         logical                             :: stepfail
         class(ringmoons_ring), allocatable  :: seedring
+        logical, dimension(:), allocatable  :: lactive
         
         ! First convert any recently destroyed satellites into ring material
         destructo = .false.
         associate(seed => self)
             if (seed%nbody > 0) then
                 do i = 1, seed%nbody
-                    if (seed%lactive(i)) then
+                    if (seed%status(i) == ACTIVE) then
                         if (seed%a(i) <= ring%RRL) then   ! Destroy the satellite!
                             write(*,*) 'We are on our way to destruction!'
                             ! DESTRUCTION_EVENT = .true.
                             ! DESTRUCTION_COUNTER = 0
-                            seed%lactive(i) = .false.
+                            seed%status(i) = INACTIVE
                         end if
                     end if
                 end do
 
                 do i = 1,seed%nbody
-                    if ((.not.seed%lactive(i)).and.(seed%mass(i) > 0.0_DP)) then
-                        write(*,*) 'Destruction activated!',i,seed%a(i),seed%mass(i)
+                    if ((seed%status(i) == INACTIVE).and.(seed%mass(i) > 0.0_DP)) then
                         destructo = .true.
                         Lseed_orig = seed%mass(i) * sqrt((cb%mass + seed%mass(i)) * seed%a(i)) 
 
@@ -60,17 +60,17 @@ contains
                         rbin = ring%find_bin(seed%a(i))
                         a = mass_left / (sqrt(2 * PI) * c)
                         do j = 0,(ring%nbins - rbin)
-                        do inner_outer_sign = -1,1,2
-                            nbin = rbin + inner_outer_sign * j
-                            if ((nbin > seedring%inside).and.(nbin < seedring%nbins).and.(mass_left > 0.0_DP)) then
-                                dr = 0.5_DP * seedring%X(nbin) * seedring%deltaX
-                                delta_mass = min(mass_left,a * dr * exp(-(seedring%r(nbin) - seed%a(i))**2 / (2 * c**2)))
-                                seedring%mass(nbin) = seedring%mass(nbin) + delta_mass
-                                mass_left = mass_left - delta_mass
-                            end if
-                            if (j == 0) exit
-                        end do
-                        if (mass_left == 0.0_DP) exit
+                            do inner_outer_sign = -1,1,2
+                                nbin = rbin + inner_outer_sign * j
+                                if ((nbin > seedring%inside).and.(nbin < seedring%nbins).and.(mass_left > 0.0_DP)) then
+                                    dr = 0.5_DP * seedring%X(nbin) * seedring%deltaX
+                                    delta_mass = min(mass_left,a * dr * exp(-(seedring%r(nbin) - seed%a(i))**2 / (2 * c**2)))
+                                    seedring%mass(nbin) = seedring%mass(nbin) + delta_mass
+                                    mass_left = mass_left - delta_mass
+                                end if
+                                if (j == 0) exit
+                            end do
+                            if (mass_left == 0.0_DP) exit
                         end do 
                         !j = seedring%iRRL
                         ! Offset in angular momentum
@@ -101,11 +101,20 @@ contains
                         call seedring%dealloc()
                     end if
                 end do
-                Nactive = count(seed%lactive(:))
-                seed%a(1:Nactive) = pack(seed%a(:),seed%lactive(:))
-                seed%mass(1:Nactive) = pack(seed%mass(:),seed%lactive(:))
-                seed%lactive(1:Nactive) = .true.
-                if (size(seed%lactive) > Nactive) seed%lactive(Nactive+1:size(seed%lactive)) = .false.
+                allocate(lactive(seed%nbody))
+                where(seed%status(:) == ACTIVE)
+                    lactive(:) = .true.
+                elsewhere
+                    lactive(:) = .false.
+                end where
+                Nactive = count(lactive(:))
+                seed%a(1:Nactive) = pack(seed%a(:),lactive(:))
+                seed%mass(1:Nactive) = pack(seed%mass(:),lactive(:))
+                seed%status(1:Nactive) = ACTIVE
+                if (size(seed%status) > Nactive) then
+                    seed%status(Nactive+1:size(seed%status)) = INACTIVE
+                    seed%ringbin(Nactive+1:size(seed%status)) = -1
+                end if
                 seed%nbody = Nactive
                 seed%ringbin(1:seed%nbody) = ring%find_bin(seed%a(1:seed%nbody))
             end if
@@ -117,15 +126,15 @@ contains
                     
                 ! skip bins that already have a seed
                 if (seed%nbody > 0) then
-                    if (any(seed%ringbin(:) == i .and. seed%lactive(:))) cycle
+                    if (any(seed%ringbin(:) == i)) cycle
                 end if
                 call seed%spawn(cb,ring,ring%r(i),ring%m_p(i),param)
             end do     
             if (seed%nbody > 0) then
-                where (seed%lactive(:))
+                where (seed%status(:) == ACTIVE)
                     seed%ringbin(:) = ring%find_bin(seed%a(:))
                 elsewhere
-                    seed%ringbin(:) = 0
+                    seed%ringbin(:) = -1
                 end where
             end if
 
@@ -186,6 +195,7 @@ contains
         dtleft = dt
         dtring = dtleft
         self%ring%t = self%t
+        self%seed%maxid = self%maxid
         allocate(old_system%ring, source=self%ring)
         allocate(old_system%seed, source=self%seed)
         allocate(old_system%cb,   source=self%cb)
@@ -246,6 +256,7 @@ contains
             allocate(old_system%ring, source=self%ring)
             allocate(old_system%seed, source=self%seed)
             allocate(old_system%cb,   source=self%cb)
+            self%maxid = self%seed%maxid
         end do
 
         ! Step the nbody system like normal

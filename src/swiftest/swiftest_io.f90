@@ -418,8 +418,8 @@ contains
       !! cadence is not divisible by the total number of loops).
       implicit none
       ! Arguments
-      class(swiftest_storage),   intent(inout)        :: self   !! Swiftest simulation history storage object
-      class(swiftest_parameters),   intent(inout)     :: param  !! Current run configuration parameters 
+      class(swiftest_storage),    intent(inout) :: self   !! Swiftest simulation history storage object
+      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: i
 #ifdef COARRAY
@@ -2022,7 +2022,7 @@ contains
       implicit none
       ! Arguments
       class(swiftest_body),              intent(in)    :: self  !! Swiftest base object
-      class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
+      class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to write a NetCDF dataset to file
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       ! Internals
       integer(I4B)                              :: i, j, idslot, old_mode, tmp
@@ -3406,7 +3406,6 @@ contains
       return
    end subroutine swiftest_io_read_in_body
 
-
    module subroutine swiftest_io_read_in_cb(self, param) 
       !! author: David A. Minton
       !!
@@ -3460,7 +3459,6 @@ contains
       write(*,*) "Error reading central body file: " // trim(adjustl(errmsg))
       call base_util_exit(FAILURE,param%display_unit)
    end subroutine swiftest_io_read_in_cb
-
 
    module subroutine swiftest_io_read_in_system(self, nc, param)
       !! author: David A. Minton and Carlisle A. Wishard
@@ -3523,7 +3521,6 @@ contains
 
       return
    end subroutine swiftest_io_read_in_system
-
 
    module function swiftest_io_read_frame_body(self, iu, param) result(ierr)
       !! author: David A. Minton

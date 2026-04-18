@@ -90,6 +90,10 @@ module netcdf_io
          !! name of the number of active fully interacting massive bodies variable (SyMBA)
       integer(I4B) :: nplm_varid 
          !! ID for the number of active fully interacting massive bodies variable (SyMBA)
+      character(NAMELEN) :: nseed_varname = "nseed"
+         !! name of the number of active seeds (Ringmoons)
+      integer(I4B) :: nseed_varid 
+         !! ID for the number of active seeds (Ringmoons)
       character(NAMELEN) :: a_varname = "a"
          !! name of the semimajor axis variable 
       integer(I4B) :: a_varid 
