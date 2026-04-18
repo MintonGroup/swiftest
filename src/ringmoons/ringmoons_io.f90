@@ -237,7 +237,7 @@ contains
                 call netcdf_io_check( nf90_get_var(nc%id, nc%r_outer_varid, tmp_scalar, start=[1], count=[1]), &
                                   "netcdf_io_read_frame_system nf90_getvar r_outer_varid"  )
                 self%r_outer = tmp_scalar(1)
-
+                call nc%close()
             end associate
         end if
 

@@ -32,86 +32,90 @@ contains
         ! First convert any recently destroyed satellites into ring material
         destructo = .false.
         associate(seed => self)
-            do i = 1, seed%nbody
-                if (seed%lactive(i)) then
-                    if (seed%a(i) <= ring%RRL) then   ! Destroy the satellite!
-                        write(*,*) 'We are on our way to destruction!'
-                        ! DESTRUCTION_EVENT = .true.
-                        ! DESTRUCTION_COUNTER = 0
-                        seed%lactive(i) = .false.
-                    end if
-                end if
-            end do
-
-            do i = 1,seed%nbody
-                if ((.not.seed%lactive(i)).and.(seed%mass(i) > 0.0_DP)) then
-                    write(*,*) 'Destruction activated!',i,seed%a(i),seed%mass(i)
-                    destructo = .true.
-                    Lseed_orig = seed%mass(i) * sqrt((cb%mass + seed%mass(i)) * seed%a(i)) 
-
-                    allocate(seedring, source=ring)
-                    seedring%mass(:) = 0.0_DP
-
-                    mass_left = seed%mass(i)
-                    c = dzone_width * seed%a(i) ! Create an approximately Gaussian distribution of mass
-                    rbin = ring%find_bin(seed%a(i))
-                    a = mass_left / (sqrt(2 * PI) * c)
-                    do j = 0,(ring%nbins - rbin)
-                    do inner_outer_sign = -1,1,2
-                        nbin = rbin + inner_outer_sign * j
-                        if ((nbin > seedring%inside).and.(nbin < seedring%nbins).and.(mass_left > 0.0_DP)) then
-                            dr = 0.5_DP * seedring%X(nbin) * seedring%deltaX
-                            delta_mass = min(mass_left,a * dr * exp(-(seedring%r(nbin) - seed%a(i))**2 / (2 * c**2)))
-                            seedring%mass(nbin) = seedring%mass(nbin) + delta_mass
-                            mass_left = mass_left - delta_mass
+            if (seed%nbody > 0) then
+                do i = 1, seed%nbody
+                    if (seed%lactive(i)) then
+                        if (seed%a(i) <= ring%RRL) then   ! Destroy the satellite!
+                            write(*,*) 'We are on our way to destruction!'
+                            ! DESTRUCTION_EVENT = .true.
+                            ! DESTRUCTION_COUNTER = 0
+                            seed%lactive(i) = .false.
                         end if
-                        if (j == 0) exit
-                    end do
-                    if (mass_left == 0.0_DP) exit
-                    end do 
-                    !j = seedring%iRRL
-                    ! Offset in angular momentum
-                    Lring = sum(seedring%mass(:) * seedring%Iz(:) * seedring%wkep(:))
-                    deltaL = Lseed_orig - Lring
+                    end if
+                end do
 
-                    ! Apply a torque to the temporary ring to bring it back to the seed's original angular momentum
-                    dt = 1._DP
-                    seedring%nu(1:ring%nbins) =  1._DP / (16 * 12 * dt / (seedring%deltaX)**2) / seedring%X2(1:ring%nbins)
-                    seedring%sigma(:) = seedring%mass(:) / seedring%deltaA(:)
-                    where (seedring%mass(:) > 0.0_DP)
-                    seedring%Torque(:) = deltaL * seedring%mass(:) / sum(seedring%mass(:))
-                    elsewhere
-                    seedring%Torque(:) = 0.0_DP
-                    end where
-                    dtleft = dt
-                    dt =  seedring%get_dt(dt) 
-                    do 
-                        call seedring%step(cb,dt,stepfail)
-                        dtleft = dtleft - dt
-                        if (dtleft <= 0.0_DP) exit
-                        dt = min(dtleft,dt)
-                    end do
-            
-                    ring%mass(:) = ring%mass(:) + seedring%mass(:) 
-                    ring%sigma(:) = ring%mass(:) / ring%deltaA(:)
-                    seed%mass(i) = 0.0_DP
-                    call seedring%dealloc()
-                end if
-            end do
-            Nactive = count(seed%lactive(:))
-            seed%a(1:Nactive) = pack(seed%a(:),seed%lactive(:))
-            seed%mass(1:Nactive) = pack(seed%mass(:),seed%lactive(:))
-            seed%lactive(1:Nactive) = .true.
-            if (size(seed%lactive) > Nactive) seed%lactive(Nactive+1:size(seed%lactive)) = .false.
-            seed%nbody = Nactive
-            seed%ringbin(1:seed%nbody) = ring%find_bin(seed%a(1:seed%nbody))
-            
+                do i = 1,seed%nbody
+                    if ((.not.seed%lactive(i)).and.(seed%mass(i) > 0.0_DP)) then
+                        write(*,*) 'Destruction activated!',i,seed%a(i),seed%mass(i)
+                        destructo = .true.
+                        Lseed_orig = seed%mass(i) * sqrt((cb%mass + seed%mass(i)) * seed%a(i)) 
+
+                        allocate(seedring, source=ring)
+                        seedring%mass(:) = 0.0_DP
+
+                        mass_left = seed%mass(i)
+                        c = dzone_width * seed%a(i) ! Create an approximately Gaussian distribution of mass
+                        rbin = ring%find_bin(seed%a(i))
+                        a = mass_left / (sqrt(2 * PI) * c)
+                        do j = 0,(ring%nbins - rbin)
+                        do inner_outer_sign = -1,1,2
+                            nbin = rbin + inner_outer_sign * j
+                            if ((nbin > seedring%inside).and.(nbin < seedring%nbins).and.(mass_left > 0.0_DP)) then
+                                dr = 0.5_DP * seedring%X(nbin) * seedring%deltaX
+                                delta_mass = min(mass_left,a * dr * exp(-(seedring%r(nbin) - seed%a(i))**2 / (2 * c**2)))
+                                seedring%mass(nbin) = seedring%mass(nbin) + delta_mass
+                                mass_left = mass_left - delta_mass
+                            end if
+                            if (j == 0) exit
+                        end do
+                        if (mass_left == 0.0_DP) exit
+                        end do 
+                        !j = seedring%iRRL
+                        ! Offset in angular momentum
+                        Lring = sum(seedring%mass(:) * seedring%Iz(:) * seedring%wkep(:))
+                        deltaL = Lseed_orig - Lring
+
+                        ! Apply a torque to the temporary ring to bring it back to the seed's original angular momentum
+                        dt = 1._DP
+                        seedring%nu(1:ring%nbins) =  1._DP / (16 * 12 * dt / (seedring%deltaX)**2) / seedring%X2(1:ring%nbins)
+                        seedring%sigma(:) = seedring%mass(:) / seedring%deltaA(:)
+                        where (seedring%mass(:) > 0.0_DP)
+                        seedring%Torque(:) = deltaL * seedring%mass(:) / sum(seedring%mass(:))
+                        elsewhere
+                        seedring%Torque(:) = 0.0_DP
+                        end where
+                        dtleft = dt
+                        dt =  seedring%get_dt(dt) 
+                        do 
+                            call seedring%step(cb,dt,stepfail)
+                            dtleft = dtleft - dt
+                            if (dtleft <= 0.0_DP) exit
+                            dt = min(dtleft,dt)
+                        end do
+                
+                        ring%mass(:) = ring%mass(:) + seedring%mass(:) 
+                        ring%sigma(:) = ring%mass(:) / ring%deltaA(:)
+                        seed%mass(i) = 0.0_DP
+                        call seedring%dealloc()
+                    end if
+                end do
+                Nactive = count(seed%lactive(:))
+                seed%a(1:Nactive) = pack(seed%a(:),seed%lactive(:))
+                seed%mass(1:Nactive) = pack(seed%mass(:),seed%lactive(:))
+                seed%lactive(1:Nactive) = .true.
+                if (size(seed%lactive) > Nactive) seed%lactive(Nactive+1:size(seed%lactive)) = .false.
+                seed%nbody = Nactive
+                seed%ringbin(1:seed%nbody) = ring%find_bin(seed%a(1:seed%nbody))
+            end if
+                
             ! Make seed small enough to fit into each bin 
             do i = ring%iFRL,ring%nbins
                 spawnbin = .true.
                 if (ring%sigma(i)*(param%MU2KG*1e3)/(param%DU2M*1e2)**2/param%GU < 1e-2_DP) spawnbin = .false. 
                     ! no bins that don't have enough mass
-                if (any(seed%ringbin(:) == i .and. seed%lactive(:))) spawnbin = .false. 
+                if (seed%nbody > 0) then
+                    if (any(seed%ringbin(:) == i .and. seed%lactive(:))) spawnbin = .false. 
+                end if
                 ! no bins that already have a seed
                 ! See Tajeddine et al. (2017) section 2.3. Spawn seed if aggregates are 1% the gap opening mass
                 !R_min = 0.01_DP * (3.3e5 / DU2CM) *  (ring%nu(i) / (100 * TU2S / DU2CM**2))
@@ -122,11 +126,13 @@ contains
                     call seed%spawn(cb,ring,a,delta_mass,param)
                 end if
             end do     
-            where (seed%lactive(:))
-                seed%ringbin(:) = ring%find_bin(seed%a(:))
-            elsewhere
-                seed%ringbin(:) = 0
-            end where
+            if (seed%nbody > 0) then
+                where (seed%lactive(:))
+                    seed%ringbin(:) = ring%find_bin(seed%a(:))
+                elsewhere
+                    seed%ringbin(:) = 0
+                end where
+            end if
 
         end associate
         return
