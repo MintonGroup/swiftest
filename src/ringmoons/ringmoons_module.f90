@@ -27,74 +27,30 @@ module ringmoons
             !! ID for the ring bin variable
         integer(I4B) :: nbin
             !! Number of elements in the ring bins
-        character(NAMELEN) :: nseed_varname = "nseed"
-            !! name of the number of active seeds variable
-        integer(I4B) :: nseed_varid 
-            !! ID for the number of active seeds variable
-        character(NAMELEN) :: inside_varname = "inside"
-            !! name of the innermost ring bin variable
-        integer(I4B) :: inside_varid
-            !! ID for the innermost ring bin variable
-        character(NAMELEN) :: r_outer_varname = "r_outer"
-            !! name of the outside radius of ring variable
-        integer(I4B) :: r_outer_varid
-            !! ID for the outside radius of ring variable
-        character(NAMELEN) :: X_outer_varname = "X_outer"
-            !! name of the outside radius of ring in X units variable
-        integer(I4B) :: X_outer_varid
-            !! ID for the outside radius of ring in X units variable
-        character(NAMELEN) :: r_inner_varname = "r_inner"
-            !! name of the inside radius of ring variable
-        integer(I4B) :: r_inner_varid
-            !! ID for the inside radius of ring variable
-        character(NAMELEN) :: X_inner_varname = "X_inner"
-            !! name of the inside radius of ring in X units variable
-        integer(I4B) :: X_inner_varid
-            !! ID for the inside radius of ring in X units variable
-        character(NAMELEN) :: deltaX_varname = "deltaX"
-            !! name of the variable bin width in X units variable
-        integer(I4B) :: deltaX_varid
-            !! ID for the variable bin width in X units variable
-        character(NAMELEN) :: RRL_varname = "RRL"
-            !! name of the Rigid Roche limit variable
-        integer(I4B) :: RRL_varid
-            !! ID for the Rigid Roche limit variable
-        character(NAMELEN) :: FRL_varname = "FRL"
-            !! name of the Fluid Roche limit variable
-        integer(I4B) :: FRL_varid
-            !! ID for the Fluid Roche limit variable
-        character(NAMELEN) :: iRRL_varname = "iRRL"
-            !! name of the Rigid Roche limit bin index variable
-        integer(I4B) :: iRRL_varid
-            !! ID for the Rigid Roche limit bin index variable
-        character(NAMELEN) :: iFRL_varname = "iFRL"
-            !! name of the Fluid Roche limit bin index variable
-        integer(I4B) :: iFRL_varid
-            !! ID for the Fluid Roche limit bin index variable
         character(NAMELEN) :: r_varname = "r"
             !! name of the radial distance of bin center variable
         integer(I4B) :: r_varid
             !! ID for the radial distance of bin center variable
-        character(NAMELEN) :: r_hstar_varname = "r_hstar"
-            !! name of the normalized ring Hill's radius variable
-        integer(I4B) :: r_hstar_varid
-            !! ID for the normalized ring Hill's radius variable
-        character(NAMELEN) :: X_varname = "X"
-            !! name of the distance variable X at bin center variable
-        integer(I4B) :: X_varid
-            !! ID for the distance variable X at bin center variable
-        character(NAMELEN) :: X2_varname = "X2"
-            !! name of the distance variable X**2 at bin center variable
-        integer(I4B) :: X2_varid
-            !! ID for the distance variable X**2 at bin center variable
-        character(NAMELEN) :: deltaA_varname = "deltaA"
-            !! name of the differential surface area of ring variable
-        integer(I4B) :: deltaA_varid
-            !! ID for the differential surface area of ring variable
         character(NAMELEN) :: sigma_varname = "sigma"
             !! name of the surface mass density of ring bin variable
         integer(I4B) :: sigma_varid
             !! ID for the surface mass density of ring bin variable
+        character(NAMELEN) :: r_p_varname = "r_p"
+            !! name of the ring particle radius per bin variable
+        integer(I4B) :: r_p_varid
+            !! ID for the ring particle radius per bin variable
+        character(NAMELEN) :: m_p_varname = "m_p"
+            !! name of the ring particle mass per bin variable
+        integer(I4B) :: m_p_varid
+            !! ID for the ring particle mass per bin variable
+        character(NAMELEN) :: r_outer_varname = "r_outer"
+            !! name of the outside radius of ring variable
+        integer(I4B) :: r_outer_varid
+            !! ID for the outside radius of ring variable
+        character(NAMELEN) :: r_inner_varname = "r_inner"
+            !! name of the inside radius of ring variable
+        integer(I4B) :: r_inner_varid
+            !! ID for the inside radius of ring variable
         character(NAMELEN) :: tau_varname = "tau"
             !! name of the ring optical depth variable
         integer(I4B) :: tau_varid
@@ -107,30 +63,6 @@ module ringmoons
             !! name of the Toomre parameter of the ring bin variable
         integer(I4B) :: toomre_varid
             !! ID for the Toomre parameter of the ring bin variable
-        character(NAMELEN) :: Iz_varname = "Iz"
-            !! name of the polar moment of inertia of ring bin variable
-        integer(I4B) :: Iz_varid
-            !! ID for the polar moment of inertia of ring bin variable
-        character(NAMELEN) :: wkep_varname = "wkep"
-            !! name of the Keplerian angular velocity of ring bin variable
-        integer(I4B) :: wkep_varid
-            !! ID for the Keplerian angular velocity of ring bin variable
-        character(NAMELEN) :: Torque_varname = "Torque"
-            !! name of the total satellite torque density acting on ring bin variable
-        integer(I4B) :: Torque_varid
-            !! ID for the total satellite torque density acting on ring bin variable
-        character(NAMELEN) :: r_p_varname = "r_p"
-            !! name of the ring particle radius per bin variable
-        integer(I4B) :: r_p_varid
-            !! ID for the ring particle radius per bin variable
-        character(NAMELEN) :: m_p_varname = "m_p"
-            !! name of the ring particle mass per bin variable
-        integer(I4B) :: m_p_varid
-            !! ID for the ring particle mass per bin variable
-        character(NAMELEN) :: rho_p_varname = "rho_p"
-            !! name of the ring particle mass density per bin variable
-        integer(I4B) :: rho_p_varid
-            !! ID for the ring particle mass density per bin variable
         character(NAMELEN) :: vrel_p_varname = "vrel_p"
             !! name of the ring particle relative velocity per bin variable
         integer(I4B) :: vrel_p_varid
@@ -321,13 +253,6 @@ module ringmoons
             class(swiftest_parameters),         intent(inout) :: param 
                 !! Current run configuration parameters 
         end subroutine ringmoons_io_netcdf_flush
-
-        ! module subroutine ringmoons_io_netcdf_initialize_output(self, param)
-        !     implicit none
-        !     class(ringmoons_netcdf_parameters), intent(inout) :: self    
-        !         !! Parameters used to identify a particular NetCDF dataset
-        !     class(swiftest_parameters),         intent(in)    :: param   
-        ! end subroutine ringmoons_io_netcdf_initialize_output
 
         module subroutine ringmoons_io_netcdf_open(self, param, readonly)
             implicit none

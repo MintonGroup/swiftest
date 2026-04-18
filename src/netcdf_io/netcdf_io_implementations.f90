@@ -11,6 +11,54 @@ submodule (netcdf_io) s_netcdf_io_implementations
    use netcdf
 contains
 
+   module subroutine netcdf_io_add_new_var(self, name, xtype, dimids, varid, call_identifier)
+      !! author: David A. Minton
+      !!
+      !! Adds a new variable to an existing open dataset by combining inq_varid, redef, def_var, and def_var_fill commands in one
+      use, intrinsic :: ieee_arithmetic
+      implicit none
+      class(netcdf_parameters), intent(inout) :: self
+      character(len=*), intent(in) :: name
+      integer, intent(in) :: xtype
+      integer, dimension(:), intent(in) :: dimids
+      integer, intent(out) :: varid
+      character(len=*), intent(in) :: call_identifier
+
+      integer(I4B), parameter :: NO_FILL = 0
+      integer(I4B) :: status
+      character(len=STRMAX) :: errmsg
+      real(DP) :: dfill
+      real(SP) :: sfill
+
+      associate(nc => self)
+         dfill = ieee_value(dfill, IEEE_QUIET_NAN)
+         sfill = ieee_value(sfill, IEEE_QUIET_NAN)
+
+         status = nf90_inq_varid(nc%id, name, varid) 
+         if (status /= NF90_NOERR) then
+               write(errmsg,*) trim(adjustl(call_identifier)), "nf90_redef"
+               call netcdf_io_check( nf90_redef(nc%id), errmsg)
+               write(errmsg,*) trim(adjustl(call_identifier)), "nf90_def_var"
+               call netcdf_io_check( nf90_def_var(nc%id, name, nc%out_type, dimids, varid), errmsg)
+               write(errmsg,*) trim(adjustl(call_identifier)), "nf90_def_var_fill"
+               select case(xtype)
+               case(NF90_FLOAT) 
+                  call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, sfill), errmsg )
+               case(NF90_DOUBLE)
+                  call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, dfill), errmsg )
+               case(NF90_INT)
+                  call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, NF90_FILL_INT), errmsg )
+               case(NF90_CHAR)
+                  call netcdf_io_check( nf90_def_var_fill(nc%id, varid, NO_FILL, 0), errmsg )
+               end select
+               write(errmsg,*) trim(adjustl(call_identifier)), "nf90_enddef"
+               call netcdf_io_check( nf90_enddef(nc%id), errmsg )
+
+         end if
+      end associate
+      return
+   end subroutine netcdf_io_add_new_var
+
    module subroutine netcdf_io_check(status, call_identifier)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!

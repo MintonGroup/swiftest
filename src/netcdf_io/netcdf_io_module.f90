@@ -326,11 +326,23 @@ module netcdf_io
          !! Finds the id dimension index for a given value of id
       procedure :: get_idvals  => netcdf_io_get_idvals 
          !! Gets the valid id numbers currently stored in this dataset
+      procedure :: add_new_var => netcdf_io_add_new_var
+         !! Adds a new variable to an existing open dataset by combining inq_varid, redef, def_var, and def_var_fill commands in one
       procedure :: sync        => netcdf_io_sync        
          !! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
    end type netcdf_parameters
 
    interface
+      module subroutine netcdf_io_add_new_var(self, name, xtype, dimids, varid, call_identifier)
+         implicit none
+         class(netcdf_parameters), intent(inout) :: self
+         character(len=*), intent(in) :: name
+         integer, intent(in) :: xtype
+         integer, dimension(:), intent(in) :: dimids
+         integer, intent(out) :: varid
+         character(len=*), intent(in) :: call_identifier
+      end subroutine netcdf_io_add_new_var
+
       module subroutine netcdf_io_check(status, call_identifier)
          implicit none
          integer, intent (in) :: status 
@@ -376,7 +388,7 @@ module netcdf_io
          class(netcdf_parameters), intent(inout) :: self 
             !! Parameters used to identify a particular NetCDF dataset
       end subroutine netcdf_io_sync
-   end interface 
 
+   end interface 
 
 end module netcdf_io
