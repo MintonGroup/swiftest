@@ -427,13 +427,13 @@ module ringmoons
                 !! Current run configuration parameters
         end subroutine ringmoons_util_setup_seed
 
-        module subroutine ringmoons_util_spawn_seed(self, cb, ring, a, delta_mass, param)
+        module subroutine ringmoons_util_spawn_seed(self, cb, ring, a, mass, param)
             implicit none
             class(ringmoons_seed),          intent(inout) :: self
             class(ringmoons_ring),          intent(inout) :: ring
             class(ringmoons_cb),            intent(in)    :: cb
             real(DP),                       intent(in)    :: a
-            real(DP),                       intent(in)    :: delta_mass
+            real(DP),                       intent(in)    :: mass
             class(swiftest_parameters),     intent(in)    :: param
         end subroutine ringmoons_util_spawn_seed
 

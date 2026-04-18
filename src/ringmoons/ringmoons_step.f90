@@ -21,13 +21,15 @@ contains
         integer(I4B)                        :: i,j,seed_bin,inner_outer_sign,nbin,Nactive,rbin
         real(DP)                            :: a, delta_mass, mass_left
         logical                             :: open_space,destructo,spawnbin
+        real(DP), parameter                 :: NOSPAWN_THRESHOLD_SIGMA = 0.1_DP
+            !! Threshold surface mass density below which seeds cannot spawn in units of kg/m^2
         real(DP), parameter                 :: dzone_width = 0.025_DP 
             !! Width of the destruction zone as a fraction of the RRL distance
         integer(I4B)                        :: dzone_inner,dzone_outer ! inner and outer destruction zone bins
         real(DP)                            :: ndz,Lseed_orig,c,b,dr,Lring,deltaL
         real(DP)                            :: mass_min,R_min,dt,dtleft
         logical                             :: stepfail
-        class(ringmoons_ring), allocatable   :: seedring
+        class(ringmoons_ring), allocatable  :: seedring
         
         ! First convert any recently destroyed satellites into ring material
         destructo = .false.
@@ -108,23 +110,16 @@ contains
                 seed%ringbin(1:seed%nbody) = ring%find_bin(seed%a(1:seed%nbody))
             end if
                 
-            ! Make seed small enough to fit into each bin 
+            ! Check to see if we can spawn seeds beyond the FRL
             do i = ring%iFRL,ring%nbins
-                spawnbin = .true.
-                if (ring%sigma(i)*(param%MU2KG*1e3)/(param%DU2M*1e2)**2/param%GU < 1e-2_DP) spawnbin = .false. 
-                    ! no bins that don't have enough mass
+                ! skip bins that don't have enough mass
+                if (ring%sigma(i) * param%MU2KG/param%DU2M**2 < NOSPAWN_THRESHOLD_SIGMA) cycle
+                    
+                ! skip bins that already have a seed
                 if (seed%nbody > 0) then
-                    if (any(seed%ringbin(:) == i .and. seed%lactive(:))) spawnbin = .false. 
+                    if (any(seed%ringbin(:) == i .and. seed%lactive(:))) cycle
                 end if
-                ! no bins that already have a seed
-                ! See Tajeddine et al. (2017) section 2.3. Spawn seed if aggregates are 1% the gap opening mass
-                !R_min = 0.01_DP * (3.3e5 / DU2CM) *  (ring%nu(i) / (100 * TU2S / DU2CM**2))
-                !if (ring%r_pdisk(i) > R_min) spawnbin = .true.
-                if (spawnbin) then
-                    a = ring%r(i)
-                    delta_mass = ring%m_p(i) * 1
-                    call seed%spawn(cb,ring,a,delta_mass,param)
-                end if
+                call seed%spawn(cb,ring,ring%r(i),ring%m_p(i),param)
             end do     
             if (seed%nbody > 0) then
                 where (seed%lactive(:))

@@ -424,14 +424,14 @@ contains
         return
     end subroutine ringmoons_util_setup_initialize_system
 
-    module subroutine ringmoons_util_spawn_seed(self, cb, ring, a, delta_mass, param)
+    module subroutine ringmoons_util_spawn_seed(self, cb, ring, a, mass, param)
         implicit none
         ! Arguments
         class(ringmoons_seed),          intent(inout) :: self
         class(ringmoons_ring),          intent(inout) :: ring
         class(ringmoons_cb),            intent(in)    :: cb
         real(DP),                       intent(in)    :: a
-        real(DP),                       intent(in)    :: delta_mass
+        real(DP),                       intent(in)    :: mass
         class(swiftest_parameters),     intent(in)    :: param
         ! Internals
         integer(I4B)          :: i,j,seed_bin,nfz
@@ -439,35 +439,35 @@ contains
 
         associate(seed => self)
             seed_bin = seed%nbody + 1 
-            if (seed_bin > size(seed%lactive)) then 
-                ! If no previously generated inactive seed, we'll take advantage of Fortran 2003 automatic allocation 
-                ! and tack it on to the end  
-                call new_seed%setup(seed_bin, param)
+            call new_seed%setup(seed_bin, param)
+            if (seed%nbody > 0) then
+                ! Copy over the old seed properties to the new
                 new_seed%lactive(1:seed%nbody) = seed%lactive(1:seed%nbody)
                 new_seed%a(1:seed%nbody) = seed%a(1:seed%nbody)
                 new_seed%mass(1:seed%nbody) = seed%mass(1:seed%nbody)
                 new_seed%ringbin(1:seed%nbody) = seed%ringbin(1:seed%nbody)
                 new_seed%Torque(1:seed%nbody) = seed%Torque(1:seed%nbody)
                 new_seed%Ttide(1:seed%nbody) = seed%Ttide(1:seed%nbody)
-                call seed%setup(seed_bin, param)
-                seed%lactive = new_seed%lactive
-                seed%a = new_seed%a
-                seed%mass = new_seed%mass
-                seed%ringbin = new_seed%ringbin
-                seed%Torque = new_seed%Torque
-                seed%Ttide = new_seed%Ttide
-                seed%nbody = new_seed%nbody
             end if
+            call seed%setup(seed_bin, param)
+            seed%lactive = new_seed%lactive
+            seed%a = new_seed%a
+            seed%mass = new_seed%mass
+            seed%ringbin = new_seed%ringbin
+            seed%Torque = new_seed%Torque
+            seed%Ttide = new_seed%Ttide
+            seed%nbody = new_seed%nbody
 
             i = seed_bin 
             seed%lactive(i) = .true.
-            seed%nbody = i
+            seed%a(i) = a
             j = ring%find_bin(a)
             seed%ringbin(i) = j 
-            seed%mass(i) = min(delta_mass,ring%mass(j))
-
-            ! Adjust the semimajor axis in order to conserve angular momentum 
-            seed%a(i) = (ring%Iz(j) * ring%wkep(j))**2 / (cb%mass + seed%mass(i))
+            seed%mass(i) = min(mass,ring%mass(j))
+            seed%Gmass(i) = param%GU * seed%mass(i)
+            seed%density(i) = ring%rho_p(j)
+            seed%radius(i) = (3 * seed%mass(i) / (4 * PI * seed%density(i)))**(1._DP / 3._DP)
+            seed%rhill(i) = seed%a(i) * (seed%mass(i) / cb%mass / 3)**THIRD 
 
             ! Take away the mass from the ring
             ring%mass(j) = ring%mass(j) - seed%mass(i)
