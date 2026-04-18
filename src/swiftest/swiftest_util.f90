@@ -2965,33 +2965,41 @@ contains
       allocate(snapshot%cb, source=nbody_system%cb )
       allocate(snapshot%pl, source=nbody_system%pl )
       allocate(snapshot%tp, source=nbody_system%tp )
+      select type(snapshot)
+      class is (ringmoons_nbody_system)
+      select type(nbody_system)
+      class is (ringmoons_nbody_system)
+         allocate(snapshot%ring, source=nbody_system%ring)
+         allocate(snapshot%seed, source=nbody_system%seed)
+      end select
+      end select
 
       snapshot%t                 = nbody_system%t
       snapshot%GMtot             = nbody_system%GMtot
       snapshot%ke_orbit          = nbody_system%ke_orbit
-      snapshot%ke_rot           = nbody_system%ke_rot
+      snapshot%ke_rot            = nbody_system%ke_rot
       snapshot%pe                = nbody_system%pe
       snapshot%be                = nbody_system%be
       snapshot%te                = nbody_system%te
       snapshot%oblpot            = nbody_system%oblpot
       snapshot%L_orbit           = nbody_system%L_orbit
-      snapshot%L_rot            = nbody_system%L_rot
+      snapshot%L_rot             = nbody_system%L_rot
       snapshot%L_total           = nbody_system%L_total
       snapshot%ke_orbit_orig     = nbody_system%ke_orbit_orig
-      snapshot%ke_rot_orig      = nbody_system%ke_rot_orig
+      snapshot%ke_rot_orig       = nbody_system%ke_rot_orig
       snapshot%pe_orig           = nbody_system%pe_orig
       snapshot%be_orig           = nbody_system%be_orig
       snapshot%E_orbit_orig      = nbody_system%E_orbit_orig
       snapshot%GMtot_orig        = nbody_system%GMtot_orig
       snapshot%L_total_orig      = nbody_system%L_total_orig
       snapshot%L_orbit_orig      = nbody_system%L_orbit_orig
-      snapshot%L_rot_orig       = nbody_system%L_rot_orig
+      snapshot%L_rot_orig        = nbody_system%L_rot_orig
       snapshot%L_escape          = nbody_system%L_escape
       snapshot%GMescape          = nbody_system%GMescape
       snapshot%E_collisions      = nbody_system%E_collisions
       snapshot%E_untracked       = nbody_system%E_untracked
       snapshot%ke_orbit_error    = nbody_system%ke_orbit_error   
-      snapshot%ke_rot_error     = nbody_system%ke_rot_error    
+      snapshot%ke_rot_error      = nbody_system%ke_rot_error    
       snapshot%pe_error          = nbody_system%pe_error         
       snapshot%be_error          = nbody_system%be_error         
       snapshot%E_orbit_error     = nbody_system%E_orbit_error    
@@ -2999,7 +3007,7 @@ contains
       snapshot%E_untracked_error = nbody_system%E_untracked_error
       snapshot%te_error          = nbody_system%te_error         
       snapshot%L_orbit_error     = nbody_system%L_orbit_error    
-      snapshot%L_rot_error      = nbody_system%L_rot_error     
+      snapshot%L_rot_error       = nbody_system%L_rot_error     
       snapshot%L_escape_error    = nbody_system%L_escape_error   
       snapshot%L_total_error     = nbody_system%L_total_error    
       snapshot%Mtot_error        = nbody_system%Mtot_error       

@@ -149,27 +149,11 @@ contains
             return
         end subroutine ringmoons_util_dealloc_system
 
-    module subroutine ringmoons_util_dealloc_storage(self)
-        !! author: David A. Minton
-        !!
-        !! Resets a storage object by deallocating all items and resetting the frame counter to 0
-        use base, only : base_util_dealloc_storage
-        implicit none
-        ! Arguments
-        class(ringmoons_storage), intent(inout) :: self 
-            !! Swiftest storage object
-
-        if (allocated(self%nc)) deallocate(self%nc)
-
-        call base_util_dealloc_storage(self)
-
-        return
-    end subroutine ringmoons_util_dealloc_storage
 
     pure elemental module function ringmoons_util_find_bin(self,r) result(bin)
         !! author: David A. Minton
         !!
-        !! Returns the bin containing radius r from the input ring
+        !! Returns the bin containing radius r from the input ring.
         implicit none
         class(ringmoons_ring), intent(in)      :: self
             !! Ringmoons ring object
@@ -192,7 +176,7 @@ contains
     module function ringmoons_util_get_dt_ring(self,dtin) result(dtout)
         !! author: David A. Minton
         !!
-        !! Calculates the maximum stable timestep for the surface mass density evolution
+        !! Calculates the maximum stable timestep for the surface mass density evolution that is not larger than dtin.
         !!
         !! Adapted from Andrew Hesselbrock's  RING-MOONS Python scripts
         implicit none
@@ -439,36 +423,6 @@ contains
 
         return
     end subroutine ringmoons_util_setup_initialize_system
-
-    module subroutine ringmoons_util_snapshot(self, param, nbody_system, t, arg)
-        !! author: David A. Minton
-        !!
-        !! Takes a minimal snapshot of the state of the system during an ringmoons so that the trajectories
-        !! can be played back through the ringmoons
-        implicit none
-        ! Internals
-        class(ringmoons_storage),  intent(inout)        :: self         
-            !! Swiftest storage object
-        class(swiftest_parameters),    intent(inout)        :: param        
-            !! Current run configuration parameters
-        class(swiftest_nbody_system),  intent(inout)        :: nbody_system 
-            !! Swiftest nbody system object to store
-        real(DP),                  intent(in), optional :: t            
-            !! Time of snapshot if different from system time
-        character(*),              intent(in), optional :: arg          
-            !! Optional argument (needed for extended storage type used in collision snapshots)
-        ! Arguments
-
-        if (.not.present(t)) then
-            write(*,*) "ringmoons_util_snapshot_ringmoons requires `t` to be passed"
-            return
-        end if
-
-        ! if (.not.present(arg)) then
-        !     write(*,*) "ringmoons_util_snapshot_ringmoons requires `arg` to be passed"
-        !     return
-        ! end if
-    end subroutine ringmoons_util_snapshot
 
     module subroutine ringmoons_util_spawn_seed(self, cb, ring, a, delta_mass, param)
         implicit none

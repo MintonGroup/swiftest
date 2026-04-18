@@ -9,6 +9,7 @@
 
 submodule (swiftest) s_swiftest_io
    use symba
+   use ringmoons
    use netcdf
 contains
 
@@ -2263,6 +2264,11 @@ contains
 #endif
          call self%cb%write_frame(nc, param)
          call self%pl%write_frame(nc, param)
+         select type(self)
+         class is(ringmoons_nbody_system)
+            call self%ring%write_frame(param)
+            call self%seed%write_frame(nc, param)
+         end select
 #ifdef COARRAY
       end if ! this_image() == 1
 #endif

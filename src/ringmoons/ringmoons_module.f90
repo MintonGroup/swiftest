@@ -25,7 +25,7 @@ module ringmoons
             !! ID for the ring bin dimension
         integer(I4B) :: ringbin_varid
             !! ID for the ring bin variable
-        integer(I4B) :: nbin
+        integer(I4B) :: nbins
             !! Number of elements in the ring bins
         character(NAMELEN) :: r_varname = "r"
             !! name of the radial distance of bin center variable
@@ -120,10 +120,18 @@ module ringmoons
             !! initial mass of seeds
     contains
         procedure :: setup       => ringmoons_util_setup_seed
+            !! Sets up a new seed system from an input file
         procedure :: dealloc     => ringmoons_util_dealloc_seed
+            !! Deallocates all allocatable arrays
         procedure :: restructure => ringmoons_step_restructure_seed
+            !! Restructures the seed system by merging seeds that are within each other's feeding zones and reassigning ring bins 
+            !! based on current semimajor axes
         procedure :: step        => ringmoons_step_seed
+            !! Advances the evolution of the seeds by one time step, including accretion and spawning events
         procedure :: spawn       => ringmoons_util_spawn_seed
+            !! Spawn new seeds from the ring at the FRL
+        procedure :: write_frame  => ringmoons_io_write_frame_seed
+            !! Writes seed data to file
         final     ::                ringmoons_final_seed
     end type ringmoons_seed
 
@@ -186,6 +194,8 @@ module ringmoons
             !! ring particle mass density per bin
         real(DP), dimension(:), allocatable :: vrel_p
             !! ring particle relative velocity per bin
+        real(DP)                        :: t = -1.0_DP            
+            !! Integration current time (set internally from the nbody_system)
         type(ringmoons_netcdf_parameters) :: nc
             !! NetCDF file object associated with this ring stucture
     contains
@@ -197,12 +207,17 @@ module ringmoons
         procedure :: update       => ringmoons_util_update_ring
             !! Updates the ring velocity dispersion, Toomre parameter, and viscosity values
         procedure :: step         => ringmoons_step_ring
+            !! Adnances the evolution of the ring by one time step.
         procedure :: find_bin     => ringmoons_util_find_bin
+            !! Returns the bin containing radius r from the input ring.
         procedure :: get_dt       => ringmoons_util_get_dt_ring
+            !! Calculates the maximum stable timestep for the surface mass density evolution that is not larger than dtin.
         procedure :: dealloc      => ringmoons_util_dealloc_ring
             !! Deallocates allocatable arrays
         procedure :: read_frame   => ringmoons_io_read_frame_ring
             !! Read in ring data from file
+        procedure :: write_frame  => ringmoons_io_write_frame_ring
+            !! Writes ring data to file
         final     ::                 ringmoons_final_ring
             !! Finalizes the ringmoons ring object - deallocates all allocatables
     end type ringmoons_ring
@@ -222,29 +237,7 @@ module ringmoons
     end type ringmoons_nbody_system
 
 
-    type, extends(base_storage) :: ringmoons_storage
-        class(ringmoons_netcdf_parameters), allocatable :: nc             
-            !! NetCDF object attached to this storage object
-    contains
-        procedure :: dump             => ringmoons_io_netcdf_dump        
-            !! Dumps contents of ringmoons history to file
-        procedure :: dealloc          => ringmoons_util_dealloc_storage  
-            !! Deallocates all allocatables
-        procedure :: take_snapshot    => ringmoons_util_snapshot
-            !! Take a snapshot of the ring to save to file
-        final     ::                     ringmoons_final_storage
-    end type ringmoons_storage
-
-
     interface
-
-        module subroutine ringmoons_io_netcdf_dump(self, param)
-            implicit none
-            class(ringmoons_storage), intent(inout)        :: self   
-                !! ringmoons storage object
-            class(swiftest_parameters),   intent(inout)        :: param  
-                !! Current run configuration parameters 
-        end subroutine ringmoons_io_netcdf_dump
 
         module subroutine ringmoons_io_netcdf_flush(self, param)
             implicit none
@@ -270,6 +263,19 @@ module ringmoons
             real(DP), intent(in)                  :: t  
             class(swiftest_parameters), intent(in) :: param
         end subroutine ringmoons_io_read_frame_ring
+
+        module subroutine ringmoons_io_write_frame_ring(self, param) 
+            implicit none
+            class(ringmoons_ring), intent(inout) :: self
+            class(swiftest_parameters), intent(in) :: param
+        end subroutine ringmoons_io_write_frame_ring
+
+        module subroutine ringmoons_io_write_frame_seed(self, nc, param) 
+            implicit none
+            class(ringmoons_seed), intent(inout) :: self
+            class(swiftest_netcdf_parameters), intent(inout) :: nc
+            class(swiftest_parameters), intent(in) :: param
+        end subroutine ringmoons_io_write_frame_seed
 
         module subroutine ringmoons_step_restructure_seed(self,cb, ring,param)
             implicit none
@@ -347,11 +353,6 @@ module ringmoons
                 !! Ringmoons seed object
         end subroutine ringmoons_util_dealloc_seed
 
-        module subroutine ringmoons_util_dealloc_storage(self)
-            implicit none
-            class(ringmoons_storage), intent(inout) :: self 
-                !! Ringmoons storage object
-        end subroutine ringmoons_util_dealloc_storage
         pure elemental module function ringmoons_util_find_bin(self,r) result(bin)
             import ringmoons_ring, DP, I4B
             implicit none
@@ -426,20 +427,6 @@ module ringmoons
                 !! Current run configuration parameters
         end subroutine ringmoons_util_setup_seed
 
-        module subroutine ringmoons_util_snapshot(self, param, nbody_system, t, arg)
-            implicit none
-            class(ringmoons_storage),     intent(inout)        :: self            
-                !! Swiftest storage object
-            class(swiftest_parameters),   intent(inout)        :: param           
-                !! Current run configuration parameters
-            class(swiftest_nbody_system), intent(inout)        :: nbody_system    
-                !! Swiftest nbody system object to store
-            real(DP),                     intent(in), optional :: t               
-                !! Time of snapshot if different from nbody_system time
-            character(*),                 intent(in), optional :: arg             
-                !! Optional argument 
-        end subroutine ringmoons_util_snapshot
-
         module subroutine ringmoons_util_spawn_seed(self, cb, ring, a, delta_mass, param)
             implicit none
             class(ringmoons_seed),          intent(inout) :: self
@@ -489,17 +476,5 @@ module ringmoons
 
             return
         end subroutine ringmoons_final_netcdf_parameters
-
-        subroutine ringmoons_final_storage(self)
-            !! author: David A. Minton
-            !!
-            !! Deallocates allocatable arrays in an ringmoons ring snapshot
-            implicit none
-            ! Arguments
-            type(ringmoons_storage),  intent(inout) :: self 
-                !! Ringmoons storage object
-            call self%dealloc()
-            return
-        end subroutine ringmoons_final_storage
 
 end module ringmoons

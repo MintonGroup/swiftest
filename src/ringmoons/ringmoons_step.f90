@@ -187,10 +187,10 @@ contains
         class(ringmoons_nbody_system), allocatable  :: old_system
 
         allocate(old_system, mold=self)
-
         subcount = 0
         dtleft = dt
         dtring = dtleft
+        self%ring%t = self%t
         allocate(old_system%ring, source=self%ring)
         allocate(old_system%seed, source=self%seed)
         allocate(old_system%cb,   source=self%cb)

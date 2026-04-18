@@ -11,15 +11,6 @@ submodule(ringmoons) s_ringmoons_io
     use swiftest
     use netcdf
 contains        
-    module subroutine ringmoons_io_netcdf_dump(self, param)
-        implicit none
-        class(ringmoons_storage), intent(inout)        :: self   
-            !! ringmoons storage object
-        class(swiftest_parameters),   intent(inout)        :: param  
-            !! Current run configuration parameters 
-
-        return
-    end subroutine ringmoons_io_netcdf_dump
 
     module subroutine ringmoons_io_netcdf_flush(self, param)
         !! author: David A. Minton
@@ -95,7 +86,7 @@ contains
                                     "ringmoons_io_netcdf_open nf90_inquire_dimension max_tslot"  )
             call netcdf_io_check( nf90_inq_dimid(nc%id, nc%ringbin_dimname, nc%ringbin_dimid), &
                                     "ringmoons_io_netcdf_open nf90_inq_dimid ringbin_dimid"  )
-            call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%ringbin_dimid, nc%ringbin_dimname, len=nc%nbin), &
+            call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%ringbin_dimid, nc%ringbin_dimname, len=nc%nbins), &
                                     "ringmoons_io_netcdf_open nf90_inquire_dimension nbin"  )
 
             ! Dimension coordinates
@@ -153,6 +144,7 @@ contains
             associate(nc => self%nc, tslot => self%nc%tslot)
                 call nc%open(param, readonly=.false.) ! Set to False so that we can add any missing variables
                 call nc%find_tslot(t, tslot)
+                self%t = t
                 call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%time_dimid, len=nc%max_tslot), &
                                     "ringmoons_io_read_frame_ring nf90_inquire_dimension time_dimid"  )
                 tslot = min(tslot, nc%max_tslot)
@@ -184,5 +176,55 @@ contains
 
         return
     end subroutine ringmoons_io_read_frame_ring
+
+
+    module subroutine ringmoons_io_write_frame_ring(self, param) 
+        !! author: David A. Minton
+        !!
+        !! Writes a frame of ring output to the binary output file.
+        implicit none
+        class(ringmoons_ring), intent(inout) :: self
+        class(swiftest_parameters), intent(in) :: param
+        ! Internals
+        integer(I4B) :: old_mode, tmp
+
+        associate(nc => self%nc, ring => self, tslot => self%nc%tslot, t => self%t, nbins => self%nbins)
+            if (.not.nc%lfile_is_open) then
+                call nc%open(param, readonly=.false.)
+            end if
+            call nc%find_tslot(t, tslot)
+            call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "ringmoons_io_write_frame_ring nf90_set_fill" )
+            call netcdf_io_check( nf90_put_var(nc%id, nc%time_varid, t, start=[tslot]), &
+                                    "ringmoons_io_write_frame_ring nf90_put_var time_varid" )
+            call netcdf_io_check( nf90_put_var(nc%id, nc%r_varid, self%r(1:nbins), start=[1,tslot], count=[nbins,1]), &
+                                  "ringmoons_io_write_frame_ring nf90_put_var r_varid"  ) 
+            call netcdf_io_check( nf90_put_var(nc%id, nc%sigma_varid, self%sigma(1:nbins), start=[1,tslot], count=[nbins,1]), &
+                                  "ringmoons_io_write_frame_ring nf90_put_var sigma_varid"  ) 
+            call netcdf_io_check( nf90_put_var(nc%id, nc%r_p_varid, self%r_p(1:nbins), start=[1,tslot], count=[nbins,1]), &
+                                  "ringmoons_io_write_frame_ring nf90_put_var r_p_varid"  ) 
+            call netcdf_io_check( nf90_put_var(nc%id, nc%m_p_varid, self%m_p(1:nbins), start=[1,tslot], count=[nbins,1]), &
+                                  "ringmoons_io_write_frame_ring nf90_put_var m_p_varid"  ) 
+            call netcdf_io_check( nf90_put_var(nc%id, nc%tau_varid, self%tau(1:nbins), start=[1,tslot], count=[nbins,1]), &
+                                  "ringmoons_io_write_frame_ring nf90_put_var tau_varid"  ) 
+            call netcdf_io_check( nf90_put_var(nc%id, nc%nu_varid, self%nu(1:nbins), start=[1,tslot], count=[nbins,1]), &
+                                  "ringmoons_io_write_frame_ring nf90_put_var nu_varid"  ) 
+            call netcdf_io_check( nf90_put_var(nc%id, nc%toomre_varid, self%Q(1:nbins), start=[1,tslot], count=[nbins,1]), &
+                                  "ringmoons_io_write_frame_ring nf90_put_var toomre_varid"  ) 
+            call netcdf_io_check( nf90_put_var(nc%id, nc%vrel_p_varid, self%vrel_p(1:nbins), start=[1,tslot], count=[nbins,1]), &
+                                  "ringmoons_io_write_frame_ring nf90_put_var vrel_p_varid"  ) 
+
+            call netcdf_io_check( nf90_set_fill(nc%id, old_mode, tmp), "ringmoons_io_write_frame_body nf90_set_fill old_mode" )
+        end associate
+
+        return
+    end subroutine ringmoons_io_write_frame_ring
+
+    module subroutine ringmoons_io_write_frame_seed(self, nc, param) 
+        implicit none
+        class(ringmoons_seed), intent(inout) :: self
+        class(swiftest_netcdf_parameters), intent(inout) :: nc
+        class(swiftest_parameters), intent(in) :: param
+        return
+    end subroutine ringmoons_io_write_frame_seed
 
 end submodule s_ringmoons_io
