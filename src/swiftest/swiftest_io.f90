@@ -2710,6 +2710,8 @@ contains
                case ("COARRAY")
                   call swiftest_io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%lcoarray = .true. 
+               case("RING_FILE")
+                  read(param_value, *) param%ring_file
                case("SEED")
                   read(param_value, *) nseeds_from_file
                   ! Because the number of seeds can vary between compilers/systems, we need to make sure we can handle cases in 
@@ -2868,7 +2870,7 @@ contains
          param%lenc_save_trajectory = (param%encounter_save == "TRAJECTORY") .or. (param%encounter_save == "BOTH")
          param%lenc_save_closest = (param%encounter_save == "CLOSEST") .or. (param%encounter_save == "BOTH")
 
-         if ((param%integrator == INT_RMVS) .or. (param%integrator == INT_SYMBA)) then
+         if ((param%integrator == INT_RMVS) .or. (param%integrator == INT_SYMBA) .or. (param%integrator == INT_RINGMOONS)) then
             if (.not.param%lclose) then
                write(iomsg,*) 'This integrator requires CHK_CLOSE to be enabled.'
                iostat = -1
@@ -2876,7 +2878,7 @@ contains
             end if
          end if
 
-         param%lmtiny_pl = (param%integrator == INT_SYMBA) 
+         param%lmtiny_pl = (param%integrator == INT_SYMBA) .or. (param%integrator == INT_RINGMOONS) 
 
          if (param%lmtiny_pl .and. param%GMTINY < 0.0_DP) then
             write(iomsg,*) "GMTINY invalid or not set: ", param%GMTINY
@@ -2915,7 +2917,7 @@ contains
 
          ! Determine if the GR flag is set correctly for this integrator
          select case(param%integrator)
-         case(INT_WHM, INT_RMVS, INT_HELIO, INT_SYMBA)
+         case(INT_WHM, INT_RMVS, INT_HELIO, INT_SYMBA, INT_RINGMOONS)
          case default   
             if (param%lgr) write(iomsg, *) 'GR is not yet implemented for this integrator. This parameter will be ignored.'
             param%lgr = .false.
@@ -2986,7 +2988,7 @@ contains
 #endif
          end if
 
-         if (param%integrator == INT_SYMBA) then
+         if ((param%integrator == INT_SYMBA) .or. (param%integrator == INT_RINGMOONS)) then
             if (.not.param%lenergy) then
                write(iomsg,*) 'This integrator requires ENERGY to be enabled.'
                iostat = -1
@@ -3143,6 +3145,8 @@ contains
             call random_seed(get = param%seed)
             call io_param_writer_one("SEED", [nseeds, param%seed(:)], unit)
          end if
+         if (param%integrator == INT_RINGMOONS) call io_param_writer_one("RING_FILE", param%ring_file, unit)
+
    
          iostat = 0
          iomsg = "UDIO not implemented"

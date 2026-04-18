@@ -404,7 +404,8 @@ contains
         ! Call parent method
         associate(nbody_system => self)
             call symba_util_setup_initialize_system(nbody_system, system_history, param)
-            call nbody_system%ring%setup(0, param)
+            nbody_system%ring%nc%file_name = param%ring_file
+            call nbody_system%ring%read_frame(self%t,param)
             call nbody_system%seed%setup(0, param)
         end associate
 

@@ -170,7 +170,8 @@ module base
          !! Include radiation effects (PR-drag + radiation pressure) on massive bodies
       logical :: lyarkovsky = .false. 
          !! Turn on Yarkovsky effect 
-
+      character(STRMAX) :: ring_file            = RING_FILE
+         !! Name of binary file for ring data in Ringmoons
 
       ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be 
       ! updated with initial conditions values)

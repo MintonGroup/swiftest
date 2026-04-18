@@ -16,147 +16,6 @@ module ringmoons
     implicit none
     public
 
-    !> Ringmoons central body particle class
-    type, extends(symba_cb) :: ringmoons_cb
-    contains
-        procedure :: accrete => ringmoons_util_accrete_cb
-    end type ringmoons_cb
-
-
-    !> Ringmoons massive body class
-    type, extends(symba_pl) :: ringmoons_pl
-    contains
-    end type ringmoons_pl
-
-    type, extends(base_object) :: ringmoons_seed
-        integer(I4B)                            :: nbody = 0       
-            !! Number of seed bodies
-        logical,      dimension(:), allocatable :: lactive
-            !! Active or inactive status indicator
-        real(DP),     dimension(:), allocatable :: a               
-            !! Semimajor axis 
-        real(DP),     dimension(:), allocatable :: mass    
-            !! Body mass (units MU)
-        real(DP),     dimension(:), allocatable :: Gmass   
-            !! Mass gravitational term G * mass (units GU * MU)
-        real(DP),     dimension(:), allocatable :: rhill   
-            !! Hill's radius (units DU)
-        real(DP),     dimension(:), allocatable :: radius  
-            !! Body radius (units DU)
-        real(DP),     dimension(:), allocatable :: density 
-            !! Body mass density - calculated internally (units MU / DU**3)
-        integer(I4B), dimension(:), allocatable :: ringbin         
-            !! Ring bin location of seed
-        real(DP),     dimension(:), allocatable :: Torque       
-            !! Total torque acting on the seed
-        real(DP),     dimension(:), allocatable :: Ttide        
-            !! Tidal torque acting on the seed
-        real(DP)                                :: feeding_zone_factor 
-            !! Width of feeding zone for seed mergers in units of mutual Hill's sphere
-        real(DP)                                :: rkf_tol      
-            !! Error tolerance for Runge-Kutta-Fehlberg integrator for seed evolution
-        real(DP)                                :: mass_init       
-            !! initial mass of seeds
-    contains
-        procedure :: setup       => ringmoons_util_setup_seed
-        procedure :: dealloc     => ringmoons_util_dealloc_seed
-        procedure :: restructure => ringmoons_step_restructure_seed
-        procedure :: step        => ringmoons_step_seed
-        procedure :: spawn       => ringmoons_util_spawn_seed
-        final     ::                ringmoons_final_seed
-    end type ringmoons_seed
-
-
-    !> Ringmoons test particle class
-    type, extends(symba_tp) :: ringmoons_tp
-    contains
-    end type ringmoons_tp
-
-    type, extends(base_object) :: ringmoons_ring
-        integer(I4B) :: nbins               
-            !! number of bins in ring
-        integer(I4B) :: inside = 1          
-            !! bin id of innermost ring bin (can increase if primary accretes a lot mass through updates)
-        real(DP)     :: r_outer             
-            !! outside radius of ring in simulation length units
-        real(DP)     :: X_outer             
-            !! outside radius of ring in X units (see Bath & Pringle 1981)
-        real(DP)     :: r_inner             
-            !! inside radius of ring in simulation length units
-        real(DP)     :: X_inner            
-            !! inside radius of ring in X units (see Bath & Pringle 1981)
-        real(DP)     :: deltaX              
-            !! variable changed bin width used for viscosity calculations in X units
-        real(DP)     :: RRL,FRL             
-            !! Rigid and fluid Roche limits
-        integer(I4B) :: iRRL,iFRL           
-            !! Indexes of Roche limit bins
-        real(DP), dimension(:), allocatable :: r                 
-            !! radial distance of center of bin in simulation length units
-        real(DP), dimension(:), allocatable :: r_hstar           
-            !! normalized ring Hill's radius in simulation length units
-        real(DP), dimension(:), allocatable :: X                 
-            !! distance variable X bin center used for viscosity calculations
-        real(DP), dimension(:), allocatable :: X2                
-            !! distance variable X**2 bin center  used for viscosity calculations
-        real(DP), dimension(:), allocatable :: deltaA            
-            !! differential surface area of ring
-        real(DP), dimension(:), allocatable :: mass              
-            !! mass of ring particles in bin
-        real(DP), dimension(:), allocatable :: sigma 
-            !! surface mass density of ring bin
-        real(DP), dimension(:), allocatable :: tau               
-            !! ring optical depth
-        real(DP), dimension(:), allocatable :: nu                
-            !! viscocity of the ring bin
-        real(DP), dimension(:), allocatable :: Q                 
-            !! Toomre parameter of the ring bin
-        real(DP), dimension(:), allocatable :: Iz                
-            !! polar moment of inertia of ring bin
-        real(DP), dimension(:), allocatable :: wkep             
-            !! Keplerian angular velocity of ring bin
-        real(DP), dimension(:), allocatable :: Torque            
-            !! total satellite torque density acting on the ring bin
-        real(DP), dimension(:), allocatable :: r_p
-            !! ring particle radius per bin 
-        real(DP), dimension(:), allocatable :: m_p
-            !! ring particle mass per bin
-        real(DP), dimension(:), allocatable :: rho_p
-            !! ring particle mass density per bin
-        real(DP), dimension(:), allocatable :: vrel_p
-            !! ring particle relative velocity per bin
-    contains
-        procedure :: setup        => ringmoons_util_setup_ring
-            !! Sets up a new ring system from an input file
-        procedure :: reset        => ringmoons_util_reset_ring
-            !!  Resets ring torques and recomputes all dimensional quantities, such as ring extent and limits based on the current
-            !! surface mass density and central body properties.
-        procedure :: update       => ringmoons_util_update_ring
-            !! Updates the ring velocity dispersion, Toomre parameter, and viscosity values
-        procedure :: step         => ringmoons_step_ring
-        procedure :: find_bin     => ringmoons_util_find_bin
-        procedure :: get_dt       => ringmoons_util_get_dt_ring
-        procedure :: dealloc      => ringmoons_util_dealloc_ring
-            !! Deallocates allocatable arrays
-        final     ::                 ringmoons_final_ring
-            !! Finalizes the ringmoons ring object - deallocates all allocatables
-    end type ringmoons_ring
-
-
-    type, extends(symba_nbody_system) :: ringmoons_nbody_system
-        class(ringmoons_ring),         allocatable :: ring
-            !! Ringmoons ring object
-        class(ringmoons_seed),         allocatable :: seed
-            !! Ringmoons seed object
-    contains
-        procedure :: dealloc    => ringmoons_util_dealloc_system          
-            !! Deallocates all allocatables
-        procedure :: initialize => ringmoons_util_setup_initialize_system 
-            !! Performs ringmoons-specific initilization steps
-        procedure :: step       => ringmoons_step_system                  
-            !! Advance the ringmoons nbody system forward in time by one step
-    end type ringmoons_nbody_system
-
 
     !> NetCDF dimension and variable names for the ringmoons objects
     type, extends(netcdf_parameters) :: ringmoons_netcdf_parameters
@@ -277,8 +136,6 @@ module ringmoons
         integer(I4B) :: vrel_p_varid
             !! ID for the ring particle relative velocity per bin variable
     contains
-        procedure :: initialize => ringmoons_io_netcdf_initialize_output 
-            !! Initialize a set of parameters used to identify a NetCDF output object
         procedure :: open       => ringmoons_io_netcdf_open
             !! Open a Ringmoons NetCDF file
         procedure :: flush      => ringmoons_io_netcdf_flush
@@ -286,6 +143,152 @@ module ringmoons
         final     ::               ringmoons_final_netcdf_parameters 
             !! Finalizer will close the NetCDF file
     end type ringmoons_netcdf_parameters 
+
+
+    !> Ringmoons central body particle class
+    type, extends(symba_cb) :: ringmoons_cb
+    contains
+        procedure :: accrete => ringmoons_util_accrete_cb
+    end type ringmoons_cb
+
+
+    !> Ringmoons massive body class
+    type, extends(symba_pl) :: ringmoons_pl
+    contains
+    end type ringmoons_pl
+
+    type, extends(base_object) :: ringmoons_seed
+        integer(I4B)                            :: nbody = 0       
+            !! Number of seed bodies
+        logical,      dimension(:), allocatable :: lactive
+            !! Active or inactive status indicator
+        real(DP),     dimension(:), allocatable :: a               
+            !! Semimajor axis 
+        real(DP),     dimension(:), allocatable :: mass    
+            !! Body mass (units MU)
+        real(DP),     dimension(:), allocatable :: Gmass   
+            !! Mass gravitational term G * mass (units GU * MU)
+        real(DP),     dimension(:), allocatable :: rhill   
+            !! Hill's radius (units DU)
+        real(DP),     dimension(:), allocatable :: radius  
+            !! Body radius (units DU)
+        real(DP),     dimension(:), allocatable :: density 
+            !! Body mass density - calculated internally (units MU / DU**3)
+        integer(I4B), dimension(:), allocatable :: ringbin         
+            !! Ring bin location of seed
+        real(DP),     dimension(:), allocatable :: Torque       
+            !! Total torque acting on the seed
+        real(DP),     dimension(:), allocatable :: Ttide        
+            !! Tidal torque acting on the seed
+        real(DP)                                :: feeding_zone_factor 
+            !! Width of feeding zone for seed mergers in units of mutual Hill's sphere
+        real(DP)                                :: rkf_tol      
+            !! Error tolerance for Runge-Kutta-Fehlberg integrator for seed evolution
+        real(DP)                                :: mass_init       
+            !! initial mass of seeds
+    contains
+        procedure :: setup       => ringmoons_util_setup_seed
+        procedure :: dealloc     => ringmoons_util_dealloc_seed
+        procedure :: restructure => ringmoons_step_restructure_seed
+        procedure :: step        => ringmoons_step_seed
+        procedure :: spawn       => ringmoons_util_spawn_seed
+        final     ::                ringmoons_final_seed
+    end type ringmoons_seed
+
+
+    !> Ringmoons test particle class
+    type, extends(symba_tp) :: ringmoons_tp
+    contains
+    end type ringmoons_tp
+
+    type, extends(base_object) :: ringmoons_ring
+        integer(I4B) :: nbins               
+            !! number of bins in ring
+        integer(I4B) :: inside = 1          
+            !! bin id of innermost ring bin (can increase if primary accretes a lot mass through updates)
+        real(DP)     :: r_outer             
+            !! outside radius of ring in simulation length units
+        real(DP)     :: X_outer             
+            !! outside radius of ring in X units (see Bath & Pringle 1981)
+        real(DP)     :: r_inner             
+            !! inside radius of ring in simulation length units
+        real(DP)     :: X_inner            
+            !! inside radius of ring in X units (see Bath & Pringle 1981)
+        real(DP)     :: deltaX              
+            !! variable changed bin width used for viscosity calculations in X units
+        real(DP)     :: RRL,FRL             
+            !! Rigid and fluid Roche limits
+        integer(I4B) :: iRRL,iFRL           
+            !! Indexes of Roche limit bins
+        real(DP), dimension(:), allocatable :: r                 
+            !! radial distance of center of bin in simulation length units
+        real(DP), dimension(:), allocatable :: r_hstar           
+            !! normalized ring Hill's radius in simulation length units
+        real(DP), dimension(:), allocatable :: X                 
+            !! distance variable X bin center used for viscosity calculations
+        real(DP), dimension(:), allocatable :: X2                
+            !! distance variable X**2 bin center  used for viscosity calculations
+        real(DP), dimension(:), allocatable :: deltaA            
+            !! differential surface area of ring
+        real(DP), dimension(:), allocatable :: mass              
+            !! mass of ring particles in bin
+        real(DP), dimension(:), allocatable :: sigma 
+            !! surface mass density of ring bin
+        real(DP), dimension(:), allocatable :: tau               
+            !! ring optical depth
+        real(DP), dimension(:), allocatable :: nu                
+            !! viscocity of the ring bin
+        real(DP), dimension(:), allocatable :: Q                 
+            !! Toomre parameter of the ring bin
+        real(DP), dimension(:), allocatable :: Iz                
+            !! polar moment of inertia of ring bin
+        real(DP), dimension(:), allocatable :: wkep             
+            !! Keplerian angular velocity of ring bin
+        real(DP), dimension(:), allocatable :: Torque            
+            !! total satellite torque density acting on the ring bin
+        real(DP), dimension(:), allocatable :: r_p
+            !! ring particle radius per bin 
+        real(DP), dimension(:), allocatable :: m_p
+            !! ring particle mass per bin
+        real(DP), dimension(:), allocatable :: rho_p
+            !! ring particle mass density per bin
+        real(DP), dimension(:), allocatable :: vrel_p
+            !! ring particle relative velocity per bin
+        type(ringmoons_netcdf_parameters) :: nc
+            !! NetCDF file object associated with this ring stucture
+    contains
+        procedure :: setup        => ringmoons_util_setup_ring
+            !! Sets up a new ring system from an input file
+        procedure :: reset        => ringmoons_util_reset_ring
+            !!  Resets ring torques and recomputes all dimensional quantities, such as ring extent and limits based on the current
+            !! surface mass density and central body properties.
+        procedure :: update       => ringmoons_util_update_ring
+            !! Updates the ring velocity dispersion, Toomre parameter, and viscosity values
+        procedure :: step         => ringmoons_step_ring
+        procedure :: find_bin     => ringmoons_util_find_bin
+        procedure :: get_dt       => ringmoons_util_get_dt_ring
+        procedure :: dealloc      => ringmoons_util_dealloc_ring
+            !! Deallocates allocatable arrays
+        procedure :: read_frame   => ringmoons_io_read_frame_ring
+            !! Read in ring data from file
+        final     ::                 ringmoons_final_ring
+            !! Finalizes the ringmoons ring object - deallocates all allocatables
+    end type ringmoons_ring
+
+    type, extends(symba_nbody_system) :: ringmoons_nbody_system
+        class(ringmoons_ring),         allocatable :: ring
+            !! Ringmoons ring object
+        class(ringmoons_seed),         allocatable :: seed
+            !! Ringmoons seed object
+    contains
+        procedure :: dealloc    => ringmoons_util_dealloc_system          
+            !! Deallocates all allocatables
+        procedure :: initialize => ringmoons_util_setup_initialize_system 
+            !! Performs ringmoons-specific initilization steps
+        procedure :: step       => ringmoons_step_system                  
+            !! Advance the ringmoons nbody system forward in time by one step
+    end type ringmoons_nbody_system
+
 
     type, extends(base_storage) :: ringmoons_storage
         class(ringmoons_netcdf_parameters), allocatable :: nc             
@@ -319,12 +322,12 @@ module ringmoons
                 !! Current run configuration parameters 
         end subroutine ringmoons_io_netcdf_flush
 
-        module subroutine ringmoons_io_netcdf_initialize_output(self, param)
-            implicit none
-            class(ringmoons_netcdf_parameters), intent(inout) :: self    
-                !! Parameters used to identify a particular NetCDF dataset
-            class(swiftest_parameters),         intent(in)    :: param   
-        end subroutine ringmoons_io_netcdf_initialize_output
+        ! module subroutine ringmoons_io_netcdf_initialize_output(self, param)
+        !     implicit none
+        !     class(ringmoons_netcdf_parameters), intent(inout) :: self    
+        !         !! Parameters used to identify a particular NetCDF dataset
+        !     class(swiftest_parameters),         intent(in)    :: param   
+        ! end subroutine ringmoons_io_netcdf_initialize_output
 
         module subroutine ringmoons_io_netcdf_open(self, param, readonly)
             implicit none
@@ -335,6 +338,13 @@ module ringmoons
             logical, optional,                  intent(in)    :: readonly 
                 !! Logical flag indicating that this should be open read only
         end subroutine ringmoons_io_netcdf_open
+
+        module subroutine ringmoons_io_read_frame_ring(self, t, param) 
+            implicit none
+            class(ringmoons_ring), intent(inout) :: self
+            real(DP), intent(in)                  :: t  
+            class(swiftest_parameters), intent(in) :: param
+        end subroutine ringmoons_io_read_frame_ring
 
         module subroutine ringmoons_step_restructure_seed(self,cb, ring,param)
             implicit none

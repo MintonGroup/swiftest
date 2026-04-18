@@ -289,6 +289,7 @@ class Simulation:
 
         if self.integrator == "ringmoons":
             self._ring = SwiftestDataset()
+            self.param["RING_FILE"] = self.ring_file.name
 
         # Read in an old simulation file if requested
         if read_init_cond:
