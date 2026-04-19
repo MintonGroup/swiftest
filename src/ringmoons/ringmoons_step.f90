@@ -245,7 +245,6 @@ contains
         subcount = 0
         dtleft = dt
         dtring = dtleft
-        self%ring%t = self%t
         self%seed%maxid = self%maxid
         allocate(old_system%ring, source=self%ring)
         allocate(old_system%seed, source=self%seed)
@@ -308,6 +307,7 @@ contains
             allocate(old_system%seed, source=self%seed)
             allocate(old_system%cb,   source=self%cb)
             self%maxid = self%seed%maxid
+            self%ring%t = t + dt
         end do
 
         ! Step the nbody system like normal
