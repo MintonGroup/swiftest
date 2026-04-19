@@ -138,20 +138,19 @@ contains
         return
     end subroutine ringmoons_util_dealloc_seed
 
-        module subroutine ringmoons_util_dealloc_system(self)
-            !! author: David A. Minton
-            !!
-            !! Deallocates all allocatables and resets all values to defaults. Acts as a base for a finalizer
-            implicit none
-            class(ringmoons_nbody_system), intent(inout) :: self
-                !! Ringmoons nbody system object to deallocate
-            if (allocated(self%ring)) deallocate(self%ring)
-            if (allocated(self%seed)) deallocate(self%seed)
-            call self%symba_nbody_system%dealloc()
+    module subroutine ringmoons_util_dealloc_system(self)
+        !! author: David A. Minton
+        !!
+        !! Deallocates all allocatables and resets all values to defaults. Acts as a base for a finalizer
+        implicit none
+        class(ringmoons_nbody_system), intent(inout) :: self
+            !! Ringmoons nbody system object to deallocate
+        if (allocated(self%ring)) deallocate(self%ring)
+        if (allocated(self%seed)) deallocate(self%seed)
+        call self%symba_nbody_system%dealloc()
 
-            return
-        end subroutine ringmoons_util_dealloc_system
-
+        return
+    end subroutine ringmoons_util_dealloc_system
 
     pure elemental module function ringmoons_util_find_bin(self,r) result(bin)
         !! author: David A. Minton
@@ -216,6 +215,22 @@ contains
         implicit none
         class(ringmoons_ring), intent(inout) :: self
         class(ringmoons_cb), intent(in) :: cb
+        ! Internals
+        integer(I4B) :: i
+
+        associate(ring => self)       
+            call ring%compute_velocity_dispersion(cb)
+            where(ring%sigma(:) > 1000 * VSMALL) 
+                ring%Q(:) = ring%wkep(:) * ring%vrel_p(:) / (3.36_DP * ring%sigma(:))
+                ring%tau(:) = PI * ring%r_p(:)**2 * ring%sigma(:) / ring%m_p(:)
+                ring%nu(:) = ringmoons_viscosity(ring%sigma(:), ring%m_p(:), (ring%vrel_p(:))**2, &
+                                                ring%r_p(:), ring%r_hstar(:), ring%Q(:), ring%tau(:), ring%wkep(:))
+            elsewhere
+                ring%Q(:) = huge(1._DP) / 10._DP
+                ring%tau(:) = 0.0_DP
+                ring%nu(:) = 0.0_DP
+            end where
+        end associate
 
         return
     end subroutine ringmoons_util_update_ring
@@ -530,4 +545,68 @@ contains
 
         return
     end subroutine ringmoons_util_spawn_seed
+
+    module subroutine ringmoons_util_velocity_dispersion_ring(self,cb)
+        implicit none
+        class(ringmoons_ring), intent(inout) :: self
+        class(ringmoons_cb),   intent(in)    :: cb
+        ! Internals
+        integer(I4B)                         :: i
+        real(DP),dimension(0:self%nbins+1)   :: kappa_rhstar,eta_rhstar
+
+        associate(ring => self)
+            where(ring%r_p(:) > VSMALL)
+                ring%r_hstar(:) = ring%r(:) * (2 * ring%m_p(:) /(3._DP * cb%mass))**(1._DP/3._DP) / (2 * ring%r_p(:)) 
+                ! See Salmon et al. 2010 for this
+                kappa_rhstar(:) = ringmoons_transition_function(ring%r_hstar(:))
+                eta_rhstar(:) = 1._DP - kappa_rhstar(:)
+                ring%vrel_p(:) = kappa_rhstar(:) * sqrt(ring%m_p(:) / ring%r_p(:)) + eta_rhstar(:) * &
+                                                    (2 * ring%r_p(:) * ring%wkep(:))
+            end where
+        end associate
+
+        return
+    end subroutine ringmoons_util_velocity_dispersion_ring
+
+    elemental pure function ringmoons_viscosity(sigma, m_p, v2_p, r_p, r_hstar, Q, tau, w) result(nu)
+        ! Arguments
+        real(DP),intent(in) :: sigma, m_p, v2_p, r_p, r_hstar, Q, tau, w
+        real(DP) :: nu
+        ! Internals
+        real(DP)       :: kappa_Q,eta_Q,y
+        real(DP)       :: nu_trans_stable,nu_grav_stable,nu_trans_unstable,nu_grav_unstable
+        real(DP)       :: nu_trans,nu_grav,nu_coll
+
+        nu_trans_unstable = 13 * r_hstar**5 * sigma**2 / w**3
+        nu_trans_stable = (v2_p / (2 * w)) * (0.46_DP * tau / (1._DP + tau**2))
+
+        nu_grav_stable = 0.0_DP
+        nu_grav_unstable = nu_trans_unstable
+
+        y = 0.25_DP * Q 
+        kappa_Q = ringmoons_transition_function(y)
+        eta_Q = 1._DP - kappa_Q
+
+        nu_trans = kappa_Q * nu_trans_stable + eta_Q * nu_trans_unstable
+        nu_grav  = kappa_Q * nu_grav_stable  + eta_Q * nu_grav_unstable
+        nu_coll = r_p**2 * w * tau
+
+        nu = nu_trans + nu_grav + nu_coll
+        return
+    end function ringmoons_viscosity
+
+
+    elemental pure module function ringmoons_transition_function(yin) result(kappa)
+        implicit none
+        ! Arguments
+        real(DP),intent(in) ::yin
+        real(DP) :: kappa
+        ! Internals
+        real(DP) :: y
+        y = min(max(yin,epsilon(1._DP)),1.0_DP-epsilon(1._DP))
+        kappa =  0.5_DP * (1._DP + tanh((2 * y - 1._DP) / (y * (1._DP - y)))) 
+        return
+
+    end function ringmoons_transition_function
+
 end submodule s_ringmoons_util

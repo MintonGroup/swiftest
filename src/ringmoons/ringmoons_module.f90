@@ -222,6 +222,8 @@ module ringmoons
             !! Returns the bin containing radius r from the input ring.
         procedure :: get_dt       => ringmoons_util_get_dt_ring
             !! Calculates the maximum stable timestep for the surface mass density evolution that is not larger than dtin.
+        procedure :: compute_velocity_dispersion => ringmoons_util_velocity_dispersion_ring
+            !! Calculates the velocity 
         procedure :: dealloc      => ringmoons_util_dealloc_ring
             !! Deallocates allocatable arrays
         procedure :: read_frame   => ringmoons_io_read_frame_ring
@@ -455,6 +457,18 @@ module ringmoons
             real(DP),                       intent(in)    :: mass
             class(swiftest_parameters),     intent(in)    :: param
         end subroutine ringmoons_util_spawn_seed
+
+        module subroutine ringmoons_util_velocity_dispersion_ring(self,cb)
+            implicit none
+            class(ringmoons_ring), intent(inout) :: self
+            class(ringmoons_cb),   intent(in)    :: cb
+        end subroutine ringmoons_util_velocity_dispersion_ring
+
+        elemental pure module function ringmoons_transition_function(yin) result(kappa)
+            implicit none
+            real(DP),intent(in) ::yin
+            real(DP) :: kappa
+        end function ringmoons_transition_function
 
     end interface
 

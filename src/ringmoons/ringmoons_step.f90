@@ -144,13 +144,61 @@ contains
 
     module subroutine ringmoons_step_ring(self,cb,dt,stepfail)
         implicit none
+        ! Arguments
         class(ringmoons_ring), intent(inout) :: self
         class(ringmoons_cb),   intent(in)    :: cb
         real(DP),              intent(in)    :: dt
         logical,               intent(out)   :: stepfail
+        ! Internals
+        real(DP),dimension(0:self%nbins+1)      :: S,Snew,Sn1,Sn2,fac,artnu,L,dM1,dM2
+        integer(I4B)                        :: i,N,j,loop
 
         call self%update(cb)
         stepfail = .false.
+
+        associate(ring => self, N => ring%nbins)
+            S(0) = 0.0_DP
+            S(1:N) = ring%sigma(1:N) * ring%X(1:N)
+            S(N+1) = 0.0_DP
+            ring%Torque(0) = 0.0_DP
+            ring%Torque(N+1) = 0.0_DP
+            ring%mass(0) = 0.0_DP
+            ring%mass(N+1) = 0.0_DP
+            ring%sigma(0) = 0.0_DP
+            ring%sigma(N+1) = 0.0_DP
+
+            fac(:)  = 12 * dt / (ring%deltaX)**2  / ring%X2(:)
+            Sn1(1:N) = ring%nu(2:N+1) * S(2:N+1) - 2 * ring%nu(1:N) * S(1:N) + ring%nu(0:N-1) * S(0:N-1)
+            Sn2(1:N) = ring%Torque(2:N+1) - ring%Torque(0:N-1)
+            Sn2(1:N) = Sn2(1:N) * (1._DP / (3 * PI * sqrt(cb%mass)))
+            Snew(1:N) = S(1:N) + fac(1:N) * (Sn1(1:N) - Sn2(1:N))
+
+            ! Prevent any bins from having negative mass by diffusing mass with an artificial viscosity
+            loop = 1
+            do while (any(Snew(1:N) < -epsilon(1._DP) * maxval(S(1:N))))
+                Snew(0) = 0.0_DP
+                Snew(N+1) = 0.0_DP
+                artnu(:) = 0.0_DP
+                where (Snew(1:N) < 0._DP)
+                    artnu(1:N) = 1._DP / (16 * fac(1:N))
+                    artnu(0:N-1) = 1._DP / (16 * fac(0:N-1))
+                    artnu(2:N+1) = 1._DP / (16 * fac(2:N+1))
+                end where
+                S(1:N) = Snew(1:N) 
+                Sn1(1:N) = artnu(2:N+1) * S(2:N+1) - 2 * artnu(1:N) * S(1:N) + artnu(0:N-1) * S(0:N-1)
+                Snew(1:N) = S(1:N) + fac(1:N) * Sn1(1:N) 
+                loop = loop + 1
+                if (loop > 1000) then
+                    stepfail = .true.
+                    exit
+                end if
+            end do
+
+            ring%sigma(1:N) = max(0.0_DP,Snew(1:N) / ring%X(1:N))
+            ring%mass(1:N) = ring%sigma(1:N) * ring%deltaA(1:N)
+            ring%Torque(:) = 0.0_DP
+
+        end associate
         return
     end subroutine ringmoons_step_ring
 

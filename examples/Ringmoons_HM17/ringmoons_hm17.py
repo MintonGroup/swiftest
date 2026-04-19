@@ -34,9 +34,9 @@ sim.add_ring(
     },
 )
 
-tstep_out = 1.0
+tstep_out = 1000.0
 dt = 1.0
-tstop = 10.0
+tstop = 10000.0
 
 
 sim.set_parameter(tstop=tstop, dt=dt, tstep_out=tstep_out, dump_cadence=0)
@@ -68,8 +68,6 @@ ax.set_xlabel("Distance to Mars ($R_p$)", fontsize=tsize)
 ax.set_ylabel(r"Ring surface mass density (g$\cdot$cm$^{-2}$)", fontsize=tsize)
 ax.set_yscale("log")
 
-
-
 secax = ax.twinx()
 secax.set_yscale("log")
 secax.set_ylabel("Mass of satellite (g)", fontsize=tsize)
@@ -90,7 +88,6 @@ mu = np.array([mars["Gmass"] + phobos["Gmass"], mars["Gmass"] + deimos["Gmass"]]
 rh = np.array([phobos["rh"] - mars["rh"], deimos["rh"] - mars["rh"]], dtype=np.float64)
 vh = np.array([phobos["vh"] - mars["vh"], deimos["vh"] - mars["vh"]], dtype=np.float64)
 elem = swiftest.core.xv2el(mu=mu, rh=rh, vh=vh)
-
 
 rs = elem[0] * sim.M2DU / r_cb
 ms = np.array([phobos["mass"], deimos["mass"]]) * 1000.0
