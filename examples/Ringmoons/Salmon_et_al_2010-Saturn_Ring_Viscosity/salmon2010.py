@@ -28,6 +28,7 @@ mass_distribution = {
     "mu" : 110.0e3 * sim.M2DU,  # radius of the center of the gaussian
     "dev" : 3600.0 * sim.M2DU,  # width of the gaussian
     "sigma0" : 6.15e4 * sim.KG2MU / sim.M2DU**2,  # peak of the surface mass density at the center of the gaussian
+    "nbins" : 1024
 }
 
 sim.add_ring(
