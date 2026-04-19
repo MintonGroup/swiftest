@@ -12,6 +12,7 @@ submodule(ringmoons) s_ringmoons_util
 contains
 
     module subroutine ringmoons_util_accrete_cb(self,ring,seed,param,dt)
+        use, intrinsic :: ieee_exceptions
         implicit none
 
         ! Arguments
@@ -33,6 +34,11 @@ contains
         real(DP),dimension(seed%nbody) :: afac
         real(DP),dimension(0:ring%nbins+1)        :: mtmp,Lring_orig,Lring_now,dL
         real(DP) :: Lp0,Ls0,Lp1,Ls1,Lr0,Lr1
+        logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
+
+        ! Guard against underflow errors when rings surface mass density gets too small
+        call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)
+        call ieee_set_halting_mode(ieee_underflow, .false.)
         
         associate(cb => self)
             ring%inside = ring%find_bin(cb%radius)
@@ -77,8 +83,8 @@ contains
             ring%Torque(:) = ring%Torque(:) - dL(:) / dt
         end associate
 
+        call ieee_set_halting_mode(IEEE_ALL, fpe_halting_modes)
         return
-
     end subroutine ringmoons_util_accrete_cb
 
     module subroutine ringmoons_util_dealloc_ring(self)
@@ -242,6 +248,7 @@ contains
         !!
         !!  Resets ring torques and recomputes all dimensional quantities, such as ring extent and limits based on the current
         !! surface mass density and central body properties.
+        use, intrinsic :: ieee_exceptions
         implicit none
         ! Arguments
         class(ringmoons_ring), intent(inout) :: self
@@ -251,8 +258,11 @@ contains
         ! Internals
         integer(I4B)                        :: i, iFRL, iRRL
         real(DP)                            :: Xlo, rho_p
-        real(DP)                            :: underflow_guard, deltaA_min, wkep3_min
+        logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
 
+        ! Guard against underflow errors when rings surface mass density gets too small
+        call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)
+        call ieee_set_halting_mode(ieee_underflow, .false.)
         associate(ring => self)
             ring%nu = 0.0_DP
             ring%X_inner = 2 * sqrt(ring%r_inner)
@@ -296,21 +306,6 @@ contains
             ! Specific moment of inertia of the ring bin and ring angular velocity
             ring%Iz(:) = (ring%r(:))**2
             ring%wkep(:) = sqrt(cb%Gmass / ring%r(:)**3)
-
-            ! Guard agains underflow when sigma or Gsigma are very small
-            deltaA_min = max(maxval(ring%deltaA(:)), 1.0_DP)
-            wkep3_min =  max(maxval(ring%wkep(:)**(-3)), 1.0_DP)
-            underflow_guard = deltaA_min * wkep3_min * max(param%GU,1.0_DP)
-            if (underflow_guard > 1.0_DP) then
-                underflow_guard = underflow_guard * VSMALL
-            else
-                underflow_guard = VSMALL
-            end if
-            underflow_guard = sqrt(underflow_guard)
-            where(ring%sigma(:) < underflow_guard)
-                ring%sigma(:) = 0.0_DP
-            end where
-
             ring%mass(:) = ring%sigma(:) * ring%deltaA(:)
             ring%Gsigma(:) = param%GU * ring%sigma(:)
             
@@ -329,6 +324,7 @@ contains
             end if
 
         end associate
+        call ieee_set_halting_mode(IEEE_ALL, fpe_halting_modes)
         return
     end subroutine ringmoons_util_reset_ring
 

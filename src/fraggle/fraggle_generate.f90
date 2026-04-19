@@ -528,7 +528,8 @@ contains
                   dis = .mag. (fragments%rc(:,j) - (pl%rb(:,i) / collider%dscale - impactors%rbcom(:)))
                   loverlap(j) = (dis <= rbuffer * (pl%radius(i) / collider%dscale + fragments%radius(j))) 
                   if (loverlap(j)) then
-                     min_overlap_distance = min(rbuffer * (pl%radius(i) / collider%dscale  + fragments%radius(j)) - dis,min_overlap_distance)
+                     min_overlap_distance = min(rbuffer * (pl%radius(i) / collider%dscale + fragments%radius(j)) &
+                                                                                          - dis,min_overlap_distance)
                      exit
                   end if
                end do

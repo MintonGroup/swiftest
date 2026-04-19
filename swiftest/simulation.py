@@ -4623,14 +4623,14 @@ class Simulation:
         verbose = kwargs.pop("verbose", self.verbose)
         self.encounters = SwiftestDataset()
         self.collisions = SwiftestDataset()
-        if self.integrator == "ringmoons":
-            self.ring = SwiftestDataset()
         if deep:
             if verbose and self.simdir.exists():
                 print(f"Removing simulation directory {self.simdir}")
             shutil.rmtree(self.simdir, ignore_errors=True)
             self.init_cond = SwiftestDataset()
             self.data = SwiftestDataset()
+            if self.integrator == "ringmoons":
+                self.ring = SwiftestDataset()
             return
 
         if verbose:
@@ -4643,7 +4643,6 @@ class Simulation:
             self.simdir / "collisions.log",
             self.simdir / "collisions.nc",
             self.simdir / "encounters.nc",
-            self.simdir / "ring.nc",
         ]
 
         glob_files = [self.simdir.glob("**/param.*.in")]
@@ -4651,6 +4650,8 @@ class Simulation:
         for f in old_files:
             if f.exists():
                 f.unlink()
+        if deep and self.ring_file.exists():
+            self.ring_file.unlink()
 
         for g in glob_files:
             for f in g:

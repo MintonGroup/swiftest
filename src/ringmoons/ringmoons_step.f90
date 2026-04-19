@@ -143,6 +143,7 @@ contains
     end subroutine ringmoons_step_restructure_seed
 
     module subroutine ringmoons_step_ring(self,cb,dt,param,stepfail)
+        use, intrinsic :: ieee_exceptions
         implicit none
         ! Arguments
         class(ringmoons_ring),      intent(inout) :: self
@@ -153,6 +154,11 @@ contains
         ! Internals
         real(DP),dimension(0:self%nbins+1) :: S,Snew,Sn1,Sn2,fac,artnu,L,dM1,dM2
         integer(I4B)                       :: i,N,j,loop
+        logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
+
+        ! Guard against underflow errors when rings surface mass density gets too small
+        call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)
+        call ieee_set_halting_mode(ieee_underflow, .false.)
 
         call self%update(cb)
         stepfail = .false.
@@ -194,12 +200,13 @@ contains
                     exit
                 end if
             end do
-
-            ring%sigma(1:N) = max(0.0_DP,Snew(1:N) / ring%X(1:N))
+            ring%sigma(1:N) = Snew(1:N) / ring%X(1:N)
             ring%Gsigma(1:N) = param%GU * ring%sigma(1:N)
             ring%mass(1:N) = ring%sigma(1:N) * ring%deltaA(1:N)
             ring%Torque(:) = 0.0_DP
         end associate
+        
+        call ieee_set_halting_mode(IEEE_ALL, fpe_halting_modes)
 
         return
     end subroutine ringmoons_step_ring
