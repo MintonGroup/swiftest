@@ -4220,6 +4220,8 @@ class Simulation:
                 self.read_encounter_file(dask=dask, verbose=verbose)
             if read_collisions:
                 self.read_collision_file(dask=dask, verbose=verbose)
+            if self.ring_file.exists():
+                self.read_ring_file(dask=dask, verbose=verbose)
             if verbose:
                 print("Finished reading Swiftest dataset files.")
 
@@ -4339,7 +4341,7 @@ class Simulation:
             return
 
         if verbose:
-            print("Reading collisions history file as .collisions")
+            print("Reading ring history file as .ring")
 
         if dask:
             ds = xr.open_mfdataset(self.ring_file, engine="h5netcdf", mask_and_scale=False, combine="nested")
