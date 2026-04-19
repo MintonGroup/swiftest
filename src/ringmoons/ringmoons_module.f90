@@ -16,7 +16,6 @@ module ringmoons
     implicit none
     public
 
-
     !> NetCDF dimension and variable names for the ringmoons objects
     type, extends(netcdf_parameters) :: ringmoons_netcdf_parameters
         character(NAMELEN) :: ringbin_dimname = "ringbin"
@@ -76,13 +75,11 @@ module ringmoons
             !! Finalizer will close the NetCDF file
     end type ringmoons_netcdf_parameters 
 
-
     !> Ringmoons central body particle class
     type, extends(symba_cb) :: ringmoons_cb
     contains
         procedure :: accrete => ringmoons_util_accrete_cb
     end type ringmoons_cb
-
 
     !> Ringmoons massive body class
     type, extends(symba_pl) :: ringmoons_pl
@@ -144,7 +141,6 @@ module ringmoons
             !! Writes seed data to file
         final     ::                ringmoons_final_seed
     end type ringmoons_seed
-
 
     !> Ringmoons test particle class
     type, extends(symba_tp) :: ringmoons_tp
@@ -211,28 +207,30 @@ module ringmoons
         type(ringmoons_netcdf_parameters) :: nc
             !! NetCDF file object associated with this ring stucture
     contains
-        procedure :: setup        => ringmoons_util_setup_ring
+        procedure :: setup                   => ringmoons_util_setup_ring
             !! Sets up a new ring system from an input file
-        procedure :: reset        => ringmoons_util_reset_ring
+        procedure :: reset                   => ringmoons_util_reset_ring
             !!  Resets ring torques and recomputes all dimensional quantities, such as ring extent and limits based on the current
             !! surface mass density and central body properties.
-        procedure :: update       => ringmoons_util_update_ring
+        procedure :: update                  => ringmoons_util_update_ring
             !! Updates the ring velocity dispersion, Toomre parameter, and viscosity values
-        procedure :: step         => ringmoons_step_ring
+        procedure :: step                    => ringmoons_step_ring
             !! Adnances the evolution of the ring by one time step.
-        procedure :: find_bin     => ringmoons_util_find_bin
+        procedure :: find_bin                => ringmoons_util_find_bin
             !! Returns the bin containing radius r from the input ring.
-        procedure :: get_dt       => ringmoons_util_get_dt_ring
+        procedure :: get_dt                  => ringmoons_util_get_dt_ring
             !! Calculates the maximum stable timestep for the surface mass density evolution that is not larger than dtin.
-        procedure :: compute_velocity_dispersion => ringmoons_util_velocity_dispersion_ring
+        procedure :: set_velocity_dispersion => ringmoons_util_velocity_dispersion_ring
             !! Calculates the velocity 
-        procedure :: dealloc      => ringmoons_util_dealloc_ring
+        procedure :: get_lindblad_torque     => ringmoons_torque_lindblad
+            !! Calculates the lindblad torques between each ring element and an input body.
+        procedure :: dealloc                 => ringmoons_util_dealloc_ring
             !! Deallocates allocatable arrays
-        procedure :: read_frame   => ringmoons_io_read_frame_ring
+        procedure :: read_frame              => ringmoons_io_read_frame_ring
             !! Read in ring data from file
-        procedure :: write_frame  => ringmoons_io_write_frame_ring
+        procedure :: write_frame             => ringmoons_io_write_frame_ring
             !! Writes ring data to file
-        final     ::                 ringmoons_final_ring
+        final     ::                            ringmoons_final_ring
             !! Finalizes the ringmoons ring object - deallocates all allocatables
     end type ringmoons_ring
 
@@ -250,9 +248,7 @@ module ringmoons
             !! Advance the ringmoons nbody system forward in time by one step
     end type ringmoons_nbody_system
 
-
     interface
-
         module subroutine ringmoons_io_netcdf_flush(self, param)
             implicit none
             class(ringmoons_netcdf_parameters), intent(inout) :: self 
@@ -337,6 +333,14 @@ module ringmoons
             real(DP),                      intent(in)    :: dt   
         end subroutine ringmoons_step_system
 
+        module function ringmoons_torque_lindblad(self,cb,asat,esat,isat,msat,param) result(Torque)
+            implicit none
+            class(ringmoons_ring),      intent(inout) :: self
+            class(swiftest_cb),         intent(in)    :: cb 
+            real(DP),                   intent(in)    :: asat,esat,isat,msat
+            class(swiftest_parameters), intent(in)    :: param
+            real(DP),dimension(0:self%nbins+1)        :: Torque
+        end function ringmoons_torque_lindblad        
         module subroutine ringmoons_util_accrete_cb(self,ring,seed,param,dt)
             implicit none
             class(ringmoons_cb),        intent(inout) :: self

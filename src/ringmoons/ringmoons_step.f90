@@ -212,13 +212,29 @@ contains
     end subroutine ringmoons_step_ring
 
     module subroutine ringmoons_step_seed(self, cb, ring, dt, param, stepfail)
+        !! author: David A. Minton
+        !!
+        !! Step the seed forward in time and handle any accretion events that occur during the step.
         implicit none
+        ! Arguments
         class(ringmoons_seed),      intent(inout) :: self
         class(ringmoons_cb),        intent(inout) :: cb
         class(ringmoons_ring),      intent(inout) :: ring
         real(DP),                   intent(in)    :: dt
         class(swiftest_parameters), intent(in)    :: param
         logical,                    intent(out)   :: stepfail
+        ! Internals
+        !Runge-Kutta-Fehlberg parameters
+        integer(I4B),parameter                      :: rkfo = 6
+        real(DP),dimension(6,5),parameter           :: rkf45_btab = reshape( & ! Butcher tableau for Runge-Kutta-Fehlberg method
+            (/        1./4.,       1./4.,          0.,            0.,           0.,           0.,&
+                        3./8.,      3./32.,      9./32.,            0.,           0.,           0.,&
+                    12./13., 1932./2197., -7200./2197.,  7296./2197.,           0.,           0.,&
+                        1.,   439./216.,          -8.,   3680./513.,   -845./4104.,          0.,&
+                        1./2.,     -8./27.,           2., -3544./2565.,   1859./4104.,    -11./40./), shape(rkf45_btab))
+        real(DP),dimension(6),parameter            :: rkf5_coeff =  (/ 16./135., 0., 6656./12825., 28561./56430., -9./50., 2./55. /)
+        real(DP),dimension(6),parameter            :: rkf4_coeff =  (/ 25./216., 0., 1408./2565. ,  2197./4104. , -1./5. ,     0. /)
+
 
         stepfail = .false.
         return

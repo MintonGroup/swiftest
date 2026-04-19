@@ -1,0 +1,130 @@
+! Copyright 2026 - The Minton Group at Purdue University
+! This file is part of Swiftest.
+! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
+! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+! Swiftest is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty 
+! of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+! You should have received a copy of the GNU General Public License along with Swiftest. 
+! If not, see: https://www.gnu.org/licenses. 
+
+submodule(ringmoons) s_ringmoons_torque
+    use swiftest
+contains
+    
+    module function ringmoons_torque_lindblad(self,cb,asat,esat,isat,msat,param) result(Torque)
+        !! author: David A. Minton
+        !!
+        !! Calculates the lindblad torques between each ring element and given  given satellite. 
+        !! 
+        !! The function unction returns total torque acting on the satellite, and stores the torques acting on each ring element 
+        !! in the ring.
+        !!
+        !! Adapted from Andy Hesselbrock's ringmoons Python scripts.
+        implicit none
+        ! Arguments
+        class(ringmoons_ring),      intent(inout) :: self
+        class(swiftest_cb),         intent(in)    :: cb 
+        real(DP),                   intent(in)    :: asat,esat,isat,msat
+        class(swiftest_parameters), intent(in)    :: param
+        real(DP),dimension(0:self%nbins+1)        :: Torque
+        ! Internals
+        integer(I4B)                           :: i,j,m,inner_outer_sign,il,w,w1,w2,js, mshep
+        real(DP)                               :: aring, dTorque, beta, Amk, nw,lap,dlap,da3,Xs,Xlo,Xhi,rlo,rhi,Gfac,lind_factor,Xw2
+        real(DP), parameter                    :: g = 2.24_DP
+        integer(I4B),parameter :: M_MAX = 200     
+            !! Maximum number of Lindblad modes to compute
+        real(DP),dimension(2:M_MAX)            :: Xr,ar
+        logical,dimension(0:self%nbins+1)      :: T_mask
+        integer(I4B),dimension(2:M_MAX)        :: w1_arr,w2_arr
+        real(DP),dimension(2:M_MAX,-1:1),save :: lapm,dlapm,marr 
+            !! Laplace coefficients and mode array
+        real(DP),dimension(2:M_MAX),save :: mfac
+            !! Mode factor for computation
+        real(DP),parameter         :: RAD_LIMIT_M = 0.001_DP 
+            !! Lower limit on disk particle radius in meters
+        logical, save :: lfirst = .true.
+
+
+        ! For performance reasons, we compute a table of Laplace coefficient terms the first time through and then interpolate 
+        if (lfirst) then
+            do m = 2, m_max
+                do inner_outer_sign = -1,1,2
+                    beta =  (1._DP + inner_outer_sign * 1.0_DP / real(m, kind=DP))**(-inner_outer_sign * 2._DP / 3._DP)
+                    lapm(m,inner_outer_sign)  = m * compute_laplace_coefficient(beta,m,0.5_DP,0) 
+                    dlapm(m,inner_outer_sign) = 0.5_DP * beta * compute_laplace_coefficient(beta,m,0.5_DP,1) 
+                    marr(m,inner_outer_sign) = (1._DP + inner_outer_sign / real(m, kind=DP))**(1._DP / 3._DP)
+                end do
+                mfac(m) = 4 * PI**2 / (3._DP) * m / real(m - 1, kind=DP) 
+            end do
+            lfirst = .false.
+        end if
+
+
+        associate(ring => self)
+            ! Mask out any ring bins that don't have enough mass in them
+            where (ring%sigma(0:ring%nbins+1) > 1000 * VSMALL)
+                T_mask(0:ring%nbins+1) = .true.
+            elsewhere
+                T_mask(0:ring%nbins+1) = .false. 
+            end where
+            Xs = 2 * sqrt(asat)
+            Xw2 = 0.5_DP * Xs**2 * sqrt(param%GU)
+            Xlo = ring%X_inner + ring%deltaX * ring%inside
+            Xhi = ring%X_outer
+            rlo = 0.25_DP * Xlo**2
+            rhi = 0.25_DP * Xhi**2
+
+            ! Just do the first order resonances for now. The full suite of resonances will come later
+            Torque(:) = 0.0_DP
+
+            ! Calculate the number of modes that are separated by at least 1 bin width in X space
+            mshep = max(2,min(M_MAX - 1,ceiling(0.5_DP * (sqrt(1._DP + 4._DP / 3._DP * Xs / ring%deltaX) - 1._DP))))
+            
+            ! Inner then outer Lindblads
+            do il = -1,1,2
+                ! Calculate resonance location in X space
+                Xr(2:mshep) = Xs * marr(2:mshep,il)
+
+                ! Calculate bin boundaries of resonance using its width in X space
+                where((Xr(2:mshep) > Xlo).and.(Xr(2:mshep) < Xhi))
+                    w1_arr(2:mshep) = min(max(ceiling((sqrt(Xr(2:mshep)**2 - Xw2) - ring%X_inner) / ring%deltaX),0),ring%nbins+1)
+                    w2_arr(2:mshep) = min(max(ceiling((sqrt(Xr(2:mshep)**2 + Xw2) - ring%X_outer) / ring%deltaX),0),ring%nbins+1)
+                elsewhere ! The resonance is outside the bins
+                    w1_arr(2:mshep) = 0
+                    w2_arr(2:mshep) = 0
+                end where 
+                
+                do m  = 2, mshep
+                    if ((Xr(m) > Xlo).and.(Xr(m) < Xhi)) then
+                        beta = (Xs / Xr(m))**(il * 2)
+                        aring = 0.25_DP * (Xr(m))**2
+                        lap  =  lapm(m,il)
+                        dlap = dlapm(m,il)
+                        Amk = (lap + dlap)
+                        w1 = w1_arr(m)
+                        w2 = w2_arr(m)
+                        nw = real(w2 - w1 + 1,kind=DP)
+                        ! Calculate the 1st order Lindblad torques and distribute them over the bins that include the resonance
+                        lind_factor = il * mfac(m) / nw * aring**4 * (beta * param%GU  * Amk)**2 
+                        where(T_mask(w1:w2)) 
+                            Torque(w1:w2) = Torque(w1:w2) + lind_factor * ring%Gsigma(w1:w2) * (ring%wkep(w1:w2))**2
+                        endwhere
+                    end if
+                end do
+
+                ! Add in shepherding torque
+                aring = asat * marr(mshep+1,il)**2
+                if ((aring > rhi).or.(aring < rlo)) cycle
+                j = ring%find_bin(aring) !ring location of resonance
+                da3 = il * max(abs((aring - asat)**3),epsilon(aring))
+                if (T_mask(j)) then 
+                    Torque(j) = Torque(j) + g**2 / 6._DP * aring**3 / da3 * (param%GU)**2 * ring%Gsigma(j) &
+                                                                          * (ring%wkep(j))**2 * aring**4
+                end if
+            end do
+        end associate
+        return
+    end function ringmoons_torque_lindblad
+
+
+end submodule s_ringmoons_torque

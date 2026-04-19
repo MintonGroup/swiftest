@@ -227,7 +227,7 @@ contains
         integer(I4B) :: i
 
         associate(ring => self)       
-            call ring%compute_velocity_dispersion(cb)
+            call ring%set_velocity_dispersion(cb)
             where(ring%sigma(:) > 1000 * VSMALL) 
                 ring%Q(:) = ring%wkep(:) * ring%vrel_p(:) / (3.36_DP * ring%Gsigma(:))
                 ring%tau(:) = PI * ring%r_p(:)**2 * ring%sigma(:) / ring%m_p(:)

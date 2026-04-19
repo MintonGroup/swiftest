@@ -47,6 +47,7 @@ module swiftest
    use io_progress_bar
    use netcdf_io
    use solver
+   use laplace_coefficients
    !use advisor_annotate
    !$ use omp_lib
    implicit none

@@ -26,6 +26,7 @@ SET(STRICT_MATH_FILES
             ${SRC}/helio/helio_step.f90
             ${SRC}/misc/lambda_function_module.f90
             ${SRC}/misc/solver_module.f90
+            ${SRC}/misc/laplace_coefficient_module.f90
             ${SRC}/netcdf_io/netcdf_io_implementations.f90  
             ${SRC}/operator/operator_module.f90
             ${SRC}/operator/operator_cross.f90
@@ -52,6 +53,7 @@ SET(STRICT_MATH_FILES
             ${SRC}/whm/whm_kick.f90
             ${SRC}/whm/whm_step.f90
             ${SRC}/ringmoons/ringmoons_step.f90
+            ${SRC}/ringmoons/ringmoons_torque.f90
             ${SRC}/bindings/bindings_module.f90
 )
 
