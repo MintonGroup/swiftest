@@ -50,7 +50,7 @@ sim.add_ring(
 )
 
 dt = 100.0
-istep_out = 10
+istep_out = 1
 tstop = 1e5
 
 sim.set_parameter(tstop=tstop, dt=dt, istep_out=istep_out, dump_cadence=0)
@@ -89,7 +89,7 @@ class AnimatedScatter:
 
 
         self.ani = animation.FuncAnimation(self.fig, self.update, interval=1, frames=frames, init_func=self.init_func, blit=True)
-        self.ani.save("salmon2010-saturn-viscosity.mp4", fps=60, dpi=600, extra_args=["-vcodec", "libx264"])
+        self.ani.save("salmon2010-saturn-viscosity.mp4", fps=60, dpi=300, extra_args=["-vcodec", "libx264"])
 
     def init_func(self):
         """Initial drawing of the scatter plot."""
