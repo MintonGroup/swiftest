@@ -9,7 +9,7 @@ m_cb = cb["mass"]
 gm_cb = cb["Gmass"]
 rho_cb = m_cb / (4.0 / 3.0 * np.pi * r_cb**3)
 rot_cb = np.sqrt(cb["rot"][0] ** 2 + cb["rot"][1] ** 2 + cb["rot"][2] ** 2)
-sim = swiftest.Simulation(integrator="ringmoons", MU2KG=m_cb, DU2M=r_cb, TU="yr")
+sim = swiftest.Simulation(integrator="ringmoons", MU="kg", DU="km", TU="yr")
 sim.add_solar_system_body(["Saturn"], align_to_central_body_rotation=True)
 
 r_p = 1.0e-2 * sim.M2DU  # disk particle size
@@ -25,9 +25,9 @@ rot_cb = 360.0 / rot_cb * sim.S2TU
 
 mass_distribution = {
     "type": "gaussian",
-    "mu" : 110.0e3 * sim.M2DU,  # radius of the center of the gaussian
-    "dev" : 3600.0 * sim.M2DU,  # width of the gaussian
-    "sigma0" : 6.15e4 * sim.KG2MU / sim.M2DU**2,  # peak of the surface mass density at the center of the gaussian
+    "mu" : 110.0e3,   # radius of the center of the gaussian
+    "dev" : 3600.0,  # width of the gaussian
+    "sigma0" : 6.15e4,  # peak of the surface mass density at the center of the gaussian
     "nbins" : 1024
 }
 

@@ -243,13 +243,15 @@ contains
         !!  Resets ring torques and recomputes all dimensional quantities, such as ring extent and limits based on the current
         !! surface mass density and central body properties.
         implicit none
+        ! Arguments
         class(ringmoons_ring), intent(inout) :: self
         class(ringmoons_seed), intent(inout) :: seed
         class(ringmoons_cb), intent(in) :: cb
         class(swiftest_parameters), intent(in) :: param
-
+        ! Internals
         integer(I4B)                        :: i, iFRL, iRRL
         real(DP)                            :: Xlo, rho_p
+        real(DP)                            :: underflow_guard, deltaA_min, wkep3_min
 
         associate(ring => self)
             ring%nu = 0.0_DP
@@ -288,19 +290,30 @@ contains
                 ring%X(i) = Xlo + 0.5_DP * ring%deltaX
             end do
             ring%X2(:) = ring%X(:)**2
-
-            ! Convert X to r
+            ring%deltaA(:) = 0.25_DP * PI * ring%X(:)**3 * ring%deltaX 
             ring%r(:) = 0.25_DP * (ring%X(:))**2
-                
-            ! Factors to convert surface mass density into mass 
-            ring%deltaA(:) = 0.25_DP * PI * ring%X(:)**3 * ring%deltaX !2 * PI * deltar * ring%r(i)
-            ring%mass(:) = ring%sigma(:) * ring%deltaA(:)
-            ring%Gsigma(:) = param%GU * ring%sigma(:)
-            
-            ! Specific moment of inertia of the ring bin
+
+            ! Specific moment of inertia of the ring bin and ring angular velocity
             ring%Iz(:) = (ring%r(:))**2
             ring%wkep(:) = sqrt(cb%Gmass / ring%r(:)**3)
 
+            ! Guard agains underflow when sigma or Gsigma are very small
+            deltaA_min = max(maxval(ring%deltaA(:)), 1.0_DP)
+            wkep3_min =  max(maxval(ring%wkep(:)**(-3)), 1.0_DP)
+            underflow_guard = deltaA_min * wkep3_min * max(param%GU,1.0_DP)
+            if (underflow_guard > 1.0_DP) then
+                underflow_guard = underflow_guard * VSMALL
+            else
+                underflow_guard = VSMALL
+            end if
+            underflow_guard = sqrt(underflow_guard)
+            where(ring%sigma(:) < underflow_guard)
+                ring%sigma(:) = 0.0_DP
+            end where
+
+            ring%mass(:) = ring%sigma(:) * ring%deltaA(:)
+            ring%Gsigma(:) = param%GU * ring%sigma(:)
+            
             ring%Torque(:) = 0.0_DP
 
             if (seed%nbody > 0) then
