@@ -13,10 +13,10 @@ contains
 
     module subroutine ringmoons_step_restructure_seed(self,cb,ring,param)
         implicit none
-        class(ringmoons_seed), intent(inout) :: self
-        class(ringmoons_cb),   intent(inout) :: cb
-        class(ringmoons_ring), intent(inout) :: ring
-        class(swiftest_parameters), intent(in) :: param
+        class(ringmoons_seed),      intent(inout) :: self
+        class(ringmoons_cb),        intent(inout) :: cb
+        class(ringmoons_ring),      intent(inout) :: ring
+        class(swiftest_parameters), intent(in)    :: param
 
         integer(I4B)                        :: i,j,seed_bin,inner_outer_sign,nbin,Nactive,rbin
         real(DP)                            :: a, delta_mass, mass_left
@@ -89,7 +89,7 @@ contains
                         dtleft = dt
                         dt =  seedring%get_dt(dt) 
                         do 
-                            call seedring%step(cb,dt,stepfail)
+                            call seedring%step(cb,dt,param,stepfail)
                             dtleft = dtleft - dt
                             if (dtleft <= 0.0_DP) exit
                             dt = min(dtleft,dt)
@@ -142,16 +142,17 @@ contains
         return
     end subroutine ringmoons_step_restructure_seed
 
-    module subroutine ringmoons_step_ring(self,cb,dt,stepfail)
+    module subroutine ringmoons_step_ring(self,cb,dt,param,stepfail)
         implicit none
         ! Arguments
-        class(ringmoons_ring), intent(inout) :: self
-        class(ringmoons_cb),   intent(in)    :: cb
-        real(DP),              intent(in)    :: dt
-        logical,               intent(out)   :: stepfail
+        class(ringmoons_ring),      intent(inout) :: self
+        class(ringmoons_cb),        intent(in)    :: cb
+        real(DP),                   intent(in)    :: dt
+        class(swiftest_parameters), intent(in)    :: param
+        logical,                    intent(out)   :: stepfail
         ! Internals
-        real(DP),dimension(0:self%nbins+1)      :: S,Snew,Sn1,Sn2,fac,artnu,L,dM1,dM2
-        integer(I4B)                        :: i,N,j,loop
+        real(DP),dimension(0:self%nbins+1) :: S,Snew,Sn1,Sn2,fac,artnu,L,dM1,dM2
+        integer(I4B)                       :: i,N,j,loop
 
         call self%update(cb)
         stepfail = .false.
@@ -195,20 +196,22 @@ contains
             end do
 
             ring%sigma(1:N) = max(0.0_DP,Snew(1:N) / ring%X(1:N))
+            ring%Gsigma(1:N) = param%GU * ring%sigma(1:N)
             ring%mass(1:N) = ring%sigma(1:N) * ring%deltaA(1:N)
             ring%Torque(:) = 0.0_DP
-
         end associate
+
         return
     end subroutine ringmoons_step_ring
 
-    module subroutine ringmoons_step_seed(self, cb, ring, dt, stepfail)
+    module subroutine ringmoons_step_seed(self, cb, ring, dt, param, stepfail)
         implicit none
-        class(ringmoons_seed), intent(inout) :: self
-        class(ringmoons_cb),   intent(inout) :: cb
-        class(ringmoons_ring), intent(inout) :: ring
-        real(DP),              intent(in)    :: dt
-        logical,               intent(out)   :: stepfail
+        class(ringmoons_seed),      intent(inout) :: self
+        class(ringmoons_cb),        intent(inout) :: cb
+        class(ringmoons_ring),      intent(inout) :: ring
+        real(DP),                   intent(in)    :: dt
+        class(swiftest_parameters), intent(in)    :: param
+        logical,                    intent(out)   :: stepfail
 
         stepfail = .false.
         return
@@ -265,7 +268,7 @@ contains
 
                 call cb%accrete(ring,seed,param,dtring)
 
-                call seed%step(cb,ring,dtring,stepfail)
+                call seed%step(cb,ring,dtring,param,stepfail)
 
                 if (stepfail) then
                     dtring = dtring / SUBMAX
@@ -274,7 +277,7 @@ contains
                     cycle
                 end if
 
-                call ring%step(cb,dtring,stepfail)
+                call ring%step(cb,dtring,param,stepfail)
                 if (stepfail) then
                     if (dtring > dt * DTMIN_FAC) then
                         dtring = dtring / submax
@@ -313,7 +316,6 @@ contains
         return
     end subroutine ringmoons_step_system
 
-
     subroutine ringmoons_step_restart(system, old_system)
         implicit none
         class(ringmoons_nbody_system), intent(inout) :: system
@@ -327,7 +329,5 @@ contains
         allocate(old_system%cb, source=system%cb)
 
     end subroutine ringmoons_step_restart
-
-
 
 end submodule s_ringmoons_step

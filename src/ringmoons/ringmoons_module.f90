@@ -184,6 +184,8 @@ module ringmoons
             !! mass of ring particles in bin
         real(DP), dimension(:), allocatable :: sigma 
             !! surface mass density of ring bin
+        real(DP), dimension(:), allocatable :: Gsigma 
+            !! G*surface mass density of ring bin
         real(DP), dimension(:), allocatable :: tau               
             !! ring optical depth
         real(DP), dimension(:), allocatable :: nu                
@@ -286,40 +288,42 @@ module ringmoons
 
         module subroutine ringmoons_io_write_frame_ring(self, param) 
             implicit none
-            class(ringmoons_ring), intent(inout) :: self
+            class(ringmoons_ring),      intent(inout) :: self
             class(swiftest_parameters), intent(in) :: param
         end subroutine ringmoons_io_write_frame_ring
 
         module subroutine ringmoons_io_write_frame_seed(self, nc, param) 
             implicit none
-            class(ringmoons_seed), intent(inout) :: self
+            class(ringmoons_seed),             intent(inout) :: self
             class(swiftest_netcdf_parameters), intent(inout) :: nc
-            class(swiftest_parameters), intent(in) :: param
+            class(swiftest_parameters),        intent(in)    :: param
         end subroutine ringmoons_io_write_frame_seed
 
-        module subroutine ringmoons_step_restructure_seed(self,cb, ring,param)
+        module subroutine ringmoons_step_restructure_seed(self,cb,ring,param)
             implicit none
-            class(ringmoons_seed), intent(inout) :: self
-            class(ringmoons_cb),   intent(inout) :: cb
-            class(ringmoons_ring), intent(inout) :: ring
-            class(swiftest_parameters), intent(in) :: param
+            class(ringmoons_seed),      intent(inout) :: self
+            class(ringmoons_cb),        intent(inout) :: cb
+            class(ringmoons_ring),      intent(inout) :: ring
+            class(swiftest_parameters), intent(in)    :: param
         end subroutine ringmoons_step_restructure_seed
 
-        module subroutine ringmoons_step_ring(self,cb,dt,stepfail)
+        module subroutine ringmoons_step_ring(self,cb,dt,param,stepfail)
             implicit none
-            class(ringmoons_ring), intent(inout) :: self
-            class(ringmoons_cb),   intent(in)    :: cb
-            real(DP),              intent(in)    :: dt
-            logical,               intent(out)   :: stepfail
+            class(ringmoons_ring),      intent(inout) :: self
+            class(ringmoons_cb),        intent(in)    :: cb
+            real(DP),                   intent(in)    :: dt
+            class(swiftest_parameters), intent(in)    :: param
+            logical,                    intent(out)   :: stepfail
         end subroutine ringmoons_step_ring
 
-        module subroutine ringmoons_step_seed(self, cb, ring, dt, stepfail)
+        module subroutine ringmoons_step_seed(self, cb, ring, dt, param, stepfail)
             implicit none
-            class(ringmoons_seed), intent(inout) :: self
-            class(ringmoons_cb),   intent(inout) :: cb
-            class(ringmoons_ring), intent(inout) :: ring
-            real(DP),              intent(in)    :: dt
-            logical,               intent(out)   :: stepfail
+            class(ringmoons_seed),      intent(inout) :: self
+            class(ringmoons_cb),        intent(inout) :: cb
+            class(ringmoons_ring),      intent(inout) :: ring
+            real(DP),                   intent(in)    :: dt
+            class(swiftest_parameters), intent(in)    :: param
+            logical,                    intent(out)   :: stepfail
         end subroutine ringmoons_step_seed
 
         module subroutine ringmoons_step_system(self, param, t, dt)

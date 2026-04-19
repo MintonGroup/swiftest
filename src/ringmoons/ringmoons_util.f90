@@ -67,6 +67,7 @@ contains
             call ring%reset(seed,cb,param)
             ring%mass(:) = mtmp(:)
             ring%sigma(:) = ring%mass(:) / ring%deltaA(:)
+            ring%Gsigma(:) = param%GU * ring%sigma(:)
             
             ! Any difference in angular momentum in each ring bin will result in a torque in that bin
             Lring_now(:) = ring%mass(:) * ring%Iz(:) * ring%wkep(:) 
@@ -96,6 +97,7 @@ contains
         if (allocated(self%r_hstar)) deallocate(self%r_hstar)
         if (allocated(self%deltaA))  deallocate(self%deltaA)
         if (allocated(self%sigma))   deallocate(self%sigma)
+        if (allocated(self%Gsigma))  deallocate(self%Gsigma)
         if (allocated(self%mass))    deallocate(self%mass)
         if (allocated(self%tau))     deallocate(self%tau)
         if (allocated(self%nu))      deallocate(self%nu)
@@ -221,9 +223,9 @@ contains
         associate(ring => self)       
             call ring%compute_velocity_dispersion(cb)
             where(ring%sigma(:) > 1000 * VSMALL) 
-                ring%Q(:) = ring%wkep(:) * ring%vrel_p(:) / (3.36_DP * ring%sigma(:))
+                ring%Q(:) = ring%wkep(:) * ring%vrel_p(:) / (3.36_DP * ring%Gsigma(:))
                 ring%tau(:) = PI * ring%r_p(:)**2 * ring%sigma(:) / ring%m_p(:)
-                ring%nu(:) = ringmoons_viscosity(ring%sigma(:), ring%m_p(:), (ring%vrel_p(:))**2, &
+                ring%nu(:) = ringmoons_viscosity(ring%Gsigma(:), ring%m_p(:), (ring%vrel_p(:))**2, &
                                                 ring%r_p(:), ring%r_hstar(:), ring%Q(:), ring%tau(:), ring%wkep(:))
             elsewhere
                 ring%Q(:) = huge(1._DP) / 10._DP
@@ -293,6 +295,7 @@ contains
             ! Factors to convert surface mass density into mass 
             ring%deltaA(:) = 0.25_DP * PI * ring%X(:)**3 * ring%deltaX !2 * PI * deltar * ring%r(i)
             ring%mass(:) = ring%sigma(:) * ring%deltaA(:)
+            ring%Gsigma(:) = param%GU * ring%sigma(:)
             
             ! Specific moment of inertia of the ring bin
             ring%Iz(:) = (ring%r(:))**2
@@ -342,6 +345,7 @@ contains
         allocate(self%r_hstar(0:n+1))
         allocate(self%deltaA(0:n+1))
         allocate(self%sigma(0:n+1))
+        allocate(self%Gsigma(0:n+1))
         allocate(self%mass(0:n+1))
         allocate(self%tau(0:n+1))
         allocate(self%nu(0:n+1))
@@ -360,6 +364,7 @@ contains
         self%r_hstar(:) = 0.0_DP
         self%deltaA(:) = 0.0_DP
         self%sigma(:) = 0.0_DP
+        self%Gsigma(:) = 0.0_DP
         self%mass(:) = 0.0_DP
         self%tau(:) = 0.0_DP
         self%nu(:) = 0.0_DP
@@ -539,6 +544,7 @@ contains
             ! Take away the mass from the ring
             ring%mass(j) = ring%mass(j) - seed%mass(i)
             ring%sigma(j) = ring%mass(j) / ring%deltaA(j)
+            ring%Gsigma(j) = param%GU * ring%sigma(j)
             seed%ringbin(i) = ring%find_bin(seed%a(i))
 
         end associate
@@ -568,16 +574,16 @@ contains
         return
     end subroutine ringmoons_util_velocity_dispersion_ring
 
-    elemental pure function ringmoons_viscosity(sigma, m_p, v2_p, r_p, r_hstar, Q, tau, w) result(nu)
+    elemental pure function ringmoons_viscosity(Gsigma, m_p, v2_p, r_p, r_hstar, Q, tau, w) result(nu)
         ! Arguments
-        real(DP),intent(in) :: sigma, m_p, v2_p, r_p, r_hstar, Q, tau, w
+        real(DP),intent(in) :: Gsigma, m_p, v2_p, r_p, r_hstar, Q, tau, w
         real(DP) :: nu
         ! Internals
         real(DP)       :: kappa_Q,eta_Q,y
         real(DP)       :: nu_trans_stable,nu_grav_stable,nu_trans_unstable,nu_grav_unstable
         real(DP)       :: nu_trans,nu_grav,nu_coll
 
-        nu_trans_unstable = 13 * r_hstar**5 * sigma**2 / w**3
+        nu_trans_unstable = 13 * r_hstar**5 * Gsigma**2 / w**3
         nu_trans_stable = (v2_p / (2 * w)) * (0.46_DP * tau / (1._DP + tau**2))
 
         nu_grav_stable = 0.0_DP
