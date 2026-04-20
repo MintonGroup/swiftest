@@ -16,6 +16,8 @@ module ringmoons
     implicit none
     public
 
+    integer(I4B), parameter             :: LOOPMAX = 2147483646 
+
     !> NetCDF dimension and variable names for the ringmoons objects
     type, extends(netcdf_parameters) :: ringmoons_netcdf_parameters
         character(NAMELEN) :: ringbin_dimname = "ringbin"
@@ -137,6 +139,8 @@ module ringmoons
             !! Advances the evolution of the seeds by one time step, including accretion and spawning events
         procedure :: spawn       => ringmoons_util_spawn_seed
             !! Spawn new seeds from the ring at the FRL
+        procedure :: get_tidal_torque => ringmoons_torque_tidal_seed
+            !! Calculates the tidal torque on the seed from the central body
         procedure :: write_frame  => ringmoons_io_write_frame_seed
             !! Writes seed data to file
         final     ::                ringmoons_final_seed
@@ -222,7 +226,7 @@ module ringmoons
             !! Calculates the maximum stable timestep for the surface mass density evolution that is not larger than dtin.
         procedure :: set_velocity_dispersion => ringmoons_util_velocity_dispersion_ring
             !! Calculates the velocity 
-        procedure :: get_lindblad_torque     => ringmoons_torque_lindblad
+        procedure :: get_lindblad_torque     => ringmoons_torque_lindblad_ring
             !! Calculates the lindblad torques between each ring element and an input body.
         procedure :: dealloc                 => ringmoons_util_dealloc_ring
             !! Deallocates allocatable arrays
@@ -333,14 +337,22 @@ module ringmoons
             real(DP),                      intent(in)    :: dt   
         end subroutine ringmoons_step_system
 
-        module function ringmoons_torque_lindblad(self,cb,asat,esat,isat,msat,param) result(Torque)
+        module function ringmoons_torque_lindblad_ring(self,cb,asat,esat,isat,msat,param) result(Torque)
             implicit none
             class(ringmoons_ring),      intent(inout) :: self
             class(swiftest_cb),         intent(in)    :: cb 
             real(DP),                   intent(in)    :: asat,esat,isat,msat
             class(swiftest_parameters), intent(in)    :: param
             real(DP),dimension(0:self%nbins+1)        :: Torque
-        end function ringmoons_torque_lindblad        
+        end function ringmoons_torque_lindblad_ring
+
+        module subroutine ringmoons_torque_tidal_seed(self,cb,param)
+            implicit none
+            class(ringmoons_seed),      intent(inout) :: self
+            class(swiftest_cb),         intent(in)    :: cb
+            class(swiftest_parameters), intent(in)    :: param
+        end subroutine ringmoons_torque_tidal_seed
+
         module subroutine ringmoons_util_accrete_cb(self,ring,seed,param,dt)
             implicit none
             class(ringmoons_cb),        intent(inout) :: self

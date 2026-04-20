@@ -227,18 +227,319 @@ contains
         !Runge-Kutta-Fehlberg parameters
         integer(I4B),parameter                      :: rkfo = 6
         real(DP),dimension(6,5),parameter           :: rkf45_btab = reshape( & ! Butcher tableau for Runge-Kutta-Fehlberg method
-            (/        1./4.,       1./4.,          0.,            0.,           0.,           0.,&
+            [         1./4.,       1./4.,          0.,            0.,           0.,           0.,&
                         3./8.,      3./32.,      9./32.,            0.,           0.,           0.,&
                     12./13., 1932./2197., -7200./2197.,  7296./2197.,           0.,           0.,&
                         1.,   439./216.,          -8.,   3680./513.,   -845./4104.,          0.,&
-                        1./2.,     -8./27.,           2., -3544./2565.,   1859./4104.,    -11./40./), shape(rkf45_btab))
-        real(DP),dimension(6),parameter            :: rkf5_coeff =  (/ 16./135., 0., 6656./12825., 28561./56430., -9./50., 2./55. /)
-        real(DP),dimension(6),parameter            :: rkf4_coeff =  (/ 25./216., 0., 1408./2565. ,  2197./4104. , -1./5. ,     0. /)
+                        1./2.,     -8./27.,           2., -3544./2565.,   1859./4104.,    -11./40.], shape(rkf45_btab))
+        real(DP),dimension(6),parameter           :: rkf5_coeff =  [ 16./135., 0., 6656./12825., 28561./56430., -9./50., 2./55. ]
+        real(DP),dimension(6),parameter           :: rkf4_coeff =  [ 25./216., 0., 1408./2565. ,  2197./4104. , -1./5. ,     0. ]
+        integer(I4B)                              :: i, j, iRRL, nfz, seed_bin,ilo,ihi, rkn,rbin, loop, nloops, Ns
+        real(DP)                                  :: dadt, e, inc, sigavg, sigsum, Li, Lj, Ls,dti,dtleft,dtmin
+        real(DP)                                  :: impact_b
+        class(ringmoons_ring), allocatable        :: iring
+        class(ringmoons_seed), allocatable        :: iseed
+        real(DP)                                  :: da,mleft,dm,mdisk
+        real(DP),dimension(0:ring%nbins+1)        :: dTorque_ring,mringi,mringf,Torquei,Torquef
+        real(DP),dimension(0:ring%nbins+1)        :: Tlind,Tring
+        real(DP),dimension(0:ring%nbins+1,rkfo)   :: kr,kL
+        real(DP),dimension(self%nbody,rkfo)       :: ka,km,kT
+        real(DP),dimension(0:ring%nbins+1)        :: Er,rscale,rmdot
+        real(DP),dimension(self%nbody)            :: Ea, Em,ascale,mscale
+        real(DP),dimension(self%nbody)            :: ai,af,mi,mf, dTtide,Ttidef
+        integer(I4B)                              :: Nactive 
+        real(DP),dimension(0:ring%nbins+1)        :: Lring_orig,Lring_now
+        real(DP),dimension(self%nbody)            :: Lseeds_orig,Lseeds_now,Lres, mdot, Tr_evol,adot
+        logical, dimension(self%nbody)            :: lactive
+        real(DP)                                  :: Lr0,Ls0,Lp0,Lr1,Ls1,Lp1,Lorig,sarr,Ttide,maxE
+        logical                                   :: chomped,goodstep
+        real(DP),parameter                        :: DTMIN_FAC = 1e-16_DP
+        !   real(DP),parameter                        :: TOL = 1e-8_DP 
+        integer(I4B)                              :: Nnegative_seed,Nnegative_ring,Nbig_error,aloc,Gmloc
+
+        associate(seed => self)
+
+            ! Executable code
+            e = 0.0_DP
+            inc = 0.0_DP
+            stepfail = .false.
+            if (seed%nbody == 0) return
+            dti = dt
+            dtleft = dt
+            dtmin = DTMIN_FAC * dt
 
 
-        stepfail = .false.
+            ! Save initial state of the seed
+            allocate(iring, source=ring)
+            allocate(iseed, source=self)
+            Ns = iseed%nbody
+            ai(1:Ns) = seed%a(1:Ns)
+            mi(1:Ns) = seed%mass(1:Ns)
+            mringi(:) = ring%mass(:)
+
+            Torquei(:) = ring%Torque(:)
+            dTorque_ring(:) = 0.0_DP
+            dTtide(:) = 0.0_DP
+
+            Nnegative_seed = 0
+            Nnegative_ring = 0
+            Nbig_error = 0
+
+            steploop: do loop = 1, LOOPMAX 
+                nloops = loop
+                if (loop == LOOPMAX) then
+                    stepfail = .true.
+                    write(*,*) 'max loop reached in seed_evolve'
+                    return
+                end if
+
+                stepfail = .false.
+
+                ka(:,:) = 0._DP
+                km(:,:) = 0._DP
+                kr(:,:) = 0._DP
+                kT(:,:) = 0.0_DP
+                kL(:,:) = 0.0_DP
+                goodstep = .true.
+                adot(:) = 0.0_DP
+                mdot(:) = 0.0_DP
+
+                do rkn = 1,rkfo ! Runge-Kutta steps 
+                    iseed%a(1:Ns) = ai(1:Ns) + matmul(ka(1:Ns,1:rkn-1), rkf45_btab(2:rkn,rkn-1))
+                    if (any(iseed%a(1:Ns) < 0.0_DP)) then
+                        Nnegative_seed = Nnegative_seed + 1 
+                        goodstep = .false.
+                        dti = 0.5_DP * dt
+                        cycle steploop
+                    end if 
+
+                    iseed%mass(1:Ns) = mi(1:Ns) + matmul(km(1:Ns,1:rkn-1), rkf45_btab(2:rkn,rkn-1))
+                    if (any(iseed%mass(1:Ns) < 0.0_DP)) then
+                        Nnegative_seed = Nnegative_seed + 1 
+                        goodstep = .false.
+                        dti = 0.5_DP * dt
+                        cycle steploop
+                    end if 
+
+                    iring%mass(:)  = mringi(:) + matmul(kr(:,1:rkn-1),rkf45_btab(2:rkn,rkn-1))
+                    iring%sigma(:) = iring%mass(:) / iring%deltaA(:)
+                    iring%Gsigma(:) = param%GU * iring%sigma(:)
+                    iseed%ringbin(1:Ns) = iring%find_bin(seed%a(1:Ns))
+
+
+                    call iseed%get_tidal_torque(cb,param) 
+                    do i = 1, Ns
+                        rbin = iseed%ringbin(i)
+                        Tlind(:) = iring%get_lindblad_torque(cb,iseed%a(i),e,inc,iseed%mass(i),param)
+                        iseed%Torque(i) = iseed%Ttide(i) - sum(Tlind(:)) 
+                    end do
+                    where(iring%mass(iseed%ringbin(1:Ns)) / iseed%mass(1:Ns) > epsilon(1.0_DP))
+                        mdot(1:Ns) = ringmoons_dMdt_seed(iseed,iring,cb)
+                        Tr_evol(1:Ns) = mdot(1:Ns) * iring%Iz(iseed%ringbin(1:Ns)) * iring%wkep(iseed%ringbin(1:Ns))
+                    elsewhere 
+                        mdot(1:Ns) = 0.0_DP
+                        Tr_evol(1:Ns) = 0.0_DP
+                    endwhere
+                    adot(1:Ns) = ringmoons_dadt_seed(seed,cb,mdot)
+                    do i = 1, Ns
+                        rbin = iseed%ringbin(i)
+                        kr(rbin,rkn) = kr(rbin,rkn) - dti * mdot(i)
+                        km(i,rkn) = dti * mdot(i) ! Grow the seed
+                        ka(i,rkn) = dti * adot(i)
+                        kT(i,rkn) = dti * Ttide
+                        kL(:,rkn) = kL(:,rkn) + dti * Tlind(:)
+                    end do
+                end do
+                
+                ! Allow ring mass to go negative, as it will get filled in by sigma_solver
+                mringf(:) = mringi(:) + matmul(kr(:,1:rkfo), rkf5_coeff(1:rkfo))
+                af(1:Ns) = ai(1:Ns) + matmul(ka(1:Ns,1:rkfo), rkf5_coeff(1:rkfo))
+
+                !Don't let seed semimajor axes or masses go negative
+                if (any(af(1:Ns) < 0.0_DP)) then
+                    Nnegative_seed = Nnegative_seed + 1 
+                    dti = 0.5_DP * dti
+                    cycle steploop
+                end if
+
+                mf(1:Ns) = mi(1:Ns) + matmul(km(1:Ns,1:rkfo), rkf5_coeff(1:rkfo))
+
+                if (any(mf(1:Ns) < 0.0_DP)) then
+                    Nnegative_seed = Nnegative_seed + 1 
+                    dti = 0.5_DP * dti
+                    cycle steploop
+                end if
+
+                ! use the initial value and derivative for error scaling
+                ascale(1:Ns) = abs(ai(1:Ns)) + abs(ka(1:Ns,1)) 
+
+                Ea(1:Ns) = abs(matmul(ka(1:Ns,:), (rkf5_coeff(:) - rkf4_coeff(:))))
+                maxE = maxval(Ea(1:Ns) / ascale(1:Ns)) / iseed%rkf_tol
+
+                if ((maxE > 1.0_DP).and.(dti > dtmin)) then
+                    ! seed a error too high
+                    dti = 0.9_DP * dti / maxE**(0.25_DP)
+                    goodstep =.false.
+                    Nbig_error = Nbig_error + 1
+                    cycle steploop
+                end if
+
+                mscale(1:Ns) = abs(mi(1:Ns)) + abs(km(1:Ns,1)) 
+                Em(1:Ns) = abs(matmul(km(1:Ns,:), (rkf5_coeff(:) - rkf4_coeff(:))))
+                maxE = max(maxE, maxval(Em(1:Ns) / mscale(1:Ns)) / iseed%rkf_tol)
+
+                if (maxE > 1.0_DP) then
+                    if (dti > dtmin) then
+                        ! seed m error too high
+                        dti = 0.9_DP * dti / maxE**(0.25_DP)
+                        goodstep =.false.
+                        Nbig_error = Nbig_error + 1
+                        cycle steploop
+                    else
+                        ! already at minimum step size
+                        sarr = 1.0_DP
+                    end if
+                else if (maxE < 2e-4_DP) then
+                    ! error very low
+                    sarr = 5._DP
+                else
+                    ! adjust step size based on error estimate
+                    sarr = max(0.90_DP / maxE**(0.25_DP),1._DP)
+                end if
+
+                ! save final state of seed and ring and average of torques
+                Torquef(:) = matmul(kL(:,1:rkfo), rkf5_coeff(1:rkfo))
+                Ttidef(1:Ns) = matmul(kT(1:Ns,1:rkfo), rkf5_coeff(1:rkfo))
+                ai(1:Ns) = af(1:Ns)
+                mi(1:Ns) = mf(1:Ns)
+                mringi(:) = mringf(:)
+                dTtide(1:Ns) = dTtide(1:Ns) + Ttidef(1:Ns)
+                dTorque_ring(:) = dTorque_ring(:) + Torquef(:)
+
+                dtleft = dtleft - dti
+            
+                if (dtleft <= 0.0_DP) exit steploop
+                dti = min(sarr * dti,dtleft)
+
+            end do steploop
+            
+
+            seed%a(:) = af(:)
+            seed%mass(:) = mf(:)
+            seed%Gmass(:) = param%GU * seed%mass(:)
+            seed%mu(:) = cb%Gmass + seed%Gmass(:)
+            ring%mass(:) = mringf(:)
+            ring%sigma(:) = ring%mass(:) / ring%deltaA(:)
+            ring%Gsigma(:) = param%GU * ring%sigma(:)
+            cb%dL(3) = cb%dL(3) - sum(dTtide(1:Ns))
+            ring%Torque(:) = Torquei(:) + dTorque_ring(:) / dt
+            
+            cb%rot(3) = (cb%L0(3) + cb%dL(3)) / (cb%Ip(3) * cb%mass * (cb%radius)**2) 
+            seed%Torque(:) = 0.0_DP
+            seed%Ttide(:) = 0.0_DP
+            call iseed%dealloc()
+            call iring%dealloc()
+            seed%ringbin(:) = ring%find_bin(seed%a(:))
+
+            !I'm hungry! What's there to eat?! Look for neighboring seed
+            !write(*,*) 'chomp'
+            chomped = .false.
+            do i = 1, seed%nbody
+                if (seed%status(i) == ACTIVE) then
+                    do j = i + 1, seed%nbody
+                        if (seed%status(j) == ACTIVE) then
+                        impact_b =  0.5_DP * (seed%a(i) + seed%a(j)) * ((seed%mass(i) + seed%mass(j)) / (3 * cb%mass))**(1._DP / 3._DP)
+                        impact_b = impact_b * seed%feeding_zone_factor 
+                        if (abs(seed%a(i) - seed%a(j)) < impact_b) then
+                            ! conserve both mass and angular momentum
+                            !write(*,*) 'chomped: '
+                            Li = seed%mass(i) * sqrt((cb%mass + seed%mass(i)) * seed%a(i))
+                            Lj = seed%mass(j) * sqrt((cb%mass + seed%mass(j)) * seed%a(j))
+                            seed%mass(i) = seed%mass(i) + seed%mass(j)
+                            seed%Gmass(i) = param%GU * seed%mass(i)
+                            seed%mu(i) = cb%mass + seed%Gmass(i)
+                            seed%a(i) = ((Li + Lj) / seed%mass(i))**2 / (cb%mass + seed%mass(i))
+
+                            ! deactivate particle 
+                            seed%mass(j) = 0.0_DP
+                            seed%a(j) = 0.0_DP
+                            seed%status(j) = INACTIVE
+                            chomped = .true.
+                        end if
+                    end if
+                    end do
+                end if
+            end do      
+            if (chomped) then  
+                lactive(:) = seed%status(:) == ACTIVE
+                Nactive = count(lactive(:))
+                seed%id(1:Nactive) = pack(seed%id(:),lactive(:))
+                seed%a(1:Nactive) = pack(seed%a(:),lactive(:))
+                seed%mass(1:Nactive) = pack(seed%mass(:),lactive(:))
+                seed%Gmass(1:Nactive) = pack(seed%Gmass(:),lactive(:))
+                seed%info(1:Nactive) = pack(seed%info(:), lactive(:))
+                seed%status(1:Nactive) = pack(seed%status(:),lactive(:))
+                seed%density(1:Nactive) = pack(seed%density(:),lactive(:))
+                seed%radius(1:Nactive) = pack(seed%radius(:),lactive(:))
+                seed%rhill(1:Nactive) = pack(seed%rhill(:),lactive(:))
+                seed%ringbin(1:Nactive) = ring%find_bin(seed%a(1:Nactive))
+                seed%nbody = Nactive
+                if (size(seed%id) > Nactive) then
+                    seed%status(Nactive+1:size(seed%id)) = INACTIVE
+                    seed%id(Nactive+1:size(seed%id)) = 0
+                    seed%a(Nactive+1:size(seed%id)) = 0.0_DP
+                    seed%mass(Nactive+1:size(seed%id)) = 0.0_DP
+                    seed%Gmass(Nactive+1:size(seed%id)) = 0.0_DP
+                    seed%density(Nactive+1:size(seed%id)) = 0.0_DP
+                    seed%rhill(Nactive+1:size(seed%id)) = 0.0_DP
+                    seed%radius(Nactive+1:size(seed%id)) = 0.0_DP
+                    seed%ringbin(Nactive+1:size(seed%id)) = 0
+                end if
+
+            end if
+
+
+            stepfail = .false.
+        end associate
         return
     end subroutine ringmoons_step_seed
+
+    function ringmoons_dadt_seed(seed,cb,mdot) result(adot)
+        ! Arguments
+        class(ringmoons_seed), intent(in) :: seed
+        class(ringmoons_cb), intent(in) :: cb
+        real(DP), dimension(:), intent(in) :: mdot
+        real(DP), dimension(1:seed%nbody)  :: adot
+
+        adot(:) = seed%Torque(:) / seed%mass(:) * sqrt(seed%a(:)/cb%mass) &
+                      - mdot(:) * (1._DP  + seed%mass(:) / (2 *(cb%mass + seed%mass(:))))
+        adot = 2 * adot * seed%a(:) / seed%mass(:)
+
+        return
+    end function ringmoons_dadt_seed
+
+    function ringmoons_dMdt_seed(seed,ring,cb) result(mdot)
+        class(ringmoons_seed),intent(in) :: seed
+        class(ringmoons_ring), intent(in) :: ring
+        class(ringmoons_cb), intent(in) :: cb 
+        real(DP), dimension(1:seed%nbody) :: mdot
+
+    ! Internals
+        integer(I4B)                           :: i
+        real(DP), dimension(seed%nbody)        :: C
+        real(DP),parameter                     :: eff2   = 1e-7_DP ! This term gets the growth rate to match up closely to Andy's
+        real(DP),parameter                     :: growth_exponent = 4._DP / 3._DP
+        real(DP), parameter                    :: SIGLIMIT = 1e-100_DP
+
+    ! Executable code
+        
+        C(:) = 12 * PI**(2._DP / 3._DP) * (3._DP / (4 * seed%density(:)))**(1._DP / 3._DP) / sqrt(cb%mass) 
+        mdot(:) = C(:) * ring%sigma(:) / (eff2 * sqrt(seed%a(:))) * seed%mass(:)**(growth_exponent)
+        
+        return
+    end function ringmoons_dMdt_seed
+
+
 
     module subroutine ringmoons_step_system(self, param, t, dt)
         !! author: David A. Minton
@@ -257,7 +558,6 @@ contains
         real(DP),                   intent(in)       :: dt   
         ! Internals
         real(DP),     parameter             :: DTMIN_FAC = 1e-16_DP
-        integer(I4B), parameter             :: LOOPMAX = 2147483646 
         integer(I4B), parameter             :: SUBMAX = 2
         logical                             :: stepfail
         real(DP)                            :: dtring,dtleft

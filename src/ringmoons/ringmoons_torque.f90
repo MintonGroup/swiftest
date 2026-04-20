@@ -11,7 +11,7 @@ submodule(ringmoons) s_ringmoons_torque
     use swiftest
 contains
     
-    module function ringmoons_torque_lindblad(self,cb,asat,esat,isat,msat,param) result(Torque)
+    module function ringmoons_torque_lindblad_ring(self,cb,asat,esat,isat,msat,param) result(Torque)
         !! author: David A. Minton
         !!
         !! Calculates the lindblad torques between each ring element and given  given satellite. 
@@ -124,7 +124,28 @@ contains
             end do
         end associate
         return
-    end function ringmoons_torque_lindblad
+    end function ringmoons_torque_lindblad_ring
+
+    module subroutine ringmoons_torque_tidal_seed(self,cb,param)
+        !! author: David A. Minton
+        !!
+        !! Calculates the tidal torque acting on the seed by the central body
+        !! Constant Q tidal model, see eq. 16 in [Cheng, Lee, and Peale 2014](https://doi.org/10.1016/j.icarus.2014.01.046) 
+        implicit none
+        class(ringmoons_seed),      intent(inout) :: self
+        class(swiftest_cb),         intent(in)    :: cb
+        class(swiftest_parameters), intent(in)    :: param
+        ! Internals
+        real(DP),dimension(self%nbody) :: n
+        associate(seed => self)
+            n(:) = sqrt((seed%mu(:)) / seed%a(:)**3)
+            seed%Ttide(:) = sign(1._DP,cb%rot(3) - n(:)) * &
+                    3 * seed%a(:) * n * (cb%k2 / cb%Q) * &
+                    (seed%mass(:) / cb%mass) * &
+                    (cb%radius / seed%a(:))**5 
+        end associate
+        return
+        end subroutine ringmoons_torque_tidal_seed
 
 
 end submodule s_ringmoons_torque
