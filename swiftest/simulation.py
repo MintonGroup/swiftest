@@ -3115,7 +3115,7 @@ class Simulation:
             Mass of ring particles in each bin (MU).
         mass_distribution: dict
             Dictionary describing the mass distribution of the ring. Options are:
-            - "powerlaw": Power-law mass distribution. Must also contain keys "nbins", "alpha", and "sigma0".
+            - "powerlaw": Power-law mass distribution. Must also contain keys "nbins", "alpha", "sigma0", "r_outer".
             - "gaussian": Gaussian mass distribution. Must also contain keys "nbins", "sigma0", "mu" and "dev".
             - "arbitrary": Arbitrary mass distribution. Must also contain keys "sigma" (an array of surface mass densities), "r_inner" and "r_outer" (the inner and outer radii of the ring).
         **kwargs: Any
@@ -3146,7 +3146,10 @@ class Simulation:
             rho_p = m_p / (4.0 / 3.0 * np.pi * r_p**3)
             frl = 2.456 * r_planet * (rho_planet / rho_p) ** (1.0 / 3.0)
             r_inner = 0.99 * r_planet
-            r_outer = 2.0 * frl
+            if mass_distribution["type"] == "powerlaw":
+                r_outer = mass_distribution["r_outer"]
+            else:
+                r_outer = 1.01 * frl
 
         r = []
         delta_x = (2 * np.sqrt(r_outer) - 2 * np.sqrt(r_inner)) / nbins
@@ -3159,6 +3162,7 @@ class Simulation:
             if mass_distribution["type"] == "powerlaw":
                 alpha = mass_distribution["alpha"]
                 sigma0 = mass_distribution["sigma0"]
+
                 for a in range(int(nbins)):
                     if r[a] <= r_planet:
                         sigma.append(0.0)

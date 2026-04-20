@@ -163,7 +163,7 @@ contains
         call self%update(cb)
         stepfail = .false.
 
-        associate(ring => self, N => ring%nbins)
+        associate(ring => self, N => self%nbins)
             S(0) = 0.0_DP
             S(1:N) = ring%sigma(1:N) * ring%X(1:N)
             S(N+1) = 0.0_DP
@@ -195,7 +195,7 @@ contains
                 Sn1(1:N) = artnu(2:N+1) * S(2:N+1) - 2 * artnu(1:N) * S(1:N) + artnu(0:N-1) * S(0:N-1)
                 Snew(1:N) = S(1:N) + fac(1:N) * Sn1(1:N) 
                 loop = loop + 1
-                if (loop > 1000) then
+                if (loop > 100000) then
                     stepfail = .true.
                     exit
                 end if
@@ -251,7 +251,7 @@ contains
         real(DP),dimension(0:ring%nbins+1)        :: Lring_orig,Lring_now
         real(DP),dimension(self%nbody)            :: Lseeds_orig,Lseeds_now,Lres, mdot, Tr_evol,adot
         logical, dimension(self%nbody)            :: lactive
-        real(DP)                                  :: Lr0,Ls0,Lp0,Lr1,Ls1,Lp1,Lorig,sarr,Ttide,maxE
+        real(DP)                                  :: Lr0,Ls0,Lp0,Lr1,Ls1,Lp1,Lorig,sarr,maxE
         logical                                   :: chomped,goodstep
         real(DP),parameter                        :: DTMIN_FAC = 1e-16_DP
         !   real(DP),parameter                        :: TOL = 1e-8_DP 
@@ -328,25 +328,25 @@ contains
 
 
                     call iseed%get_tidal_torque(cb,param) 
+                    mdot(:) = ringmoons_dMdt_seed(iseed,iring,cb)
                     do i = 1, Ns
                         rbin = iseed%ringbin(i)
                         Tlind(:) = iring%get_lindblad_torque(cb,iseed%a(i),e,inc,iseed%mass(i),param)
                         iseed%Torque(i) = iseed%Ttide(i) - sum(Tlind(:)) 
+                        if (iring%mass(iseed%ringbin(i)) / iseed%mass(i) > epsilon(1.0_DP)) then
+                            Tr_evol(i) = mdot(i) * iring%Iz(iseed%ringbin(i)) * iring%wkep(iseed%ringbin(i))
+                        else
+                            mdot(i) = 0.0_DP
+                            Tr_evol(i) = 0.0_DP
+                        end if
                     end do
-                    where(iring%mass(iseed%ringbin(1:Ns)) / iseed%mass(1:Ns) > epsilon(1.0_DP))
-                        mdot(1:Ns) = ringmoons_dMdt_seed(iseed,iring,cb)
-                        Tr_evol(1:Ns) = mdot(1:Ns) * iring%Iz(iseed%ringbin(1:Ns)) * iring%wkep(iseed%ringbin(1:Ns))
-                    elsewhere 
-                        mdot(1:Ns) = 0.0_DP
-                        Tr_evol(1:Ns) = 0.0_DP
-                    endwhere
-                    adot(1:Ns) = ringmoons_dadt_seed(seed,cb,mdot)
+                    adot(:) = ringmoons_dadt_seed(seed,cb,mdot)
                     do i = 1, Ns
                         rbin = iseed%ringbin(i)
                         kr(rbin,rkn) = kr(rbin,rkn) - dti * mdot(i)
                         km(i,rkn) = dti * mdot(i) ! Grow the seed
                         ka(i,rkn) = dti * adot(i)
-                        kT(i,rkn) = dti * Ttide
+                        kT(i,rkn) = dti * iseed%Ttide(i)
                         kL(:,rkn) = kL(:,rkn) + dti * Tlind(:)
                     end do
                 end do
@@ -532,9 +532,12 @@ contains
         real(DP), parameter                    :: SIGLIMIT = 1e-100_DP
 
     ! Executable code
-        
-        C(:) = 12 * PI**(2._DP / 3._DP) * (3._DP / (4 * seed%density(:)))**(1._DP / 3._DP) / sqrt(cb%mass) 
-        mdot(:) = C(:) * ring%sigma(:) / (eff2 * sqrt(seed%a(:))) * seed%mass(:)**(growth_exponent)
+        where((seed%density(:) > VSMALL).and.(seed%a(:) > VSMALL))
+            C(:) = 12 * PI**(2._DP / 3._DP) * (3._DP / (4 * seed%density(:)))**(1._DP / 3._DP) / sqrt(cb%mass) 
+            mdot(:) = C(:) * ring%sigma(:) / (eff2 * sqrt(seed%a(:))) * seed%mass(:)**(growth_exponent)
+        elsewhere
+            mdot(:) = 0.0_DP
+        end where
         
         return
     end function ringmoons_dMdt_seed

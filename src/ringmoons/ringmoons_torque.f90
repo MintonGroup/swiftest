@@ -29,11 +29,11 @@ contains
         real(DP),dimension(0:self%nbins+1)        :: Torque
         ! Internals
         integer(I4B)                           :: i,j,m,inner_outer_sign,il,w,w1,w2,js, mshep
-        real(DP)                               :: aring, dTorque, beta, Amk, nw,lap,dlap,da3,Xs,Xlo,Xhi,rlo,rhi,Gfac,lind_factor,Xw2
+        real(DP)                               :: dTorque, beta, Amk, nw,lap,dlap,da3,ar,Xr,Xs,Xlo,Xhi,rlo,rhi,Gfac,lind_factor,awidth
         real(DP), parameter                    :: g = 2.24_DP
         integer(I4B),parameter :: M_MAX = 100     
             !! Maximum number of Lindblad modes to compute
-        real(DP),dimension(2:M_MAX)            :: Xr,ar
+        real(DP),dimension(2:M_MAX)            :: aring
         logical,dimension(0:self%nbins+1)      :: T_mask
         integer(I4B),dimension(2:M_MAX)        :: w1_arr,w2_arr
         real(DP),dimension(2:M_MAX,-1:1),save :: lapm,dlapm,marr 
@@ -45,13 +45,17 @@ contains
         logical, save :: lfirst = .true.
 
 
-        ! For performance reasons, we compute a table of Laplace coefficient terms the first time through and then interpolate 
+        ! For performance reasons, we compute a table of Laplace coefficient terms in Am,k from Tajeddine et al. (2017) eq. 27
+        ! lapm and dlapm are the two Laplace coefficient terms 
+        ! marr is an array used to locate the resonance in X space given a satellite location Xs. It is based on the mode and 
+        ! Kepler's 3rd law (which is where the 1/3 power comes from)
+        ! mfac is the leading term of the equation for the torque. See Tajeddine et al. (2017) eq. 4
         if (lfirst) then
             do m = 2, M_MAX
                 do inner_outer_sign = -1,1,2
                     beta =  (1._DP + inner_outer_sign * 1.0_DP / real(m, kind=DP))**(-inner_outer_sign * 2._DP / 3._DP)
-                    lapm(m,inner_outer_sign)  = m * compute_laplace_coefficient(beta,m,0.5_DP,0) 
-                    dlapm(m,inner_outer_sign) = 0.5_DP * beta * compute_laplace_coefficient(beta,m,0.5_DP,1) 
+                    lapm(m,inner_outer_sign)  = 2 * m * compute_laplace_coefficient(beta,m,0.5_DP,0) 
+                    dlapm(m,inner_outer_sign) = beta * compute_laplace_coefficient(beta,m,0.5_DP,1) 
                     marr(m,inner_outer_sign) = (1._DP + inner_outer_sign / real(m, kind=DP))**(1._DP / 3._DP)
                 end do
                 mfac(m) = 4 * PI**2 / (3._DP) * m / real(m - 1, kind=DP) 
@@ -67,8 +71,10 @@ contains
             elsewhere
                 T_mask(0:ring%nbins+1) = .false. 
             end where
+
             Xs = 2 * sqrt(asat)
-            Xw2 = 0.5_DP * Xs**2 
+            ! Resonance width: See Longaretti sec. 5.3.1
+            awidth = asat * sqrt(msat/cb%mass)
             Xlo = ring%X_inner + ring%deltaX * ring%inside
             Xhi = ring%X_outer
             rlo = 0.25_DP * Xlo**2
@@ -82,32 +88,31 @@ contains
             
             ! Inner then outer Lindblads
             do il = -1,1,2
-                ! Calculate resonance location in X space
-                Xr(2:mshep) = Xs * marr(2:mshep,il)
+                ! Calculate resonance location space
+                aring(2:mshep+1) = 0.25_DP * (Xs * marr(2:mshep+1,il))**2
 
                 ! Calculate bin boundaries of resonance using its width in X space
-                do concurrent(m=2:mshep)
-                    if((Xr(m) > Xlo).and.(Xr(m) < Xhi)) then
-                        w1_arr(m) = min(max(ceiling((sqrt(Xr(m)**2 - Xw2) - ring%X_inner) / ring%deltaX),0),ring%nbins+1)
-                        w2_arr(m) = min(max(ceiling((sqrt(Xr(m)**2 + Xw2) - ring%X_outer) / ring%deltaX),0),ring%nbins+1)
-                    else
-                        w1_arr(m) = 0
-                        w2_arr(m) = 0
+                w1_arr(:) = 0
+                w2_arr(:) = 0
+                do m=2,mshep
+                    if((aring(m) > rlo).and.(aring(m) < rhi)) then
+                        w1_arr(m)=ring%find_bin(aring(m)-awidth)
+                        w2_arr(m)=ring%find_bin(aring(m)+awidth)
                     end if
                 end do
                 
                 do m  = 2, mshep
-                    if ((Xr(m) > Xlo).and.(Xr(m) < Xhi)) then
-                        beta = (Xs / Xr(m))**(il * 2)
-                        aring = 0.25_DP * (Xr(m))**2
+                    if ((aring(m) > rlo).and.(aring(m) < rhi)) then
+                        Xr = 2 * sqrt(aring(m))
+                        beta = (Xs / Xr)**(il * 2)
                         lap  =  lapm(m,il)
                         dlap = dlapm(m,il)
-                        Amk = (lap + dlap)
+                        Amk = 0.5_DP * (lap + dlap)
                         w1 = w1_arr(m)
                         w2 = w2_arr(m)
-                        nw = real(w2 - w1 + 1,kind=DP)
+                        nw = real(abs(w2 - w1) + 1,kind=DP)
                         ! Calculate the 1st order Lindblad torques and distribute them over the bins that include the resonance
-                        lind_factor = il * mfac(m) / nw * aring**4 * (beta * Amk)**2 
+                        lind_factor = il * mfac(m) / nw * aring(m)**4 * (beta * Amk)**2 
                         where(T_mask(w1:w2)) 
                             Torque(w1:w2) = Torque(w1:w2) + lind_factor * ring%sigma(w1:w2) * (ring%wkep(w1:w2))**2
                         endwhere
@@ -115,12 +120,12 @@ contains
                 end do
 
                 ! Add in shepherding torque
-                aring = asat * marr(mshep+1,il)**2
-                if ((aring > rhi).or.(aring < rlo)) cycle
-                j = ring%find_bin(aring) !ring location of resonance
-                da3 = il * max(abs((aring - asat)**3),epsilon(aring))
+                if ((aring(mshep+1) > rhi).or.(aring(mshep+1) < rlo)) cycle
+                j = ring%find_bin(aring(mshep+1)) !ring location of resonance
+                da3 = il * max(abs((aring(mshep+1) - asat)**3),epsilon(asat))
                 if (T_mask(j)) then 
-                    Torque(j) = Torque(j) + g**2 / 6._DP * aring**3 / da3 * ring%sigma(j) * (ring%wkep(j))**2 * aring**4
+                    Torque(j) = Torque(j) + g**2 / 6._DP * aring(mshep+1)**3 &
+                                          / da3 * ring%sigma(j) * (ring%wkep(j))**2 * aring(mshep+1)**4
                 end if
             end do
         end associate
