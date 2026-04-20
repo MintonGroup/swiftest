@@ -10,7 +10,7 @@
 module laplace_coefficients
     !! author: David A. Minton
     !! 
-    !! Contains a 4th order Runge-Kutta-Fehlberg ODE solver and a linear system of equations solver
+    !! Module containing the functions used to compute lpalace coefficients and their derivatives.
     use globals
     use, intrinsic :: ieee_exceptions
     private

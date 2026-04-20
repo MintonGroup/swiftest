@@ -1,5 +1,5 @@
 module bindings_module
-   use iso_c_binding, only : c_char, c_null_char, c_int
+   use iso_c_binding, only : c_char, c_null_char, c_int, c_double, c_int64_t
    use swiftest 
    implicit none
    contains
@@ -327,5 +327,27 @@ module bindings_module
 
          return
       end subroutine bindings_orbel_xv2el
+
+      function bindings_laplace_coefficient(alpha, s, j, n) result(ans) bind(c, name="bindings_laplace_coefficient")
+         implicit none
+         real(c_double),value,     intent(in)  :: alpha
+         real(c_double),value,     intent(in)  :: s
+         integer(c_int64_t),value, intent(in)  :: j
+         integer(c_int64_t),value, intent(in)  :: n
+         real(c_double)                        :: ans
+
+         real(DP) :: falpha,fs,fans
+         integer(I4B) :: fj,fn
+
+         falpha = real(alpha, kind=DP)
+         fs = real(s, kind=DP)
+         fj = int(j,kind=I4B)
+         fn = int(n,kind=I4B)
+
+         fans = compute_laplace_coefficient(falpha,fj,fs,fn)
+         ans = real(fans,kind=c_double)
+
+         return
+   end function bindings_laplace_coefficient
 
 end module bindings_module 
