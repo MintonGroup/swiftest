@@ -1008,12 +1008,12 @@ contains
                                   "netcdf_io_initialize_output nf90_def_var gamma_varid"  )
          end if
 
-         ! if (param%ltides) then
-         !    call netcdf_io_check( nf90_def_var(nc%id, nc%k2_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%k2_varid), &
-         !                        "netcdf_io_initialize_output nf90_def_var k2_varid"  )
-         !    call netcdf_io_check( nf90_def_var(nc%id, nc%q_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%Q_varid), &
-         !                        "netcdf_io_initialize_output nf90_def_var Q_varid"  )
-         ! end if
+         if (param%ltides) then
+            call netcdf_io_check( nf90_def_var(nc%id, nc%k2_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%k2_varid), &
+                                "netcdf_io_initialize_output nf90_def_var k2_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%q_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%Q_varid), &
+                                "netcdf_io_initialize_output nf90_def_var Q_varid"  )
+         end if
 
          if (param%lenergy) then
             call netcdf_io_check( nf90_def_var(nc%id, nc%ke_orbit_varname, nc%out_type, nc%time_dimid, nc%KE_orb_varid), &
@@ -1224,9 +1224,6 @@ contains
             ! rotphase may not be input by the user                      
             status = nf90_inq_varid(nc%id, nc%rotphase_varname, nc%rotphase_varid)
 
-            ! call netcdf_io_check( nf90_inq_varid(nc%id, nc%rotphase_varname, nc%rotphase_varid), &
-            !                       "swiftest_io_netcdf_open nf90_inq_varid rotphase_varid")
-                                   
          end if
 
          if (param%lyarkovsky) then
@@ -1240,12 +1237,12 @@ contains
                                   "swiftest_io_netcdf_open nf90_inq_varid gamma_varid" )
          end if
 
-         ! if (param%ltides) then
-         !    call netcdf_io_check( nf90_inq_varid(nc%id, nc%k2_varname, nc%k2_varid), &
-         !                         "swiftest_io_netcdf_open nf90_inq_varid k2_varid" )
-         !    call netcdf_io_check( nf90_inq_varid(nc%id, nc%q_varname, nc%Q_varid), &
-         !                         "swiftest_io_netcdf_open nf90_inq_varid Q_varid" )
-         ! end if
+         if (param%ltides) then
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%k2_varname, nc%k2_varid), &
+                                 "swiftest_io_netcdf_open nf90_inq_varid k2_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%q_varname, nc%Q_varid), &
+                                 "swiftest_io_netcdf_open nf90_inq_varid Q_varid" )
+         end if
 
          ! Optional variables The User Doesn't Need to Know About
          status = nf90_inq_varid(nc%id, nc%mass_varname, nc%mass_varid)
@@ -1675,17 +1672,17 @@ contains
             if (npl > 0) pl%gamma(:) = pack(rtemp, plmask)
          end if
 
-         ! if (param%ltides) then
-         !    call netcdf_io_check( nf90_get_var(nc%id, nc%k2_varid, rtemp, start=[1, tslot]), &
-         !                        "netcdf_io_read_frame_system nf90_getvar k2_varid"  )
-         !    cb%k2 = rtemp(1)
-         !    if (npl > 0) pl%k2(:) = pack(rtemp, plmask)
+         if (param%ltides) then
+            call netcdf_io_check( nf90_get_var(nc%id, nc%k2_varid, rtemp, start=[1, tslot]), &
+                                "netcdf_io_read_frame_system nf90_getvar k2_varid"  )
+            cb%k2 = rtemp(1)
+            if (npl > 0) pl%k2(:) = pack(rtemp, plmask)
 
-         !    call netcdf_io_check( nf90_get_var(nc%id, nc%Q_varid,  rtemp,  start=[1, tslot]), &
-         !                        "netcdf_io_read_frame_system nf90_getvar Q_varid"  )
-         !    cb%Q = rtemp(1)
-         !    if (npl > 0) pl%Q(:) = pack(rtemp, plmask)
-         ! end if
+            call netcdf_io_check( nf90_get_var(nc%id, nc%Q_varid,  rtemp,  start=[1, tslot]), &
+                                "netcdf_io_read_frame_system nf90_getvar Q_varid"  )
+            cb%Q = rtemp(1)
+            if (npl > 0) pl%Q(:) = pack(rtemp, plmask)
+         end if
 
          call self%read_particle_info(nc, param, plmask, tpmask) 
 
@@ -2154,12 +2151,12 @@ contains
                                   "netcdf_io_write_frame_body nf90_put_var body gamma_varid"  )
                   end if
 
-                  ! if (param%ltides) then
-                  !    call netcdf_io_check( nf90_put_var(nc%id, nc%k2_varid, self%k2(j), start=[idslot, tslot]), &
-                  !                "netcdf_io_write_frame_body nf90_put_var body k2_varid"  )
-                  !    call netcdf_io_check( nf90_put_var(nc%id, nc%Q_varid, self%Q(j), start=[idslot, tslot]), &
-                  !                "netcdf_io_write_frame_body nf90_put_var body Q_varid"  )
-                  ! end if
+                  if (param%ltides) then
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%k2_varid, self%k2(j), start=[idslot, tslot]), &
+                                 "netcdf_io_write_frame_body nf90_put_var body k2_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%Q_varid, self%Q(j), start=[idslot, tslot]), &
+                                 "netcdf_io_write_frame_body nf90_put_var body Q_varid"  )
+                  end if
                class is (swiftest_tp)
                   call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid, 0.0_DP, start=[idslot, tslot]), &
                                   "netcdf_io_write_frame_body nf90_put_var body Gmass_varid"  )
@@ -3606,10 +3603,10 @@ contains
                      read(iu, *, err = 667, iomsg = errmsg) self%Ip(1, i), self%Ip(2, i), self%Ip(3, i)
                      read(iu, *, err = 667, iomsg = errmsg) self%rot(1, i), self%rot(2, i), self%rot(3, i)
                   end if
-                  ! if (param%ltides) then
-                  !    read(iu, *, err = 667, iomsg = errmsg) self%k2(i)
-                  !    read(iu, *, err = 667, iomsg = errmsg) self%Q(i)
-                  ! end if
+                  if (param%ltides) then
+                     read(iu, *, err = 667, iomsg = errmsg) self%k2(i)
+                     read(iu, *, err = 667, iomsg = errmsg) self%Q(i)
+                  end if
                end select
             end do
          end select

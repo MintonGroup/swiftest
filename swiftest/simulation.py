@@ -1365,14 +1365,16 @@ class Simulation:
             else:
                 self.param["ENERGY"] = False
 
+            if self.integrator == "ringmoons":
+                tides = True
+
             if compute_conservation_values is not None:
                 if self.integrator == "symba":
-                    if not compute_conservation_values:
-                        if verbose:
-                            warnings.warn(
-                                "Energy, angular momentum, and mass conservation values are computed by default for SyMBA. This option is ignored",
-                                stacklevel=2,
-                            )
+                    if not compute_conservation_values and  verbose:
+                        warnings.warn(
+                            "Energy, angular momentum, and mass conservation values are computed by default for SyMBA. This option is ignored",
+                            stacklevel=2,
+                        )
                     self.param["ENERGY"] = True
                 else:
                     self.param["ENERGY"] = compute_conservation_values
@@ -1424,7 +1426,8 @@ class Simulation:
                 self.param["COARRAY"] = coarray
                 update_list.append("coarray")
 
-            self.param["TIDES"] = False
+            if tides is not None:
+                self.param["TIDES"] = tides
 
             if seed is not None and self.codename == "Swiftest":
                 if isinstance(seed, (int, np.integer)):
@@ -2650,6 +2653,8 @@ class Simulation:
         emissivity: float | list[float] | npt.NDArray[np.float_] | None = None,
         rot_k: float | list[float] | npt.NDArray[np.float_] | None = None,
         gamma: float | list[float] | npt.NDArray[np.float_] | None = None,
+        k2: float | list[float] | npt.NDArray[np.float_] | None = None,
+        Q: float | list[float] | npt.NDArray[np.float_] | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -2708,6 +2713,10 @@ class Simulation:
             Rotational constant K values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
         gamma : float or array-like of float, optional
             Thermal inertia values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        k2 : float or array-like of float, optional
+            Tidal love number k2
+        Q : float or array-like of float, optional
+            Tidal quality factor Q
 
         Returns
         -------
@@ -2818,6 +2827,8 @@ class Simulation:
         emissivity, nbodies = input_to_array(emissivity, "f", nbodies)
         rot_k, nbodies = input_to_array(rot_k, "f", nbodies)
         gamma, nbodies = input_to_array(gamma, "f", nbodies)
+        k2, nbodies = input_to_array(k2, "f", nbodies)
+        Q, nbodies = input_to_array(Q, "f", nbodies)
 
         if mass is not None and Gmass is not None:
             raise ValueError("Cannot use mass and Gmass inputs simultaneously!")
@@ -2863,6 +2874,8 @@ class Simulation:
         emissivity: float | list[float] | npt.NDArray[np.float_] | None = None,
         rot_k: float | list[float] | npt.NDArray[np.float_] | None = None,
         gamma: float | list[float] | npt.NDArray[np.float_] | None = None,
+        k2: float | list[float] | npt.NDArray[np.float_] | None = None,
+        Q: float | list[float] | npt.NDArray[np.float_] | None = None,
         **kwargs: Any,
     ) -> None:
         """
@@ -2923,7 +2936,10 @@ class Simulation:
             Rotational constant K values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
         gamma : float or array-like of float, optional
             Thermal inertia values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
-
+        k2 : float or array-like of float, optional
+            Tidal love number k2
+        Q : float or array-like of float, optional
+            Tidal quality factor Q
 
         Returns
         -------
@@ -2962,6 +2978,8 @@ class Simulation:
         emissivity = arguments["emissivity"]
         rot_k = arguments["rot_k"]
         gamma = arguments["gamma"]
+        k2 = arguments["k2"]
+        Q = arguments["Q"]
 
         # Adding new bodies imposes additional constraints on arguments that are not present when modifying existing bodies
         if rh is not None and vh is None:
@@ -3049,6 +3067,8 @@ class Simulation:
             emissivity=emissivity,
             rot_k=rot_k,
             gamma=gamma,
+            k2=k2,
+            Q=Q,
         )
 
         dsnew = self._set_id_number(dsnew)
@@ -3219,6 +3239,8 @@ class Simulation:
         emissivity: float | list[float] | npt.NDArray[np.float_] | None = None,
         rot_k: float | list[float] | npt.NDArray[np.float_] | None = None,
         gamma: float | list[float] | npt.NDArray[np.float_] | None = None,
+        k2: float | list[float] | npt.NDArray[np.float_] | None = None,
+        Q: float | list[float] | npt.NDArray[np.float_] | None = None,
         **kwargs: Any,
     ) -> SwiftestDataset:
         """
@@ -3277,6 +3299,10 @@ class Simulation:
             Rotational constant K values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
         gamma : float or array-like of float, optional
             Thermal inertia values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        k2 : float or array-like of float, optional
+            Tidal love number k2
+        Q : float or array-like of float, optional
+            Tidal quality factor Q
         time : array of floats
             Time at start of simulation
         **kwargs : Any
@@ -3320,6 +3346,8 @@ class Simulation:
             "emissivity",
             "rot_k",
             "gamma",
+            "k2",
+            "Q",
         ]
         sph_vars = ["c_lm"]
         time_vars = [
@@ -3663,6 +3691,8 @@ class Simulation:
         emissivity: float | list[float] | npt.NDArray[np.float_] | None = None,
         rot_k: float | list[float] | npt.NDArray[np.float_] | None = None,
         gamma: float | list[float] | npt.NDArray[np.float_] | None = None,
+        k2: float | list[float] | npt.NDArray[np.float_] | None = None,
+        Q: float | list[float] | npt.NDArray[np.float_] | None = None,
         align_to_central_body_rotation: bool = False,
         framenum: int = -1,
         **kwargs: Any,
@@ -3722,6 +3752,10 @@ class Simulation:
             Rotational constant K values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
         gamma : float or array-like of float, optional
             Thermal inertia values if these are massive bodies and the radiation (Yarkovsky, PR, YS, Rad Pressure) effects are being modeled.
+        k2 : float or array-like of float, optional
+            Tidal love number k2
+        Q : float or array-like of float, optional
+            Tidal quality factor Q
         align_to_central_body_rotation : bool, default False
             If True, the cartesian coordinates will be aligned to the rotation pole of the central body. This is only valid for when
             rotation is enabled.

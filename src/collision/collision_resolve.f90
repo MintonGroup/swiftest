@@ -432,11 +432,11 @@ contains
 
             call plnew%set_rhill(cb)
 
-            ! if (param%ltides) then
-            !    plnew%Q = pl%Q(ibiggest)
-            !    plnew%k2 = pl%k2(ibiggest)
-            !    plnew%tlag = pl%tlag(ibiggest)
-            ! end if
+            if (param%ltides) then
+               plnew%Q = pl%Q(ibiggest)
+               plnew%k2 = pl%k2(ibiggest)
+               plnew%tlag = pl%tlag(ibiggest)
+            end if
 
 #ifdef DOCONLOC
             do concurrent(i = 1:nfrag) shared(plnew,fragments) local(volume)

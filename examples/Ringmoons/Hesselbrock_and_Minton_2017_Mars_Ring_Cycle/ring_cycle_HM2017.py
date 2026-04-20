@@ -10,7 +10,8 @@ gm_cb = cb["Gmass"]
 rho_cb = m_cb / (4.0 / 3.0 * np.pi * r_cb**3)
 rot_cb = np.sqrt(cb["rot"][0] ** 2 + cb["rot"][1] ** 2 + cb["rot"][2] ** 2)
 sim = swiftest.Simulation(integrator="ringmoons", MU2KG=m_cb, DU2M=r_cb, TU="yr")
-sim.add_solar_system_body(["Mars"], align_to_central_body_rotation=True)
+sim.add_solar_system_body("Mars", align_to_central_body_rotation=True)
+sim.modify_body(name="Mars",k2=0.164,Q=99.5)
 
 r_p = 25.0e-2 * sim.M2DU  # disk particle size
 rho_p = 1500.0 * sim.KG2MU / sim.M2DU**3  # disk particle density
