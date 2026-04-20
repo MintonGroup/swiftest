@@ -31,7 +31,7 @@ contains
         integer(I4B)                           :: i,j,m,inner_outer_sign,il,w,w1,w2,js, mshep
         real(DP)                               :: aring, dTorque, beta, Amk, nw,lap,dlap,da3,Xs,Xlo,Xhi,rlo,rhi,Gfac,lind_factor,Xw2
         real(DP), parameter                    :: g = 2.24_DP
-        integer(I4B),parameter :: M_MAX = 200     
+        integer(I4B),parameter :: M_MAX = 100     
             !! Maximum number of Lindblad modes to compute
         real(DP),dimension(2:M_MAX)            :: Xr,ar
         logical,dimension(0:self%nbins+1)      :: T_mask
@@ -47,7 +47,7 @@ contains
 
         ! For performance reasons, we compute a table of Laplace coefficient terms the first time through and then interpolate 
         if (lfirst) then
-            do m = 2, m_max
+            do m = 2, M_MAX
                 do inner_outer_sign = -1,1,2
                     beta =  (1._DP + inner_outer_sign * 1.0_DP / real(m, kind=DP))**(-inner_outer_sign * 2._DP / 3._DP)
                     lapm(m,inner_outer_sign)  = m * compute_laplace_coefficient(beta,m,0.5_DP,0) 
@@ -68,7 +68,7 @@ contains
                 T_mask(0:ring%nbins+1) = .false. 
             end where
             Xs = 2 * sqrt(asat)
-            Xw2 = 0.5_DP * Xs**2 * sqrt(param%GU)
+            Xw2 = 0.5_DP * Xs**2 
             Xlo = ring%X_inner + ring%deltaX * ring%inside
             Xhi = ring%X_outer
             rlo = 0.25_DP * Xlo**2
@@ -86,13 +86,15 @@ contains
                 Xr(2:mshep) = Xs * marr(2:mshep,il)
 
                 ! Calculate bin boundaries of resonance using its width in X space
-                where((Xr(2:mshep) > Xlo).and.(Xr(2:mshep) < Xhi))
-                    w1_arr(2:mshep) = min(max(ceiling((sqrt(Xr(2:mshep)**2 - Xw2) - ring%X_inner) / ring%deltaX),0),ring%nbins+1)
-                    w2_arr(2:mshep) = min(max(ceiling((sqrt(Xr(2:mshep)**2 + Xw2) - ring%X_outer) / ring%deltaX),0),ring%nbins+1)
-                elsewhere ! The resonance is outside the bins
-                    w1_arr(2:mshep) = 0
-                    w2_arr(2:mshep) = 0
-                end where 
+                do concurrent(m=2:mshep)
+                    if((Xr(m) > Xlo).and.(Xr(m) < Xhi)) then
+                        w1_arr(m) = min(max(ceiling((sqrt(Xr(m)**2 - Xw2) - ring%X_inner) / ring%deltaX),0),ring%nbins+1)
+                        w2_arr(m) = min(max(ceiling((sqrt(Xr(m)**2 + Xw2) - ring%X_outer) / ring%deltaX),0),ring%nbins+1)
+                    else
+                        w1_arr(m) = 0
+                        w2_arr(m) = 0
+                    end if
+                end do
                 
                 do m  = 2, mshep
                     if ((Xr(m) > Xlo).and.(Xr(m) < Xhi)) then
@@ -105,9 +107,9 @@ contains
                         w2 = w2_arr(m)
                         nw = real(w2 - w1 + 1,kind=DP)
                         ! Calculate the 1st order Lindblad torques and distribute them over the bins that include the resonance
-                        lind_factor = il * mfac(m) / nw * aring**4 * (beta * param%GU  * Amk)**2 
+                        lind_factor = il * mfac(m) / nw * aring**4 * (beta * Amk)**2 
                         where(T_mask(w1:w2)) 
-                            Torque(w1:w2) = Torque(w1:w2) + lind_factor * ring%Gsigma(w1:w2) * (ring%wkep(w1:w2))**2
+                            Torque(w1:w2) = Torque(w1:w2) + lind_factor * ring%sigma(w1:w2) * (ring%wkep(w1:w2))**2
                         endwhere
                     end if
                 end do
@@ -118,8 +120,7 @@ contains
                 j = ring%find_bin(aring) !ring location of resonance
                 da3 = il * max(abs((aring - asat)**3),epsilon(aring))
                 if (T_mask(j)) then 
-                    Torque(j) = Torque(j) + g**2 / 6._DP * aring**3 / da3 * (param%GU)**2 * ring%Gsigma(j) &
-                                                                          * (ring%wkep(j))**2 * aring**4
+                    Torque(j) = Torque(j) + g**2 / 6._DP * aring**3 / da3 * ring%sigma(j) * (ring%wkep(j))**2 * aring**4
                 end if
             end do
         end associate

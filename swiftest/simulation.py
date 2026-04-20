@@ -4477,11 +4477,8 @@ class Simulation:
             "emissivity",
             "rot_k",
             "gamma",
-            "ring_r",
-            "ring_x",
-            "ring_sigma",
-            "ring_rp",
-            "ring_mp",
+            "k2",
+            "Q"
         ]
 
         vars = [k for k in ic_vars if k in ds]
