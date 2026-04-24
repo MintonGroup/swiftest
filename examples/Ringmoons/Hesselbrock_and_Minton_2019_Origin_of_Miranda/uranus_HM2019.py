@@ -15,8 +15,8 @@ sim.add_solar_system_body("Uranus", align_to_central_body_rotation=True)
 sim.modify_body(name="Uranus",k2=0.104,Q=3000.0)
 
 # Convert to simualtion units
-r_p = 25.0e-2 * sim.M2DU  # disk particle size
-rho_p = 1500.0 * sim.KG2MU / sim.M2DU**3  # disk particle density
+r_p = 0.100 * sim.M2DU  # disk particle size
+rho_p = 1200.0 * sim.KG2MU / sim.M2DU**3  # disk particle density
 m_p = 4.0 / 3.0 * np.pi * r_p**3 * rho_p  # disk particle mass
 r_cb *= sim.M2DU
 m_cb *= sim.KG2MU
@@ -29,14 +29,19 @@ frl = 2.456 * r_cb * (rho_cb / rho_p) ** (1.0 / 3.0)
 rrl = 1.44 * r_cb * (rho_cb / rho_p) ** (1.0 / 3.0)
 rsync = (gm_cb * rot_cb**2 / (4 * np.pi**2)) ** (1.0 / 3.0)
 alind = 4 ** (1.0 / 3.0) * frl
+sigma_frl = 8000.0 * sim.KG2MU / sim.M2DU**2
+alpha = -3.0
+sigma0 = sigma_frl * (frl)**(-alpha)
+
+
 
 sim.add_ring(
     r_p=r_p,
     m_p=m_p,
     mass_distribution={
         "type": "powerlaw",
-        "sigma0": 80.0 * sim.KG2MU / sim.M2DU**2,
-        "alpha": -3.0,
+        "sigma0": sigma0,
+        "alpha": alpha,
         "nbins": 1024,
         "r_outer": 1.2*frl,
     },
