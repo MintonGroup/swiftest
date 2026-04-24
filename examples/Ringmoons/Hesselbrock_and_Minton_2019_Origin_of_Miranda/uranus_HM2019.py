@@ -42,10 +42,9 @@ sim.add_ring(
     },
 )
 
-tstep_out = 1.0
 dt = 1e3
-tstop = 100*dt
+tstop = 10*dt
 
 
-sim.set_parameter(tstop=tstop, dt=dt, tstep_out=tstep_out, dump_cadence=1)
+sim.set_parameter(tstop=tstop, dt=dt, tstep_out=dt, dump_cadence=1)
 sim.save()

@@ -329,17 +329,17 @@ contains
 
                     call iseed%get_tidal_torque(cb,param) 
                     mdot(:) = ringmoons_dMdt_seed(iseed,iring,cb)
-                    ! do i = 1, Ns
-                    !     rbin = iseed%ringbin(i)
-                    !     Tlind(:) = iring%get_lindblad_torque(cb,iseed%a(i),e,inc,iseed%mass(i),param)
-                    !     iseed%Torque(i) = iseed%Ttide(i) - sum(Tlind(:)) 
-                    !     if (iring%mass(iseed%ringbin(i)) / iseed%mass(i) > epsilon(1.0_DP)) then
-                    !         Tr_evol(i) = mdot(i) * iring%Iz(iseed%ringbin(i)) * iring%wkep(iseed%ringbin(i))
-                    !     else
-                    !         mdot(i) = 0.0_DP
-                    !         Tr_evol(i) = 0.0_DP
-                    !     end if
-                    ! end do
+                    do i = 1, Ns
+                        rbin = iseed%ringbin(i)
+                        Tlind(:) = iring%get_lindblad_torque(cb,iseed%a(i),e,inc,iseed%mass(i),param)
+                        iseed%Torque(i) = iseed%Ttide(i) - sum(Tlind(:)) 
+                        if (iring%mass(iseed%ringbin(i)) / iseed%mass(i) > epsilon(1.0_DP)) then
+                            Tr_evol(i) = mdot(i) * iring%Iz(iseed%ringbin(i)) * iring%wkep(iseed%ringbin(i))
+                        else
+                            mdot(i) = 0.0_DP
+                            Tr_evol(i) = 0.0_DP
+                        end if
+                    end do
                     adot(:) = ringmoons_dadt_seed(seed,cb,mdot)
                     do i = 1, Ns
                         rbin = iseed%ringbin(i)
@@ -627,14 +627,14 @@ contains
                 dtring = min(dtleft,dtring)
             end associate
             end select
-
-            deallocate(old_system%cb, old_system%ring, old_system%seed)
-            allocate(old_system%ring, source=self%ring)
-            allocate(old_system%seed, source=self%seed)
-            allocate(old_system%cb,   source=self%cb)
-            self%maxid = self%seed%maxid
-            self%ring%t = t + dt
         end do
+
+        deallocate(old_system%cb, old_system%ring, old_system%seed)
+        allocate(old_system%ring, source=self%ring)
+        allocate(old_system%seed, source=self%seed)
+        allocate(old_system%cb,   source=self%cb)
+        self%maxid = self%seed%maxid
+        self%ring%t = t + dt
 
         ! Step the nbody system like normal
         call symba_step_system(self, param, t, dt)
