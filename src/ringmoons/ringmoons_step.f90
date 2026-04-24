@@ -255,7 +255,7 @@ contains
         logical                                   :: chomped,goodstep
         real(DP),parameter                        :: DTMIN_FAC = 1e-16_DP
         !   real(DP),parameter                        :: TOL = 1e-8_DP 
-        integer(I4B)                              :: Nnegative_seed,Nnegative_ring,Nbig_error,aloc,Gmloc
+        integer(I4B)                              :: Nnegative_seed,Nnegative_ring,Nbig_error
 
         associate(seed => self)
 
@@ -329,17 +329,17 @@ contains
 
                     call iseed%get_tidal_torque(cb,param) 
                     mdot(:) = ringmoons_dMdt_seed(iseed,iring,cb)
-                    do i = 1, Ns
-                        rbin = iseed%ringbin(i)
-                        Tlind(:) = iring%get_lindblad_torque(cb,iseed%a(i),e,inc,iseed%mass(i),param)
-                        iseed%Torque(i) = iseed%Ttide(i) - sum(Tlind(:)) 
-                        if (iring%mass(iseed%ringbin(i)) / iseed%mass(i) > epsilon(1.0_DP)) then
-                            Tr_evol(i) = mdot(i) * iring%Iz(iseed%ringbin(i)) * iring%wkep(iseed%ringbin(i))
-                        else
-                            mdot(i) = 0.0_DP
-                            Tr_evol(i) = 0.0_DP
-                        end if
-                    end do
+                    ! do i = 1, Ns
+                    !     rbin = iseed%ringbin(i)
+                    !     Tlind(:) = iring%get_lindblad_torque(cb,iseed%a(i),e,inc,iseed%mass(i),param)
+                    !     iseed%Torque(i) = iseed%Ttide(i) - sum(Tlind(:)) 
+                    !     if (iring%mass(iseed%ringbin(i)) / iseed%mass(i) > epsilon(1.0_DP)) then
+                    !         Tr_evol(i) = mdot(i) * iring%Iz(iseed%ringbin(i)) * iring%wkep(iseed%ringbin(i))
+                    !     else
+                    !         mdot(i) = 0.0_DP
+                    !         Tr_evol(i) = 0.0_DP
+                    !     end if
+                    ! end do
                     adot(:) = ringmoons_dadt_seed(seed,cb,mdot)
                     do i = 1, Ns
                         rbin = iseed%ringbin(i)

@@ -3146,10 +3146,7 @@ class Simulation:
             rho_p = m_p / (4.0 / 3.0 * np.pi * r_p**3)
             frl = 2.456 * r_planet * (rho_planet / rho_p) ** (1.0 / 3.0)
             r_inner = 0.99 * r_planet
-            if mass_distribution["type"] == "powerlaw":
-                r_outer = mass_distribution["r_outer"]
-            else:
-                r_outer = 1.01 * frl
+            r_outer = 2*frl
 
         r = []
         delta_x = (2 * np.sqrt(r_outer) - 2 * np.sqrt(r_inner)) / nbins
@@ -3162,9 +3159,10 @@ class Simulation:
             if mass_distribution["type"] == "powerlaw":
                 alpha = mass_distribution["alpha"]
                 sigma0 = mass_distribution["sigma0"]
+                r_outer = mass_distribution["r_outer"]
 
                 for a in range(int(nbins)):
-                    if r[a] <= r_planet:
+                    if r[a] <= r_planet or r[a] > r_outer:
                         sigma.append(0.0)
                     else:
                         sigma.append(sigma0 * (r[a] / r_planet) ** alpha)

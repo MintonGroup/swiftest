@@ -37,18 +37,19 @@ sim.add_ring(
         "type": "powerlaw",
         "sigma0": 1.05e7 * sim.KG2MU / sim.M2DU**2,
         "alpha": -8.0,
-        "nbins": 256,
-        "r_outer": 1.1*frl,
+        "nbins": 512,
+        "r_outer": 0.99*frl,
     },
 )
 
-tstep_out = 1.0
+tstep_out = 100.0
 dt = 1.0
-tstop = 1000.0
+tstop = 10000.0
 
 
-sim.set_parameter(tstop=tstop, dt=dt, tstep_out=tstep_out, dump_cadence=0)
+sim.set_parameter(tstop=tstop, dt=dt, tstep_out=tstep_out, dump_cadence=1)
 sim.save()
+sim.run()
 
 xmin = 1.0
 xmax = 8.00
@@ -84,8 +85,8 @@ secax.set_ylim(y2min, y2max)
 ax.tick_params(axis="both", which="major", labelsize=tsize)
 secax.tick_params(axis="both", which="major", labelsize=tsize)
 
-ids = sim.data.isel(time=0)
-ring = sim.ring.isel(time=0)
+ids = sim.data.isel(time=-1)
+ring = sim.ring.isel(time=-1)
 r = ring.r.values / r_cb
 s = ring.sigma.values * sim.MU2KG / sim.DU2M**2 * 1000.0 / 100.0
 
