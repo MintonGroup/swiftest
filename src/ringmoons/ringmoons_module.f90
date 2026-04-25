@@ -16,7 +16,8 @@ module ringmoons
     implicit none
     public
 
-    integer(I4B), parameter             :: LOOPMAX = 2147483646 
+    integer(I4B), parameter        :: LOOPMAX = 2147483646 
+    integer(I4B),public,parameter  :: N_DISK_FACTOR = 10000 
 
     !> NetCDF dimension and variable names for the ringmoons objects
     type, extends(netcdf_parameters) :: ringmoons_netcdf_parameters

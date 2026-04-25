@@ -62,6 +62,7 @@ contains
             end do
             lfirst = .false.
         end if
+        Gfac = msat / cb%mass
 
 
         associate(ring => self)
@@ -112,9 +113,9 @@ contains
                         w2 = w2_arr(m)
                         nw = real(abs(w2 - w1) + 1,kind=DP)
                         ! Calculate the 1st order Lindblad torques and distribute them over the bins that include the resonance
-                        lind_factor = il * mfac(m) / nw * aring(m)**4 * (beta * Amk)**2 
+                        lind_factor = il * mfac(m) / nw * aring(m)**4 * (beta * Gfac * Amk)**2 
                         where(T_mask(w1:w2)) 
-                            Torque(w1:w2) = Torque(w1:w2) + lind_factor * ring%sigma(w1:w2) * (ring%wkep(w1:w2))**2
+                            Torque(w1:w2) = Torque(w1:w2) + lind_factor * ring%Gsigma(w1:w2) * (ring%wkep(w1:w2))**2
                         endwhere
                     end if
                 end do
@@ -125,7 +126,7 @@ contains
                 da3 = il * max(abs((aring(mshep+1) - asat)**3),epsilon(asat))
                 if (T_mask(j)) then 
                     Torque(j) = Torque(j) + g**2 / 6._DP * aring(mshep+1)**3 &
-                                          / da3 * ring%sigma(j) * (ring%wkep(j))**2 * aring(mshep+1)**4
+                                          / da3 * Gfac**2 * ring%Gsigma(j) * (ring%wkep(j))**2 * aring(mshep+1)**4
                 end if
             end do
         end associate
@@ -136,7 +137,6 @@ contains
         !! author: David A. Minton
         !!
         !! Calculates the tidal torque acting on the seed by the central body
-        !! Constant Q tidal model, see eq. 16 in [Cheng, Lee, and Peale 2014](https://doi.org/10.1016/j.icarus.2014.01.046) 
         implicit none
         class(ringmoons_seed),      intent(inout) :: self
         class(swiftest_cb),         intent(in)    :: cb
@@ -145,10 +145,7 @@ contains
         real(DP),dimension(self%nbody) :: n
         associate(seed => self)
             n(:) = sqrt((seed%mu(:)) / seed%a(:)**3)
-            seed%Ttide(:) = sign(1._DP,cb%rot(3) - n(:)) * &
-                    3 * seed%a(:) * n * (cb%k2 / cb%Q) * &
-                    (seed%mass(:) / cb%mass) * &
-                    (cb%radius / seed%a(:))**5 
+            seed%Ttide(:) = sign(1._DP,cb%rot(3) - n(:)) * 1.5_DP * cb%k2 / cb%Q * seed%Gmass(:)**2 * cb%radius**5 / seed%a(:)**6
         end associate
         return
         end subroutine ringmoons_torque_tidal_seed

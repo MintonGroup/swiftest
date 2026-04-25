@@ -570,7 +570,7 @@ contains
         real(DP),dimension(0:self%nbins+1)   :: kappa_rhstar,eta_rhstar
 
         associate(ring => self)
-            where(ring%r_p(:) > VSMALL)
+            where(ring%mass(:) > N_DISK_FACTOR * ring%m_p(:))
                 ring%r_hstar(:) = ring%r(:) * (2 * ring%m_p(:) /(3._DP * cb%mass))**(1._DP/3._DP) / (2 * ring%r_p(:)) 
                 ! See Salmon et al. 2010 for this
                 kappa_rhstar(:) = ringmoons_transition_function(ring%r_hstar(:))

@@ -12,6 +12,7 @@ submodule(ringmoons) s_ringmoons_step
 contains
 
     module subroutine ringmoons_step_restructure_seed(self,cb,ring,param)
+        use, intrinsic :: ieee_exceptions
         implicit none
         class(ringmoons_seed),      intent(inout) :: self
         class(ringmoons_cb),        intent(inout) :: cb
@@ -31,6 +32,11 @@ contains
         logical                             :: stepfail
         class(ringmoons_ring), allocatable  :: seedring
         logical, dimension(:), allocatable  :: lactive
+        logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
+
+        ! Guard against underflow errors when rings surface mass density gets too small
+        call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)
+        call ieee_set_halting_mode(ieee_underflow, .false.)
         
         ! First convert any recently destroyed satellites into ring material
         destructo = .false.
@@ -139,6 +145,9 @@ contains
             end if
 
         end associate
+
+        call ieee_set_halting_mode(IEEE_ALL, fpe_halting_modes)
+
         return
     end subroutine ringmoons_step_restructure_seed
 
@@ -215,6 +224,7 @@ contains
         !! author: David A. Minton
         !!
         !! Step the seed forward in time and handle any accretion events that occur during the step.
+        use, intrinsic :: ieee_exceptions
         implicit none
         ! Arguments
         class(ringmoons_seed),      intent(inout) :: self
@@ -256,7 +266,11 @@ contains
         real(DP),parameter                        :: DTMIN_FAC = 1e-16_DP
         !   real(DP),parameter                        :: TOL = 1e-8_DP 
         integer(I4B)                              :: Nnegative_seed,Nnegative_ring,Nbig_error
+        logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
 
+        ! Guard against underflow errors when rings surface mass density gets too small
+        call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)
+        call ieee_set_halting_mode(ieee_underflow, .false.)
         associate(seed => self)
 
             ! Executable code
@@ -422,7 +436,6 @@ contains
                 dti = min(sarr * dti,dtleft)
 
             end do steploop
-            
 
             seed%a(:) = af(:)
             seed%mass(:) = mf(:)
@@ -497,41 +510,57 @@ contains
                 end if
 
             end if
-
-
             stepfail = .false.
         end associate
+
+        call ieee_set_halting_mode(IEEE_ALL, fpe_halting_modes)
+
         return
     end subroutine ringmoons_step_seed
 
     function ringmoons_dadt_seed(seed,cb,mdot) result(adot)
+        use, intrinsic :: ieee_exceptions
+        implicit none
         ! Arguments
         class(ringmoons_seed), intent(in) :: seed
         class(ringmoons_cb), intent(in) :: cb
         real(DP), dimension(:), intent(in) :: mdot
         real(DP), dimension(1:seed%nbody)  :: adot
+        logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
+
+        ! Guard against underflow errors when rings surface mass density gets too small
+        call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)
+        call ieee_set_halting_mode(ieee_underflow, .false.)
 
         adot(:) = seed%Torque(:) / seed%mass(:) * sqrt(seed%a(:)/cb%mass) &
                       - mdot(:) * (1._DP  + seed%mass(:) / (2 *(cb%mass + seed%mass(:))))
         adot = 2 * adot * seed%a(:) / seed%mass(:)
 
+        call ieee_set_halting_mode(IEEE_ALL, fpe_halting_modes)
         return
     end function ringmoons_dadt_seed
 
     function ringmoons_dMdt_seed(seed,ring,cb) result(mdot)
+        use, intrinsic :: ieee_exceptions
+        implicit none
         class(ringmoons_seed),intent(in) :: seed
         class(ringmoons_ring), intent(in) :: ring
         class(ringmoons_cb), intent(in) :: cb 
         real(DP), dimension(1:seed%nbody) :: mdot
 
-    ! Internals
+        ! Internals
         integer(I4B)                           :: i
         real(DP), dimension(seed%nbody)        :: C
         real(DP),parameter                     :: eff2   = 1e-7_DP ! This term gets the growth rate to match up closely to Andy's
         real(DP),parameter                     :: growth_exponent = 4._DP / 3._DP
         real(DP), parameter                    :: SIGLIMIT = 1e-100_DP
+        logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
 
-    ! Executable code
+        ! Guard against underflow errors when rings surface mass density gets too small
+        call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)
+        call ieee_set_halting_mode(ieee_underflow, .false.)
+
+        ! Executable code
         where((seed%density(:) > VSMALL).and.(seed%a(:) > VSMALL))
             C(:) = 12 * PI**(2._DP / 3._DP) * (3._DP / (4 * seed%density(:)))**(1._DP / 3._DP) / sqrt(cb%mass) 
             mdot(:) = C(:) * ring%sigma(:) / (eff2 * sqrt(seed%a(:))) * seed%mass(:)**(growth_exponent)
@@ -540,9 +569,8 @@ contains
         end where
         
         return
+        call ieee_set_halting_mode(IEEE_ALL, fpe_halting_modes)
     end function ringmoons_dMdt_seed
-
-
 
     module subroutine ringmoons_step_system(self, param, t, dt)
         !! author: David A. Minton

@@ -1,5 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
+import xarray as xr
 
 import swiftest
 
@@ -47,9 +48,9 @@ sim.add_ring(
         "r_outer": 1.2*frl,
     },
 )
-
 dt = 1e3
 tstop = 10*dt
+sim.ring["sigma"] = xr.where(sim.ring.r < frl, sim.ring.sigma, xr.zeros_like(sim.ring.sigma))
 
 
 sim.set_parameter(tstop=tstop, dt=dt, tstep_out=dt, dump_cadence=1)
