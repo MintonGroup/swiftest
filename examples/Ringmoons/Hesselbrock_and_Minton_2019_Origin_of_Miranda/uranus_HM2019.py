@@ -11,11 +11,12 @@ rho_cb = m_cb / (4.0 / 3.0 * np.pi * r_cb**3)
 rot_cb = np.sqrt(cb["rot"][0] ** 2 + cb["rot"][1] ** 2 + cb["rot"][2] ** 2)
 
 sim = swiftest.Simulation(integrator="ringmoons", MU2KG=m_cb, DU2M=r_cb, TU="yr")
+sim.clean()
 sim.add_solar_system_body("Uranus", align_to_central_body_rotation=True)
 sim.modify_body(name="Uranus",k2=0.104,Q=3000.0)
 
 # Convert to simualtion units
-r_p = 0.100 * sim.M2DU  # disk particle size
+r_p = 1.0 * sim.M2DU  # disk particle size
 rho_p = 1200.0 * sim.KG2MU / sim.M2DU**3  # disk particle density
 m_p = 4.0 / 3.0 * np.pi * r_p**3 * rho_p  # disk particle mass
 r_cb *= sim.M2DU
