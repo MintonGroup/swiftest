@@ -46,6 +46,8 @@ module helio
          !! Method for linear drift of massive bodies due to barycentric momentum of Sun
       procedure :: accel_gr    => helio_gr_kick_getacch_pl 
          !! Acceleration term arising from the post-Newtonian correction
+      procedure :: accel_yarkovsky => helio_kick_yarkovsky_getacc_pl
+         !! Compute the heliocentric accelerations of bodies due to the Yarkovsky effect
       procedure :: gr_pos_kick => helio_gr_p4_pl           
          !! Position kick due to p**4 term in the post-Newtonian correction
       procedure :: accel       => helio_kick_getacch_pl    

@@ -408,8 +408,6 @@ module swiftest
          !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
       procedure :: accel_radiation => swiftest_radiation_getacch_pl
       !    !! Compute the heliocentric accelerations of bodies due to radiation pressure and Poynting-Robertson drag
-      procedure :: accel_yarkovsky => swiftest_yarkovsky_getacch_pl
-         !! Compute the heliocentric accelerations of bodies due to the Yarkovsky effect
       procedure :: setup => swiftest_util_setup_pl          
          !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
       ! procedure :: accel_tides    => tides_kick_getacch_pl           
@@ -1778,7 +1776,7 @@ module swiftest
    end interface
 
    interface 
-      module subroutine swiftest_yarkovsky_getacch_pl(self, nbody_system, param)
+      module subroutine swiftest_yarkovsky_getacc_pl_one(self, nbody_system, param)
         !! author: Kaustub P. Anand and David A. Minton
         !!
         !! Calculate the Yarkovsky effect on massive bodies. 
@@ -1791,7 +1789,7 @@ module swiftest
             !! Swiftest nbody system object
         class(swiftest_parameters),   intent(in)    :: param
             !! Current run configuration parameters
-      end subroutine swiftest_yarkovsky_getacch_pl
+      end subroutine swiftest_yarkovsky_getacc_pl_one
 
       module subroutine swiftest_radiation_getacch_pl(self, nbody_system, param)
          implicit none

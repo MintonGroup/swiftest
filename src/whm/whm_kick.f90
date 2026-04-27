@@ -346,7 +346,7 @@ contains
       return
    end subroutine whm_kick_vh_tp
 
-   module subroutine whm_kick_yarkovsky_pl(self, nbody_system, param)
+   module subroutine whm_kick_yarkovsky_getacc_pl(self, nbody_system, param)
       !! author: Kaustub P. Anand and David A. Minton
       !!
       !! Calculate the Yarkovsky effect on massive bodies. 
@@ -379,12 +379,12 @@ contains
       associate(pl => self)
          do i=1, pl%nbody
                if (pl%lmask(i)) then
-                  call swiftest_yarkovsky_getacch_pl_one(lag_angle_constants, pl%muj(i), pl%mass(i), pl%radius(i), pl%xj(:, i), pl%vj(:, i), pl%rot(:, i), pl%a(i), 
+                  call swiftest_yarkovsky_getacc_pl_one(lag_angle_constants, pl%muj(i), pl%mass(i), pl%radius(i), pl%xj(:, i), pl%vj(:, i), pl%rot(:, i), pl%a(i), 
                                                          pl%emissivity(i), pl%gamma(i), pl%albedo(i), pl%rot_k(i), param%L_SUN_sys, param%inv_c2, a_yark)
                   pl%ah(:, i) = pl%ah(:, i) + a_yark(:)
                end if 
          end do
       return
-   end subroutine whm_kick_yarkovsky_pl
+   end subroutine whm_kick_yarkovsky_getacc_pl
 
 end submodule s_whm_kick

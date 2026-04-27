@@ -47,6 +47,8 @@ module whm
          !! Loop through massive bodies and call Danby drift routine to jacobi coordinates
       procedure :: accel_gr    => whm_gr_kick_getacch_pl     
          !! Acceleration term arising from the post-Newtonian correction
+      procedure :: accel_yarkovsky => whm_kick_yarkovsky_getacc_pl
+         !! Compute the heliocentric accelerations of bodies due to the Yarkovsky effect
       procedure :: gr_pos_kick => whm_gr_p4_pl               
          !! Position kick due to p**4 term in the post-Newtonian correction
       procedure :: accel       => whm_kick_getacch_pl        
