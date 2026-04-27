@@ -346,15 +346,15 @@ contains
                     do i = 1, Ns
                         rbin = iseed%ringbin(i)
                         Tlind(:) = iring%get_lindblad_torque(cb,iseed%a(i),e,inc,iseed%mass(i),param)
-                        iseed%Torque(i) = iseed%Ttide(i) - sum(Tlind(:)) 
                         if (iring%mass(iseed%ringbin(i)) / iseed%mass(i) > epsilon(1.0_DP)) then
                             Tr_evol(i) = mdot(i) * iring%Iz(iseed%ringbin(i)) * iring%wkep(iseed%ringbin(i))
                         else
                             mdot(i) = 0.0_DP
                             Tr_evol(i) = 0.0_DP
                         end if
+                        iseed%Torque(i) = iseed%Ttide(i) - sum(Tlind(:))  + Tr_evol(i)
                     end do
-                    adot(:) = ringmoons_dadt_seed(seed,cb,mdot)
+                    adot(:) = ringmoons_dadt_seed(iseed,cb,mdot)
                     do i = 1, Ns
                         rbin = iseed%ringbin(i)
                         kr(rbin,rkn) = kr(rbin,rkn) - dti * mdot(i)
@@ -527,13 +527,16 @@ contains
         real(DP), dimension(:), intent(in) :: mdot
         real(DP), dimension(1:seed%nbody)  :: adot
         logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
+        real(DP) :: GU
+
+        GU = cb%Gmass / cb%mass
 
         ! Guard against underflow errors when rings surface mass density gets too small
         call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)
         call ieee_set_halting_mode(ieee_underflow, .false.)
 
-        adot(:) = seed%Torque(:) / seed%mass(:) * sqrt(seed%a(:)/cb%mass) &
-                      - mdot(:) * (1._DP  + seed%mass(:) / (2 *(cb%mass + seed%mass(:))))
+        adot(:) = seed%Torque(:) / (sqrt(seed%mu(:) * seed%a(:))) &
+                      - mdot(:) * (1._DP  + seed%Gmass(:) / (2 *seed%mu(:)))
         adot = 2 * adot * seed%a(:) / seed%mass(:)
 
         call ieee_set_halting_mode(IEEE_ALL, fpe_halting_modes)
@@ -563,7 +566,7 @@ contains
         ! Executable code
         where((seed%density(:) > VSMALL).and.(seed%a(:) > VSMALL))
             C(:) = 12 * PI**(2._DP / 3._DP) * (3._DP / (4 * seed%density(:)))**(1._DP / 3._DP) / sqrt(cb%mass) 
-            mdot(:) = C(:) * ring%sigma(:) / (eff2 * sqrt(seed%a(:))) * seed%mass(:)**(growth_exponent)
+            mdot(:) = C(:) * ring%sigma(seed%ringbin(:)) / (eff2 * sqrt(seed%a(:))) * seed%Gmass(:)**(growth_exponent)
         elsewhere
             mdot(:) = 0.0_DP
         end where

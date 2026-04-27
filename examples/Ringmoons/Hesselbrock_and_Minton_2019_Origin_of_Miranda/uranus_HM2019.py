@@ -35,8 +35,6 @@ sigma_frl = 8000.0 * sim.KG2MU / sim.M2DU**2
 alpha = -3.0
 sigma0 = sigma_frl * (frl)**(-alpha)
 
-
-
 sim.add_ring(
     r_p=r_p,
     m_p=m_p,
@@ -49,7 +47,7 @@ sim.add_ring(
     },
 )
 dt = 1e3
-tstop = 10*dt
+tstop = 100*dt
 sim.ring["sigma"] = xr.where(sim.ring.r < frl, sim.ring.sigma, xr.zeros_like(sim.ring.sigma))
 
 

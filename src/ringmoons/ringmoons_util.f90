@@ -312,8 +312,6 @@ contains
             ring%Torque(:) = 0.0_DP
 
             if (seed%nbody > 0) then
-                seed%Gmass(:) = param%GU * seed%mass(:)
-                seed%density(:) = self%mass(:) / (4.0_DP/3.0_DP * pi * seed%radius(:)**3)
                 seed%rhill(:) = seed%a(:) * (seed%mass(:) / cb%mass / 3)**THIRD
                 seed%mu(:) = cb%Gmass + seed%Gmass(:)
                 where (seed%status(:) == ACTIVE)
@@ -447,6 +445,7 @@ contains
         self%mu(:) = 0.0_DP
         self%rhill(:) = 0.0_DP
         self%radius(:) = 0.0_DP
+        self%density(:) = 0.0_DP
         self%ringbin(:) = 0
         self%Torque(:) = 0.0_DP
         self%Ttide(:) = 0.0_DP
