@@ -19,18 +19,14 @@ submodule (swiftest) s_swiftest_radiation
 
 contains
 
-    subroutine swiftest_yarkovsky_getacc_pl_one(lag_angle_constants, mu, r_vec, v_vec, rot, a, emissivity, gamma, albedo, ) ! pure module subroutine or subroutine? I remember having issues with function
+    subroutine swiftest_yarkovsky_getacc_pl_one(lag_angle_constants, mu, r_vec, v_vec, radius, mass, rot, a, emissivity, gamma, albedo, rot_k, L_SUN_sys, inv_c2, a_yark) ! pure module subroutine or subroutine? I remember having issues with function
         !! author: Kaustub P. Anand and David A. Minton
         !! Calculate the Yarkovsky effect on one body 
         !!
         implicit none
         ! Arguments
-        r_vec
-        v_vec
-        rot
-        mu
-        a
-        lag_angle_constants
+        real(DP), dimension(NDIM), intent(out)       :: a_yark 
+            !! Yarkovsky acceleration vector
 
         ! Internals
         integer(I4B)                    :: i, j, k
@@ -45,11 +41,10 @@ contains
             !! Specific angular momentum vector
         real(DP), dimension(NDIM)       :: i_rad
             !! radiation direction vector
-        real(DP), dimension(NDIM)       :: a_yark 
-            !! Yarkovsky acceleration vector
         real(DP), dimension(NDIM, NDIM) :: UM, R_s, R1_s, R2_s, R_h, R1_h, R2_h, R_s_TMP, R_h_TMP, Y_tmp
             !! rotation matrices
 
+        a_yark(:) = 0.0_DP
 
         rmag = .mag. r_vec(:)
         vmag = .mag. v_vec(:) 
@@ -65,22 +60,22 @@ contains
         zeta = atan2(1.0_DP, 1.0_DP + lag_angle_constants * emissivity**(0.25_DP) * T_orbit**(0.5_DP) / gamma * (1 - albedo)**(0.75_DP) / rmag**(1.5_DP))
 
         ! rotation matrices using MATMUL; left for potential future restructuring
-        ! R2_s(:, :) = matmul(pl%rot(:, i), pl%rot(:, i)) / s_mag**2! pl%rot(:, i) .cross. pl%rot(:, i) / s_mag**2
+        ! R2_s(:, :) = matmul(rot(:, i), rot(:, i)) / s_mag**2! rot(:, i) .cross. rot(:, i) / s_mag**2
         ! R2_h(:, :) = matmul(h(:), h(:)) / h_mag**2 !h(:) .cross. h(:) / h_mag**2
 
         ! Calculate R_1 matrices from eqn. 15 and 17 in Veras, et. al. (2022)
-        R1_s(1, :) = [0.0_DP, -pl%rot(3, i), pl%rot(2, i)] / s_mag !! CHECK row vs column ordering
-        R1_s(2, :) = [pl%rot(3, i), 0.0_DP, -pl%rot(1, i)] / s_mag
-        R1_s(3, :) = [-pl%rot(2, i), pl%rot(1, i), 0.0_DP] / s_mag
+        R1_s(1, :) = [0.0_DP, -rot(3), rot(2)] / s_mag
+        R1_s(2, :) = [rot(3), 0.0_DP, -rot(1)] / s_mag
+        R1_s(3, :) = [-rot(2), rot(1), 0.0_DP] / s_mag
 
         R1_h(1, :) = [0.0_DP, -h(3), h(2)] / h_mag
         R1_h(2, :) = [h(3), 0.0_DP, -h(1)] / h_mag
         R1_h(3, :) = [-h(2), h(1), 0.0_DP] / h_mag
 
         ! Calculate R_2 matrices from eqn. 16 and 18 in Veras, et. al. (2022)
-        R2_s(1, :) = [pl%rot(1, i)**2, pl%rot(1, i)*pl%rot(2, i), pl%rot(1, i)*pl%rot(3, i)] / s_mag**2
-        R2_s(2, :) = [pl%rot(1, i)*pl%rot(2, i), pl%rot(2, i)**2, pl%rot(2, i)*pl%rot(3, i)] / s_mag**2
-        R2_s(3, :) = [pl%rot(1, i)*pl%rot(3, i), pl%rot(2, i)*pl%rot(3, i), pl%rot(3, i)**2] / s_mag**2
+        R2_s(1, :) = [rot(1)**2, rot(1)*rot(2), rot(1)*rot(3)] / s_mag**2
+        R2_s(2, :) = [rot(1)*rot(2), rot(2)**2, rot(2)*rot(3)] / s_mag**2
+        R2_s(3, :) = [rot(1)*rot(3), rot(2)*rot(3), rot(3)**2] / s_mag**2
 
         R2_h(1, :) = [h(1)**2, h(1)*h(2), h(1)*h(3)] / h_mag**2
         R2_h(2, :) = [h(1)*h(2), h(2)**2, h(2)*h(3)] / h_mag**2
@@ -122,10 +117,10 @@ contains
         !     i_rad(:) = (1 - dot_product(pl%vh(:, i), pl%rh(:, i)) * sqrt(param%inv_c2) / rmag) * pl%rh(:, i) / rmag - pl%vh(:, i) * sqrt(param%inv_c2) ! radiation direction vector
         ! end if
 
-        i_rad(:) = .unit. pl%rh(:, i)! radiation direction vector
+        i_rad(:) = .unit. r_vec(:)! radiation direction vector
 
         ! yark acceleration magnitude from eqn. 1 in Ferich, et al (2022) / eqn. 26 in Veras, et al (2015)
-        a_yark_mag = pl%rot_k(i) * pl%radius(i)**2 * (1.0_DP - pl%albedo(i)) * param%L_SUN_sys * sqrt(param%inv_c2) / (4.0_DP * pl%mass(i) * rmag**2)
+        a_yark_mag = rot_k * radius**2 * (1.0_DP - albedo) * L_SUN_sys * sqrt(inv_c2) / (4.0_DP * mass * rmag**2)
 
         ! calculate yarkovsky direction matrix
         Y_tmp = matmul(R_s(:, :), R_h(:, :))
@@ -138,7 +133,7 @@ contains
         a_yark(:) = a_yark_mag * a_yark(:) 
 
         ! add to acceleration
-        pl%ah(:, i) = pl%ah(:, i) + a_yark(:)
+        acc(:) = acc(:) + a_yark(:)
 
         return
 
@@ -167,6 +162,7 @@ contains
             do i=1, pl%nbody
                 if (pl%lmask(i)) then
                     call swiftest_yarkovsky_getacch_pl_one()
+                    pl%ah(:, i) = pl%ah(:, i) + a_yark(:)
                 end if 
             end do
         return
