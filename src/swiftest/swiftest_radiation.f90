@@ -19,7 +19,7 @@ submodule (swiftest) s_swiftest_radiation
 
 contains
 
-    subroutine swiftest_yarkovsky_getacc_pl_one(lag_angle_constants, mu, r_vec, v_vec, radius, mass, rot, a, emissivity, gamma, albedo, rot_k, L_SUN_sys, inv_c2, a_yark) ! pure module subroutine or subroutine? I remember having issues with function
+    module subroutine swiftest_yarkovsky_getacc_pl_one(lag_angle_constants, mu, mass, radius, r_vec, v_vec, rot, a, emissivity, gamma, albedo, rot_k, L_SUN_sys, inv_c2, a_yark) ! pure module subroutine? 
         !! author: Kaustub P. Anand and David A. Minton
         !! Calculate the Yarkovsky effect on one body 
         !!
@@ -60,7 +60,7 @@ contains
         zeta = atan2(1.0_DP, 1.0_DP + lag_angle_constants * emissivity**(0.25_DP) * T_orbit**(0.5_DP) / gamma * (1 - albedo)**(0.75_DP) / rmag**(1.5_DP))
 
         ! rotation matrices using MATMUL; left for potential future restructuring
-        ! R2_s(:, :) = matmul(rot(:, i), rot(:, i)) / s_mag**2! rot(:, i) .cross. rot(:, i) / s_mag**2
+        ! R2_s(:, :) = matmul(rot(:), rot(:)) / s_mag**2! rot(:) .cross. rot(:) / s_mag**2
         ! R2_h(:, :) = matmul(h(:), h(:)) / h_mag**2 !h(:) .cross. h(:) / h_mag**2
 
         ! Calculate R_1 matrices from eqn. 15 and 17 in Veras, et. al. (2022)
@@ -139,37 +139,8 @@ contains
 
     end subroutine swiftest_yarkovsky_getacc_pl_one
 
-    subroutine swiftest_yarkovsky_getacc_pl_all() ! pure module subroutine or subroutine? I remember having issues with function
-        !! author: Kaustub P. Anand and David A. Minton
-        !! Calculate the Yarkovsky effect on all bodies 
-        !!
-        implicit none
-        ! Arguments
 
-        ! Internals
-        real(DP)                        :: lag_angle_constants
-            !! constant terms in lag angle calculations
-
-
-        ! calculate constants
-        lag_angle_constants = 0.5_DP * (param%sigma_sys / PI**5)**(0.25_DP) * (param%L_SUN_sys)**(0.75_DP)
-        UM(:, :) = 0.0_DP
-        UM(1, 1) = 1.0_DP
-        UM(2, 2) = 1.0_DP
-        UM(3, 3) = 1.0_DP
-
-         associate(pl => self)
-            do i=1, pl%nbody
-                if (pl%lmask(i)) then
-                    call swiftest_yarkovsky_getacch_pl_one()
-                    pl%ah(:, i) = pl%ah(:, i) + a_yark(:)
-                end if 
-            end do
-        return
-
-    end subroutine swiftest_yarkovsky_getacc_pl_all
-
-    module subroutine swiftest_yarkovsky_getacch_pl(self, nbody_system, param)
+    module subroutine swiftest_yarkovsky_getacc_pl(self, nbody_system, param)
         !! author: Kaustub P. Anand and David A. Minton
         !!
         !! Calculate the Yarkovsky effect on massive bodies. 

@@ -346,4 +346,45 @@ contains
       return
    end subroutine whm_kick_vh_tp
 
+   module subroutine whm_kick_yarkovsky_pl(self, nbody_system, param)
+      !! author: Kaustub P. Anand and David A. Minton
+      !!
+      !! Calculate the Yarkovsky effect on massive bodies. 
+      !! Based on Ferich, et al, 2022 (https://iopscience.iop.org/article/10.3847/1538-4365/ac8d60) and Veras, et al, 2015 (https://academic.oup.com/mnras/article/451/3/2814/1180328)
+      implicit none
+
+      ! Arguments
+      class(swiftest_pl),           intent(inout) :: self
+         !! Swiftest body object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param
+         !! Current run configuration parameters
+
+      ! Internals
+      real(DP)                         :: lag_angle_constants
+         !! constant terms in lag angle calculations
+      real(DP), dimension(NDIM)        :: a_yark
+         !! Yarkovsky acceleration vector
+      real(DP), dimension(NDIM, NDIM)  :: UM
+         !! rotation matrices
+
+      ! calculate constants
+      lag_angle_constants = 0.5_DP * (param%sigma_sys / PI**5)**(0.25_DP) * (param%L_SUN_sys)**(0.75_DP)
+      UM(:, :) = 0.0_DP
+      UM(1, 1) = 1.0_DP
+      UM(2, 2) = 1.0_DP
+      UM(3, 3) = 1.0_DP
+
+      associate(pl => self)
+         do i=1, pl%nbody
+               if (pl%lmask(i)) then
+                  call swiftest_yarkovsky_getacch_pl_one(lag_angle_constants, pl%muj(i), pl%mass(i), pl%radius(i), pl%xj(:, i), pl%vj(:, i), pl%rot(:, i), pl%a(i), 
+                                                         pl%emissivity(i), pl%gamma(i), pl%albedo(i), pl%rot_k(i), param%L_SUN_sys, param%inv_c2, a_yark)
+                  pl%ah(:, i) = pl%ah(:, i) + a_yark(:)
+               end if 
+         end do
+      return
+   end subroutine whm_kick_yarkovsky_pl
+
 end submodule s_whm_kick
