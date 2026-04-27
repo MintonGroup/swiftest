@@ -220,8 +220,8 @@ module whm
       implicit none
 
       ! Arguments
-      class(swiftest_pl),           intent(inout) :: self
-         !! Swiftest body object
+      class(whm_pl),           intent(inout) :: self
+         !! whm massive body object
       class(swiftest_nbody_system), intent(inout) :: nbody_system
          !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param

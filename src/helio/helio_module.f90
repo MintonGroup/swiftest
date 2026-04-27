@@ -247,8 +247,8 @@ module helio
       implicit none
 
       ! Arguments
-      class(swiftest_pl),           intent(inout) :: self
-         !! Swiftest body object
+      class(helio_pl),           intent(inout) :: self
+         !! helio massive body object
       class(swiftest_nbody_system), intent(inout) :: nbody_system
          !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param

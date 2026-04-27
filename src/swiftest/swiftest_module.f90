@@ -1776,19 +1776,25 @@ module swiftest
    end interface
 
    interface 
-      module subroutine swiftest_yarkovsky_getacc_pl_one(self, nbody_system, param)
+      module subroutine swiftest_yarkovsky_getacc_pl_one(lag_angle_constants, mu, mass, radius, r_vec, v_vec, rot, a, emissivity, gamma, albedo, rot_k, L_SUN_sys, inv_c2, a_yark) ! pure module subroutine? 
         !! author: Kaustub P. Anand and David A. Minton
+        !! Calculate the Yarkovsky effect on one body 
         !!
-        !! Calculate the Yarkovsky effect on massive bodies. 
-        !! Based on Ferich, et al, 2022 (https://iopscience.iop.org/article/10.3847/1538-4365/ac8d60) and Veras, et al, 2015 (https://academic.oup.com/mnras/article/451/3/2814/1180328)
         implicit none
         ! Arguments
-        class(swiftest_pl),           intent(inout) :: self
-            !! Swiftest body object
-        class(swiftest_nbody_system), intent(inout) :: nbody_system
-            !! Swiftest nbody system object
-        class(swiftest_parameters),   intent(in)    :: param
-            !! Current run configuration parameters
+        real(DP), intent(in)                        :: lag_angle_constants, L_SUN_sys, inv_c2
+            !! constants and parameters needed for Yarkovsky calculations
+        real(DP), intent(in)                        :: emissivity, gamma, albedo, rot_k
+            !! particle characteristics for Yarkovsky calculations
+        real(DP), intent(in)                        :: a, mass, radius, mu
+            !! semi-major axis, mass, radius, and mu of the particle
+        real(DP), dimension(NDIM), intent(in)       :: r_vec, v_vec
+            !! position and velocity vectors of the particle
+        real(DP), dimension(NDIM), intent(in)       :: rot
+            !! rotation vector of the particle
+        real(DP), dimension(NDIM), intent(out)      :: a_yark 
+            !! Yarkovsky acceleration vector
+
       end subroutine swiftest_yarkovsky_getacc_pl_one
 
       module subroutine swiftest_radiation_getacch_pl(self, nbody_system, param)

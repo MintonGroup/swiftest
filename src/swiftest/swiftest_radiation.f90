@@ -133,9 +133,6 @@ contains
 
         a_yark(:) = a_yark_mag * a_yark(:) 
 
-        ! add to acceleration
-        acc(:) = acc(:) + a_yark(:)
-
         return
 
     end subroutine swiftest_yarkovsky_getacc_pl_one
