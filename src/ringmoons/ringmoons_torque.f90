@@ -99,8 +99,6 @@ contains
                 aring(2:mshep+1) = 0.25_DP * Xring(2:mshep+1)**2
 
                 ! Calculate bin boundaries of resonance using its width in X space
-                w1_arr(:) = 0
-                w2_arr(:) = 0
                 where((Xring(2:mshep) > Xlo).and.(Xring(2:mshep) <= Xhi))
                     w1_arr(2:mshep) = min(max(ceiling((sqrt(Xring(2:mshep)**2 - Xw2) - ring%X_inner) / ring%deltaX),0),ring%nbins+1)
                     w2_arr(2:mshep) = min(max(ceiling((sqrt(Xring(2:mshep)**2 + Xw2) - ring%X_inner) / ring%deltaX),0),ring%nbins+1)
