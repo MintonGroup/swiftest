@@ -300,6 +300,8 @@ contains
         real(DP), dimension(:,:), allocatable     :: rh, vh, pvh
         real(DP) :: rtmp
         character(len=NAMELEN) :: charstring
+        character(*), parameter :: SEEDFMT = '("Seed",I0.7)'
+        character(NAMELEN) :: newname
 
         call netcdf_io_check( nf90_set_fill(nc%id, NF90_NOFILL, old_mode), "ringmoons_io_write_frame_seed nf90_set_fill" )
         associate(n => self%nbody, tslot => nc%tslot)
@@ -337,6 +339,8 @@ contains
                 if (self%id(i) < 0) then
                     self%maxid = self%maxid + 1
                     self%id(i) = self%maxid 
+                    write(newname, SEEDFMT) self%id(i)
+                    call self%info(i)%set_value(name=newname)
                 end if
             end do
 
