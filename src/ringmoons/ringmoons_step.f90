@@ -107,7 +107,7 @@ contains
                         call seedring%dealloc()
                     end if
                 end do
-                allocate(lactive(seed%nbody))
+                allocate(lactive(size(seed%status)))
                 where(seed%status(:) == ACTIVE)
                     lactive(:) = .true.
                 elsewhere
@@ -264,10 +264,8 @@ contains
         real(DP)                                  :: Lr0,Ls0,Lp0,Lr1,Ls1,Lp1,Lorig,sarr,maxE
         logical                                   :: chomped,goodstep
         real(DP),parameter                        :: DTMIN_FAC = 1e-16_DP
-        !   real(DP),parameter                        :: TOL = 1e-8_DP 
         integer(I4B)                              :: Nnegative_seed,Nnegative_ring,Nbig_error
         logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
-
         ! Guard against underflow errors when rings surface mass density gets too small
         call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)
         call ieee_set_halting_mode(ieee_underflow, .false.)
@@ -281,7 +279,6 @@ contains
             dti = dt
             dtleft = dt
             dtmin = DTMIN_FAC * dt
-
 
             ! Save initial state of the seed
             allocate(iring, source=ring)
@@ -340,8 +337,8 @@ contains
                     iring%Gsigma(:) = param%GU * iring%sigma(:)
                     iseed%ringbin(1:Ns) = iring%find_bin(seed%a(1:Ns))
 
-
                     call iseed%get_tidal_torque(cb,param) 
+
                     mdot(:) = ringmoons_dMdt_seed(iseed,iring,cb,param)
                     do i = 1, Ns
                         rbin = iseed%ringbin(i)
@@ -364,7 +361,7 @@ contains
                         kL(:,rkn) = kL(:,rkn) + dti * Tlind(:)
                     end do
                 end do
-                
+               
                 ! Allow ring mass to go negative, as it will get filled in by sigma_solver
                 mringf(:) = mringi(:) + matmul(kr(:,1:rkfo), rkf5_coeff(1:rkfo))
                 af(1:Ns) = ai(1:Ns) + matmul(ka(1:Ns,1:rkfo), rkf5_coeff(1:rkfo))
@@ -434,7 +431,6 @@ contains
             
                 if (dtleft <= 0.0_DP) exit steploop
                 dti = min(sarr * dti,dtleft)
-
             end do steploop
 
             seed%a(:) = af(:)
@@ -450,8 +446,6 @@ contains
             cb%rot(3) = (cb%L0(3) + cb%dL(3)) / (cb%Ip(3) * cb%mass * (cb%radius)**2) 
             seed%Torque(:) = 0.0_DP
             seed%Ttide(:) = 0.0_DP
-            call iseed%dealloc()
-            call iring%dealloc()
             seed%ringbin(:) = ring%find_bin(seed%a(:))
 
             !I'm hungry! What's there to eat?! Look for neighboring seed
@@ -596,8 +590,9 @@ contains
         integer(I4B), parameter             :: SUBMAX = 2
         logical                             :: stepfail
         real(DP)                            :: dtring,dtleft
-        integer(I4B)                        :: i,loop,seedloop,subcount,loopcount
+        integer(I4B)                        :: i,loop,subcount,loopcount
         class(ringmoons_nbody_system), allocatable  :: old_system
+
 
         allocate(old_system, mold=self)
         subcount = 0
@@ -618,7 +613,7 @@ contains
 
                 ring%Torque(:) = 0.0_DP
                 seed%Torque(:) = 0.0_DP
-                
+               
                 call ring%update(cb,param)
                 
                 dtring = ring%get_dt(dtring)
@@ -645,7 +640,6 @@ contains
                 end if
 
                 call seed%restructure(cb,ring,param) ! Spawn new seed in any available bins outside the FRL 
-                                                                            ! where there is ring material
                 subcount = subcount + 1
 
                 dtleft = dtleft - dtring
@@ -657,14 +651,15 @@ contains
                     subcount = 0
                 end if
                 dtring = min(dtleft,dtring)
+
+                deallocate(old_system%cb, old_system%ring, old_system%seed)
+                allocate(old_system%ring, source=self%ring)
+                allocate(old_system%seed, source=self%seed)
+                allocate(old_system%cb,   source=self%cb)
             end associate
             end select
         end do
 
-        deallocate(old_system%cb, old_system%ring, old_system%seed)
-        allocate(old_system%ring, source=self%ring)
-        allocate(old_system%seed, source=self%seed)
-        allocate(old_system%cb,   source=self%cb)
         self%maxid = self%seed%maxid
         self%ring%t = t + dt
 

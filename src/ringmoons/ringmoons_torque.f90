@@ -34,11 +34,11 @@ contains
         real(DP),dimension(0:self%nbins+1)        :: Torque
         ! Internals
         integer(I4B)                           :: i,j,m,inner_outer_sign,il,w,w1,w2,js, mshep
-        real(DP)                               :: beta, Amk, nw,lap,dlap,da3,Xr,Xs,Xlo,Xhi,rlo,rhi,mratio,lind_factor,awidth
+        real(DP)                               :: beta, Amk, nw,lap,dlap,da3,Xs,Xlo,Xhi,rlo,rhi,mratio,lind_factor,awidth,Xw2
         real(DP), parameter                    :: g = 2.24_DP !! see Tajeddine et al. (2017) eq. 7
         integer(I4B),parameter :: M_MAX = 100     
             !! Maximum number of Lindblad modes to compute
-        real(DP),dimension(2:M_MAX)            :: aring
+        real(DP),dimension(2:M_MAX)            :: Xring, aring
         logical,dimension(0:self%nbins+1)      :: T_mask
         integer(I4B),dimension(2:M_MAX)        :: w1_arr,w2_arr
         real(DP),dimension(2:M_MAX,-1:1),save :: lapm,dlapm,marr 
@@ -48,7 +48,6 @@ contains
         real(DP),parameter         :: RAD_LIMIT_M = 0.001_DP 
             !! Lower limit on disk particle radius in meters
         logical, save :: lfirst = .true.
-
 
         ! For performance reasons, we compute a table of Laplace coefficient terms in Am,k from Tajeddine et al. (2017) eq. 27
         ! lapm and dlapm are the two Laplace coefficient terms 
@@ -80,7 +79,8 @@ contains
 
             Xs = 2 * sqrt(asat)
             ! Resonance width: See Longaretti sec. 5.3.1
-            awidth = asat * sqrt(msat/cb%mass)
+            awidth = asat * sqrt(mratio)
+            Xw2 = 0.5_DP * Xs**2 * sqrt(mratio)
             Xlo = ring%X_inner + ring%deltaX * ring%inside
             Xhi = ring%X_outer
             rlo = 0.25_DP * Xlo**2
@@ -95,22 +95,23 @@ contains
             ! Inner then outer Lindblads
             do il = -1,1,2
                 ! Calculate resonance location space
-                aring(2:mshep+1) = 0.25_DP * (Xs * marr(2:mshep+1,il))**2
+                Xring(2:mshep+1) = Xs * marr(2:mshep+1,il)
+                aring(2:mshep+1) = 0.25_DP * Xring(2:mshep+1)**2
 
                 ! Calculate bin boundaries of resonance using its width in X space
                 w1_arr(:) = 0
                 w2_arr(:) = 0
-                do m=2,mshep
-                    if((aring(m) > rlo).and.(aring(m) < rhi)) then
-                        w1_arr(m)=ring%find_bin(aring(m)-awidth)
-                        w2_arr(m)=ring%find_bin(aring(m)+awidth)
-                    end if
-                end do
+                where((Xring(2:mshep) > Xlo).and.(Xring(2:mshep) <= Xhi))
+                    w1_arr(2:mshep) = min(max(ceiling((sqrt(Xring(2:mshep)**2 - Xw2) - ring%X_inner) / ring%deltaX),0),ring%nbins+1)
+                    w2_arr(2:mshep) = min(max(ceiling((sqrt(Xring(2:mshep)**2 + Xw2) - ring%X_inner) / ring%deltaX),0),ring%nbins+1)
+                elsewhere
+                    w1_arr(2:mshep) = 0
+                    w2_arr(2:mshep) = 0
+                end where
                 
                 do m  = 2, mshep
-                    if ((aring(m) > rlo).and.(aring(m) < rhi)) then
-                        Xr = 2 * sqrt(aring(m))
-                        beta = (Xs / Xr)**(il * 2)
+                    if ((Xring(m) > Xlo).and.(Xring(m) < Xhi)) then
+                        beta = (Xs / Xring(m))**(il * 2)
                         lap  =  lapm(m,il)
                         dlap = dlapm(m,il)
                         Amk = 0.5_DP * (lap + dlap)
