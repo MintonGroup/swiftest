@@ -332,7 +332,16 @@ contains
                                             rh(1,i), rh(2,i), rh(3,i), vh(1,i), vh(2,i), vh(3,i)) 
             end do
             if (param%lgr) allocate(pvh, source=vh)
+            ! Assign id values to the seeds
+            do i =1, n
+                if (self%id(i) < 0) then
+                    self%maxid = self%maxid + 1
+                    self%id(i) = self%maxid 
+                end if
+            end do
+
             call util_sort(self%id(1:n), ind)
+
             do i = 1, n
                 j = ind(i)
                 call nc%find_idslot(self%id(j), idslot) 

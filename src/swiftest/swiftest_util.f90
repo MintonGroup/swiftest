@@ -3589,6 +3589,10 @@ contains
 
       associate(cb => self%cb, pl => self%pl, npl => self%pl%nbody, tp => self%tp, ntp => self%tp%nbody, maxid => self%maxid)
          nid = 1 + npl+ ntp
+         select type(self)
+         class is (ringmoons_nbody_system)
+            nid = nid + self%seed%nbody
+         end select
          allocate(idarr(nid))
          ! Central body should always be id=0
          cb%id = 0
@@ -3599,6 +3603,13 @@ contains
          do i = 1, ntp
             idarr(1+npl+i) = tp%id(i)
          end do
+         select type(self)
+         class is (ringmoons_nbody_system)
+            do i = 1, self%seed%nbody
+               idarr(1+npl+ntp+i) = self%seed%id(i)
+            end do
+         end select
+            
          maxid = maxval(idarr)
 
          ! Check to see if the ids are unique
@@ -3607,16 +3618,32 @@ contains
 
          ! Fix any duplicate id values and update the maxid
          call util_sort(idmap)
-         do i = 2, size(idmap)
-            if (idmap(i) == idmap(i-1)) then
-               maxid = maxid + 1
-               if (i < 1 + npl) then
-                  pl%id(i - 1) = maxid 
-               else
-                  tp%id(i - 1 - npl) = maxid
+         select type(self)
+         class is (ringmoons_nbody_system)
+            do i = 2, size(idmap)
+               if (idmap(i) == idmap(i-1)) then
+                  maxid = maxid + 1
+                  if (i < 1 + npl) then
+                     pl%id(i - 1) = maxid 
+                  else if (i < 1 + npl + ntp) then
+                     tp%id(i - 1 - npl) = maxid
+                  else
+                     self%seed%id(i - 1 - npl - ntp) = maxid
+                  end if
                end if
-            end if
-         end do
+            end do
+         class default
+            do i = 2, size(idmap)
+               if (idmap(i) == idmap(i-1)) then
+                  maxid = maxid + 1
+                  if (i < 1 + npl) then
+                     pl%id(i - 1) = maxid 
+                  else 
+                     tp%id(i - 1 - npl) = maxid
+                  end if
+               end if
+            end do
+         end select
 
       end associate
 

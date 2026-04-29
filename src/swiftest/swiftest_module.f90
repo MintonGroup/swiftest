@@ -545,7 +545,7 @@ module swiftest
          !! Stores encounter history for later retrieval and saving to file
       class(collision_storage),   allocatable :: collision_history 
          !! Stores encounter history for later retrieval and saving to file
-      integer(I4B)                    :: maxid = -1             
+      integer(I4B)                    :: maxid = 0             
          !! The current maximum particle id number 
       real(DP)                        :: t = -1.0_DP            
          !! Integration current time

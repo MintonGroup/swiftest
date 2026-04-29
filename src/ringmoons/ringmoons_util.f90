@@ -535,8 +535,7 @@ contains
             seed%ringbin = new_seed%ringbin
 
             i = seed_bin 
-            maxid = maxid + 1
-            seed%id(i) = maxid
+            seed%id(i) = -1 ! Assign a temporary id to the seed and only update it it survives long enough to be recorded
             seed%status(i) = ACTIVE
             seed%a(i) = a
             j = ring%find_bin(a)

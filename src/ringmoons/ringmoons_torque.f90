@@ -66,7 +66,7 @@ contains
             end do
             lfirst = .false.
         end if
-        mratio = msat / cb%mass
+        mratio = abs(msat / cb%mass)
 
 
         associate(ring => self)

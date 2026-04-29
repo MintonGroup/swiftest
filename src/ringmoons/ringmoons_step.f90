@@ -324,14 +324,8 @@ contains
                         cycle steploop
                     end if 
 
+                    ! Allow seeds to be negative during intermediate rk4 steps
                     iseed%mass(1:Ns) = mi(1:Ns) + matmul(km(1:Ns,1:rkn-1), rkf45_btab(2:rkn,rkn-1))
-                    if (any(iseed%mass(1:Ns) < 0.0_DP)) then
-                        Nnegative_seed = Nnegative_seed + 1 
-                        goodstep = .false.
-                        dti = 0.5_DP * dt
-                        cycle steploop
-                    end if 
-
                     iring%mass(:)  = mringi(:) + matmul(kr(:,1:rkn-1),rkf45_btab(2:rkn,rkn-1))
                     iring%sigma(:) = iring%mass(:) / iring%deltaA(:)
                     iring%Gsigma(:) = param%GU * iring%sigma(:)
@@ -366,7 +360,7 @@ contains
                 mringf(:) = mringi(:) + matmul(kr(:,1:rkfo), rkf5_coeff(1:rkfo))
                 af(1:Ns) = ai(1:Ns) + matmul(ka(1:Ns,1:rkfo), rkf5_coeff(1:rkfo))
 
-                !Don't let seed semimajor axes or masses go negative
+                !Don't let seed semimajor axes go negative
                 if (any(af(1:Ns) < 0.0_DP)) then
                     Nnegative_seed = Nnegative_seed + 1 
                     dti = 0.5_DP * dti
@@ -375,6 +369,7 @@ contains
 
                 mf(1:Ns) = mi(1:Ns) + matmul(km(1:Ns,1:rkfo), rkf5_coeff(1:rkfo))
 
+                ! Don't let final masses go netative.
                 if (any(mf(1:Ns) < 0.0_DP)) then
                     Nnegative_seed = Nnegative_seed + 1 
                     dti = 0.5_DP * dti
@@ -561,7 +556,7 @@ contains
         ! Executable code
         where((seed%density(:) > VSMALL).and.(seed%a(:) > VSMALL))
             C(:) = 12 * PI**(2._DP / 3._DP) * (3._DP / (4 * seed%density(:)))**(1._DP / 3._DP) * sqrt(param%GU) / sqrt(cb%mass)  
-            mdot(:) = C(:) * ring%sigma(seed%ringbin(:)) / (eff2 * sqrt(seed%a(:))) * seed%mass(:)**(growth_exponent) 
+            mdot(:) = C(:) * ring%sigma(seed%ringbin(:)) / (eff2 * sqrt(seed%a(:))) * abs(seed%mass(:))**(growth_exponent) 
         elsewhere
             mdot(:) = 0.0_DP
         end where
@@ -598,7 +593,7 @@ contains
         subcount = 0
         dtleft = dt
         dtring = dtleft
-        self%seed%maxid = self%maxid
+        
         allocate(old_system%ring, source=self%ring)
         allocate(old_system%seed, source=self%seed)
         allocate(old_system%cb,   source=self%cb)
@@ -660,7 +655,6 @@ contains
             end select
         end do
 
-        self%maxid = self%seed%maxid
         self%ring%t = t + dt
 
         ! Step the nbody system like normal

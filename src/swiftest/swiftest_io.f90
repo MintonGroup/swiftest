@@ -2292,7 +2292,9 @@ contains
          select type(self)
          class is(ringmoons_nbody_system)
             call self%ring%write_frame(param)
+            self%seed%maxid = self%maxid
             call self%seed%write_frame(nc, param)
+            self%maxid = self%seed%maxid
          end select
 #ifdef COARRAY
       end if ! this_image() == 1
