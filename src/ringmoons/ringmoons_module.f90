@@ -415,10 +415,11 @@ module ringmoons
                 !! Output time step size, where dtout <= dtin
         end function ringmoons_util_get_dt_ring
 
-        module subroutine ringmoons_util_update_ring(self,cb)
+        module subroutine ringmoons_util_update_ring(self,cb,param)
             implicit none
             class(ringmoons_ring), intent(inout) :: self
             class(ringmoons_cb), intent(in) :: cb
+            class(swiftest_parameters), intent(in) :: param
         end subroutine ringmoons_util_update_ring
 
         module subroutine ringmoons_util_reset_ring(self,seed,cb,param)
@@ -479,10 +480,11 @@ module ringmoons
             class(swiftest_parameters),     intent(in)    :: param
         end subroutine ringmoons_util_spawn_seed
 
-        module subroutine ringmoons_util_velocity_dispersion_ring(self,cb)
+        module subroutine ringmoons_util_velocity_dispersion_ring(self,cb,param)
             implicit none
             class(ringmoons_ring), intent(inout) :: self
             class(ringmoons_cb),   intent(in)    :: cb
+            class(swiftest_parameters), intent(in) :: param
         end subroutine ringmoons_util_velocity_dispersion_ring
 
         elemental pure module function ringmoons_transition_function(yin) result(kappa)

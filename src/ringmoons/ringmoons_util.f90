@@ -216,18 +216,19 @@ contains
         return
     end function ringmoons_util_get_dt_ring
 
-    module subroutine ringmoons_util_update_ring(self,cb)
+    module subroutine ringmoons_util_update_ring(self,cb,param)
         !! author: David A. Minton
         !!
         !! Updates the ring velocity dispersion, Toomre parameter, and viscosity values
         implicit none
         class(ringmoons_ring), intent(inout) :: self
         class(ringmoons_cb), intent(in) :: cb
+        class(swiftest_parameters), intent(in) :: param
         ! Internals
         integer(I4B) :: i
 
         associate(ring => self)       
-            call ring%set_velocity_dispersion(cb)
+            call ring%set_velocity_dispersion(cb,param)
             where(ring%sigma(:) > 1000 * VSMALL) 
                 ring%Q(:) = ring%wkep(:) * ring%vrel_p(:) / (3.36_DP * ring%Gsigma(:))
                 ring%tau(:) = PI * ring%r_p(:)**2 * ring%sigma(:) / ring%m_p(:)
@@ -560,10 +561,11 @@ contains
         return
     end subroutine ringmoons_util_spawn_seed
 
-    module subroutine ringmoons_util_velocity_dispersion_ring(self,cb)
+    module subroutine ringmoons_util_velocity_dispersion_ring(self,cb,param)
         implicit none
         class(ringmoons_ring), intent(inout) :: self
         class(ringmoons_cb),   intent(in)    :: cb
+        class(swiftest_parameters), intent(in) :: param
         ! Internals
         integer(I4B)                         :: i
         real(DP),dimension(0:self%nbins+1)   :: kappa_rhstar,eta_rhstar
@@ -574,7 +576,7 @@ contains
                 ! See Salmon et al. 2010 for this
                 kappa_rhstar(:) = ringmoons_transition_function(ring%r_hstar(:))
                 eta_rhstar(:) = 1._DP - kappa_rhstar(:)
-                ring%vrel_p(:) = kappa_rhstar(:) * sqrt(ring%m_p(:) / ring%r_p(:)) + eta_rhstar(:) * &
+                ring%vrel_p(:) = kappa_rhstar(:) * sqrt(param%GU * ring%m_p(:) / ring%r_p(:)) + eta_rhstar(:) * &
                                                     (2 * ring%r_p(:) * ring%wkep(:))
             end where
         end associate

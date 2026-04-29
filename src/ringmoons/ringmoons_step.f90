@@ -169,7 +169,7 @@ contains
         call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)
         call ieee_set_halting_mode(ieee_underflow, .false.)
 
-        call self%update(cb)
+        call self%update(cb,param)
         stepfail = .false.
 
         associate(ring => self, N => self%nbins)
@@ -342,7 +342,7 @@ contains
 
 
                     call iseed%get_tidal_torque(cb,param) 
-                    mdot(:) = ringmoons_dMdt_seed(iseed,iring,cb)
+                    mdot(:) = ringmoons_dMdt_seed(iseed,iring,cb,param)
                     do i = 1, Ns
                         rbin = iseed%ringbin(i)
                         Tlind(:) = iring%get_lindblad_torque(cb,iseed%a(i),e,inc,iseed%mass(i),param)
@@ -543,12 +543,13 @@ contains
         return
     end function ringmoons_dadt_seed
 
-    function ringmoons_dMdt_seed(seed,ring,cb) result(mdot)
+    function ringmoons_dMdt_seed(seed,ring,cb,param) result(mdot)
         use, intrinsic :: ieee_exceptions
         implicit none
         class(ringmoons_seed),intent(in) :: seed
         class(ringmoons_ring), intent(in) :: ring
         class(ringmoons_cb), intent(in) :: cb 
+        class(swiftest_parameters), intent(in) :: param
         real(DP), dimension(1:seed%nbody) :: mdot
 
         ! Internals
@@ -557,7 +558,7 @@ contains
         real(DP),parameter                     :: eff2   = 1e-7_DP ! This term gets the growth rate to match up closely to Andy's
         real(DP),parameter                     :: growth_exponent = 4._DP / 3._DP
         real(DP), parameter                    :: SIGLIMIT = 1e-100_DP
-        logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
+        logical, dimension(size(IEEE_ALL))     :: fpe_halting_modes
 
         ! Guard against underflow errors when rings surface mass density gets too small
         call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)
@@ -565,8 +566,8 @@ contains
 
         ! Executable code
         where((seed%density(:) > VSMALL).and.(seed%a(:) > VSMALL))
-            C(:) = 12 * PI**(2._DP / 3._DP) * (3._DP / (4 * seed%density(:)))**(1._DP / 3._DP) / sqrt(cb%mass) 
-            mdot(:) = C(:) * ring%sigma(seed%ringbin(:)) / (eff2 * sqrt(seed%a(:))) * seed%Gmass(:)**(growth_exponent)
+            C(:) = 12 * PI**(2._DP / 3._DP) * (3._DP / (4 * seed%density(:)))**(1._DP / 3._DP) * sqrt(param%GU) / sqrt(cb%mass)  
+            mdot(:) = C(:) * ring%sigma(seed%ringbin(:)) / (eff2 * sqrt(seed%a(:))) * seed%mass(:)**(growth_exponent) 
         elsewhere
             mdot(:) = 0.0_DP
         end where
@@ -618,7 +619,7 @@ contains
                 ring%Torque(:) = 0.0_DP
                 seed%Torque(:) = 0.0_DP
                 
-                call ring%update(cb)
+                call ring%update(cb,param)
                 
                 dtring = ring%get_dt(dtring)
 
