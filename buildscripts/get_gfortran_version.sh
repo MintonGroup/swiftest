@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 #
 # This gets the current gfortran version number
 # 

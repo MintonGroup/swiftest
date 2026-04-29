@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 # This script will download the correct OpenMP library for a given MacOS deployment target
 # 
 # Copyright 2026 - David Minton

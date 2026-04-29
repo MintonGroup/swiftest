@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 # Sets environment variables for Linux or Mac. This script is designed so that the build system can be customized by the user simply
 # by defining any environment variables prior to running this script.
 # 

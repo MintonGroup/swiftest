@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 # This script will build the NetCDF Fortran library from source
 # 
 # Copyright 2026 - David Minton

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 # This script will build the SHTOOLS libraries from source
 # 
 # Copyright 2026 - David Minton

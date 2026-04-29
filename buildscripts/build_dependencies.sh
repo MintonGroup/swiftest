@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 # This script will build all of the dependency libraries needed by Swiftest. Builds the following from source:
 # Ninja, libaec, bzip2, zstd, hdf5, netcdf-c, netcdf-fortran
 # 

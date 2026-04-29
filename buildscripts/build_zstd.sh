@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 # This script will build the zstd library needed by HDF5
 # 
 # Copyright 2026 - David Minton
