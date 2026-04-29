@@ -16,8 +16,13 @@ contains
         !!
         !! Calculates the lindblad torques between each ring element and given  given satellite. 
         !! 
-        !! The function unction returns total torque acting on the satellite, and stores the torques acting on each ring element 
-        !! in the ring.
+        !! The function returns total torque acting on the satellite, and stores the torques acting on each ring element ! in the 
+        !! ring. 
+        !! 
+        !! References:
+        !! Tajeddine, R., Nicholson, P.D., Longaretti, P.-Y., Moutamid, M.E., Burns, J.A., 2017. What Confines the Rings of Saturn? 
+        !!     ApJS 232, 28. https://doi.org/10.3847/1538-4365/aa8c09
+
         !!
         !! Adapted from Andy Hesselbrock's ringmoons Python scripts.
         implicit none
@@ -29,8 +34,8 @@ contains
         real(DP),dimension(0:self%nbins+1)        :: Torque
         ! Internals
         integer(I4B)                           :: i,j,m,inner_outer_sign,il,w,w1,w2,js, mshep
-        real(DP)                               :: dTorque, beta, Amk, nw,lap,dlap,da3,ar,Xr,Xs,Xlo,Xhi,rlo,rhi,Gfac,lind_factor,awidth
-        real(DP), parameter                    :: g = 2.24_DP
+        real(DP)                               :: beta, Amk, nw,lap,dlap,da3,Xr,Xs,Xlo,Xhi,rlo,rhi,mratio,lind_factor,awidth
+        real(DP), parameter                    :: g = 2.24_DP !! see Tajeddine et al. (2017) eq. 7
         integer(I4B),parameter :: M_MAX = 100     
             !! Maximum number of Lindblad modes to compute
         real(DP),dimension(2:M_MAX)            :: aring
@@ -62,7 +67,7 @@ contains
             end do
             lfirst = .false.
         end if
-        Gfac = msat / cb%mass
+        mratio = msat / cb%mass
 
 
         associate(ring => self)
@@ -113,9 +118,9 @@ contains
                         w2 = w2_arr(m)
                         nw = real(abs(w2 - w1) + 1,kind=DP)
                         ! Calculate the 1st order Lindblad torques and distribute them over the bins that include the resonance
-                        lind_factor = il * mfac(m) / nw * aring(m)**4 * (beta * Gfac * Amk)**2 
+                        lind_factor = il * mfac(m) / nw * aring(m)**4 * (beta * mratio * Amk)**2 
                         where(T_mask(w1:w2)) 
-                            Torque(w1:w2) = Torque(w1:w2) + lind_factor * ring%Gsigma(w1:w2) * (ring%wkep(w1:w2))**2
+                            Torque(w1:w2) = Torque(w1:w2) + lind_factor * ring%sigma(w1:w2) * (ring%nkep(w1:w2))**2
                         endwhere
                     end if
                 end do
@@ -125,8 +130,8 @@ contains
                 j = ring%find_bin(aring(mshep+1)) !ring location of resonance
                 da3 = il * max(abs((aring(mshep+1) - asat)**3),epsilon(asat))
                 if (T_mask(j)) then 
-                    Torque(j) = Torque(j) + g**2 / 6._DP * aring(mshep+1)**3 &
-                                          / da3 * Gfac**2 * ring%Gsigma(j) * (ring%wkep(j))**2 * aring(mshep+1)**4
+                    Torque(j) = Torque(j) + g**2 / 6._DP * aring(mshep+1)**3 / da3 * mratio**2  &
+                                          * ring%sigma(j) * (ring%nkep(j))**2 * aring(mshep+1)**4
                 end if
             end do
         end associate
@@ -145,7 +150,12 @@ contains
         real(DP),dimension(self%nbody) :: n
         associate(seed => self)
             n(:) = sqrt((seed%mu(:)) / seed%a(:)**3)
-            seed%Ttide(:) = sign(1._DP,cb%rot(3) - n(:)) * 1.5_DP * cb%k2 / cb%Q * seed%Gmass(:)**2 * cb%radius**5 / seed%a(:)**6
+            ! seed%Ttide(:) = sign(1._DP,cb%rot(3) - n(:)) * 1.5_DP * cb%k2 / cb%Q * seed%Gmass(:)**2 * cb%radius**5 / seed%a(:)**6
+            seed%Ttide(:) = sign(1._DP,cb%rot(3) - n(:))                  &
+                                * 1.5_DP * seed%a(:) * n * (cb%k2 / cb%Q) &
+                                * (seed%mass(:) / cb%mass)                &
+                                * (cb%radius / seed%a(:))**5              &
+                                * (seed%mass(:) * sqrt(cb%Gmass / seed%a(:)))
         end associate
         return
         end subroutine ringmoons_torque_tidal_seed

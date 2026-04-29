@@ -195,7 +195,7 @@ module ringmoons
             !! Toomre parameter of the ring bin
         real(DP), dimension(:), allocatable :: Iz                
             !! polar moment of inertia of ring bin
-        real(DP), dimension(:), allocatable :: wkep             
+        real(DP), dimension(:), allocatable :: nkep             
             !! Keplerian angular velocity of ring bin
         real(DP), dimension(:), allocatable :: Torque            
             !! total satellite torque density acting on the ring bin

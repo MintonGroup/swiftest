@@ -47,7 +47,7 @@ contains
             dMtot = sum(ring%mass(0:ring%inside))
                     
             !Add ring mass and angular momentum to planet
-            Lring_orig(:) = ring%mass(:) * ring%Iz(:) * ring%wkep(:) 
+            Lring_orig(:) = ring%mass(:) * ring%Iz(:) * ring%nkep(:) 
             Lring = sum(Lring_orig(0:ring%inside))
             cb%dGM = cb%dGM + dMtot * param%GU
             cb%dL(3) = cb%dL(3) + Lring
@@ -76,7 +76,7 @@ contains
             ring%Gsigma(:) = param%GU * ring%sigma(:)
             
             ! Any difference in angular momentum in each ring bin will result in a torque in that bin
-            Lring_now(:) = ring%mass(:) * ring%Iz(:) * ring%wkep(:) 
+            Lring_now(:) = ring%mass(:) * ring%Iz(:) * ring%nkep(:) 
             dL(0:ring%inside) = 0.0_DP
             dL(ring%nbins+1) = 0.0_DP
             dL(ring%inside+1:ring%nbins) = (Lring_now(ring%inside+1:ring%nbins) - Lring_orig(ring%inside+1:ring%nbins)) 
@@ -109,7 +109,7 @@ contains
         if (allocated(self%nu))      deallocate(self%nu)
         if (allocated(self%Q))       deallocate(self%Q)
         if (allocated(self%Iz))      deallocate(self%Iz)
-        if (allocated(self%wkep))    deallocate(self%wkep)
+        if (allocated(self%nkep))    deallocate(self%nkep)
         if (allocated(self%Torque))  deallocate(self%Torque)
         if (allocated(self%r_p))     deallocate(self%r_p)
         if (allocated(self%m_p))     deallocate(self%m_p)
@@ -230,10 +230,10 @@ contains
         associate(ring => self)       
             call ring%set_velocity_dispersion(cb,param)
             where(ring%sigma(:) > 1000 * VSMALL) 
-                ring%Q(:) = ring%wkep(:) * ring%vrel_p(:) / (3.36_DP * ring%Gsigma(:))
+                ring%Q(:) = ring%nkep(:) * ring%vrel_p(:) / (3.36_DP * ring%Gsigma(:))
                 ring%tau(:) = PI * ring%r_p(:)**2 * ring%sigma(:) / ring%m_p(:)
                 ring%nu(:) = ringmoons_viscosity(ring%Gsigma(:), ring%m_p(:), (ring%vrel_p(:))**2, &
-                                                ring%r_p(:), ring%r_hstar(:), ring%Q(:), ring%tau(:), ring%wkep(:))
+                                                ring%r_p(:), ring%r_hstar(:), ring%Q(:), ring%tau(:), ring%nkep(:))
             elsewhere
                 ring%Q(:) = huge(1._DP) / 10._DP
                 ring%tau(:) = 0.0_DP
@@ -306,7 +306,7 @@ contains
 
             ! Specific moment of inertia of the ring bin and ring angular velocity
             ring%Iz(:) = (ring%r(:))**2
-            ring%wkep(:) = sqrt(cb%Gmass / ring%r(:)**3)
+            ring%nkep(:) = sqrt(cb%Gmass / ring%r(:)**3)
             ring%mass(:) = ring%sigma(:) * ring%deltaA(:)
             ring%Gsigma(:) = param%GU * ring%sigma(:)
             
@@ -359,7 +359,7 @@ contains
         allocate(self%nu(0:n+1))
         allocate(self%Q(0:n+1))
         allocate(self%Iz(0:n+1))
-        allocate(self%wkep(0:n+1))
+        allocate(self%nkep(0:n+1))
         allocate(self%Torque(0:n+1))
         allocate(self%r_p(0:n+1))
         allocate(self%m_p(0:n+1))
@@ -378,7 +378,7 @@ contains
         self%nu(:) = 0.0_DP
         self%Q(:) = 0.0_DP
         self%Iz(:) = 0.0_DP
-        self%wkep(:) = 0.0_DP
+        self%nkep(:) = 0.0_DP
         self%Torque(:) = 0.0_DP
         self%r_p(:) = 0.0_DP
         self%m_p(:) = 0.0_DP
@@ -577,7 +577,7 @@ contains
                 kappa_rhstar(:) = ringmoons_transition_function(ring%r_hstar(:))
                 eta_rhstar(:) = 1._DP - kappa_rhstar(:)
                 ring%vrel_p(:) = kappa_rhstar(:) * sqrt(param%GU * ring%m_p(:) / ring%r_p(:)) + eta_rhstar(:) * &
-                                                    (2 * ring%r_p(:) * ring%wkep(:))
+                                                    (2 * ring%r_p(:) * ring%nkep(:))
             end where
         end associate
 

@@ -80,7 +80,7 @@ contains
                         end do 
                         !j = seedring%iRRL
                         ! Offset in angular momentum
-                        Lring = sum(seedring%mass(:) * seedring%Iz(:) * seedring%wkep(:))
+                        Lring = sum(seedring%mass(:) * seedring%Iz(:) * seedring%nkep(:))
                         deltaL = Lseed_orig - Lring
 
                         ! Apply a torque to the temporary ring to bring it back to the seed's original angular momentum
@@ -347,7 +347,7 @@ contains
                         rbin = iseed%ringbin(i)
                         Tlind(:) = iring%get_lindblad_torque(cb,iseed%a(i),e,inc,iseed%mass(i),param)
                         if (iring%mass(iseed%ringbin(i)) / iseed%mass(i) > epsilon(1.0_DP)) then
-                            Tr_evol(i) = mdot(i) * iring%Iz(iseed%ringbin(i)) * iring%wkep(iseed%ringbin(i))
+                            Tr_evol(i) = mdot(i) * iring%Iz(iseed%ringbin(i)) * iring%nkep(iseed%ringbin(i))
                         else
                             mdot(i) = 0.0_DP
                             Tr_evol(i) = 0.0_DP
