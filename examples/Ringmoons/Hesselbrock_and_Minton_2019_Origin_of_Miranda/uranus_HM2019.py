@@ -46,7 +46,7 @@ sim.add_ring(
         "r_outer": 1.2*frl,
     },
 )
-dt = 1e3
+dt = 1e2
 tstop = 100*dt
 sim.ring["sigma"] = xr.where(sim.ring.r < frl, sim.ring.sigma, xr.zeros_like(sim.ring.sigma))
 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 # This script will hdf5 from source
 # 
 # Copyright 2026 - David Minton

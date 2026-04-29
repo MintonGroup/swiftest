@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 #
 # This gets the current system's MacOS version number and converts it from its full version to just major version. For instance, if
 # the MacOS version is 14.4.1 then this script will return 14.0. 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 # This script will build the bz2 library needed by HDF5
 # 
 # Copyright 2026 - David Minton

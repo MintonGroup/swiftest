@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 # This script will build the NetCDF C library from source
 # 
 # Copyright 2026 - David Minton

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 # This script will build the z library needed by HDF5
 # 
 # Copyright 2026 - David Minton
