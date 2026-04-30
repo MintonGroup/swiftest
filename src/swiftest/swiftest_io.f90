@@ -2232,11 +2232,8 @@ contains
                                   "swiftest_io_netcdf_write_frame_cb nf90_set_fill"  )
 
          call nc%find_idslot(self%id, idslot) 
-         call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id, start=[idslot]), &
-                                  "swiftest_io_netcdf_write_frame_cb nf90_put_var cb id_varid"  )
          call netcdf_io_check( nf90_put_var(nc%id, nc%status_varid, ACTIVE, start=[idslot, tslot]), &
                                   "swiftest_io_netcdf_write_frame_cb nf90_put_var cb id_varid"  )
-
          call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid, self%Gmass, start=[idslot, tslot]), &
                                   "swiftest_io_netcdf_write_frame_cb nf90_put_var cb Gmass_varid"  )
          call netcdf_io_check( nf90_put_var(nc%id, nc%mass_varid, self%mass, start=[idslot, tslot]), &
