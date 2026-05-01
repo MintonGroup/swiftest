@@ -159,14 +159,14 @@ contains
         class(swiftest_parameters), intent(in)    :: param
         ! Internals
         real(DP),dimension(self%nbody) :: n
-        associate(seed => self)
-            n(:) = sqrt((seed%mu(:)) / seed%a(:)**3)
-            seed%Ttide(:) = sign(1._DP,cb%rot(3)*DEG2RAD - n(:))                  &
-                                * 1.5_DP * seed%a(:) * n * (cb%k2 / cb%Q) &
-                                * (seed%mass(:) / cb%mass)                &
-                                * (cb%radius / seed%a(:))**5              &
-                                * (seed%mass(:) * sqrt(cb%Gmass / seed%a(:)))
-            seed%Torque(:) = seed%Torque(:) + seed%Ttide(:)
+        associate(seed => self, Ns => self%nbody)
+            n(1:Ns) = sqrt((seed%mu(1:Ns)) / seed%a(1:Ns)**3)
+            seed%Ttide(1:Ns) = sign(1._DP,cb%rot(3) - n(1:Ns))                  &
+                                * 1.5_DP * seed%a(1:Ns) * n(1:Ns) * (cb%k2/cb%Q) &
+                                * (seed%mass(1:Ns) / cb%mass)                &
+                                * (cb%radius / seed%a(1:Ns))**5              &
+                                * (seed%mass(1:Ns) * sqrt(cb%Gmass / seed%a(1:Ns)))
+            seed%Torque(1:Ns) = seed%Torque(1:Ns) + seed%Ttide(1:Ns)
         end associate
         return
         end subroutine ringmoons_torque_tidal_seed

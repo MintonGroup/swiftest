@@ -533,13 +533,15 @@ contains
         call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)
         call ieee_set_halting_mode(ieee_underflow, .false.)
 
-        ! Executable code
-        where((seed%a(:) > VSMALL).and.ring%mass(seed%ringbin(:))/seed%mass(:) > epsilon(1.0_DP))
-            C(:) = 12 * PI**(2._DP / 3._DP) * (3._DP / (4 * seed%density(:)))**(1._DP / 3._DP) * sqrt(param%GU) / sqrt(cb%mass)  
-            mdot(:) = C(:) * ring%sigma(seed%ringbin(:)) / (eff2 * sqrt(seed%a(:))) * abs(seed%mass(:))**(growth_exponent) 
-        elsewhere
-            mdot(:) = 0.0_DP
-        end where
+        associate(Ns => seed%nbody)
+            ! Executable code
+            where((seed%a(1:Ns) > VSMALL).and.ring%mass(seed%ringbin(1:Ns))/seed%mass(1:Ns) > epsilon(1.0_DP))
+                C(1:Ns) = 12 * PI**(2._DP / 3._DP) * (3._DP / (4 * seed%density(1:Ns)))**(1._DP / 3._DP) * sqrt(param%GU) / sqrt(cb%mass)  
+                mdot(1:Ns) = C(1:Ns) * ring%sigma(seed%ringbin(1:Ns)) / (eff2 * sqrt(seed%a(1:Ns))) * abs(seed%mass(1:Ns))**(growth_exponent) 
+            elsewhere
+                mdot(1:Ns) = 0.0_DP
+            end where
+        end associate
         
         return
         call ieee_set_halting_mode(IEEE_ALL, fpe_halting_modes)
