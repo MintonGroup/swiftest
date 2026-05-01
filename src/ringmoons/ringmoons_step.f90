@@ -164,6 +164,8 @@ contains
         real(DP),dimension(0:self%nbins+1) :: S,Snew,Sn1,Sn2,fac,artnu,L,dM1,dM2
         integer(I4B)                       :: i,N,j,loop
         logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
+        integer(I4B), parameter :: MAX_LOOP_SOLVER = 100000
+        real(DP), parameter :: ARTNU_FAC = 1.0_DP / 16.0_DP
 
         ! Guard against underflow errors when rings surface mass density gets too small
         call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)
@@ -196,15 +198,15 @@ contains
                 Snew(N+1) = 0.0_DP
                 artnu(:) = 0.0_DP
                 where (Snew(1:N) < 0._DP)
-                    artnu(1:N) = 1._DP / (16 * fac(1:N))
-                    artnu(0:N-1) = 1._DP / (16 * fac(0:N-1))
-                    artnu(2:N+1) = 1._DP / (16 * fac(2:N+1))
+                    artnu(1:N) = ARTNU_FAC / fac(1:N)
+                    artnu(0:N-1) = ARTNU_FAC / fac(0:N-1)
+                    artnu(2:N+1) = ARTNU_FAC / fac(2:N+1)
                 end where
                 S(1:N) = Snew(1:N) 
                 Sn1(1:N) = artnu(2:N+1) * S(2:N+1) - 2 * artnu(1:N) * S(1:N) + artnu(0:N-1) * S(0:N-1)
                 Snew(1:N) = S(1:N) + fac(1:N) * Sn1(1:N) 
                 loop = loop + 1
-                if (loop > 100000) then
+                if (loop > MAX_LOOP_SOLVER) then
                     stepfail = .true.
                     exit
                 end if
@@ -245,7 +247,7 @@ contains
         real(DP),dimension(6),parameter           :: rkf5_coeff =  [ 16./135., 0., 6656./12825., 28561./56430., -9./50., 2./55. ]
         real(DP),dimension(6),parameter           :: rkf4_coeff =  [ 25./216., 0., 1408./2565. ,  2197./4104. , -1./5. ,     0. ]
         integer(I4B)                              :: i, j, iRRL, nfz, seed_bin,ilo,ihi, rkn,rbin, loop, nloops, Ns
-        real(DP)                                  :: dadt, e, inc, sigavg, sigsum, Li, Lj, Ls,dti,dtleft,dtmin
+        real(DP)                                  :: dadt, sigavg, sigsum, Li, Lj, Ls,dti,dtleft,dtmin,Tr_evol
         real(DP)                                  :: impact_b
         class(ringmoons_ring), allocatable        :: iring
         class(ringmoons_seed), allocatable        :: iseed
@@ -259,7 +261,7 @@ contains
         real(DP),dimension(self%nbody)            :: ai,af,mi,mf, dTtide,Ttidef
         integer(I4B)                              :: Nactive 
         real(DP),dimension(0:ring%nbins+1)        :: Lring_orig,Lring_now
-        real(DP),dimension(self%nbody)            :: Lseeds_orig,Lseeds_now,Lres, mdot, Tr_evol,adot
+        real(DP),dimension(self%nbody)            :: Lseeds_orig,Lseeds_now,Lres, mdot,adot
         logical, dimension(self%nbody)            :: lactive
         real(DP)                                  :: Lr0,Ls0,Lp0,Lr1,Ls1,Lp1,Lorig,sarr,maxE
         logical                                   :: chomped,goodstep
@@ -270,10 +272,7 @@ contains
         call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)
         call ieee_set_halting_mode(ieee_underflow, .false.)
         associate(seed => self)
-
-            ! Executable code
-            e = 0.0_DP
-            inc = 0.0_DP
+            ! The first time through we will initialize the laplace coefficients in the torque calculation
             stepfail = .false.
             if (seed%nbody == 0) return
             dti = dt
@@ -316,15 +315,10 @@ contains
                 mdot(:) = 0.0_DP
 
                 do rkn = 1,rkfo ! Runge-Kutta steps 
+                    iseed%Torque(:) = 0.0_DP
+                    ! Allow seeds to have negative mass/semimajor axis during intermediate steps, but we'll check at the end to make
+                    ! sure that the final result isn't negative
                     iseed%a(1:Ns) = ai(1:Ns) + matmul(ka(1:Ns,1:rkn-1), rkf45_btab(2:rkn,rkn-1))
-                    if (any(iseed%a(1:Ns) < 0.0_DP)) then
-                        Nnegative_seed = Nnegative_seed + 1 
-                        goodstep = .false.
-                        dti = 0.5_DP * dt
-                        cycle steploop
-                    end if 
-
-                    ! Allow seeds to be negative during intermediate rk4 steps
                     iseed%mass(1:Ns) = mi(1:Ns) + matmul(km(1:Ns,1:rkn-1), rkf45_btab(2:rkn,rkn-1))
                     iring%mass(:)  = mringi(:) + matmul(kr(:,1:rkn-1),rkf45_btab(2:rkn,rkn-1))
                     iring%sigma(:) = iring%mass(:) / iring%deltaA(:)
@@ -332,28 +326,20 @@ contains
                     iseed%ringbin(1:Ns) = iring%find_bin(seed%a(1:Ns))
 
                     call iseed%get_tidal_torque(cb,param) 
-
                     mdot(:) = ringmoons_dMdt_seed(iseed,iring,cb,param)
-                    do i = 1, Ns
-                        rbin = iseed%ringbin(i)
-                        Tlind(:) = iring%get_lindblad_torque(cb,iseed%a(i),e,inc,iseed%mass(i),param)
-                        if (iring%mass(iseed%ringbin(i)) / iseed%mass(i) > epsilon(1.0_DP)) then
-                            Tr_evol(i) = mdot(i) * iring%Iz(iseed%ringbin(i)) * iring%nkep(iseed%ringbin(i))
-                        else
-                            mdot(i) = 0.0_DP
-                            Tr_evol(i) = 0.0_DP
-                        end if
-                        iseed%Torque(i) = iseed%Ttide(i) - sum(Tlind(:))  + Tr_evol(i)
-                    end do
+                    Tlind(:) = iring%get_lindblad_torque(cb,iseed,param)
+                    ! Add the correction factor that comes from conservation of angular momentum between the seed and the ring mass 
+                    ! that it consumes
+                    where(mdot(:) > VSMALL)
+                        iseed%Torque(:) = iseed%Torque(:) + mdot(:) * iring%Iz(iseed%ringbin(:)) * iring%nkep(iseed%ringbin(:))
+                    end where
                     adot(:) = ringmoons_dadt_seed(iseed,cb,mdot)
-                    do i = 1, Ns
-                        rbin = iseed%ringbin(i)
-                        kr(rbin,rkn) = kr(rbin,rkn) - dti * mdot(i)
-                        km(i,rkn) = dti * mdot(i) ! Grow the seed
-                        ka(i,rkn) = dti * adot(i)
-                        kT(i,rkn) = dti * iseed%Ttide(i)
-                        kL(:,rkn) = kL(:,rkn) + dti * Tlind(:)
-                    end do
+                    ! Set the RKF45 coefficients for this step
+                    kr(iseed%ringbin(:),rkn) = kr(iseed%ringbin(:),rkn) - dti * mdot(:)
+                    km(:,rkn) = dti * mdot(:) ! Grow the seed
+                    ka(:,rkn) = dti * adot(:) ! Migrate the seed
+                    kT(:,rkn) = dti * iseed%Ttide(:) ! Tidal torque on the seed
+                    kL(:,rkn) = kL(:,rkn) + dti * Tlind(:) ! Lindblad torque on the ring
                 end do
                
                 ! Allow ring mass to go negative, as it will get filled in by sigma_solver
@@ -554,7 +540,7 @@ contains
         call ieee_set_halting_mode(ieee_underflow, .false.)
 
         ! Executable code
-        where((seed%density(:) > VSMALL).and.(seed%a(:) > VSMALL))
+        where((seed%a(:) > VSMALL).and.ring%mass(seed%ringbin(:))/seed%mass(:) > epsilon(1.0_DP))
             C(:) = 12 * PI**(2._DP / 3._DP) * (3._DP / (4 * seed%density(:)))**(1._DP / 3._DP) * sqrt(param%GU) / sqrt(cb%mass)  
             mdot(:) = C(:) * ring%sigma(seed%ringbin(:)) / (eff2 * sqrt(seed%a(:))) * abs(seed%mass(:))**(growth_exponent) 
         elsewhere

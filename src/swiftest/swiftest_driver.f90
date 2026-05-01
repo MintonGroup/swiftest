@@ -131,7 +131,7 @@ contains
          !> Define the maximum number of threads
          nthreads = 1            ! In the *serial* case
          ! TODO: This needs a better algorithm for determining when to use OMP
-         !$ if (nbody_system%pl%nbody > 100) then
+         !$ if ((param%integrator == INT_RINGMOONS) .or. (nbody_system%pl%nbody > 100)) then
          !$    nthreads = omp_get_max_threads() ! In the *parallel* case
          !$ end if
 #ifdef COARRAY

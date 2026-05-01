@@ -46,10 +46,10 @@ sim.add_ring(
         "r_outer": 1.2*frl,
     },
 )
-dt = 1e2
-tstop = 100*dt
+dt = 1e3
+tstop = 1000*dt
 sim.ring["sigma"] = xr.where(sim.ring.r < frl, sim.ring.sigma, xr.zeros_like(sim.ring.sigma))
 
 
 sim.set_parameter(tstop=tstop, dt=dt, tstep_out=dt, dump_cadence=1)
-sim.save()
+sim.run()

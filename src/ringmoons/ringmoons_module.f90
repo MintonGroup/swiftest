@@ -338,11 +338,11 @@ module ringmoons
             real(DP),                      intent(in)    :: dt   
         end subroutine ringmoons_step_system
 
-        module function ringmoons_torque_lindblad_ring(self,cb,asat,esat,isat,msat,param) result(Torque)
+        module function ringmoons_torque_lindblad_ring(self,cb,seed,param) result(Torque)
             implicit none
             class(ringmoons_ring),      intent(inout) :: self
             class(swiftest_cb),         intent(in)    :: cb 
-            real(DP),                   intent(in)    :: asat,esat,isat,msat
+            class(ringmoons_seed),      intent(inout) :: seed
             class(swiftest_parameters), intent(in)    :: param
             real(DP),dimension(0:self%nbins+1)        :: Torque
         end function ringmoons_torque_lindblad_ring
