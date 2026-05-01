@@ -1213,6 +1213,7 @@ contains
       !! Adapted from David E. Kaufmann Swifter routine symba_energy_eucl.f90
       !!  
       !! Adapted from Martin Duncan's Swift routine anal_energy.f
+      use, intrinsic :: ieee_exceptions
       implicit none
       class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters
@@ -1224,6 +1225,11 @@ contains
       real(DP), dimension(NDIM,self%pl%nbody) :: Lplrot
       real(DP), dimension(NDIM) :: Lcborbit, Lcbrot
       real(DP), dimension(NDIM) :: h
+      logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
+
+      ! Guard against underflow errors when rings mass gets too small
+      call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)
+      call ieee_set_halting_mode(ieee_underflow, .false.)
 
       associate(nbody_system => self, pl => self%pl, cb => self%cb)
          call pl%h2b(cb)
@@ -1372,6 +1378,7 @@ contains
       self%te = self%ke_orbit + self%ke_rot + self%pe + self%be 
       self%L_total(:) = self%L_orbit(:) + self%L_rot(:)
 
+      call ieee_set_halting_mode(IEEE_ALL, fpe_halting_modes)
       return
    end subroutine swiftest_util_get_energy_and_momentum_system
 
