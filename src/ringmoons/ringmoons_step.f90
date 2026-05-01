@@ -88,9 +88,9 @@ contains
                         seedring%nu(1:ring%nbins) =  1._DP / (16 * 12 * dt / (seedring%deltaX)**2) / seedring%X2(1:ring%nbins)
                         seedring%sigma(:) = seedring%mass(:) / seedring%deltaA(:)
                         where (seedring%mass(:) > 0.0_DP)
-                        seedring%Torque(:) = deltaL * seedring%mass(:) / sum(seedring%mass(:))
+                            seedring%Torque(:) = deltaL * seedring%mass(:) / sum(seedring%mass(:))
                         elsewhere
-                        seedring%Torque(:) = 0.0_DP
+                            seedring%Torque(:) = 0.0_DP
                         end where
                         dtleft = dt
                         dt =  seedring%get_dt(dt) 
@@ -311,11 +311,10 @@ contains
                 kT(:,:) = 0.0_DP
                 kL(:,:) = 0.0_DP
                 goodstep = .true.
-                adot(:) = 0.0_DP
-                mdot(:) = 0.0_DP
 
                 do rkn = 1,rkfo ! Runge-Kutta steps 
                     iseed%Torque(:) = 0.0_DP
+                    iseed%Ttide(:) = 0.0_DP
                     ! Allow seeds to have negative mass/semimajor axis during intermediate steps, but we'll check at the end to make
                     ! sure that the final result isn't negative
                     iseed%a(1:Ns) = ai(1:Ns) + matmul(ka(1:Ns,1:rkn-1), rkf45_btab(2:rkn,rkn-1))
@@ -326,16 +325,16 @@ contains
                     iseed%ringbin(1:Ns) = iring%find_bin(seed%a(1:Ns))
 
                     call iseed%get_tidal_torque(cb,param) 
-                    mdot(:) = ringmoons_dMdt_seed(iseed,iring,cb,param)
+                    mdot(1:Ns) = ringmoons_dMdt_seed(iseed,iring,cb,param)
                     Tlind(:) = iring%get_lindblad_torque(cb,iseed,param)
                     ! Add the correction factor that comes from conservation of angular momentum between the seed and the ring mass 
                     ! that it consumes
-                    where(mdot(:) > VSMALL)
-                        iseed%Torque(:) = iseed%Torque(:) + mdot(:) * iring%Iz(iseed%ringbin(:)) * iring%nkep(iseed%ringbin(:))
+                    where(mdot(1:Ns) > VSMALL)
+                        iseed%Torque(1:Ns) = iseed%Torque(1:Ns) + mdot(1:Ns) * iring%Iz(iseed%ringbin(1:Ns)) * iring%nkep(iseed%ringbin(1:Ns))
                     end where
                     adot(:) = ringmoons_dadt_seed(iseed,cb,mdot)
                     ! Set the RKF45 coefficients for this step
-                    kr(iseed%ringbin(:),rkn) = kr(iseed%ringbin(:),rkn) - dti * mdot(:)
+                    kr(iseed%ringbin(1:Ns),rkn) = kr(iseed%ringbin(1:Ns),rkn) - dti * mdot(1:Ns) ! Eat the ring
                     km(:,rkn) = dti * mdot(:) ! Grow the seed
                     ka(:,rkn) = dti * adot(:) ! Migrate the seed
                     kT(:,rkn) = dti * iseed%Ttide(:) ! Tidal torque on the seed
@@ -424,7 +423,7 @@ contains
             cb%dL(3) = cb%dL(3) - sum(dTtide(1:Ns))
             ring%Torque(:) = Torquei(:) + dTorque_ring(:) / dt
             
-            cb%rot(3) = (cb%L0(3) + cb%dL(3)) / (cb%Ip(3) * cb%mass * (cb%radius)**2) 
+            cb%rot(3) = (cb%L0(3) + cb%dL(3)) / (cb%Ip(3) * cb%mass * (cb%radius)**2) * RAD2DEG
             seed%Torque(:) = 0.0_DP
             seed%Ttide(:) = 0.0_DP
             seed%ringbin(:) = ring%find_bin(seed%a(:))

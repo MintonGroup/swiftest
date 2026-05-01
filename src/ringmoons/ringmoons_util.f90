@@ -53,7 +53,7 @@ contains
             cb%dL(3) = cb%dL(3) + Lring
             cb%Gmass = cb%GM0 + cb%dGM 
             cb%radius = cb%R0 * (1._DP + cb%dGM / cb%GM0)**(1.0_DP / 3.0_DP)
-            cb%rot(3) = (cb%L0(3) + cb%dL(3)) / (cb%Ip(3) * cb%mass * (cb%radius)**2)
+            cb%rot(3) = (cb%L0(3) + cb%dL(3)) / (cb%Ip(3) * cb%mass * (cb%radius)**2) * RAD2DEG
 
             ring%mass(0:ring%inside) = 0.0_DP
             ring%sigma(0:ring%inside) = 0.0_DP

@@ -1217,8 +1217,8 @@ contains
       class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters
       ! Internals
-      integer(I4B) :: i,j, npl
-      real(DP) :: kecb, kerotcb
+      integer(I4B) :: i, j, npl
+      real(DP) :: kecb, kerotcb, Lzring, Lzseed
       real(DP), dimension(self%pl%nbody) :: kepl, kerotpl
       real(DP), dimension(NDIM,self%pl%nbody) :: Lplorbit
       real(DP), dimension(NDIM,self%pl%nbody) :: Lplrot
@@ -1343,6 +1343,20 @@ contains
          nbody_system%te = nbody_system%ke_orbit + nbody_system%ke_rot + nbody_system%pe + nbody_system%be 
          nbody_system%L_total(:) = nbody_system%L_orbit(:) + nbody_system%L_rot(:)
       end associate
+      ! Include ringmoons ring and seed contributions
+      select type(nbody_system => self)
+      class is (ringmoons_nbody_system)
+         associate(ring => nbody_system%ring, seed => nbody_system%seed, cb => nbody_system%cb)
+            Lzring =sum(ring%mass(:) * ring%Iz(:) * ring%nkep(:)) 
+            if (seed%nbody > 0) then
+               Lzseed = sum(seed%mass(:) * sqrt((cb%mass + seed%mass(:)) * seed%a(:)), mask=(seed%status(:) == ACTIVE))
+            else
+               Lzseed = 0.0_DP
+            end if
+            nbody_system%L_orbit(3) = nbody_system%L_orbit(3) + Lzring + Lzseed
+            nbody_system%L_total(3) = nbody_system%L_total(3) + Lzring + Lzseed
+         end associate
+      end select
 
       return
    end subroutine swiftest_util_get_energy_and_momentum_system
