@@ -1218,7 +1218,7 @@ contains
       class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters
       ! Internals
       integer(I4B) :: i, j, npl
-      real(DP) :: kecb, kerotcb, Lzring, Lzseed
+      real(DP) :: kecb, kerotcb, Lzring, Lzseed, keseed, peseed, kering, pering, beseed
       real(DP), dimension(self%pl%nbody) :: kepl, kerotpl
       real(DP), dimension(NDIM,self%pl%nbody) :: Lplorbit
       real(DP), dimension(NDIM,self%pl%nbody) :: Lplrot
@@ -1313,6 +1313,8 @@ contains
             else
                call swiftest_util_get_potential_energy(npl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, nbody_system%pe)
             end if
+         else
+            nbody_system%pe = 0.0_DP
          end if
 
          ! Potential energy from the oblateness term
@@ -1340,23 +1342,35 @@ contains
          else
             nbody_system%be = 0.0_DP
          end if
-         nbody_system%te = nbody_system%ke_orbit + nbody_system%ke_rot + nbody_system%pe + nbody_system%be 
-         nbody_system%L_total(:) = nbody_system%L_orbit(:) + nbody_system%L_rot(:)
       end associate
+
       ! Include ringmoons ring and seed contributions
       select type(nbody_system => self)
       class is (ringmoons_nbody_system)
          associate(ring => nbody_system%ring, seed => nbody_system%seed, cb => nbody_system%cb)
             Lzring =sum(ring%mass(:) * ring%Iz(:) * ring%nkep(:)) 
+            kering = 0.5_DP * sum(ring%mass(:) * cb%Gmass / ring%r(:))
+            pering = -sum(cb%Gmass * ring%mass(:) / ring%r(:))
             if (seed%nbody > 0) then
                Lzseed = sum(seed%mass(:) * sqrt((cb%mass + seed%mass(:)) * seed%a(:)), mask=(seed%status(:) == ACTIVE))
+               keseed = 0.5_DP * sum(seed%mass(:) * cb%Gmass / seed%a(:), mask=(seed%status(:) == ACTIVE))
+               peseed = -sum(cb%Gmass * seed%mass(:) / seed%a(:), mask=(seed%status(:) == ACTIVE))
+               beseed = sum(-3*seed%Gmass(:)*seed%mass(:)/(5*seed%radius(:)), mask=(seed%status(:) == ACTIVE))
             else
                Lzseed = 0.0_DP
+               keseed = 0.0_DP
+               peseed = 0.0_DP
+               beseed = 0.0_DP
             end if
             nbody_system%L_orbit(3) = nbody_system%L_orbit(3) + Lzring + Lzseed
-            nbody_system%L_total(3) = nbody_system%L_total(3) + Lzring + Lzseed
+            nbody_system%ke_orbit = nbody_system%ke_orbit + kering + keseed
+            nbody_system%pe = nbody_system%pe + pering + peseed 
+            nbody_system%be = nbody_system%be + beseed 
          end associate
       end select
+
+      self%te = self%ke_orbit + self%ke_rot + self%pe + self%be 
+      self%L_total(:) = self%L_orbit(:) + self%L_rot(:)
 
       return
    end subroutine swiftest_util_get_energy_and_momentum_system

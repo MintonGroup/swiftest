@@ -79,8 +79,8 @@ contains
             Lring_now(:) = ring%mass(:) * ring%Iz(:) * ring%nkep(:) 
             dL(0:ring%inside) = 0.0_DP
             dL(ring%nbins+1) = 0.0_DP
-            dL(ring%inside+1:ring%nbins) = (Lring_now(ring%inside+1:ring%nbins) - Lring_orig(ring%inside+1:ring%nbins)) 
-            ring%Torque(:) = ring%Torque(:) - dL(:) / dt
+            dL(ring%inside+1:ring%nbins) = (Lring_now(ring%inside+1:ring%nbins) - Lring_orig(ring%inside+1:ring%nbins)) / dt
+            ring%Torque(:) = ring%Torque(:) - dL(:) 
         end associate
 
         call ieee_set_halting_mode(IEEE_ALL, fpe_halting_modes)

@@ -56,7 +56,7 @@ contains
                 do i = 1,seed%nbody
                     if ((seed%status(i) == INACTIVE).and.(seed%mass(i) > 0.0_DP)) then
                         destructo = .true.
-                        Lseed_orig = seed%mass(i) * sqrt((cb%mass + seed%mass(i)) * seed%a(i)) 
+                        Lseed_orig = seed%mass(i) * sqrt(seed%mu(i) * seed%a(i)) 
 
                         allocate(seedring, source=ring)
                         seedring%mass(:) = 0.0_DP
@@ -78,7 +78,7 @@ contains
                             end do
                             if (mass_left == 0.0_DP) exit
                         end do 
-                        !j = seedring%iRRL
+                        
                         ! Offset in angular momentum
                         Lring = sum(seedring%mass(:) * seedring%Iz(:) * seedring%nkep(:))
                         deltaL = Lseed_orig - Lring
@@ -188,7 +188,7 @@ contains
             fac(:)  = 12 * dt / (ring%deltaX)**2  / ring%X2(:)
             Sn1(1:N) = ring%nu(2:N+1) * S(2:N+1) - 2 * ring%nu(1:N) * S(1:N) + ring%nu(0:N-1) * S(0:N-1)
             Sn2(1:N) = ring%Torque(2:N+1) - ring%Torque(0:N-1)
-            Sn2(1:N) = Sn2(1:N) * (1._DP / (3 * PI * sqrt(cb%mass)))
+            Sn2(1:N) = Sn2(1:N) * (1._DP / (3 * PI * sqrt(cb%Gmass)))
             Snew(1:N) = S(1:N) + fac(1:N) * (Sn1(1:N) - Sn2(1:N))
 
             ! Prevent any bins from having negative mass by diffusing mass with an artificial viscosity
@@ -247,7 +247,7 @@ contains
         real(DP),dimension(6),parameter           :: rkf5_coeff =  [ 16./135., 0., 6656./12825., 28561./56430., -9./50., 2./55. ]
         real(DP),dimension(6),parameter           :: rkf4_coeff =  [ 25./216., 0., 1408./2565. ,  2197./4104. , -1./5. ,     0. ]
         integer(I4B)                              :: i, j, iRRL, nfz, seed_bin,ilo,ihi, rkn,rbin, loop, nloops, Ns
-        real(DP)                                  :: dadt, sigavg, sigsum, Li, Lj, Ls,dti,dtleft,dtmin,Tr_evol
+        real(DP)                                  :: dadt, sigavg, sigsum, Li, Lj, Ls,dti,dtleft,dtmin
         real(DP)                                  :: impact_b
         class(ringmoons_ring), allocatable        :: iring
         class(ringmoons_seed), allocatable        :: iseed
@@ -423,13 +423,12 @@ contains
             cb%dL(3) = cb%dL(3) - sum(dTtide(1:Ns))
             ring%Torque(:) = Torquei(:) + dTorque_ring(:) / dt
             
-            cb%rot(3) = (cb%L0(3) + cb%dL(3)) / (cb%Ip(3) * cb%mass * (cb%radius)**2) * RAD2DEG
+            cb%rot(3) = (cb%L0(3) + cb%dL(3)) / (cb%Ip(3) * cb%mass * cb%radius**2) * RAD2DEG
             seed%Torque(:) = 0.0_DP
             seed%Ttide(:) = 0.0_DP
             seed%ringbin(:) = ring%find_bin(seed%a(:))
 
             !I'm hungry! What's there to eat?! Look for neighboring seed
-            !write(*,*) 'chomp'
             chomped = .false.
             do i = 1, seed%nbody
                 if (seed%status(i) == ACTIVE) then
@@ -439,13 +438,12 @@ contains
                         impact_b = impact_b * seed%feeding_zone_factor 
                         if (abs(seed%a(i) - seed%a(j)) < impact_b) then
                             ! conserve both mass and angular momentum
-                            !write(*,*) 'chomped: '
-                            Li = seed%mass(i) * sqrt((cb%mass + seed%mass(i)) * seed%a(i))
-                            Lj = seed%mass(j) * sqrt((cb%mass + seed%mass(j)) * seed%a(j))
+                            Li = seed%mass(i) * sqrt(seed%mu(i) * seed%a(i))
+                            Lj = seed%mass(j) * sqrt(seed%mu(j) * seed%a(j))
                             seed%mass(i) = seed%mass(i) + seed%mass(j)
                             seed%Gmass(i) = param%GU * seed%mass(i)
                             seed%mu(i) = cb%mass + seed%Gmass(i)
-                            seed%a(i) = ((Li + Lj) / seed%mass(i))**2 / (cb%mass + seed%mass(i))
+                            seed%a(i) = ((Li + Lj) / seed%mass(i))**2 / seed%mu(i)
 
                             ! deactivate particle 
                             seed%mass(j) = 0.0_DP
@@ -501,9 +499,6 @@ contains
         real(DP), dimension(:), intent(in) :: mdot
         real(DP), dimension(1:seed%nbody)  :: adot
         logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
-        real(DP) :: GU
-
-        GU = cb%Gmass / cb%mass
 
         ! Guard against underflow errors when rings surface mass density gets too small
         call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)
