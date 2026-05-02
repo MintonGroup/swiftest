@@ -473,6 +473,7 @@ contains
                 seed%a(1:Nactive) = pack(seed%a(:),lactive(:))
                 seed%mass(1:Nactive) = pack(seed%mass(:),lactive(:))
                 seed%Gmass(1:Nactive) = pack(seed%Gmass(:),lactive(:))
+                seed%mu(1:Nactive) = pack(seed%mu(:),lactive(:))
                 seed%info(1:Nactive) = pack(seed%info(:), lactive(:))
                 seed%status(1:Nactive) = pack(seed%status(:),lactive(:))
                 seed%density(1:Nactive) = pack(seed%density(:),lactive(:))
@@ -486,6 +487,7 @@ contains
                     seed%a(Nactive+1:size(seed%id)) = 0.0_DP
                     seed%mass(Nactive+1:size(seed%id)) = 0.0_DP
                     seed%Gmass(Nactive+1:size(seed%id)) = 0.0_DP
+                    seed%mu(Nactive+1:size(seed%id)) = 0.0_DP
                     seed%density(Nactive+1:size(seed%id)) = 0.0_DP
                     seed%rhill(Nactive+1:size(seed%id)) = 0.0_DP
                     seed%radius(Nactive+1:size(seed%id)) = 0.0_DP
