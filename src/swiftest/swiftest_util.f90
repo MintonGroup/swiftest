@@ -1364,8 +1364,8 @@ contains
             kering = 0.5_DP * sum(ring%mass(:) * cb%Gmass / ring%r(:))
             pering = -sum(cb%Gmass * ring%mass(:) / ring%r(:))
             if (Ns > 0) then
-               Lzseed = sum(seed%mass(1:Ns) * sqrt((cb%mass + seed%mass(1:Ns)) * seed%a(1:Ns)))
-               keseed = 0.5_DP * sum(seed%mass(1:Ns) * cb%Gmass / seed%a(1:Ns))
+               Lzseed = sum(seed%mass(1:Ns) * sqrt(seed%mu(1:Ns) * seed%a(1:Ns)))
+               keseed = 0.5_DP * sum(seed%mass(1:Ns) * seed%mu(1:Ns) / seed%a(1:Ns))
                peseed = -sum(cb%Gmass * seed%mass(1:Ns) / seed%a(1:Ns))
                beseed = sum(-3*seed%Gmass(1:Ns)*seed%mass(1:Ns)/(5*seed%radius(1:Ns)))
             else

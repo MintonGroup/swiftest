@@ -497,6 +497,7 @@ contains
         type(ringmoons_seed)  :: new_seed
         character(*), parameter :: SEEDFMT = '("Seed",I0.7)'
         character(NAMELEN) :: newname
+        real(DP) :: Lr0,Lr1,Ls
 
         associate(seed => self, maxid => self%maxid)
             seed_bin = seed%nbody + 1 
@@ -550,10 +551,15 @@ contains
             call seed%info(i)%set_value(name=newname, particle_type=SEED_TYPE_NAME, status="ACTIVE")
 
             ! Take away the mass from the ring
+            ! Lr0 = ring%mass(j) * ring%Iz(j) * ring%nkep(j)
             ring%mass(j) = ring%mass(j) - seed%mass(i)
             ring%sigma(j) = ring%mass(j) / ring%deltaA(j)
             ring%Gsigma(j) = param%GU * ring%sigma(j)
             seed%ringbin(i) = ring%find_bin(seed%a(i))
+
+            ! Testing Angular momentum conservation
+            ! Lr1 = ring%mass(j) * ring%Iz(j) * ring%nkep(j)
+            ! Ls = seed%mass(i) * sqrt(seed%mu(i) * seed%a(i))
 
         end associate
 
