@@ -42,19 +42,19 @@ contains
         associate(cb => self)
             ring%inside = ring%find_bin(cb%radius)
             dGMtot = sum(param%GU*ring%mass(0:ring%inside))
-                    
+            if (dGMtot <= epsilon(1.0_DP)*cb%dGM) return
             !Add ring mass and angular momentum to planet
             Lring_orig(:) = ring%mass(:) * ring%Iz(:) * ring%nkep(:) 
             Lring = sum(Lring_orig(0:ring%inside))
             cb%dGM = cb%dGM + dGMtot 
-            cb%dL(3) = cb%dL(3) + Lring
-            cb%Gmass = cb%GM0 + cb%dGM 
+            cb%dL(3) = Lring + cb%dL(3) 
+            cb%Gmass = cb%dGM  + cb%GM0
             cb%mass = cb%Gmass / param%GU
-            cb%dR = cb%R0 * (cb%dGM / cb%GM0)**(1.0_DP / 3.0_DP) 
-            cb%radius = cb%R0 + cb%dR
+            cb%radius = (3*cb%mass/(4*PI*cb%density))**THIRD
+            cb%dR= cb%R0 - cb%radius
             drot0 = cb%L0(3) * RAD2DEG / (cb%Ip(3) * cb%mass * cb%radius**2)  
             drot1 = cb%dL(3) * RAD2DEG / (cb%Ip(3) * cb%mass * cb%radius**2)
-            cb%rot(3) = drot0 + drot1
+            cb%rot(3) = drot1 + drot0
 
             ring%mass(0:ring%inside) = 0.0_DP
             ring%sigma(0:ring%inside) = 0.0_DP

@@ -1374,15 +1374,15 @@ contains
                peseed = 0.0_DP
                beseed = 0.0_DP
             end if
-            nbody_system%L_orbit(3) = nbody_system%L_orbit(3) + Lzring + Lzseed
-            nbody_system%ke_orbit = nbody_system%ke_orbit + kering + keseed
-            nbody_system%pe = nbody_system%pe + pering + peseed 
-            nbody_system%be = nbody_system%be + beseed 
+            nbody_system%L_orbit(3) = Lzseed + Lzring + nbody_system%L_orbit(3)
+            nbody_system%ke_orbit = keseed + kering + nbody_system%ke_orbit
+            nbody_system%pe = peseed + pering + nbody_system%pe 
+            nbody_system%be = beseed + nbody_system%be
          end associate
       end select
 
-      self%te = self%ke_orbit + self%ke_rot + self%pe + self%be 
-      self%L_total(:) = self%L_orbit(:) + self%L_rot(:)
+      self%te = self%be + self%pe + self%ke_rot + self%ke_orbit 
+      self%L_total(:) = self%L_rot(:) + self%L_orbit(:)
 
       call ieee_set_halting_mode(IEEE_ALL, fpe_halting_modes)
       return
