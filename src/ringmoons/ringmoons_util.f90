@@ -550,21 +550,23 @@ contains
             write(newname, SEEDFMT) seed%id(i)
             call seed%info(i)%set_value(name=newname, particle_type=SEED_TYPE_NAME, status="ACTIVE")
 
-            ! Take away the mass from the ring
+            ! Testing angular momentum conservation and energy loss
             ! Lr0 = ring%mass(j) * ring%Iz(j) * ring%nkep(j)
-            ker0 = 0.5_DP * ring%mass(j) * cb%Gmass / ring%r(j)
-            per0 = -cb%Gmass*ring%mass(j) / ring%r(j)
+            ! ker0 = 0.5_DP * ring%mass(j) * ring%Iz(j) * ring%nkep(j)**2
+            ! per0 = -cb%Gmass*ring%mass(j) / ring%r(j)
+
+            ! Take away the mass from the ring
             ring%mass(j) = ring%mass(j) - seed%mass(i)
             ring%sigma(j) = ring%mass(j) / ring%deltaA(j)
             ring%Gsigma(j) = param%GU * ring%sigma(j)
             seed%ringbin(i) = ring%find_bin(seed%a(i))
-            ker1 = 0.5_DP * ring%mass(j) * cb%Gmass / ring%r(j)
-            per1 = -cb%Gmass*ring%mass(j) / ring%r(j)
-            kes = 0.5*seed%mass(i)*seed%mu(i)/seed%a(i)
-            pes = -cb%Gmass*seed%mass(i)/seed%a(i)
-            bes = -3*seed%Gmass(i)*seed%mass(i)/seed%a(i)
-            
-            ! Testing Angular momentum conservation
+
+            ! Testing angular momentum conservation and energy loss
+            ! ker1 = 0.5_DP * ring%mass(j) * ring%Iz(j) * ring%nkep(j)**2
+            ! per1 = -cb%Gmass*ring%mass(j) / ring%r(j)
+            ! kes = 0.5*seed%mass(i)*seed%mu(i)/seed%a(i)
+            ! pes = -cb%Gmass*seed%mass(i)/seed%a(i)
+            ! bes = -3*seed%Gmass(i)*seed%mass(i)/seed%a(i)
             ! Lr1 = ring%mass(j) * ring%Iz(j) * ring%nkep(j)
             ! Ls = seed%mass(i) * sqrt(seed%mu(i) * seed%a(i))
 

@@ -1357,7 +1357,7 @@ contains
       class is (ringmoons_nbody_system)
          associate(ring => nbody_system%ring, seed => nbody_system%seed, cb => nbody_system%cb, Ns => nbody_system%seed%nbody)
             Lzring =sum(ring%mass(:) * ring%Iz(:) * ring%nkep(:)) 
-            kering = 0.5_DP * sum(ring%mass(:) * cb%Gmass / ring%r(:))
+            kering = 0.5_DP * sum(ring%mass(:) * ring%Iz(:) * ring%nkep(:)**2)
             pering = -sum(cb%Gmass * ring%mass(:) / ring%r(:))
             if (Ns > 0) then
                Lzseed = sum(seed%mass(1:Ns) * sqrt(seed%mu(1:Ns) * seed%a(1:Ns)))
