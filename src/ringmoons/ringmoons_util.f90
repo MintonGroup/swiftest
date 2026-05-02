@@ -29,11 +29,10 @@ contains
 
         ! Internals
         integer(I4B) :: i,j,iin
-        real(DP) :: rlo,rhi,GMcb, Mcb, Rcb,rho_cb, Mratio, Rratio, Mratiosqrt,MratioHill,rfac
-        real(DP) :: Lplanet, Lring, Ltot,Rnew,Mnew, Lorig,Mring,dMtot,Lnow
+        real(DP) :: Lplanet, Lring, Ltot,Rnew,Mnew, Lorig,Mring,dGMtot,Lnow,rfac
         real(DP),dimension(seed%nbody) :: afac
         real(DP),dimension(0:ring%nbins+1)        :: mtmp,Lring_orig,Lring_now,dL
-        real(DP) :: Lp0,Ls0,Lp1,Ls1,Lr0,Lr1
+        real(DP) :: Lp0,Ls0,Lp1,Ls1,Lr0,Lr1,drot0,drot1
         logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
 
         ! Guard against underflow errors when rings surface mass density gets too small
@@ -42,29 +41,31 @@ contains
         
         associate(cb => self)
             ring%inside = ring%find_bin(cb%radius)
-            GMcb = cb%GM0 + cb%dGM
-            Mcb = GMcb / param%GU
-            dMtot = sum(ring%mass(0:ring%inside))
+            dGMtot = sum(param%GU*ring%mass(0:ring%inside))
                     
             !Add ring mass and angular momentum to planet
             Lring_orig(:) = ring%mass(:) * ring%Iz(:) * ring%nkep(:) 
             Lring = sum(Lring_orig(0:ring%inside))
-            cb%dGM = cb%dGM + dMtot * param%GU
+            cb%dGM = cb%dGM + dGMtot 
             cb%dL(3) = cb%dL(3) + Lring
             cb%Gmass = cb%GM0 + cb%dGM 
-            cb%radius = cb%R0 * (1._DP + cb%dGM / cb%GM0)**(1.0_DP / 3.0_DP)
-            cb%rot(3) = (cb%L0(3) + cb%dL(3)) / (cb%Ip(3) * cb%mass * (cb%radius)**2) * RAD2DEG
+            cb%mass = cb%Gmass / param%GU
+            cb%dR = cb%R0 * (cb%dGM / cb%GM0)**(1.0_DP / 3.0_DP) 
+            cb%radius = cb%R0 + cb%dR
+            drot0 = cb%L0(3) * RAD2DEG / (cb%Ip(3) * cb%mass * cb%radius**2)  
+            drot1 = cb%dL(3) * RAD2DEG / (cb%Ip(3) * cb%mass * cb%radius**2)
+            cb%rot(3) = drot0 + drot1
 
             ring%mass(0:ring%inside) = 0.0_DP
             ring%sigma(0:ring%inside) = 0.0_DP
 
             if (seed%nbody > 0) then
-                afac(1:seed%nbody) = 1._DP - dMtot / (Mcb+ seed%mass(1:seed%nbody))
+                afac(1:seed%nbody) = 1._DP - dGMtot / seed%mu(1:seed%nbody)
                 seed%a(1:seed%nbody) = seed%a(1:seed%nbody) * afac(1:seed%nbody)
             end if
 
             ! update body-dependent parameters as needed
-            rfac = 1._DP - dMtot / Mcb
+            rfac = 1._DP - dGMtot / cb%Gmass
             ring%r_outer = ring%r_outer * rfac
             ring%r_inner = ring%r_inner * rfac
 
@@ -483,17 +484,16 @@ contains
         return
     end subroutine ringmoons_util_setup_initialize_system
 
-    module subroutine ringmoons_util_spawn_seed(self, cb, ring, a, mass, param)
+    module subroutine ringmoons_util_spawn_seed(self, cb, ring, ring_bin, param)
         implicit none
         ! Arguments
         class(ringmoons_seed),          intent(inout) :: self
         class(ringmoons_ring),          intent(inout) :: ring
         class(ringmoons_cb),            intent(in)    :: cb
-        real(DP),                       intent(in)    :: a
-        real(DP),                       intent(in)    :: mass
+        integer(I4B),                   intent(in)    :: ring_bin
         class(swiftest_parameters),     intent(in)    :: param
         ! Internals
-        integer(I4B)          :: i,j,seed_bin,nfz
+        integer(I4B)        :: i,j,seed_bin,nfz
         type(ringmoons_seed)  :: new_seed
         character(*), parameter :: SEEDFMT = '("Seed",I0.7)'
         character(NAMELEN) :: newname
@@ -535,14 +535,14 @@ contains
             seed%ringbin = new_seed%ringbin
 
             i = seed_bin 
+            j = ring_bin
+            seed%ringbin(i) = ring_bin
             seed%id(i) = -1 ! Assign a temporary id to the seed and only update it it survives long enough to be recorded
             seed%status(i) = ACTIVE
-            seed%a(i) = a
-            j = ring%find_bin(a)
-            seed%ringbin(i) = j 
-            seed%mass(i) = min(mass,ring%mass(j))
+            seed%mass(i) = min(ring%mass(j),ring%m_p(j))
             seed%Gmass(i) = param%GU * seed%mass(i)
             seed%mu(i) = cb%Gmass + seed%Gmass(i)
+            seed%a(i) = (ring%Iz(j) * ring%nkep(j))**2 / seed%mu(i)
             seed%density(i) = ring%rho_p(j)
             seed%radius(i) = (3 * seed%mass(i) / (4 * PI * seed%density(i)))**(1._DP / 3._DP)
             seed%rhill(i) = seed%a(i) * (seed%mass(i) / cb%mass / 3)**THIRD 

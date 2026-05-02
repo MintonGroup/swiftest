@@ -19,7 +19,7 @@ contains
         class(ringmoons_ring),      intent(inout) :: ring
         class(swiftest_parameters), intent(in)    :: param
 
-        integer(I4B)                        :: i,j,seed_bin,inner_outer_sign,nbin,Nactive,rbin
+        integer(I4B)                        :: i,j,inner_outer_sign,nbin,Nactive,rbin
         real(DP)                            :: a, delta_mass, mass_left
         logical                             :: open_space,destructo,spawnbin
         real(DP), parameter                 :: NOSPAWN_THRESHOLD_SIGMA = 0.1_DP
@@ -120,21 +120,23 @@ contains
                 if (size(seed%status) > Nactive) then
                     seed%status(Nactive+1:size(seed%status)) = INACTIVE
                     seed%ringbin(Nactive+1:size(seed%status)) = -1
+                    seed%a(Nactive+1:size(seed%status)) = 0.0_DP
+                    seed%mass(Nactive+1:size(seed%status)) = 0.0_DP
                 end if
                 seed%nbody = Nactive
                 seed%ringbin(1:seed%nbody) = ring%find_bin(seed%a(1:seed%nbody))
             end if
                 
             ! Check to see if we can spawn seeds beyond the FRL
-            do i = ring%iFRL,ring%nbins
+            do j = ring%iFRL,ring%nbins
                 ! skip bins that don't have enough mass
-                if (ring%sigma(i) * param%MU2KG/param%DU2M**2 < NOSPAWN_THRESHOLD_SIGMA) cycle
+                if (ring%sigma(j) * param%MU2KG/param%DU2M**2 < NOSPAWN_THRESHOLD_SIGMA) cycle
                     
                 ! skip bins that already have a seed
                 if (seed%nbody > 0) then
-                    if (any(seed%ringbin(:) == i)) cycle
+                    if (any(seed%ringbin(1:seed%nbody) == j)) cycle
                 end if
-                call seed%spawn(cb,ring,ring%r(i),ring%m_p(i),param)
+                call seed%spawn(cb,ring,j,param)
             end do     
             if (seed%nbody > 0) then
                 where (seed%status(:) == ACTIVE)
@@ -165,7 +167,8 @@ contains
         integer(I4B)                       :: i,N,j,loop
         logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
         integer(I4B), parameter :: MAX_LOOP_SOLVER = 100000
-        real(DP), parameter :: ARTNU_FAC = 1.0_DP / 16.0_DP
+        real(DP), parameter :: ARTNU_FAC = 1.0_DP / 16.0_DP 
+            !! Artificial viscosity factor to prevent negative mass bins. 
 
         ! Guard against underflow errors when rings surface mass density gets too small
         call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)
@@ -246,7 +249,7 @@ contains
                         1./2.,     -8./27.,           2., -3544./2565.,   1859./4104.,    -11./40.], shape(rkf45_btab))
         real(DP),dimension(6),parameter           :: rkf5_coeff =  [ 16./135., 0., 6656./12825., 28561./56430., -9./50., 2./55. ]
         real(DP),dimension(6),parameter           :: rkf4_coeff =  [ 25./216., 0., 1408./2565. ,  2197./4104. , -1./5. ,     0. ]
-        integer(I4B)                              :: i, j, iRRL, nfz, seed_bin,ilo,ihi, rkn,rbin, loop, nloops, Ns
+        integer(I4B)                              :: i, j, iRRL, nfz, ilo,ihi, rkn,rbin, loop, nloops, Ns
         real(DP)                                  :: dadt, sigavg, sigsum, Li, Lj, Ls,dti,dtleft,dtmin
         real(DP)                                  :: impact_b
         class(ringmoons_ring), allocatable        :: iring
@@ -262,7 +265,7 @@ contains
         integer(I4B)                              :: Nactive 
         real(DP),dimension(0:ring%nbins+1)        :: Lring_orig,Lring_now
         real(DP),dimension(self%nbody)            :: Lseeds_orig,Lseeds_now,Lres, mdot,adot
-        logical, dimension(self%nbody)            :: lactive
+        logical, dimension(:), allocatable        :: lactive
         real(DP)                                  :: Lr0,Ls0,Lp0,Lr1,Ls1,Lp1,Lorig,sarr,maxE
         logical                                   :: chomped,goodstep
         real(DP),parameter                        :: DTMIN_FAC = 1e-16_DP
@@ -271,7 +274,7 @@ contains
         ! Guard against underflow errors when rings surface mass density gets too small
         call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)
         call ieee_set_halting_mode(ieee_underflow, .false.)
-        associate(seed => self)
+        associate(seed => self, Ns => self%nbody)
             ! The first time through we will initialize the laplace coefficients in the torque calculation
             stepfail = .false.
             if (seed%nbody == 0) return
@@ -282,7 +285,6 @@ contains
             ! Save initial state of the seed
             allocate(iring, source=ring)
             allocate(iseed, source=self)
-            Ns = iseed%nbody
             ai(1:Ns) = seed%a(1:Ns)
             mi(1:Ns) = seed%mass(1:Ns)
             mringi(:) = ring%mass(:)
@@ -413,10 +415,10 @@ contains
                 dti = min(sarr * dti,dtleft)
             end do steploop
 
-            seed%a(:) = af(:)
-            seed%mass(:) = mf(:)
-            seed%Gmass(:) = param%GU * seed%mass(:)
-            seed%mu(:) = cb%Gmass + seed%Gmass(:)
+            seed%a(1:Ns) = af(1:Ns)
+            seed%mass(1:Ns) = mf(1:Ns)
+            seed%Gmass(1:Ns) = param%GU * seed%mass(1:Ns)
+            seed%mu(1:Ns) = cb%Gmass + seed%Gmass(1:Ns)
             ring%mass(:) = mringf(:)
             ring%sigma(:) = ring%mass(:) / ring%deltaA(:)
             ring%Gsigma(:) = param%GU * ring%sigma(:)
@@ -426,15 +428,15 @@ contains
             cb%rot(3) = (cb%L0(3) + cb%dL(3)) / (cb%Ip(3) * cb%mass * cb%radius**2) * RAD2DEG
             seed%Torque(:) = 0.0_DP
             seed%Ttide(:) = 0.0_DP
-            seed%ringbin(:) = ring%find_bin(seed%a(:))
+            seed%ringbin(1:Ns) = ring%find_bin(seed%a(1:Ns))
 
             !I'm hungry! What's there to eat?! Look for neighboring seed
             chomped = .false.
-            do i = 1, seed%nbody
+            do i = 1, Ns
                 if (seed%status(i) == ACTIVE) then
-                    do j = i + 1, seed%nbody
+                    do j = i + 1, Ns
                         if (seed%status(j) == ACTIVE) then
-                        impact_b =  0.5_DP * (seed%a(i) + seed%a(j)) * ((seed%mass(i) + seed%mass(j)) / (3 * cb%mass))**(1._DP / 3._DP)
+                        impact_b =  0.5_DP*(seed%a(i)+seed%a(j)) * ((seed%mass(i)+seed%mass(j)) / (3 * cb%mass))**(1._DP / 3._DP)
                         impact_b = impact_b * seed%feeding_zone_factor 
                         if (abs(seed%a(i) - seed%a(j)) < impact_b) then
                             ! conserve both mass and angular momentum
@@ -442,7 +444,7 @@ contains
                             Lj = seed%mass(j) * sqrt(seed%mu(j) * seed%a(j))
                             seed%mass(i) = seed%mass(i) + seed%mass(j)
                             seed%Gmass(i) = param%GU * seed%mass(i)
-                            seed%mu(i) = cb%mass + seed%Gmass(i)
+                            seed%mu(i) = cb%Gmass + seed%Gmass(i)
                             seed%a(i) = ((Li + Lj) / seed%mass(i))**2 / seed%mu(i)
 
                             ! deactivate particle 
@@ -455,7 +457,8 @@ contains
                     end do
                 end if
             end do      
-            if (chomped) then  
+            if (chomped) then
+                allocate(lactive(size(seed%status)))
                 lactive(:) = seed%status(:) == ACTIVE
                 Nactive = count(lactive(:))
                 seed%id(1:Nactive) = pack(seed%id(:),lactive(:))
@@ -503,10 +506,11 @@ contains
         ! Guard against underflow errors when rings surface mass density gets too small
         call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)
         call ieee_set_halting_mode(ieee_underflow, .false.)
-
-        adot(:) = seed%Torque(:) / (sqrt(seed%mu(:) * seed%a(:))) &
-                      - mdot(:) * (1._DP  + seed%Gmass(:) / (2 *seed%mu(:)))
-        adot = 2 * adot * seed%a(:) / seed%mass(:)
+        associate(Ns => seed%nbody)
+            adot(1:Ns) = seed%Torque(1:Ns) / (sqrt(seed%mu(1:Ns) * seed%a(1:Ns))) &
+                        - mdot(1:Ns) * (1._DP  + seed%Gmass(1:Ns) / (2 *seed%mu(1:Ns)))
+            adot = 2 * adot * seed%a(1:Ns) / seed%mass(1:Ns)
+        end associate
 
         call ieee_set_halting_mode(IEEE_ALL, fpe_halting_modes)
         return
@@ -525,7 +529,7 @@ contains
         integer(I4B)                           :: i
         real(DP), dimension(seed%nbody)        :: C
         real(DP),parameter                     :: eff2   = 1e-7_DP ! This term gets the growth rate to match up closely to Andy's
-        real(DP),parameter                     :: growth_exponent = 4._DP / 3._DP
+        real(DP),parameter                     :: growth_exp = 4._DP / 3._DP
         real(DP), parameter                    :: SIGLIMIT = 1e-100_DP
         logical, dimension(size(IEEE_ALL))     :: fpe_halting_modes
 
@@ -536,8 +540,8 @@ contains
         associate(Ns => seed%nbody)
             ! Executable code
             where((seed%a(1:Ns) > VSMALL).and.ring%mass(seed%ringbin(1:Ns))/seed%mass(1:Ns) > epsilon(1.0_DP))
-                C(1:Ns) = 12 * PI**(2._DP / 3._DP) * (3._DP / (4 * seed%density(1:Ns)))**(1._DP / 3._DP) * sqrt(param%GU) / sqrt(cb%mass)  
-                mdot(1:Ns) = C(1:Ns) * ring%sigma(seed%ringbin(1:Ns)) / (eff2 * sqrt(seed%a(1:Ns))) * abs(seed%mass(1:Ns))**(growth_exponent) 
+                C(1:Ns) = 12*PI**(2._DP/3._DP)*(3._DP/(4*seed%density(1:Ns)))**(1._DP/3._DP)*sqrt(param%GU)/sqrt(cb%mass)  
+                mdot(1:Ns) = C(1:Ns)*ring%sigma(seed%ringbin(1:Ns))/(eff2*sqrt(seed%a(1:Ns)))*abs(seed%mass(1:Ns))**(growth_exp) 
             elsewhere
                 mdot(1:Ns) = 0.0_DP
             end where

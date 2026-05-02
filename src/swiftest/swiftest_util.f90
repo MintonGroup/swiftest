@@ -1220,6 +1220,8 @@ contains
       ! Internals
       integer(I4B) :: i, j, npl
       real(DP) :: kecb, kerotcb, Lzring, Lzseed, keseed, peseed, kering, pering, beseed
+      real(DP), save :: Lzring_orig
+      logical, save :: lfirst = .true.
       real(DP), dimension(self%pl%nbody) :: kepl, kerotpl
       real(DP), dimension(NDIM,self%pl%nbody) :: Lplorbit
       real(DP), dimension(NDIM,self%pl%nbody) :: Lplrot
@@ -1353,15 +1355,19 @@ contains
       ! Include ringmoons ring and seed contributions
       select type(nbody_system => self)
       class is (ringmoons_nbody_system)
-         associate(ring => nbody_system%ring, seed => nbody_system%seed, cb => nbody_system%cb)
+         associate(ring => nbody_system%ring, seed => nbody_system%seed, cb => nbody_system%cb, Ns => nbody_system%seed%nbody)
             Lzring =sum(ring%mass(:) * ring%Iz(:) * ring%nkep(:)) 
+            if (lfirst) then
+               Lzring_orig = Lzring
+               lfirst = .false.
+            end if
             kering = 0.5_DP * sum(ring%mass(:) * cb%Gmass / ring%r(:))
             pering = -sum(cb%Gmass * ring%mass(:) / ring%r(:))
-            if (seed%nbody > 0) then
-               Lzseed = sum(seed%mass(:) * sqrt((cb%mass + seed%mass(:)) * seed%a(:)), mask=(seed%status(:) == ACTIVE))
-               keseed = 0.5_DP * sum(seed%mass(:) * cb%Gmass / seed%a(:), mask=(seed%status(:) == ACTIVE))
-               peseed = -sum(cb%Gmass * seed%mass(:) / seed%a(:), mask=(seed%status(:) == ACTIVE))
-               beseed = sum(-3*seed%Gmass(:)*seed%mass(:)/(5*seed%radius(:)), mask=(seed%status(:) == ACTIVE))
+            if (Ns > 0) then
+               Lzseed = sum(seed%mass(1:Ns) * sqrt((cb%mass + seed%mass(1:Ns)) * seed%a(1:Ns)))
+               keseed = 0.5_DP * sum(seed%mass(1:Ns) * cb%Gmass / seed%a(1:Ns))
+               peseed = -sum(cb%Gmass * seed%mass(1:Ns) / seed%a(1:Ns))
+               beseed = sum(-3*seed%Gmass(1:Ns)*seed%mass(1:Ns)/(5*seed%radius(1:Ns)))
             else
                Lzseed = 0.0_DP
                keseed = 0.0_DP
