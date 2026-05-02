@@ -1220,7 +1220,7 @@ contains
       ! Internals
       integer(I4B) :: i, j, npl
       real(DP) :: kecb, kerotcb, Lzring, Lzseed, keseed, peseed, kering, pering, beseed
-      real(DP), save :: Lzring_orig
+      real(DP), save :: Lzring_orig,pering_orig,kering_orig
       logical, save :: lfirst = .true.
       real(DP), dimension(self%pl%nbody) :: kepl, kerotpl
       real(DP), dimension(NDIM,self%pl%nbody) :: Lplorbit
@@ -1357,10 +1357,6 @@ contains
       class is (ringmoons_nbody_system)
          associate(ring => nbody_system%ring, seed => nbody_system%seed, cb => nbody_system%cb, Ns => nbody_system%seed%nbody)
             Lzring =sum(ring%mass(:) * ring%Iz(:) * ring%nkep(:)) 
-            if (lfirst) then
-               Lzring_orig = Lzring
-               lfirst = .false.
-            end if
             kering = 0.5_DP * sum(ring%mass(:) * cb%Gmass / ring%r(:))
             pering = -sum(cb%Gmass * ring%mass(:) / ring%r(:))
             if (Ns > 0) then
@@ -1373,6 +1369,12 @@ contains
                keseed = 0.0_DP
                peseed = 0.0_DP
                beseed = 0.0_DP
+            end if
+            if (lfirst) then
+               Lzring_orig = Lzring
+               pering_orig = pering
+               kering_orig = kering
+               lfirst = .false.
             end if
             nbody_system%L_orbit(3) = Lzseed + Lzring + nbody_system%L_orbit(3)
             nbody_system%ke_orbit = keseed + kering + nbody_system%ke_orbit

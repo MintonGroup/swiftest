@@ -421,7 +421,8 @@ contains
             seed%mu(1:Ns) = cb%Gmass + seed%Gmass(1:Ns)
             ring%mass(:) = mringf(:)
             ring%sigma(:) = ring%mass(:) / ring%deltaA(:)
-            ring%Gsigma(:) = param%GU * ring%sigma(:)
+            call ring%reset(seed,cb,param)
+            call ring%update(cb,param)
             cb%dL(3) = cb%dL(3) - sum(dTtide(1:Ns))
             ring%Torque(:) = Torquei(:) + dTorque_ring(:) / dt
             
@@ -436,7 +437,7 @@ contains
                 if (seed%status(i) == ACTIVE) then
                     do j = i + 1, Ns
                         if (seed%status(j) == ACTIVE) then
-                        impact_b =  0.5_DP*(seed%a(i)+seed%a(j)) * ((seed%mass(i)+seed%mass(j)) / (3 * cb%mass))**(1._DP / 3._DP)
+                        impact_b =  0.5_DP*(seed%a(i)+seed%a(j)) * ((seed%mass(i)+seed%mass(j)) / (3 * cb%mass))**THIRD
                         impact_b = impact_b * seed%feeding_zone_factor 
                         if (abs(seed%a(i) - seed%a(j)) < impact_b) then
                             ! conserve both mass and angular momentum
@@ -446,11 +447,18 @@ contains
                             seed%Gmass(i) = param%GU * seed%mass(i)
                             seed%mu(i) = cb%Gmass + seed%Gmass(i)
                             seed%a(i) = ((Li + Lj) / seed%mass(i))**2 / seed%mu(i)
-
+                            seed%density(i) = 0.5_DP * (seed%density(i) + seed%density(j))
+                            seed%radius(i) = (3*seed%mass(i) / (4 * PI * seed%density(i)))**THIRD
+                            seed%rhill(i) = seed%a(i) * (seed%mass(i) / (3 * cb%mass))**THIRD
                             ! deactivate particle 
-                            seed%mass(j) = 0.0_DP
-                            seed%a(j) = 0.0_DP
                             seed%status(j) = INACTIVE
+                            seed%a(j) = 0.0_DP
+                            seed%mass(j) = 0.0_DP
+                            seed%mu(j) = 0.0_DP
+                            seed%Gmass(j) = 0.0_DP
+                            seed%radius(j) = 0.0_DP
+                            seed%density(j) = 0.0_DP
+                            seed%rhill(j) = 0.0_DP
                             chomped = .true.
                         end if
                     end if

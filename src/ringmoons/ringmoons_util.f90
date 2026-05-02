@@ -497,7 +497,7 @@ contains
         type(ringmoons_seed)  :: new_seed
         character(*), parameter :: SEEDFMT = '("Seed",I0.7)'
         character(NAMELEN) :: newname
-        real(DP) :: Lr0,Lr1,Ls
+        real(DP) :: Lr0,Lr1,Ls,ker0,ker1,per0,per1,kes,pes,bes
 
         associate(seed => self, maxid => self%maxid)
             seed_bin = seed%nbody + 1 
@@ -552,11 +552,18 @@ contains
 
             ! Take away the mass from the ring
             ! Lr0 = ring%mass(j) * ring%Iz(j) * ring%nkep(j)
+            ker0 = 0.5_DP * ring%mass(j) * cb%Gmass / ring%r(j)
+            per0 = -cb%Gmass*ring%mass(j) / ring%r(j)
             ring%mass(j) = ring%mass(j) - seed%mass(i)
             ring%sigma(j) = ring%mass(j) / ring%deltaA(j)
             ring%Gsigma(j) = param%GU * ring%sigma(j)
             seed%ringbin(i) = ring%find_bin(seed%a(i))
-
+            ker1 = 0.5_DP * ring%mass(j) * cb%Gmass / ring%r(j)
+            per1 = -cb%Gmass*ring%mass(j) / ring%r(j)
+            kes = 0.5*seed%mass(i)*seed%mu(i)/seed%a(i)
+            pes = -cb%Gmass*seed%mass(i)/seed%a(i)
+            bes = -3*seed%Gmass(i)*seed%mass(i)/seed%a(i)
+            
             ! Testing Angular momentum conservation
             ! Lr1 = ring%mass(j) * ring%Iz(j) * ring%nkep(j)
             ! Ls = seed%mass(i) * sqrt(seed%mu(i) * seed%a(i))
