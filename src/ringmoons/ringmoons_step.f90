@@ -166,7 +166,7 @@ contains
         real(DP),dimension(0:self%nbins+1) :: S,Snew,Sn1,Sn2,fac,artnu,L,dM1,dM2
         integer(I4B)                       :: i,N,j,loop
         logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
-        integer(I4B), parameter :: MAX_LOOP_SOLVER = 100000
+        integer(I4B), parameter :: MAX_LOOP_SOLVER = 10000
         real(DP), parameter :: ARTNU_FAC = 1.0_DP / 16.0_DP 
             !! Artificial viscosity factor to prevent negative mass bins. 
 
@@ -210,8 +210,10 @@ contains
                 Snew(1:N) = S(1:N) + fac(1:N) * Sn1(1:N) 
                 loop = loop + 1
                 if (loop > MAX_LOOP_SOLVER) then
-                    stepfail = .true.
-                    exit
+                    ! Give up and set all negative mass bins to 0 
+                    where(Snew(1:N) < epsilon(1.0_DP) * maxval(fac(1:N) * Sn1(1:N)))
+                        Snew(1:N) = 0.0_DP
+                    end where
                 end if
             end do
             ring%sigma(1:N) = Snew(1:N) / ring%X(1:N)

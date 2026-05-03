@@ -120,7 +120,7 @@ module ringmoons
             !! Tidal torque acting on the seed
         real(DP)                                                :: feeding_zone_factor = 10._DP
             !! Width of feeding zone for seed mergers in units of mutual Hill's sphere
-        real(DP)                                                :: rkf_tol   = 1.0e-8_DP
+        real(DP)                                                :: rkf_tol   = 1.0e-6_DP
             !! Error tolerance for Runge-Kutta-Fehlberg integrator for seed evolution
         real(DP)                                                :: mass_init       
             !! initial mass of seeds

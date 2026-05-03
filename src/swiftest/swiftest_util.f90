@@ -1359,11 +1359,13 @@ contains
             Lzring =sum(ring%mass(:) * ring%Iz(:) * ring%nkep(:)) 
             kering = 0.5_DP * sum(ring%mass(:) * ring%Iz(:) * ring%nkep(:)**2)
             pering = -sum(cb%Gmass * ring%mass(:) / ring%r(:))
+            nbody_system%GMtot = nbody_system%GMtot + sum(param%GU * ring%mass(:))
             if (Ns > 0) then
                Lzseed = sum(seed%mass(1:Ns) * sqrt(seed%mu(1:Ns) * seed%a(1:Ns)))
                keseed = 0.5_DP * sum(seed%mass(1:Ns) * seed%mu(1:Ns) / seed%a(1:Ns))
                peseed = -sum(cb%Gmass * seed%mass(1:Ns) / seed%a(1:Ns))
                beseed = sum(-3*seed%Gmass(1:Ns)*seed%mass(1:Ns)/(5*seed%radius(1:Ns)))
+               nbody_system%GMtot = nbody_system%GMtot + sum(seed%Gmass(1:Ns))
             else
                Lzseed = 0.0_DP
                keseed = 0.0_DP

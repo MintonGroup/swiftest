@@ -131,8 +131,7 @@ contains
       real(DP), dimension(NDIM)       :: L_total_now,  L_orbit_now,  L_rot_now
       real(DP)                        :: ke_orbit_now,  ke_rot_now,  pe_now,  E_orbit_now, be_now, be_cb_now, be_cb_orig, te_now
       real(DP)                        :: GMtot_now
-      character(len=*), parameter     :: EGYTERMFMT = '(" DL/L0 = ", ES12.5, "; DE_orbit/|E0| = ", ES12.5,' &
-                                                     //'"; DE_total/|E0| = ", ES12.5, "; DM/M0 = ", ES12.5)'
+      character(len=*), parameter     :: EGYTERMFMT = '(" DL/L0 = ", ES12.5, "; DE/|E0| = ", ES12.5, "; DM/M0 = ", ES12.5)'
 
       associate(nbody_system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, display_unit => param%display_unit)
          call nbody_system%get_energy_and_momentum(param) 
@@ -191,8 +190,7 @@ contains
    if (this_image() == 1 .or. param%log_output) then
 #endif 
             if (lterminal) then
-               write(display_unit, EGYTERMFMT) nbody_system%L_total_error, nbody_system%E_orbit_error, nbody_system%te_error, &
-                                               nbody_system%Mtot_error
+               write(display_unit, EGYTERMFMT) nbody_system%L_total_error, nbody_system%te_error, nbody_system%Mtot_error
                if (param%log_output) flush(display_unit)
             end if
 
