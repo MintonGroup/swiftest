@@ -145,7 +145,7 @@ contains
         ! Arguments
         integer(I4B), intent(in)                        :: nbody
             !! number of bodies in the system)
-        integer(I4B), dimension(:), intent(in)          :: lmask
+        logical, dimension(:), intent(in)          :: lmask
             !! logical mask for active bodies in the system
         real(DP), intent(in)                            :: L_SUN_sys, inv_c2, sigma_sys
             !! constants and parameters needed for Yarkovsky calculations

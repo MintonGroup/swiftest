@@ -1797,6 +1797,30 @@ module swiftest
 
       end subroutine swiftest_yarkovsky_getacc_pl_one
 
+      module subroutine swiftest_yarkovsky_getacc_pl_all(nbody, lmask, mu, mass, radius, r_vec, v_vec, acc, rot, a, emissivity, gamma, albedo, rot_k, L_SUN_sys, inv_c2, sigma_sys)
+        !! author: Kaustub P. Anand and David A. Minton
+        !! Loop over all bodies to calculate the Yarkovsky effect. 
+        !!
+        implicit none
+        ! Arguments
+        integer(I4B), intent(in)                        :: nbody
+            !! number of bodies in the system)
+        logical, dimension(:), intent(in)          :: lmask
+            !! logical mask for active bodies in the system
+        real(DP), intent(in)                            :: L_SUN_sys, inv_c2, sigma_sys
+            !! constants and parameters needed for Yarkovsky calculations
+        real(DP), dimension(:), intent(in)              :: emissivity, gamma, albedo, rot_k
+            !! particle characteristics for Yarkovsky calculations
+        real(DP), dimension(:), intent(in)              :: a, mass, radius, mu
+            !! semi-major axis, mass, radius, and mu of the particle
+        real(DP), dimension(:, :), intent(in)           :: r_vec, v_vec
+            !! position and velocity vectors of the particle
+        real(DP), dimension(:, :), intent(in)           :: rot
+            !! rotation vector of the particle
+        real(DP), dimension(:, :), intent(inout)        :: acc
+            !! Acceleration vector for all bodies
+      end subroutine swiftest_yarkovsky_getacc_pl_all
+
       module subroutine swiftest_radiation_getacch_pl(self, nbody_system, param)
          implicit none
          ! Arguments
