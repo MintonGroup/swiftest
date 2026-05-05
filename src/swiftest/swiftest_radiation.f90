@@ -137,6 +137,57 @@ contains
 
     end subroutine swiftest_yarkovsky_getacc_pl_one
 
+    module subroutine swiftest_yarkovsky_getacc_pl_all(nbody, lmask, mu, mass, radius, r_vec, v_vec, acc, rot, a, emissivity, gamma, albedo, rot_k, L_SUN_sys, inv_c2, sigma_sys)
+        !! author: Kaustub P. Anand and David A. Minton
+        !! Loop over all bodies to calculate the Yarkovsky effect. 
+        !!
+        implicit none
+        ! Arguments
+        integer(I4B), intent(in)                        :: nbody
+            !! number of bodies in the system)
+        integer(I4B), dimension(:), intent(in)          :: lmask
+            !! logical mask for active bodies in the system
+        real(DP), intent(in)                            :: L_SUN_sys, inv_c2, sigma_sys
+            !! constants and parameters needed for Yarkovsky calculations
+        real(DP), dimension(:), intent(in)              :: emissivity, gamma, albedo, rot_k
+            !! particle characteristics for Yarkovsky calculations
+        real(DP), dimension(:), intent(in)              :: a, mass, radius, mu
+            !! semi-major axis, mass, radius, and mu of the particle
+        real(DP), dimension(:, :), intent(in)           :: r_vec, v_vec
+            !! position and velocity vectors of the particle
+        real(DP), dimension(:, :), intent(in)           :: rot
+            !! rotation vector of the particle
+        real(DP), dimension(:, :), intent(inout)        :: acc
+            !! Acceleration vector for all bodies
+
+        ! Internals
+        integer(I4B)                     :: i
+            !! looping index
+        real(DP)                         :: lag_angle_constants
+            !! constant terms in lag angle calculations
+        real(DP), dimension(NDIM)        :: a_yark
+            !! Yarkovsky acceleration vector
+        real(DP), dimension(NDIM, NDIM)  :: UM
+            !! rotation matrices
+
+        ! calculate constants
+        lag_angle_constants = 0.5_DP * (sigma_sys / PI**5)**(0.25_DP) * (L_SUN_sys)**(0.75_DP)
+        UM(:, :) = 0.0_DP
+        UM(1, 1) = 1.0_DP
+        UM(2, 2) = 1.0_DP
+        UM(3, 3) = 1.0_DP
+
+        do i=1, nbody
+            if (lmask(i)) then
+                call swiftest_yarkovsky_getacc_pl_one(lag_angle_constants, mu(i), mass(i), radius(i), r_vec(:, i), v_vec(:, i), rot(:, i), a(i), emissivity(i), gamma(i), albedo(i), rot_k(i), L_SUN_sys, inv_c2, a_yark)
+                acc(:, i) = acc(:, i) + a_yark(:)
+            end if 
+        end do
+        
+        return
+
+    end subroutine swiftest_yarkovsky_getacc_pl_all
+
 
     ! module subroutine swiftest_yarkovsky_getacc_pl(self, nbody_system, param)
     !     !! author: Kaustub P. Anand and David A. Minton
