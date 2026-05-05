@@ -10,13 +10,13 @@ We can now model the Yarkovsky effect as an added force in Swiftest simulations.
 
 Set the Yarkovsky parameter flag
 ====================================
-Let's start by setting up a simulation object and turning on the Yarkovsky effect in ``swiftest.Simulation()``. We will set the unit system and then add the Sun as the central body.
+Let's start by setting up a simulation object and turning on the Yarkovsky effect in ``swiftest.Simulation()``. We will set the unit system, time parameters, and then add the Sun as the central body.
 
 .. code-block:: python
 
     import swiftest
 
-    sim = swiftest.Simulation(yarkovsky = True, DU = 'AU', TU = 'yr', MU = 'kg')
+    sim = swiftest.Simulation(tstop = 1e6, dt = 0.01, tstep_out = 1e3, yarkovsky = True, DU = 'AU', TU = 'yr', MU = 'kg')
     sim.add_solar_system_body(name = ["Sun"])
 
 Necessary characteristics
@@ -33,19 +33,15 @@ Massive particles need to be added with a rotation vector and 4 additional chara
 - Rotational Constant (``rot_k``): A rotational constant between 0 and 0.25 that depends on its rotation rate.
     - If the rotation rate approaches the critical break-up spin, :math:`rot_k -> 0`
     - If the rotation period approaches the orbital period, :math:`rot_k -> 0.25`
-    - A potential equation to calculate :math:`rot_k = 1 - (\omega/\omega_{critical})^2`
+    - A potential equation to calculate :math:`rot_k = [1 - (\omega_{critical}/\omega)^2] * 0.25`
 
 Except for ``gamma``, all the quantities above are unitless. The thermal inertia has SI units of :math:`Jm^{-2}K^{-1}s^{-1/2}`. 
 We do not have a unit conversion for Kelvin (:math:`K`) in Swiftest. To convert the thermal inertia from SI to `sim` units we can follow
-:math:`\Gamma_{sim} = \Gamma_{SI} *` ``sim.TU2S``:math:`^(5/2) /` ``sim.MU2KG``
+:math:`\Gamma_{sim} = \Gamma_{SI} *` ``(sim.TU2S)``:math:`^{2.5} /` ``sim.MU2KG``
 
-.. math::
-
-    \Gamma_{sim} = \Gamma_{SI} * ``sim.TU2S``^(5/2) / ``sim.MU2KG``
-
-Add in massive bodies
-==========================
-Now that the units are correct, we can add bodies to the simulation. For our example, we will add asteroid 11470 Davidminton and assume typical values for some it's physical properties because of lack of data. 
+Add in massive bodies 
+================================================
+Now that we know our required characteristics and the units are correct, we can add bodies to the simulation. For our example, we will add asteroid 11470 Davidminton and assume typical values for some it's physical properties because of lack of data. 
 We will assume a rotation period of 6 hours, an albedo of 0.07, emissivity of 0.9, rot_k of 0.25, density of 1300 :math:`kg/m^3`, and a thermal inertia of 100 :math:`Jm^{-2}K^{-1}s^{-1/2}`.
 
 .. code-block:: python
@@ -62,7 +58,9 @@ We will assume a rotation period of 6 hours, an albedo of 0.07, emissivity of 0.
                             gamma = 100.0 * (sim.TU2S**(5.0/2)) / sim.MU2KG,    # sim units 
                             rot_k = rot_k)
 
-Set any relevant parameters or add in more bodies. We can now run the simulation.
+Run the simulation
+==========================
+Set any other relevant parameters or add in more bodies. We can now run the simulation.
 
 .. code-block:: python
 
