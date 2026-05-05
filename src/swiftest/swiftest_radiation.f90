@@ -55,6 +55,10 @@ contains
             !! rotation matrices
 
         a_yark(:) = 0.0_DP
+        UM(:, :) = 0.0_DP
+        UM(1, 1) = 1.0_DP
+        UM(2, 2) = 1.0_DP
+        UM(3, 3) = 1.0_DP
 
         rmag = .mag. r_vec(:)
         vmag = .mag. v_vec(:) 
@@ -167,15 +171,9 @@ contains
             !! constant terms in lag angle calculations
         real(DP), dimension(NDIM)        :: a_yark
             !! Yarkovsky acceleration vector
-        real(DP), dimension(NDIM, NDIM)  :: UM
-            !! rotation matrices
 
         ! calculate constants
         lag_angle_constants = 0.5_DP * (sigma_sys / PI**5)**(0.25_DP) * (L_SUN_sys)**(0.75_DP)
-        UM(:, :) = 0.0_DP
-        UM(1, 1) = 1.0_DP
-        UM(2, 2) = 1.0_DP
-        UM(3, 3) = 1.0_DP
 
         do i=1, nbody
             if (lmask(i)) then
