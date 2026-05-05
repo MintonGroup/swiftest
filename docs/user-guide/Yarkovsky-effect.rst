@@ -45,7 +45,7 @@ We do not have a unit conversion for Kelvin (:math:`K`) in Swiftest. To convert 
 Add in massive bodies 
 ================================================
 Now that we know our required characteristics and the units are correct, we can add bodies to the simulation. For our example, we will add asteroid 11470 Davidminton and assume typical values for some it's physical properties because of lack of data. 
-We will assume a rotation period of 6 hours, an albedo of 0.07, emissivity of 0.9, rot_k of 0.25, density of 1300 :math:`kg/m^3`, and a thermal inertia of 100 :math:`Jm^{-2}K^{-1}s^{-1/2}`.
+We will assume a rotation period of 6 hours, rotation in the z-direction (obliquity of :math:`0^\circ`), an albedo of 0.07, emissivity of 0.9, rot_k of 0.25, density of 1300 :math:`kg/m^3`, and a thermal inertia of 100 :math:`Jm^{-2}K^{-1}s^{-1/2}`.
 
 .. code-block:: python
 
