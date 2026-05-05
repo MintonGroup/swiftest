@@ -4,7 +4,7 @@ User guide for using the Yarkovsky effect
 
 .. rubric:: by Kaustub Anand
 
-The Yarkovsky effect is a well known radiation-based force that alters the orbits of 10cm - 10km sized bodies, primarily asteroids, as they orbit around the Sun. 
+The Yarkovsky effect is a well known radiation-based force that alters the orbits of :math:`10` cm - :math:`10` km sized bodies, primarily asteroids, as they orbit around the Sun. 
 We can now model the Yarkovsky effect as an added force in Swiftest simulations. This is only applicable to massive particles and our implementation is based on that of REBOUNDx, described in  
 `Ferich et al. (2022) <https://doi.org/10.3847/1538-4365/ac8d60>`__. 
 
@@ -16,13 +16,16 @@ Let's start by setting up a simulation object and turning on the Yarkovsky effec
 
     import swiftest
 
-    sim = swiftest.Simulation(tstop = 1e6, dt = 0.01, tstep_out = 1e3, yarkovsky = True, DU = 'AU', TU = 'yr', MU = 'kg')
+    sim = swiftest.Simulation(tstop = 1e6, dt = 0.01, tstep_out = 1e3, rotation = True, yarkovsky = True, DU = 'AU', TU = 'yr', MU = 'kg')
     sim.add_solar_system_body(name = ["Sun"])
 
 Necessary characteristics
 ============================================================
-Massive particles need to be added with a rotation vector and 4 additional characteristics. They are as follows with the Swiftest parameter name in brackets:
+For the Yarkovsky effect, massive particles need to be added with a rotation vector and 4 additional characteristics. They are as follows with the Swiftest parameter name in brackets:
 
+- Rotation Vector (``rot``): The rotation vector of the body in degrees/TU. 
+    - Note: there is no restriction on the direction of the rotation vector. It does not have to be aligned to the z-axis.
+    - Example: ``rot =`` :math:`[sin(\gamma), 0, cos(\gamma)] * 360/T_{rot}` where :math:`\gamma` is the obliquity of the body and :math:`T_{rot}` is the rotation period of the body.
 - Emissivity (``emissivity``): The emissivity of the body.
 - Albedo (``albedo``): The bond albedo of the body.
 - Thermal Inertia (``gamma``): The thermal inertia of the body where :math:`\Gamma = \sqrt{k \rho C}`.
