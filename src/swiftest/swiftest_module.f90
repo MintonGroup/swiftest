@@ -253,7 +253,7 @@ module swiftest
          !! Rearranges the order of array elements of body based on an input index array. Used in sorting methods
       procedure :: spill           => swiftest_util_spill_body              
          !! "Spills" bodies from one object to another depending on the results of a mask (uses the PACK intrinsic)
-      procedure :: save_discard => swiftest_util_save_discard_body
+      procedure :: save_discard    => swiftest_util_save_discard_body
          !! Saves a snapshot of the this body to the collision storage object
       generic   :: read_frame      => read_frame_bin                        
          !! Add the generic read frame for Fortran binary files
