@@ -2362,7 +2362,7 @@ contains
       class(swiftest_particle_info), intent(inout)           :: self
       character(len=*),              intent(in),    optional :: name            !! Non-unique name
       character(len=*),              intent(in),    optional :: particle_type   !! String containing a description of the particle 
-                                                                                !!  type (Central Body, Massive Body, Test Particle)
+                                                                                !!  type (Central Body, Massive Body, Test Particle, Dust Particle)
       character(len=*),              intent(in),    optional :: status          !! Particle status description: ACTIVE, MERGED, 
                                                                                 !!  FRAGMENTED, etc.
       character(len=*),              intent(in),    optional :: origin_type     !! String containing a description of the origin of
@@ -2619,9 +2619,15 @@ contains
                                 origin_time=param%t0, origin_rh=[0.0_DP, 0.0_DP, 0.0_DP], origin_vh=[0.0_DP, 0.0_DP, 0.0_DP], &
                                 collision_id=0)
          do i = 1, self%pl%nbody
-            call pl%info(i)%set_value(particle_type=PL_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", &
-                                       origin_time=param%t0, origin_rh=self%pl%rh(:,i), origin_vh=self%pl%vh(:,i), &
-                                       collision_id=0)
+            if (pl%ldust(i)) then
+               call pl%info(i)%set_value(particle_type=DUST_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", &
+                                          origin_time=param%t0, origin_rh=self%pl%rh(:,i), origin_vh=self%pl%vh(:,i), &
+                                          collision_id=0)
+            else
+               call pl%info(i)%set_value(particle_type=PL_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", &
+                                          origin_time=param%t0, origin_rh=self%pl%rh(:,i), origin_vh=self%pl%vh(:,i), &
+                                          collision_id=0)
+            end if
          end do
          do i = 1, self%tp%nbody
             call tp%info(i)%set_value(particle_type=TP_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", &

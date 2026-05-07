@@ -115,7 +115,7 @@ module swiftest
       character(len=NAMELEN)    :: name            
          !! Non-unique name
       character(len=NAMELEN)    :: particle_type   
-         !! String containing a description of the particle type (e.g. Central Body,  Massive Body, Test Particle)
+         !! String containing a description of the particle type (e.g. Central Body,  Massive Body, Test Particle, Dust Particle)
       character(len=NAMELEN)    :: origin_type     
          !! String containing a description of the origin of the particle (e.g. Initial  Conditions, Disruption, etc.)
       real(DP)                  :: origin_time  = -huge(1.0_DP)
@@ -2321,7 +2321,7 @@ module swiftest
          character(len=*),              intent(in),    optional :: name            
             !! Non-unique name
          character(len=*),              intent(in),    optional :: particle_type   
-            !! String containing a description of the particle type (e.g. Central Body, Massive Body, Test Particle)
+            !! String containing a description of the particle type (e.g. Central Body, Massive Body, Test Particle, Dust Particle)
          character(len=*),              intent(in),    optional :: status          
             !! Particle status description: Active, Merged, Fragmented, etc.
          character(len=*),              intent(in),    optional :: origin_type     
