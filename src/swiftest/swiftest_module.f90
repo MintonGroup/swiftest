@@ -374,6 +374,8 @@ module swiftest
          !! Array of merger relationship structures that can account for multiple pairwise mergers in a single step
       logical,                 dimension(:),   allocatable :: lmtiny     
          !! flag indicating whether this body is below the GMTINY cutoff value
+      logical,                 dimension(:),   allocatable :: ldust
+         !! flag indicating whether this body is a dust particle
       integer(I4B)                                         :: nplm = 0   
          !! number of bodies above the GMTINY limit
       integer(I8B)                                         :: nplplm     
