@@ -178,7 +178,7 @@ contains
         lag_angle_constants = 0.5_DP * (sigma_sys / PI**5)**(0.25_DP) * (L_SUN_sys)**(0.75_DP)
 
         do i=1, nbody
-            if (lmask(i)) then
+            if (lmask(i) .and. radius(i) * DU2M <= 3e4_DP) then !! check if body radius is <= 30 km for computational efficiency. Yarkovsky effect is negligible for larger bodies (Bottke, et al, 2006; doi:10.1146/annurev.earth.34.031405.125154)
                 call swiftest_yarkovsky_getacch_pl_one(lag_angle_constants, mu(i), mass(i), radius(i), r_vec(:, i), v_vec(:, i), rot(:, i) * DEG2RAD, a(i), emissivity(i), gamma(i), albedo(i), rot_k(i), L_SUN_sys, inv_c2, a_yark)
                 acc(:, i) = acc(:, i) + a_yark(:)
             end if 
