@@ -2910,6 +2910,7 @@ contains
             param%sigma_sys = SIGMA /param%MU2KG * param%TU2S**3 ! system units / K^4
             param%inv_c2 = einsteinC * param%TU2S / param%DU2M
             param%inv_c2 = (param%inv_c2)**(-2)
+            param%yark_radius_threshold_sys = YARK_RADIUS_THRESHOLD / param%DU2M
             ! param%lgr = .true. ! placeholder for if GR is needed by future radiation or Yarkovsky models that we implement
          end if
 

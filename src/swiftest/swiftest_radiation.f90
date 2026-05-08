@@ -142,7 +142,7 @@ contains
 
     end subroutine swiftest_yarkovsky_getacch_pl_one
 
-    module subroutine swiftest_yarkovsky_getacch_pl_all(nbody, lmask, mu, mass, radius, r_vec, v_vec, acc, rot, a, emissivity, gamma, albedo, rot_k, L_SUN_sys, inv_c2, sigma_sys)
+    module subroutine swiftest_yarkovsky_getacch_pl_all(nbody, lmask, mu, mass, radius, r_vec, v_vec, acc, rot, a, emissivity, gamma, albedo, rot_k, L_SUN_sys, inv_c2, sigma_sys, yark_radius_threshold_sys)
         !! author: Kaustub P. Anand and David A. Minton
         !! Loop over all bodies to calculate the Yarkovsky effect. 
         !! Based on Ferich, et al, 2022 (https://doi.org/10.3847/1538-4365/ac8d60) and Veras, et al, 2015 (https://doi.org/10.1093/mnras/stv1047)
@@ -151,9 +151,9 @@ contains
         ! Arguments
         integer(I4B), intent(in)                        :: nbody
             !! number of bodies in the system)
-        logical, dimension(:), intent(in)          :: lmask
+        logical, dimension(:), intent(in)               :: lmask
             !! logical mask for active bodies in the system
-        real(DP), intent(in)                            :: L_SUN_sys, inv_c2, sigma_sys
+        real(DP), intent(in)                            :: L_SUN_sys, inv_c2, sigma_sys, yark_radius_threshold_sys
             !! constants and parameters needed for Yarkovsky calculations
         real(DP), dimension(:), intent(in)              :: emissivity, gamma, albedo, rot_k
             !! particle characteristics for Yarkovsky calculations
@@ -176,18 +176,19 @@ contains
         real(DP), dimension(NDIM)        :: a_yark
             !! Yarkovsky acceleration vector
 
-        ! Check if any bodies have radius <= 25 km for computational efficiency.
-        nyark = count(radius(:) * DU2M <= 2.5e4_DP .and. lmask(:))
+        ! Check if any bodies have radius <= yarkovsky radius threshold for computational efficiency.
+        nyark = count(radius(:) <= yark_radius_threshold_sys .and. lmask(:))
         if (nyark >= 0) then
             ! calculate constants
             lag_angle_constants = 0.5_DP * (sigma_sys / PI**5)**(0.25_DP) * (L_SUN_sys)**(0.75_DP)
 
             do i=1, nbody
-                if (lmask(i) .and. (radius(i) * DU2M) <= 2.5e4_DP) then !! check if body radius is <= 25 km for computational efficiency. Yarkovsky effect is negligible for larger bodies (Bottke, et al, 2006; doi:10.1146/annurev.earth.34.031405.125154)
+                if (lmask(i) .and. radius(i) <= yark_radius_threshold_sys) then !! check if body radius is <= 25 km for computational efficiency. Yarkovsky effect is negligible for larger bodies (Bottke, et al, 2006; doi:10.1146/annurev.earth.34.031405.125154)
                     call swiftest_yarkovsky_getacch_pl_one(lag_angle_constants, mu(i), mass(i), radius(i), r_vec(:, i), v_vec(:, i), rot(:, i) * DEG2RAD, a(i), emissivity(i), gamma(i), albedo(i), rot_k(i), L_SUN_sys, inv_c2, a_yark)
                     acc(:, i) = acc(:, i) + a_yark(:)
                 end if 
             end do
+        end if
         
         return
 

@@ -210,7 +210,7 @@ contains
          !! Current run configuration parameters
 
       associate(pl => self)
-         call swiftest_yarkovsky_getacch_pl_all(pl%nbody, pl%lmask(:), pl%mu(:), pl%mass(:), pl%radius(:), pl%rh(:, :), pl%vb(:, :), pl%ah(:, :), pl%rot(:, :), pl%a(:), pl%emissivity(:), pl%gamma(:), pl%albedo(:), pl%rot_k(:), param%L_SUN_sys, param%inv_c2, param%sigma_sys)
+         call swiftest_yarkovsky_getacch_pl_all(pl%nbody, pl%lmask(:), pl%mu(:), pl%mass(:), pl%radius(:), pl%rh(:, :), pl%vb(:, :), pl%ah(:, :), pl%rot(:, :), pl%a(:), pl%emissivity(:), pl%gamma(:), pl%albedo(:), pl%rot_k(:), param%L_SUN_sys, param%inv_c2, param%sigma_sys, param%yark_radius_threshold_sys)
       end associate
       
       return

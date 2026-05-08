@@ -43,6 +43,7 @@ module globals
    real(DP), parameter :: einsteinC = 299792458.0_DP  !! Speed of light in SI units
    real(DP), parameter :: L_SUN     = 3.828e26_DP     !! Solar luminosity in SI units; Mamajek, et al (2015). IAU 2015 Resolution B3. https://doi.org/10.48550/arXiv.1510.07674
    real(DP), parameter :: SIGMA     = 5.670374419e-8_DP  !! Stefan-Boltzmann constant in SI units
+   real(DP), parameter :: YARK_RADIUS_THRESHOLD = 2.5e4_DP !! Radius threshold for yarkovsky effects.Yarkovsky effect is negligible for bodies with R > 25 km = 2.5e4 m (Bottke, et al, 2006; doi:10.1146/annurev.earth.34.031405.125154)
 
    integer(I4B), parameter :: LOWERCASE_BEGIN  = iachar('a') !! ASCII character set parameter for lower to upper conversion - start 
                                                              !! of lowercase

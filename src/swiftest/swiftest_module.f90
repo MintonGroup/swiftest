@@ -1776,7 +1776,7 @@ module swiftest
    end interface
 
    interface 
-      module subroutine swiftest_yarkovsky_getacch_pl_one(lag_angle_constants, mu, mass, radius, r_vec, v_vec, rot, a, emissivity, gamma, albedo, rot_k, L_SUN_sys, inv_c2, a_yark) ! pure module subroutine? 
+      module subroutine swiftest_yarkovsky_getacch_pl_one(lag_angle_constants, mu, mass, radius, r_vec, v_vec, rot, a, emissivity, gamma, albedo, rot_k, L_SUN_sys, inv_c2, a_yark)
         !! author: Kaustub P. Anand and David A. Minton
         !! Calculate the Yarkovsky effect on one body 
         !!
@@ -1797,7 +1797,7 @@ module swiftest
 
       end subroutine swiftest_yarkovsky_getacch_pl_one
 
-      module subroutine swiftest_yarkovsky_getacch_pl_all(nbody, lmask, mu, mass, radius, r_vec, v_vec, acc, rot, a, emissivity, gamma, albedo, rot_k, L_SUN_sys, inv_c2, sigma_sys)
+      module subroutine swiftest_yarkovsky_getacch_pl_all(nbody, lmask, mu, mass, radius, r_vec, v_vec, acc, rot, a, emissivity, gamma, albedo, rot_k, L_SUN_sys, inv_c2, sigma_sys, yark_radius_threshold_sys)
         !! author: Kaustub P. Anand and David A. Minton
         !! Loop over all bodies to calculate the Yarkovsky effect. 
         !!
@@ -1807,7 +1807,7 @@ module swiftest
             !! number of bodies in the system)
         logical, dimension(:), intent(in)          :: lmask
             !! logical mask for active bodies in the system
-        real(DP), intent(in)                            :: L_SUN_sys, inv_c2, sigma_sys
+        real(DP), intent(in)                            :: L_SUN_sys, inv_c2, sigma_sys, yark_radius_threshold_sys
             !! constants and parameters needed for Yarkovsky calculations
         real(DP), dimension(:), intent(in)              :: emissivity, gamma, albedo, rot_k
             !! particle characteristics for Yarkovsky calculations
