@@ -1776,7 +1776,7 @@ module swiftest
    end interface
 
    interface 
-      module subroutine swiftest_yarkovsky_getacc_pl_one(lag_angle_constants, mu, mass, radius, r_vec, v_vec, rot, a, emissivity, gamma, albedo, rot_k, L_SUN_sys, inv_c2, a_yark) ! pure module subroutine? 
+      module subroutine swiftest_yarkovsky_getacch_pl_one(lag_angle_constants, mu, mass, radius, r_vec, v_vec, rot, a, emissivity, gamma, albedo, rot_k, L_SUN_sys, inv_c2, a_yark) ! pure module subroutine? 
         !! author: Kaustub P. Anand and David A. Minton
         !! Calculate the Yarkovsky effect on one body 
         !!
@@ -1795,9 +1795,9 @@ module swiftest
         real(DP), dimension(NDIM), intent(out)      :: a_yark 
             !! Yarkovsky acceleration vector
 
-      end subroutine swiftest_yarkovsky_getacc_pl_one
+      end subroutine swiftest_yarkovsky_getacch_pl_one
 
-      module subroutine swiftest_yarkovsky_getacc_pl_all(nbody, lmask, mu, mass, radius, r_vec, v_vec, acc, rot, a, emissivity, gamma, albedo, rot_k, L_SUN_sys, inv_c2, sigma_sys)
+      module subroutine swiftest_yarkovsky_getacch_pl_all(nbody, lmask, mu, mass, radius, r_vec, v_vec, acc, rot, a, emissivity, gamma, albedo, rot_k, L_SUN_sys, inv_c2, sigma_sys)
         !! author: Kaustub P. Anand and David A. Minton
         !! Loop over all bodies to calculate the Yarkovsky effect. 
         !!
@@ -1819,7 +1819,7 @@ module swiftest
             !! rotation vector of the particle
         real(DP), dimension(:, :), intent(inout)        :: acc
             !! Acceleration vector for all bodies
-      end subroutine swiftest_yarkovsky_getacc_pl_all
+      end subroutine swiftest_yarkovsky_getacch_pl_all
 
       module subroutine swiftest_radiation_getacch_pl(self, nbody_system, param)
          implicit none

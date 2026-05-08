@@ -194,7 +194,7 @@ contains
       return
    end subroutine helio_kick_vb_tp
 
-   module subroutine helio_kick_yarkovsky_getacc_pl(self, nbody_system, param)
+   module subroutine helio_kick_yarkovsky_getacch_pl(self, nbody_system, param)
       !! author: Kaustub P. Anand and David A. Minton
       !!
       !! Calculate the Yarkovsky effect on massive bodies. 
@@ -210,26 +210,10 @@ contains
          !! Current run configuration parameters
 
       associate(pl => self)
-         call swiftest_yarkovsky_getacc_pl_all(pl%nbody, pl%lmask(:), pl%mu(:), pl%mass(:), pl%radius(:), pl%rh(:, :), pl%vb(:, :), pl%ah(:, :), pl%rot(:, :), pl%a(:), pl%emissivity(:), pl%gamma(:), pl%albedo(:), pl%rot_k(:), param%L_SUN_sys, param%inv_c2, param%sigma_sys)
+         call swiftest_yarkovsky_getacch_pl_all(pl%nbody, pl%lmask(:), pl%mu(:), pl%mass(:), pl%radius(:), pl%rh(:, :), pl%vb(:, :), pl%ah(:, :), pl%rot(:, :), pl%a(:), pl%emissivity(:), pl%gamma(:), pl%albedo(:), pl%rot_k(:), param%L_SUN_sys, param%inv_c2, param%sigma_sys)
       end associate
-
-      ! ! calculate constants
-      ! lag_angle_constants = 0.5_DP * (param%sigma_sys / PI**5)**(0.25_DP) * (param%L_SUN_sys)**(0.75_DP)
-      ! UM(:, :) = 0.0_DP
-      ! UM(1, 1) = 1.0_DP
-      ! UM(2, 2) = 1.0_DP
-      ! UM(3, 3) = 1.0_DP
-
-      ! associate(pl => self)
-      !    do i=1, pl%nbody
-      !          if (pl%lmask(i)) then
-      !             call swiftest_yarkovsky_getacc_pl_one(lag_angle_constants, pl%mu(i), pl%mass(i), pl%radius(i), pl%rh(:, i), pl%vb(:, i), pl%rot(:, i), pl%a(i), pl%emissivity(i), pl%gamma(i), pl%albedo(i), pl%rot_k(i), param%L_SUN_sys, param%inv_c2, a_yark)
-      !             pl%ah(:, i) = pl%ah(:, i) + a_yark(:)
-      !          end if 
-      !    end do
-      ! end associate
       
       return
-   end subroutine helio_kick_yarkovsky_getacc_pl
+   end subroutine helio_kick_yarkovsky_getacch_pl
 
 end submodule s_helio_kick
