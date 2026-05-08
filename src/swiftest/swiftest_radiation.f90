@@ -66,7 +66,7 @@ contains
         
         h(:) = r_vec(:) .cross. v_vec(:)
         h_mag = .mag. h(:)
-        s_mag = .mag. rot(:) ! DEG/TU
+        s_mag = .mag. rot(:)
         T_rot = 2 * PI / s_mag ! TU
         T_orbit = 2*PI*a**(1.5_DP) / sqrt(mu) ! orbital period
         
