@@ -27,9 +27,9 @@ contains
          !! Current Swiftest run configuration parameter
 
       if (param%lflatten_interactions) then
-         call swiftest_kick_getacch_int_all(self%nbody, self%nplplm, self%k_plpl, self%rh, self%Gmass, self%radius, self%ah)
+         call swiftest_kick_getacch_int_all(self%nbody, self%nplplm, self%k_plpl, self%rh, self%Gmass, self%ldust, self%radius, self%ah)
       else
-         call swiftest_kick_getacch_int_all(self%nbody, self%nplm, self%rh, self%Gmass, self%radius, self%ah)
+         call swiftest_kick_getacch_int_all(self%nbody, self%nplm, self%rh, self%Gmass, self%ldust, self%radius, self%ah)
       end if
 
       return
@@ -74,7 +74,7 @@ contains
                allocate(k_plpl_enc(2,nplplenc))
                k_plpl_enc(1,1:nplplenc) = plpl_encounter%index1(1:nplplenc)
                k_plpl_enc(2,1:nplplenc) = plpl_encounter%index2(1:nplplenc)
-               call swiftest_kick_getacch_int_all(npl, nplplenc, k_plpl_enc, pl%rh, pl%Gmass, pl%radius, ah_enc)
+               call swiftest_kick_getacch_int_all(npl, nplplenc, k_plpl_enc, pl%rh, pl%Gmass, pl%ldust, pl%radius, ah_enc)
                pl%ah(:,1:npl) = pl%ah(:,1:npl) - ah_enc(:,1:npl)
             end if
 
