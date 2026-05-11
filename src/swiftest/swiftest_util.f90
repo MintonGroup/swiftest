@@ -1775,6 +1775,14 @@ contains
             pl%nplm = count(.not.pl%lmtiny(1:npl))
          end if
 
+         if (param%ldust_pl) then
+            pl%ldust(1:npl) = pl%Gmass(1:npl) < param%GMDUST
+            where(pl%ldust(1:npl))
+               pl%info(1:npl)%particle_type = PL_DUST_TYPE_NAME 
+            end where
+            pl%ndust = count(pl%ldust(1:npl))
+         end if
+
          ! Reindex the new list of bodies 
          select type(pl)
          class is (helio_pl)

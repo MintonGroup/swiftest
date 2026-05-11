@@ -1506,7 +1506,8 @@ contains
                                   
          if (npl > 0) then
             pl%Gmass(:) = pack(rtemp, plmask)
-            if (param%lmtiny_pl) pl%nplm = count(pack(rtemp,plmask) > param%GMTINY )
+            if (param%ldust_pl) pl%ndust = count(pack(rtemp,plmask) <= param%GMDUST)
+            if (param%lmtiny_pl) pl%nplm = count(pack(rtemp,plmask) > param%GMTINY)
 
             status = nf90_get_var(nc%id, nc%rhill_varid, rtemp, start=[1, tslot], count=[idmax,1])
             if (status == NF90_NOERR) then
