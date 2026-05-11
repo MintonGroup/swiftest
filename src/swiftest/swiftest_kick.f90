@@ -225,19 +225,21 @@ contains
          !$omp shared(npl, nplm, r, Gmass, radius) &
          !$omp reduction(+:ahi,ahj)
          do i = 1, nplm
+            if (.not. ldust(i)) then
 #ifdef DOCONLOC
-            do concurrent(j = i+1:npl) shared(i,r,radius,ahi,ahj,Gmass) local(rx,ry,rz,rji2,rlim2)
+               do concurrent(j = i+1:npl) shared(i,r,radius,ahi,ahj,Gmass) local(rx,ry,rz,rji2,rlim2)
 #else
-            do concurrent(j = i+1:npl)
+               do concurrent(j = i+1:npl)
 #endif
-               rx = r(1, j) - r(1, i) 
-               ry = r(2, j) - r(2, i) 
-               rz = r(3, j) - r(3, i) 
-               rji2 = rx**2 + ry**2 + rz**2
-               rlim2 = (radius(i) + radius(j))**2
-               if (rji2 > rlim2) call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), Gmass(j), &
-                                          ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
-            end do
+                  rx = r(1, j) - r(1, i) 
+                  ry = r(2, j) - r(2, i) 
+                  rz = r(3, j) - r(3, i) 
+                  rji2 = rx**2 + ry**2 + rz**2
+                  rlim2 = (radius(i) + radius(j))**2
+                  if (rji2 > rlim2) call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), Gmass(j), &
+                                             ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+               end do
+            end if
          end do
          !$omp end parallel do
 #ifdef DOCONLOC
@@ -251,34 +253,11 @@ contains
          !$omp parallel do default(private) schedule(static)&
          !$omp shared(npl, nplm, r, Gmass, radius, acc)
          do i = 1, nplm
+            if (.not. ldust(i)) then
 #ifdef DOCONLOC
-            do concurrent(j = 1:npl, i/=j) shared(i,r,radius,Gmass,acc) local(rx,ry,rz,rji2,rlim2,fac)
+               do concurrent(j = 1:npl, i/=j) shared(i,r,radius,Gmass,acc) local(rx,ry,rz,rji2,rlim2,fac)
 #else
-            do concurrent(j = 1:npl, i/=j)
-#endif
-               rx = r(1,j) - r(1,i)
-               ry = r(2,j) - r(2,i)
-               rz = r(3,j) - r(3,i)
-               rji2 = rx**2 + ry**2 + rz**2
-               rlim2 = (radius(i) + radius(j))**2
-               if (rji2 > rlim2)  then
-                  fac = Gmass(j) / (rji2 * sqrt(rji2))
-                  acc(1,i) = acc(1,i) + fac * rx
-                  acc(2,i) = acc(2,i) + fac * ry
-                  acc(3,i) = acc(3,i) + fac * rz
-               end if
-            end do
-         end do
-         !$omp end parallel do
-
-         if (nplt > 0) then
-            !$omp parallel do default(private) schedule(static)&
-            !$omp shared(npl, nplm, r, Gmass, radius, acc)
-            do i = nplm+1,npl
-#ifdef DOCONLOC
-               do concurrent(j = 1:nplm) shared(i,r,radius,Gmass,acc) local(rx,ry,rz,rji2,rlim2,fac)
-#else
-               do concurrent(j = 1:nplm)
+               do concurrent(j = 1:npl, i/=j)
 #endif
                   rx = r(1,j) - r(1,i)
                   ry = r(2,j) - r(2,i)
@@ -292,6 +271,33 @@ contains
                      acc(3,i) = acc(3,i) + fac * rz
                   end if
                end do
+            end if
+         end do
+         !$omp end parallel do
+
+         if (nplt > 0) then
+            !$omp parallel do default(private) schedule(static)&
+            !$omp shared(npl, nplm, r, Gmass, radius, acc)
+            do i = nplm+1,npl
+               if (.not. ldust(i)) then
+#ifdef DOCONLOC
+                  do concurrent(j = 1:nplm) shared(i,r,radius,Gmass,acc) local(rx,ry,rz,rji2,rlim2,fac)
+#else
+                  do concurrent(j = 1:nplm)
+#endif
+                     rx = r(1,j) - r(1,i)
+                     ry = r(2,j) - r(2,i)
+                     rz = r(3,j) - r(3,i)
+                     rji2 = rx**2 + ry**2 + rz**2
+                     rlim2 = (radius(i) + radius(j))**2
+                     if (rji2 > rlim2)  then
+                        fac = Gmass(j) / (rji2 * sqrt(rji2))
+                        acc(1,i) = acc(1,i) + fac * rx
+                        acc(2,i) = acc(2,i) + fac * ry
+                        acc(3,i) = acc(3,i) + fac * rz
+                     end if
+                  end do
+               end if
             end do
             !$omp end parallel do
          end if
@@ -340,18 +346,20 @@ contains
          !$omp shared(npl, nplm, r, Gmass) &
          !$omp reduction(+:ahi,ahj)
          do i = 1, nplm
+            if (.not. ldust(i)) then
 #ifdef DOCONLOC
-            do concurrent(j = i+1:npl) shared(i,r,Gmass,ahi,ahj) local(rx,ry,rz,rji2)
+               do concurrent(j = i+1:npl) shared(i,r,Gmass,ahi,ahj) local(rx,ry,rz,rji2)
 #else
-            do concurrent(j = i+1:npl)
+               do concurrent(j = i+1:npl)
 #endif
-               rx = r(1, j) - r(1, i) 
-               ry = r(2, j) - r(2, i) 
-               rz = r(3, j) - r(3, i) 
-               rji2 = rx**2 + ry**2 + rz**2
-               call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), Gmass(j), &
-                                          ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
-            end do
+                  rx = r(1, j) - r(1, i) 
+                  ry = r(2, j) - r(2, i) 
+                  rz = r(3, j) - r(3, i) 
+                  rji2 = rx**2 + ry**2 + rz**2
+                  call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), Gmass(j), &
+                                             ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+               end do
+            end if
          end do
          !$omp end parallel do
 #ifdef DOCONLOC
@@ -386,20 +394,22 @@ contains
             !$omp parallel do default(private) schedule(static)&
             !$omp shared(npl, nplm, r, Gmass, acc)
             do i = nplm+1,npl
+               if (.not. ldust(i)) then
 #ifdef DOCONLOC
-               do concurrent(j = 1:nplm) shared(i,r,Gmass,acc) local(rx,ry,rz,rji2,fac)
+                  do concurrent(j = 1:nplm) shared(i,r,Gmass,acc) local(rx,ry,rz,rji2,fac)
 #else
-               do concurrent(j = 1:nplm)
+                  do concurrent(j = 1:nplm)
 #endif
-                  rx = r(1,j) - r(1,i)
-                  ry = r(2,j) - r(2,i)
-                  rz = r(3,j) - r(3,i)
-                  rji2 = rx**2 + ry**2 + rz**2
-                  fac = Gmass(j) / (rji2 * sqrt(rji2))
-                  acc(1,i) = acc(1,i) + fac * rx
-                  acc(2,i) = acc(2,i) + fac * ry
-                  acc(3,i) = acc(3,i) + fac * rz
-               end do
+                     rx = r(1,j) - r(1,i)
+                     ry = r(2,j) - r(2,i)
+                     rz = r(3,j) - r(3,i)
+                     rji2 = rx**2 + ry**2 + rz**2
+                     fac = Gmass(j) / (rji2 * sqrt(rji2))
+                     acc(1,i) = acc(1,i) + fac * rx
+                     acc(2,i) = acc(2,i) + fac * ry
+                     acc(3,i) = acc(3,i) + fac * rz
+                  end do
+               end if
             end do
             !$omp end parallel do
          end if
