@@ -104,6 +104,8 @@ module base
          !! Inverse speed of light squared in the system units 
       real(DP)          :: GMTINY               = -1.0_DP         
          !! Smallest G*mass that is fully gravitating 
+      real(DP)          :: GMDUST               = -1.0_DP         
+         !! Largest G*mass allowed for dust particles in the system
       real(DP)          :: min_GMfrag           = -1.0_DP         
          !! Smallest G*mass that can be produced in a fragmentation event 
       real(DP)          :: nfrag_reduction      =  30.0_DP        
