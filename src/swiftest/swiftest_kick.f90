@@ -29,15 +29,15 @@ contains
 
       if (param%lflatten_interactions) then
          if (param%lclose) then
-            call swiftest_kick_getacch_int_all(self%nbody, self%nplpl, self%k_plpl, self%rh, self%Gmass, self%radius, self%ah)
+            call swiftest_kick_getacch_int_all(self%nbody, self%nplpl, self%k_plpl, self%rh, self%Gmass, self%ldust, self%radius, self%ah) 
          else
-            call swiftest_kick_getacch_int_all(self%nbody, self%nplpl, self%k_plpl, self%rh, self%Gmass, self%ah)
+            call swiftest_kick_getacch_int_all(self%nbody, self%nplpl, self%k_plpl, self%rh, self%Gmass, self%ldust, self%ah)
          end if
       else
          if (param%lclose) then
-            call swiftest_kick_getacch_int_all(self%nbody, self%nbody, self%rh, self%Gmass, self%radius, self%ah)
+            call swiftest_kick_getacch_int_all(self%nbody, self%nbody, self%rh, self%Gmass, self%ldust, self%radius, self%ah)
          else
-            call swiftest_kick_getacch_int_all(self%nbody, self%nbody, self%rh, self%Gmass, self%ah)
+            call swiftest_kick_getacch_int_all(self%nbody, self%nbody, self%rh, self%Gmass, self%ldust, self%ah)
          end if
       end if
 
@@ -73,7 +73,7 @@ contains
    end subroutine swiftest_kick_getacch_int_tp
 
 
-   module subroutine swiftest_kick_getacch_int_all_flat_rad_pl(npl, nplpl, k_plpl, r, Gmass, radius, acc)
+   module subroutine swiftest_kick_getacch_int_all_flat_rad_pl(npl, nplpl, k_plpl, r, Gmass, ldust, radius, acc)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations for massive bodies, with parallelization.
@@ -92,6 +92,8 @@ contains
          !! Position vector array
       real(DP),     dimension(:),   intent(in)             :: Gmass  
          !! Array of massive body G*mass
+      logical,      dimension(:),   intent(in)             :: ldust
+         !! Logical array indicating which bodies are dust particles
       real(DP),     dimension(:),   intent(in)             :: radius 
          !! Array of massive body radii
       real(DP),     dimension(:,:), intent(inout)          :: acc    
@@ -129,7 +131,7 @@ contains
    end subroutine swiftest_kick_getacch_int_all_flat_rad_pl
 
 
-   module subroutine swiftest_kick_getacch_int_all_flat_norad_pl(npl, nplpl, k_plpl, r, Gmass, acc)
+   module subroutine swiftest_kick_getacch_int_all_flat_norad_pl(npl, nplpl, k_plpl, r, Gmass, ldust, acc)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations for massive bodies, with parallelization.
@@ -148,6 +150,8 @@ contains
          !! Position vector array
       real(DP),     dimension(:),   intent(in)             :: Gmass  
          !! Array of massive body G*mass
+      logical,      dimension(:),   intent(in)             :: ldust
+         !! Logical array indicating which bodies are dust particles
       real(DP),     dimension(:,:), intent(inout)          :: acc    
          !! Acceleration vector array 
       ! Internals
@@ -182,7 +186,7 @@ contains
    end subroutine swiftest_kick_getacch_int_all_flat_norad_pl
 
 
-   module subroutine swiftest_kick_getacch_int_all_tri_rad_pl(npl, nplm, r, Gmass, radius, acc)
+   module subroutine swiftest_kick_getacch_int_all_tri_rad_pl(npl, nplm, r, Gmass, ldust, radius, acc)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations for massive bodies, with parallelization.
@@ -199,6 +203,8 @@ contains
          !! Position vector array
       real(DP),     dimension(:),   intent(in)             :: Gmass  
          !! Array of massive body G*mass
+      logical,      dimension(:),   intent(in)             :: ldust
+         !! Logical array indicating which bodies are dust particles
       real(DP),     dimension(:),   intent(in)             :: radius 
          !! Array of massive body radii
       real(DP),     dimension(:,:), intent(inout)          :: acc    
@@ -297,7 +303,7 @@ contains
    end subroutine swiftest_kick_getacch_int_all_tri_rad_pl
 
 
-   module subroutine swiftest_kick_getacch_int_all_tri_norad_pl(npl, nplm, r, Gmass, acc)
+   module subroutine swiftest_kick_getacch_int_all_tri_norad_pl(npl, nplm, r, Gmass, ldust, acc)
       !! author: David A. Minton
       !!
       !! Compute direct cross (third) term heliocentric accelerations for massive bodies, with parallelization.
@@ -314,6 +320,8 @@ contains
          !! Position vector array
       real(DP),     dimension(:),   intent(in)             :: Gmass  
          !! Array of massive body G*mass
+      logical,      dimension(:),   intent(in)             :: ldust
+         !! Logical array indicating which bodies are dust particles
       real(DP),     dimension(:,:), intent(inout)          :: acc    
          !! Acceleration vector array 
       ! Internals
