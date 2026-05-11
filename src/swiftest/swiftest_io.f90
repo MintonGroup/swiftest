@@ -2806,6 +2806,7 @@ contains
             end if
          end if
 
+         param%ldust_pl = (param%integrator == INT_SYMBA)
          param%lmtiny_pl = (param%integrator == INT_SYMBA) 
 
          if (param%lmtiny_pl .and. param%GMTINY < 0.0_DP) then
