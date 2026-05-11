@@ -3509,6 +3509,7 @@ contains
             call util_spill(keeps%tlag,    discards%tlag,    lspill_list, ldestructive)
             call util_spill(keeps%kin,     discards%kin,     lspill_list, ldestructive)
             call util_spill(keeps%lmtiny,  discards%lmtiny,  lspill_list, ldestructive)
+            call util_spill(keeps%ldust,   discards%ldust,   lspill_list, ldestructive)
             call util_spill(keeps%nplenc,  discards%nplenc,  lspill_list, ldestructive)
             call util_spill(keeps%ntpenc,  discards%ntpenc,  lspill_list, ldestructive)
 
