@@ -1749,6 +1749,7 @@ contains
 
          if (npl == 0) then
             if (param%lmtiny_pl) pl%nplm = 0
+            if (param%ldust_pl) pl%ndust = 0
             ! There are no more massive bodies. Reset the encounter lists and move on
             if (allocated(nbody_system%plpl_encounter)) call nbody_system%plpl_encounter%setup(0_I8B)
             if (allocated(nbody_system%pltp_encounter)) call nbody_system%pltp_encounter%setup(0_I8B)

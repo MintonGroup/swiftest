@@ -378,6 +378,8 @@ module swiftest
          !! flag indicating whether this body is a dust particle
       integer(I4B)                                         :: nplm = 0   
          !! number of bodies above the GMTINY limit
+      integer(I4B)                                         :: ndust = 0
+         !! number of dust particles
       integer(I8B)                                         :: nplplm     
          !! Number of body (all massive)-body (only those above GMTINY) comparisons in the flattened upper triangular matrix 
       integer(I4B),            dimension(:),   allocatable :: nplenc     
