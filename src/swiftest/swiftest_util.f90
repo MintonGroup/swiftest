@@ -2869,6 +2869,11 @@ contains
          self%lmtiny(:) = .false.
       end if
 
+      if (param%ldust_pl) then
+         allocate(self%ldust(n))
+         self%ldust(:) = .false.
+      end if
+
       if (param%lrotation) then
          allocate(self%rot(NDIM, n))
          allocate(self%Ip(NDIM, n))

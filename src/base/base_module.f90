@@ -112,6 +112,8 @@ module base
          !! Random seeds for fragmentation modeling 
       logical           :: lmtiny_pl            = .false.         
          !! Include semi-interacting massive bodies 
+      logical           :: ldust_pl            = .false.         
+         !! Include dust particle massive bodies
       character(STRMAX) :: collision_model      = "MERGE"         
          !! The Coll 
       character(STRMAX) :: encounter_save       = "NONE"          
