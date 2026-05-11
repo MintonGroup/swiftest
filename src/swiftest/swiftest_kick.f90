@@ -115,13 +115,15 @@ contains
       do k = 1_I8B, nplpl
          i = k_plpl(1, k)
          j = k_plpl(2, k)
-         rx = r(1, j) - r(1, i) 
-         ry = r(2, j) - r(2, i) 
-         rz = r(3, j) - r(3, i) 
-         rji2 = rx**2 + ry**2 + rz**2
-         rlim2 = (radius(i) + radius(j))**2
-         if (rji2 > rlim2) call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), Gmass(j), &
-                                 ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+         if (.not. ldust(i) .and. .not. ldust(j)) then
+            rx = r(1, j) - r(1, i) 
+            ry = r(2, j) - r(2, i) 
+            rz = r(3, j) - r(3, i) 
+            rji2 = rx**2 + ry**2 + rz**2
+            rlim2 = (radius(i) + radius(j))**2
+            if (rji2 > rlim2) call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), Gmass(j), &
+                                    ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+         end if
       end do
       !$omp end parallel do 
 
@@ -171,12 +173,14 @@ contains
       do k = 1_I8B, nplpl
          i = k_plpl(1, k)
          j = k_plpl(2, k)
-         rx = r(1, j) - r(1, i) 
-         ry = r(2, j) - r(2, i) 
-         rz = r(3, j) - r(3, i) 
-         rji2 = rx**2 + ry**2 + rz**2
-         call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), Gmass(j), &
-                                       ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+         if (.not. ldust(i) .and. .not. ldust(j)) then
+            rx = r(1, j) - r(1, i) 
+            ry = r(2, j) - r(2, i) 
+            rz = r(3, j) - r(3, i) 
+            rji2 = rx**2 + ry**2 + rz**2
+            call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), Gmass(j), &
+                                          ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+         end if
       end do
       !$omp end parallel do
      
