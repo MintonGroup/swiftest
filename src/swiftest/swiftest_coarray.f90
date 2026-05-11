@@ -111,6 +111,7 @@ contains
         call co_broadcast(param%min_GMfrag,1)
         call co_broadcast(param%nfrag_reduction,1)
         call co_broadcast(param%lmtiny_pl,1)
+        call co_broadcast(param%ldust_pl,1)
         call co_broadcast(param%collision_model,1)
         call co_broadcast(param%encounter_save,1)
         call co_broadcast(param%lenc_save_trajectory,1)
