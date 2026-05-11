@@ -1409,7 +1409,7 @@ module swiftest
    end interface
 
    interface swiftest_kick_getacch_int_all
-      module subroutine swiftest_kick_getacch_int_all_flat_rad_pl(npl, nplpl, k_plpl, r, Gmass, radius, acc)
+      module subroutine swiftest_kick_getacch_int_all_flat_rad_pl(npl, nplpl, k_plpl, r, Gmass, ldust, radius, acc)
          implicit none
          integer(I4B),                 intent(in)             :: npl    
             !! Number of massive bodies
@@ -1421,13 +1421,15 @@ module swiftest
             !! Position vector array
          real(DP),     dimension(:),   intent(in)             :: Gmass  
             !! Array of massive body G*mass
+         logical,      dimension(:),   intent(in)             :: ldust
+         !! Logical array indicating which bodies are dust particles
          real(DP),     dimension(:),   intent(in)             :: radius 
             !! Array of massive body radii
          real(DP),     dimension(:,:), intent(inout)          :: acc    
             !! Acceleration vector array 
       end subroutine swiftest_kick_getacch_int_all_flat_rad_pl
 
-      module subroutine swiftest_kick_getacch_int_all_flat_norad_pl(npl, nplpl, k_plpl, r, Gmass, acc)
+      module subroutine swiftest_kick_getacch_int_all_flat_norad_pl(npl, nplpl, k_plpl, r, Gmass, ldust, acc)
          implicit none
          integer(I4B),                 intent(in)             :: npl    
             !! Number of massive bodies
@@ -1439,11 +1441,13 @@ module swiftest
             !! Position vector array
          real(DP),     dimension(:),   intent(in)             :: Gmass  
             !! Array of massive body G*mass
+         logical,      dimension(:),   intent(in)             :: ldust
+         !! Logical array indicating which bodies are dust particles
          real(DP),     dimension(:,:), intent(inout)          :: acc    
             !! Acceleration vector array 
       end subroutine swiftest_kick_getacch_int_all_flat_norad_pl
 
-      module subroutine swiftest_kick_getacch_int_all_tri_rad_pl(npl, nplm, r, Gmass, radius, acc)
+      module subroutine swiftest_kick_getacch_int_all_tri_rad_pl(npl, nplm, r, Gmass, ldust, radius, acc)
          implicit none
          integer(I4B),                 intent(in)             :: npl    
             !! Total number of massive bodies
@@ -1453,13 +1457,15 @@ module swiftest
             !! Position vector array
          real(DP),     dimension(:),   intent(in)             :: Gmass  
             !! Array of massive body G*mass
+         logical,      dimension(:),   intent(in)             :: ldust
+         !! Logical array indicating which bodies are dust particles
          real(DP),     dimension(:),   intent(in)             :: radius 
             !! Array of massive body radii
          real(DP),     dimension(:,:), intent(inout)          :: acc    
             !! Acceleration vector array 
       end subroutine swiftest_kick_getacch_int_all_tri_rad_pl
 
-      module subroutine swiftest_kick_getacch_int_all_tri_norad_pl(npl, nplm, r, Gmass, acc)
+      module subroutine swiftest_kick_getacch_int_all_tri_norad_pl(npl, nplm, r, Gmass, ldust, acc)
          implicit none
          integer(I4B),                 intent(in)             :: npl    
             !! Total number of massive bodies
@@ -1469,6 +1475,8 @@ module swiftest
             !! Position vector array
          real(DP),     dimension(:),   intent(in)             :: Gmass  
             !! Array of massive body G*mass
+         logical,      dimension(:),   intent(in)             :: ldust
+         !! Logical array indicating which bodies are dust particles
          real(DP),     dimension(:,:), intent(inout)          :: acc    
             !! Acceleration vector array 
       end subroutine swiftest_kick_getacch_int_all_tri_norad_pl
