@@ -1506,8 +1506,8 @@ contains
                                   
          if (npl > 0) then
             pl%Gmass(:) = pack(rtemp, plmask)
-            if (param%ldust_pl) pl%ndust = count(pack(rtemp,plmask) <= param%GMDUST)
             if (param%lmtiny_pl) pl%nplm = count(pack(rtemp,plmask) > param%GMTINY)
+            if (param%ldust_pl) pl%ndust = count(pack(rtemp,plmask) <= param%GMDUST)
 
             status = nf90_get_var(nc%id, nc%rhill_varid, rtemp, start=[1, tslot], count=[idmax,1])
             if (status == NF90_NOERR) then
@@ -2637,6 +2637,8 @@ contains
                   read(param_value, *) param%collision_model
                case ("GMTINY")
                   read(param_value, *) param%GMTINY
+               case ("GMDUST")
+                  read(param_value, *) param%GMDUST
                case ("MIN_GMFRAG")
                   read(param_value, *) param%min_GMfrag
                case ("NFRAG_REDUCTION")
@@ -2814,6 +2816,11 @@ contains
             write(iomsg,*) "GMTINY invalid or not set: ", param%GMTINY
             iostat = -1
             return
+         end if
+
+         if (param%ldust_pl .and. param%GMDUST < 0.0_DP) then
+            write(iomsg,*) "GMDUST invalid or less than GMTINY. Setting GMDUST to GMTINY.", param%GMDUST
+            param%GMDUST = param%GMTINY
          end if
 
          if ((param%collision_model /= "MERGE")       .and. &
