@@ -1021,6 +1021,8 @@ class Simulation:
         integrator: Literal["symba", "rmvs", "whm", "helio"] | None = None,
         mtiny: float | None = None,
         gmtiny: float | None = None,
+        mdust: float | None = None,
+        gmdust: float | None = None,
         **kwargs: Any,
     ) -> dict[str, Any]:
         """
@@ -1039,6 +1041,12 @@ class Simulation:
         gmtiny : float, optional
             The minimum G*mass of fully interacting bodies. Bodies below this mass interact with the larger bodies,
             but not each other (SyMBA only). Only mtiny or gmtiny is accepted, not both.
+        mdust : float, optional
+            The mass threshold below which bodies are considered as dust particles (SyMBA only). Only mdust or gmdust is accepted, not both.
+            Parameter input file equivalent is None
+        gmdust : float, optional
+            The G*mass threshold below which bodies are considered as dust particles (SyMBA only). Only mdust or gmdust is accepted, not both.
+            Parameter input file equivalent is `GMDUST`
         **kwargs : Any
             A dictionary of additional keyword argument. This allows this method to be called by the more general
             set_parameter method, which takes all possible Simulation parameters as arguments, so these are ignored.
@@ -1078,6 +1086,20 @@ class Simulation:
             elif mtiny is not None:
                 self.param["GMTINY"] = self.GU * mtiny
                 update_list.append("gmtiny")
+        
+        if mdust is not None or gmdust is not None:
+            if verbose:
+                if self.integrator != "symba":
+                    warnings.warn("mdust and gmdust are only used by SyMBA.", stacklevel=2)
+                if mdust is not None and gmdust is not None:
+                    warnings.warn("Only set mdust or gmdust, not both. Using gmdust", stacklevel=2)
+
+            if gmdust is not None:
+                self.param["GMDUST"] = gmdust
+                update_list.append("gmdust")
+            elif mdust is not None:
+                self.param["GMDUST"] = self.GU * mdust
+                update_list.append("gmdust")
 
         integrator_dict = self.get_integrator(update_list, verbose=verbose)
 
