@@ -1275,7 +1275,7 @@ contains
    end subroutine swiftest_io_netcdf_open
 
 
-   module subroutine swiftest_io_netcdf_get_valid_masks(self, plmask, tpmask, plmmask, Gmtiny)
+   module subroutine swiftest_io_netcdf_get_valid_masks(self, plmask, tpmask, plmmask, Gmtiny, pldustmask, Gmdust)
       !! author: David A. Minton
       !!
       !! Given an open NetCDF, returns logical masks indicating which bodies in the body arrays are active pl and tp type at the 
@@ -1294,6 +1294,9 @@ contains
                                                                             !!   interacting massive bodies
       real(DP),                           intent(in),  optional  :: Gmtiny  !! The cutoff G*mass between semi-interacting and fully
                                                                             !!   interacting massive bodies
+      logical, dimension(:), allocatable, intent(out), optional  :: pldustmask !! Logical mask indicating which bodies are dust particles
+      real(DP),                           intent(in),  optional  :: Gmdust      !! The cutoff G*mass below which bodies are considered dust particles
+
       ! Internals
       real(DP), dimension(:), allocatable :: Gmass, a
       real(DP), dimension(:,:), allocatable :: rh
@@ -1356,6 +1359,13 @@ contains
             allocate(plmmask, source=plmask)
             where(plmask(:))
                plmmask = Gmass(:) > Gmtiny
+            endwhere
+         end if
+
+         if (present(pldustmask) .and. present(Gmdust)) then
+            allocate(pldustmask, source=plmask)
+            where(plmask(:))
+               pldustmask = Gmass(:) <= Gmdust
             endwhere
          end if
 
@@ -1666,13 +1676,13 @@ contains
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters
       ! Internals
       integer(I4B) :: status
-      logical, dimension(:), allocatable        :: plmask, tpmask, plmmask
+      logical, dimension(:), allocatable        :: plmask, tpmask, plmmask, pldustmask
 
       associate(tslot => nc%tslot)
          call netcdf_io_check( nf90_get_var(nc%id, nc%time_varid, self%t, start=[tslot]), &
                                   "netcdf_io_read_hdr_system nf90_getvar time_varid"  )
-         if (param%lmtiny_pl) then
-            call nc%get_valid_masks(plmask, tpmask, plmmask, param%GMTINY)
+         if (param%lmtiny_pl .or. param%ldust_pl) then
+            call nc%get_valid_masks(plmask, tpmask, plmmask, param%GMTINY, pldustmask, param%GMDUST)
          else
             call nc%get_valid_masks(plmask, tpmask)
          end if
@@ -1700,6 +1710,16 @@ contains
                                   "netcdf_io_read_hdr_system nf90_getvar nplm_varid"  )
             else
                self%pl%nplm = count(plmmask(:))
+            end if
+         end if
+
+         if (param%ldust_pl) then
+            status = nf90_inq_varid(nc%id, nc%ndust_varname, nc%ndust_varid)
+            if (status == NF90_NOERR) then
+               call netcdf_io_check( nf90_get_var(nc%id, nc%ndust_varid,  self%pl%ndust, start=[tslot]), &
+                                  "netcdf_io_read_hdr_system nf90_getvar ndust_varid"  )
+            else
+               self%pl%ndust = count(pldustmask(:))! count(plmask(:) .and. (self%pl%Gmass(:) <= param%GMDUST))  
             end if
          end if
 
