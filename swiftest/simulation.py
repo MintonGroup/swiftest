@@ -839,6 +839,12 @@ class Simulation:
             The minimum G*mass of fully interacting bodies. Bodies below this mass interact with the larger bodies,
             but not each other (SyMBA only). Only mtiny or gmtiny is accepted, not both.
             Parameter input file equivalent is `GMTINY`
+        mdust : float, optional
+            The mass threshold below which bodies are considered as dust particles (SyMBA only). Only mdust or gmdust is accepted, not both.
+            Parameter input file equivalent is None
+        gmdust : float, optional
+            The G*mass threshold below which bodies are considered as dust particles (SyMBA only). Only mdust or gmdust is accepted, not both.
+            Parameter input file equivalent is `GMDUST`
         close_encounter_check : bool, default True
             Check for close encounters between bodies. If set to True, then the radii of massive bodies must be included
             in initial conditions.
