@@ -1294,8 +1294,9 @@ contains
                                                                             !!   interacting massive bodies
       real(DP),                           intent(in),  optional  :: Gmtiny  !! The cutoff G*mass between semi-interacting and fully
                                                                             !!   interacting massive bodies
-      logical, dimension(:), allocatable, intent(out), optional  :: pldustmask !! Logical mask indicating which bodies are dust particles
-      real(DP),                           intent(in),  optional  :: Gmdust      !! The cutoff G*mass below which bodies are considered dust particles
+      logical, dimension(:), allocatable, intent(out), optional  :: pldustmask   !! Logical mask indicating which bodies are dust particles
+      real(DP),                           intent(in),  optional  :: Gmdust       !! The cutoff G*mass below which bodies are 
+                                                                                 !! considered dust particles
 
       ! Internals
       real(DP), dimension(:), allocatable :: Gmass, a

@@ -1050,7 +1050,7 @@ module swiftest
             !! Current run configuration parameters 
       end subroutine swiftest_io_netcdf_get_t0_values_system
 
-      module subroutine swiftest_io_netcdf_get_valid_masks(self, plmask, tpmask, plmmask, Gmtiny)
+      module subroutine swiftest_io_netcdf_get_valid_masks(self, plmask, tpmask, plmmask, Gmtiny, pldustmask, Gmdust)
          implicit none
          class(swiftest_netcdf_parameters),  intent(inout)          :: self    
             !! Parameters used to identify a particular NetCDF dataset
@@ -1062,6 +1062,9 @@ module swiftest
             !! Logical mask indicating which bodies are fully interacting massive bodies
          real(DP),                           intent(in),  optional  :: Gmtiny  
             !! The cutoff G*mass between semi-interacting and fully interacting massive bodies
+         logical, dimension(:), allocatable, intent(out), optional  :: pldustmask   !! Logical mask indicating which bodies are dust particles
+         real(DP),                           intent(in),  optional  :: Gmdust       !! The cutoff G*mass below which bodies are 
+                                                                                    !! considered dust particles
       end subroutine swiftest_io_netcdf_get_valid_masks
 
       module subroutine swiftest_io_netcdf_initialize_output(self, param)
