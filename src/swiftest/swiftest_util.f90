@@ -2629,7 +2629,7 @@ contains
                                 collision_id=0)
          do i = 1, self%pl%nbody
             if (pl%ldust(i)) then
-               call pl%info(i)%set_value(particle_type=DUST_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", &
+               call pl%info(i)%set_value(particle_type=PL_DUST_TYPE_NAME, status="ACTIVE", origin_type="Initial conditions", &
                                           origin_time=param%t0, origin_rh=self%pl%rh(:,i), origin_vh=self%pl%vh(:,i), &
                                           collision_id=0)
             else
