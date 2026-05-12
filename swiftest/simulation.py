@@ -4219,6 +4219,7 @@ class Simulation:
             "ntp",
             "npl",
             "nplm",
+            "ndust",
         ]
 
         vars = [k for k in ic_vars if k in ds]
