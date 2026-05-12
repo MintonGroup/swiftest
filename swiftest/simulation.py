@@ -1102,7 +1102,7 @@ class Simulation:
                 self.param["GMDUST"] = self.GU * mdust
                 update_list.append("gmdust")
         
-        # ensure that if gmtiny or mtiny are set and gmdust or mdust are not set (or vice versa), the other parameter is set accordingly
+        # ensure that if gmtiny or mtiny are set and gmdust or mdust are not set (or vice versa) with appropriate value caps, the other parameter is set accordingly
 
         if ("gmtiny" in update_list and "gmdust" not in update_list):
             self.param["GMDUST"] = self.param["GMTINY"]
@@ -1110,6 +1110,12 @@ class Simulation:
         elif ("gmdust" in update_list and "gmtiny" not in update_list):
             self.param["GMTINY"] = self.param["GMDUST"]
             update_list.append("gmtiny")
+        
+        if ("gmtiny" in update_list and "gmdust" in update_list):
+            if self.param["GMDUST"] > self.param["GMTINY"]:
+                warnings.warn("gmdust should be less than or equal to gmtiny. Setting gmdust=gmtiny", stacklevel=2)
+                self.param["GMDUST"] = self.param["GMTINY"]
+                update_list.append("gmdust")
 
         integrator_dict = self.get_integrator(update_list, verbose=verbose)
 
