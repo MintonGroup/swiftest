@@ -90,6 +90,10 @@ module netcdf_io
          !! name of the number of active fully interacting massive bodies variable (SyMBA)
       integer(I4B) :: nplm_varid 
          !! ID for the number of active fully interacting massive bodies variable (SyMBA)
+      character(NAMELEN) :: ndust_varname = "ndust"
+         !! name of the number of active dust particles variable (SyMBA)
+      integer(I4B) :: ndust_varid
+         !! ID for the number of active dust particles variable (SyMBA)
       character(NAMELEN) :: a_varname = "a"
          !! name of the semimajor axis variable 
       integer(I4B) :: a_varid 
