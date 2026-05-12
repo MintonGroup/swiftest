@@ -872,6 +872,8 @@ contains
                                "netcdf_io_initialize_output nf90_def_var ntp_varid"  )
          if (param%lmtiny_pl) call netcdf_io_check( nf90_def_var(nc%id, nc%nplm_varname, NF90_INT, nc%time_dimid, nc%nplm_varid), &
                                "netcdf_io_initialize_output nf90_def_var nplm_varid"  )
+         if (param%ldust_pl) call netcdf_io_check( nf90_def_var(nc%id, nc%ndust_varname, NF90_INT, nc%time_dimid, nc%ndust_varid), &
+                               "netcdf_io_initialize_output nf90_def_var ndust_varid"  )
          call netcdf_io_check( nf90_def_var(nc%id, nc%ptype_varname, NF90_CHAR, [nc%str_dimid, nc%name_dimid], nc%ptype_varid), &
                                "netcdf_io_initialize_output nf90_def_var ptype_varid"  )
 
@@ -1237,6 +1239,7 @@ contains
          status = nf90_inq_varid(nc%id, nc%cape_varname, nc%cape_varid)
 
          if (param%lmtiny_pl) status = nf90_inq_varid(nc%id, nc%nplm_varname, nc%nplm_varid)
+         if (param%ldust_pl) status = nf90_inq_varid(nc%id, nc%ndust_varname, nc%ndust_varid)
 
          if (param%lclose) then
             status = nf90_inq_varid(nc%id, nc%origin_type_varname, nc%origin_type_varid)
