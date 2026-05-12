@@ -230,12 +230,12 @@ contains
       character(*), parameter :: co_statusfmt = '("Image: ",I4, "; Time = ", ES12.5, "; fraction done = ", F6.3, ' // & 
                                              '"; Number of active pl, tp = ", I6, ", ", I6)'
       character(*), parameter :: co_symbastatfmt = '("Image: ",I4, "; Image: Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
-                                                '"; Number of active pl, plm, tp = ", I6, ", ", I6, ", ", I6)'
+                                                '"; Number of active pl, plm, dust, tp = ", I6, ", ", I6, ", ", I6, ", ", I6)'
 #endif
       character(*), parameter :: statusfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // & 
                                              '"; Number of active pl, tp = ", I6, ", ", I6)'
       character(*), parameter :: symbastatfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
-                                                '"; Number of active pl, plm, tp = ", I6, ", ", I6, ", ", I6)'
+                                                '"; Number of active pl, plm, dust, tp = ", I6, ", ", I6, ", ", I6, ", ", I6)'
       character(*), parameter :: pbarfmt = '("Time = ", ES12.5," of ",ES12.5)'
 
 ! The following will syncronize the images so that they report in order, and only write to file one at at ime
@@ -286,13 +286,13 @@ contains
          call self%compact_output(param,integration_timer)
       end if
 
-      if (param%lmtiny_pl) then
+      if (param%lmtiny_pl .or. param%ldust_pl) then
 #ifdef COARRAY
          if (param%lcoarray) then
-            write(param%display_unit, co_symbastatfmt) this_image(),self%t, tfrac, self%pl%nbody, self%pl%nplm, self%tp%nbody
+            write(param%display_unit, co_symbastatfmt) this_image(),self%t, tfrac, self%pl%nbody, self%pl%nplm, self%pl%ndust, self%tp%nbody
          else
 #endif
-            write(param%display_unit, symbastatfmt) self%t, tfrac, self%pl%nbody, self%pl%nplm, self%tp%nbody
+            write(param%display_unit, symbastatfmt) self%t, tfrac, self%pl%nbody, self%pl%nplm, self%pl%ndust, self%tp%nbody
 #ifdef COARRAY
          end if
 #endif
