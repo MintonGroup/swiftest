@@ -31,6 +31,7 @@ CB_TYPE_NAME = "Central Body"
 PL_TYPE_NAME = "Massive Body"
 TP_TYPE_NAME = "Test Particle"
 PL_TINY_TYPE_NAME = "Semi-Interacting Massive Body"
+PL_DUST_TYPE_NAME = "Dust Particle"
 
 # The default value is Prof. Minton's Brimley/Cocoon line crossing date (aka MBCL)
 _mbday = datetime.date.fromisoformat("1976-08-05")

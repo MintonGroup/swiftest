@@ -2211,7 +2211,7 @@ class Simulation:
         -------
         Updates the set of param dictionary values for the new unit system
         """
-        mass_keys = ["GMTINY", "MIN_GMFRAG"]
+        mass_keys = ["GMTINY", "GMDUST", "MIN_GMFRAG"]
         distance_keys = ["CHK_QMIN", "CHK_RMIN", "CHK_RMAX", "CHK_EJECT"]
         time_keys = ["T0", "TSTOP", "DT"]
 
@@ -3355,6 +3355,12 @@ class Simulation:
                 ds["particle_type"] = xr.where(
                     (ds["particle_type"] == PL_TYPE_NAME) & (Gmass < self.param["GMTINY"]),
                     PL_TINY_TYPE_NAME,
+                    ds["particle_type"],
+                )
+            elif self.integrator == "symba" and "GMDUST" in self.param and self.param["GMDUST"] is not None:
+                ds["particle_type"] = xr.where(
+                    (ds["particle_type"] == PL_TYPE_NAME) & (Gmass < self.param["GMDUST"]),
+                    PL_DUST_TYPE_NAME,
                     ds["particle_type"],
                 )
         else:
