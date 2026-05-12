@@ -1683,7 +1683,7 @@ contains
          call netcdf_io_check( nf90_get_var(nc%id, nc%time_varid, self%t, start=[tslot]), &
                                   "netcdf_io_read_hdr_system nf90_getvar time_varid"  )
          if (param%lmtiny_pl .or. param%ldust_pl) then
-            call nc%get_valid_masks(plmask, tpmask, plmmask, param%GMTINY, pldustmask, param%GMDUST)
+            call nc%get_valid_masks(plmask, tpmask, plmmask, param%GMTINY, pldustmask, param%GMDUST) ! running under the assumption that if lmtiny_pl or ldust_pl is true, then the other is as well
          else
             call nc%get_valid_masks(plmask, tpmask)
          end if
@@ -2263,6 +2263,8 @@ contains
 #endif
       if (param%lmtiny_pl) call netcdf_io_check( nf90_put_var(nc%id, nc%nplm_varid, self%pl%nplm, start=[tslot]), &
                                   "netcdf_io_write_hdr_system nf90_put_var nplm_varid"  )
+      if (param%ldust_pl) call netcdf_io_check( nf90_put_var(nc%id, nc%ndust_varid, self%pl%ndust, start=[tslot]), &
+                                  "netcdf_io_write_hdr_system nf90_put_var ndust_varid"  )
 
       if (param%lenergy) then
          call netcdf_io_check( nf90_put_var(nc%id, nc%KE_orb_varid, self%ke_orbit, start=[tslot]), &
