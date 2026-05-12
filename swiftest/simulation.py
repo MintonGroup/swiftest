@@ -3342,6 +3342,7 @@ class Simulation:
             PL_TINY_TYPE_NAME,
             PL_TYPE_NAME,
             TP_TYPE_NAME,
+            PL_DUST_TYPE_NAME,
         )
 
         if "Gmass" in ds:
@@ -3351,16 +3352,16 @@ class Simulation:
                 CB_TYPE_NAME,
                 xr.where(np.isnan(Gmass) | (Gmass == 0.0), TP_TYPE_NAME, PL_TYPE_NAME),
             )
-            if self.integrator == "symba" and "GMTINY" in self.param and self.param["GMTINY"] is not None:
-                ds["particle_type"] = xr.where(
-                    (ds["particle_type"] == PL_TYPE_NAME) & (Gmass < self.param["GMTINY"]),
-                    PL_TINY_TYPE_NAME,
-                    ds["particle_type"],
-                )
-            elif self.integrator == "symba" and "GMDUST" in self.param and self.param["GMDUST"] is not None:
+            if self.integrator == "symba" and "GMDUST" in self.param and self.param["GMDUST"] is not None:
                 ds["particle_type"] = xr.where(
                     (ds["particle_type"] == PL_TYPE_NAME) & (Gmass < self.param["GMDUST"]),
                     PL_DUST_TYPE_NAME,
+                    ds["particle_type"],
+                )
+            elif self.integrator == "symba" and "GMTINY" in self.param and self.param["GMTINY"] is not None:
+                ds["particle_type"] = xr.where(
+                    (ds["particle_type"] == PL_TYPE_NAME) & (Gmass < self.param["GMTINY"]),
+                    PL_TINY_TYPE_NAME,
                     ds["particle_type"],
                 )
         else:
@@ -3369,7 +3370,7 @@ class Simulation:
 
     def _get_nvals(self, ds: SwiftestDataset) -> SwiftestDataset:
         """
-        Computes the values of ntp, npl, and nplm.
+        Computes the values of ntp, npl, nplm, and ndust.
 
         Parameters
         ----------
@@ -3395,11 +3396,15 @@ class Simulation:
             ds["npl"] = Gmass.where((ds.id != 0) & (~np.isnan(Gmass) & (Gmass > 0.0))).count(dim=[count_dim])
             if self.integrator == "symba" and "GMTINY" in self.param and self.param["GMTINY"] is not None:
                 ds["nplm"] = Gmass.where((ds.id != 0) & (~np.isnan(Gmass) & (Gmass > self.param["GMTINY"]))).count(dim=[count_dim])
+            if self.integrator == "symba" and "GMDUST" in self.param and self.param["GMDUST"] is not None:
+                ds["ndust"] = Gmass.where((ds.id != 0) & (~np.isnan(Gmass) & (Gmass <= self.param["GMDUST"]))).count(dim=[count_dim])
         else:
             ds["ntp"] = ds.id.where(ds.id != 0).count(dim=[count_dim])
             ds["npl"] = xr.zeros_like(ds["ntp"])
             if self.integrator == "symba" and "GMTINY" in self.param and self.param["GMTINY"] is not None:
                 ds["nplm"] = xr.zeros_like(ds["ntp"])
+            if self.integrator == "symba" and "GMDUST" in self.param and self.param["GMDUST"] is not None:
+                ds["ndust"] = xr.zeros_like(ds["ntp"])
         return ds
 
     def _get_valid_body_list(
