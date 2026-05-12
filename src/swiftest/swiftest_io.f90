@@ -42,7 +42,7 @@ contains
          formatted_output = fmt("ILOOP",param%iloop) // fmt("T",self%t) // fmt("NPL",self%pl%nbody) // fmt("NTP",self%tp%nbody) 
          select type(pl => self%pl)
          class is (symba_pl)
-            formatted_output = formatted_output // fmt("NPLM",pl%nplm)
+            formatted_output = formatted_output // fmt("NPLM",pl%nplm) // fmt("NDUST",pl%ndust)
          end select
          if (param%lenergy) then
             formatted_output = formatted_output // fmt("LTOTERR",self%L_total_error) // fmt("ETOTERR",self%te_error) &
