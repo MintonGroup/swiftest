@@ -3065,6 +3065,7 @@ contains
          call io_param_writer_one("FIRSTKICK",param%lfirstkick, unit)
 
          if (param%GMTINY >= 0.0_DP) call io_param_writer_one("GMTINY",param%GMTINY, unit)
+         if (param%GMDUST >= 0.0_DP) call io_param_writer_one("GMDUST",param%GMDUST, unit)
          if (param%min_GMfrag >= 0.0_DP) call io_param_writer_one("MIN_GMFRAG",param%min_GMfrag, unit)
          call io_param_writer_one("COLLISION_MODEL",param%collision_model, unit)
          if (param%collision_model == "FRAGGLE" ) then
