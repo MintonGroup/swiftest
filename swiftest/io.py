@@ -43,6 +43,7 @@ newfeaturelist = (
     "TSTART",
     "DUMP_CADENCE",
     "ENCOUNTER_SAVE",
+    "GMDUST",
     "MIN_GMFRAG",
     "NFRAG_REDUCTION",
     "COLLISION_MODEL",
@@ -67,7 +68,7 @@ bool_param = [
 ]
 
 int_param = ["ISTEP_OUT", "DUMP_CADENCE"]
-float_param = ["T0", "TSTART", "TSTOP", "DT", "CHK_RMIN", "CHK_RMAX", "CHK_EJECT", "CHK_QMIN", "MIN_GMFRAG", "GMTINY"]
+float_param = ["T0", "TSTART", "TSTOP", "DT", "CHK_RMIN", "CHK_RMAX", "CHK_EJECT", "CHK_QMIN", "MIN_GMFRAG", "GMTINY", "GMDUST"]
 quad_param = ["DU2M", "MU2KG", "TU2S"]
 
 upper_str_param = ["OUT_TYPE", "OUT_FORM", "OUT_STAT", "IN_TYPE", "IN_FORM", "ENCOUNTER_SAVE", "CHK_QMIN_COORD"]
