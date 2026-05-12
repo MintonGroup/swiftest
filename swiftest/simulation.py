@@ -1136,7 +1136,7 @@ class Simulation:
         """
         verbose = kwargs.pop("verbose", self.verbose)
 
-        valid_arg = ["gmtiny"]
+        valid_arg = ["gmtiny", "gmdust"]
         valid_var = self._create_valid_var(valid_arg)
 
         valid_instance_vars = {
@@ -1176,6 +1176,10 @@ class Simulation:
                         if self.integrator == "symba":
                             print(f"{arg:<{self._getter_column_width}} {integrator_dict[key]} {self.DU_name}^3 / {self.TU_name}^2 ")
                             print(f"{'mtiny':<{self._getter_column_width}} {integrator_dict[key] / self.GU} {self.MU_name}")
+                    elif arg == "gmdust":
+                        if self.integrator == "symba":
+                            print(f"{arg:<{self._getter_column_width}} {integrator_dict[key]} {self.DU_name}^3 / {self.TU_name}^2 ")
+                            print(f"{'mdust':<{self._getter_column_width}} {integrator_dict[key] / self.GU} {self.MU_name}")
                     else:
                         print(f"{arg:<{self._getter_column_width}} {integrator_dict[key]}")
                 else:
