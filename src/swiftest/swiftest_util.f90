@@ -196,6 +196,7 @@ contains
          call util_append(self%tlag, source%tlag, lsource_mask=lsource_mask)
          call util_append(self%kin, source%kin, lsource_mask=lsource_mask)
          call util_append(self%lmtiny, source%lmtiny, lsource_mask=lsource_mask)
+         call util_append(self%ldust, source%ldust, lsource_mask=lsource_mask)
          call util_append(self%nplenc, source%nplenc, lsource_mask=lsource_mask)
          call util_append(self%ntpenc, source%ntpenc, lsource_mask=lsource_mask)
 
