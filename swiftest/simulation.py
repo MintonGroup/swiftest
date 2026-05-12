@@ -962,6 +962,7 @@ class Simulation:
             "tstep_out",
             "nstep_out",
             "mtiny",
+            "mdust",
             "minimum_fragment_mass",
             "ephemeris_date",
         ]
