@@ -3365,7 +3365,8 @@ class Simulation:
                     PL_DUST_TYPE_NAME,
                     ds["particle_type"],
                 )
-            elif self.integrator == "symba" and "GMTINY" in self.param and self.param["GMTINY"] is not None:
+                
+            if self.integrator == "symba" and "GMTINY" in self.param and self.param["GMTINY"] is not None:
                 ds["particle_type"] = xr.where(
                     (ds["particle_type"] == PL_TYPE_NAME) & (Gmass < self.param["GMTINY"]),
                     PL_TINY_TYPE_NAME,
