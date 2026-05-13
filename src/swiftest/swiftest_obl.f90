@@ -263,7 +263,7 @@ contains
       class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
       class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       ! Internals
-      real(DP), dimension(NDIM)                   :: aoblcb
+      real(DP), dimension(NDIM)                   :: aoblcb, cbrot_rad
       integer(I4B) :: i, ntp
 
       if (self%nbody == 0) return
@@ -273,7 +273,8 @@ contains
          if (allocated(cb%c_lm)) then
             call shgrav_acc(self, nbody_system)
          else
-            call swiftest_obl_acc(ntp, cb%Gmass, cb%j2rp2, cb%j4rp4, tp%rh, tp%lmask, tp%aobl, cb%rot)
+            cbrot_rad = cb%rot * DEG2RAD
+            call swiftest_obl_acc(ntp, cb%Gmass, cb%j2rp2, cb%j4rp4, tp%rh, tp%lmask, tp%aobl, cbrot_rad)
          end if
          if (nbody_system%lbeg) then
             aoblcb = cb%aoblbeg
