@@ -17,6 +17,31 @@ module shgrav
     public
 
     interface
+        module subroutine shgrav_g_acc_one(GMcb, r_0, phi_cb, rh, c_lm, g_sph, GMpl, aoblcb)
+        !! author: Kaustub P. Anand
+        !!
+        !! Calculate the acceleration terms for one pair of bodies given c_lm, theta, phi, r
+        implicit none
+        ! Arguments
+        real(DP), intent(in) :: GMcb 
+            !! GMass of the central body
+        real(DP), intent(in) :: r_0 
+            !! radius of the central body
+        real(DP), intent(in) :: phi_cb 
+            !! rotation phase angle of the central body
+        real(DP), intent(in), dimension(:) :: rh 
+            !! distance vector of body
+        real(DP), intent(in), dimension(:, :, :) :: c_lm 
+            !! Spherical Harmonic coefficients
+        real(DP), intent(out), dimension(NDIM) :: g_sph 
+            !! acceleration vector
+        real(DP), intent(in),  optional :: GMpl 
+            !! Mass of input body if it is not a test particle
+        real(DP), dimension(:), intent(inout), optional :: aoblcb
+            !! Barycentric acceleration of central body (only for massive input b
+
+        end subroutine shgrav_g_acc_one
+        
         module subroutine shgrav_acc(body, nbody_system)
             implicit none
             class(swiftest_body), intent(inout) :: body
