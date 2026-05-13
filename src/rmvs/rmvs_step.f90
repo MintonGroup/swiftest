@@ -167,7 +167,7 @@ contains
       !! author: David A. Minton
       !!
       !! Step ACTIVE test particles ahead in the outer encounter region, setting up and calling the inner region
-      !!    integration if necessar
+      !!    integration if necessary
       !! 
       !! Adapted from Hal Levison's Swift routines rmvs3_step_out.f and rmvs3_step_out2.f
       !! Adapted from David E. Kaufmann's Swifter routines rmvs_step_out.f90 and rmvs_step_out2.f90
