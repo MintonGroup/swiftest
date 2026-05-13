@@ -161,7 +161,7 @@ contains
         real(DP),dimension(self%nbody) :: n
         associate(seed => self, Ns => self%nbody)
             n(1:Ns) = sqrt((seed%mu(1:Ns)) / seed%a(1:Ns)**3)
-            seed%Ttide(1:Ns) = sign(1._DP,cb%rot(3) - n(1:Ns))                  &
+            seed%Ttide(1:Ns) = sign(1._DP,cb%rot(3) * DEG2RAD - n(1:Ns))                  &
                                 * 1.5_DP * seed%a(1:Ns) * n(1:Ns) * (cb%k2/cb%Q) &
                                 * (seed%mass(1:Ns) / cb%mass)                &
                                 * (cb%radius / seed%a(1:Ns))**5              &

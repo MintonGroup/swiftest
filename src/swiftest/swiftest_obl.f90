@@ -265,6 +265,7 @@ contains
       ! Internals
       real(DP), dimension(NDIM)                   :: aoblcb
       integer(I4B) :: i, ntp
+      real(DP),dimension(NDIM) :: cbrot_rad
 
       if (self%nbody == 0) return
 
@@ -273,7 +274,8 @@ contains
          if (allocated(cb%c_lm)) then
             call shgrav_acc(self, nbody_system)
          else
-            call swiftest_obl_acc(ntp, cb%Gmass, cb%j2rp2, cb%j4rp4, tp%rh, tp%lmask, tp%aobl, cb%rot)
+            cbrot_rad = cb%rot * DEG2RAD
+            call swiftest_obl_acc(ntp, cb%Gmass, cb%j2rp2, cb%j4rp4, tp%rh, tp%lmask, tp%aobl, cbrot_rad)
          end if
          if (nbody_system%lbeg) then
             aoblcb = cb%aoblbeg
