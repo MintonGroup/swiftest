@@ -16,7 +16,7 @@ use SHTOOLS
 
 contains
 
-    subroutine shgrav_g_acc_one(GMcb, r_0, phi_cb, rh, c_lm, g_sph, GMpl, aoblcb)
+    module subroutine shgrav_g_acc_one(GMcb, r_0, phi_cb, rh, c_lm, g_sph, GMpl, aoblcb)
         !! author: Kaustub P. Anand
         !!
         !! Calculate the acceleration terms for one pair of bodies given c_lm, theta, phi, r
