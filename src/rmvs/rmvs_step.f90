@@ -189,7 +189,7 @@ contains
       real(DP),                   intent(in)    :: dt     
          !! Current stepsiz
       ! Internals
-      integer(I4B)                              :: outer_index, j
+      integer(I4B)                              :: outer_index, j, i
       real(DP)                                  :: dto, outer_time
       logical                                   :: lencounter, lfirsttp
 
