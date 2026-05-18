@@ -42,14 +42,14 @@ sim.add_ring(
         "type": "powerlaw",
         "sigma0": sigma0,
         "alpha": alpha,
-        "nbins": 1024,
+        "nbins": 512,
         "r_outer": 1.2*frl,
     },
 )
 sim.ring["sigma"] = xr.where(sim.ring.r < frl, sim.ring.sigma, xr.zeros_like(sim.ring.sigma))
 dt = 1e3
-tstop = 1000*dt
+tstop = 10e9
 
 
-sim.set_parameter(tstop=tstop, dt=dt, tstep_out=dt, dump_cadence=1)
+sim.set_parameter(tstop=tstop, dt=dt, tstep_out=10e6, dump_cadence=10)
 sim.run()
