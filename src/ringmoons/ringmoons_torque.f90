@@ -152,7 +152,14 @@ contains
     module subroutine ringmoons_torque_tidal_seed(self,cb,param)
         !! author: David A. Minton
         !!
-        !! Calculates the tidal torque acting on the seed by the central body
+        !! Calculates the tidal torque acting on the seed by the central body. 
+        !! 
+        !! Constant Q tidal model. See, for example, Cheng et al. (2014) eq. (16) for zero obliquity and eccentricity.
+        !!
+        !! References:
+        !! Cheng, W.H., Lee, M.H., Peale, S.J., 2014. Complete tidal evolution of Pluto-Charon. Icarus 233, 242–258. 
+        !!      https://doi.org/10.1016/j.icarus.2014.01.046
+
         implicit none
         class(ringmoons_seed),      intent(inout) :: self
         class(swiftest_cb),         intent(in)    :: cb
