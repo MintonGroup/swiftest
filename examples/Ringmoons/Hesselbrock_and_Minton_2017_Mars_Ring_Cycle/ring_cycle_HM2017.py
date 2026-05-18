@@ -25,7 +25,7 @@ sim.add_ring(
         "type": "powerlaw",
         "sigma0": 1.05e7 * sim.KG2MU / sim.M2DU**2,
         "alpha": -8.0,
-        "nbins": 1024,
+        "nbins": 256,
         "r_outer": 8
     },
 )
@@ -33,9 +33,9 @@ sim.add_ring(
 # Remove ring material in the region beyond Deimos. We still have bins there in case material spreads out that far.
 sim.ring["sigma"] = xr.where(sim.ring.r < 6.4*r_cb, sim.ring.sigma, xr.zeros_like(sim.ring.sigma))
 
-tstep_out = 1000.0
+tstep_out = 10000.0
 dt = 100.0
-tstop = 1e7
+tstop = 3e8
 
 sim.set_parameter(tstop=tstop, dt=dt, tstep_out=tstep_out, dump_cadence=1)
 sim.run()
