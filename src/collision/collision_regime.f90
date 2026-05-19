@@ -375,7 +375,7 @@ contains
                theta = sign(1.0_DP, theta) 
             end if
 
-            theta = acos(theta) - PIBY2 
+            theta = abs(acos(theta) - PIBY2)
 
             return
          end function calc_theta
