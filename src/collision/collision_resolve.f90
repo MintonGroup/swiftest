@@ -516,8 +516,8 @@ contains
                plnew%info(1:nfrag)%particle_type = PL_TYPE_NAME 
             end where
 
-            plnew%lmdust(1:nfrag) = plnew%Gmass(1:nfrag) < param%GMDUST
-            where(plnew%lmdust(1:nfrag))
+            plnew%ldust(1:nfrag) = plnew%Gmass(1:nfrag) < param%GMDUST
+            where(plnew%ldust(1:nfrag))
                plnew%info(1:nfrag)%particle_type = PL_DUST_TYPE_NAME 
             end where
 
