@@ -200,7 +200,7 @@ contains
                                 / (16.0_DP * PI * (ring%a(1:nbins))**2 * ring%sigma(1:nbins))
 
         associate(ring => self, nbins => self%nbins)
-            Torque(:) = -1.0_DP * a_ys_mag(1:nbins) * ring%a(1:nbins) / PI * sin(self%delta / 2.0_DP) * self%Y_21
+            Torque(:) = -1.0_DP * a_ys_mag(1:nbins) * ring%a(1:nbins) * sin(self%delta / 2.0_DP) * self%Y_21 / PI 
         end associate
 
     end subroutine ringmoons_torque_yarkovsky_schach_ring
