@@ -197,10 +197,10 @@ contains
         real(DP),dimension(0:self%nbins+1)     :: iTorque
 
         a_ys_mag(1:nbins) = self%rot_k * (1 - self%albedo) * param%L_SUN_sys * sqrt(param%inv_c2) &
-                                / (16.0_DP * PI * (ring%a(1:nbins))**2 * ring%sigma(1:nbins))
+                                / (16.0_DP * PI * (ring%r(1:nbins))**2 * ring%sigma(1:nbins))
 
         associate(ring => self, nbins => self%nbins)
-            Torque(:) = -1.0_DP * a_ys_mag(1:nbins) * ring%a(1:nbins) * sin(self%delta / 2.0_DP) * self%Y_21 / PI 
+            Torque(:) = -1.0_DP * a_ys_mag(1:nbins) * ring%r(1:nbins) * sin(self%delta / 2.0_DP) * self%Y_21 / PI 
         end associate
 
     end subroutine ringmoons_torque_yarkovsky_schach_ring
