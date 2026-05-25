@@ -186,6 +186,12 @@ contains
         !! References:
         !! Ferich, et al, 2022 (ADD doi)
         !! Veras, et al 2015 (ADD doi)
+        implicit none
+        ! Arguments
+        class(ringmoons_ring),      intent(inout) :: self
+        class(swiftest_cb),         intent(in)    :: cb 
+        class(ringmoons_seed),      intent(inout) :: seed
+        class(swiftest_parameters), intent(in)    :: param
 
     end subroutine ringmoons_torque_yarkovsky_schach_ring
 
