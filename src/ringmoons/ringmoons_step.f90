@@ -178,6 +178,9 @@ contains
         stepfail = .false.
 
         associate(ring => self, N => self%nbins)
+            ! calculate yarkovsky-schach torque if flag is set
+            if (param%lyarkovsky_schach) then ring%yark_schach_torque(cb, param, ring%Torque(:))
+
             S(0) = 0.0_DP
             S(1:N) = ring%sigma(1:N) * ring%X(1:N)
             S(N+1) = 0.0_DP

@@ -178,7 +178,7 @@ contains
         return
         end subroutine ringmoons_torque_tidal_seed
 
-    module subroutine ringmoons_torque_yarkovsky_schach_ring(self, cb, seed, param, Torque)
+    module subroutine ringmoons_torque_yarkovsky_schach_ring(self, cb, param, Torque)
         !! author: Kaustub P. Anand
         !! 
         !! Calculates the Yarkovsky-Schach torque acting on the ring bin. Torque is averaged over 1 orbit around the planet for a given angular tilt.
@@ -190,7 +190,6 @@ contains
         ! Arguments
         class(ringmoons_ring),      intent(inout) :: self
         class(swiftest_cb),         intent(in)    :: cb 
-        class(ringmoons_seed),      intent(inout) :: seed
         class(swiftest_parameters), intent(in)    :: param
         real(DP),dimension(0:self%nbins+1), intent(out)        :: Torque
         ! Internals
