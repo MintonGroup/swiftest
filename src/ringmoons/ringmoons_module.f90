@@ -494,13 +494,14 @@ module ringmoons
             real(DP) :: kappa
         end function ringmoons_transition_function
 
-        module subroutine ringmoons_torque_yarkovsky_schach_ring(self,cb,seed,param)
+        module subroutine ringmoons_torque_yarkovsky_schach_ring(self,cb,seed,param, Torque)
             implicit none
             ! Arguments
             class(ringmoons_ring),      intent(inout) :: self
             class(swiftest_cb),         intent(in)    :: cb 
             class(ringmoons_seed),      intent(inout) :: seed
             class(swiftest_parameters), intent(in)    :: param
+            real(DP),dimension(0:self%nbins+1), intent(out)        :: Torque
         end subroutine ringmoons_torque_yarkovsky_schach
 
 
