@@ -983,7 +983,7 @@ class Simulation:
         if "ephemeris_date" in kwargs:
             self.ephemeris_date = kwargs["ephemeris_date"]
         
-        self.save(verbose=self.verbose)
+        # self.save(verbose=self.verbose)
         
         return param_dict
 
