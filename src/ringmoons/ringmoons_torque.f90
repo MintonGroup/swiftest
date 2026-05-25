@@ -178,5 +178,15 @@ contains
         return
         end subroutine ringmoons_torque_tidal_seed
 
+    module subroutine ringmoons_torque_yarkovsky_schach_ring(self,cb,seed,param)
+        !! author: Kaustub P. Anand
+        !! 
+        !! Calculates the Yarkovsky-Schach torque acting on the ring bin. Torque is averaged over 1 orbit around the planet for a given angular tilt.
+        !!
+        !! References:
+        !! Ferich, et al, 2022 (ADD doi)
+        !! Veras, et al 2015 (ADD doi)
+
+    end subroutine ringmoons_torque_yarkovsky_schach_ring
 
 end submodule s_ringmoons_torque
