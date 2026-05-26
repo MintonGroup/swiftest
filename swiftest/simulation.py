@@ -3301,7 +3301,7 @@ class Simulation:
                 raise ValueError("Yarkovsky effect modeling requires planetary semi-major axis value for the ring")
             if obliquity is None:
                 raise ValueError("Yarkovsky effect modeling requires planet obliquity value for the ring")
-            if Y_21 is None: # CHANGE so that Y_21 is calculated from other inputs.
+            if Y_21 is None:
                 Y_21 = self.calc_Yarkovsky_direction_matrix_Y_21(nbins, r_p, albedo, emissivity, gamma)
             if delta is None:
                 delta = self.calc_planet_shadow_width(r_p, np.deg2rad(obliquity))
