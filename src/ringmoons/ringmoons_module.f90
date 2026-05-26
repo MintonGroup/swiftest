@@ -501,7 +501,7 @@ module ringmoons
             class(swiftest_cb),         intent(in)    :: cb 
             class(swiftest_parameters), intent(in)    :: param
             real(DP),dimension(0:self%nbins+1), intent(out)        :: Torque
-        end subroutine ringmoons_torque_yarkovsky_schach
+        end subroutine ringmoons_torque_yarkovsky_schach_ring
 
 
     end interface
