@@ -2667,6 +2667,9 @@ contains
                case("YARKOVSKY")
                   call swiftest_io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%lyarkovsky = .true.
+               case("YARKOVSKY_SCHACH")
+                  call swiftest_io_toupper(param_value)
+                  if (param_value == "YES" .or. param_value == 'T') param%lyarkovsky_schach = .true.
                case ("INTERACTION_LOOPS")
                   call swiftest_io_toupper(param_value)
                   param%interaction_loops = param_value
