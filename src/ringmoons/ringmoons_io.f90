@@ -118,6 +118,20 @@ contains
                                  "ringmoons_io_netcdf_open add_new_var toomre_varid")
             call nc%add_new_var(nc%vrel_p_varname, nc%out_type, [nc%ringbin_dimid, nc%time_dimid], nc%vrel_p_varid, &
                                  "ringmoons_io_netcdf_open add_new_var vrel_p_varid")
+
+            ! Add in the variables required by the yarkovsky-schach
+            if (param%lyarkovsky_schach) then
+                call netcdf_io_check( nf90_inq_varid(nc%id, nc%albedo_varname, nc%albedo_varid), &
+                                    "swiftest_io_netcdf_open nf90_inq_varid albedo_varid" )
+                call netcdf_io_check( nf90_inq_varid(nc%id, nc%emissivity_varname, nc%emissivity_varid), &
+                                    "swiftest_io_netcdf_open nf90_inq_varid emissivity_varid" )
+                call netcdf_io_check( nf90_inq_varid(nc%id, nc%rot_k_varname, nc%rot_k_varid), &
+                                    "swiftest_io_netcdf_open nf90_inq_varid rot_k_varid" )
+                call netcdf_io_check( nf90_inq_varid(nc%id, nc%gamma_varname, nc%gamma_varid), &
+                                    "swiftest_io_netcdf_open nf90_inq_varid gamma_varid" )
+                call netcdf_io_check( nf90_inq_varid(nc%id, nc%Y21_varname, nc%Y21_varid), &
+                                    "swiftest_io_netcdf_open nf90_inq_varid Y21_varid" )
+            end if
         end associate
         return
     end subroutine ringmoons_io_netcdf_open
