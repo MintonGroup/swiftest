@@ -69,22 +69,23 @@ module ringmoons
             !! name of the ring particle relative velocity per bin variable
         integer(I4B) :: vrel_p_varid
             !! ID for the ring particle relative velocity per bin variable
-        character(NAMELEN) :: albedo_varname = "albedo"
-            !! name of the albedo variable
-        integer(I4B) :: albedo_varid 
-            !! ID for the albedo variable
-        character(NAMELEN) :: emissivity_varname = "emissivity"
-            !! name of the emissivity variable
-        integer(I4B) :: emissivity_varid 
-            !! ID for the emissivity variable
-        character(NAMELEN) :: rot_k_varname = "rot_k"
-            !! name of the rotational constant k for yarkovsky effects
-        integer(I4B) :: rot_k_varid
-            !! ID for the rotational constant k for yarkovsky effects
-        character(NAMELEN) :: gamma_varname = "gamma"
-            !! name of the thermal inertia parameter for yarkovsky effects
-        integer(I4B) :: gamma_varid
-            !! ID for the thermal inertia parameter for yarkovsky effects
+        !! already defined in netcdf_io_module
+        ! character(NAMELEN) :: albedo_varname = "albedo"
+        !     !! name of the albedo variable
+        ! integer(I4B) :: albedo_varid 
+        !     !! ID for the albedo variable
+        ! character(NAMELEN) :: emissivity_varname = "emissivity"
+        !     !! name of the emissivity variable
+        ! integer(I4B) :: emissivity_varid 
+        !     !! ID for the emissivity variable
+        ! character(NAMELEN) :: rot_k_varname = "rot_k"
+        !     !! name of the rotational constant k for yarkovsky effects
+        ! integer(I4B) :: rot_k_varid
+        !     !! ID for the rotational constant k for yarkovsky effects
+        ! character(NAMELEN) :: gamma_varname = "gamma"
+        !     !! name of the thermal inertia parameter for yarkovsky effects
+        ! integer(I4B) :: gamma_varid
+        !     !! ID for the thermal inertia parameter for yarkovsky effects
         character(NAMELEN) :: Y_21_varname = "Y_21"
             !! name of the Y_21 yarkovsky directional variable
         integer(I4B) :: Y_21_varid
