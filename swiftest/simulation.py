@@ -3297,6 +3297,8 @@ class Simulation:
                     "rot_k"         : ([], rot_k),
                     "gamma"         : ([], gamma),
                     "Y21"           : ([], Y21),
+                    # "a_pl"          : ([], a_pl),
+                    # "obliquity"     : ([], obliquity),
                 },
                 coords={
                     "time": time,
@@ -3310,6 +3312,36 @@ class Simulation:
             print(f"Added a 1D eulerian ring with {nbins} bins to the simulation.")
 
         return
+
+    def calc_Yarkovsky_direction_matrix():
+        # Calculates the thermal lag angles and Yarkovsky direction matrix 
+        # for Yarkovsky and Yarkovsky-Schach calculations.
+        # Based on swiftest_radiation.f90
+        #
+        # References:
+        # Based on Ferich, et al, 2022 (https://iopscience.iop.org/article/10.3847/1538-4365/ac8d60) 
+        # Veras, et al, 2015 (https://academic.oup.com/mnras/article/451/3/2814/1180328)
+        
+        Y_dir = np.zeroes((3, 3))
+        lag_angle_constants = 0.5 * (SB_SIGMA / np.pi**5)**(0.25) * (L_SUN)**(0.75)
+
+        # calculate thermal lag angles from eqn. 19 and 20 in Veras, et. al. (2022)
+        # assumming r_h = a_planet
+        # orbital/seasonal lag angle
+        zeta = np.arctan2(1.0, 1.0 + lag_angle_constants * emissivity**(0.25) * T_orbit**(0.5) / gamma * (1 - albedo)**(0.75) / rmag**(1.5))
+        
+        # For simplicity we will assume that ring particles have no spin and are in prograde motion around the planet (h = h_z)
+        Y_dir[0, :] = np.array([np.cos(zeta), np.sin(zeta), 0]) # row 1
+        Y_dir[1, :] = np.array([-np.sin(zeta), np.cos(zeta), 0]) # row 2
+        Y_dir[2, :] = np.array([0, 0, 1]) # row 3
+
+        # The section below is to be worked on. It is to allow general cases of ring particle spin (s) and angular momentum (h) vectors
+        # # diurnal lag angle
+        # phi = np.arctan2(1.0, 1.0 + lag_angle_constants * emissivity**(0.25) * T_rot**(0.5) / gamma * (1 - albedo)**(0.75) / rmag**(1.5))
+
+        
+
+        return Y_dir
 
     def _vec2xr(
         self,
