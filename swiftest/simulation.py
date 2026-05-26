@@ -3313,7 +3313,7 @@ class Simulation:
 
         return
 
-    def calc_Yarkovsky_direction_matrix_Y21(nbins, r_p, albedo, emissivity, gamma, mu):
+    def calc_Yarkovsky_direction_matrix_Y21(nbins, rmag, albedo, emissivity, gamma, mu):
         # Calculates the thermal lag angles and Yarkovsky direction matrix 
         # for Yarkovsky and Yarkovsky-Schach calculations and returns Y_21
         # Based on swiftest_radiation.f90
@@ -3326,9 +3326,8 @@ class Simulation:
         lag_angle_constants = 0.5 * (constants.SB_SIGMA / np.pi**5)**(0.25) * (constants.L_SUN)**(0.75) * np.sqrt(2.0 * np.pi)
 
         # calculate thermal lag angles from eqn. 19 and 20 in Veras, et. al. (2022)
-        # assumming r_h = a_planet
         # orbital/seasonal lag angle
-        zeta = np.arctan2(1.0, 1.0 + lag_angle_constants * emissivity**(0.25) / gamma * (1 - albedo)**(0.75) / r_p**(0.75) / mu**(0.25))
+        zeta = np.arctan2(1.0, 1.0 + lag_angle_constants * emissivity**(0.25) / gamma * (1 - albedo)**(0.75) / rmag**(0.75) / mu**(0.25)) # rmag = a_pl or r_ring?
         
         # For simplicity we will assume that ring particles have no spin and are in prograde motion around the planet (h = h_z)
         # In this case Y_21 = -sin(zeta)

@@ -198,7 +198,7 @@ contains
 
         associate(ring => self, nbins => self%nbins)
             a_ys_mag(1:nbins) = ring%rot_k * (1 - ring%albedo) * param%L_SUN_sys * sqrt(param%inv_c2) &
-                                    / (16.0_DP * PI * (ring%r(1:nbins))**2 * ring%sigma(1:nbins))
+                                    / (16.0_DP * PI * (ring%a_pl)**2 * ring%sigma(1:nbins))
 
             YS_TorqueTorque(:) = -1.0_DP * a_ys_mag(1:nbins) * ring%r(1:nbins) * sin(ring%delta / 2.0_DP) * ring%Y_21 / PI 
             Torque(:) = Torque(:) + YS_Torque(:)
