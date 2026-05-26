@@ -3119,7 +3119,10 @@ class Simulation:
         emissivity: float | None = None,
         rot_k: float | None = None,
         gamma: float | None = None,
-        Y_21: float | None = None,
+        obliquity: float | None = None,
+        a_pl: float | None = None,
+        Y_21: float | list[float] | npt.NDArray[np.float_] | None = None,
+        delta: float | list[float] | npt.NDArray[np.float_] | None = None,
         **kwargs,
     ) -> None:
         """
@@ -3144,8 +3147,14 @@ class Simulation:
             Rotational constant K values of ring particles (for Yarkovsky-Schach effect)
         gamma : float, optional
             Thermal inertia values of ring particles (for Yarkovsky-Schach effect)
-        Y21: float, optional
-            2nd row-1st column element of the Yarkovsky directional matrix (for Yarkovsky-Schach effect. Can potentially be calculated later)
+        obliquity: float, optional
+            Obliquity of the host planet
+        a_pl: float, optional
+            semi-major axis of the planet from the Sun
+        Y_21: list of floats, optional
+            2nd row-1st column element of the Yarkovsky directional matrix (for Yarkovsky-Schach effect)
+        delta: list of floats, optional
+            Planetary shadow width at various distances
         **kwargs: Any
             Additional keyword arguments. These are ignored.
         """
@@ -3275,7 +3284,10 @@ class Simulation:
             emissivity, n = input_to_array(emissivity, "f", 1)
             rot_k, n = input_to_array(rot_k, "f", 1)
             gamma, n = input_to_array(gamma, "f", 1)
-            Y21, nbins = input_to_array(Y21, "f", nbins)
+            a_pl, n = input_to_array(a_pl, "f", 1)
+            obliquity, n = input_to_array(obliquity, "f", 1)
+            delta, nbins = input_to_array(None, "f", nbins)
+            Y_21, nbins = input_to_array(None, "f", nbins)
 
             if albedo is None:
                 raise ValueError("Yarkovsky effect modeling requires albedo value for the ring")
@@ -3289,8 +3301,8 @@ class Simulation:
                 raise ValueError("Yarkovsky effect modeling requires planetary semi-major axis value for the ring")
             if obliquity is None:
                 raise ValueError("Yarkovsky effect modeling requires planet obliquity value for the ring")
-            if Y21 is None: # CHANGE so that Y_21 is calculated from other inputs.
-                Y21 = self.calc_Yarkovsky_direction_matrix_Y21(nbins, r_p, albedo, emissivity, gamma)
+            if Y_21 is None: # CHANGE so that Y_21 is calculated from other inputs.
+                Y_21 = self.calc_Yarkovsky_direction_matrix_Y_21(nbins, r_p, albedo, emissivity, gamma)
             if delta is None:
                 delta = self.calc_planet_shadow_width(r_p, np.deg2rad(obliquity))
 
@@ -3303,7 +3315,7 @@ class Simulation:
                     "emissivity"    : ([], emissivity),
                     "rot_k"         : ([], rot_k),
                     "gamma"         : ([], gamma),
-                    "Y21"           : (["ringbin"], Y21),
+                    "Y_21"           : (["ringbin"], Y_21),
                     "a_pl"          : ([], a_pl),
                     "obliquity"     : ([], obliquity),
                     "delta"         : (["ringbin"], delta)
@@ -3321,7 +3333,7 @@ class Simulation:
 
         return
 
-    def calc_Yarkovsky_direction_matrix_Y21(self, nbins, rmag, albedo, emissivity, gamma):
+    def calc_Yarkovsky_direction_matrix_Y_21(self, nbins, rmag, albedo, emissivity, gamma):
         # Calculates the thermal lag angles and Yarkovsky direction matrix 
         # for Yarkovsky and Yarkovsky-Schach calculations and returns Y_21
         # Based on swiftest_radiation.f90
