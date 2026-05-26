@@ -3275,7 +3275,7 @@ class Simulation:
             emissivity, n = input_to_array(emissivity, "f", 1)
             rot_k, n = input_to_array(rot_k, "f", 1)
             gamma, n = input_to_array(gamma, "f", 1)
-            Y21, n = input_to_array(Y21, "f", 1)
+            Y21, nbins = input_to_array(Y21, "f", nbins)
 
             if albedo is None:
                 raise ValueError("Yarkovsky effect modeling requires albedo value for the ring")
@@ -3286,7 +3286,7 @@ class Simulation:
             if gamma is None:
                 raise ValueError("Yarkovsky effect modeling requires thermal inertia (gamma) value for the ring")
             if Y21 is None: # CHANGE so that Y_21 is calculated from other inputs.
-                raise ValueError("Yarkovsky effect modeling requires Y21 value for the ring")
+                Y21 = self.calc_Yarkovsky_direction_matrix_Y21(nbins, r_p * self.param['DU2M'], albedo, emissivity, gamma, self.data.isel(name = 0, time = 0).Gmass.values)
         
             # combine the new variables into dataset
             # we don't use vec2xr to prevent any degeneracy issues with similarly named variables in the N-body Swiftest dataset
@@ -3296,7 +3296,7 @@ class Simulation:
                     "emissivity"    : ([], emissivity),
                     "rot_k"         : ([], rot_k),
                     "gamma"         : ([], gamma),
-                    "Y21"           : ([], Y21),
+                    "Y21"           : (["ringbin"], Y21),
                     # "a_pl"          : ([], a_pl),
                     # "obliquity"     : ([], obliquity),
                 },
@@ -3313,35 +3313,34 @@ class Simulation:
 
         return
 
-    def calc_Yarkovsky_direction_matrix():
+    def calc_Yarkovsky_direction_matrix_Y21(nbins, r_p, albedo, emissivity, gamma, mu):
         # Calculates the thermal lag angles and Yarkovsky direction matrix 
-        # for Yarkovsky and Yarkovsky-Schach calculations.
+        # for Yarkovsky and Yarkovsky-Schach calculations and returns Y_21
         # Based on swiftest_radiation.f90
         #
         # References:
         # Based on Ferich, et al, 2022 (https://iopscience.iop.org/article/10.3847/1538-4365/ac8d60) 
         # Veras, et al, 2015 (https://academic.oup.com/mnras/article/451/3/2814/1180328)
         
-        Y_dir = np.zeroes((3, 3))
-        lag_angle_constants = 0.5 * (SB_SIGMA / np.pi**5)**(0.25) * (L_SUN)**(0.75)
+        Y_dir = np.zeroes((nbins, 3, 3))
+        lag_angle_constants = 0.5 * (constants.SB_SIGMA / np.pi**5)**(0.25) * (constants.L_SUN)**(0.75) * np.sqrt(2.0 * np.pi)
 
         # calculate thermal lag angles from eqn. 19 and 20 in Veras, et. al. (2022)
         # assumming r_h = a_planet
         # orbital/seasonal lag angle
-        zeta = np.arctan2(1.0, 1.0 + lag_angle_constants * emissivity**(0.25) * T_orbit**(0.5) / gamma * (1 - albedo)**(0.75) / rmag**(1.5))
+        zeta = np.arctan2(1.0, 1.0 + lag_angle_constants * emissivity**(0.25) / gamma * (1 - albedo)**(0.75) / r_p**(0.75) / mu**(0.25))
         
         # For simplicity we will assume that ring particles have no spin and are in prograde motion around the planet (h = h_z)
-        Y_dir[0, :] = np.array([np.cos(zeta), np.sin(zeta), 0]) # row 1
-        Y_dir[1, :] = np.array([-np.sin(zeta), np.cos(zeta), 0]) # row 2
-        Y_dir[2, :] = np.array([0, 0, 1]) # row 3
+        # In this case Y_21 = -sin(zeta)
+        Y_21 = -np.sin(zeta)
 
-        # The section below is to be worked on. It is to allow general cases of ring particle spin (s) and angular momentum (h) vectors
+        # The section below is to be worked on. 
+        # Here we allow general cases of ring particle spin (s) and angular momentum (h) vectors
         # # diurnal lag angle
         # phi = np.arctan2(1.0, 1.0 + lag_angle_constants * emissivity**(0.25) * T_rot**(0.5) / gamma * (1 - albedo)**(0.75) / rmag**(1.5))
 
-        
 
-        return Y_dir
+        return Y_21
 
     def _vec2xr(
         self,
