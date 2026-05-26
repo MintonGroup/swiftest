@@ -3374,7 +3374,7 @@ class Simulation:
         tan_delta_over_2_x = np.sqrt(r_p**2 - radius**2) # denominator
 
         delta_over_2 = np.arctan2(tan_delta_over_2_y, tan_delta_over_2_x) # should not happend but CHECK if it ever returns a negative value
-        return (2.0 * delta_over_2) 
+        return np.rad2deg(2.0 * delta_over_2) 
 
     def _vec2xr(
         self,
