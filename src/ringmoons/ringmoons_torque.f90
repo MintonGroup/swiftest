@@ -188,12 +188,12 @@ contains
         !! Veras, et al 2015 (ADD doi)
         implicit none
         ! Arguments
-        class(ringmoons_ring),      intent(inout) :: self
-        class(swiftest_cb),         intent(in)    :: cb 
-        class(swiftest_parameters), intent(in)    :: param
-        real(DP),dimension(0:self%nbins+1), intent(out)        :: Torque
+        class(ringmoons_ring),      intent(inout)               :: self
+        class(swiftest_cb),         intent(in)                  :: cb 
+        class(swiftest_parameters), intent(in)                  :: param
+        real(DP),dimension(0:self%nbins+1), intent(out)         :: Torque
         ! Internals
-        real(DP),dimension(0:self%nbins+1)     :: iTorque
+        real(DP), dimension(0:self%nbins+1)                     :: a_ys_mag ! YS acceleration magnitude
 
         associate(ring => self, nbins => self%nbins)
             a_ys_mag(1:nbins) = ring%rot_k * (1 - ring%albedo) * param%L_SUN_sys * sqrt(param%inv_c2) &
