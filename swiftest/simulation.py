@@ -3344,7 +3344,7 @@ class Simulation:
         # Based on Ferich, et al, 2022 (https://iopscience.iop.org/article/10.3847/1538-4365/ac8d60) 
         # Veras, et al, 2015 (https://academic.oup.com/mnras/article/451/3/2814/1180328)
         
-        Y_dir = np.zeroes((nbins, 3, 3))
+        Y_dir = np.zeros((nbins, 3, 3))
         lag_angle_constants = 0.5 * (constants.SB_SIGMA / np.pi**5)**(0.25) * (constants.L_SUN)**(0.75) * np.sqrt(2.0 * np.pi)
         rmag = rmag * self.param['DU2M']
         mu = self.data.isel(name = 0, time = 0).Gmass.values * self.param['DU2M']**3 / self.param['TU2S']**2
