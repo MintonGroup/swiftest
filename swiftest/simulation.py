@@ -3285,8 +3285,15 @@ class Simulation:
                 raise ValueError("Yarkovsky effect modeling requires rot_k value for the ring")
             if gamma is None:
                 raise ValueError("Yarkovsky effect modeling requires thermal inertia (gamma) value for the ring")
+            if a_pl is None:
+                raise ValueError("Yarkovsky effect modeling requires planetary semi-major axis value for the ring")
+            if obliquity is None:
+                raise ValueError("Yarkovsky effect modeling requires planet obliquity value for the ring")
             if Y21 is None: # CHANGE so that Y_21 is calculated from other inputs.
-                Y21 = self.calc_Yarkovsky_direction_matrix_Y21(nbins, r_p * self.param['DU2M'], albedo, emissivity, gamma, self.data.isel(name = 0, time = 0).Gmass.values)
+                Y21 = self.calc_Yarkovsky_direction_matrix_Y21(nbins, r_p, albedo, emissivity, gamma)
+            if delta is None:
+                delta = self.calc_planet_shadow_width(r_p, np.deg2rad(obliquity))
+
         
             # combine the new variables into dataset
             # we don't use vec2xr to prevent any degeneracy issues with similarly named variables in the N-body Swiftest dataset
@@ -3297,8 +3304,9 @@ class Simulation:
                     "rot_k"         : ([], rot_k),
                     "gamma"         : ([], gamma),
                     "Y21"           : (["ringbin"], Y21),
-                    # "a_pl"          : ([], a_pl),
-                    # "obliquity"     : ([], obliquity),
+                    "a_pl"          : ([], a_pl),
+                    "obliquity"     : ([], obliquity),
+                    "delta"         : (["ringbin"], delta)
                 },
                 coords={
                     "time": time,
@@ -3313,7 +3321,7 @@ class Simulation:
 
         return
 
-    def calc_Yarkovsky_direction_matrix_Y21(nbins, rmag, albedo, emissivity, gamma, mu):
+    def calc_Yarkovsky_direction_matrix_Y21(self, nbins, rmag, albedo, emissivity, gamma):
         # Calculates the thermal lag angles and Yarkovsky direction matrix 
         # for Yarkovsky and Yarkovsky-Schach calculations and returns Y_21
         # Based on swiftest_radiation.f90
@@ -3324,6 +3332,8 @@ class Simulation:
         
         Y_dir = np.zeroes((nbins, 3, 3))
         lag_angle_constants = 0.5 * (constants.SB_SIGMA / np.pi**5)**(0.25) * (constants.L_SUN)**(0.75) * np.sqrt(2.0 * np.pi)
+        rmag = rmag * self.param['DU2M']
+        mu = self.data.isel(name = 0, time = 0).Gmass.values * self.param['DU2M']**3 / self.param['TU2S']**2
 
         # calculate thermal lag angles from eqn. 19 and 20 in Veras, et. al. (2022)
         # orbital/seasonal lag angle
@@ -3341,9 +3351,11 @@ class Simulation:
 
         return Y_21
     
-    def calc_planet_shadow_width():
+    def calc_planet_shadow_width(self, radius, r_p, obliquity):
         # Calculate the width of the planetary shadow at each radius for a given obliquity
 
+        radius = self.data.isel(name = 0, time = 0).radius.values
+        
         tan_delta_over_2_y = np.sqrt(radius**2 - (r_p * np.cos(np.pi / 2 - obliquity))**2) # numerator
         tan_delta_over_2_x = np.sqrt(r_p**2 - radius**2) # denominator
 
