@@ -982,7 +982,9 @@ class Simulation:
         # Non-returning setters
         if "ephemeris_date" in kwargs:
             self.ephemeris_date = kwargs["ephemeris_date"]
-
+        
+        # self.save(verbose=self.verbose)
+        
         return param_dict
 
     def get_parameter(self, **kwargs: Any) -> dict[str, Any]:
