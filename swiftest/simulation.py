@@ -3286,8 +3286,8 @@ class Simulation:
             gamma, n = input_to_array(gamma, "f", 1)
             a_pl, n = input_to_array(a_pl, "f", 1)
             obliquity, n = input_to_array(obliquity, "f", 1)
-            delta, nbins = input_to_array(None, "f", nbins)
-            Y_21, nbins = input_to_array(None, "f", nbins)
+            delta, nbins = input_to_array(None, "f", nbins) # value will be calculated later
+            Y_21, nbins = input_to_array(None, "f", nbins) # value will be calculated later
 
             if albedo is None:
                 raise ValueError("Yarkovsky effect modeling requires albedo value for the ring")
@@ -3303,8 +3303,10 @@ class Simulation:
                 raise ValueError("Yarkovsky effect modeling requires planet obliquity value for the ring")
             if Y_21 is None:
                 Y_21 = self.calc_Yarkovsky_direction_matrix_Y_21(nbins, r_p, albedo, emissivity, gamma)
+                Y_21, nbins = input_to_array(Y_21, "f", nbins)
             if delta is None:
                 delta = self.calc_planet_shadow_width(r_p, np.deg2rad(obliquity))
+                delta, nbins = input_to_array(delta, "f", nbins)
 
         
             # combine the new variables into dataset
