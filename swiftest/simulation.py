@@ -194,6 +194,7 @@ class Simulation:
             "CHK_QMIN_RANGE": "qminR",
             "SEED": "seed",
             "YARKOVSKY": "yarkovsky",
+            "YARKOVSKY_SCHACH": "yarkovsky_schach",
         }
 
         # Define default parameters
@@ -240,6 +241,7 @@ class Simulation:
             "ENCOUNTER_SAVE": "NONE",
             "TIDES": False,
             "YARKOVSKY": False,
+            "YARKOVSKY_SCHACH":False,
         }
 
         self.codename = codename
@@ -1162,6 +1164,7 @@ class Simulation:
         big_discard: bool | None = None,
         rhill_present: bool | None = None,
         yarkovsky: bool | None = None,
+        yarkovsky_schach: bool | None = None,
         radiation: bool | None = None,
         tides: bool | None = None,
         interaction_loops: Literal["TRIANGULAR", "FLAT"] | None = None,
@@ -1245,6 +1248,8 @@ class Simulation:
             Turns on tidal model (IN DEVELOPMENT - IGNORED)
         yarkovsky : bool, optional
             Turns on Yarkovsky model
+        yarkovsky_schach : bool, optional
+            Turns on Yarkovsky-Schach model
         radiation : bool, optional
             Turns on radiation pressure + PR drag model (IN DEVELOPMENT - IGNORED)
         YORP : bool, optional
@@ -1340,6 +1345,11 @@ class Simulation:
             if yarkovsky is not None:
                 self.param["YARKOVSKY"] = yarkovsky
                 update_list.append("yarkovsky")
+                self.param["ROTATION"] = True  # rotation needed for yarkovsky model
+            
+            if yarkovsky_schach is not None:
+                self.param["YARKOVSKY_SCHACH"] = yarkovsky_schach
+                update_list.append("yarkovsky_schach")
                 self.param["ROTATION"] = True  # rotation needed for yarkovsky model
 
             if radiation is not None:
@@ -1480,6 +1490,7 @@ class Simulation:
             "coarray",
             "seed",
             "yarkovsky",
+            "yarkovsky_schach",
             "radiation",
         ]
 
