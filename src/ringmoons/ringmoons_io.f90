@@ -184,6 +184,25 @@ contains
                 call netcdf_io_check( nf90_get_var(nc%id, nc%r_outer_varid, tmp_scalar, start=[1], count=[1]), &
                                   "netcdf_io_read_frame_system nf90_getvar r_outer_varid"  )
                 self%r_outer = tmp_scalar(1)
+                
+                if (param%lyarkovsky_schach) then 
+                    call netcdf_io_check( nf90_get_var(nc%id, nc%albedo_varid, tmp_scalar, start = [1], count = [1]), &
+                                    "netcdf_io_read_frame_ring nf90_getvar albedo_varid")
+                    if (.not. allocated(self%albedo)) allocate(self%albedo)
+                    call netcdf_io_check( nf90_get_var(nc%id, nc%emissivity_varid, tmp_scalar, start = [1], count = [1]), &
+                                    "netcdf_io_read_frame_ring nf90_getvar emissivity_varid")
+                    if (.not. allocated(self%emissivity)) allocate(self%emissivity)
+                    call netcdf_io_check( nf90_get_var(nc%id, nc%rot_k_varid, tmp_scalar, start = [1], count = [1]), &
+                                    "netcdf_io_read_frame_ring nf90_getvar rot_k_varid")
+                    if (.not. allocated(self%rot_k)) allocate(self%rot_k)
+                    call netcdf_io_check( nf90_get_var(nc%id, nc%gamma_varid, tmp_scalar, start = [1], count = [1]), &
+                                    "netcdf_io_read_frame_ring nf90_getvar gamma_varid")
+                    if (.not. allocated(self%gamma)) allocate(self%gamma)
+                    call netcdf_io_check( nf90_get_var(nc%id, nc%Y21_varid, tmp_scalar, start = [1], count = [1]), &
+                                    "netcdf_io_read_frame_ring nf90_getvar Y21_varid")
+                    if (.not. allocated(self%Y21)) allocate(self%Y21)
+                end if
+
                 call nc%close()
             end associate
         end if
