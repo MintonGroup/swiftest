@@ -366,6 +366,8 @@ contains
         allocate(self%m_p(0:n+1))
         allocate(self%rho_p(0:n+1))
         allocate(self%vrel_p(0:n+1))
+        allocate(self%Y_21(0:n+1))
+        allocate(self%delta(0:n+1))
 
         self%r(:) = 0.0_DP
         self%X(:) = 0.0_DP
@@ -385,6 +387,8 @@ contains
         self%m_p(:) = 0.0_DP
         self%rho_p(:) = 0.0_DP
         self%vrel_p(:) = 0.0_DP
+        self%Y_21(:) = 0.0_DP
+        self%delta(:) = 0.0_DP
 
         return
     end subroutine ringmoons_util_setup_ring
