@@ -207,6 +207,15 @@ module ringmoons
             !! ring particle mass density per bin
         real(DP), dimension(:), allocatable :: vrel_p
             !! ring particle relative velocity per bin
+        real(DP), allocatable   :: albedo
+            !! Bond albedo of ring particles for Yarkovsky acceleration calculations
+        real(DP), allocatable   :: emissivity
+            !! Emissivity for Yarkovsky acceleration calculations
+        real(DP), allocatable   :: rot_k
+            !! Constant based on rotation rate for Yarkovsky calculations
+        real(DP), allocatable   :: gamma
+            !! Thermal inertia for Yarkovsky-Schach calculations
+
         real(DP)                        :: t = -1.0_DP            
             !! Integration current time (set internally from the nbody_system)
         type(ringmoons_netcdf_parameters) :: nc
