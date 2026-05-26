@@ -3296,10 +3296,10 @@ class Simulation:
             if obliquity is None:
                 raise ValueError("Yarkovsky effect modeling requires planet obliquity value for the ring")
             if Y_21 is None:
-                Y_21 = self.calc_Yarkovsky_direction_matrix_Y_21(nbins, r_p, albedo, emissivity, gamma)
+                Y_21 = self.calc_Yarkovsky_direction_matrix_Y_21(nbins, r, albedo, emissivity, gamma)
                 Y_21, nbins = input_to_array(Y_21, "f", nbins)
             if delta is None:
-                delta = self.calc_planet_shadow_width(r_p, np.deg2rad(obliquity))
+                delta = self.calc_planet_shadow_width(r, np.deg2rad(obliquity))
                 delta, nbins = input_to_array(delta, "f", nbins)
 
         
@@ -3347,7 +3347,7 @@ class Simulation:
         
         Y_dir = np.zeros((nbins, 3, 3))
         lag_angle_constants = 0.5 * (constants.SB_SIGMA / np.pi**5)**(0.25) * (constants.L_SUN)**(0.75) * np.sqrt(2.0 * np.pi)
-        rmag = rmag * self.param['DU2M']
+        rmag = np.array(rmag) * self.param['DU2M']
         mu = self.data.isel(name = 0, time = 0).Gmass.values * self.param['DU2M']**3 / self.param['TU2S']**2
 
         # calculate thermal lag angles from eqn. 19 and 20 in Veras, et. al. (2022)
@@ -3366,13 +3366,14 @@ class Simulation:
 
         return Y_21
     
-    def calc_planet_shadow_width(self, r_p, obliquity):
+    def calc_planet_shadow_width(self, r, obliquity):
         # Calculate the width of the planetary shadow at each radius for a given obliquity
 
         radius = self.data.isel(name = 0, time = 0).radius.values
+        r = np.array(r)
         
-        tan_delta_over_2_y = np.sqrt(radius**2 - (r_p * np.cos(np.pi / 2 - obliquity))**2) # numerator
-        tan_delta_over_2_x = np.sqrt(r_p**2 - radius**2) # denominator
+        tan_delta_over_2_y = np.sqrt(radius**2 - (r * np.cos(np.pi / 2 - obliquity))**2) # numerator
+        tan_delta_over_2_x = np.sqrt(r**2 - radius**2) # denominator
 
         delta_over_2 = np.arctan2(tan_delta_over_2_y, tan_delta_over_2_x) # should not happend but CHECK if it ever returns a negative value
         return np.rad2deg(2.0 * delta_over_2) 
