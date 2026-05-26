@@ -3115,6 +3115,11 @@ class Simulation:
         r_p: float | list[float] | npt.NDArray[np.float_],
         m_p: float | list[float] | npt.NDArray[np.float_],
         mass_distribution: dict,
+        albedo: float | None = None,
+        emissivity: float | None = None,
+        rot_k: float | None = None,
+        gamma: float | None = None,
+        Y_21: float | None = None,
         **kwargs,
     ) -> None:
         """
@@ -3131,9 +3136,49 @@ class Simulation:
             - "powerlaw": Power-law mass distribution. Must also contain keys "nbins", "alpha", "sigma0", "r_outer".
             - "gaussian": Gaussian mass distribution. Must also contain keys "nbins", "sigma0", "mu" and "dev".
             - "arbitrary": Arbitrary mass distribution. Must also contain keys "sigma" (an array of surface mass densities), "r_inner" and "r_outer" (the inner and outer radii of the ring).
+        albedo: float, optional
+            Bond albedo of ring particles (for Yarkovsky-Schach effect)
+        emissivity : float, optional
+            Emissivity values of ring particles (for Yarkovsky-Schach effect)
+        rot_k : float, optional
+            Rotational constant K values of ring particles (for Yarkovsky-Schach effect)
+        gamma : float, optional
+            Thermal inertia values of ring particles (for Yarkovsky-Schach effect)
+        Y21: float, optional
+            2nd row-1st column element of the Yarkovsky directional matrix (for Yarkovsky-Schach effect. Can potentially be calculated later)
         **kwargs: Any
             Additional keyword arguments. These are ignored.
         """
+
+        # section below is added to check YS effect variables. Can be cleaned up with a '_validate_ring_arguments()' function
+        # convert all inputs to numpy arrays
+        def input_to_array(val, t, n=None):
+            if t == "f":
+                t = np.float64
+            elif t == "i":
+                t = np.int64
+            elif t == "s":
+                t = str
+
+            if val is None:
+                return None, n
+            elif isinstance(val, np.ndarray):
+                pass
+            elif np.isscalar(val):
+                val = np.array([val], dtype=t)
+            else:
+                try:
+                    val = np.array(val, dtype=t)
+                except e:
+                    raise ValueError(f"{val} cannot be converted to a numpy array") from e
+
+            if n is None:
+                return val, len(val)
+            else:
+                if n != len(val):
+                    raise ValueError(f"Mismatched array lengths in add_body. Got {len(val)} when expecting {n}")
+                return val, n
+
         verbose = kwargs.pop("verbose", self.verbose)
 
         # check if the simulation has a central body
@@ -3223,6 +3268,25 @@ class Simulation:
             dsnew = io.fix_types(dsnew, ftype=np.float64)
         elif self.param["OUT_TYPE"] == "NETCDF_FLOAT":
             dsnew = io.fix_types(dsnew, ftype=np.float32)
+
+        # check for additional variable inputs
+        if (self.param("YARKOVSKY_SCHACH")):
+            albedo, n = input_to_array(albedo, "f", 1)
+            emissivity, n = input_to_array(emissivity, "f", 1)
+            rot_k, n = input_to_array(rot_k, "f", 1)
+            gamma, n = input_to_array(gamma, "f", 1)
+            Y21, n = input_to_array(Y21, "f", 1)
+
+            if albedo is None:
+                raise ValueError("Yarkovsky effect modeling requires albedo value for the ring")
+            if emissivity is None:
+                raise ValueError("Yarkovsky effect modeling requires emissivity value for the ring")
+            if rot_k is None:
+                raise ValueError("Yarkovsky effect modeling requires rot_k value for the ring")
+            if gamma is None:
+                raise ValueError("Yarkovsky effect modeling requires thermal inertia (gamma) value for the ring")
+            if Y21 is None: # CHANGE so that Y_21 is calculated from other inputs.
+                raise ValueError("Yarkovsky effect modeling requires Y21 value for the ring")
 
         self.ring = dsnew
         if verbose:
