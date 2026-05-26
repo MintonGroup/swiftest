@@ -2880,6 +2880,12 @@ contains
             return
          end if
 
+         if (param%lyarkovsky_schach .and. .not. param%lrotation) then
+            write(iomsg,*) 'Yarkovsky-Schach forces require rotation to be turned on'
+            iostat = -1
+            return
+         end if
+
          if ((param%MU2KG < 0.0_DP) .or. (param%TU2S < 0.0_DP) .or. (param%DU2M < 0.0_DP)) then
             write(iomsg,*) 'Invalid unit conversion factor'
             iostat = -1
@@ -2945,6 +2951,15 @@ contains
             param%L_SUN_sys = L_SUN / param%MU2KG / param%DU2M**2 * param%TU2S**3
             param%sigma_sys = SIGMA /param%MU2KG * param%TU2S**3 ! system units / K^4
             param%lgr = .true.
+         end if
+
+         ! Calculate Solar Luminosity, stefan-boltzmann constant, and inv_c2 in system units 
+         if (param%lradiation .or. param%lyarkovsky_schach) then
+            param%L_SUN_sys = L_SUN / param%MU2KG / param%DU2M**2 * param%TU2S**3
+            param%sigma_sys = SIGMA /param%MU2KG * param%TU2S**3 ! system units / K^4
+            param%inv_c2 = einsteinC * param%TU2S / param%DU2M
+            param%inv_c2 = (param%inv_c2)**(-2)
+            ! param%lgr = .true. ! placeholder for if GR is needed by future radiation or Yarkovsky models that we implement
          end if
 
          ! Determine if the GR flag is set correctly for this integrator
