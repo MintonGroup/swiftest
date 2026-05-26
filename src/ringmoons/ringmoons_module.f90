@@ -215,6 +215,8 @@ module ringmoons
             !! Constant based on rotation rate for Yarkovsky calculations
         real(DP), allocatable   :: gamma
             !! Thermal inertia for Yarkovsky-Schach calculations
+        real(DP), allocatable   :: Y_21
+            !! 2nd row-1st column term of the Yarkovsky directional matrix (Ferich, et al, 2022; Veras, et al, 2015)
 
         real(DP)                        :: t = -1.0_DP            
             !! Integration current time (set internally from the nbody_system)
