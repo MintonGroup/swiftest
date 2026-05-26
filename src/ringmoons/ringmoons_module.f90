@@ -237,6 +237,8 @@ module ringmoons
             !! Writes ring data to file
         final     ::                            ringmoons_final_ring
             !! Finalizes the ringmoons ring object - deallocates all allocatables
+        procedure :: yark_schach_torque      => ringmoons_torque_yarkovsky_schach_ring
+            !! Calculates the torque from the Yarkovsky-Schach effect on the ring
     end type ringmoons_ring
 
     type, extends(symba_nbody_system) :: ringmoons_nbody_system
@@ -491,6 +493,16 @@ module ringmoons
             real(DP),intent(in) ::yin
             real(DP) :: kappa
         end function ringmoons_transition_function
+
+        module subroutine ringmoons_torque_yarkovsky_schach_ring(self, cb, param, Torque)
+            implicit none
+            ! Arguments
+            class(ringmoons_ring),      intent(inout) :: self
+            class(swiftest_cb),         intent(in)    :: cb 
+            class(swiftest_parameters), intent(in)    :: param
+            real(DP),dimension(0:self%nbins+1), intent(out)        :: Torque
+        end subroutine ringmoons_torque_yarkovsky_schach
+
 
     end interface
 
