@@ -309,7 +309,20 @@ contains
             call netcdf_io_check( nf90_put_var(nc%id, nc%toomre_varid, self%Q(1:nbins), start=[1,tslot], count=[nbins,1]), &
                                   "ringmoons_io_write_frame_ring nf90_put_var toomre_varid"  ) 
             call netcdf_io_check( nf90_put_var(nc%id, nc%vrel_p_varid, self%vrel_p(1:nbins), start=[1,tslot], count=[nbins,1]), &
-                                  "ringmoons_io_write_frame_ring nf90_put_var vrel_p_varid"  ) 
+                                  "ringmoons_io_write_frame_ring nf90_put_var vrel_p_varid"  )
+                                  
+            if (param%lyarkovsky_schach) then 
+                call netcdf_io_check( nf90_put_var(nc%id, nc%albedo_varid, self%albedo, start = [1], count = [1]), &
+                                "netcdf_io_read_frame_ring nf90_getvar albedo_varid")
+                call netcdf_io_check( nf90_put_var(nc%id, nc%emissivity_varid, self%emissivity, start = [1], count = [1]), &
+                                "netcdf_io_read_frame_ring nf90_getvar emissivity_varid")
+                call netcdf_io_check( nf90_put_var(nc%id, nc%rot_k_varid, self%rot_k, start = [1], count = [1]), &
+                                "netcdf_io_read_frame_ring nf90_getvar rot_k_varid")
+                call netcdf_io_check( nf90_put_var(nc%id, nc%gamma_varid, self%gamma, start = [1], count = [1]), &
+                                "netcdf_io_read_frame_ring nf90_getvar gamma_varid")
+                call netcdf_io_check( nf90_put_var(nc%id, nc%Y21_varid, self%Y21, start = [1], count = [1]), &
+                                "netcdf_io_read_frame_ring nf90_getvar Y21_varid")
+            end if
 
             call netcdf_io_check( nf90_set_fill(nc%id, old_mode, tmp), "ringmoons_io_write_frame_body nf90_set_fill old_mode" )
         end associate
