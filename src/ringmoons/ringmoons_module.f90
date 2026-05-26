@@ -69,6 +69,26 @@ module ringmoons
             !! name of the ring particle relative velocity per bin variable
         integer(I4B) :: vrel_p_varid
             !! ID for the ring particle relative velocity per bin variable
+        character(NAMELEN) :: albedo_varname = "albedo"
+            !! name of the albedo variable
+        integer(I4B) :: albedo_varid 
+            !! ID for the albedo variable
+        character(NAMELEN) :: emissivity_varname = "emissivity"
+            !! name of the emissivity variable
+        integer(I4B) :: emissivity_varid 
+            !! ID for the emissivity variable
+        character(NAMELEN) :: rot_k_varname = "rot_k"
+            !! name of the rotational constant k for yarkovsky effects
+        integer(I4B) :: rot_k_varid
+            !! ID for the rotational constant k for yarkovsky effects
+        character(NAMELEN) :: gamma_varname = "gamma"
+            !! name of the thermal inertia parameter for yarkovsky effects
+        integer(I4B) :: gamma_varid
+            !! ID for the thermal inertia parameter for yarkovsky effects
+        character(NAMELEN) :: Y21_varname = "Y21"
+            !! name of the Y21 yarkovsky directional variable
+        integer(I4B) :: Y21_varid
+            !! ID for the Y21 yarkovsky directional variable
     contains
         procedure :: open       => ringmoons_io_netcdf_open
             !! Open a Ringmoons NetCDF file
