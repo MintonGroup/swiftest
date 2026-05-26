@@ -85,10 +85,22 @@ module ringmoons
             !! name of the thermal inertia parameter for yarkovsky effects
         integer(I4B) :: gamma_varid
             !! ID for the thermal inertia parameter for yarkovsky effects
-        character(NAMELEN) :: Y21_varname = "Y21"
-            !! name of the Y21 yarkovsky directional variable
-        integer(I4B) :: Y21_varid
-            !! ID for the Y21 yarkovsky directional variable
+        character(NAMELEN) :: Y_21_varname = "Y_21"
+            !! name of the Y_21 yarkovsky directional variable
+        integer(I4B) :: Y_21_varid
+            !! ID for the Y_21 yarkovsky directional variable
+        character(NAMELEN) :: delta_varname = "delta"
+            !! name of the planetary shadow with variable
+        integer(I4B) :: delta_varid
+            !! ID for the planetary shadow width variable
+        character(NAMELEN) :: obliquity_varname = "obliquity"
+            !! name of the obliquity variable
+        integer(I4B) :: obliquity_varid
+            !! ID for the obliquity variable
+        character(NAMELEN) :: a_pl_varname = "a_pl"
+            !! name of the planet's semi-major axis from the sun variable
+        integer(I4B) :: a_pl_varid
+            !! ID for the planet's semi-major axis from the sun variable
     contains
         procedure :: open       => ringmoons_io_netcdf_open
             !! Open a Ringmoons NetCDF file
@@ -235,8 +247,14 @@ module ringmoons
             !! Constant based on rotation rate for Yarkovsky calculations
         real(DP), allocatable   :: gamma
             !! Thermal inertia for Yarkovsky-Schach calculations
-        real(DP), allocatable   :: Y_21
+        real(DP), dimension(:), allocatable   :: Y_21
             !! 2nd row-1st column term of the Yarkovsky directional matrix (Ferich, et al, 2022; Veras, et al, 2015)
+        real(DP), allocatable   :: a_pl
+            !! semi-major axis of the planet from the Sun
+        real(DP), allocatable   :: obliquity
+            !! obliquity of the planet from the Sun
+        real(DP), dimension(:), allocatable :: delta
+            !! planetary shadow width
 
         real(DP)                        :: t = -1.0_DP            
             !! Integration current time (set internally from the nbody_system)
