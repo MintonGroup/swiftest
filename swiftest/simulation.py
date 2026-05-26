@@ -3279,7 +3279,7 @@ class Simulation:
             dsnew = io.fix_types(dsnew, ftype=np.float32)
 
         # check for additional variable inputs
-        if (self.param("YARKOVSKY_SCHACH")):
+        if (self.param["YARKOVSKY_SCHACH"]):
             albedo, n = input_to_array(albedo, "f", 1)
             emissivity, n = input_to_array(emissivity, "f", 1)
             rot_k, n = input_to_array(rot_k, "f", 1)
