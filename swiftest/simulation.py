@@ -3340,6 +3340,15 @@ class Simulation:
 
 
         return Y_21
+    
+    def calc_planet_shadow_width():
+        # Calculate the width of the planetary shadow at each radius for a given obliquity
+
+        tan_delta_over_2_y = np.sqrt(radius**2 - (r_p * np.cos(np.pi / 2 - obliquity))**2) # numerator
+        tan_delta_over_2_x = np.sqrt(r_p**2 - radius**2) # denominator
+
+        delta_over_2 = np.arctan2(tan_delta_over_2_y, tan_delta_over_2_x) # should not happend but CHECK if it ever returns a negative value
+        return (2.0 * delta_over_2) 
 
     def _vec2xr(
         self,
