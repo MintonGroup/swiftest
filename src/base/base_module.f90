@@ -169,7 +169,9 @@ module base
       logical :: lradiation     = .false. 
          !! Include radiation effects (PR-drag + radiation pressure) on massive bodies
       logical :: lyarkovsky = .false. 
-         !! Turn on Yarkovsky effect 
+         !! Turn on Yarkovsky effect
+      logical :: lyarkovsky_schach = .false.
+         !! Turn on Yarkovsky-Schach effect 
       character(STRMAX) :: ring_file            = RING_FILE
          !! Name of binary file for ring data in Ringmoons
 
