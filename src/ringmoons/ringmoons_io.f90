@@ -332,8 +332,14 @@ contains
                                 "netcdf_io_read_frame_ring nf90_getvar rot_k_varid")
                 call netcdf_io_check( nf90_put_var(nc%id, nc%gamma_varid, self%gamma, start = [1], count = [1]), &
                                 "netcdf_io_read_frame_ring nf90_getvar gamma_varid")
-                call netcdf_io_check( nf90_put_var(nc%id, nc%Y_21_varid, self%Y_21, start = [1], count = [1]), &
+                call netcdf_io_check( nf90_put_var(nc%id, nc%Y_21_varid, self%Y_21, start = [1], count = [nbins]), &
                                 "netcdf_io_read_frame_ring nf90_getvar Y_21_varid")
+                call netcdf_io_check( nf90_put_var(nc%id, nc%delta_varid, self%delta, start = [1], count = [nbins]), &
+                                "netcdf_io_read_frame_ring nf90_getvar delta_varid")
+                call netcdf_io_check( nf90_put_var(nc%id, nc%a_pl_varid, self%a_pl, start = [1], count = [1]), &
+                                "netcdf_io_read_frame_ring nf90_getvar a_pl_varid")
+                call netcdf_io_check( nf90_put_var(nc%id, nc%obliquity_varid, self%obliquity, start = [1], count = [1]), &
+                                "netcdf_io_read_frame_ring nf90_getvar obliquity_varid")
             end if
 
             call netcdf_io_check( nf90_set_fill(nc%id, old_mode, tmp), "ringmoons_io_write_frame_body nf90_set_fill old_mode" )
