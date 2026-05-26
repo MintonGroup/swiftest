@@ -3271,21 +3271,15 @@ class Simulation:
                 "ringbin": np.arange(nbins)
             },
         )
-        if not isinstance(dsnew, SwiftestDataset):
-            dsnew = SwiftestDataset(dsnew)
-        if self.param["OUT_TYPE"] == "NETCDF_DOUBLE":
-            dsnew = io.fix_types(dsnew, ftype=np.float64)
-        elif self.param["OUT_TYPE"] == "NETCDF_FLOAT":
-            dsnew = io.fix_types(dsnew, ftype=np.float32)
 
         # check for additional variable inputs
         if (self.param["YARKOVSKY_SCHACH"]):
-            albedo, n = input_to_array(albedo, "f", 1)
-            emissivity, n = input_to_array(emissivity, "f", 1)
-            rot_k, n = input_to_array(rot_k, "f", 1)
-            gamma, n = input_to_array(gamma, "f", 1)
-            a_pl, n = input_to_array(a_pl, "f", 1)
-            obliquity, n = input_to_array(obliquity, "f", 1)
+            albedo = np.array(albedo, dtype = np.float64)
+            emissivity = np.array(emissivity, dtype = np.float64)
+            rot_k = np.array(rot_k, dtype = np.float64)
+            gamma = np.array(gamma, dtype = np.float64)
+            a_pl = np.array(a_pl, dtype = np.float64)
+            obliquity = np.array(obliquity, dtype = np.float64)
             delta, nbins = input_to_array(None, "f", nbins) # value will be calculated later
             Y_21, nbins = input_to_array(None, "f", nbins) # value will be calculated later
 
@@ -3328,6 +3322,13 @@ class Simulation:
                 },)
 
             dsnew = xr.combine_by_coords([dsnew, dsnew_ys])
+        
+        if not isinstance(dsnew, SwiftestDataset):
+            dsnew = SwiftestDataset(dsnew)
+        if self.param["OUT_TYPE"] == "NETCDF_DOUBLE":
+            dsnew = io.fix_types(dsnew, ftype=np.float64)
+        elif self.param["OUT_TYPE"] == "NETCDF_FLOAT":
+            dsnew = io.fix_types(dsnew, ftype=np.float32)
 
         self.ring = dsnew
         if verbose:
@@ -3365,7 +3366,7 @@ class Simulation:
 
         return Y_21
     
-    def calc_planet_shadow_width(self, radius, r_p, obliquity):
+    def calc_planet_shadow_width(self, r_p, obliquity):
         # Calculate the width of the planetary shadow at each radius for a given obliquity
 
         radius = self.data.isel(name = 0, time = 0).radius.values
