@@ -180,7 +180,7 @@ contains
         associate(ring => self, N => self%nbins)
             ! calculate yarkovsky-schach torque if flag is set
             if (param%lyarkovsky_schach) then 
-                ring%yark_schach_torque(cb, param, ring%Torque(:))
+                call ring%yark_schach_torque(cb, param, ring%Torque(:))
             end if
 
             S(0) = 0.0_DP
