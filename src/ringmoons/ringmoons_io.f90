@@ -131,6 +131,12 @@ contains
                                     "swiftest_io_netcdf_open nf90_inq_varid gamma_varid" )
                 call netcdf_io_check( nf90_inq_varid(nc%id, nc%Y_21_varname, nc%Y_21_varid), &
                                     "swiftest_io_netcdf_open nf90_inq_varid Y_21_varid" )
+                call netcdf_io_check( nf90_inq_varid(nc%id, nc%a_pl_varname, nc%a_pl_varid), &
+                                    "swiftest_io_netcdf_open nf90_inq_varid a_pl_varid" )
+                call netcdf_io_check( nf90_inq_varid(nc%id, nc%obliquity_varname, nc%obliquity_varid), &
+                                    "swiftest_io_netcdf_open nf90_inq_varid obliquity_varid" )
+                call netcdf_io_check( nf90_inq_varid(nc%id, nc%delta_varname, nc%delta_varid), &
+                                    "swiftest_io_netcdf_open nf90_inq_varid delta_varid" )
             end if
         end associate
         return
@@ -188,19 +194,25 @@ contains
                 if (param%lyarkovsky_schach) then 
                     call netcdf_io_check( nf90_get_var(nc%id, nc%albedo_varid, self%albedo, start = [1], count = [1]), &
                                     "netcdf_io_read_frame_ring nf90_getvar albedo_varid")
-                    if (.not. allocated(self%albedo)) allocate(self%albedo)
+                    ! if (.not. allocated(self%albedo)) allocate(self%albedo)
                     call netcdf_io_check( nf90_get_var(nc%id, nc%emissivity_varid, self%emissivity, start = [1], count = [1]), &
                                     "netcdf_io_read_frame_ring nf90_getvar emissivity_varid")
-                    if (.not. allocated(self%emissivity)) allocate(self%emissivity)
+                    ! if (.not. allocated(self%emissivity)) allocate(self%emissivity)
                     call netcdf_io_check( nf90_get_var(nc%id, nc%rot_k_varid, self%rot_k, start = [1], count = [1]), &
                                     "netcdf_io_read_frame_ring nf90_getvar rot_k_varid")
-                    if (.not. allocated(self%rot_k)) allocate(self%rot_k)
+                    ! if (.not. allocated(self%rot_k)) allocate(self%rot_k)
                     call netcdf_io_check( nf90_get_var(nc%id, nc%gamma_varid, self%gamma, start = [1], count = [1]), &
                                     "netcdf_io_read_frame_ring nf90_getvar gamma_varid")
-                    if (.not. allocated(self%gamma)) allocate(self%gamma)
+                    ! if (.not. allocated(self%gamma)) allocate(self%gamma)
                     call netcdf_io_check( nf90_get_var(nc%id, nc%Y_21_varid, self%Y_21(1:nbin), start = [1], count = [nbin]), &
                                     "netcdf_io_read_frame_ring nf90_getvar Y_21_varid")
-                    if (.not. allocated(self%Y_21)) allocate(self%Y_21)
+                    ! if (.not. allocated(self%Y_21)) allocate(self%Y_21)
+                    call netcdf_io_check( nf90_get_var(nc%id, nc%delta_varid, self%delta(1:nbin), start = [1], count = [nbin]), &
+                                    "netcdf_io_read_frame_ring nf90_getvar delta_varid")
+                    call netcdf_io_check( nf90_get_var(nc%id, nc%a_pl_varid, self%a_pl, start = [1], count = [1]), &
+                                    "netcdf_io_read_frame_ring nf90_getvar a_pl_varid")
+                    call netcdf_io_check( nf90_get_var(nc%id, nc%obliquity_varid, self%obliquity, start = [1], count = [1]), &
+                                    "netcdf_io_read_frame_ring nf90_getvar obliquity_varid")
                 end if
 
                 call nc%close()
