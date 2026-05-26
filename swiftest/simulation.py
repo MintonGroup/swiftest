@@ -3287,6 +3287,23 @@ class Simulation:
                 raise ValueError("Yarkovsky effect modeling requires thermal inertia (gamma) value for the ring")
             if Y21 is None: # CHANGE so that Y_21 is calculated from other inputs.
                 raise ValueError("Yarkovsky effect modeling requires Y21 value for the ring")
+        
+            # combine the new variables into dataset
+            # we don't use vec2xr to prevent any degeneracy issues with similarly named variables in the N-body Swiftest dataset
+            dsnew_ys = xr.Dataset(
+                { 
+                    "albedo"        : ([], albedo),
+                    "emissivity"    : ([], emissivity),
+                    "rot_k"         : ([], rot_k),
+                    "gamma"         : ([], gamma),
+                    "Y21"           : ([], Y21),
+                },
+                coords={
+                    "time": time,
+                    "ringbin": np.arange(nbins)
+                },)
+
+            dsnew = xr.combine_by_coords([dsnew, dsnew_ys])
 
         self.ring = dsnew
         if verbose:
