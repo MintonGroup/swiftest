@@ -195,11 +195,20 @@ contains
         ! Internals
         real(DP), dimension(0:self%nbins+1)                     :: YS_Torque
         real(DP), dimension(0:self%nbins+1)                     :: a_ys_mag ! YS acceleration magnitude
+        logical, dimension(0:self%nbins+1)                      :: lzerosigma ! flag for bins with 0 surface mass density
 
         associate(ring => self, nbins => self%nbins)
-            a_ys_mag(1:nbins) = ring%rot_k * (1 - ring%albedo) * param%L_SUN_sys * sqrt(param%inv_c2) &
-                                    / (16.0_DP * PI * (ring%a_pl)**2 * ring%sigma(1:nbins))
+            lzerosigma(:) = (ring%sigma(:) == 0)
 
+            where (ring%sigma > 0.0_DP)
+                a_ys_mag(:) = ring%rot_k * (1 - ring%albedo) * param%L_SUN_sys * sqrt(param%inv_c2) &
+                                        / (16.0_DP * PI * (ring%a_pl)**2 * ring%sigma(:))
+            elsewhere
+                a_ys_mag(:) = 0.0_DP
+            end where
+
+            ! a_ys_mag(1:nbins) = ring%rot_k * (1 - ring%albedo) * param%L_SUN_sys * sqrt(param%inv_c2) &
+                                        ! / (16.0_DP * PI * (ring%a_pl)**2 * ring%sigma(1:nbins))
             YS_Torque(:) = -1.0_DP * a_ys_mag(1:nbins) * ring%r(1:nbins) * sin(ring%delta(1:nbins) * DEG2RAD / 2.0_DP) * ring%Y_21(1:nbins) / PI 
             Torque(:) = Torque(:) + YS_Torque(:)
         end associate
