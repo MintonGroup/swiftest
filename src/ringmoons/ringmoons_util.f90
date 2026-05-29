@@ -116,6 +116,8 @@ contains
         if (allocated(self%m_p))     deallocate(self%m_p)
         if (allocated(self%rho_p))   deallocate(self%rho_p)
         if (allocated(self%vrel_p))  deallocate(self%vrel_p)
+        if (allocated(self%Y_21))    deallocate(self%Y_21)
+        if (allocated(self%delta))   deallocate(self%delta)
 
         return
     end subroutine ringmoons_util_dealloc_ring
