@@ -51,7 +51,7 @@ contains
             cb%Gmass = cb%dGM  + cb%GM0
             cb%mass = cb%Gmass / param%GU
             cb%radius = (3*cb%mass/(4*PI*cb%density))**THIRD
-            cb%dR= cb%R0 - cb%radius
+            cb%dR= cb%radius - cb%R0
             drot0 = cb%L0(3) * RAD2DEG / (cb%Ip(3) * cb%mass * cb%radius**2)  
             drot1 = cb%dL(3) * RAD2DEG / (cb%Ip(3) * cb%mass * cb%radius**2)
             cb%rot(3) = drot1 + drot0
