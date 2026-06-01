@@ -208,6 +208,8 @@ contains
                                         ! / (16.0_DP * PI * (ring%a_pl)**2 * ring%sigma(1:nbins))
             YS_Torque(1:nbins) = -1.0_DP * a_ys_mag(1:nbins) * ring%r(1:nbins) * sin(ring%delta(1:nbins) * DEG2RAD / 2.0_DP) * ring%Y_21(1:nbins) / PI 
             Torque(1:nbins) = Torque(1:nbins) + YS_Torque(1:nbins)
+            write(*, *) "sum of Torques in YS calc = ", sum(YS_Torque(:))
+            write(*, *) "sum of ring%Torques in YS calc = ", sum(Torque(:))
         end associate
 
     end subroutine ringmoons_torque_yarkovsky_schach_ring
