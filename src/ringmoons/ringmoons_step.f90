@@ -168,8 +168,14 @@ contains
         logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
         integer(I4B), parameter :: MAX_LOOP_SOLVER = 10000
         real(DP), parameter :: ARTNU_FAC = 1.0_DP / 16.0_DP 
+        real(DP), save :: mass_ring_orig
+        real(DP) :: mass_ring
+        logical, save:: first_step = .true.
             !! Artificial viscosity factor to prevent negative mass bins. 
-
+        if (first_step) then
+            mass_ring_orig = sum(self%mass(:))
+            first_step = .false.
+        end if
         ! Guard against underflow errors when rings surface mass density gets too small
         call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)
         call ieee_set_halting_mode(ieee_underflow, .false.)
@@ -225,6 +231,7 @@ contains
             ring%Gsigma(1:N) = param%GU * ring%sigma(1:N)
             ring%mass(1:N) = ring%sigma(1:N) * ring%deltaA(1:N)
             ring%Torque(:) = 0.0_DP
+            mass_ring = sum(ring%mass(:))
         end associate
         
         call ieee_set_halting_mode(IEEE_ALL, fpe_halting_modes)
