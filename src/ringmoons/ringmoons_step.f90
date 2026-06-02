@@ -188,8 +188,6 @@ contains
             if (param%lyarkovsky_schach) then 
                 call ring%yark_schach_torque(cb, param, ring%Torque(:))
             end if
-            
-            ! write(*, *) "sum of Torques = ", sum(ring%Torque(:))
 
             S(0) = 0.0_DP
             S(1:N) = ring%sigma(1:N) * ring%X(1:N)
@@ -234,13 +232,13 @@ contains
             ring%mass(1:N) = ring%sigma(1:N) * ring%deltaA(1:N)
             ring%Torque(:) = 0.0_DP
 
-            write(*, *) "sum of Sigma[1:5] = ", sum(ring%sigma(1:5))
-            write(*, *) "Sigma[1] = ", ring%sigma(1)
-            write(*, *) "Sigma[2] = ", ring%sigma(2)
-            write(*, *) "Sigma[3] = ", ring%sigma(3)
-            write(*, *) "Sigma[4] = ", ring%sigma(4)
-            write(*, *) "Sigma[5] = ", ring%sigma(5)
             mass_ring = sum(ring%mass(:))
+            ! write(*, *) "sum of Sigma[:] = ", sum(ring%sigma(1:5))
+            ! write(*, *) "Sigma[1] = ", ring%sigma(1)
+            ! write(*, *) "Sigma[2] = ", ring%sigma(2)
+            ! write(*, *) "Sigma[3] = ", ring%sigma(3)
+            ! write(*, *) "Sigma[4] = ", ring%sigma(4)
+            ! write(*, *) "Sigma[5] = ", ring%sigma(5)
             write(*, *) "ring_mass = ", mass_ring / mass_ring_orig
         end associate
         
@@ -629,9 +627,9 @@ contains
                 ring%Torque(:) = 0.0_DP
                 seed%Torque(:) = 0.0_DP
                 
-                write(*, *) "  "
-                write(*, *) "  "
-                write(*, *) "loop = ", loop
+                ! write(*, *) "  "
+                ! write(*, *) "  "
+                ! write(*, *) "loop = ", loop
                 ! write(*, *) "loopmax = ", loopmax
 
                 call ring%update(cb,param)
