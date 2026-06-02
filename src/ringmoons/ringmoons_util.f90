@@ -56,9 +56,9 @@ contains
             drot1 = cb%dL(3) * RAD2DEG / (cb%Ip(3) * cb%mass * cb%radius**2)
             cb%rot(3) = drot1 + drot0
 
-            write(*, *) "dGMtot = ", dGMtot
-            write(*, *) "cb%radius = ", cb%radius
-            write(*, *) "cb%mass = ", cb%mass
+            ! write(*, *) "dGMtot = ", dGMtot
+            ! write(*, *) "cb%radius = ", cb%radius
+            ! write(*, *) "cb%mass = ", cb%mass
 
             ring%mass(0:ring%inside) = 0.0_DP
             ring%sigma(0:ring%inside) = 0.0_DP
@@ -281,7 +281,7 @@ contains
             end where
             ring%iFRL = ring%nbins / 2
             ring%iRRL = ring%nbins / 2
-            write(*, *) ' '
+            ! write(*, *) ' '
             ! write(*, *) 'ring%nbins = ', ring%nbins
             ! write(*, *) 'ring%iFRL = ', ring%iFRL
             ! write(*, *) 'cb%radius = ', cb%radius

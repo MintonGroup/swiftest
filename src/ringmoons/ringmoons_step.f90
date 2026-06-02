@@ -189,7 +189,7 @@ contains
                 call ring%yark_schach_torque(cb, param, ring%Torque(:))
             end if
             
-            write(*, *) "sum of Torques = ", sum(ring%Torque(:))
+            ! write(*, *) "sum of Torques = ", sum(ring%Torque(:))
 
             S(0) = 0.0_DP
             S(1:N) = ring%sigma(1:N) * ring%X(1:N)
@@ -241,6 +241,7 @@ contains
             write(*, *) "Sigma[4] = ", ring%sigma(4)
             write(*, *) "Sigma[5] = ", ring%sigma(5)
             mass_ring = sum(ring%mass(:))
+            write(*, *) "ring_mass = ", mass_ring / mass_ring_orig
         end associate
         
         call ieee_set_halting_mode(IEEE_ALL, fpe_halting_modes)
@@ -631,7 +632,7 @@ contains
                 write(*, *) "  "
                 write(*, *) "  "
                 write(*, *) "loop = ", loop
-                write(*, *) "loopmax = ", loopmax
+                ! write(*, *) "loopmax = ", loopmax
 
                 call ring%update(cb,param)
                 

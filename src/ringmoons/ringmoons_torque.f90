@@ -196,8 +196,10 @@ contains
         real(DP), dimension(0:self%nbins+1)                     :: YS_Torque
         real(DP), dimension(0:self%nbins+1)                     :: a_ys_mag ! YS acceleration magnitude
 
+        YS_Torque(:) = 0.0_DP
+        write(*, *) "sum of Torques in YS BEFORE calc = ", sum(YS_Torque(:))
         associate(ring => self, nbins => self%nbins)
-            where (ring%sigma > 0.0_DP)
+            where (ring%sigma > tiny(1.0_DP)) ! (ring%sigma > 0.0_DP)
                 a_ys_mag(:) = ring%rot_k * (1 - ring%albedo) * param%L_SUN_sys * sqrt(param%inv_c2) &
                                         / (16.0_DP * PI * (ring%a_pl)**2 * ring%sigma(:))
             elsewhere
@@ -208,7 +210,8 @@ contains
                                         ! / (16.0_DP * PI * (ring%a_pl)**2 * ring%sigma(1:nbins))
             YS_Torque(1:nbins) = -1.0_DP * a_ys_mag(1:nbins) * ring%r(1:nbins) * sin(ring%delta(1:nbins) * DEG2RAD / 2.0_DP) * ring%Y_21(1:nbins) / PI 
             Torque(1:nbins) = Torque(1:nbins) + YS_Torque(1:nbins)
-            write(*, *) "sum of Torques in YS calc = ", sum(YS_Torque(:))
+            write(*, *) "Sum of a_ys_mag = ", sum(a_ys_mag(:))
+            write(*, *) "sum of Torques in YS AFTER calc = ", sum(YS_Torque(:))
             write(*, *) "sum of ring%Torques in YS calc = ", sum(Torque(:))
         end associate
 
