@@ -199,7 +199,7 @@ contains
         YS_Torque(:) = 0.0_DP
         write(*, *) "sum of Torques in YS BEFORE calc = ", sum(YS_Torque(:))
         associate(ring => self, nbins => self%nbins)
-            where (ring%sigma > tiny(1.0_DP)) ! (ring%sigma > 0.0_DP)
+            where (ring%m_p > 0.0_DP) ! (ring%sigma > tiny(0.0_DP))
                 a_ys_mag(:) = ring%rot_k * (ring%r_p(:))**2 * ring%mass(:) * (1 - ring%albedo) * param%L_SUN_sys * sqrt(param%inv_c2) &
                                         / (4.0_DP * ring%m_p(:)**2 * (ring%a_pl)**2) 
             elsewhere
