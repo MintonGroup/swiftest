@@ -239,7 +239,7 @@ contains
             ! write(*, *) "Sigma[3] = ", ring%sigma(3)
             ! write(*, *) "Sigma[4] = ", ring%sigma(4)
             ! write(*, *) "Sigma[5] = ", ring%sigma(5)
-            write(*, *) "ring_mass = ", mass_ring / mass_ring_orig
+            ! write(*, *) "ring_mass = ", mass_ring / mass_ring_orig
         end associate
         
         call ieee_set_halting_mode(IEEE_ALL, fpe_halting_modes)

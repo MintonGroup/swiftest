@@ -195,13 +195,15 @@ contains
         ! Internals
         real(DP), dimension(0:self%nbins+1)                     :: YS_Torque
         real(DP), dimension(0:self%nbins+1)                     :: a_ys_mag ! YS acceleration magnitude
+        real(DP)                                                :: binwidth ! ring binwidth
 
         YS_Torque(:) = 0.0_DP
-        write(*, *) "sum of Torques in YS BEFORE calc = ", sum(YS_Torque(:))
+        binwidth = self%r(2) - self%r(1) ! Assuming uniform bin widths
+        ! write(*, *) "sum of Torques in YS BEFORE calc = ", sum(YS_Torque(:))
         associate(ring => self, nbins => self%nbins)
             where (ring%m_p > 0.0_DP) ! (ring%sigma > tiny(0.0_DP))
-                a_ys_mag(:) = ring%rot_k * (ring%r_p(:))**2 * ring%mass(:) * (1 - ring%albedo) * param%L_SUN_sys * sqrt(param%inv_c2) &
-                                        / (4.0_DP * ring%m_p(:)**2 * (ring%a_pl)**2) 
+                a_ys_mag(:) = ring%rot_k * (1 - ring%albedo) * param%L_SUN_sys * sqrt(param%inv_c2) * ring%tau(:) * ring%r(:) * binwidth &
+                                        / (2.0_DP * (ring%a_pl)**2) ! units of acceleration
             elsewhere
                 a_ys_mag(:) = 0.0_DP
             end where
@@ -210,9 +212,9 @@ contains
                                         ! / (16.0_DP * PI * (ring%a_pl)**2 * ring%sigma(1:nbins))
             YS_Torque(1:nbins) = -1.0_DP * a_ys_mag(1:nbins) * ring%r(1:nbins) * sin(ring%delta(1:nbins) * DEG2RAD / 2.0_DP) * ring%Y_21(1:nbins) / PI 
             Torque(1:nbins) = Torque(1:nbins) + YS_Torque(1:nbins)
-            write(*, *) "Sum of a_ys_mag = ", sum(a_ys_mag(:))
-            write(*, *) "sum of Torques in YS AFTER calc = ", sum(YS_Torque(:))
-            write(*, *) "sum of ring%Torques in YS calc = ", sum(Torque(:))
+            ! write(*, *) "Sum of a_ys_mag = ", sum(a_ys_mag(:))
+            ! write(*, *) "sum of Torques in YS AFTER calc = ", sum(YS_Torque(:))
+            ! write(*, *) "sum of ring%Torques in YS calc = ", sum(Torque(:))
         end associate
 
     end subroutine ringmoons_torque_yarkovsky_schach_ring
