@@ -628,9 +628,7 @@ contains
                 seed%Torque(:) = 0.0_DP
                 
                 ! write(*, *) "  "
-                ! write(*, *) "  "
                 ! write(*, *) "loop = ", loop
-                ! write(*, *) "loopmax = ", loopmax
 
                 call ring%update(cb,param)
                 
@@ -679,6 +677,13 @@ contains
         end do
 
         self%ring%t = t + dt
+        write(*, *) " "
+        write(*, *) "t = ", self%ring%t
+        write(*, *) "ring_mass = ", sum(self%ring%mass(:))
+        write(*, *) "seed mass = ", sum(self%seed%mass(:))
+        ! write(*, *) "sum(seed%a) = ", sum(self%seed%a(:))
+        write(*, *) "min seed%a = ", minval(self%seed%a(:))
+        write(*, *) "max seed%a = ", maxval(self%seed%a(:))
 
         ! Step the nbody system like normal
         call symba_step_system(self, param, t, dt)

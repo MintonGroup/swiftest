@@ -167,6 +167,15 @@ contains
         ! Internals
         real(DP),dimension(self%nbody) :: n
         associate(seed => self, Ns => self%nbody)
+            ! where (seed%a(1:Ns) < tiny(1.0_DP))
+            !     write(*, *) "seed%a too small = ", seed%a
+            ! endwhere
+
+            ! where (seed%a(1:Ns) > 8.0_DP)
+            !     write(*, *) "seed%a bigger than 8 = ", seed%a
+            ! endwhere
+
+
             n(1:Ns) = sqrt((seed%mu(1:Ns)) / seed%a(1:Ns)**3)
             seed%Ttide(1:Ns) = sign(1._DP,cb%rot(3) * DEG2RAD - n(1:Ns))                  &
                                 * 1.5_DP * seed%a(1:Ns) * n(1:Ns) * (cb%k2/cb%Q) &
