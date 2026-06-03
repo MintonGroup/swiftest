@@ -270,7 +270,7 @@ contains
                                     "ringmoons_io_read_frame_seed nf90_get_var ptype_varid"  )
             where(carrtemp(:) == SEED_TYPE_NAME) seedmask(:) = .true.
 
-            call netcdf_io_check( nf90_get_var(nc%id, nc%status_varid, status, start=[1, tslot], count=[idmax,1]), &
+            call netcdf_io_check( nf90_get_var(nc%id, nc%status_varid, status, start=[1, tslot], count=[idmax,1]), & ! was: status, count = [tslot, idmax]), &
                                     "ringmoons_io_read_frame_seed nf90_get_var status_varid"  )
             where(seedmask(:)) lvalid(:) = status(:) == ACTIVE
 
