@@ -56,10 +56,6 @@ contains
             drot1 = cb%dL(3) * RAD2DEG / (cb%Ip(3) * cb%mass * cb%radius**2)
             cb%rot(3) = drot1 + drot0
 
-            ! write(*, *) "dGMtot = ", dGMtot
-            ! write(*, *) "cb%radius = ", cb%radius
-            ! write(*, *) "cb%mass = ", cb%mass
-
             ring%mass(0:ring%inside) = 0.0_DP
             ring%sigma(0:ring%inside) = 0.0_DP
 
@@ -281,27 +277,13 @@ contains
             end where
             ring%iFRL = ring%nbins / 2
             ring%iRRL = ring%nbins / 2
-            ! write(*, *) ' '
-            ! write(*, *) 'ring%nbins = ', ring%nbins
-            ! write(*, *) 'ring%iFRL = ', ring%iFRL
-            ! write(*, *) 'cb%radius = ', cb%radius
-            ! write(*, *) 'cb%density = ', cb%density
             do i = 1, 10
-                ! ! write(*, *) 'i = ', i
-                ! write(*, *) 'ring%iFRL = ', ring%iFRL
-                ! ! write(*, *) 'ring%rho_p(ring%iFRL) = ', ring%rho_p(ring%iFRL)
                 if (ring%rho_p(ring%iFRL) > tiny(1.0_DP)) then
                     rho_p = ring%rho_p(ring%iFRL)
                 else
                     rho_p = ring%rho_p(ring%nbins / 2)
                 end if
                 ring%FRL = 2.456_DP * cb%radius * (cb%density / rho_p)**(1._DP / 3._DP)
-                ! if (ring%FRL > 5.0_DP) then
-                !     write(*, *) 'ring%iFRL = ', ring%iFRL
-                !     write(*, *) 'ring%FRL = ', ring%FRL
-                !     write(*, *) 'cb%radius = ', cb%radius
-                !     write(*, *) 'cb%density = ', cb%density
-                !     write(*, *) 'time = ', ring%t
 
                 ! end if
                 if (ring%rho_p(ring%iRRL) > tiny(1.0_DP)) then

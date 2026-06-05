@@ -259,6 +259,7 @@ contains
             call netcdf_io_check( nf90_inquire_dimension(nc%id, nc%name_dimid, len=idmax), &
                                   "ringmoons_io_read_frame_seed  nf90_inquire_dimension name_dimid"  )
 
+            idmax = idmax / 2
             allocate(carrtemp(idmax))
             allocate(lvalid(idmax))
             allocate(seedmask(idmax))

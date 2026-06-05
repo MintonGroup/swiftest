@@ -233,13 +233,6 @@ contains
             ring%Torque(:) = 0.0_DP
 
             mass_ring = sum(ring%mass(:))
-            ! write(*, *) "sum of Sigma[:] = ", sum(ring%sigma(1:5))
-            ! write(*, *) "Sigma[1] = ", ring%sigma(1)
-            ! write(*, *) "Sigma[2] = ", ring%sigma(2)
-            ! write(*, *) "Sigma[3] = ", ring%sigma(3)
-            ! write(*, *) "Sigma[4] = ", ring%sigma(4)
-            ! write(*, *) "Sigma[5] = ", ring%sigma(5)
-            ! write(*, *) "ring_mass = ", mass_ring / mass_ring_orig
         end associate
         
         call ieee_set_halting_mode(IEEE_ALL, fpe_halting_modes)
@@ -626,9 +619,6 @@ contains
 
                 ring%Torque(:) = 0.0_DP
                 seed%Torque(:) = 0.0_DP
-                
-                ! write(*, *) "  "
-                ! write(*, *) "loop = ", loop
 
                 call ring%update(cb,param)
                 
@@ -677,13 +667,6 @@ contains
         end do
 
         self%ring%t = t + dt
-        write(*, *) " "
-        write(*, *) "t = ", self%ring%t
-        write(*, *) "ring_mass = ", sum(self%ring%mass(:))
-        write(*, *) "seed mass = ", sum(self%seed%mass(:))
-        ! write(*, *) "sum(seed%a) = ", sum(self%seed%a(:))
-        write(*, *) "min seed%a = ", minval(self%seed%a(:))
-        write(*, *) "max seed%a = ", maxval(self%seed%a(:))
 
         ! Step the nbody system like normal
         call symba_step_system(self, param, t, dt)
