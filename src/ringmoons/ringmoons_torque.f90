@@ -199,7 +199,7 @@ contains
         real(DP)                                                :: binwidth ! ring binwidth
 
         YS_Torque(:) = 0.0_DP
-        binwidth = self%r(2) - self%r(1) ! Assuming uniform bin widths
+        binwidth = (self%r_outer - self%r_inner) / self%nbins ! Assuming uniform bin widths
 
         associate(ring => self, nbins => self%nbins)
             where (ring%m_p > 0.0_DP) ! (ring%sigma > tiny(0.0_DP))
