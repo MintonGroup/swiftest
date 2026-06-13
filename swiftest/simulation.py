@@ -3349,11 +3349,12 @@ class Simulation:
         lag_angle_constants = 0.5 * (constants.SB_SIGMA / np.pi**5)**(0.25) * (constants.L_SUN)**(0.75) * np.sqrt(2.0 * np.pi)
         rmag = np.array(rmag) * self.param['DU2M']
         mu = self.data.isel(name = 0, time = 0).Gmass.values * self.param['DU2M']**3 / self.param['TU2S']**2
+        gamma = gamma / (self.param['TU2S']**(5.0/2)) * self.param['MU2KG']
 
         # calculate thermal lag angles from eqn. 19 and 20 in Veras, et. al. (2022)
         # orbital/seasonal lag angle
         zeta = np.arctan2(1.0, 1.0 + lag_angle_constants * emissivity**(0.25) / gamma * (1 - albedo)**(0.75) / rmag**(0.75) / mu**(0.25)) 
-        
+
         # For simplicity we will assume that ring particles have no spin and are in prograde motion around the planet (h = h_z)
         # In this case Y_21 = -sin(zeta)
         Y_21 = -np.sin(zeta)
