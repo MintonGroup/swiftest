@@ -1,4 +1,4 @@
-# Copyright 2025 - David Minton
+# Copyright 2026 - David Minton
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -37,10 +37,11 @@ ENDIF()
 # Check for a Fortran compiler 
 IF(DEFINED ENV{FC})
     SET(CMAKE_Fortran_COMPILER $ENV{FC} CACHE STRING "Fortran compiler")
+    MESSAGE(STATUS "Using Fortran compiler defined by FC: ${CMAKE_Fortran_COMPILER}")
 ELSE()
     # If FC is not set, search for the Fortran compilers in the specified order.
     FIND_PROGRAM(Fortran_COMPILER
-               NAMES gfortran-15 gfortran-14 gfortran-13 gfortran-12 gfortran ifort mpiifort
+               NAMES gfortran gfortran-16 ngfortran-15 gfortran-14 gfortran-13 gfortran-12 ifort mpiifort
                DOC "Fortran compiler")
 
     # If a compiler is found, set it as the Fortran compiler.

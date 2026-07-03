@@ -13,145 +13,32 @@ Simulation
 
 The Simulation class is the main class for the Swiftest project. 
 
-Creating a Simulation
----------------------
-
-.. autosummary::
-    :toctree: generated/
-
-    Simulation
-
-Running a Simulation
---------------------
-
-.. autosummary::
-    :toctree: generated/
-
-    Simulation.run
-
-Setting Simulation Parameters
---------------------------------------------
-
-.. autosummary::
-    :toctree: generated/
-
-    Simulation.set_parameter
-    Simulation.set_simulation_time
-    Simulation.set_integrator
-    Simulation.set_feature
-    Simulation.set_init_cond_files
-    Simulation.set_output_files
-    Simulation.set_unit_system
-    Simulation.set_distance_range
-
-Retrieving Simulation Parameters
---------------------------------------------
-
-.. autosummary::
-    :toctree: generated/
-
-    Simulation.get_parameter
-    Simulation.get_simulation_time
-    Simulation.get_integrator
-    Simulation.get_feature
-    Simulation.get_init_cond_files
-    Simulation.get_output_files
-    Simulation.get_unit_system
-    Simulation.get_distance_range
-    Simulation.get_ephemeris_date
-
-Adding Bodies to a Simulation
------------------------------
-
-.. autosummary::
-    :toctree: generated/
-
-    Simulation.add_solar_system_body
-    Simulation.add_body
-    Simulation.modify_body
-    Simulation.remove_body
-
-
-File Input and Output
----------------------
-
-.. autosummary::
-    :toctree: generated/
-
-    Simulation.read_param
-    Simulation.write_param
-    Simulation.read_encounter_file
-    Simulation.read_collision_file
-    Simulation.follow
-    Simulation.save
-    Simulation.convert
-    Simulation.clean
-
-Attributes
-----------
-
-.. autosummary::
-   :toctree: generated/
-
-    Simulation.param
-    Simulation.data
-    Simulation.init_cond
-    Simulation.encounters
-    Simulation.collisions
-    Simulation.MU_name
-    Simulation.DU_name
-    Simulation.TU_name
-    Simulation.MU2KG
-    Simulation.KG2MU
-    Simulation.TU2S
-    Simulation.S2TU
-    Simulation.DU2M
-    Simulation.M2DU
-    Simulation.GU
-    Simulation.integrator
-    Simulation.codename
-    Simulation.simdir
-    Simulation.verbose
-    Simulation.ephemeris_date
-    Simulation.restart
+.. autoclass:: swiftest.simulation.Simulation
+   :members:
+   :undoc-members:
+   :no-index-entry:
 
 Data Representation
 ===================
 
-DataArray
-----------
 
-.. autosummary::
-    :toctree: generated/
+SwiftestDataset
+---------------
 
-    SwiftestDataArray
+.. autoclass:: swiftest.data.SwiftestDataset
+    :members:
+    :undoc-members:
+    :no-index-entry:
 
-DataArray Methods
-------------------
 
-.. autosummary::
-    :toctree: generated/
+SwiftestDataArray
+-----------------
 
-    SwiftestDataArray.magnitude
-    SwiftestDataArray.rotate
+.. autoclass:: swiftest.data.SwiftestDataArray
+    :members:
+    :undoc-members:
+    :no-index-entry:
 
-Dataset
--------
-
-.. autosummary::
-    :toctree: generated/
-
-    SwiftestDataset
-
-Dataset Methods
-----------------
-
-.. autosummary::
-  :toctree: generated/
-
-  SwiftestDataset.rotate
-  SwiftestDataset.xv2el
-  SwiftestDataset.el2xv
 
 
 Initial Conditions Generation Functions
