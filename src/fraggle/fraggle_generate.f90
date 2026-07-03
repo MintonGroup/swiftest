@@ -1,4 +1,4 @@
-! Copyright 2024 - The Minton Group at Purdue University
+! Copyright 2026 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -528,7 +528,8 @@ contains
                   dis = .mag. (fragments%rc(:,j) - (pl%rb(:,i) / collider%dscale - impactors%rbcom(:)))
                   loverlap(j) = (dis <= rbuffer * (pl%radius(i) / collider%dscale + fragments%radius(j))) 
                   if (loverlap(j)) then
-                     min_overlap_distance = min(rbuffer * (pl%radius(i) / collider%dscale  + fragments%radius(j)) - dis,min_overlap_distance)
+                     min_overlap_distance = min(rbuffer * (pl%radius(i) / collider%dscale + fragments%radius(j)) &
+                                                                                          - dis,min_overlap_distance)
                      exit
                   end if
                end do

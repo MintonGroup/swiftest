@@ -2,14 +2,9 @@ from __future__ import annotations
 
 import numpy as np
 import xarray as xr
-from scipy.spatial.transform import Rotation as R
+from scipy.spatial.transform import Rotation as R  # noqa: N817
 
-from .constants import *
-
-try:
-    xr.set_options(use_new_combine_kwarg_defaults=True)
-except:
-    pass
+from .constants import CB_TYPE_NAME
 
 
 class SwiftestDataArray(xr.DataArray):
@@ -42,9 +37,7 @@ class SwiftestDataArray(xr.DataArray):
         return cls(xr.DataArray._construct_direct(*args, **kwargs))
 
     def to_dataset(self):
-        """
-        Converts a ``SwiftestDataArray`` into a ``SwiftestDataset`` with a single data variable.
-        """
+        """Converts a ``SwiftestDataArray`` into a ``SwiftestDataset`` with a single data variable."""
         xrds = super().to_dataset()
         return SwiftestDataset(xrds)
 
@@ -90,14 +83,15 @@ class SwiftestDataArray(xr.DataArray):
 
         # Define a function to apply the rotation, which will be used with apply_ufunc
         def apply_rotation(vector, rotation):
+            vcopy = vector.copy()
             if not rotation.single:
                 # If 'rotation' is a stack of rotations, apply each rotation sequentially
                 for single_rotation in rotation:
-                    vector = single_rotation.apply(vector)
+                    vector = single_rotation.apply(vcopy)
                 return vector
             else:
                 # If 'rotation' represents a single rotation, apply it directly
-                return rotation.apply(vector)
+                return rotation.apply(vcopy)
 
         da = xr.apply_ufunc(
             apply_rotation,
@@ -125,18 +119,20 @@ class SwiftestDataset(xr.Dataset):
 
     Notes
     -----
-    See `xarray.Dataset <https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html>`__
-    for further information about Datasets.
+    See `xarray.Dataset <https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html>`__ for further information about Datasets.
     """
 
     __slots__ = ()
 
     def __init__(
         self,
-        *args,
+        ds: xr.Dataset | None = None,
         **kwargs,
     ):
-        super().__init__(*args, **kwargs)
+        if ds is not None and isinstance(ds, xr.Dataset):
+            super().__init__(data_vars=ds.data_vars, coords=ds.coords, attrs=ds.attrs)
+        else:
+            super().__init__(**kwargs)
 
     def __getitem__(self, key):
         """Override to make sure the result is an instance of ``swiftest.SwiftestDataArray`` or ``swiftest.SwiftestDataset``."""
@@ -194,11 +190,11 @@ class SwiftestDataset(xr.Dataset):
             **kwargs,
         )
 
-    def rotate(self, rotvec=None, pole=None, skip_vars=["space", "Ip"]):
+    def rotate(self, rotvec=None, pole=None, skip_vars=("space", "Ip")):
         """
-        Rotates the coordinate system such that the z-axis is aligned with an input pole.
+        Rotates the coordinate system such that the z-axis is aligned with an input pole.  The new pole is defined by the input vector.
 
-        The new pole is defined by the input vector.  This will change all variables in the Dataset that have the "space" dimension, except for those passed to the skip_vars parameter.
+        This will change all variables in the Dataset that have the "space" dimension, except for those passed to the skip_vars parameter.
 
         Parameters
         ----------
