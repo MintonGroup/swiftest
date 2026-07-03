@@ -1,4 +1,4 @@
-!! Copyright 2024 - The Minton Group at Purdue University
+!! Copyright 2026 - The Minton Group at Purdue University
 !! This file is part of Swiftest.
 !! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 !! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -82,7 +82,7 @@ contains
             !! Azimuthal/Phase angle (radians) wrt coordinate axes, and central body rotation phase
         real(DP) :: theta 
             !! Inclination/Zenith angle (radians)
-        real(DP) :: plm, plm1 
+        real(DP) :: plm
             !! Associated Legendre polynomials at a given l, m
         real(DP) :: ccss
             !! See definition in source code

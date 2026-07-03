@@ -1,4 +1,4 @@
-! Copyright 2024 - The Minton Group at Purdue University
+! Copyright 2026 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -432,11 +432,11 @@ contains
 
             call plnew%set_rhill(cb)
 
-            ! if (param%ltides) then
-            !    plnew%Q = pl%Q(ibiggest)
-            !    plnew%k2 = pl%k2(ibiggest)
-            !    plnew%tlag = pl%tlag(ibiggest)
-            ! end if
+            if (param%ltides) then
+               plnew%Q = pl%Q(ibiggest)
+               plnew%k2 = pl%k2(ibiggest)
+               plnew%tlag = pl%tlag(ibiggest)
+            end if
 
 #ifdef DOCONLOC
             do concurrent(i = 1:nfrag) shared(plnew,fragments) local(volume)

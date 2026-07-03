@@ -15,57 +15,65 @@ jobs:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]  
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v3.1.3
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
-          path: ./wheelhouse/*.whl
-          retention-days: 1
-
-  build_windows_wheels:
-    name: Build wheels on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest]
-    defaults:
-      run:
-        shell: msys2 {0}
-    steps:
-      - uses: msys2/setup-msys2@v2
-        with:
-          msystem: UCRT64
-          update: true
-          path-type: inherit
-          install: >-
-            mingw-w64-ucrt-x86_64-toolchain
-            mingw-w64-ucrt-x86_64-gcc-fortran 
-            mingw-w64-ucrt-x86_64-cmake
-            mingw-w64-ucrt-x86_64-ninja
-            mingw-w64-ucrt-x86_64-msmpi
-            mingw-w64-ucrt-x86_64-netcdf-fortran
-            mingw-w64-ucrt-x86_64-openblas
-            mingw-w64-ucrt-x86_64-fftw
-      
-      - uses: actions/checkout@v4
-
-      - name: Get history and tags for SCM versioning to work
+      - name:  Install dependencies with Homebrew (macOS)
+        if: runner.os == 'macOS'
         run: |
-          git fetch --prune --unshallow
-          git fetch --depth=1 origin +refs/tags/*:refs/tags/*          
-
-      - name: Build shtools 
-        run: ./buildscripts/build_shtools.sh
+          brew install openssl@3 openblas gcc fftw vecLibFort opencoarrays open-mpi cmake zlib netcdf-fortran
+          GCC_VER=$(brew list --versions gcc | awk '{print $2}' | cut -d. -f1)
+          GCC_LIB="$(brew --prefix gcc)/lib/gcc/${GCC_VER}"
+          echo "DYLD_LIBRARY_PATH=${GCC_LIB}${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}" >> $GITHUB_ENV
 
       - name: Build wheels
-        run: pipx run cibuildwheel 
+        uses: pypa/cibuildwheel@v3.4.1
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
           retention-days: 1
+
+  # build_windows_wheels:
+  #   name: Build wheels on ${{ matrix.os }}
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     matrix:
+  #       os: [windows-latest]
+  #   defaults:
+  #     run:
+  #       shell: msys2 {0}
+  #   steps:
+  #     - uses: msys2/setup-msys2@v2
+  #       with:
+  #         msystem: UCRT64
+  #         update: true
+  #         path-type: inherit
+  #         install: >-
+  #           mingw-w64-ucrt-x86_64-toolchain
+  #           mingw-w64-ucrt-x86_64-gcc-fortran 
+  #           mingw-w64-ucrt-x86_64-cmake
+  #           mingw-w64-ucrt-x86_64-ninja
+  #           mingw-w64-ucrt-x86_64-msmpi
+  #           mingw-w64-ucrt-x86_64-netcdf-fortran
+  #           mingw-w64-ucrt-x86_64-openblas
+  #           mingw-w64-ucrt-x86_64-fftw
+      
+  #     - uses: actions/checkout@v6
+
+  #     - name: Get history and tags for SCM versioning to work
+  #       run: |
+  #         git fetch --prune --unshallow
+  #         git fetch --depth=1 origin +refs/tags/*:refs/tags/*          
+
+  #     - name: Build shtools 
+  #       run: ./buildscripts/build_shtools.sh
+
+  #     - name: Build wheels
+  #       run: pipx run cibuildwheel 
+
+  #     - uses: actions/upload-artifact@v7
+  #       with:
+  #         name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+  #         path: ./wheelhouse/*.whl
+  #         retention-days: 1
