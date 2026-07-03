@@ -618,7 +618,7 @@ contains
                 end if
 
                 ring%Torque(:) = 0.0_DP
-                seed%Torque(:) = 0.0_DP
+                if (seed%nbody > 0) seed%Torque(:) = 0.0_DP
 
                 call ring%update(cb,param)
                 
