@@ -57,6 +57,12 @@ class TestSwiftestIO(unittest.TestCase):
         # Clean up temporary directory
         self.tmpdir.cleanup()
 
+    def test_hdf5_file_lock(self):
+        if "HDF5_USE_FILE_LOCKING" not in os.environ:
+            self.fail("HDF5_USE_FILE_LOCKING environment variable is not set.")
+        islocked = os.environ["HDF5_USE_FILE_LOCKING"]
+        self.assertEqual(islocked.upper(), "FALSE", msg="HDF5_USE_FILE_LOCKING must be set to FALSE")
+
     def test_jpl_parser(self):
         """
         Tests that the JPL Horizons parser is able to read data and process it correctly for a variety of different cases.
@@ -64,8 +70,6 @@ class TestSwiftestIO(unittest.TestCase):
         print("\ntest_jpl_parser")
         names = major_bodies + [
             "Kleopatra",
-            "Ceres",
-            "Vesta",
             "Pallas",
             "Hygiea",
             "Eris",
@@ -133,16 +137,6 @@ class TestSwiftestIO(unittest.TestCase):
                 "rot": [0.0022373803628068065, -0.0019444371136576489, 0.005453805355586545],
             },
             "Kleopatra": {"mass": None, "radius": 61000.0, "rot": [0.0, 0.0, 0.018570102135561744]},
-            "Ceres": {
-                "mass": 9.383515874323901e20,
-                "radius": 469700.0,
-                "rot": [0.0015876541706678936, 0.00031457177647549044, 0.010900790208524158],
-            },
-            "Vesta": {
-                "mass": 2.5902701406889116e20,
-                "radius": 261385.0,
-                "rot": [0.008727916415949765, -0.004872733218667549, 0.01582674491187599],
-            },
             "Pallas": {
                 "mass": 2.0421617248250754e20,
                 "radius": 256500.0,

@@ -241,7 +241,7 @@ class Simulation:
             "ENCOUNTER_SAVE": "NONE",
             "TIDES": False,
             "YARKOVSKY": False,
-            "YARKOVSKY_SCHACH":False,
+            "YARKOVSKY_SCHACH": False,
         }
 
         self.codename = codename
@@ -984,9 +984,9 @@ class Simulation:
         # Non-returning setters
         if "ephemeris_date" in kwargs:
             self.ephemeris_date = kwargs["ephemeris_date"]
-        
+
         # self.save(verbose=self.verbose)
-        
+
         return param_dict
 
     def get_parameter(self, **kwargs: Any) -> dict[str, Any]:
@@ -1346,7 +1346,7 @@ class Simulation:
                 self.param["YARKOVSKY"] = yarkovsky
                 update_list.append("yarkovsky")
                 self.param["ROTATION"] = True  # rotation needed for yarkovsky model
-            
+
             if yarkovsky_schach is not None:
                 self.param["YARKOVSKY_SCHACH"] = yarkovsky_schach
                 update_list.append("yarkovsky_schach")
@@ -1382,7 +1382,7 @@ class Simulation:
 
             if compute_conservation_values is not None:
                 if self.integrator == "symba":
-                    if not compute_conservation_values and  verbose:
+                    if not compute_conservation_values and verbose:
                         warnings.warn(
                             "Energy, angular momentum, and mass conservation values are computed by default for SyMBA. This option is ignored",
                             stacklevel=2,
@@ -3259,29 +3259,26 @@ class Simulation:
         # Add the ring to the simulation
         dsnew = xr.Dataset(
             {
-                "r"       : (["time","ringbin"], [r]),
-                "sigma"   : (["time","ringbin"], [sigma]),
-                "r_p"     : (["time","ringbin"], [r_p]),
-                "m_p"     : (["time","ringbin"], [m_p]),
-                "r_inner" : ([], r_inner),
-                "r_outer" : ([], r_outer),
+                "r": (["time", "ringbin"], [r]),
+                "sigma": (["time", "ringbin"], [sigma]),
+                "r_p": (["time", "ringbin"], [r_p]),
+                "m_p": (["time", "ringbin"], [m_p]),
+                "r_inner": ([], r_inner),
+                "r_outer": ([], r_outer),
             },
-            coords={
-                "time": time,
-                "ringbin": np.arange(nbins)
-            },
+            coords={"time": time, "ringbin": np.arange(nbins)},
         )
 
         # check for additional variable inputs
-        if (self.param["YARKOVSKY_SCHACH"]):
-            albedo = np.array(albedo, dtype = np.float64)
-            emissivity = np.array(emissivity, dtype = np.float64)
-            rot_k = np.array(rot_k, dtype = np.float64)
-            gamma = np.array(gamma, dtype = np.float64)
-            a_pl = np.array(a_pl, dtype = np.float64)
-            obliquity = np.array(obliquity, dtype = np.float64)
-            delta, nbins = input_to_array(None, "f", nbins) # value will be calculated later
-            Y_21, nbins = input_to_array(None, "f", nbins) # value will be calculated later
+        if self.param["YARKOVSKY_SCHACH"]:
+            albedo = np.array(albedo, dtype=np.float64)
+            emissivity = np.array(emissivity, dtype=np.float64)
+            rot_k = np.array(rot_k, dtype=np.float64)
+            gamma = np.array(gamma, dtype=np.float64)
+            a_pl = np.array(a_pl, dtype=np.float64)
+            obliquity = np.array(obliquity, dtype=np.float64)
+            delta, nbins = input_to_array(None, "f", nbins)  # value will be calculated later
+            Y_21, nbins = input_to_array(None, "f", nbins)  # value will be calculated later
 
             if albedo is None:
                 raise ValueError("Yarkovsky effect modeling requires albedo value for the ring")
@@ -3302,27 +3299,24 @@ class Simulation:
                 delta = self.calc_planet_shadow_width(r, np.deg2rad(obliquity))
                 delta, nbins = input_to_array(delta, "f", nbins)
 
-        
             # combine the new variables into dataset
             # we don't use vec2xr to prevent any degeneracy issues with similarly named variables in the N-body Swiftest dataset
             dsnew_ys = xr.Dataset(
-                { 
-                    "albedo"        : ([], albedo),
-                    "emissivity"    : ([], emissivity),
-                    "rot_k"         : ([], rot_k),
-                    "gamma"         : ([], gamma),
-                    "Y_21"           : (["ringbin"], Y_21),
-                    "a_pl"          : ([], a_pl),
-                    "obliquity"     : ([], obliquity),
-                    "delta"         : (["ringbin"], delta)
+                {
+                    "albedo": ([], albedo),
+                    "emissivity": ([], emissivity),
+                    "rot_k": ([], rot_k),
+                    "gamma": ([], gamma),
+                    "Y_21": (["ringbin"], Y_21),
+                    "a_pl": ([], a_pl),
+                    "obliquity": ([], obliquity),
+                    "delta": (["ringbin"], delta),
                 },
-                coords={
-                    "time": time,
-                    "ringbin": np.arange(nbins)
-                },)
+                coords={"time": time, "ringbin": np.arange(nbins)},
+            )
 
             dsnew = xr.combine_by_coords([dsnew, dsnew_ys])
-        
+
         if not isinstance(dsnew, SwiftestDataset):
             dsnew = SwiftestDataset(dsnew)
         if self.param["OUT_TYPE"] == "NETCDF_DOUBLE":
@@ -3337,52 +3331,55 @@ class Simulation:
         return
 
     def calc_Yarkovsky_direction_matrix_Y_21(self, nbins, rmag, albedo, emissivity, gamma):
-        # Calculates the thermal lag angles and Yarkovsky direction matrix 
+        # Calculates the thermal lag angles and Yarkovsky direction matrix
         # for Yarkovsky and Yarkovsky-Schach calculations and returns Y_21
         # Based on swiftest_radiation.f90
         #
         # References:
-        # Based on Ferich, et al, 2022 (https://iopscience.iop.org/article/10.3847/1538-4365/ac8d60) 
+        # Based on Ferich, et al, 2022 (https://iopscience.iop.org/article/10.3847/1538-4365/ac8d60)
         # Veras, et al, 2015 (https://academic.oup.com/mnras/article/451/3/2814/1180328)
-        
+
         Y_dir = np.zeros((nbins, 3, 3))
-        lag_angle_constants = 0.5 * (constants.SB_SIGMA / np.pi**5)**(0.25) * (constants.L_SUN)**(0.75) * np.sqrt(2.0 * np.pi)
-        rmag = np.array(rmag) * self.param['DU2M']
-        mu = self.data.isel(name = 0, time = 0).Gmass.values * self.param['DU2M']**3 / self.param['TU2S']**2
-        gamma = gamma / (self.param['TU2S']**(5.0/2)) * self.param['MU2KG']
+        lag_angle_constants = 0.5 * (constants.SB_SIGMA / np.pi**5) ** (0.25) * (constants.L_SUN) ** (0.75) * np.sqrt(2.0 * np.pi)
+        rmag = np.array(rmag) * self.param["DU2M"]
+        mu = self.data.isel(name=0, time=0).Gmass.values * self.param["DU2M"] ** 3 / self.param["TU2S"] ** 2
+        gamma = gamma / (self.param["TU2S"] ** (5.0 / 2)) * self.param["MU2KG"]
 
         # calculate thermal lag angles from eqn. 19 and 20 in Veras, et. al. (2022)
         # orbital/seasonal lag angle
-        zeta = np.arctan2(1.0, 1.0 + lag_angle_constants * emissivity**(0.25) / gamma * (1 - albedo)**(0.75) / rmag**(0.75) / mu**(0.25)) 
+        zeta = np.arctan2(
+            1.0, 1.0 + lag_angle_constants * emissivity ** (0.25) / gamma * (1 - albedo) ** (0.75) / rmag ** (0.75) / mu ** (0.25)
+        )
 
         # For simplicity we will assume that ring particles have no spin and are in prograde motion around the planet (h = h_z)
         # In this case Y_21 = -sin(zeta)
         Y_21 = -np.sin(zeta)
 
-        # The section below is to be worked on. 
+        # The section below is to be worked on.
         # Here we allow general cases of ring particle spin (s) and angular momentum (h) vectors
         # # diurnal lag angle
         # phi = np.arctan2(1.0, 1.0 + lag_angle_constants * emissivity**(0.25) * T_rot**(0.5) / gamma * (1 - albedo)**(0.75) / rmag**(1.5))
 
-
         return Y_21
-    
+
     def calc_planet_shadow_width(self, r, obliquity):
         # Calculate the width of the planetary shadow at each radius for a given obliquity
 
-        radius = self.data.isel(name = 0, time = 0).radius.values
+        radius = self.data.isel(name=0, time=0).radius.values
         r = np.array(r)
-        
-        tan_delta_over_2_y = np.sqrt(radius**2 - (r * np.cos(np.pi / 2 - obliquity))**2) # numerator
+
+        tan_delta_over_2_y = np.sqrt(radius**2 - (r * np.cos(np.pi / 2 - obliquity)) ** 2)  # numerator
         idx = np.where(np.isnan(tan_delta_over_2_y))
         tan_delta_over_2_y[idx] = 0.0
-        
-        tan_delta_over_2_x = np.sqrt(r**2 - radius**2) # denominator
+
+        tan_delta_over_2_x = np.sqrt(r**2 - radius**2)  # denominator
         idx = np.where(np.isnan(tan_delta_over_2_x))
         tan_delta_over_2_x[idx] = 0.0
 
-        delta_over_2 = np.arctan2(tan_delta_over_2_y, tan_delta_over_2_x) # should not happend but CHECK if it ever returns a negative value
-        return np.rad2deg(2.0 * delta_over_2) 
+        delta_over_2 = np.arctan2(
+            tan_delta_over_2_y, tan_delta_over_2_x
+        )  # should not happend but CHECK if it ever returns a negative value
+        return np.rad2deg(2.0 * delta_over_2)
 
     def _vec2xr(
         self,
@@ -4227,6 +4224,7 @@ class Simulation:
             param_tmp["IN_TYPE"] = init_cond_file_type
             param_tmp["IN_FORM"] = init_cond_format
             self.init_cond = io.swiftest2xr(param_tmp, verbose=verbose, dask=dask)
+            self.init_cond.load()
         elif verbose:
             warnings.warn(
                 "Reading in ASCII initial conditions files in Python is not yet supported",
@@ -4612,6 +4610,7 @@ class Simulation:
         Drops the oblateness terms from all bodies except the central body.
         """
         ds = self.init_cond
+        ds.load()
 
         # Drop any variables that may have been copied over from old runs. This is a list of all potential init_cond.nc variables
         ic_vars = [
@@ -4650,7 +4649,7 @@ class Simulation:
             "rot_k",
             "gamma",
             "k2",
-            "Q"
+            "Q",
         ]
 
         vars = [k for k in ic_vars if k in ds]
@@ -4800,12 +4799,8 @@ class Simulation:
 
         if self.integrator == "ringmoons" and len(self.ring) > 1:
             io.swiftest_xr2infile(
-                ds=self.ring,
-                param=param,
-                in_type=self.param["IN_TYPE"],
-                infile_name=self.ring_file,
-                verbose=verbose
-                )
+                ds=self.ring, param=param, in_type=self.param["IN_TYPE"], infile_name=self.ring_file, verbose=verbose
+            )
         return
 
     def clean(self, deep: bool = False, **kwargs) -> None:
@@ -4835,6 +4830,17 @@ class Simulation:
             if self.integrator == "ringmoons":
                 self.ring = SwiftestDataset()
             return
+        else:
+            self.init_cond.load()
+            if self.integrator == "ringmoons":
+                self.ring.load()
+
+        # Clean out data structure and reset it to initial conditions
+        if "time" in self.data:
+            self.data = self.data.isel(time=[0])
+        else:
+            self.data = self.init_cond.copy(deep=True)
+        self.data.load()
 
         if verbose:
             print(f"Cleaning up simulation directory {self.simdir} of old output files.")
@@ -4861,11 +4867,6 @@ class Simulation:
                 if f.exists():
                     f.unlink()
 
-        # Clean out data structure and reset it to initial conditions
-        if "time" in self.data:
-            self.data = self.data.isel(time=[0])
-        else:
-            self.data = self.init_cond.copy(deep=True)
         return
 
     def _set_central_body(self, align_to_central_body_rotation: bool = False, **kwargs: Any):

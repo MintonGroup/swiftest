@@ -74,10 +74,20 @@ sdist.include = [
     "swiftest/*.h",
     "buildscripts/*.sh",
     "cmake/Modules/*.cmake",
-    "examples/*/*.py",
-    "examples/*/*/*.py",
-    "examples/*/README.txt",
-    "examples/*/*/README.txt",
+    "examples/Basic/Basic_Simulation/*.py",
+    "examples/Basic/escape_from_the_solar_system/*.py",
+    "examples/Basic/solar_impact/*.py",
+    "examples/Basic/Swifter_Swiftest/*.py",
+    "examples/Coarray_Test_Particles/*.py",
+    "examples/Fraggle/Chambers2013/*.py",
+    "examples/Fraggle/Fragmentation/*.py",
+    "examples/Fraggle/Multibody_Fragmentation/*.py",
+    "examples/GR/helio_gr_test/*.py",
+    "examples/GR/whm_gr_test/*.py",
+    "examples/Ringmoons/Hesselbrock_and_Minton_2017_Mars_Ring_Cycle/*.py",
+    "examples/Ringmoons/Hesselbrock_and_Minton_2019_Origin_of_Miranda/*.py",
+    "examples/Ringmoons/Salmon_et_al_2010-Saturn_Ring_Viscosity/*.py",
+    "examples/SHTOOLS/spherical_harmonics_cb/*.py",
     "docs/*.rst",
     "docs/Makefile",
     "docs/requirements.txt",
@@ -92,10 +102,11 @@ sdist.include = [
     "docs/fortran_docs.md",
     "docs/getting-started-guide/*.rst",
     "docs/user-guide/*.rst",
+    ".env"
     ]
 sdist.exclude = [".github"]
 build-dir = "build/{wheel_tag}"
-cmake.verbose = true
+build.verbose = true
 metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
 
 [tool.setuptools_scm]
@@ -120,9 +131,12 @@ SHTOOLS_HOME="${PREFIX}"
 ARCH="$(uname -m)"
 MACOSX_DEPLOYMENT_TARGET="$(buildscripts/get_macosx_deployment_target.sh)"
 HOMEBREW_PREFIX="$(brew --prefix)"
-LD_LIBRARY_PATH="${PREFIX}/lib:${HOMEBREW_PREFIX}/lib:${HOMEBREW_PREFIX}/lib/gcc/${GFORTRAN_VERSION}"
-DYLD_LIBRARY_PATH="${LD_LIBRARY_PATH}"
-REPAIR_LIBRARY_PATH="${LD_LIBRARY_PATH}"
+PATH="${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin:${HOMEBREW_PREFIX}/bin:${PREFIX}/bin:${PATH}"
+GFORTRAN_VERSION="$(buildscripts/get_gfortran_version.sh)"
+GFORTRAN_LIB="${HOMEBREW_PREFIDX}/lib/gcc/${GFORTRAN_VERSION}" 
+LD_LIBRARY_PATH="${PREFIX}/lib:${HOMEBREW_PREFIX}/lib:${GFORTRAN_LIB}"
+DYLD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}"
+REPAIR_LIBRARY_PATH="${DYLD_LIBRARY_PATH}"
 LDFLAGS="-Wl,-no_compact_unwind -L${PREFIX}/lib -L${HOMEBREW_PREFIX}/lib -L${HOMEBREW_PREFIX}/lib/gcc/${GFORTRAN_VERSION}" 
 CPATH="${PREFIX}/include:${HOMEBREW_PREFIX}/include"
 CPPFLAGS="-isystem ${PREFIX}/include"
@@ -131,8 +145,6 @@ FFLAGS="${FCFLAGS}"
 CFLAGS="${FCFLAGS} -Wno-deprecated-non-prototype -arch ${ARCH}"
 CXXFLAGS="${CFLAGS}"
 MPI_HOME="${HOMEBREW_PREFIX}"
-PATH="${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin:${HOMEBREW_PREFIX}/bin:${PREFIX}/bin:${PATH}"
-GFORTRAN_VERSION="$(buildscripts/get_gfortran_version.sh)"
 CC="mpicc"
 CXX="mpic++"
 FC="mpifort"
@@ -140,6 +152,7 @@ F77="mpifort"
 F95="mpifort"
 OMPI_FC="$(buildscripts/get_fortran_path.sh)"
 OMP_NUM_THREADS=1
+HDF5_USE_FILE_LOCKING="FALSE"
 
 [tool.cibuildwheel.linux.environment]
 SKBUILD_CMAKE_ARGS=["-DMACHINE_CODE_VALUE=generic","-DUSE_COARRAY:BOOL=OFF"]
@@ -162,16 +175,13 @@ CC="/opt/rh/gcc-toolset-14/root/usr/bin/gcc"
 CXX="/opt/rh/gcc-toolset-14/root/usr/bin/g++"
 OMPI_FC="$(buildscripts/get_fortran_path.sh)"
 OMP_NUM_THREADS=1
+HDF5_USE_FILE_LOCKING="FALSE"
 
 [tool.cibuildwheel.macos]
 before-all = [
-    "brew install coreutils fftw vecLibFort opencoarrays open-mpi cmake zlib netcdf-fortran",
+    "brew install coreutils gcc fftw vecLibFort opencoarrays open-mpi cmake zlib netcdf-fortran",
     "buildscripts/build_shtools.sh"
 ]
-repair-wheel-command = """\
-DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel \
---require-archs {delocate_archs} -w {dest_dir} -v {wheel}
-"""
 
 [tool.cibuildwheel.linux]
 before-all = [
@@ -198,6 +208,7 @@ F77="mpifort"
 F95="mpifort"
 OMPI_FC="gfortran"
 OMP_NUM_THREADS=1
+HDF5_USE_FILE_LOCKING="FALSE"
 
 [tool.cibuildwheel.windows]
 before-build = "pip install delvewheel"
