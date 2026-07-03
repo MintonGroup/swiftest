@@ -1,4 +1,4 @@
-! Copyright 2024 - The Minton Group at Purdue University
+! Copyright 2026 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -64,6 +64,8 @@ contains
          end if
 
          if (param%lgr) call pl%accel_gr(param) 
+         if (param%lyarkovsky) call pl%accel_yarkovsky(nbody_system, param)
+         if (param%lradiation) call pl%accel_radiation(nbody_system, param)
          if (param%lextra_force) call pl%accel_user(nbody_system, param, t, lbeg)
       end associate
 
@@ -343,5 +345,27 @@ contains
 
       return
    end subroutine whm_kick_vh_tp
+
+   module subroutine whm_kick_yarkovsky_getacch_pl(self, nbody_system, param)
+      !! author: Kaustub P. Anand and David A. Minton
+      !!
+      !! Calculate the Yarkovsky effect on massive bodies. 
+      !! Based on Ferich, et al, 2022 (https://iopscience.iop.org/article/10.3847/1538-4365/ac8d60) and Veras, et al, 2015 (https://academic.oup.com/mnras/article/451/3/2814/1180328)
+      implicit none
+
+      ! Arguments
+      class(whm_pl),           intent(inout) :: self
+         !! whm massive body object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param
+         !! Current run configuration parameters
+
+      associate(pl => self)
+         call swiftest_yarkovsky_getacch_pl_all(pl%nbody, pl%lmask(:), pl%muj(:), pl%mass(:), pl%radius(:), pl%xj(:, :), pl%vj(:, :), pl%ah(:, :), pl%rot(:, :), pl%a(:), pl%emissivity(:), pl%gamma(:), pl%albedo(:), pl%rot_k(:), param%L_SUN_sys, param%inv_c2, param%sigma_sys, param%yark_radius_threshold_sys)
+      end associate
+      
+      return
+   end subroutine whm_kick_yarkovsky_getacch_pl
 
 end submodule s_whm_kick

@@ -1,4 +1,4 @@
-! Copyright 2024 - The Minton Group at Purdue University
+! Copyright 2026 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -20,7 +20,7 @@ module base
    public
 
    !> User defined parameters that are read in from the parameters input file. 
-   !>    Each paramter is initialized to a default values. 
+   !>    Each parameter is initialized to a default values. 
    type, abstract :: base_parameters
       character(STRMAX) :: integrator 
          !! Name of the nbody integrator used  
@@ -102,6 +102,12 @@ module base
          !! Universal gravitational constant in the system units 
       real(DP)          :: inv_c2               = -1.0_DP         
          !! Inverse speed of light squared in the system units 
+      real(DP)          :: L_SUN_sys            = -1.0_DP         
+         !! Solar luminosity in system units (L_SUN converted to system units)
+      real(DP)          :: sigma_sys            = -1.0_DP         
+         !! Stefan-Boltzmann constant in system units (SIGMA converted to system units) 
+      real(DP)          :: yark_radius_threshold_sys = -1.0_DP        
+         !! Threshold radius for calculating the Yarkovsky effect on a body (YARK_RADIUS_THRESHOLD in km, converted to system units in the code)
       real(DP)          :: GMTINY               = -1.0_DP         
          !! Smallest G*mass that is fully gravitating 
       real(DP)          :: min_GMfrag           = -1.0_DP         
@@ -156,8 +162,18 @@ module base
          !! Calculate acceleration from oblate central body (automatically turns true if nonzero J2, J4, or c_lm is input) 
       logical :: lrotation      = .false. 
          !! Include rotation states of big bodies 
+      logical :: lgr            = .false. 
+         !! Turn on GR 
       logical :: ltides         = .false. 
          !! Include tidal dissipation  
+      logical :: lradiation     = .false. 
+         !! Include radiation effects (PR-drag + radiation pressure) on massive bodies
+      logical :: lyarkovsky = .false. 
+         !! Turn on Yarkovsky effect
+      logical :: lyarkovsky_schach = .false.
+         !! Turn on Yarkovsky-Schach effect 
+      character(STRMAX) :: ring_file            = RING_FILE
+         !! Name of binary file for ring data in Ringmoons
 
       ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be 
       ! updated with initial conditions values)
@@ -193,12 +209,10 @@ module base
          !! Logs the output to file instead of displaying it on the terminal 
 
       ! Future features not implemented or in development
-      logical :: lgr        = .false. 
-         !! Turn on GR 
-      logical :: lyarkovsky = .false. 
-         !! Turn on Yarkovsky effect 
       logical :: lyorp      = .false. 
          !! Turn on YORP effect 
+      logical :: lyarkovsky_pl = .false.
+         !! Turn on Yarkovsky effect for planetary systems (planetary IR emission + Yarkovsky-Schach (YS) effect)
    contains
       procedure :: dealloc => base_util_dealloc_param
       procedure(abstract_io_dump_param),      deferred :: dump

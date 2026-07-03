@@ -32,6 +32,8 @@ newfeaturelist = (
     "ENERGY",
     "GR",
     "YARKOVSKY",
+    "YARKOVSKY_SCHACH",
+    "RADIATION",
     "YORP",
     "IN_FORM",
     "NC_IN",
@@ -62,6 +64,8 @@ bool_param = [
     "ENERGY",
     "GR",
     "YARKOVSKY",
+    "YARKOVSKY_SCHACH",
+    "RADIATION",
     "YORP",
     "COARRAY",
 ]
@@ -79,7 +83,7 @@ param_keys = ["! VERSION"] + int_param + float_param + quad_param + upper_str_pa
 # handles strings differently than Python's Xarray.
 string_varnames = ["name", "particle_type", "origin_type", "stage", "regime"]
 char_varnames = ["space"]
-int_varnames = ["id", "ntp", "npl", "nplm", "discard_body_id", "collision_id", "status", "collision_body"]
+int_varnames = ["id", "ntp", "npl", "nplm", "discard_body_id", "collision_id", "status", "collision_body", "ringbin"]
 
 
 def _bool2yesno(boolval):
@@ -723,12 +727,11 @@ def swiftest2xr(param: dict, verbose: bool = True, dask: bool = False) -> Swifte
         if verbose:
             print("\nCreating Dataset from NetCDF file")
         if dask:
-            ds = xr.open_mfdataset(param["BIN_OUT"], engine="h5netcdf", mask_and_scale=False)
+            with xr.open_mfdataset(param["BIN_OUT"], engine="h5netcdf", mask_and_scale=False) as ds:
+                ds = process_netcdf_input(ds, param)
         else:
             with xr.open_dataset(param["BIN_OUT"], mask_and_scale=False) as ds:
-                ds.load()
-        ds = process_netcdf_input(ds, param)
-        ds.close()
+                ds = process_netcdf_input(ds, param)
     else:
         print(f"Error encountered. OUT_TYPE {param['OUT_TYPE']} not recognized.")
         return None
@@ -944,7 +947,9 @@ def select_active_from_frame(ds: SwiftestDataset, param: dict, framenum: int = -
     frame = ds.isel(time=[framenum])
     iframe = frame.isel(time=0).load()
 
-    if "name" in ds.dims:
+    if "ringbin" in ds.dims:
+        return frame
+    elif "name" in ds.dims:
         count_dim = "name"
     elif "id" in ds.dims:
         count_dim = "id"
@@ -1018,7 +1023,9 @@ def swiftest_xr2infile(
         frame = reorder_dims(frame)
 
         idx = ds.indexes
-        if "id" in idx:
+        if "ringbin" in idx:
+            unlimited_dims = ["time"]
+        elif "id" in idx:
             unlimited_dims = ["time", "id"]
         elif "name" in idx:
             unlimited_dims = ["time", "name"]
