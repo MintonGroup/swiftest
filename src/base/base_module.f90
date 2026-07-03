@@ -1,4 +1,4 @@
-! Copyright 2024 - The Minton Group at Purdue University
+! Copyright 2026 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -169,8 +169,11 @@ module base
       logical :: lradiation     = .false. 
          !! Include radiation effects (PR-drag + radiation pressure) on massive bodies
       logical :: lyarkovsky = .false. 
-         !! Turn on Yarkovsky effect 
-
+         !! Turn on Yarkovsky effect
+      logical :: lyarkovsky_schach = .false.
+         !! Turn on Yarkovsky-Schach effect 
+      character(STRMAX) :: ring_file            = RING_FILE
+         !! Name of binary file for ring data in Ringmoons
 
       ! Initial values to pass to the energy report subroutine (usually only used in the case of a restart, otherwise these will be 
       ! updated with initial conditions values)

@@ -1,4 +1,4 @@
-! Copyright 2025 - David Minton
+! Copyright 2026 - David Minton
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -265,6 +265,7 @@ contains
       ! Internals
       real(DP), dimension(NDIM)                   :: aoblcb, cbrot_rad
       integer(I4B) :: i, ntp
+      real(DP),dimension(NDIM) :: cbrot_rad
 
       if (self%nbody == 0) return
 

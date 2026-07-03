@@ -1,4 +1,4 @@
-! Copyright 2025 - David Minton
+! Copyright 2026 - David Minton
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -47,6 +47,7 @@ module swiftest
    use io_progress_bar
    use netcdf_io
    use solver
+   use laplace_coefficients
    !use advisor_annotate
    !$ use omp_lib
    implicit none
@@ -345,20 +346,20 @@ module swiftest
       real(DP),                dimension(:),   allocatable :: Gmass   
          !! Mass gravitational term G * mass (units GU * MU)
       real(DP),                dimension(:),   allocatable :: rhill   
-         !! Body mass (units MU)
+         !! Hill's radius (units DU)
       real(DP),                dimension(:),   allocatable :: renc    
          !! Critical radius for close encounters
       real(DP),                dimension(:),   allocatable :: radius  
          !! Body radius (units DU)
       real(DP),                dimension(:),   allocatable :: density 
          !! Body mass density - calculated internally (units MU / DU**3)
-      real(DP),                dimension(:), allocatable   :: albedo
+      real(DP),                dimension(:),   allocatable :: albedo
          !! Bond albedo for radiation acceleration calculations
-      real(DP),                dimension(:), allocatable   :: emissivity
+      real(DP),                dimension(:),   allocatable :: emissivity
          !! Emissivity for Yarkovsky acceleration calculations
-      real(DP),                dimension(:), allocatable   :: rot_k
+      real(DP),                dimension(:),   allocatable :: rot_k
          !! Constant based on rotation rate for yarkovsky calculations
-      real(DP),                dimension(:), allocatable   :: gamma
+      real(DP),                dimension(:),   allocatable :: gamma
          !! Thermal inertia for Yarkovsky calculations
       real(DP),                dimension(:,:), allocatable :: rbeg    
          !! Position at beginning of step
@@ -542,7 +543,7 @@ module swiftest
          !! Stores encounter history for later retrieval and saving to file
       class(collision_storage),   allocatable :: collision_history 
          !! Stores encounter history for later retrieval and saving to file
-      integer(I4B)                    :: maxid = -1             
+      integer(I4B)                    :: maxid = 0             
          !! The current maximum particle id number 
       real(DP)                        :: t = -1.0_DP            
          !! Integration current time

@@ -1,4 +1,4 @@
-! Copyright 2024 - The Minton Group at Purdue University
+! Copyright 2026 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -168,7 +168,7 @@ contains
       !! author: David A. Minton
       !!
       !! Step ACTIVE test particles ahead in the outer encounter region, setting up and calling the inner region
-      !!    integration if necessar
+      !!    integration if necessary
       !! 
       !! Adapted from Hal Levison's Swift routines rmvs3_step_out.f and rmvs3_step_out2.f
       !! Adapted from David E. Kaufmann's Swifter routines rmvs_step_out.f90 and rmvs_step_out2.f90

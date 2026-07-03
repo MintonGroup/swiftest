@@ -1,4 +1,4 @@
-!! Copyright 2024 - The Minton Group at Purdue University
+!! Copyright 2026 - The Minton Group at Purdue University
 !! This file is part of Swiftest.
 !! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 !! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -72,6 +72,7 @@ module globals
    character(*), parameter :: PL_TYPE_NAME = "Massive Body"
    character(*), parameter :: TP_TYPE_NAME = "Test Particle"
    character(*), parameter :: PL_TINY_TYPE_NAME = "Semi-Interacting Massive Body"
+   character(*), parameter :: SEED_TYPE_NAME = "Ringmoons Seed"
 
    ! OpenMP Parameters
    integer(I4B)            :: nthreads = 1 !! Number of OpenMP threads
@@ -128,6 +129,7 @@ module globals
    character(*), parameter :: TP_INFILE        = 'tp.in'
    character(*), parameter :: NC_INFILE        = 'init_cond.nc'
    character(*), parameter :: BIN_OUTFILE      = 'data.nc'
+   character(*), parameter :: RING_FILE        = 'ring.nc'
    integer(I4B), parameter :: BINUNIT          = 20 !! File unit number for the binary output file
    integer(I4B), parameter :: PARTICLEUNIT     = 44 !! File unit number for the binary particle info output file
    integer(I4B), parameter :: LUN              = 42 !! File unit number for files that are opened and closed within a single 
