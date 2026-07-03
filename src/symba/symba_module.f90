@@ -1,4 +1,4 @@
-! Copyright 2024 - The Minton Group at Purdue University
+! Copyright 2026 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -128,7 +128,7 @@ module symba
       integer(I4B)  :: irec = -1 
          !! nbody_system recursion level
    contains
-      procedure :: dealloic         => symba_util_dealloc_system          
+      procedure :: dealloc         => symba_util_dealloc_system          
          !! Deallocates all allocatables
       procedure :: initialize       => symba_util_setup_initialize_system 
          !! Performs SyMBA-specific initilization steps
@@ -276,24 +276,6 @@ module symba
             !! Current recursion depth
       end subroutine symba_util_set_renc
    
-      module subroutine symba_io_param_writer(self, unit, iotype, v_list, iostat, iomsg) 
-         implicit none
-         class(swiftest_parameters),intent(in)    :: self      
-            !! Current run configuration parameters with SyMBA additions
-         integer,                intent(in)    :: unit      
-            !! File unit number
-         character(len=*),       intent(in)    :: iotype    
-            !! Dummy argument passed to the  input/output procedure contains the text from the char-literal-constant, prefixed with DT. 
-                                                            
-            !!    If you do not include a char-literal-constant, the iotype argument contains only DT.
-         integer,                intent(in)    :: v_list(:) 
-            !! Not used in this procedure
-         integer,                intent(out)   :: iostat    
-            !! IO status code
-         character(len=*),       intent(inout) :: iomsg     
-            !! Message to pass if iostat /= 0
-      end subroutine symba_io_param_writer
-
       module subroutine symba_kick_getacch_int_pl(self, param)
          implicit none
          class(symba_pl),            intent(inout) :: self  

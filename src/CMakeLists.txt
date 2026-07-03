@@ -1,4 +1,4 @@
-# Copyright 2025 - David Minton
+# Copyright 2026 - David Minton
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -26,6 +26,7 @@ SET(STRICT_MATH_FILES
             ${SRC}/helio/helio_step.f90
             ${SRC}/misc/lambda_function_module.f90
             ${SRC}/misc/solver_module.f90
+            ${SRC}/misc/laplace_coefficient_module.f90
             ${SRC}/netcdf_io/netcdf_io_implementations.f90  
             ${SRC}/operator/operator_module.f90
             ${SRC}/operator/operator_cross.f90
@@ -41,6 +42,7 @@ SET(STRICT_MATH_FILES
             ${SRC}/swiftest/swiftest_kick.f90 
             ${SRC}/swiftest/swiftest_obl.f90    
             ${SRC}/swiftest/swiftest_orbel.f90
+            ${SRC}/swiftest/swiftest_radiation.f90
             ${SRC}/symba/symba_drift.f90
             ${SRC}/symba/symba_gr.f90
             ${SRC}/symba/symba_kick.f90
@@ -50,6 +52,8 @@ SET(STRICT_MATH_FILES
             ${SRC}/whm/whm_gr.f90
             ${SRC}/whm/whm_kick.f90
             ${SRC}/whm/whm_step.f90
+            ${SRC}/ringmoons/ringmoons_step.f90
+            ${SRC}/ringmoons/ringmoons_torque.f90
             ${SRC}/bindings/bindings_module.f90
 )
 
@@ -67,6 +71,8 @@ SET(FAST_MATH_FILES
             ${SRC}/helio/helio_module.f90
             ${SRC}/symba/symba_module.f90
             ${SRC}/shgrav/shgrav_module.f90
+            # ${SRC}/dust/dust_module.f90
+            ${SRC}/ringmoons/ringmoons_module.f90
             ${SRC}/collision/collision_check.f90  
             ${SRC}/collision/collision_regime.f90   
             ${SRC}/collision/collision_resolve.f90  
@@ -85,6 +91,8 @@ SET(FAST_MATH_FILES
             ${SRC}/symba/symba_util.f90
             ${SRC}/walltime/walltime_implementations.f90
             ${SRC}/whm/whm_util.f90
+            ${SRC}/ringmoons/ringmoons_util.f90
+            ${SRC}/ringmoons/ringmoons_io.f90
 )
 
 SET(COARRAY_FILES

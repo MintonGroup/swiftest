@@ -1,4 +1,4 @@
-! Copyright 2025 - David Minton
+! Copyright 2026 - David Minton
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -131,7 +131,7 @@ contains
          !> Define the maximum number of threads
          nthreads = 1            ! In the *serial* case
          ! TODO: This needs a better algorithm for determining when to use OMP
-         !$ if (nbody_system%pl%nbody > 100) then
+         !$ if ((param%integrator == INT_RINGMOONS) .or. (nbody_system%pl%nbody > 100)) then
          !$    nthreads = omp_get_max_threads() ! In the *parallel* case
          !$ end if
 #ifdef COARRAY

@@ -12,6 +12,7 @@ cdef extern from "core.h":
     void bindings_c_driver(char* integrator, char* param_file_name, char* display_style) nogil
     void bindings_orbel_el2xv(int nbody, double *mu, double *a, double *e, double *inc, double *capom, double *omega, double *capm, double *rx, double *ry, double *rz, double *vx, double *vy, double *vz) nogil
     void bindings_orbel_xv2el(int nbody, double *mu, double *rx, double *ry, double *rz, double *vx, double *vy, double *vz, double *a, double *e, double *inc, double *capom, double *omega, double *capm, double *varpi, double *lam, double *f, double *cape, double *capf) nogil
+    double bindings_laplace_coefficient(double alpha, double s, int j, int n) nogil
 
 def driver(integrator, param_file_name, display_style):
     b_integrator = bytes(integrator,'ascii') + b'\x00'
@@ -245,3 +246,26 @@ def xv2el(cnp.ndarray[cnp.float64_t, ndim=1] mu,
     return a_np, e_np, inc_np, capom_np, omega_np, capm_np, varpi_np, lam_np, f_np, cape_np, capf_np
 
 
+def laplace_coefficient(double alpha, double s, int j, int n):
+    """
+    Computes the Laplace coefficient b_s^(j)(alpha) and its derivatives using the recursive relations given in Murray & Dermott (1999), including the case where alpha is close to 1 where the G(y) series solution is used (i.e. the solution to problem 6.2).
+
+    Parameters
+    ----------
+    alpha : float
+        The ratio of the semi-major axes of the two bodies (a_inner/a_outer)
+    s : float
+        The order of the Laplace coefficient
+    j : int
+        The index of the Laplace coefficient
+    n : int
+        The order of the derivative. n=0 returns the Laplace coefficient itself, n=1 returns the first derivative, n=2 returns the second derivative, etc.
+
+    Returns
+    -------
+    float
+        The value of the Laplace coefficient or its derivative as specified by the input parameters
+    """
+    cdef double ans
+    ans = bindings_laplace_coefficient(alpha,s,j,n)
+    return ans

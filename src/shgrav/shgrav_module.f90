@@ -1,4 +1,4 @@
-! Copyright 2024 - The Minton Group at Purdue University
+! Copyright 2026 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -17,6 +17,31 @@ module shgrav
     public
 
     interface
+        module subroutine shgrav_g_acc_one(GMcb, r_0, phi_cb, rh, c_lm, g_sph, GMpl, aoblcb)
+        !! author: Kaustub P. Anand
+        !!
+        !! Calculate the acceleration terms for one pair of bodies given c_lm, theta, phi, r
+        implicit none
+        ! Arguments
+        real(DP), intent(in) :: GMcb 
+            !! GMass of the central body
+        real(DP), intent(in) :: r_0 
+            !! radius of the central body
+        real(DP), intent(in) :: phi_cb 
+            !! rotation phase angle of the central body
+        real(DP), intent(in), dimension(:) :: rh 
+            !! distance vector of body
+        real(DP), intent(in), dimension(:, :, :) :: c_lm 
+            !! Spherical Harmonic coefficients
+        real(DP), intent(out), dimension(NDIM) :: g_sph 
+            !! acceleration vector
+        real(DP), intent(in),  optional :: GMpl 
+            !! Mass of input body if it is not a test particle
+        real(DP), dimension(:), intent(inout), optional :: aoblcb
+            !! Barycentric acceleration of central body (only for massive input b
+
+        end subroutine shgrav_g_acc_one
+        
         module subroutine shgrav_acc(body, nbody_system)
             implicit none
             class(swiftest_body), intent(inout) :: body
