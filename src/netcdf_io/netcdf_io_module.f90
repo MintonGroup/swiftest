@@ -1,4 +1,4 @@
-! Copyright 2024 - The Minton Group at Purdue University
+! Copyright 2026 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -90,6 +90,10 @@ module netcdf_io
          !! name of the number of active fully interacting massive bodies variable (SyMBA)
       integer(I4B) :: nplm_varid 
          !! ID for the number of active fully interacting massive bodies variable (SyMBA)
+      character(NAMELEN) :: nseed_varname = "nseed"
+         !! name of the number of active seeds (Ringmoons)
+      integer(I4B) :: nseed_varid 
+         !! ID for the number of active seeds (Ringmoons)
       character(NAMELEN) :: a_varname = "a"
          !! name of the semimajor axis variable 
       integer(I4B) :: a_varid 
@@ -182,6 +186,22 @@ module netcdf_io
          !! name for the c_lm array
       integer(I4B) :: c_lm_varid 
          !! ID for the c_lm aqrray
+      character(NAMELEN) :: albedo_varname = "albedo"
+         !! name of the albedo variable
+      integer(I4B) :: albedo_varid 
+         !! ID for the albedo variable
+      character(NAMELEN) :: emissivity_varname = "emissivity"
+         !! name of the emissivity variable
+      integer(I4B) :: emissivity_varid 
+         !! ID for the emissivity variable
+      character(NAMELEN) :: rot_k_varname = "rot_k"
+         !! name of the rotational constant k for yarkovsky effects
+      integer(I4B) :: rot_k_varid
+         !! ID for the rotational constant k for yarkovsky effects
+      character(NAMELEN) :: gamma_varname = "gamma"
+         !! name of the thermal inertia parameter for yarkovsky effects
+      integer(I4B) :: gamma_varid
+         !! ID for the thermal inertia parameter for yarkovsky effects
       character(NAMELEN) :: k2_varname = "k2"
          !! name of the Love number variable
       integer(I4B) :: k2_varid 
@@ -310,11 +330,23 @@ module netcdf_io
          !! Finds the id dimension index for a given value of id
       procedure :: get_idvals  => netcdf_io_get_idvals 
          !! Gets the valid id numbers currently stored in this dataset
+      procedure :: add_new_var => netcdf_io_add_new_var
+         !! Adds a new variable to an existing open dataset by combining inq_varid, redef, def_var, and def_var_fill commands in one
       procedure :: sync        => netcdf_io_sync        
          !! Syncrhonize the disk and memory buffer of the NetCDF file (e.g. commit the frame files stored in memory to disk) 
    end type netcdf_parameters
 
    interface
+      module subroutine netcdf_io_add_new_var(self, name, xtype, dimids, varid, call_identifier)
+         implicit none
+         class(netcdf_parameters), intent(inout) :: self
+         character(len=*), intent(in) :: name
+         integer, intent(in) :: xtype
+         integer, dimension(:), intent(in) :: dimids
+         integer, intent(out) :: varid
+         character(len=*), intent(in) :: call_identifier
+      end subroutine netcdf_io_add_new_var
+
       module subroutine netcdf_io_check(status, call_identifier)
          implicit none
          integer, intent (in) :: status 
@@ -360,7 +392,7 @@ module netcdf_io
          class(netcdf_parameters), intent(inout) :: self 
             !! Parameters used to identify a particular NetCDF dataset
       end subroutine netcdf_io_sync
-   end interface 
 
+   end interface 
 
 end module netcdf_io

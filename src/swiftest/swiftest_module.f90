@@ -1,4 +1,4 @@
-! Copyright 2025 - David Minton
+! Copyright 2026 - David Minton
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -47,6 +47,7 @@ module swiftest
    use io_progress_bar
    use netcdf_io
    use solver
+   use laplace_coefficients
    !use advisor_annotate
    !$ use omp_lib
    implicit none
@@ -235,6 +236,8 @@ module swiftest
          !! A constructor that sets the number of bodies and allocates all allocatable arrays
       procedure :: accel_user      => swiftest_user_kick_getacch_body       
          !! Add user-supplied heliocentric accelerations to planets
+      ! procedure :: accel_radiation => radiation_getacch_pl
+      !    !! Compute the heliocentric accelerations of bodies due to radiation pressure and Poynting-Robertson drag
       procedure :: append          => swiftest_util_append_body             
          !! Appends elements from one structure to another
       procedure :: dealloc         => swiftest_util_dealloc_body            
@@ -343,13 +346,21 @@ module swiftest
       real(DP),                dimension(:),   allocatable :: Gmass   
          !! Mass gravitational term G * mass (units GU * MU)
       real(DP),                dimension(:),   allocatable :: rhill   
-         !! Body mass (units MU)
+         !! Hill's radius (units DU)
       real(DP),                dimension(:),   allocatable :: renc    
          !! Critical radius for close encounters
       real(DP),                dimension(:),   allocatable :: radius  
          !! Body radius (units DU)
       real(DP),                dimension(:),   allocatable :: density 
          !! Body mass density - calculated internally (units MU / DU**3)
+      real(DP),                dimension(:),   allocatable :: albedo
+         !! Bond albedo for radiation acceleration calculations
+      real(DP),                dimension(:),   allocatable :: emissivity
+         !! Emissivity for Yarkovsky acceleration calculations
+      real(DP),                dimension(:),   allocatable :: rot_k
+         !! Constant based on rotation rate for yarkovsky calculations
+      real(DP),                dimension(:),   allocatable :: gamma
+         !! Thermal inertia for Yarkovsky calculations
       real(DP),                dimension(:,:), allocatable :: rbeg    
          !! Position at beginning of step
       real(DP),                dimension(:,:), allocatable :: rend    
@@ -359,7 +370,7 @@ module swiftest
       real(DP),                dimension(:,:), allocatable :: Ip      
          !! Unitless principal moments of inertia (I1, I2, I3) / (MR**2). Principal axis rotation assumed. 
       real(DP),                dimension(:,:), allocatable :: rot     
-         !! Body rotation vector in inertial coordinate frame (units rad / TU)
+         !! Body rotation vector in inertial coordinate frame (units deg / TU)
       real(DP),                dimension(:),   allocatable :: k2      
          !! Tidal Love number
       real(DP),                dimension(:),   allocatable :: Q       
@@ -396,6 +407,8 @@ module swiftest
          !! Compute direct cross (third) term heliocentric accelerations of massive bodies
       procedure :: accel_non_spherical_cb => swiftest_non_spherical_cb_acc_pl             
          !! Compute the barycentric accelerations of bodies due to the oblateness of the central body
+      procedure :: accel_radiation => swiftest_radiation_getacch_pl
+      !    !! Compute the heliocentric accelerations of bodies due to radiation pressure and Poynting-Robertson drag
       procedure :: setup => swiftest_util_setup_pl          
          !! A base constructor that sets the number of bodies and allocates and initializes all arrays  
       ! procedure :: accel_tides    => tides_kick_getacch_pl           
@@ -530,7 +543,7 @@ module swiftest
          !! Stores encounter history for later retrieval and saving to file
       class(collision_storage),   allocatable :: collision_history 
          !! Stores encounter history for later retrieval and saving to file
-      integer(I4B)                    :: maxid = -1             
+      integer(I4B)                    :: maxid = 0             
          !! The current maximum particle id number 
       real(DP)                        :: t = -1.0_DP            
          !! Integration current time
@@ -1761,6 +1774,66 @@ module swiftest
          logical,                           intent(in)    :: lbeg   
             !! Optional argument that determines whether or not this is the beginning or end of the step
       end subroutine swiftest_user_kick_getacch_body
+   end interface
+
+   interface 
+      module subroutine swiftest_yarkovsky_getacch_pl_one(lag_angle_constants, mu, mass, radius, r_vec, v_vec, rot, a, emissivity, gamma, albedo, rot_k, L_SUN_sys, inv_c2, a_yark)
+        !! author: Kaustub P. Anand and David A. Minton
+        !! Calculate the Yarkovsky effect on one body 
+        !!
+        implicit none
+        ! Arguments
+        real(DP), intent(in)                        :: lag_angle_constants, L_SUN_sys, inv_c2
+            !! constants and parameters needed for Yarkovsky calculations
+        real(DP), intent(in)                        :: emissivity, gamma, albedo, rot_k
+            !! particle characteristics for Yarkovsky calculations
+        real(DP), intent(in)                        :: a, mass, radius, mu
+            !! semi-major axis, mass, radius, and mu of the particle
+        real(DP), dimension(NDIM), intent(in)       :: r_vec, v_vec
+            !! position and velocity vectors of the particle
+        real(DP), dimension(NDIM), intent(in)       :: rot
+            !! rotation vector of the particle
+        real(DP), dimension(NDIM), intent(out)      :: a_yark 
+            !! Yarkovsky acceleration vector
+
+      end subroutine swiftest_yarkovsky_getacch_pl_one
+
+      module subroutine swiftest_yarkovsky_getacch_pl_all(nbody, lmask, mu, mass, radius, r_vec, v_vec, acc, rot, a, emissivity, gamma, albedo, rot_k, L_SUN_sys, inv_c2, sigma_sys, yark_radius_threshold_sys)
+        !! author: Kaustub P. Anand and David A. Minton
+        !! Loop over all bodies to calculate the Yarkovsky effect. 
+        !!
+        implicit none
+        ! Arguments
+        integer(I4B), intent(in)                        :: nbody
+            !! number of bodies in the system)
+        logical, dimension(:), intent(in)          :: lmask
+            !! logical mask for active bodies in the system
+        real(DP), intent(in)                            :: L_SUN_sys, inv_c2, sigma_sys, yark_radius_threshold_sys
+            !! constants and parameters needed for Yarkovsky calculations
+        real(DP), dimension(:), intent(in)              :: emissivity, gamma, albedo, rot_k
+            !! particle characteristics for Yarkovsky calculations
+        real(DP), dimension(:), intent(in)              :: a, mass, radius, mu
+            !! semi-major axis, mass, radius, and mu of the particle
+        real(DP), dimension(:, :), intent(in)           :: r_vec, v_vec
+            !! position and velocity vectors of the particle
+        real(DP), dimension(:, :), intent(in)           :: rot
+            !! rotation vector of the particle
+        real(DP), dimension(:, :), intent(inout)        :: acc
+            !! Acceleration vector for all bodies
+      end subroutine swiftest_yarkovsky_getacch_pl_all
+
+      module subroutine swiftest_radiation_getacch_pl(self, nbody_system, param)
+         implicit none
+         ! Arguments
+      class(swiftest_pl),         intent(inout) :: self
+         !! Swiftest body object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param
+         !! Current run configuration parameters
+
+      end subroutine swiftest_radiation_getacch_pl
+
    end interface
 
    interface util_append

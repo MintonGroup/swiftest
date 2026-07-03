@@ -15,7 +15,6 @@ tqdm
 cython>=3
 ipykernel
 sphinx
-sphinx-autosummary-accessors
 sphinx-book-theme >= 0.3.0
 sphinx-copybutton
 sphinx-design

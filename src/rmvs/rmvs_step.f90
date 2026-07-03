@@ -1,4 +1,4 @@
-! Copyright 2024 - The Minton Group at Purdue University
+! Copyright 2026 - The Minton Group at Purdue University
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -9,6 +9,7 @@
 
 submodule(rmvs) s_rmvs_step
    use swiftest
+   use shgrav
 contains
 
    module subroutine rmvs_step_system(self, param, t, dt)
@@ -167,7 +168,7 @@ contains
       !! author: David A. Minton
       !!
       !! Step ACTIVE test particles ahead in the outer encounter region, setting up and calling the inner region
-      !!    integration if necessar
+      !!    integration if necessary
       !! 
       !! Adapted from Hal Levison's Swift routines rmvs3_step_out.f and rmvs3_step_out2.f
       !! Adapted from David E. Kaufmann's Swifter routines rmvs_step_out.f90 and rmvs_step_out2.f90
@@ -188,7 +189,7 @@ contains
       real(DP),                   intent(in)    :: dt     
          !! Current stepsiz
       ! Internals
-      integer(I4B)                              :: outer_index, j
+      integer(I4B)                              :: outer_index, j, i
       real(DP)                                  :: dto, outer_time
       logical                                   :: lencounter, lfirsttp
 
@@ -217,10 +218,21 @@ contains
                tp%lfirst = lfirsttp
             else
                if (param%lnon_spherical_cb) then
-                  call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rbeg, pl%lmask, pl%outer(outer_index-1)%aobl, cb%rot,&
-                                        pl%Gmass, cb%aoblbeg)
-                  call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rend, pl%lmask, pl%outer(outer_index)%aobl, cb%rot, &
-                                        pl%Gmass, cb%aoblend)
+                  if (allocated(cb%c_lm)) then
+                     do i = 1, npl
+                        if (pl%lmask(i)) then
+                           call shgrav_g_acc_one(cb%Gmass, cb%radius, cb%rotphase*DEG2RAD, pl%rbeg(:,i), cb%c_lm, pl%outer(outer_index-1)%aobl, &
+                               GMpl=pl%Gmass(i), aoblcb=cb%aobl)
+                           call shgrav_g_acc_one(cb%Gmass, cb%radius, cb%rotphase*DEG2RAD, pl%rend(:,i), cb%c_lm, pl%outer(outer_index)%aobl, &
+                               GMpl=pl%Gmass(i), aoblcb=cb%aobl)
+                        end if
+                      end do
+                  else
+                     call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rbeg, pl%lmask, pl%outer(outer_index-1)%aobl, cb%rot,&
+                                           pl%Gmass, cb%aoblbeg)
+                     call swiftest_obl_acc(npl, cb%Gmass, cb%j2rp2, cb%j4rp4, pl%rend, pl%lmask, pl%outer(outer_index)%aobl, cb%rot, &
+                                           pl%Gmass, cb%aoblend)
+                  end if
                end if
                call tp%step(nbody_system, param, outer_time, dto)
             end if

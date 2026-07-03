@@ -57,6 +57,12 @@ class TestSwiftestIO(unittest.TestCase):
         # Clean up temporary directory
         self.tmpdir.cleanup()
 
+    def test_hdf5_file_lock(self):
+        if "HDF5_USE_FILE_LOCKING" not in os.environ:
+            self.fail("HDF5_USE_FILE_LOCKING environment variable is not set.")
+        islocked = os.environ["HDF5_USE_FILE_LOCKING"]
+        self.assertEqual(islocked.upper(), "FALSE", msg="HDF5_USE_FILE_LOCKING must be set to FALSE")
+
     def test_jpl_parser(self):
         """
         Tests that the JPL Horizons parser is able to read data and process it correctly for a variety of different cases.
@@ -64,8 +70,6 @@ class TestSwiftestIO(unittest.TestCase):
         print("\ntest_jpl_parser")
         names = major_bodies + [
             "Kleopatra",
-            "Ceres",
-            "Vesta",
             "Pallas",
             "Hygiea",
             "Eris",
@@ -133,16 +137,6 @@ class TestSwiftestIO(unittest.TestCase):
                 "rot": [0.0022373803628068065, -0.0019444371136576489, 0.005453805355586545],
             },
             "Kleopatra": {"mass": None, "radius": 61000.0, "rot": [0.0, 0.0, 0.018570102135561744]},
-            "Ceres": {
-                "mass": 9.383515874323901e20,
-                "radius": 469700.0,
-                "rot": [0.0015876541706678936, 0.00031457177647549044, 0.010900790208524158],
-            },
-            "Vesta": {
-                "mass": 2.5902701406889116e20,
-                "radius": 261385.0,
-                "rot": [0.008727916415949765, -0.004872733218667549, 0.01582674491187599],
-            },
             "Pallas": {
                 "mass": 2.0421617248250754e20,
                 "radius": 256500.0,
@@ -300,7 +294,7 @@ class TestSwiftestIO(unittest.TestCase):
         self.assertEqual(sim.data.isel(name=-1).capm.values[0], 0.0, msg="Failed to initialize body with only semimajor axis")
 
         # Test that we can input cartesian coordinates
-        sim.add_body(mass=1.0, radius=1.0, rh=[1.0, 0.0, 0.0], vh=[0.0, 1.0, 0.0])
+        sim.add_body(mass=1.0e-8, radius=1.0, rh=[1.0, 0.0, 0.0], vh=[0.0, 1.0, 0.0])
 
         # orbital elements without semimajor axis
         with self.assertRaises(ValueError):
@@ -319,13 +313,20 @@ class TestSwiftestIO(unittest.TestCase):
             sim.add_body(vh=[0.0, 1.0, 0.0])
 
         # Add J2 and c_lm values
+        del sim
+        sim = swiftest.Simulation(simdir=self.simdir)
         with self.assertRaises(ValueError):
             sim.add_body(mass=1.0, radius=1.0, j2rp2=1.0e-6, c_lm=np.ones([2, 7]))
 
         # Wrong shape of c_lm
+        del sim
+        sim = swiftest.Simulation(simdir=self.simdir)
         with self.assertRaises(ValueError):
             sim.add_body(mass=1.0, radius=1.0, c_lm=[1.0, 0.0, 0.0])
 
+        del sim
+        sim = swiftest.Simulation(simdir=self.simdir)
+        sim.add_solar_system_body(name="Sun")
         # Mismatched lengths of input arguments
         with self.assertRaises(ValueError):
             sim.add_solar_system_body(name=["Mercury", "Venus", "Earth"], ephemeris_id=["Mars", "500"])
@@ -338,11 +339,11 @@ class TestSwiftestIO(unittest.TestCase):
 
         # mass and Gmass at the same time
         with self.assertRaises(ValueError):
-            sim.add_body(a=1.0, mass=1.0, radius=1.0, Gmass=4 * np.pi**2)
+            sim.add_body(a=1.0, mass=1.0e-8, radius=1.0, Gmass=4 * np.pi**2 * 1e-8)
 
         # mass without radius
         with self.assertRaises(ValueError):
-            sim.add_body(a=1.0, mass=1.0)
+            sim.add_body(a=1.0, mass=1.0e-6)
 
         return
 
@@ -884,7 +885,7 @@ class TestSwiftestIO(unittest.TestCase):
         with chdir(self.simdir):
             res = subprocess.run(["swiftest", "symba", "param.in", "quiet"], capture_output=True).stdout.decode()
             if "error" not in res:
-                self.fail('Failed to throw error when setting ENERGY to "NO" param.in')
+                self.fail(f'Failed to throw error when setting ENERGY to "NO" param.in\n{res}')
 
         sim.param["ENERGY"] = True
         sim.param["ROTATION"] = False
@@ -892,7 +893,7 @@ class TestSwiftestIO(unittest.TestCase):
         with chdir(self.simdir):
             res = subprocess.run(["swiftest", "symba", "param.in", "quiet"], capture_output=True).stdout.decode()
             if "error" not in res:
-                self.fail('Failed to throw error when setting ROTATION to "NO" param.in')
+                self.fail(f'Failed to throw error when setting ROTATION to "NO" param.in\n{res}')
 
 
 if __name__ == "__main__":

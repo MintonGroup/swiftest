@@ -2,7 +2,7 @@
 #
 # This gets the current gfortran version number
 # 
-# Copyright 2025 - David Minton
+# Copyright 2026 - David Minton
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -16,7 +16,7 @@ case $FC in
       OMPI_FC="$(command -v ifort || command -v ifx)"
       ;;
     *"gfortran"*|*"mpifort")
-      OMPI_FC="$(command -v gfortran-15 || command -v gfortran-14 || command -v gfortran-13 || command -v gfortran-12 || command -v gfortran)"
+      OMPI_FC="$(command -v gfortran || command -v gfortran-17 || command -v gfortran-15 || command -v gfortran-14 || command -v gfortran-13 || command -v gfortran-12)"
       ;;
     *)
       "No Fortran compiler found"
