@@ -1,4 +1,4 @@
-! Copyright 2025 - David Minton
+! Copyright 2026 - David Minton
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -9,6 +9,7 @@
 
 submodule (swiftest) s_swiftest_io
    use symba
+   use ringmoons
    use netcdf
 contains
 
@@ -130,8 +131,7 @@ contains
       real(DP), dimension(NDIM)       :: L_total_now,  L_orbit_now,  L_rot_now
       real(DP)                        :: ke_orbit_now,  ke_rot_now,  pe_now,  E_orbit_now, be_now, be_cb_now, be_cb_orig, te_now
       real(DP)                        :: GMtot_now
-      character(len=*), parameter     :: EGYTERMFMT = '(" DL/L0 = ", ES12.5, "; DE_orbit/|E0| = ", ES12.5,' &
-                                                     //'"; DE_total/|E0| = ", ES12.5, "; DM/M0 = ", ES12.5)'
+      character(len=*), parameter     :: EGYTERMFMT = '(" DL/L0 = ", ES12.5, "; DE/|E0| = ", ES12.5, "; DM/M0 = ", ES12.5)'
 
       associate(nbody_system => self, pl => self%pl, cb => self%cb, npl => self%pl%nbody, display_unit => param%display_unit)
          call nbody_system%get_energy_and_momentum(param) 
@@ -190,8 +190,7 @@ contains
    if (this_image() == 1 .or. param%log_output) then
 #endif 
             if (lterminal) then
-               write(display_unit, EGYTERMFMT) nbody_system%L_total_error, nbody_system%E_orbit_error, nbody_system%te_error, &
-                                               nbody_system%Mtot_error
+               write(display_unit, EGYTERMFMT) nbody_system%L_total_error, nbody_system%te_error, nbody_system%Mtot_error
                if (param%log_output) flush(display_unit)
             end if
 
@@ -231,11 +230,15 @@ contains
                                              '"; Number of active pl, tp = ", I6, ", ", I6)'
       character(*), parameter :: co_symbastatfmt = '("Image: ",I4, "; Image: Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
                                                 '"; Number of active pl, plm, tp = ", I6, ", ", I6, ", ", I6)'
+      character(*), parameter :: co_ringmoonstatfmt = '("Image: ",I4, "; Image: Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
+                                                '"; Number of active pl, plm, tp = ", I6, ", ", I6, ", ", I6, ", ", I6)'
 #endif
       character(*), parameter :: statusfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // & 
                                              '"; Number of active pl, tp = ", I6, ", ", I6)'
       character(*), parameter :: symbastatfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
                                                 '"; Number of active pl, plm, tp = ", I6, ", ", I6, ", ", I6)'
+      character(*), parameter :: ringmoonstatfmt = '("Time = ", ES12.5, "; fraction done = ", F6.3, ' // &
+                                                '"; Number of active pl, plm, tp, seeds = ", I6, ", ", I6, ", ", I6, ", ", I6)'
       character(*), parameter :: pbarfmt = '("Time = ", ES12.5," of ",ES12.5)'
 
 ! The following will syncronize the images so that they report in order, and only write to file one at at ime
@@ -286,27 +289,38 @@ contains
          call self%compact_output(param,integration_timer)
       end if
 
-      if (param%lmtiny_pl) then
+      select type(nbody_system => self)
+      class is (ringmoons_nbody_system)
 #ifdef COARRAY
          if (param%lcoarray) then
-            write(param%display_unit, co_symbastatfmt) this_image(),self%t, tfrac, self%pl%nbody, self%pl%nplm, self%tp%nbody
+            write(param%display_unit, co_ringmoonstatfmt) this_image(),nbody_system%t, tfrac, nbody_system%pl%nbody, nbody_system%pl%nplm, nbody_system%tp%nbody, nbody_system%seed%nbody
          else
 #endif
-            write(param%display_unit, symbastatfmt) self%t, tfrac, self%pl%nbody, self%pl%nplm, self%tp%nbody
+            write(param%display_unit, ringmoonstatfmt) nbody_system%t, tfrac, nbody_system%pl%nbody, nbody_system%pl%nplm, nbody_system%tp%nbody, nbody_system%seed%nbody
 #ifdef COARRAY
          end if
 #endif
-      else
+      class is (symba_nbody_system)
 #ifdef COARRAY
          if (param%lcoarray) then
-            write(param%display_unit, co_statusfmt) this_image(),self%t, tfrac, self%pl%nbody, self%tp%nbody
+            write(param%display_unit, co_symbastatfmt) this_image(),nbody_system%t, tfrac, nbody_system%pl%nbody, nbody_system%pl%nplm, nbody_system%tp%nbody
          else
 #endif
-            write(param%display_unit, statusfmt) self%t, tfrac, self%pl%nbody, self%tp%nbody
+            write(param%display_unit, symbastatfmt) nbody_system%t, tfrac, nbody_system%pl%nbody, nbody_system%pl%nplm, nbody_system%tp%nbody
 #ifdef COARRAY
          end if
 #endif
-      end if
+      class default
+#ifdef COARRAY
+         if (param%lcoarray) then
+            write(param%display_unit, co_statusfmt) this_image(),nbody_system%t, tfrac, nbody_system%pl%nbody, nbody_system%tp%nbody
+         else
+#endif
+            write(param%display_unit, statusfmt) nbody_system%t, tfrac, nbody_system%pl%nbody, nbody_system%tp%nbody
+#ifdef COARRAY
+         end if
+#endif
+      end select
 
 #ifdef COARRAY
       if (this_image() == num_images() .or. param%log_output) then
@@ -417,8 +431,8 @@ contains
       !! cadence is not divisible by the total number of loops).
       implicit none
       ! Arguments
-      class(swiftest_storage),   intent(inout)        :: self   !! Swiftest simulation history storage object
-      class(swiftest_parameters),   intent(inout)     :: param  !! Current run configuration parameters 
+      class(swiftest_storage),    intent(inout) :: self   !! Swiftest simulation history storage object
+      class(swiftest_parameters), intent(inout) :: param  !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: i
 #ifdef COARRAY
@@ -802,12 +816,14 @@ contains
    module subroutine swiftest_io_netcdf_initialize_output(self, param)
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
-      !! Initialize a NetCDF file nbody_system and defines all variables.
+      !! Initialize a NetCDF file nbody_system and define all variables.
       use, intrinsic :: ieee_arithmetic
       implicit none
       ! Arguments
-      class(swiftest_netcdf_parameters), intent(inout) :: self  !! Parameters used to for writing a NetCDF dataset to file
-      class(swiftest_parameters),        intent(in)    :: param !! Current run configuration parameters 
+      class(swiftest_netcdf_parameters), intent(inout) :: self 
+         !! Parameters used to for writing a NetCDF dataset to file
+      class(swiftest_parameters),        intent(in)    :: param 
+         !! Current run configuration parameters 
       ! Internals
       integer(I4B) :: nvar, varid, vartype
       real(DP) :: dfill
@@ -994,12 +1010,23 @@ contains
                         
          end if
 
-         ! if (param%ltides) then
-         !    call netcdf_io_check( nf90_def_var(nc%id, nc%k2_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%k2_varid), &
-         !                        "netcdf_io_initialize_output nf90_def_var k2_varid"  )
-         !    call netcdf_io_check( nf90_def_var(nc%id, nc%q_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%Q_varid), &
-         !                        "netcdf_io_initialize_output nf90_def_var Q_varid"  )
-         ! end if
+         if (param%lyarkovsky) then
+            call netcdf_io_check( nf90_def_var(nc%id, nc%albedo_varname, nc%out_type, nc%name_dimid, nc%albedo_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var albedo_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%emissivity_varname, nc%out_type, nc%name_dimid, nc%emissivity_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var emissivity_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%rot_k_varname, nc%out_type, nc%name_dimid, nc%rot_k_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var rot_k_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%gamma_varname, nc%out_type, nc%name_dimid, nc%gamma_varid), &
+                                  "netcdf_io_initialize_output nf90_def_var gamma_varid"  )
+         end if
+
+         if (param%ltides) then
+            call netcdf_io_check( nf90_def_var(nc%id, nc%k2_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%k2_varid), &
+                                "netcdf_io_initialize_output nf90_def_var k2_varid"  )
+            call netcdf_io_check( nf90_def_var(nc%id, nc%q_varname, nc%out_type, [nc%name_dimid, nc%time_dimid], nc%Q_varid), &
+                                "netcdf_io_initialize_output nf90_def_var Q_varid"  )
+         end if
 
          if (param%lenergy) then
             call netcdf_io_check( nf90_def_var(nc%id, nc%ke_orbit_varname, nc%out_type, nc%time_dimid, nc%KE_orb_varid), &
@@ -1210,17 +1237,25 @@ contains
             ! rotphase may not be input by the user                      
             status = nf90_inq_varid(nc%id, nc%rotphase_varname, nc%rotphase_varid)
 
-            ! call netcdf_io_check( nf90_inq_varid(nc%id, nc%rotphase_varname, nc%rotphase_varid), &
-            !                       "swiftest_io_netcdf_open nf90_inq_varid rotphase_varid")
-                                   
          end if
 
-         ! if (param%ltides) then
-         !    call netcdf_io_check( nf90_inq_varid(nc%id, nc%k2_varname, nc%k2_varid), &
-         !                         "swiftest_io_netcdf_open nf90_inq_varid k2_varid" )
-         !    call netcdf_io_check( nf90_inq_varid(nc%id, nc%q_varname, nc%Q_varid), &
-         !                         "swiftest_io_netcdf_open nf90_inq_varid Q_varid" )
-         ! end if
+         if (param%lyarkovsky) then
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%albedo_varname, nc%albedo_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid albedo_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%emissivity_varname, nc%emissivity_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid emissivity_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%rot_k_varname, nc%rot_k_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid rot_k_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%gamma_varname, nc%gamma_varid), &
+                                  "swiftest_io_netcdf_open nf90_inq_varid gamma_varid" )
+         end if
+
+         if (param%ltides) then
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%k2_varname, nc%k2_varid), &
+                                 "swiftest_io_netcdf_open nf90_inq_varid k2_varid" )
+            call netcdf_io_check( nf90_inq_varid(nc%id, nc%q_varname, nc%Q_varid), &
+                                 "swiftest_io_netcdf_open nf90_inq_varid Q_varid" )
+         end if
 
          ! Optional variables The User Doesn't Need to Know About
          status = nf90_inq_varid(nc%id, nc%mass_varname, nc%mass_varid)
@@ -1298,6 +1333,7 @@ contains
       logical, dimension(:), allocatable :: lvalid
       integer(I4B) :: idmax, status
       logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
+      character(len=NAMELEN), dimension(:), allocatable :: ctemp
 
       call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)  ! Save the current halting modes so we can turn them off temporarily
       call ieee_set_halting_mode(IEEE_ALL,.false.)
@@ -1309,6 +1345,9 @@ contains
       allocate(tpmask(idmax))
       allocate(plmask(idmax))
       allocate(lvalid(idmax))
+      tpmask(:) = .false.
+      plmask(:) = .false.
+      lvalid(:) = .false.
       associate(tslot => self%tslot)
 
          call netcdf_io_check( nf90_get_var(self%id, self%Gmass_varid, Gmass, start=[1,tslot], count=[idmax,1]), &
@@ -1340,21 +1379,31 @@ contains
             end if
          end if
 
-         plmask(:) = ieee_is_normal(Gmass(:))
-         where(plmask(:)) plmask(:) = Gmass(:) > 0.0_DP
-         tpmask(:) = .not. plmask(:)
-         plmask(1) = .false. ! This is the central body
-
+         allocate(ctemp(idmax))
+         status = nf90_get_var(self%id, self%ptype_varid, ctemp, count=[NAMELEN, idmax])
+         if (status == NF90_NOERR) then
+            where(ctemp(:) == PL_TYPE_NAME) plmask(:) = .true.
+            where(ctemp(:) == PL_TINY_TYPE_NAME) plmask(:) = .true.
+            where(ctemp(:) == TP_TYPE_NAME) tpmask(:) = .true.
+         else
+            plmask(:) = ieee_is_normal(Gmass(:))
+            where(plmask(:)) plmask(:) = Gmass(:) > 0.0_DP
+            tpmask(:) = .not. plmask(:)
+            plmask(1) = .false. ! This is the central body
+         end if 
          ! Select only active bodies
          plmask(:) = plmask(:) .and. lvalid(:)
          tpmask(:) = tpmask(:) .and. lvalid(:)
 
          if (present(plmmask) .and. present(Gmtiny)) then
             allocate(plmmask, source=plmask)
-            where(plmask(:))
-               plmmask = Gmass(:) > Gmtiny
-            endwhere
+            if (status == NF90_NOERR) then
+               where(ctemp(:) == PL_TINY_TYPE_NAME) plmmask(:) = .FALSE.
+            else
+               where(plmask(:)) plmmask = Gmass(:) > Gmtiny
+            end if
          end if
+         deallocate(ctemp)
 
          call ieee_set_halting_mode(IEEE_ALL,fpe_halting_modes)
 
@@ -1536,6 +1585,7 @@ contains
             if (npl > 0) pl%radius(:) = 0.0_DP
          end if
          cb%R0 = cb%radius
+         cb%density = cb%mass / (4.0_DP / 3.0_DP * PI * cb%radius**3)
 
          if (param%lrotation) then
             call netcdf_io_check( nf90_get_var(nc%id, nc%Ip_varid,  vectemp, start=[1, 1, tslot], count=[NDIM,idmax,1]), &
@@ -1614,17 +1664,39 @@ contains
 
          end if
 
-         ! if (param%ltides) then
-         !    call netcdf_io_check( nf90_get_var(nc%id, nc%k2_varid, rtemp, start=[1, tslot]), &
-         !                        "netcdf_io_read_frame_system nf90_getvar k2_varid"  )
-         !    cb%k2 = rtemp(1)
-         !    if (npl > 0) pl%k2(:) = pack(rtemp, plmask)
+         if (param%lyarkovsky) then
+            call netcdf_io_check( nf90_get_var(nc%id, nc%albedo_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar albedo_varid"  )
+            if (.not.allocated(pl%albedo)) allocate(pl%albedo(npl))
+            if (npl > 0) pl%albedo(:) = pack(rtemp, plmask)
 
-         !    call netcdf_io_check( nf90_get_var(nc%id, nc%Q_varid,  rtemp,  start=[1, tslot]), &
-         !                        "netcdf_io_read_frame_system nf90_getvar Q_varid"  )
-         !    cb%Q = rtemp(1)
-         !    if (npl > 0) pl%Q(:) = pack(rtemp, plmask)
-         ! end if
+            call netcdf_io_check( nf90_get_var(nc%id, nc%emissivity_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar emissivity_varid"  )
+            if (.not.allocated(pl%emissivity)) allocate(pl%emissivity(npl))
+            if (npl > 0) pl%emissivity(:) = pack(rtemp, plmask)
+
+            call netcdf_io_check( nf90_get_var(nc%id, nc%rot_k_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar rot_k_varid"  )
+            if (.not.allocated(pl%rot_k)) allocate(pl%rot_k(npl))
+            if (npl > 0) pl%rot_k(:) = pack(rtemp, plmask)
+
+            call netcdf_io_check( nf90_get_var(nc%id, nc%gamma_varid, rtemp, start=[1, tslot], count=[idmax,1]), &
+                                  "netcdf_io_read_frame_system nf90_getvar gamma_varid"  )
+            if (.not.allocated(pl%gamma)) allocate(pl%gamma(npl))
+            if (npl > 0) pl%gamma(:) = pack(rtemp, plmask)
+         end if
+
+         if (param%ltides) then
+            call netcdf_io_check( nf90_get_var(nc%id, nc%k2_varid, rtemp, start=[1, tslot]), &
+                                "netcdf_io_read_frame_system nf90_getvar k2_varid"  )
+            cb%k2 = rtemp(1)
+            if (npl > 0) pl%k2(:) = pack(rtemp, plmask)
+
+            call netcdf_io_check( nf90_get_var(nc%id, nc%Q_varid,  rtemp,  start=[1, tslot]), &
+                                "netcdf_io_read_frame_system nf90_getvar Q_varid"  )
+            cb%Q = rtemp(1)
+            if (npl > 0) pl%Q(:) = pack(rtemp, plmask)
+         end if
 
          call self%read_particle_info(nc, param, plmask, tpmask) 
 
@@ -1970,11 +2042,11 @@ contains
       !! author: Carlisle A. Wishard, Dana Singh, and David A. Minton
       !!
       !! Write a frame of output of either test particle or massive body data to the binary output file
-      !!    Note: If outputting to orbital elements, but sure that the conversion is done prior to calling this method
+      !!    Note: If outputting to orbital elements, make sure that the conversion is done prior to calling this method
       implicit none
       ! Arguments
       class(swiftest_body),              intent(in)    :: self  !! Swiftest base object
-      class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to for writing a NetCDF dataset to file
+      class(swiftest_netcdf_parameters), intent(inout) :: nc    !! Parameters used to write a NetCDF dataset to file
       class(swiftest_parameters),        intent(inout) :: param !! Current run configuration parameters 
       ! Internals
       integer(I4B)                              :: i, j, idslot, old_mode, tmp
@@ -2081,12 +2153,24 @@ contains
                                                         count=[NDIM,1,1]), &
                                   "netcdf_io_write_frame_body nf90_put_var body rotx_varid"  )
                   end if
-                  ! if (param%ltides) then
-                  !    call netcdf_io_check( nf90_put_var(nc%id, nc%k2_varid, self%k2(j), start=[idslot, tslot]), &
-                  !                "netcdf_io_write_frame_body nf90_put_var body k2_varid"  )
-                  !    call netcdf_io_check( nf90_put_var(nc%id, nc%Q_varid, self%Q(j), start=[idslot, tslot]), &
-                  !                "netcdf_io_write_frame_body nf90_put_var body Q_varid"  )
-                  ! end if
+                  
+                  if (param%lyarkovsky) then
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%albedo_varid, self%albedo(j), start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body albedo_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%emissivity_varid, self%emissivity(j), start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body emissivity_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%rot_k_varid, self%rot_k(j), start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body rot_k_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%gamma_varid, self%gamma(j), start=[idslot, tslot]), &
+                                  "netcdf_io_write_frame_body nf90_put_var body gamma_varid"  )
+                  end if
+
+                  if (param%ltides) then
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%k2_varid, self%k2(j), start=[idslot, tslot]), &
+                                 "netcdf_io_write_frame_body nf90_put_var body k2_varid"  )
+                     call netcdf_io_check( nf90_put_var(nc%id, nc%Q_varid, self%Q(j), start=[idslot, tslot]), &
+                                 "netcdf_io_write_frame_body nf90_put_var body Q_varid"  )
+                  end if
                class is (swiftest_tp)
                   call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid, 0.0_DP, start=[idslot, tslot]), &
                                   "netcdf_io_write_frame_body nf90_put_var body Gmass_varid"  )
@@ -2147,11 +2231,8 @@ contains
                                   "swiftest_io_netcdf_write_frame_cb nf90_set_fill"  )
 
          call nc%find_idslot(self%id, idslot) 
-         call netcdf_io_check( nf90_put_var(nc%id, nc%id_varid, self%id, start=[idslot]), &
-                                  "swiftest_io_netcdf_write_frame_cb nf90_put_var cb id_varid"  )
          call netcdf_io_check( nf90_put_var(nc%id, nc%status_varid, ACTIVE, start=[idslot, tslot]), &
                                   "swiftest_io_netcdf_write_frame_cb nf90_put_var cb id_varid"  )
-
          call netcdf_io_check( nf90_put_var(nc%id, nc%Gmass_varid, self%Gmass, start=[idslot, tslot]), &
                                   "swiftest_io_netcdf_write_frame_cb nf90_put_var cb Gmass_varid"  )
          call netcdf_io_check( nf90_put_var(nc%id, nc%mass_varid, self%mass, start=[idslot, tslot]), &
@@ -2204,6 +2285,13 @@ contains
 #endif
          call self%cb%write_frame(nc, param)
          call self%pl%write_frame(nc, param)
+         select type(self)
+         class is(ringmoons_nbody_system)
+            call self%ring%write_frame(param)
+            self%seed%maxid = self%maxid
+            call self%seed%write_frame(nc, param)
+            self%maxid = self%seed%maxid
+         end select
 #ifdef COARRAY
       end if ! this_image() == 1
 #endif
@@ -2574,6 +2662,15 @@ contains
                case ("TIDES")
                   call swiftest_io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%ltides = .true. 
+               case("RADIATION")
+                  call swiftest_io_toupper(param_value)
+                  if (param_value == "YES" .or. param_value == 'T') param%lradiation = .true.
+               case("YARKOVSKY")
+                  call swiftest_io_toupper(param_value)
+                  if (param_value == "YES" .or. param_value == 'T') param%lyarkovsky = .true.
+               case("YARKOVSKY_SCHACH")
+                  call swiftest_io_toupper(param_value)
+                  if (param_value == "YES" .or. param_value == 'T') param%lyarkovsky_schach = .true.
                case ("INTERACTION_LOOPS")
                   call swiftest_io_toupper(param_value)
                   param%interaction_loops = param_value
@@ -2646,6 +2743,8 @@ contains
                case ("COARRAY")
                   call swiftest_io_toupper(param_value)
                   if (param_value == "YES" .or. param_value == 'T') param%lcoarray = .true. 
+               case("RING_FILE")
+                  read(param_value, *) param%ring_file
                case("SEED")
                   read(param_value, *) nseeds_from_file
                   ! Because the number of seeds can vary between compilers/systems, we need to make sure we can handle cases in 
@@ -2678,7 +2777,7 @@ contains
                      param%lrestart = .true.
                   end if 
                ! Ignore SyMBA-specific, not-yet-implemented, or obsolete input parameters
-               case ("NPLMAX", "NTPMAX", "YARKOVSKY", "YORP")
+               case ("NPLMAX", "NTPMAX", "YORP")
                case default
                   write(*,*) "Ignoring unknown parameter -> ",param_name
                end select
@@ -2776,6 +2875,18 @@ contains
             return
          end if
 
+         if (param%lyarkovsky .and. .not. param%lrotation) then
+            write(iomsg,*) 'Yarkovsky forces require rotation to be turned on'
+            iostat = -1
+            return
+         end if
+
+         if (param%lyarkovsky_schach .and. .not. param%lrotation) then
+            write(iomsg,*) 'Yarkovsky-Schach forces require rotation to be turned on'
+            iostat = -1
+            return
+         end if
+
          if ((param%MU2KG < 0.0_DP) .or. (param%TU2S < 0.0_DP) .or. (param%DU2M < 0.0_DP)) then
             write(iomsg,*) 'Invalid unit conversion factor'
             iostat = -1
@@ -2798,7 +2909,7 @@ contains
          param%lenc_save_trajectory = (param%encounter_save == "TRAJECTORY") .or. (param%encounter_save == "BOTH")
          param%lenc_save_closest = (param%encounter_save == "CLOSEST") .or. (param%encounter_save == "BOTH")
 
-         if ((param%integrator == INT_RMVS) .or. (param%integrator == INT_SYMBA)) then
+         if ((param%integrator == INT_RMVS) .or. (param%integrator == INT_SYMBA) .or. (param%integrator == INT_RINGMOONS)) then
             if (.not.param%lclose) then
                write(iomsg,*) 'This integrator requires CHK_CLOSE to be enabled.'
                iostat = -1
@@ -2806,7 +2917,7 @@ contains
             end if
          end if
 
-         param%lmtiny_pl = (param%integrator == INT_SYMBA) 
+         param%lmtiny_pl = (param%integrator == INT_SYMBA) .or. (param%integrator == INT_RINGMOONS) 
 
          if (param%lmtiny_pl .and. param%GMTINY < 0.0_DP) then
             write(iomsg,*) "GMTINY invalid or not set: ", param%GMTINY
@@ -2836,9 +2947,28 @@ contains
             end if
          end if
 
+         ! Calculate Solar Luminosity, stefan-boltzmann constant, and inv_c2 in system units 
+         if (param%lradiation .or. param%lyarkovsky) then
+            param%L_SUN_sys = L_SUN / param%MU2KG / param%DU2M**2 * param%TU2S**3
+            param%sigma_sys = SIGMA /param%MU2KG * param%TU2S**3 ! system units / K^4
+            param%inv_c2 = einsteinC * param%TU2S / param%DU2M
+            param%inv_c2 = (param%inv_c2)**(-2)
+            param%yark_radius_threshold_sys = YARK_RADIUS_THRESHOLD / param%DU2M
+            ! param%lgr = .true. ! placeholder for if GR is needed by future radiation or Yarkovsky models that we implement
+         end if
+
+         ! Calculate Solar Luminosity, stefan-boltzmann constant, and inv_c2 in system units 
+         if (param%lradiation .or. param%lyarkovsky_schach) then
+            param%L_SUN_sys = L_SUN / param%MU2KG / param%DU2M**2 * param%TU2S**3
+            param%sigma_sys = SIGMA /param%MU2KG * param%TU2S**3 ! system units / K^4
+            param%inv_c2 = einsteinC * param%TU2S / param%DU2M
+            param%inv_c2 = (param%inv_c2)**(-2)
+            ! param%lgr = .true. ! placeholder for if GR is needed by future radiation or Yarkovsky models that we implement
+         end if
+
          ! Determine if the GR flag is set correctly for this integrator
          select case(param%integrator)
-         case(INT_WHM, INT_RMVS, INT_HELIO, INT_SYMBA)
+         case(INT_WHM, INT_RMVS, INT_HELIO, INT_SYMBA, INT_RINGMOONS)
          case default   
             if (param%lgr) write(iomsg, *) 'GR is not yet implemented for this integrator. This parameter will be ignored.'
             param%lgr = .false.
@@ -2909,7 +3039,7 @@ contains
 #endif
          end if
 
-         if (param%integrator == INT_SYMBA) then
+         if ((param%integrator == INT_SYMBA) .or. (param%integrator == INT_RINGMOONS)) then
             if (.not.param%lenergy) then
                write(iomsg,*) 'This integrator requires ENERGY to be enabled.'
                iostat = -1
@@ -3044,6 +3174,9 @@ contains
          call io_param_writer_one("GR", param%lgr, unit)
          call io_param_writer_one("ROTATION", param%lrotation, unit)
          call io_param_writer_one("TIDES", param%ltides, unit)
+         call io_param_writer_one("RADIATION", param%lradiation, unit)
+         call io_param_writer_one("YARKOVSKY", param%lyarkovsky, unit)
+         call io_param_writer_one("YARKOVSKY_SCHACH", param%lyarkovsky_schach, unit)
          call io_param_writer_one("INTERACTION_LOOPS", param%interaction_loops, unit)
          call io_param_writer_one("ENCOUNTER_CHECK_PLPL", param%encounter_check_plpl, unit)
          call io_param_writer_one("ENCOUNTER_CHECK_PLTP", param%encounter_check_pltp, unit)
@@ -3064,6 +3197,8 @@ contains
             call random_seed(get = param%seed)
             call io_param_writer_one("SEED", [nseeds, param%seed(:)], unit)
          end if
+         if (param%integrator == INT_RINGMOONS) call io_param_writer_one("RING_FILE", param%ring_file, unit)
+
    
          iostat = 0
          iomsg = "UDIO not implemented"
@@ -3316,7 +3451,6 @@ contains
       return
    end subroutine swiftest_io_read_in_body
 
-
    module subroutine swiftest_io_read_in_cb(self, param) 
       !! author: David A. Minton
       !!
@@ -3370,7 +3504,6 @@ contains
       write(*,*) "Error reading central body file: " // trim(adjustl(errmsg))
       call base_util_exit(FAILURE,param%display_unit)
    end subroutine swiftest_io_read_in_cb
-
 
    module subroutine swiftest_io_read_in_system(self, nc, param)
       !! author: David A. Minton and Carlisle A. Wishard
@@ -3433,7 +3566,6 @@ contains
 
       return
    end subroutine swiftest_io_read_in_system
-
 
    module function swiftest_io_read_frame_body(self, iu, param) result(ierr)
       !! author: David A. Minton
@@ -3506,10 +3638,10 @@ contains
                      read(iu, *, err = 667, iomsg = errmsg) self%Ip(1, i), self%Ip(2, i), self%Ip(3, i)
                      read(iu, *, err = 667, iomsg = errmsg) self%rot(1, i), self%rot(2, i), self%rot(3, i)
                   end if
-                  ! if (param%ltides) then
-                  !    read(iu, *, err = 667, iomsg = errmsg) self%k2(i)
-                  !    read(iu, *, err = 667, iomsg = errmsg) self%Q(i)
-                  ! end if
+                  if (param%ltides) then
+                     read(iu, *, err = 667, iomsg = errmsg) self%k2(i)
+                     read(iu, *, err = 667, iomsg = errmsg) self%Q(i)
+                  end if
                end select
             end do
          end select

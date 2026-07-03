@@ -1,4 +1,4 @@
-# Copyright 2024 - The Minton Group at Purdue University
+# Copyright 2026 - The Minton Group at Purdue University
 # This file is part of Swiftest.
 # Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 # as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -652,7 +652,7 @@ IF (CMAKE_BUILD_TYPE STREQUAL "PROFILE")
     ELSEIF (COMPILER_OPTIONS STREQUAL "GNU")
     # Enables the optimization reports to be generated
     SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_PROFILE "${CMAKE_Fortran_FLAGS_RELEASE}"
-        Fortran "-O2 -pg -fbacktrace"          # GNU
+        Fortran "-O2 -g -pg -fbacktrace"          # GNU
         )
     ENDIF ()
 ENDIF ()

@@ -1,7 +1,7 @@
 # Swiftest 
 
 ---
-Swiftest is a software packaged designed to model the long-term dynamical dynamics of n-body systems with a dominant central body, 
+Swiftest is a software package designed to model the long-term dynamics of n-body systems with a dominant central body, 
 like the solar system. Swiftest is a re-write of the [Swifter](https://www.boulder.swri.edu/swifter/) software package that 
 incorporates modern programming techniques and performance improvements. 
 
