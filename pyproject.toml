@@ -153,7 +153,7 @@ LIBS="-ldl"
 CFLAGS="-Wa,--noexecstack"
 CXXFLAGS="${CFLAGS}"
 LDFLAGS="-L${PREFIX}/lib"
-REPAIR_LIBRARY_PATH="${LD_LIBRARY_PATH}"
+REPAIR_LIBRARY_PATH="${DYLD_LIBRARY_PATH}:${LD_LIBRARY_PATH}"
 PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH}"
 FC="/opt/rh/gcc-toolset-14/root/usr/bin/gfortran"
 F77="${FC}"
@@ -165,7 +165,7 @@ OMP_NUM_THREADS=1
 
 [tool.cibuildwheel.macos]
 before-all = [
-    "brew install coreutils fftw vecLibFort opencoarrays open-mpi cmake zlib netcdf-fortran",
+    "brew install coreutils gcc fftw vecLibFort opencoarrays open-mpi cmake zlib netcdf-fortran",
     "buildscripts/build_shtools.sh"
 ]
 repair-wheel-command = """\
