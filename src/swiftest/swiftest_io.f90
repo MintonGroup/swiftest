@@ -2946,11 +2946,14 @@ contains
             end if
          end if
 
-         ! Calculate Solar Luminosity in system units and turn on gr for inv_c2 calculation if radiation forces are enabled
+         ! Calculate Solar Luminosity, stefan-boltzmann constant, and inv_c2 in system units 
          if (param%lradiation .or. param%lyarkovsky) then
             param%L_SUN_sys = L_SUN / param%MU2KG / param%DU2M**2 * param%TU2S**3
             param%sigma_sys = SIGMA /param%MU2KG * param%TU2S**3 ! system units / K^4
-            param%lgr = .true.
+            param%inv_c2 = einsteinC * param%TU2S / param%DU2M
+            param%inv_c2 = (param%inv_c2)**(-2)
+            param%yark_radius_threshold_sys = YARK_RADIUS_THRESHOLD / param%DU2M
+            ! param%lgr = .true. ! placeholder for if GR is needed by future radiation or Yarkovsky models that we implement
          end if
 
          ! Calculate Solar Luminosity, stefan-boltzmann constant, and inv_c2 in system units 

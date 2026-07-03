@@ -106,8 +106,8 @@ module base
          !! Solar luminosity in system units (L_SUN converted to system units)
       real(DP)          :: sigma_sys            = -1.0_DP         
          !! Stefan-Boltzmann constant in system units (SIGMA converted to system units) 
-       real(DP)         :: lag_angle_constants  = -1.0_DP         
-         !! Constant terms in lag angle calculations 
+      real(DP)          :: yark_radius_threshold_sys = -1.0_DP        
+         !! Threshold radius for calculating the Yarkovsky effect on a body (YARK_RADIUS_THRESHOLD in km, converted to system units in the code)
       real(DP)          :: GMTINY               = -1.0_DP         
          !! Smallest G*mass that is fully gravitating 
       real(DP)          :: min_GMfrag           = -1.0_DP         

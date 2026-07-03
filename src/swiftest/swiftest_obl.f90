@@ -263,7 +263,7 @@ contains
       class(swiftest_tp),           intent(inout) :: self   !! Swiftest test particle object
       class(swiftest_nbody_system), intent(inout) :: nbody_system !! Swiftest nbody system object
       ! Internals
-      real(DP), dimension(NDIM)                   :: aoblcb
+      real(DP), dimension(NDIM)                   :: aoblcb, cbrot_rad
       integer(I4B) :: i, ntp
       real(DP),dimension(NDIM) :: cbrot_rad
 

@@ -47,6 +47,8 @@ module whm
          !! Loop through massive bodies and call Danby drift routine to jacobi coordinates
       procedure :: accel_gr    => whm_gr_kick_getacch_pl     
          !! Acceleration term arising from the post-Newtonian correction
+      procedure :: accel_yarkovsky => whm_kick_yarkovsky_getacch_pl
+         !! Compute the heliocentric accelerations of bodies due to the Yarkovsky effect
       procedure :: gr_pos_kick => whm_gr_p4_pl               
          !! Position kick due to p**4 term in the post-Newtonian correction
       procedure :: accel       => whm_kick_getacch_pl        
@@ -209,6 +211,23 @@ module whm
          logical,                      intent(in)    :: lbeg   
             !! Logical flag indicating whether this is the beginning of the half step or not. 
       end subroutine whm_kick_vh_tp
+
+      module subroutine whm_kick_yarkovsky_getacch_pl(self, nbody_system, param)
+      !! author: Kaustub P. Anand and David A. Minton
+      !!
+      !! Calculate the Yarkovsky effect on massive bodies. 
+      !! Based on Ferich, et al, 2022 (https://iopscience.iop.org/article/10.3847/1538-4365/ac8d60) and Veras, et al, 2015 (https://academic.oup.com/mnras/article/451/3/2814/1180328)
+      implicit none
+
+      ! Arguments
+      class(whm_pl),           intent(inout) :: self
+         !! whm massive body object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param
+         !! Current run configuration parameters
+      
+      end subroutine whm_kick_yarkovsky_getacch_pl
 
       pure module subroutine whm_gr_kick_getacch_pl(self, param)
          implicit none

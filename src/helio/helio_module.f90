@@ -46,6 +46,8 @@ module helio
          !! Method for linear drift of massive bodies due to barycentric momentum of Sun
       procedure :: accel_gr    => helio_gr_kick_getacch_pl 
          !! Acceleration term arising from the post-Newtonian correction
+      procedure :: accel_yarkovsky => helio_kick_yarkovsky_getacch_pl
+         !! Compute the heliocentric accelerations of bodies due to the Yarkovsky effect
       procedure :: gr_pos_kick => helio_gr_p4_pl           
          !! Position kick due to p**4 term in the post-Newtonian correction
       procedure :: accel       => helio_kick_getacch_pl    
@@ -236,6 +238,23 @@ module helio
          logical,                      intent(in)    :: lbeg   
             !! Logical flag indicating whether this is the beginning of the half step or not. 
       end subroutine helio_kick_vb_tp
+
+      module subroutine helio_kick_yarkovsky_getacch_pl(self, nbody_system, param)
+      !! author: Kaustub P. Anand and David A. Minton
+      !!
+      !! Calculate the Yarkovsky effect on massive bodies. 
+      !! Based on Ferich, et al, 2022 (https://iopscience.iop.org/article/10.3847/1538-4365/ac8d60) and Veras, et al, 2015 (https://academic.oup.com/mnras/article/451/3/2814/1180328)
+      implicit none
+
+      ! Arguments
+      class(helio_pl),           intent(inout) :: self
+         !! helio massive body object
+      class(swiftest_nbody_system), intent(inout) :: nbody_system
+         !! Swiftest nbody system object
+      class(swiftest_parameters),   intent(in)    :: param
+         !! Current run configuration parameters
+      
+      end subroutine helio_kick_yarkovsky_getacch_pl
 
       module subroutine helio_util_setup_initialize_system(self, system_history, param)
          implicit none

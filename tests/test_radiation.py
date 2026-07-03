@@ -216,7 +216,7 @@ class TestRadiation(unittest.TestCase):
 
                 da = sim.data.sel(name="Veritas", time=sim.data.time.values[-1]).a - sim.data.sel(name="Veritas", time=0).a
                 # compare with pre-tested results
-                self.assertAlmostEqual(da, da_pre_tested[f"{radius}"][f"{obliquity}"], delta=delta[f"{radius}"])
+                self.assertAlmostEqual(da.values, da_pre_tested[f"{radius}"][f"{obliquity}"], delta=delta[f"{radius}"])
                 sim.clean()
         return
 
