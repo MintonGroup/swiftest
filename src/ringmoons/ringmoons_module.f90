@@ -447,7 +447,6 @@ module ringmoons
         end subroutine ringmoons_util_dealloc_seed
 
         pure elemental module function ringmoons_util_find_bin(self,r) result(bin)
-            import ringmoons_ring, DP, I4B
             implicit none
             class(ringmoons_ring), intent(in)      :: self
                 !! Ringmoons ring object
