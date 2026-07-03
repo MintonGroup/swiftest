@@ -85,6 +85,7 @@ venv/**
 sandbox/**
 swiftest/swiftest
 swiftest/swiftest_caf
+!.env
 
 
 

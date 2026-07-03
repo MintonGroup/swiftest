@@ -57,6 +57,12 @@ class TestSwiftestIO(unittest.TestCase):
         # Clean up temporary directory
         self.tmpdir.cleanup()
 
+    def test_hdf5_file_lock(self):
+        if "HDF5_USE_FILE_LOCKING" not in os.environ:
+            self.fail("HDF5_USE_FILE_LOCKING environment variable is not set.")
+        islocked = os.environ["HDF5_USE_FILE_LOCKING"]
+        self.assertEqual(islocked.upper(), "FALSE", msg="HDF5_USE_FILE_LOCKING must be set to FALSE")
+
     def test_jpl_parser(self):
         """
         Tests that the JPL Horizons parser is able to read data and process it correctly for a variety of different cases.

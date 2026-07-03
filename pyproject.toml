@@ -141,6 +141,7 @@ F77="mpifort"
 F95="mpifort"
 OMPI_FC="$(buildscripts/get_fortran_path.sh)"
 OMP_NUM_THREADS=1
+HDF5_USE_FILE_LOCKING="FALSE"
 
 [tool.cibuildwheel.linux.environment]
 SKBUILD_CMAKE_ARGS=["-DMACHINE_CODE_VALUE=generic","-DUSE_COARRAY:BOOL=OFF"]
@@ -163,6 +164,7 @@ CC="/opt/rh/gcc-toolset-14/root/usr/bin/gcc"
 CXX="/opt/rh/gcc-toolset-14/root/usr/bin/g++"
 OMPI_FC="$(buildscripts/get_fortran_path.sh)"
 OMP_NUM_THREADS=1
+HDF5_USE_FILE_LOCKING="FALSE"
 
 [tool.cibuildwheel.macos]
 before-all = [
@@ -195,6 +197,7 @@ F77="mpifort"
 F95="mpifort"
 OMPI_FC="gfortran"
 OMP_NUM_THREADS=1
+HDF5_USE_FILE_LOCKING="FALSE"
 
 [tool.cibuildwheel.windows]
 before-build = "pip install delvewheel"
