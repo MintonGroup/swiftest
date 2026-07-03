@@ -265,7 +265,6 @@ contains
       ! Internals
       real(DP), dimension(NDIM)                   :: aoblcb, cbrot_rad
       integer(I4B) :: i, ntp
-      real(DP),dimension(NDIM) :: cbrot_rad
 
       if (self%nbody == 0) return
 

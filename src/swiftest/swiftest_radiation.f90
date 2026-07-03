@@ -19,10 +19,12 @@ submodule (swiftest) s_swiftest_radiation
 
 contains
 
-    module subroutine swiftest_yarkovsky_getacch_pl_one(lag_angle_constants, mu, mass, radius, r_vec, v_vec, rot, a, emissivity, gamma, albedo, rot_k, L_SUN_sys, inv_c2, a_yark) ! pure module subroutine? 
+    module subroutine swiftest_yarkovsky_getacch_pl_one(lag_angle_constants, mu, mass, radius, r_vec, v_vec, rot, a, emissivity, &
+                                                        gamma, albedo, rot_k, L_SUN_sys, inv_c2, a_yark) 
         !! author: Kaustub P. Anand and David A. Minton
         !! Calculate the Yarkovsky effect on one body 
-        !! Based on Ferich, et al, 2022 (https://doi.org/10.3847/1538-4365/ac8d60) and Veras, et al, 2015 (https://doi.org/10.1093/mnras/stv1047)
+        !! Based on Ferich, et al, 2022 (https://doi.org/10.3847/1538-4365/ac8d60) and Veras, et al, 2015 &
+        !! (https://doi.org/10.1093/mnras/stv1047)
         !!
         implicit none
         ! Arguments
@@ -71,8 +73,10 @@ contains
         T_orbit = 2*PI*a**(1.5_DP) / sqrt(mu) ! orbital period
         
         ! calculate thermal lag angles from eqn. 19 and 20 in Veras, et. al. (2022)
-        phi = atan2(1.0_DP, 1.0_DP + lag_angle_constants * emissivity**(0.25_DP) * T_rot**(0.5_DP) / gamma * (1 - albedo)**(0.75_DP) / rmag**(1.5_DP))
-        zeta = atan2(1.0_DP, 1.0_DP + lag_angle_constants * emissivity**(0.25_DP) * T_orbit**(0.5_DP) / gamma * (1 - albedo)**(0.75_DP) / rmag**(1.5_DP))
+        phi  = atan2(1.0_DP, 1.0_DP + lag_angle_constants * emissivity**(0.25_DP) * T_rot**(0.5_DP) / gamma &
+                                                          * (1 - albedo)**(0.75_DP) / rmag**(1.5_DP))
+        zeta = atan2(1.0_DP, 1.0_DP + lag_angle_constants * emissivity**(0.25_DP) * T_orbit**(0.5_DP) / gamma &
+                                                          * (1 - albedo)**(0.75_DP) / rmag**(1.5_DP))
 
         ! rotation matrices using MATMUL; left for potential future restructuring
         ! R2_s(:, :) = matmul(rot(:), rot(:)) / s_mag**2! rot(:) .cross. rot(:) / s_mag**2
@@ -118,11 +122,6 @@ contains
         R_s(:, :) = cos(phi) * UM(:, :) + sin(phi) * R1_s(:, :) + (1.0_DP - cos(phi)) * R2_s(:, :)
         R_h(:, :) = cos(zeta) * UM(:, :) - sin(zeta) * R1_h(:, :) + (1.0_DP - cos(zeta)) * R2_h(:, :)
 
-        !! We will assume that v << c, so radiation direction vector is r_hat. If not:
-        ! if vmag**2 * param%inv_c2 > 1e-3 then
-        !     i_rad(:) = (1 - dot_product(pl%vh(:, i), pl%rh(:, i)) * sqrt(param%inv_c2) / rmag) * pl%rh(:, i) / rmag - pl%vh(:, i) * sqrt(param%inv_c2) ! radiation direction vector
-        ! end if
-
         i_rad(:) = .unit. r_vec(:)! radiation direction vector
 
         ! yark acceleration magnitude from eqn. 1 in Ferich, et al (2022) / eqn. 26 in Veras, et al (2015)
@@ -142,10 +141,13 @@ contains
 
     end subroutine swiftest_yarkovsky_getacch_pl_one
 
-    module subroutine swiftest_yarkovsky_getacch_pl_all(nbody, lmask, mu, mass, radius, r_vec, v_vec, acc, rot, a, emissivity, gamma, albedo, rot_k, L_SUN_sys, inv_c2, sigma_sys, yark_radius_threshold_sys)
+    module subroutine swiftest_yarkovsky_getacch_pl_all(nbody, lmask, mu, mass, radius, r_vec, v_vec, acc, rot, a, emissivity, &
+                                                        gamma, albedo, rot_k, L_SUN_sys, inv_c2, sigma_sys, &
+                                                        yark_radius_threshold_sys)
         !! author: Kaustub P. Anand and David A. Minton
         !! Loop over all bodies to calculate the Yarkovsky effect. 
-        !! Based on Ferich, et al, 2022 (https://doi.org/10.3847/1538-4365/ac8d60) and Veras, et al, 2015 (https://doi.org/10.1093/mnras/stv1047)
+        !! Based on Ferich, et al, 2022 (https://doi.org/10.3847/1538-4365/ac8d60) and Veras, et al, 2015 
+        !! (https://doi.org/10.1093/mnras/stv1047)
         !!
         implicit none
         ! Arguments
@@ -183,8 +185,12 @@ contains
             lag_angle_constants = 0.5_DP * (sigma_sys / PI**5)**(0.25_DP) * (L_SUN_sys)**(0.75_DP)
 
             do i=1, nbody
-                if (lmask(i) .and. radius(i) <= yark_radius_threshold_sys) then !! check if body radius is <= 25 km for computational efficiency. Yarkovsky effect is negligible for larger bodies (Bottke, et al, 2006; doi:10.1146/annurev.earth.34.031405.125154)
-                    call swiftest_yarkovsky_getacch_pl_one(lag_angle_constants, mu(i), mass(i), radius(i), r_vec(:, i), v_vec(:, i), rot(:, i) * DEG2RAD, a(i), emissivity(i), gamma(i), albedo(i), rot_k(i), L_SUN_sys, inv_c2, a_yark)
+                ! check if body radius is <= 25 km for computational efficiency. Yarkovsky effect is negligible for larger bodies 
+                ! (Bottke, et al, 2006; doi:10.1146/annurev.earth.34.031405.125154)
+                if (lmask(i) .and. radius(i) <= yark_radius_threshold_sys) then 
+                    call swiftest_yarkovsky_getacch_pl_one(lag_angle_constants, mu(i), mass(i), radius(i), r_vec(:, i), &
+                                                           v_vec(:, i), rot(:, i) * DEG2RAD, a(i), emissivity(i), gamma(i), &
+                                                           albedo(i), rot_k(i), L_SUN_sys, inv_c2, a_yark)
                     acc(:, i) = acc(:, i) + a_yark(:)
                 end if 
             end do
