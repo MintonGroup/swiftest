@@ -652,7 +652,7 @@ IF (CMAKE_BUILD_TYPE STREQUAL "PROFILE")
     ELSEIF (COMPILER_OPTIONS STREQUAL "GNU")
     # Enables the optimization reports to be generated
     SET_COMPILE_FLAG(CMAKE_Fortran_FLAGS_PROFILE "${CMAKE_Fortran_FLAGS_RELEASE}"
-        Fortran "-O2 -pg -fbacktrace"          # GNU
+        Fortran "-O2 -g -pg -fbacktrace"          # GNU
         )
     ENDIF ()
 ENDIF ()
