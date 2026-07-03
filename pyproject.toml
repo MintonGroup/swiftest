@@ -120,11 +120,12 @@ SHTOOLS_HOME="${PREFIX}"
 ARCH="$(uname -m)"
 MACOSX_DEPLOYMENT_TARGET="$(buildscripts/get_macosx_deployment_target.sh)"
 HOMEBREW_PREFIX="$(brew --prefix)"
-LD_LIBRARY_PATH="${PREFIX}/lib:${HOMEBREW_PREFIX}/lib:${HOMEBREW_PREFIX}/lib/gcc/${GFORTRAN_VERSION}"
-GCC_VER="$(brew list --versions gcc | awk '{print $2}' | cut -d. -f1)"
-GCC_LIB="$(brew --prefix gcc)/lib/gcc/${GCC_VER}"
-DYLD_LIBRARY_PATH="${GCC_LIB}${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}"
-REPAIR_LIBRARY_PATH="${DYLD_LIBRARY_PATH}:${LD_LIBRARY_PATH}"
+PATH="${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin:${HOMEBREW_PREFIX}/bin:${PREFIX}/bin:${PATH}"
+GFORTRAN_VERSION="$(buildscripts/get_gfortran_version.sh)"
+GFORTRAN_LIB="${HOMEBREW_PREFIDX}/lib/gcc/${GFORTRAN_VERSION}" 
+LD_LIBRARY_PATH="${PREFIX}/lib:${HOMEBREW_PREFIX}/lib:${GFORTRAN_LIB}"
+DYLD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}"
+REPAIR_LIBRARY_PATH="${DYLD_LIBRARY_PATH}"
 LDFLAGS="-Wl,-no_compact_unwind -L${PREFIX}/lib -L${HOMEBREW_PREFIX}/lib -L${HOMEBREW_PREFIX}/lib/gcc/${GFORTRAN_VERSION}" 
 CPATH="${PREFIX}/include:${HOMEBREW_PREFIX}/include"
 CPPFLAGS="-isystem ${PREFIX}/include"
@@ -133,8 +134,6 @@ FFLAGS="${FCFLAGS}"
 CFLAGS="${FCFLAGS} -Wno-deprecated-non-prototype -arch ${ARCH}"
 CXXFLAGS="${CFLAGS}"
 MPI_HOME="${HOMEBREW_PREFIX}"
-PATH="${HOMEBREW_PREFIX}/opt/coreutils/libexec/gnubin:${HOMEBREW_PREFIX}/bin:${PREFIX}/bin:${PATH}"
-GFORTRAN_VERSION="$(buildscripts/get_gfortran_version.sh)"
 CC="mpicc"
 CXX="mpic++"
 FC="mpifort"
@@ -170,10 +169,6 @@ before-all = [
     "brew install coreutils gcc fftw vecLibFort opencoarrays open-mpi cmake zlib netcdf-fortran",
     "buildscripts/build_shtools.sh"
 ]
-repair-wheel-command = """\
-DYLD_LIBRARY_PATH=$REPAIR_LIBRARY_PATH delocate-wheel \
---require-archs {delocate_archs} -w {dest_dir} -v {wheel}
-"""
 
 [tool.cibuildwheel.linux]
 before-all = [
