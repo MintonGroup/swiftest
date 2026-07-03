@@ -1,4 +1,4 @@
-! Copyright 2025 - David Minton
+! Copyright 2026 - David Minton
 ! This file is part of Swiftest.
 ! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 ! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -13,6 +13,7 @@ submodule (swiftest) s_swiftest_util
    use helio
    use symba
    use fraggle
+   use ringmoons
 contains
 
 
@@ -1213,17 +1214,25 @@ contains
       !! Adapted from David E. Kaufmann Swifter routine symba_energy_eucl.f90
       !!  
       !! Adapted from Martin Duncan's Swift routine anal_energy.f
+      use, intrinsic :: ieee_exceptions
       implicit none
       class(swiftest_nbody_system), intent(inout) :: self     !! Swiftest nbody system object
       class(swiftest_parameters),   intent(in)    :: param    !! Current run configuration parameters
       ! Internals
-      integer(I4B) :: i,j, npl
-      real(DP) :: kecb, kerotcb
+      integer(I4B) :: i, j, npl
+      real(DP) :: kecb, kerotcb, Lzring, Lzseed, keseed, peseed, kering, pering, beseed
+      real(DP), save :: Lzring_orig,pering_orig,kering_orig
+      logical, save :: lfirst = .true.
       real(DP), dimension(self%pl%nbody) :: kepl, kerotpl
       real(DP), dimension(NDIM,self%pl%nbody) :: Lplorbit
       real(DP), dimension(NDIM,self%pl%nbody) :: Lplrot
       real(DP), dimension(NDIM) :: Lcborbit, Lcbrot
       real(DP), dimension(NDIM) :: h
+      logical, dimension(size(IEEE_ALL))      :: fpe_halting_modes
+
+      ! Guard against underflow errors when rings mass gets too small
+      call ieee_get_halting_mode(IEEE_ALL,fpe_halting_modes)
+      call ieee_set_halting_mode(ieee_underflow, .false.)
 
       associate(nbody_system => self, pl => self%pl, cb => self%cb)
          call pl%h2b(cb)
@@ -1313,6 +1322,8 @@ contains
             else
                call swiftest_util_get_potential_energy(npl, pl%lmask, cb%Gmass, pl%Gmass, pl%mass, pl%rb, nbody_system%pe)
             end if
+         else
+            nbody_system%pe = 0.0_DP
          end if
 
          ! Potential energy from the oblateness term
@@ -1340,10 +1351,45 @@ contains
          else
             nbody_system%be = 0.0_DP
          end if
-         nbody_system%te = nbody_system%ke_orbit + nbody_system%ke_rot + nbody_system%pe + nbody_system%be 
-         nbody_system%L_total(:) = nbody_system%L_orbit(:) + nbody_system%L_rot(:)
       end associate
 
+      ! Include ringmoons ring and seed contributions
+      select type(nbody_system => self)
+      class is (ringmoons_nbody_system)
+         associate(ring => nbody_system%ring, seed => nbody_system%seed, cb => nbody_system%cb, Ns => nbody_system%seed%nbody)
+            Lzring =sum(ring%mass(:) * ring%Iz(:) * ring%nkep(:)) 
+            kering = 0.5_DP * sum(ring%mass(:) * ring%Iz(:) * ring%nkep(:)**2)
+            pering = -sum(cb%Gmass * ring%mass(:) / ring%r(:))
+            nbody_system%GMtot = nbody_system%GMtot + sum(param%GU * ring%mass(:))
+            if (Ns > 0) then
+               Lzseed = sum(seed%mass(1:Ns) * sqrt(seed%mu(1:Ns) * seed%a(1:Ns)))
+               keseed = 0.5_DP * sum(seed%mass(1:Ns) * seed%mu(1:Ns) / seed%a(1:Ns))
+               peseed = -sum(cb%Gmass * seed%mass(1:Ns) / seed%a(1:Ns))
+               beseed = sum(-3*seed%Gmass(1:Ns)*seed%mass(1:Ns)/(5*seed%radius(1:Ns)))
+               nbody_system%GMtot = nbody_system%GMtot + sum(seed%Gmass(1:Ns))
+            else
+               Lzseed = 0.0_DP
+               keseed = 0.0_DP
+               peseed = 0.0_DP
+               beseed = 0.0_DP
+            end if
+            if (lfirst) then
+               Lzring_orig = Lzring
+               pering_orig = pering
+               kering_orig = kering
+               lfirst = .false.
+            end if
+            nbody_system%L_orbit(3) = Lzseed + Lzring + nbody_system%L_orbit(3)
+            nbody_system%ke_orbit = keseed + kering + nbody_system%ke_orbit
+            nbody_system%pe = peseed + pering + nbody_system%pe 
+            nbody_system%be = beseed + nbody_system%be
+         end associate
+      end select
+
+      self%te = self%be + self%pe + self%ke_rot + self%ke_orbit 
+      self%L_total(:) = self%L_rot(:) + self%L_orbit(:)
+
+      call ieee_set_halting_mode(IEEE_ALL, fpe_halting_modes)
       return
    end subroutine swiftest_util_get_energy_and_momentum_system
 
@@ -2593,7 +2639,24 @@ contains
             allocate(collision_list_pltp :: nbody_system%pltp_collision)
          end select
       case (INT_RINGMOONS)
-         write(*,*) 'RINGMOONS-SyMBA integrator not yet enabled'
+         allocate(ringmoons_nbody_system :: nbody_system)
+         select type(nbody_system)
+         class is (ringmoons_nbody_system)
+            allocate(ringmoons_cb   :: nbody_system%cb)
+            allocate(ringmoons_pl   :: nbody_system%pl)
+            allocate(ringmoons_tp   :: nbody_system%tp)
+            allocate(ringmoons_ring :: nbody_system%ring)
+            allocate(ringmoons_seed :: nbody_system%seed)
+
+            allocate(ringmoons_tp :: nbody_system%tp_discards)
+            allocate(ringmoons_pl :: nbody_system%pl_adds)
+            allocate(ringmoons_pl :: nbody_system%pl_discards)
+
+            allocate(symba_list_pltp     :: nbody_system%pltp_encounter)
+            allocate(symba_list_plpl     :: nbody_system%plpl_encounter)
+            allocate(collision_list_plpl :: nbody_system%plpl_collision)
+            allocate(collision_list_pltp :: nbody_system%pltp_collision)
+         end select
       case default
          write(*,*) 'Unkown integrator',param%integrator
          call base_util_exit(FAILURE,param%display_unit)
@@ -2968,33 +3031,41 @@ contains
       allocate(snapshot%cb, source=nbody_system%cb )
       allocate(snapshot%pl, source=nbody_system%pl )
       allocate(snapshot%tp, source=nbody_system%tp )
+      select type(snapshot)
+      class is (ringmoons_nbody_system)
+      select type(nbody_system)
+      class is (ringmoons_nbody_system)
+         allocate(snapshot%ring, source=nbody_system%ring)
+         allocate(snapshot%seed, source=nbody_system%seed)
+      end select
+      end select
 
       snapshot%t                 = nbody_system%t
       snapshot%GMtot             = nbody_system%GMtot
       snapshot%ke_orbit          = nbody_system%ke_orbit
-      snapshot%ke_rot           = nbody_system%ke_rot
+      snapshot%ke_rot            = nbody_system%ke_rot
       snapshot%pe                = nbody_system%pe
       snapshot%be                = nbody_system%be
       snapshot%te                = nbody_system%te
       snapshot%oblpot            = nbody_system%oblpot
       snapshot%L_orbit           = nbody_system%L_orbit
-      snapshot%L_rot            = nbody_system%L_rot
+      snapshot%L_rot             = nbody_system%L_rot
       snapshot%L_total           = nbody_system%L_total
       snapshot%ke_orbit_orig     = nbody_system%ke_orbit_orig
-      snapshot%ke_rot_orig      = nbody_system%ke_rot_orig
+      snapshot%ke_rot_orig       = nbody_system%ke_rot_orig
       snapshot%pe_orig           = nbody_system%pe_orig
       snapshot%be_orig           = nbody_system%be_orig
       snapshot%E_orbit_orig      = nbody_system%E_orbit_orig
       snapshot%GMtot_orig        = nbody_system%GMtot_orig
       snapshot%L_total_orig      = nbody_system%L_total_orig
       snapshot%L_orbit_orig      = nbody_system%L_orbit_orig
-      snapshot%L_rot_orig       = nbody_system%L_rot_orig
+      snapshot%L_rot_orig        = nbody_system%L_rot_orig
       snapshot%L_escape          = nbody_system%L_escape
       snapshot%GMescape          = nbody_system%GMescape
       snapshot%E_collisions      = nbody_system%E_collisions
       snapshot%E_untracked       = nbody_system%E_untracked
       snapshot%ke_orbit_error    = nbody_system%ke_orbit_error   
-      snapshot%ke_rot_error     = nbody_system%ke_rot_error    
+      snapshot%ke_rot_error      = nbody_system%ke_rot_error    
       snapshot%pe_error          = nbody_system%pe_error         
       snapshot%be_error          = nbody_system%be_error         
       snapshot%E_orbit_error     = nbody_system%E_orbit_error    
@@ -3002,7 +3073,7 @@ contains
       snapshot%E_untracked_error = nbody_system%E_untracked_error
       snapshot%te_error          = nbody_system%te_error         
       snapshot%L_orbit_error     = nbody_system%L_orbit_error    
-      snapshot%L_rot_error      = nbody_system%L_rot_error     
+      snapshot%L_rot_error       = nbody_system%L_rot_error     
       snapshot%L_escape_error    = nbody_system%L_escape_error   
       snapshot%L_total_error     = nbody_system%L_total_error    
       snapshot%Mtot_error        = nbody_system%Mtot_error       
@@ -3585,6 +3656,10 @@ contains
 
       associate(cb => self%cb, pl => self%pl, npl => self%pl%nbody, tp => self%tp, ntp => self%tp%nbody, maxid => self%maxid)
          nid = 1 + npl+ ntp
+         select type(self)
+         class is (ringmoons_nbody_system)
+            nid = nid + self%seed%nbody
+         end select
          allocate(idarr(nid))
          ! Central body should always be id=0
          cb%id = 0
@@ -3595,6 +3670,13 @@ contains
          do i = 1, ntp
             idarr(1+npl+i) = tp%id(i)
          end do
+         select type(self)
+         class is (ringmoons_nbody_system)
+            do i = 1, self%seed%nbody
+               idarr(1+npl+ntp+i) = self%seed%id(i)
+            end do
+         end select
+            
          maxid = maxval(idarr)
 
          ! Check to see if the ids are unique
@@ -3603,16 +3685,32 @@ contains
 
          ! Fix any duplicate id values and update the maxid
          call util_sort(idmap)
-         do i = 2, size(idmap)
-            if (idmap(i) == idmap(i-1)) then
-               maxid = maxid + 1
-               if (i < 1 + npl) then
-                  pl%id(i - 1) = maxid 
-               else
-                  tp%id(i - 1 - npl) = maxid
+         select type(self)
+         class is (ringmoons_nbody_system)
+            do i = 2, size(idmap)
+               if (idmap(i) == idmap(i-1)) then
+                  maxid = maxid + 1
+                  if (i < 1 + npl) then
+                     pl%id(i - 1) = maxid 
+                  else if (i < 1 + npl + ntp) then
+                     tp%id(i - 1 - npl) = maxid
+                  else
+                     self%seed%id(i - 1 - npl - ntp) = maxid
+                  end if
                end if
-            end if
-         end do
+            end do
+         class default
+            do i = 2, size(idmap)
+               if (idmap(i) == idmap(i-1)) then
+                  maxid = maxid + 1
+                  if (i < 1 + npl) then
+                     pl%id(i - 1) = maxid 
+                  else 
+                     tp%id(i - 1 - npl) = maxid
+                  end if
+               end if
+            end do
+         end select
 
       end associate
 

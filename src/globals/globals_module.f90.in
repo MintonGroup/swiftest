@@ -1,4 +1,4 @@
-!! Copyright 2024 - The Minton Group at Purdue University
+!! Copyright 2026 - The Minton Group at Purdue University
 !! This file is part of Swiftest.
 !! Swiftest is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License 
 !! as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -41,6 +41,9 @@ module globals
    real(DP), parameter :: RAD2DEG = 180.0_DP / PI !! Definition of conversion factor from degrees to radians
    real(DP), parameter :: GC        = 6.6743E-11_DP   !! Universal gravitational constant in SI units
    real(DP), parameter :: einsteinC = 299792458.0_DP  !! Speed of light in SI units
+   real(DP), parameter :: L_SUN     = 3.828e26_DP     !! Solar luminosity in SI units; Mamajek, et al (2015). IAU 2015 Resolution B3. https://doi.org/10.48550/arXiv.1510.07674
+   real(DP), parameter :: SIGMA     = 5.670374419e-8_DP  !! Stefan-Boltzmann constant in SI units
+   real(DP), parameter :: YARK_RADIUS_THRESHOLD = 2.5e4_DP !! Radius threshold for yarkovsky effects.Yarkovsky effect is negligible for bodies with R > 25 km = 2.5e4 m (Bottke, et al, 2006; doi:10.1146/annurev.earth.34.031405.125154)
 
    integer(I4B), parameter :: LOWERCASE_BEGIN  = iachar('a') !! ASCII character set parameter for lower to upper conversion - start 
                                                              !! of lowercase
@@ -69,6 +72,7 @@ module globals
    character(*), parameter :: PL_TYPE_NAME = "Massive Body"
    character(*), parameter :: TP_TYPE_NAME = "Test Particle"
    character(*), parameter :: PL_TINY_TYPE_NAME = "Semi-Interacting Massive Body"
+   character(*), parameter :: SEED_TYPE_NAME = "Ringmoons Seed"
    character(*), parameter :: PL_DUST_TYPE_NAME = "Dust Particle"
 
    ! OpenMP Parameters
@@ -126,6 +130,7 @@ module globals
    character(*), parameter :: TP_INFILE        = 'tp.in'
    character(*), parameter :: NC_INFILE        = 'init_cond.nc'
    character(*), parameter :: BIN_OUTFILE      = 'data.nc'
+   character(*), parameter :: RING_FILE        = 'ring.nc'
    integer(I4B), parameter :: BINUNIT          = 20 !! File unit number for the binary output file
    integer(I4B), parameter :: PARTICLEUNIT     = 44 !! File unit number for the binary particle info output file
    integer(I4B), parameter :: LUN              = 42 !! File unit number for files that are opened and closed within a single 
