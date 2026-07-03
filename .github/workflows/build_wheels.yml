@@ -17,14 +17,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name:  Install dependencies with Homebrew (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew install openssl@3 openblas gcc fftw vecLibFort opencoarrays open-mpi cmake zlib netcdf-fortran
-          GCC_VER=$(brew list --versions gcc | awk '{print $2}' | cut -d. -f1)
-          GCC_LIB="$(brew --prefix gcc)/lib/gcc/${GCC_VER}"
-          echo "DYLD_LIBRARY_PATH=${GCC_LIB}${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}" >> $GITHUB_ENV
-
       - name: Build wheels
         uses: pypa/cibuildwheel@v3.4.1
 

@@ -1383,6 +1383,7 @@ contains
          status = nf90_get_var(self%id, self%ptype_varid, ctemp, count=[NAMELEN, idmax])
          if (status == NF90_NOERR) then
             where(ctemp(:) == PL_TYPE_NAME) plmask(:) = .true.
+            where(ctemp(:) == PL_TINY_TYPE_NAME) plmask(:) = .true.
             where(ctemp(:) == TP_TYPE_NAME) tpmask(:) = .true.
          else
             plmask(:) = ieee_is_normal(Gmass(:))
@@ -1397,7 +1398,7 @@ contains
          if (present(plmmask) .and. present(Gmtiny)) then
             allocate(plmmask, source=plmask)
             if (status == NF90_NOERR) then
-               where(ctemp(:) == PL_TINY_TYPE_NAME) plmmask(:) = .true.
+               where(ctemp(:) == PL_TINY_TYPE_NAME) plmmask(:) = .FALSE.
             else
                where(plmask(:)) plmmask = Gmass(:) > Gmtiny
             end if

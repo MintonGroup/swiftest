@@ -3,6 +3,17 @@
 What's New
 ==========
 
+
+.. _whats-new.2026.7.0:
+
+:release:`v2026.7.1`
+---------------------
+
+New Features
+~~~~~~~~~~~~
+- Ringmoons, Yarkovsky, and Yarkovsky-Schach are finally here. `David Minton`_ and `Kaustub Anand`_ in :pull:`90` :pull:`95`
+
+
 .. _whats-new.2025.10.1:
 
 :release:`v2025.10.1`
@@ -85,7 +96,7 @@ Internal Changes
 
 Bug Fixes
 ~~~~~~~~~
-- Fixed incorrect angle calculation in HG20 cratering model by `Kaustub Anand`_ in :pull:73
+- Fixed incorrect angle calculation in HG20 cratering model by `Kaustub Anand`_ in :pull:`73`
 
 Internal Changes
 ~~~~~~~~~~~~~~~~
