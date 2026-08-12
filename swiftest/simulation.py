@@ -3759,7 +3759,7 @@ class Simulation:
                 )
 
                 ds["particle_type"] = xr.where(
-                    (ds["particle_type"] == PL_TYPE_NAME) & (Gmass <= self.param["GMDUST"]),
+                    (ds["particle_type"] == PL_TINY_TYPE_NAME) & (Gmass <= self.param["GMDUST"]),
                     PL_DUST_TYPE_NAME,
                     ds["particle_type"],
                 )
