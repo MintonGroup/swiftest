@@ -3757,6 +3757,12 @@ class Simulation:
                     PL_TINY_TYPE_NAME,
                     ds["particle_type"],
                 )
+
+                ds["particle_type"] = xr.where(
+                    (ds["particle_type"] == PL_TYPE_NAME) & (Gmass <= self.param["GMDUST"]),
+                    PL_DUST_TYPE_NAME,
+                    ds["particle_type"],
+                )
         else:
             ds["particle_type"] = xr.full_like(ds["name"], TP_TYPE_NAME, dtype="<U32")
         return ds
