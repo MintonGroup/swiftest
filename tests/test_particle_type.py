@@ -38,13 +38,14 @@ class TestParticleType(unittest.TestCase):
             swiftest.constants.PL_TYPE_NAME,
             swiftest.constants.TP_TYPE_NAME,
             swiftest.constants.CB_TYPE_NAME,
+            swiftest.constants.PL_DUST_TYPE_NAME,
         ]
-        sim = swiftest.Simulation(simdir=self.simdir)
+        sim = swiftest.Simulation(simdir=self.simdir, mtiny = 1e-5, mdust = 1e-7)
 
         sim.add_solar_system_body(["Sun"])
 
-        # semi-interacting body
-        sim.add_body(name=["pl_massive", "pl_semi_int"], a=[1.5, 2.0], e=[0.1, 0.1], mass=[1e-11, 1e-6], radius=[1e-5, 1e-6])
+        # massive, semi-interacting, and dust particle bodies
+        sim.add_body(name=["pl_massive", "pl_semi_int", "pl_dust"], a=[1.5, 2.0, 2.5], e=[0.1, 0.1, 0.1], mass=[1e-4, 1e-6, 1e-8], radius=[1e-5, 1e-6, 1e-7])
 
         # test particle
         sim.add_body(name="tp", a=2.0, e=0.01)
