@@ -1391,6 +1391,7 @@ contains
          if (status == NF90_NOERR) then
             where(ctemp(:) == PL_TYPE_NAME) plmask(:) = .true.
             where(ctemp(:) == PL_TINY_TYPE_NAME) plmask(:) = .true.
+            where(ctemp(:) == PL_DUST_TYPE_NAME) plmask(:) = .true.
             where(ctemp(:) == TP_TYPE_NAME) tpmask(:) = .true.
          else
             plmask(:) = ieee_is_normal(Gmass(:))
