@@ -2947,6 +2947,7 @@ contains
          end if
 
          param%lmtiny_pl = (param%integrator == INT_SYMBA) .or. (param%integrator == INT_RINGMOONS) 
+         param%ldust_pl = param%lmtiny_pl
 
          if (param%lmtiny_pl .and. param%GMTINY < 0.0_DP) then
             write(iomsg,*) "GMTINY invalid or not set: ", param%GMTINY
