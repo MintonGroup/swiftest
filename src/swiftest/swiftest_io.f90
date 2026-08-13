@@ -1406,7 +1406,7 @@ contains
          if (present(plmmask) .and. present(Gmtiny)) then
             allocate(plmmask, source=plmask)
             if (status == NF90_NOERR) then
-               where(ctemp(:) == PL_TINY_TYPE_NAME) plmmask(:) = .FALSE.
+               where(ctemp(:) == PL_TINY_TYPE_NAME .or. ctemp(:) == PL_DUST_TYPE_NAME) plmmask(:) = .FALSE.
             else
                where(plmask(:)) plmmask = Gmass(:) > Gmtiny
             end if
