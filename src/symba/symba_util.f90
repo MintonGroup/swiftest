@@ -222,6 +222,12 @@ contains
             nplm = npl
          end if
          pl%nplm = int(nplm, kind=I4B)
+
+         if (param%ldust_pl) then
+            pl%ldust(1:npl) = pl%Gmass(1:npl) < param%GMDUST
+            pl%ndust = count(pl%ldust(1:npl))
+         end if
+         
          ! number of entries in a strict lower triangle, npl x npl, minus first column including only mutually interacting bodies
          nplplm = nplm * npl - nplm * (nplm + 1_I8B) / 2_I8B 
 
