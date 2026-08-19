@@ -228,7 +228,7 @@ contains
          ahi(:,:) = 0.0_DP
          ahj(:,:) = 0.0_DP
          !$omp parallel do default(private) schedule(static)&
-         !$omp shared(npl, nplm, r, Gmass, radius) &
+         !$omp shared(npl, nplm, r, Gmass, radius, ldust) &
          !$omp reduction(+:ahi,ahj)
          do i = 1, nplm
             if (.not. ldust(i)) then
@@ -257,7 +257,7 @@ contains
          end do
       else 
          !$omp parallel do default(private) schedule(static)&
-         !$omp shared(npl, nplm, r, Gmass, radius, acc)
+         !$omp shared(npl, nplm, r, Gmass, radius, acc, ldust)
          do i = 1, nplm
             if (.not. ldust(i)) then
 #ifdef DOCONLOC
@@ -283,7 +283,7 @@ contains
 
          if (nplt > 0) then
             !$omp parallel do default(private) schedule(static)&
-            !$omp shared(npl, nplm, r, Gmass, radius, acc)
+            !$omp shared(npl, nplm, r, Gmass, radius, acc, ldust)
             do i = nplm+1,npl
                if (.not. ldust(i)) then
 #ifdef DOCONLOC
