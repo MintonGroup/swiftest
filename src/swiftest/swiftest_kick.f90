@@ -231,11 +231,11 @@ contains
          !$omp shared(npl, nplm, r, Gmass, radius, ldust) &
          !$omp reduction(+:ahi,ahj)
          do i = 1, nplm
-            if (.not. ldust(i)) then
+            ! if (.not. ldust(i)) then
 #ifdef DOCONLOC
-               do concurrent(j = i+1:npl) shared(i,r,radius,ahi,ahj,Gmass) local(rx,ry,rz,rji2,rlim2)
+               do concurrent(j = i+1:npl, (.not.ldust(j))) shared(i,r,radius,ahi,ahj,Gmass) local(rx,ry,rz,rji2,rlim2)
 #else
-               do concurrent(j = i+1:npl)
+               do concurrent(j = i+1:npl, (.not.ldust(j)))
 #endif
                   rx = r(1, j) - r(1, i) 
                   ry = r(2, j) - r(2, i) 
@@ -245,7 +245,7 @@ contains
                   if (rji2 > rlim2) call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), Gmass(j), &
                                              ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
                end do
-            end if
+            ! end if
          end do
          !$omp end parallel do
 #ifdef DOCONLOC
@@ -259,11 +259,11 @@ contains
          !$omp parallel do default(private) schedule(static)&
          !$omp shared(npl, nplm, r, Gmass, radius, acc, ldust)
          do i = 1, nplm
-            if (.not. ldust(i)) then
+            ! if (.not. ldust(i)) then
 #ifdef DOCONLOC
-               do concurrent(j = 1:npl, i/=j) shared(i,r,radius,Gmass,acc) local(rx,ry,rz,rji2,rlim2,fac)
+               do concurrent(j = 1:npl, i/=j .and. (.not.ldust(j))) shared(i,r,radius,Gmass,acc) local(rx,ry,rz,rji2,rlim2,fac)
 #else
-               do concurrent(j = 1:npl, i/=j)
+               do concurrent(j = 1:npl, i/=j .and. (.not.ldust(j)))
 #endif
                   rx = r(1,j) - r(1,i)
                   ry = r(2,j) - r(2,i)
@@ -277,7 +277,7 @@ contains
                      acc(3,i) = acc(3,i) + fac * rz
                   end if
                end do
-            end if
+            ! end if
          end do
          !$omp end parallel do
 
@@ -285,11 +285,11 @@ contains
             !$omp parallel do default(private) schedule(static)&
             !$omp shared(npl, nplm, r, Gmass, radius, acc, ldust)
             do i = nplm+1,npl
-               if (.not. ldust(i)) then
+               ! if (.not. ldust(i)) then
 #ifdef DOCONLOC
-                  do concurrent(j = 1:nplm) shared(i,r,radius,Gmass,acc) local(rx,ry,rz,rji2,rlim2,fac)
+                  do concurrent(j = 1:nplm, (.not.ldust(j))) shared(i,r,radius,Gmass,acc) local(rx,ry,rz,rji2,rlim2,fac)
 #else
-                  do concurrent(j = 1:nplm)
+                  do concurrent(j = 1:nplm, (.not.ldust(j)))
 #endif
                      rx = r(1,j) - r(1,i)
                      ry = r(2,j) - r(2,i)
@@ -303,7 +303,7 @@ contains
                         acc(3,i) = acc(3,i) + fac * rz
                      end if
                   end do
-               end if
+               ! end if
             end do
             !$omp end parallel do
          end if
@@ -352,11 +352,11 @@ contains
          !$omp shared(npl, nplm, r, Gmass, ldust) &
          !$omp reduction(+:ahi,ahj)
          do i = 1, nplm
-            if (.not. ldust(i)) then
+            ! if (.not. ldust(i)) then
 #ifdef DOCONLOC
-               do concurrent(j = i+1:npl) shared(i,r,Gmass,ahi,ahj) local(rx,ry,rz,rji2)
+               do concurrent(j = i+1:npl, (.not.ldust(j))) shared(i,r,Gmass,ahi,ahj) local(rx,ry,rz,rji2)
 #else
-               do concurrent(j = i+1:npl)
+               do concurrent(j = i+1:npl, (.not.ldust(j)))
 #endif
                   rx = r(1, j) - r(1, i) 
                   ry = r(2, j) - r(2, i) 
@@ -365,7 +365,7 @@ contains
                   call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), Gmass(j), &
                                              ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
                end do
-            end if
+            ! end if
          end do
          !$omp end parallel do
 #ifdef DOCONLOC
@@ -380,9 +380,9 @@ contains
          !$omp shared(npl, nplm, r, Gmass, acc, ldust)
          do i = 1, nplm
 #ifdef DOCONLOC
-            do concurrent(j = 1:npl, j/=i) shared(i,r,Gmass, acc) local(rx,ry,rz,rji2,fac)
+            do concurrent(j = 1:npl, j/=i .and. (.not.ldust(j))) shared(i,r,Gmass, acc) local(rx,ry,rz,rji2,fac)
 #else
-            do concurrent(j = 1:npl, j/=i)
+            do concurrent(j = 1:npl, j/=i .and. (.not.ldust(j)))
 #endif
                rx = r(1,j) - r(1,i)
                ry = r(2,j) - r(2,i)
