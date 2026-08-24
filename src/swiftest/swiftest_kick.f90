@@ -231,7 +231,6 @@ contains
          !$omp shared(npl, nplm, r, Gmass, radius, ldust) &
          !$omp reduction(+:ahi,ahj)
          do i = 1, nplm
-            ! if (.not. ldust(i)) then
 #ifdef DOCONLOC
                do concurrent(j = i+1:npl) shared(i,r,radius,ahi,ahj,Gmass,ldust) local(rx,ry,rz,rji2,rlim2)
 #else
@@ -253,7 +252,6 @@ contains
                      end if
                   end if
                end do
-            ! end if
          end do
          !$omp end parallel do
 #ifdef DOCONLOC
@@ -267,7 +265,6 @@ contains
          !$omp parallel do default(private) schedule(static)&
          !$omp shared(npl, nplm, r, Gmass, radius, acc, ldust)
          do i = 1, nplm
-            ! if (.not. ldust(i)) then
 #ifdef DOCONLOC
                do concurrent(j = 1:npl, i/=j .and. (.not.ldust(j))) shared(i,r,radius,Gmass,acc) local(rx,ry,rz,rji2,rlim2,fac)
 #else
@@ -285,7 +282,6 @@ contains
                      acc(3,i) = acc(3,i) + fac * rz
                   end if
                end do
-            ! end if
          end do
          !$omp end parallel do
 
@@ -293,7 +289,6 @@ contains
             !$omp parallel do default(private) schedule(static)&
             !$omp shared(npl, nplm, r, Gmass, radius, acc, ldust)
             do i = nplm+1,npl
-               ! if (.not. ldust(i)) then
 #ifdef DOCONLOC
                   do concurrent(j = 1:nplm, (.not.ldust(j))) shared(i,r,radius,Gmass,acc) local(rx,ry,rz,rji2,rlim2,fac)
 #else
@@ -311,7 +306,6 @@ contains
                         acc(3,i) = acc(3,i) + fac * rz
                      end if
                   end do
-               ! end if
             end do
             !$omp end parallel do
          end if
