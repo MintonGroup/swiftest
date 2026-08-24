@@ -233,17 +233,25 @@ contains
          do i = 1, nplm
             ! if (.not. ldust(i)) then
 #ifdef DOCONLOC
-               do concurrent(j = i+1:npl, (.not.ldust(j))) shared(i,r,radius,ahi,ahj,Gmass) local(rx,ry,rz,rji2,rlim2)
+               do concurrent(j = i+1:npl) shared(i,r,radius,ahi,ahj,Gmass,ldust) local(rx,ry,rz,rji2,rlim2)
 #else
-               do concurrent(j = i+1:npl, (.not.ldust(j)))
+               do concurrent(j = i+1:npl)
 #endif
                   rx = r(1, j) - r(1, i) 
                   ry = r(2, j) - r(2, i) 
                   rz = r(3, j) - r(3, i) 
                   rji2 = rx**2 + ry**2 + rz**2
                   rlim2 = (radius(i) + radius(j))**2
-                  if (rji2 > rlim2) call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), Gmass(j), &
-                                             ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+                  if (rji2 > rlim2) then 
+                     if (ldust(j)) then
+                        ! prevent dust particles from contributing to the acceleration of massive bodies
+                        call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), 0.0_DP, &
+                                                ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+                     else
+                        call swiftest_kick_getacch_int_one_pl(rji2, rx, ry, rz, Gmass(i), Gmass(j), &
+                                                ahi(1,i), ahi(2,i), ahi(3,i), ahj(1,j), ahj(2,j), ahj(3,j))
+                     end if
+                  end if
                end do
             ! end if
          end do
