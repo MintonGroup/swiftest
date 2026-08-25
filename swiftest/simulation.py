@@ -3363,10 +3363,14 @@ class Simulation:
         return Y_21
 
     def calc_planet_shadow_width(self, r, obliquity):
-        # Calculate the width of the planetary shadow at each radius for a given obliquity
-
+        # Calculate the angular width of the planetary shadow at each radius for a given obliquity
+        # average the sin(delta/2) over a revolution of the planet around the Sun
+        
         radius = self.data.isel(name=0, time=0).radius.values
         r = np.array(r)
+
+        # Calculate mininum delta vs r (at the highest angular tilt; perihelion and aphelion)
+        # angular tilt = pi/2 - obliquity = 90 deg - obliquity
 
         tan_delta_over_2_y = np.sqrt(radius**2 - (r * np.cos(np.pi / 2 - obliquity)) ** 2)  # numerator
         idx = np.where(np.isnan(tan_delta_over_2_y))
@@ -3376,10 +3380,18 @@ class Simulation:
         idx = np.where(np.isnan(tan_delta_over_2_x))
         tan_delta_over_2_x[idx] = 0.0
 
-        delta_over_2 = np.arctan2(
+        min_delta = 2.0 * np.arctan2(
             tan_delta_over_2_y, tan_delta_over_2_x
-        )  # should not happend but CHECK if it ever returns a negative value
-        return np.rad2deg(2.0 * delta_over_2)
+        )  # should not happen but CHECK if it ever returns a negative value
+
+        # calculate the maximum delta vs r (at equinoxes; obliquity = 0)
+        max_delta = 2.0 * np.arctan2(np.repeat(radius, len(r)), np.sqrt(r**2 - radius**2))
+
+        # average sin(delta/2) over a revolution of the planet around the Sun
+        sin_delta_over_2_avg = 2.0 * np.sqrt(r**2 - radius**2) / (r * (max_delta - min_delta)) * (1.0 / np.cos(obliquity) - 1.0)
+        delta_over_2 = np.arcsin(sin_delta_over_2_avg)
+        
+        return np.rad2deg(delta_over_2)
 
     def _vec2xr(
         self,
