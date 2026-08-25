@@ -3369,6 +3369,12 @@ class Simulation:
         radius = self.data.isel(name=0, time=0).radius.values
         r = np.array(r)
 
+        # calculate the maximum delta vs r (at equinoxes; obliquity = 0)
+        max_delta = 2.0 * np.arctan2(np.repeat(radius, len(r)), np.sqrt(r**2 - radius**2))
+
+        if obliquity == 0.0:
+            return np.rad2deg(max_delta)
+
         # Calculate mininum delta vs r (at the highest angular tilt; perihelion and aphelion)
         # angular tilt = pi/2 - obliquity = 90 deg - obliquity
 
@@ -3384,10 +3390,8 @@ class Simulation:
             tan_delta_over_2_y, tan_delta_over_2_x
         )  # should not happen but CHECK if it ever returns a negative value
 
-        # calculate the maximum delta vs r (at equinoxes; obliquity = 0)
-        max_delta = 2.0 * np.arctan2(np.repeat(radius, len(r)), np.sqrt(r**2 - radius**2))
-
         # average sin(delta/2) over a revolution of the planet around the Sun
+        # ensure correct units, (max_delta - min_delta) should be in radians
         sin_delta_over_2_avg = 2.0 * np.sqrt(r**2 - radius**2) / (r * (max_delta - min_delta)) * (1.0 / np.cos(obliquity) - 1.0)
         delta_over_2 = np.arcsin(sin_delta_over_2_avg)
         
