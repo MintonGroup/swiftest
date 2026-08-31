@@ -234,7 +234,7 @@ contains
 #ifdef DOCONLOC
                do concurrent(j = i+1:npl) shared(i,r,radius,ahi,ahj,Gmass,ldust) local(rx,ry,rz,rji2,rlim2)
 #else
-               do concurrent(j = i+1:npl)
+               do concurrent(j = i+1:npl, (.not.ldust(j)))
 #endif
                   rx = r(1, j) - r(1, i) 
                   ry = r(2, j) - r(2, i) 
