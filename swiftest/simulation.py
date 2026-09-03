@@ -3373,6 +3373,7 @@ class Simulation:
         max_delta = 2.0 * np.arctan2(np.repeat(radius, len(r)), np.sqrt(r**2 - radius**2))
 
         if obliquity == 0.0:
+            max_delta[np.isnan(max_delta)] = 0.0
             return np.rad2deg(max_delta)
 
         # Calculate mininum delta vs r (at the highest angular tilt; perihelion and aphelion)
