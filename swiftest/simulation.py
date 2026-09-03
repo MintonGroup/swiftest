@@ -3405,6 +3405,7 @@ class Simulation:
 
         delta_over_2 = np.arcsin(sin_delta_over_2_avg)
         delta_over_2 = np.where(r == radius, np.pi / 2.0, delta_over_2)
+        delta_over_2[np.isnan(delta_over_2)] = 0.0
         
         return np.rad2deg(delta_over_2)
 
