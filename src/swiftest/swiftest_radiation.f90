@@ -34,9 +34,9 @@ contains
             !! particle characteristics for Yarkovsky calculations
         real(DP), intent(in)                        :: a, mass, radius, mu
             !! semi-major axis, mass, radius, and mu of the particle
-        real(DP), dimension(NDIM), intent(in)       :: r_vec, v_vec
+        real(DP), dimension(:), intent(in)       :: r_vec, v_vec
             !! position and velocity vectors of the particle
-        real(DP), dimension(NDIM), intent(in)       :: rot
+        real(DP), dimension(:), intent(in)       :: rot
             !! rotation vector of the particle
         real(DP), dimension(NDIM), intent(out)      :: a_yark 
             !! Yarkovsky acceleration vector
