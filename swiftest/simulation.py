@@ -3363,10 +3363,21 @@ class Simulation:
         return Y_21
 
     def calc_planet_shadow_width(self, r, obliquity):
-        # Calculate the width of the planetary shadow at each radius for a given obliquity
-
+        # Calculate the angular width of the planetary shadow at each radius for a given obliquity
+        # average the sin(delta/2) over a revolution of the planet around the Sun
+        
         radius = self.data.isel(name=0, time=0).radius.values
         r = np.array(r)
+
+        # calculate the maximum delta vs r (at equinoxes; obliquity = 0)
+        max_delta = 2.0 * np.arctan2(np.repeat(radius, len(r)), np.sqrt(r**2 - radius**2))
+
+        if obliquity == 0.0:
+            max_delta[np.isnan(max_delta)] = 0.0
+            return np.rad2deg(max_delta)
+
+        # Calculate mininum delta vs r (at the highest angular tilt; perihelion and aphelion)
+        # angular tilt = pi/2 - obliquity = 90 deg - obliquity
 
         tan_delta_over_2_y = np.sqrt(radius**2 - (r * np.cos(np.pi / 2 - obliquity)) ** 2)  # numerator
         idx = np.where(np.isnan(tan_delta_over_2_y))
@@ -3376,9 +3387,32 @@ class Simulation:
         idx = np.where(np.isnan(tan_delta_over_2_x))
         tan_delta_over_2_x[idx] = 0.0
 
-        delta_over_2 = np.arctan2(
+        min_delta = 2.0 * np.arctan2(
             tan_delta_over_2_y, tan_delta_over_2_x
-        )  # should not happend but CHECK if it ever returns a negative value
+        )  # should not happen but CHECK if it ever returns a negative value
+
+        # average sin(delta/2) over a revolution of the planet around the Sun
+        # ensure correct units, (max_delta - min_delta) should be in radians
+        # sin_delta_over_2_avg = 2.0 * np.sqrt(r**2 - radius**2) / (r * (max_delta - min_delta)) * (1.0 / np.cos(obliquity) - 1.0)
+        sin_delta_over_2_avg = 2.0 * (np.cos(min_delta / 2) - np.cos(max_delta / 2)) / (max_delta - min_delta)
+
+        # scale the <sin(delta/2)> for distance ranges where the shadow is not present at higher angular tilts
+        f_threshold = np.arccos(np.arcsin(radius / r) / obliquity)
+
+        # analytically scaling is (pi/2 - f_threshold) / (pi/2). 
+        # Tests of averaged cumulative torque vs averaged torque over 1 orbit shows that an additional factor of pi/2 is needed to match the cumulative torque.
+        # a factor of 3/2 shows similar agreement but pi/2 is exact.
+        # => final scaling = (pi/2 - f_threshold) / (pi/2) * (pi/2) = (pi/2 - f_threshold)
+        # Unsure why this empirical factor is pi / 2. Likely a factor arising from the integration variable change.
+
+        scaling = (np.pi / 2.0 - f_threshold) #/ (np.pi / 2) * (np.pi / 2) 
+        scaling[np.isnan(scaling)] = 1.0
+        sin_delta_over_2_avg = scaling * sin_delta_over_2_avg 
+
+        delta_over_2 = np.arcsin(sin_delta_over_2_avg)
+        delta_over_2 = np.where(r == radius, np.pi / 2.0, delta_over_2)
+        delta_over_2[np.isnan(delta_over_2)] = 0.0
+        
         return np.rad2deg(2.0 * delta_over_2)
 
     def _vec2xr(
