@@ -3399,7 +3399,13 @@ class Simulation:
         # scale the <sin(delta/2)> for distance ranges where the shadow is not present at higher angular tilts
         f_threshold = np.arccos(np.arcsin(radius / r) / obliquity)
 
-        scaling = 1.5 * (np.pi / 2.0 - f_threshold) / (np.pi / 2)
+        # analytically scaling is (pi/2 - f_threshold) / (pi/2). 
+        # Tests of averaged cumulative torque vs averaged torque over 1 orbit shows that an additional factor of pi/2 is needed to match the cumulative torque.
+        # a factor of 3/2 shows similar agreement but pi/2 is exact.
+        # => final scaling = (pi/2 - f_threshold) / (pi/2) * (pi/2) = (pi/2 - f_threshold)
+        # Unsure why this empirical factor is pi / 2. Likely a factor arising from the integration variable change.
+
+        scaling = (np.pi / 2.0 - f_threshold) #/ (np.pi / 2) * (np.pi / 2) 
         scaling[np.isnan(scaling)] = 1.0
         sin_delta_over_2_avg = scaling * sin_delta_over_2_avg 
 
