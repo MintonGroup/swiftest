@@ -119,7 +119,10 @@ module ringmoons
 
     !> Ringmoons massive body class
     type, extends(symba_pl) :: ringmoons_pl
+
     contains
+        procedure :: convert_to_seed => ringmoons_util_convert_to_ringmoons_seed
+            !! Convert a symba particle to a ringmoons seed particle
     end type ringmoons_pl
 
     type, extends(base_object) :: ringmoons_seed
@@ -177,6 +180,8 @@ module ringmoons
             !! Calculates the tidal torque on the seed from the central body
         procedure :: write_frame  => ringmoons_io_write_frame_seed
             !! Writes seed data to file
+        procedure :: convert_to_symba_pl => ringmoons_util_convert_to_symba_pl
+            !! Convert a ringmoons seed to a Symba particle
         final     ::                ringmoons_final_seed
     end type ringmoons_seed
 
@@ -529,6 +534,24 @@ module ringmoons
             integer(I4B),                   intent(in)    :: ring_bin
             class(swiftest_parameters),     intent(in)    :: param
         end subroutine ringmoons_util_spawn_seed
+
+        module subroutine ringmoons_util_convert_to_symba_pl(seed, cb, ring, param)
+        implicit none
+        class(ringmoons_seed), intent(inout) :: seed
+        class(ringmoons_cb),   intent(in)    :: cb
+        class(ringmoons_ring), intent(inout) :: ring
+        class(swiftest_parameters), intent(in) :: param
+
+    end subroutine ringmoons_util_convert_to_symba_pl
+
+    module subroutine ringmoons_util_convert_to_ringmoons_seed(pl,cb,ring,param)
+        implicit none
+        class(ringmoons_pl), intent(inout) :: pl
+        class(ringmoons_cb),   intent(in)    :: cb
+        class(ringmoons_ring), intent(inout) :: ring
+        class(swiftest_parameters), intent(in) :: param
+
+    end subroutine ringmoons_util_convert_to_ringmoons_seed
 
         module subroutine ringmoons_util_velocity_dispersion_ring(self,cb,param)
             implicit none

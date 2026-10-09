@@ -132,7 +132,7 @@ contains
                 ! skip bins that don't have enough mass
                 if (ring%sigma(j) * param%MU2KG/param%DU2M**2 < NOSPAWN_THRESHOLD_SIGMA) cycle
                     
-                ! skip bins that already have a seed
+                ! skip bins that already have a seed -> Should we add mass to these seeds?
                 if (seed%nbody > 0) then
                     if (any(seed%ringbin(1:seed%nbody) == j)) cycle
                 end if
@@ -146,6 +146,10 @@ contains
                 end where
             end if
 
+            ! Convert any large seeds to Symba particles
+            if (seed%nbody > 0) then
+                call seed%convert_to_symba_pl(cb, ring, param)
+            end if
         end associate
 
         call ieee_set_halting_mode(IEEE_ALL, fpe_halting_modes)

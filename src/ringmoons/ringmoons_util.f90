@@ -583,6 +583,32 @@ contains
         return
     end subroutine ringmoons_util_spawn_seed
 
+    module subroutine ringmoons_util_convert_to_symba_pl(seed, cb, ring, param)
+        implicit none
+        class(ringmoons_seed), intent(inout) :: seed
+        class(ringmoons_cb),   intent(in)    :: cb
+        class(ringmoons_ring), intent(inout) :: ring
+        class(swiftest_parameters), intent(in) :: param
+
+        !! Convert a ringmoons seed to a symba particle (ringmoons_pl type) if it gets sufficiently massive
+
+        ! Implementation goes here
+
+    end subroutine ringmoons_util_convert_to_symba_pl
+
+    module subroutine ringmoons_util_convert_to_ringmoons_seed(pl,cb,ring,param)
+        implicit none
+        class(ringmoons_pl), intent(inout) :: pl
+        class(ringmoons_cb),   intent(in)    :: cb
+        class(ringmoons_ring), intent(inout) :: ring
+        class(swiftest_parameters), intent(in) :: param
+
+        !! Convert a symba particle to a ringmoons seed particle if the symba particle is too small
+
+        ! Implementation goes here
+
+    end subroutine ringmoons_util_convert_to_ringmoons_seed
+
     module subroutine ringmoons_util_velocity_dispersion_ring(self,cb,param)
         implicit none
         class(ringmoons_ring), intent(inout) :: self
