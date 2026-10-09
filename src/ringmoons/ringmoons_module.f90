@@ -119,7 +119,21 @@ module ringmoons
 
     !> Ringmoons massive body class
     type, extends(symba_pl) :: ringmoons_pl
-
+        ! keep characteristics of seeds
+        integer(I4B),                 dimension(:), allocatable :: ringbin         
+            !! Ring bin location of seed
+        real(DP),                     dimension(:), allocatable :: Torque       
+            !! Total torque acting on the seed
+        real(DP),                     dimension(:), allocatable :: Ttide        
+            !! Tidal torque acting on the seed
+        real(DP)                                                :: feeding_zone_factor = 10._DP
+            !! Width of feeding zone for seed mergers in units of mutual Hill's sphere
+        real(DP)                                                :: rkf_tol   = 1.0e-6_DP
+            !! Error tolerance for Runge-Kutta-Fehlberg integrator for seed evolution
+        real(DP)                                                :: mass_init       
+            !! initial mass of seeds
+        integer(I4B)                                            :: maxid
+            !! Current maximum id of the system, set automatically from the nbody_system object
     contains
         procedure :: convert_to_seed => ringmoons_util_convert_to_ringmoons_seed
             !! Convert a symba particle to a ringmoons seed particle
