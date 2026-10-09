@@ -427,7 +427,7 @@ contains
                 dtleft = dtleft - dti
             
                 if (dtleft <= 0.0_DP) exit steploop
-                dti = min(sarr * dti,dtleft)
+                dti = min(sarr * dti, dtleft)
             end do steploop
 
             seed%a(1:Ns) = af(1:Ns)
@@ -624,9 +624,11 @@ contains
                 
                 dtring = ring%get_dt(dtring)
 
-                call cb%accrete(ring,seed,param,dtring)
+                !! Make a leapfrog-like algorithm around the SyMBA step; Similar to Salmon and Canup, 2019 https://doi.org/10.3847/1538-4357/ab2b96
 
-                call seed%step(cb,ring,dtring,param,stepfail)
+                call cb%accrete(ring, seed, param, dtring)
+
+                call seed%step(cb, ring, dtring, param, stepfail)
 
                 if (stepfail) then
                     dtring = dtring / SUBMAX
@@ -635,7 +637,7 @@ contains
                     cycle
                 end if
 
-                call ring%step(cb,dtring,param,stepfail)
+                call ring%step(cb, dtring, param, stepfail)
                 if (stepfail) then
                     if (dtring > dt * DTMIN_FAC) then
                         dtring = dtring / submax
@@ -645,7 +647,7 @@ contains
                     end if
                 end if
 
-                call seed%restructure(cb,ring,param) ! Spawn new seed in any available bins outside the FRL 
+                call seed%restructure(cb, ring, param) ! Spawn new seed in any available bins outside the FRL 
                 subcount = subcount + 1
 
                 dtleft = dtleft - dtring
@@ -653,10 +655,10 @@ contains
                 if (dtleft <= 0.0_DP) exit
                 loopcount = loop
                 if (subcount == 2 * submax) then
-                    dtring = min(dtleft,submax * dtring)
+                    dtring = min(dtleft, submax * dtring)
                     subcount = 0
                 end if
-                dtring = min(dtleft,dtring)
+                dtring = min(dtleft, dtring)
 
                 deallocate(old_system%cb, old_system%ring, old_system%seed)
                 allocate(old_system%ring, source=self%ring)
