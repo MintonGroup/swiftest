@@ -304,10 +304,10 @@ module ringmoons
             !! Read in ring data from file
         procedure :: write_frame             => ringmoons_io_write_frame_ring
             !! Writes ring data to file
-        final     ::                            ringmoons_final_ring
-            !! Finalizes the ringmoons ring object - deallocates all allocatables
         procedure :: yark_schach_torque      => ringmoons_torque_yarkovsky_schach_ring
             !! Calculates the torque from the Yarkovsky-Schach effect on the ring
+        final     ::                            ringmoons_final_ring
+            !! Finalizes the ringmoons ring object - deallocates all allocatables
     end type ringmoons_ring
 
     type, extends(symba_nbody_system) :: ringmoons_nbody_system
@@ -322,6 +322,8 @@ module ringmoons
             !! Performs ringmoons-specific initilization steps
         procedure :: step       => ringmoons_step_system                  
             !! Advance the ringmoons nbody system forward in time by one step
+        final     ::               ringmoons_final_system
+            !! Finalizes the ringmoons ring object - deallocates all allocatables
     end type ringmoons_nbody_system
 
     interface
@@ -593,6 +595,18 @@ module ringmoons
     end interface
 
     contains
+        subroutine ringmoons_final_system(self)
+            !! author: David A. Minton
+            !!
+            !! Finalize the ringmoons system object - deallocates all allocatables
+            implicit none
+            ! Argument
+            type(ringmoons_nbody_system),  intent(inout) :: self 
+                !! Ringmoons nbody system object
+            call self%dealloc()
+            return
+        end subroutine ringmoons_final_system
+
         subroutine ringmoons_final_ring(self)
             !! author: David A. Minton
             !!

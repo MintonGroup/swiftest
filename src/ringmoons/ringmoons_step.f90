@@ -609,7 +609,11 @@ contains
         ! Make a leapfrog-like algorithm around the SyMBA step; Similar to Salmon and Canup, 2019 https://doi.org/10.3847/1538-4357/ab2b96
         ! Accrete material onto the cb, step seed, ring, symba, ring, seed, accrete onto cb
 
-        dth = 0.5_DP * dt
+        if (param%lfirstkick) then
+            dth = 0.5_DP * dt
+        else
+            dth = dt
+        end if
 
         ! Accrete, step seed, step ring for dth = dt/2
         subcount = 0
@@ -681,75 +685,6 @@ contains
 
         ! Step the nbody system like normal with symba for dt
         call symba_step_system(self, param, t, dt)
-
-        ! Step ring, step seed, accrete for dth = dt/2
-        subcount = 0
-        dtleft = dth
-        dtring = dtleft
-        
-        allocate(old_system%ring, source=self%ring)
-        allocate(old_system%seed, source=self%seed)
-        allocate(old_system%cb,   source=self%cb)
-        do loop = 1, LOOPMAX
-            select type(cb => self%cb)
-            class is (ringmoons_cb)
-            associate(ring => self%ring, seed => self%seed)
-                if (loop == LOOPMAX) then
-                    write(*,*) 'LOOPMAX reached in seed evolution. Ringmoons_step failed'
-                    call base_util_exit(FAILURE)
-                end if
-
-                ring%Torque(:) = 0.0_DP
-                if (seed%nbody > 0) seed%Torque(:) = 0.0_DP
-
-                call ring%update(cb,param)
-                
-                dtring = ring%get_dt(dtring)
-
-                call ring%step(cb, dtring, param, stepfail)
-                if (stepfail) then
-                    if (dtring > dth * DTMIN_FAC) then
-                        dtring = dtring / submax
-                        subcount = 0
-                        call ringmoons_step_restart(self,old_system)
-                        cycle
-                    end if
-                end if
-
-                call seed%restructure(cb, ring, param) ! Spawn new seed in any available bins outside the FRL 
-
-                call seed%step(cb, ring, dtring, param, stepfail)
-
-                if (stepfail) then
-                    dtring = dtring / SUBMAX
-                    subcount = 0
-                    call ringmoons_step_restart(self,old_system)
-                    cycle
-                end if
-
-                call cb%accrete(ring, seed, param, dtring)
-                
-                subcount = subcount + 1
-                dtleft = dtleft - dtring
-                ! Scale the change in the ring torques by the step size reduction in order to get the time-averaged Torque
-                if (dtleft <= 0.0_DP) exit
-                loopcount = loop
-                if (subcount == 2 * submax) then
-                    dtring = min(dtleft, submax * dtring)
-                    subcount = 0
-                end if
-                dtring = min(dtleft, dtring)
-
-                deallocate(old_system%cb, old_system%ring, old_system%seed)
-                allocate(old_system%ring, source=self%ring)
-                allocate(old_system%seed, source=self%seed)
-                allocate(old_system%cb,   source=self%cb)
-            end associate
-            end select
-        end do
-
-        self%ring%t = t + dth
-
 
         return
     end subroutine ringmoons_step_system
