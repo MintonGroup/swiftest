@@ -3393,7 +3393,6 @@ class Simulation:
 
         # average sin(delta/2) over a revolution of the planet around the Sun
         # ensure correct units, (max_delta - min_delta) should be in radians
-        # sin_delta_over_2_avg = 2.0 * np.sqrt(r**2 - radius**2) / (r * (max_delta - min_delta)) * (1.0 / np.cos(obliquity) - 1.0)
         sin_delta_over_2_avg = 2.0 * (np.cos(min_delta / 2) - np.cos(max_delta / 2)) / (max_delta - min_delta)
 
         # scale the <sin(delta/2)> for distance ranges where the shadow is not present at higher angular tilts

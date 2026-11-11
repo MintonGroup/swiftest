@@ -34,6 +34,8 @@ class TestRadiation(unittest.TestCase):
         Tests that the Yarkovsky-Schach effect is handled correctly in ringmoons.
         """
         # ring and particle parameters
+        r_p_SIs = [25e-2, 1e0]
+        r_p_SI_name = ['0.25m', '1m']
         rho_p_SI = 1500.0 # disk particle density
         Mars_k2 = 0.164
         Mars_Q = 99.5
@@ -49,15 +51,11 @@ class TestRadiation(unittest.TestCase):
         # YS parameters
         albedo = 0.07
         emissivity = 0.9
+        thermal_inertia_SI = 1500.0
         rot_k = 0.25
-        thermal_inertia_scaled = 1500.0 * (sim.TU2S**(5.0/2)) / sim.MU2KG
         a_pl = 67248.67 # Mars a in R_Mars
-        # ring particle properties
-        obliquities = [0, 25, 50] # degrees
-        r_p_SIs = [1e0, 5e0, 10e0]
-        r_p = r_p_SI * sim.M2DU  # disk particle size
-        rho_p = rho_p_SI * sim.KG2MU / sim.M2DU**3  # disk particle density
-        m_p = 4.0 / 3.0 * np.pi * r_p**3 * rho_p  # disk particle mass
+        obliquities = [0, 25] # degrees
+        obliquities_name = ['0', '25']
 
         # set up the simulation object
         cb = swiftest.get_solar_system_body("Mars")
@@ -75,6 +73,11 @@ class TestRadiation(unittest.TestCase):
         sim.clean()
         sim.add_solar_system_body("Mars", align_to_central_body_rotation=True)
         sim.modify_body(name = "Mars", k2 = Mars_k2, Q = Mars_Q)
+
+        r_p = r_p_SIs[0] * sim.M2DU  # disk particle size
+        rho_p = rho_p_SI * sim.KG2MU / sim.M2DU**3  # disk particle density
+        m_p = 4.0 / 3.0 * np.pi * r_p**3 * rho_p  # disk particle mass
+        thermal_inertia_scaled = thermal_inertia_SI * (sim.TU2S**(5.0/2)) / sim.MU2KG
         
         sim.add_ring(
                     r_p=r_p,
@@ -219,49 +222,48 @@ class TestRadiation(unittest.TestCase):
 
         # check that the ring is pushed away from the planet
 
-        for radius in radii:
+        for r_p_SI in r_p_SIs:
             for obliquity in obliquities:
-                mass = 4.0 / 3.0 * np.pi * density * radius**3  # kg
-                rot_unit_vector = np.array([np.sin(np.deg2rad(obliquity)), 0, np.cos(np.deg2rad(obliquity))])
+                
+                sim = swiftest.Simulation(simdir = self.simdir, 
+                                            integrator = 'ringmoons', 
+                                            MU2KG = m_cb, DU2M = r_cb, TU = "yr", 
+                                            tstop = 5e8, 
+                                            dt=100,
+                                            tstep_out = 1e8, 
+                                            dump_cadence=0,
+                                            yarkovsky_schach = True)
+                sim.clean()
+                sim.add_solar_system_body("Mars", align_to_central_body_rotation=True)
+                sim.modify_body(name = "Mars", k2 = Mars_k2, Q = Mars_Q)
+                
+                sim.add_ring(
+                            r_p=r_p,
+                            m_p=m_p,
+                            mass_distribution={
+                                "type": m_dist_type,
+                                "sigma0": m_dist_sigma0 * sim.KG2MU / sim.M2DU**2,
+                                "alpha": m_dist_alpha,
+                                "nbins": m_dist_nbins,
+                                "r_outer": m_dist_r_outer
+                            },
+                            albedo = albedo,
+                            emissivity=emissivity,
+                            rot_k = rot_k,
+                            gamma = thermal_inertia_scaled,
+                            a_pl = a_pl,
+                            obliquity = obliquity
+                        )
 
-                sim = swiftest.Simulation(
-                    simdir=self.simdir,
-                    integrator="symba",
-                    DU="AU",
-                    TU="y",
-                    MU="Msun",
-                    tstop=1e3,
-                    dt=0.05,
-                    yarkovsky=True,
-                    general_relativity=False,
-                    verbose=False,
-                    dump_cadence=0,
-                )
-
-                sim.add_solar_system_body(name=["Sun"], align_to_central_body_rotation=True)
-
-                sim.add_body(
-                    name="Veritas",
-                    radius=radius / sim.DU2M,
-                    mass=mass / sim.MU2KG,
-                    rot=rot_unit_vector * rot_mag * sim.TU2S,
-                    a=a,  # already in AU
-                    e=e,
-                    inc=inc,
-                    capom=capom,
-                    omega=omega,
-                    capm=capm,
-                    albedo=albedo,
-                    emissivity=emissivity,
-                    gamma=gamma * (sim.TU2S ** (5.0 / 2)) / sim.MU2KG,
-                    rot_k=rot_k,
-                )
+                # check that delta = 180 degrees at a = R_pl
+                self.assertAlmostEqual(sim.ring.delta, 180.0, delta = 1.0)
 
                 sim.run()
 
-                da = sim.data.sel(name="Veritas", time=sim.data.time.values[-1]).a - sim.data.sel(name="Veritas", time=0).a
-                # compare with pre-tested results
-                self.assertAlmostEqual(da.values, da_pre_tested[f"{radius}"][f"{obliquity}"], delta=delta[f"{radius}"])
+                # compare with pre-tested results that ring surface mass density --> 0 at r = 1.5 R_Mars
+                sigma = sim.ring.sel(time = 5e8, ringbin = 32).sigma # ringbin = 32 => r = 1.5 R_Mars
+                self.assertLessEqual(sigma, 1e-10, delta = 1e-10)
+
                 sim.clean()
         return
 
