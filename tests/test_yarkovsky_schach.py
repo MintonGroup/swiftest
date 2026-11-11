@@ -33,146 +33,191 @@ class TestRadiation(unittest.TestCase):
         """
         Tests that the Yarkovsky-Schach effect is handled correctly in ringmoons.
         """
-        # Asteroid 7231 Veritas clone with values from Ferich, et al (2022) and Carruba, et al (2017)
-        a = 3.165802  # AU
-        e = 0.0
-        inc = 0.0
-        capom = (0.0,)
-        omega = (0.0,)
-        capm = (0.0,)
-        density = 1300  # kg/m^3
-        radius = 100.0  # m
-        mass = 4.0 / 3.0 * np.pi * density * radius**3  # kg
-        rot_period = 6.0  # h
-        rot_period *= 60.0 * 60.0  # h to s
-        rot_mag = 360.0 / rot_period  # deg/s
-        # obliquities = [0.0, 60.0, 90.0, 180.0] # degrees
+        # ring and particle parameters
+        rho_p_SI = 1500.0 # disk particle density
+        Mars_k2 = 0.164
+        Mars_Q = 99.5
+
+        # mass distribution parameters
+        m_dist_type = 'powerlaw'
+        m_dist_sigma0 = 1.05e7 #1.05e5 * 2 / 115.7181 # 2 M_Phobos # old num = 1.05e7
+        m_dist_alpha = -8.0
+        m_dist_nbins = 256
+        m_dist_r_outer = 8
+        ring_r_max = 6.4 # cb units
+
+        # YS parameters
         albedo = 0.07
         emissivity = 0.9
-        gamma = 4000.0  # SI units
         rot_k = 0.25
+        thermal_inertia_scaled = 1500.0 * (sim.TU2S**(5.0/2)) / sim.MU2KG
+        a_pl = 67248.67 # Mars a in R_Mars
+        # ring particle properties
+        obliquities = [0, 25, 50] # degrees
+        r_p_SIs = [1e0, 5e0, 10e0]
+        r_p = r_p_SI * sim.M2DU  # disk particle size
+        rho_p = rho_p_SI * sim.KG2MU / sim.M2DU**3  # disk particle density
+        m_p = 4.0 / 3.0 * np.pi * r_p**3 * rho_p  # disk particle mass
 
         # set up the simulation object
-        sim = swiftest.Simulation(
-            simdir=self.simdir,
-            integrator="symba",
-            DU="AU",
-            TU="y",
-            MU="Msun",
-            tstop=1e3,
-            dt=0.05,
-            yarkovsky=True,
-            general_relativity=False,
-            verbose=False,
-            dump_cadence=0,
-        )
-        sim.add_solar_system_body(name=["Sun"], align_to_central_body_rotation=True)
+        cb = swiftest.get_solar_system_body("Mars")
+        r_cb = cb["radius"]
+        m_cb = cb["mass"]
+
+        sim = swiftest.Simulation(simdir = self.simdir, 
+                                  integrator = 'ringmoons', 
+                                  MU2KG = m_cb, DU2M = r_cb, TU = "yr", 
+                                  tstop = 2e6, 
+                                  dt=100,
+                                  tstep_out = 2e6, 
+                                  dump_cadence=0,
+                                  yarkovsky_schach = True)
+        sim.clean()
+        sim.add_solar_system_body("Mars", align_to_central_body_rotation=True)
+        sim.modify_body(name = "Mars", k2 = Mars_k2, Q = Mars_Q)
+        
+        sim.add_ring(
+                    r_p=r_p,
+                    m_p=m_p,
+                    mass_distribution={
+                        "type": m_dist_type,
+                        "sigma0": m_dist_sigma0 * sim.KG2MU / sim.M2DU**2,
+                        "alpha": m_dist_alpha,
+                        "nbins": m_dist_nbins,
+                        "r_outer": m_dist_r_outer
+                    },
+                    albedo = albedo,
+                    emissivity=emissivity,
+                    rot_k = rot_k,
+                    gamma = thermal_inertia_scaled,
+                    a_pl = a_pl,
+                    obliquity = obliquity
+                    # Y_21 = None
+                    # delta = None
+                )
 
         # check that data inputs are handled correctly
         # if one value is missing, an error should be thrown. If multiple values are missing, this test should extend to cover that.
 
-        # for this case, we take an obliquity = 0 deg
-        obliquity = 0.0
-        rot_unit_vector = np.array([np.sin(np.deg2rad(obliquity)), 0, np.cos(np.deg2rad(obliquity))])
-
         # missing albedo
 
         with self.assertRaises(ValueError):
-            sim.add_body(
-                name="Veritas",
-                radius=radius / sim.DU2M,
-                mass=mass / sim.MU2KG,
-                rot=rot_unit_vector * rot_mag * sim.TU2S,
-                a=a,  # already in AU
-                e=e,
-                inc=inc,
-                capom=capom,
-                omega=omega,
-                capm=capm,
-                emissivity=emissivity,
-                gamma=gamma * (sim.TU2S ** (5.0 / 2)) / sim.MU2KG,
-                rot_k=rot_k,
-            )
+            sim.add_ring(
+                        r_p=r_p,
+                        m_p=m_p,
+                        mass_distribution={
+                            "type": m_dist_type,
+                            "sigma0": m_dist_sigma0 * sim.KG2MU / sim.M2DU**2,
+                            "alpha": m_dist_alpha,
+                            "nbins": m_dist_nbins,
+                            "r_outer": m_dist_r_outer
+                        },
+                        emissivity=emissivity,
+                        rot_k = rot_k,
+                        gamma = thermal_inertia_scaled,
+                        a_pl = a_pl,
+                        obliquity = obliquity
+                        )
 
         # missing emissivity
         with self.assertRaises(ValueError):
-            sim.add_body(
-                name="Veritas",
-                radius=radius / sim.DU2M,
-                mass=mass / sim.MU2KG,
-                rot=rot_unit_vector * rot_mag * sim.TU2S,
-                a=a,  # already in AU
-                e=e,
-                inc=inc,
-                capom=capom,
-                omega=omega,
-                capm=capm,
-                albedo=albedo,
-                gamma=gamma * (sim.TU2S ** (5.0 / 2)) / sim.MU2KG,
-                rot_k=rot_k,
-            )
+            sim.add_ring(
+                        r_p=r_p,
+                        m_p=m_p,
+                        mass_distribution={
+                            "type": m_dist_type,
+                            "sigma0": m_dist_sigma0 * sim.KG2MU / sim.M2DU**2,
+                            "alpha": m_dist_alpha,
+                            "nbins": m_dist_nbins,
+                            "r_outer": m_dist_r_outer
+                        },
+                        albedo = albedo,
+                        rot_k = rot_k,
+                        gamma = thermal_inertia_scaled,
+                        a_pl = a_pl,
+                        obliquity = obliquity
+                        )
 
         # missing rotational k constant
         with self.assertRaises(ValueError):
-            sim.add_body(
-                name="Veritas",
-                radius=radius / sim.DU2M,
-                mass=mass / sim.MU2KG,
-                rot=rot_unit_vector * rot_mag * sim.TU2S,
-                a=a,  # already in AU
-                e=0,
-                inc=0,
-                capom=0.0,
-                omega=0.0,
-                capm=0.0,
-                albedo=albedo,
-                emissivity=emissivity,
-                gamma=gamma * (sim.TU2S ** (5.0 / 2)) / sim.MU2KG,
-            )
+            sim.add_ring(
+                        r_p=r_p,
+                        m_p=m_p,
+                        mass_distribution={
+                            "type": m_dist_type,
+                            "sigma0": m_dist_sigma0 * sim.KG2MU / sim.M2DU**2,
+                            "alpha": m_dist_alpha,
+                            "nbins": m_dist_nbins,
+                            "r_outer": m_dist_r_outer
+                        },
+                        albedo = albedo,
+                        emissivity=emissivity,
+                        gamma = thermal_inertia_scaled,
+                        a_pl = a_pl,
+                        obliquity = obliquity
+                        )
 
         # missing thermal inertia (gamma)
         with self.assertRaises(ValueError):
-            sim.add_body(
-                name="Veritas",
-                radius=radius / sim.DU2M,
-                mass=mass / sim.MU2KG,
-                rot=rot_unit_vector * rot_mag * sim.TU2S,
-                a=a,  # already in AU
-                e=e,
-                inc=inc,
-                capom=capom,
-                omega=omega,
-                capm=capm,
-                albedo=albedo,
-                emissivity=emissivity,
-                rot_k=rot_k,
-            )
+            sim.add_ring(
+                        r_p=r_p,
+                        m_p=m_p,
+                        mass_distribution={
+                            "type": m_dist_type,
+                            "sigma0": m_dist_sigma0 * sim.KG2MU / sim.M2DU**2,
+                            "alpha": m_dist_alpha,
+                            "nbins": m_dist_nbins,
+                            "r_outer": m_dist_r_outer
+                        },
+                        albedo = albedo,
+                        emissivity=emissivity,
+                        rot_k = rot_k,
+                        a_pl = a_pl,
+                        obliquity = obliquity
+                        )
+            
+        # missing planet's semi-major axis with respect to the Sun
+        with self.assertRaises(ValueError):
+            sim.add_ring(
+                        r_p=r_p,
+                        m_p=m_p,
+                        mass_distribution={
+                            "type": m_dist_type,
+                            "sigma0": m_dist_sigma0 * sim.KG2MU / sim.M2DU**2,
+                            "alpha": m_dist_alpha,
+                            "nbins": m_dist_nbins,
+                            "r_outer": m_dist_r_outer
+                        },
+                        albedo = albedo,
+                        emissivity=emissivity,
+                        rot_k = rot_k,
+                        gamma = thermal_inertia_scaled,
+                        obliquity = obliquity
+                        )
 
-        # check da/dt has the correct direction and value for various obliquities and sizes
-
-        obliquities = [60.0, 90.0]  # degrees
-        radii = [10.0, 100.0]  # m
-
-        # pre-tested results for da at t = 1,000 y in AU for the given obliquities and radii
-
-        da_pre_tested = {
-            "10.0": {
-                "0.0": 2.807739638921447e-05,
-                "60.0": 1.562845768354748e-06,
-                "90.0": -2.302262337128269e-05,
-                "180.0": -6.640618802133957e-05,
-            },
-            "100.0": {
-                "0.0": 2.8077498379630583e-06,
-                "60.0": 1.5627818239494218e-07,
-                "90.0": -2.302270235343684e-06,
-                "180.0": -6.640592883133678e-06,
-            },
-        }
-
-        delta = {"10.0": 1e-6, "100.0": 1e-7}
+        # missing planet obliquity
+        with self.assertRaises(ValueError):
+            sim.add_ring(
+                        r_p=r_p,
+                        m_p=m_p,
+                        mass_distribution={
+                            "type": m_dist_type,
+                            "sigma0": m_dist_sigma0 * sim.KG2MU / sim.M2DU**2,
+                            "alpha": m_dist_alpha,
+                            "nbins": m_dist_nbins,
+                            "r_outer": m_dist_r_outer
+                        },
+                        albedo = albedo,
+                        emissivity=emissivity,
+                        rot_k = rot_k,
+                        a_pl = a_pl,
+                        gamma = thermal_inertia_scaled,
+                        obliquity = obliquity
+                        )
 
         sim.clean()
+
+        # check that the ring is pushed away from the planet
 
         for radius in radii:
             for obliquity in obliquities:
