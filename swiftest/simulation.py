@@ -3284,12 +3284,6 @@ class Simulation:
                 raise ValueError("Yarkovsky effect modeling requires planetary semi-major axis value for the ring")
             if obliquity is None:
                 raise ValueError("Yarkovsky effect modeling requires planet obliquity value for the ring")
-            if Y_21 is None:
-                Y_21 = self.calc_Yarkovsky_direction_matrix_Y_21(nbins, r, albedo, emissivity, gamma)
-                Y_21, nbins = input_to_array(Y_21, "f", nbins)
-            if delta is None:
-                delta = self.calc_planet_shadow_width(r, np.deg2rad(obliquity))
-                delta, nbins = input_to_array(delta, "f", nbins)
 
             albedo = np.array(albedo, dtype=np.float64)
             emissivity = np.array(emissivity, dtype=np.float64)
@@ -3299,6 +3293,13 @@ class Simulation:
             obliquity = np.array(obliquity, dtype=np.float64)
             delta, nbins = input_to_array(None, "f", nbins)  # value will be calculated later
             Y_21, nbins = input_to_array(None, "f", nbins)  # value will be calculated later
+
+            if Y_21 is None:
+                Y_21 = self.calc_Yarkovsky_direction_matrix_Y_21(nbins, r, albedo, emissivity, gamma)
+                Y_21, nbins = input_to_array(Y_21, "f", nbins)
+            if delta is None:
+                delta = self.calc_planet_shadow_width(r, np.deg2rad(obliquity))
+                delta, nbins = input_to_array(delta, "f", nbins)
 
             # combine the new variables into dataset
             # we don't use vec2xr to prevent any degeneracy issues with similarly named variables in the N-body Swiftest dataset
