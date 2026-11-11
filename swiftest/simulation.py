@@ -3271,14 +3271,6 @@ class Simulation:
 
         # check for additional variable inputs
         if self.param["YARKOVSKY_SCHACH"]:
-            albedo = np.array(albedo, dtype=np.float64)
-            emissivity = np.array(emissivity, dtype=np.float64)
-            rot_k = np.array(rot_k, dtype=np.float64)
-            gamma = np.array(gamma, dtype=np.float64)
-            a_pl = np.array(a_pl, dtype=np.float64)
-            obliquity = np.array(obliquity, dtype=np.float64)
-            delta, nbins = input_to_array(None, "f", nbins)  # value will be calculated later
-            Y_21, nbins = input_to_array(None, "f", nbins)  # value will be calculated later
 
             if albedo is None:
                 raise ValueError("Yarkovsky effect modeling requires albedo value for the ring")
@@ -3298,6 +3290,15 @@ class Simulation:
             if delta is None:
                 delta = self.calc_planet_shadow_width(r, np.deg2rad(obliquity))
                 delta, nbins = input_to_array(delta, "f", nbins)
+
+            albedo = np.array(albedo, dtype=np.float64)
+            emissivity = np.array(emissivity, dtype=np.float64)
+            rot_k = np.array(rot_k, dtype=np.float64)
+            gamma = np.array(gamma, dtype=np.float64)
+            a_pl = np.array(a_pl, dtype=np.float64)
+            obliquity = np.array(obliquity, dtype=np.float64)
+            delta, nbins = input_to_array(None, "f", nbins)  # value will be calculated later
+            Y_21, nbins = input_to_array(None, "f", nbins)  # value will be calculated later
 
             # combine the new variables into dataset
             # we don't use vec2xr to prevent any degeneracy issues with similarly named variables in the N-body Swiftest dataset

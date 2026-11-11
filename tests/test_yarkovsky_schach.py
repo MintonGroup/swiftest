@@ -35,7 +35,6 @@ class TestRadiation(unittest.TestCase):
         """
         # ring and particle parameters
         r_p_SIs = [25e-2, 1e0]
-        r_p_SI_name = ['0.25m', '1m']
         rho_p_SI = 1500.0 # disk particle density
         Mars_k2 = 0.164
         Mars_Q = 99.5
@@ -46,7 +45,6 @@ class TestRadiation(unittest.TestCase):
         m_dist_alpha = -8.0
         m_dist_nbins = 256
         m_dist_r_outer = 8
-        ring_r_max = 6.4 # cb units
 
         # YS parameters
         albedo = 0.07
@@ -55,7 +53,6 @@ class TestRadiation(unittest.TestCase):
         rot_k = 0.25
         a_pl = 67248.67 # Mars a in R_Mars
         obliquities = [0, 25] # degrees
-        obliquities_name = ['0', '25']
 
         # set up the simulation object
         cb = swiftest.get_solar_system_body("Mars")
@@ -74,30 +71,11 @@ class TestRadiation(unittest.TestCase):
         sim.add_solar_system_body("Mars", align_to_central_body_rotation=True)
         sim.modify_body(name = "Mars", k2 = Mars_k2, Q = Mars_Q)
 
+        obliquity = obliquities[0]
         r_p = r_p_SIs[0] * sim.M2DU  # disk particle size
         rho_p = rho_p_SI * sim.KG2MU / sim.M2DU**3  # disk particle density
         m_p = 4.0 / 3.0 * np.pi * r_p**3 * rho_p  # disk particle mass
         thermal_inertia_scaled = thermal_inertia_SI * (sim.TU2S**(5.0/2)) / sim.MU2KG
-        
-        sim.add_ring(
-                    r_p=r_p,
-                    m_p=m_p,
-                    mass_distribution={
-                        "type": m_dist_type,
-                        "sigma0": m_dist_sigma0 * sim.KG2MU / sim.M2DU**2,
-                        "alpha": m_dist_alpha,
-                        "nbins": m_dist_nbins,
-                        "r_outer": m_dist_r_outer
-                    },
-                    albedo = albedo,
-                    emissivity=emissivity,
-                    rot_k = rot_k,
-                    gamma = thermal_inertia_scaled,
-                    a_pl = a_pl,
-                    obliquity = obliquity
-                    # Y_21 = None
-                    # delta = None
-                )
 
         # check that data inputs are handled correctly
         # if one value is missing, an error should be thrown. If multiple values are missing, this test should extend to cover that.
@@ -224,6 +202,10 @@ class TestRadiation(unittest.TestCase):
 
         for r_p_SI in r_p_SIs:
             for obliquity in obliquities:
+
+                r_p = r_p_SI * sim.M2DU  # disk particle size
+                rho_p = rho_p_SI * sim.KG2MU / sim.M2DU**3  # disk particle density
+                m_p = 4.0 / 3.0 * np.pi * r_p**3 * rho_p  # disk particle mass
                 
                 sim = swiftest.Simulation(simdir = self.simdir, 
                                             integrator = 'ringmoons', 
